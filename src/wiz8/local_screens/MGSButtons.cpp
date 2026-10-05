@@ -213,7 +213,7 @@ void SubMenuCastRecordedSpell(void)
 // FUNCTION: WIZ8 0x00596B90
 void SubMenuSelectRun(void)
 {
-    if (AnyCharacterEngaged() == 0) {
+    if (!AnyCharacterEngaged()) {
         return;
     }
     ChooseSubMenuAction(W8_ACTION_RUN);
@@ -222,7 +222,7 @@ void SubMenuSelectRun(void)
 // FUNCTION: WIZ8 0x00596C40
 void SubMenuSelectWalk(void)
 {
-    if (AnyCharacterEngaged() == 0) {
+    if (!AnyCharacterEngaged()) {
         return;
     }
     ChooseSubMenuAction(W8_ACTION_WALK);
@@ -394,7 +394,7 @@ void UpdateCombatStanceButtons(void)
     if (g_settings.continuous_combat == 0) {
         stance = g_combat_state->execution_active != 0 ? 3U : 0U;
     } else if ((ClockIsTicking(g_combat_state->combat_ui_timer) == 0 &&
-                CombatMayAdvanceContinuously() != 0) ||
+                CombatMayAdvanceContinuously()) ||
                g_combat_state->party_surprised != 0) {
         stance = g_combat_state->round_active != 0 ? 1U : 4U;
     } else {
@@ -993,7 +993,7 @@ unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region)
             g_submenu_entries[region->callback_id] == 2) {
             SetRegionHelpForceEnabled(1);
             slot = g_status.selected_character;
-            if (CanPartySlotUseRecordedItem(slot) == 0) {
+            if (!CanPartySlotUseRecordedItem(slot)) {
                 SetRegionHelpText(gppStringList[0x5d]);
             } else {
                 party_row = &g_status.buffers.XChar[slot];
@@ -1133,14 +1133,14 @@ void UpdateSubMenuPanelButtons(void)
         g_level_block->combat_end_notification != -1) {
         enabled = 0;
     } else {
-        enabled = AnyCharacterEngaged() != 0;
+        enabled = AnyCharacterEngaged();
     }
     g_submenu_panel_buttons[0]->SetEnabled(enabled);
 
     if (gXStatus.fSurprisePossible == 0 && gXStatus.fLockInteractMode == 0 &&
         gXStatus.fTrapInteractMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
-        g_level_block->combat_end_notification == -1 && AnyCharacterEngaged() != 0) {
+        g_level_block->combat_end_notification == -1 && AnyCharacterEngaged()) {
         g_submenu_panel_buttons[1]->SetEnabled(1);
         if (gXStatus.fReviewCharacterMode == 0) {
             if (g_submenu_panel_buttons[1]->IsPressed() != 0) {
@@ -1251,7 +1251,7 @@ void ScrollSubMenuCharacter(char direction)
     switch (direction) {
     case 1:
         for (slot = current + 1; slot < 8; ++slot) {
-            if (IsPartySlotEligible(slot) == 0) {
+            if (!IsPartySlotEligible(slot)) {
                 continue;
             }
             selected = slot;
@@ -1261,7 +1261,7 @@ void ScrollSubMenuCharacter(char direction)
             break;
         }
         for (slot = 0; slot <= current; ++slot) {
-            if (IsPartySlotEligible(slot) != 0) {
+            if (IsPartySlotEligible(slot)) {
                 selected = slot;
                 goto done;
             }
@@ -1269,7 +1269,7 @@ void ScrollSubMenuCharacter(char direction)
         break;
     case 0:
         for (slot = current - 1; slot >= 0; --slot) {
-            if (IsPartySlotEligible(slot) == 0) {
+            if (!IsPartySlotEligible(slot)) {
                 continue;
             }
             selected = slot;
@@ -1279,7 +1279,7 @@ void ScrollSubMenuCharacter(char direction)
             break;
         }
         for (slot = 7; slot >= current; --slot) {
-            if (IsPartySlotEligible(slot) != 0) {
+            if (IsPartySlotEligible(slot)) {
                 selected = slot;
                 goto done;
             }
@@ -1364,8 +1364,8 @@ void UpdateSubMenuAutoClose(void)
     case 5:
         right = left + 0x67;
     }
-    if (IsCursorInRectangle(left, gpSubMenuPanel->m_bounds.top, right,
-                            gpSubMenuPanel->m_bounds.top + 0x1c) == 0) {
+    if (!IsCursorInRectangle(left, gpSubMenuPanel->m_bounds.top, right,
+                             gpSubMenuPanel->m_bounds.top + 0x1c)) {
     check_clock:
         if (g_submenu_close_pending == 0) {
             g_submenu_clock = SetCountdownClock(500);
@@ -1654,8 +1654,8 @@ W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot)
         g_level_block->selection_settled == 0) {
         matches = 1;
     }
-    if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) != 0 &&
-        SlotHasAnyValidTarget(party_slot) != 0) {
+    if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) &&
+        SlotHasAnyValidTarget(party_slot)) {
         return static_cast<W8SubMenuEntryState>(matches);
     }
     return static_cast<W8SubMenuEntryState>(matches + W8_SUBMENU_ENTRY_UNUSABLE);
@@ -1674,22 +1674,22 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
     case W8_SUBMENU_ATTACK:
         switch (item) {
         case 1:
-            if (CharacterHasTrait(character, W8_TRAIT_BERSERK) != 0) {
+            if (CharacterHasTrait(character, W8_TRAIT_BERSERK)) {
                 state = CheckSubMenuActionUsable(party_slot);
             }
             break;
         case 2:
-            if (CharacterHasTrait(character, W8_TRAIT_BREATHE) != 0) {
+            if (CharacterHasTrait(character, W8_TRAIT_BREATHE)) {
                 state = CheckSubMenuActionUsable(party_slot);
             }
             break;
         case 4:
-            if (CanPartySlotPray(party_slot) != 0) {
+            if (CanPartySlotPray(party_slot)) {
                 state = CheckSubMenuActionUsable(party_slot);
             }
             break;
         case 3:
-            if (CanPartySlotTurnUndead(party_slot) != 0) {
+            if (CanPartySlotTurnUndead(party_slot)) {
                 state = CheckSubMenuActionUsable(party_slot);
             }
             break;
@@ -1719,7 +1719,7 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
         break;
     case W8_SUBMENU_SPELLS:
         if (item == 0) {
-            if (CharacterHasCastableSpell(character) != 0) {
+            if (CharacterHasCastableSpell(character)) {
                 state = CheckSubMenuActionUsable(party_slot);
             }
         } else if (item == 1) {

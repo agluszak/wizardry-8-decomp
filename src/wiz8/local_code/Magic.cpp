@@ -116,7 +116,7 @@ bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item)
     if (!item->identified) {
         return false;
     }
-    return CanCharacterUseItem(caster, item->iItemNo) != 0;
+    return CanCharacterUseItem(caster, item->iItemNo);
 }
 
 #define MAGIC_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic.cpp"
@@ -355,7 +355,7 @@ W8TargetNeed GetTargetNeededForSpellHostile(int spell_id)
 // FUNCTION: WIZ8 0x00501860
 bool CanPartySlotReBreathe(int party_slot)
 {
-    if (CanCharReBreathe(party_slot) == 0) {
+    if (!CanCharReBreathe(party_slot)) {
         return 0;
     }
     return 1;
@@ -518,7 +518,7 @@ bool PartySlotSpellTargetStillValid(int party_slot)
                              needed)) {
         return false;
     }
-    return CharacterActionReachesTarget(party_slot, 0, W8_TARGETING_CONTEXT_SPELL) != 0;
+    return CharacterActionReachesTarget(party_slot, 0, W8_TARGETING_CONTEXT_SPELL);
 }
 
 /* Start one character's breath attack. The assertion names the predicate it
@@ -650,12 +650,12 @@ void UpdateSpellEffects(void)
                 handled = true;
             } else {
                 effect->targets_resolved = 1;
-                if (MonsterCanAimSpell(effect->kind) != 0 && effect->Source.fBackfire == 0 &&
+                if (MonsterCanAimSpell(effect->kind) && effect->Source.fBackfire == 0 &&
                     effect->Source.fReflection == 0) {
                     ProvokeListedMonsterGroups(&effect->Source, &effect->monster_ids);
                 }
                 ProcessSpellEffectTargets(effect);
-                if (TargetSourceIsMonster(&effect->OrigSource, 0) != 0) {
+                if (TargetSourceIsMonster(&effect->OrigSource, 0)) {
                     if (effect->OrigSource.iMonsterID == -1) {
                         srAssertFail("pOrigSource->iMonsterID != -1", MAGIC_CPP, 0x1504, 0);
                     }
@@ -1067,7 +1067,7 @@ bool CanCharacterCastSpell(W8Character* character, int spell_id)
    The two ceilings are computed even when the first alone would settle it,
    which is what shows them as one rule rather than two guards. */
 // FUNCTION: WIZ8 0x004ffcb0
-char CanCharacterLearnSpell(W8Character* character, int spell_id)
+bool CanCharacterLearnSpell(W8Character* character, int spell_id)
 {
     unsigned char book = SpellbookMaskForSpell(spell_id);
     int caster_level;
@@ -1080,10 +1080,10 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
     W8Skill spellbook_skill;
 
     if ((g_profession_spellbooks[character->iProfession] & book) == W8_SPELLBOOK_NONE) {
-        return 0;
+        return false;
     }
     if (CharacterHasTrait(character, W8_TRAIT_CANNOT_LEARN)) {
-        return 0;
+        return false;
     }
 
     caster_level = GetProfessionCasterLevel(character, W8_PROFESSION_NONE);
@@ -1119,8 +1119,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
         1;
     ceiling = skill_ceiling < level_ceiling ? skill_ceiling : level_ceiling;
 
-    return static_cast<char>(
-        1 - (ceiling < static_cast<unsigned int>(g_spell_records[spell_id].spell_level)));
+    return ceiling >= static_cast<unsigned int>(g_spell_records[spell_id].spell_level);
 }
 
 /* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
@@ -2665,7 +2664,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         PostCharacterNotice(party_slot, gppStringList[0x18a], record->display_name);
         return 0;
     }
-    if (ValidateSpellTarget(party_slot, spell_id, power_level, false, false) == 0) {
+    if (!ValidateSpellTarget(party_slot, spell_id, power_level, false, false)) {
         return 0;
     }
     if (character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
@@ -3761,7 +3760,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     monster_info = 0;
     sight_flag = 0;
     if (source->fBackfire == 0 && source->fReflection == 0 &&
-        SourceActionReachesTarget(source, target) == 0) {
+        !SourceActionReachesTarget(source, target)) {
         return;
     }
     player_pos = g_startup_world->GetPosition();
@@ -3927,8 +3926,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                 side = 1;
             } else if (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) {
                 side = 2;
-                if (TargetInRangeAndArcs(&camera, g_startup_world->radius, &eye,
-                                         monster->radius, heading, elevation) != 0 &&
+                if (TargetInRangeAndArcs(&camera, g_startup_world->radius, &eye, monster->radius,
+                                         heading, elevation) &&
                     monster_info->player_visibility.los_flags[sight_flag] != '\0') {
                     marked = true;
                 }
@@ -3957,8 +3956,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             }
         }
         if (!marked &&
-            TargetInRangeAndArcs(&camera, g_startup_world->radius, &eye, 0, heading,
-                                 elevation) != 0 &&
+            TargetInRangeAndArcs(&camera, g_startup_world->radius, &eye, 0, heading, elevation) &&
             g_octree->TraceLineOfSight(&eye, &camera, 1, -3, -3, 1, 0) == 0) {
             marked = true;
         }

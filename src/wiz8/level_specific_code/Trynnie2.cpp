@@ -93,7 +93,7 @@ bool Trynnie2MeatMaker(Trigger* pTrigger)
     srVector3T<float> position;
     W8WorldItem* item;
 
-    if (FindEntityByName("Meat_Position", &entity_position, 0, 0) != 0) {
+    if (FindEntityByName("Meat_Position", &entity_position, 0, 0)) {
         position = entity_position;
         item = SpawnItem(0x1b4, &position, 3, 1);
         if (item != 0) {
@@ -173,7 +173,7 @@ bool Trynnie2UseItem(W8ItemInstance* item)
         g_status.use_item_latch = true;
     } else {
         ShowString(gppStringList[0x969]);
-        if (FindEntityByName("NP_MysticalShaman", &position, 0, 0) != 0) {
+        if (FindEntityByName("NP_MysticalShaman", &position, 0, 0)) {
             SpawnMonsters(0xec, 1, &position, 0, 1, 0, 0);
         }
     }

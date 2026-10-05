@@ -183,7 +183,7 @@ void UpdateMonsterGroups(bool staggered)
     float nearest_distance;
     unsigned int group_list_index;
 
-    if (AnyCharacterActive() == 0) {
+    if (!AnyCharacterActive()) {
         return;
     }
     if (PLLength(gXStatus.plsMonsterGroupList) == 0) {
@@ -200,7 +200,7 @@ void UpdateMonsterGroups(bool staggered)
             continue;
         }
         monster_group = GetMonsterGroupByListIndex(group_list_index);
-        if (MonsterGroupAllMembersDying(monster_group) != 0) {
+        if (MonsterGroupAllMembersDying(monster_group)) {
             continue;
         }
         monster_info = MonsterInfoFromID(113, MONSTER_AI_CPP, monster_group->leader_location_id, 1);
@@ -225,7 +225,7 @@ void UpdateMonsterGroups(bool staggered)
             }
             far_clip = WorldGetFarClip(GetWorld());
             if (nearest_distance <= far_clip + far_clip) {
-                if (gXStatus.fCombatMode == 0 && MonsterGroupCanEngage(monster_group) != 0) {
+                if (gXStatus.fCombatMode == 0 && MonsterGroupCanEngage(monster_group)) {
                     MonsterGroupEnterCombat(monster_group);
                 }
             } else {
@@ -239,7 +239,7 @@ void UpdateMonsterGroups(bool staggered)
             if (monster_group->leader_group_id == 0) {
                 monster_info =
                     MonsterInfoFromID(215, MONSTER_AI_CPP, monster_group->leader_location_id, 1);
-                if (monster_info->p3D->IsDying() == 0) {
+                if (!monster_info->p3D->IsDying()) {
                     DoMonsterRTAI(monster_info, 1);
                 }
             }
@@ -261,7 +261,7 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
     unsigned char result;
 
     result = 0;
-    if (g_status.world_suspended != 0 || IsMipeActive() != 0) {
+    if (g_status.world_suspended != 0 || IsMipeActive()) {
         return 0;
     }
     monster_info = MonsterInfoFromID(0xf0, MONSTER_AI_CPP, monster_group->leader_location_id, 1);
@@ -274,7 +274,7 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
 
         location_id = IListGetAt(monster_group->monsters, index);
         monster_info = MonsterInfoFromID(0xfe, MONSTER_AI_CPP, location_id, 1);
-        if (monster_info->fActive != 0 && monster_info->p3D->IsDying() == 0 &&
+        if (monster_info->fActive != 0 && !monster_info->p3D->IsDying() &&
             monster_info->hp_current != 0 && monster_info->highest_condition < W8_CONDITION_BLIND) {
             if (monster_info->player_visibility.sight_state == W8_SIGHT_SEEN) {
                 return 1;
@@ -302,7 +302,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
 
     update = 0;
     decision = 0;
-    if (engage != 0 && IsSightRangeOverridden() != 0 && monster_info->ai_mode == 1) {
+    if (engage != 0 && IsSightRangeOverridden() && monster_info->ai_mode == 1) {
         W8MonsterRecord* record;
         W8MonsterGroup* monster_group;
         W8Navigator* navigator;
@@ -709,13 +709,13 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         if (MonsterConfigureMovementToPosition(monster, &patrol_point) != 0) {
             break;
         }
-        if (monster->IsWithinWorldRange() == 0 &&
+        if (!monster->IsWithinWorldRange() &&
             monster_info->party_threat.sight_state == W8_SIGHT_SEEN) {
             monster_group = GetMonsterGroupByListIndex(
                 GetMonsterGroupIndexByID(0x350, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
             position = patrol_point;
             if (MoveMonsterGroupToPosition(monster_group, &position, monster->GetYaw(), 0, 1, 0,
-                                           0) != 0) {
+                                           0)) {
                 break;
             }
         }
@@ -950,7 +950,7 @@ bool MonsterGroupCanEngage(W8MonsterGroup* monster_group)
             member = GetGroupMemberInfo(monster_group, index);
             if (member->fActive != 0 && member->hp_current != 0 &&
                 member->highest_condition < W8_CONDITION_DEAD &&
-                MonsterHasVisibleTarget(member, 1, 1, 1) != 0) {
+                MonsterHasVisibleTarget(member, 1, 1, 1)) {
                 goto members;
             }
         }
@@ -961,7 +961,7 @@ members:
         member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x4a7, MONSTER_AI_CPP, IListGetAt(monster_group->monsters, index), 1));
         record = GetMonsterDataForInfo(member);
-        if (member->fActive == 0 || member->fMotionless != 0 || member->p3D->IsDying() != 0 ||
+        if (member->fActive == 0 || member->fMotionless != 0 || member->p3D->IsDying() ||
             member->hp_current == 0 || member->highest_condition >= W8_CONDITION_BLIND) {
             continue;
         }
@@ -969,21 +969,21 @@ members:
             return 1;
         }
         if (record->spell_chance != 0) {
-            if (MonsterIsCycleSupported(member->p3D, W8_MONSTER_CYCLE_SPELL) == 0) {
+            if (!MonsterIsCycleSupported(member->p3D, W8_MONSTER_CYCLE_SPELL)) {
                 if (g_spell_cycle_error_reported == 0) {
                     FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle", record);
                     g_spell_cycle_error_reported = true;
                 }
             } else {
                 for (spell = 0; spell < 10; ++spell) {
-                    if (MonsterCanAimSpell(record->spells[spell]) != 0 &&
-                        IsSpellUsableByMonster(member, record->spells[spell], 1) != 0) {
+                    if (MonsterCanAimSpell(record->spells[spell]) &&
+                        IsSpellUsableByMonster(member, record->spells[spell], 1)) {
                         return 1;
                     }
                 }
             }
         }
-        if (CanMonsterFlee(member, record, 1) != 0) {
+        if (CanMonsterFlee(member, record, 1)) {
             return 1;
         }
         if (GetBestMonsterAttackRange(record, 0) <= W8_RANGE_SHORT) {
@@ -1087,7 +1087,8 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         srAssertFail("pMonsterInfo->pCombat->plsCombatActionList != NULL", MONSTER_AI_CPP, 1385, 0);
     }
     if (target_locked == 0 && attack_locked == 0) {
-        if (CanMonsterProtect(monster_info) != 0 && Random(100) < monster_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE]) {
+        if (CanMonsterProtect(monster_info) &&
+            Random(100) < monster_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE]) {
             monster_info->action_kind = W8_MONSTER_ACTION_PROTECT;
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 other = MonsterGetScriptPartByLocationIndex(index);
@@ -1095,7 +1096,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
                     ResetCombatSlot(&monster_info->Target);
                     monster_info->Target.iType = W8_TARGET_KIND_MONSTER;
                     monster_info->Target.iMonsterID = other->location_id;
-                    if (CanMonsterProtectCombatant(monster_info, &monster_info->Target) != 0) {
+                    if (CanMonsterProtectCombatant(monster_info, &monster_info->Target)) {
                         QueueMonsterAction(monster_info, W8_MONSTER_ACTION_PROTECT, 0, 0,
                                            W8_TARGET_KIND_MONSTER, other->location_id);
                     }
@@ -1105,7 +1106,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
                 ResetCombatSlot(&monster_info->Target);
                 monster_info->Target.iType = W8_TARGET_KIND_CHARACTER;
                 monster_info->Target.iChar = index;
-                if (CanMonsterProtectCombatant(monster_info, &monster_info->Target) != 0) {
+                if (CanMonsterProtectCombatant(monster_info, &monster_info->Target)) {
                     QueueMonsterAction(monster_info, W8_MONSTER_ACTION_PROTECT, 0, 0,
                                        W8_TARGET_KIND_CHARACTER, index);
                 }
@@ -1136,7 +1137,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         monster_lo = 0;
         monster_hi = PLLength(gXStatus.plsMonsterList);
     } else {
-        if (IsTargetStillPresent(&monster_info->Target) == 0) {
+        if (!IsTargetStillPresent(&monster_info->Target)) {
             return;
         }
         if (monster_info->Target.iType == W8_TARGET_KIND_CHARACTER) {
@@ -1180,7 +1181,7 @@ targets_chosen:
                     g_status.buffers.Char[index].hp_current != 0 &&
                     g_status.buffers.Char[index].highest_condition < W8_CONDITION_DEAD &&
                     MonsterVsCharDisposition(index, monster_info) == disposition_needed &&
-                    MonsterAttackReachesCharacter(monster_info, record, attack, index) != 0) {
+                    MonsterAttackReachesCharacter(monster_info, record, attack, index)) {
                     if (avoided[index] == 0) {
                         for (mode_bit = 0; mode_bit < 9; ++mode_bit) {
                             if ((record->attacks[attack].attack_modes & (1 << mode_bit)) != 0) {
@@ -1200,7 +1201,7 @@ targets_chosen:
                 if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                     GetMonsterDataForInfo(other)->untargetable == 0 && other->fInCombat != 0 &&
                     MonsterHostility(monster_info, other) == disposition_needed &&
-                    MonsterAttackReachesMonster(monster_info, record, attack, other) != 0) {
+                    MonsterAttackReachesMonster(monster_info, record, attack, other)) {
                     for (mode_bit = 0; mode_bit < 9; ++mode_bit) {
                         if ((record->attacks[attack].attack_modes & (1 << mode_bit)) != 0) {
                             QueueMonsterAction(monster_info, W8_MONSTER_ACTION_ATTACK, mode_bit,
@@ -1397,7 +1398,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                 ResetCombatSlot(&probe);
                 probe.iType = W8_TARGET_KIND_CHARACTER;
                 probe.iChar = *party_markers.GetAt(index);
-                if (MonsterSpellTargetOK(monster_info, spell_id, &probe) != 0) {
+                if (MonsterSpellTargetOK(monster_info, spell_id, &probe)) {
                     ++valid;
                 }
             }
@@ -1406,7 +1407,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                 ResetCombatSlot(&probe);
                 probe.iType = W8_TARGET_KIND_MONSTER;
                 probe.iMonsterID = *monster_markers.GetAt(index);
-                if (MonsterSpellTargetOK(monster_info, spell_id, &probe) != 0) {
+                if (MonsterSpellTargetOK(monster_info, spell_id, &probe)) {
                     ++valid;
                 }
             }
@@ -1592,7 +1593,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                     return 0;
                 }
                 if (record->spell_chance != 0) {
-                    if (MonsterIsCycleSupported(target->p3D, W8_MONSTER_CYCLE_SPELL) == 0) {
+                    if (!MonsterIsCycleSupported(target->p3D, W8_MONSTER_CYCLE_SPELL)) {
                         if (g_spell_cycle_error_reported == 0) {
                             FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle",
                                                record);
@@ -1601,7 +1602,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                         }
                     } else {
                         for (index = 0; index < 10; ++index) {
-                            if (IsSpellUsableByMonster(target, record->spells[index], 0) != 0) {
+                            if (IsSpellUsableByMonster(target, record->spells[index], 0)) {
                                 return 1;
                             }
                         }
@@ -1787,7 +1788,7 @@ bool SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell_id,
     W8MonsterInfo* target;
     unsigned int power_level;
 
-    if (MonsterCanAimSpell(spell_id) == 0) {
+    if (!MonsterCanAimSpell(spell_id)) {
         return 0;
     }
     SetTargetSourceToMonster(monster_info, &source);
@@ -1821,7 +1822,7 @@ int ChooseMonsterSpell(W8MonsterInfo* monster_info, W8MonsterRecord* record)
 
     for (slot = 0; slot < 10; ++slot) {
         int spell_id = record->spells[slot];
-        if (IsSpellUsableByMonster(monster_info, spell_id, 1) != 0) {
+        if (IsSpellUsableByMonster(monster_info, spell_id, 1)) {
             weights[count] = g_spell_cast_weights[slot];
             spell_ids[count] = spell_id;
             total += g_spell_cast_weights[slot];
@@ -1872,7 +1873,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         ResetCombatSlot(&slot);
         slot.iMonsterID = monster_info->location_id;
         slot.iType = W8_TARGET_KIND_MONSTER;
-        if (MonsterSpellTargetOK(monster_info, spell_id, &slot) == 0) {
+        if (!MonsterSpellTargetOK(monster_info, spell_id, &slot)) {
             break;
         }
         targets->Add(slot);
@@ -1883,27 +1884,26 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             if (member->fActive != 0 && member->hp_current != 0 &&
                 member->highest_condition < W8_CONDITION_DEAD && member->fInCombat != 0 &&
                 MonsterHostility(monster_info, member) == 2 &&
-                MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
+                MonsterAttackReachesMonster(monster_info, record, 0, member)) {
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_MONSTER;
                 slot.iMonsterID = member->location_id;
-                if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                if (MonsterSpellTargetOK(monster_info, spell_id, &slot)) {
                     targets->Add(slot);
                 }
             }
         }
-        if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind) !=
-            0) {
+        if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind)) {
             for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
                 if (g_status.buffers.XChar[index].fOccupied != 0 &&
                     g_status.buffers.Char[index].hp_current != 0 &&
                     g_status.buffers.Char[index].highest_condition < W8_CONDITION_DEAD &&
                     MonsterVsCharDisposition(index, monster_info) == 2 &&
-                    MonsterAttackReachesCharacter(monster_info, record, 0, index) != 0) {
+                    MonsterAttackReachesCharacter(monster_info, record, 0, index)) {
                     ResetCombatSlot(&slot);
                     slot.iType = W8_TARGET_KIND_CHARACTER;
                     slot.iChar = index;
-                    if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                    if (MonsterSpellTargetOK(monster_info, spell_id, &slot)) {
                         targets->Add(slot);
                     }
                 }
@@ -1916,27 +1916,26 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
                 member->highest_condition < W8_CONDITION_DEAD && member->fInCombat != 0 &&
                 MonsterHostility(monster_info, member) == 1 &&
-                MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
+                MonsterAttackReachesMonster(monster_info, record, 0, member)) {
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_MONSTER;
                 slot.iMonsterID = member->location_id;
-                if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                if (MonsterSpellTargetOK(monster_info, spell_id, &slot)) {
                     targets->Add(slot);
                 }
             }
         }
-        if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind) !=
-            0) {
+        if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind)) {
             for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
                 if (g_status.buffers.XChar[index].fOccupied != 0 &&
                     g_status.buffers.Char[index].hp_current != 0 &&
                     g_status.buffers.Char[index].highest_condition < W8_CONDITION_DEAD &&
                     MonsterVsCharDisposition(index, monster_info) == 1 &&
-                    MonsterAttackReachesCharacter(monster_info, record, 0, index) != 0) {
+                    MonsterAttackReachesCharacter(monster_info, record, 0, index)) {
                     ResetCombatSlot(&slot);
                     slot.iType = W8_TARGET_KIND_CHARACTER;
                     slot.iChar = index;
-                    if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                    if (MonsterSpellTargetOK(monster_info, spell_id, &slot)) {
                         targets->Add(slot);
                     }
                 }
@@ -1948,22 +1947,22 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             monster_group = GetMonsterGroupByListIndex(index);
             if (monster_group->group_id != monster_info->monster_group_id &&
                 monster_group->members_active != 0 && monster_group->fInCombat != 0 &&
-                MonsterGroupAllMembersDying(monster_group) == 0 &&
-                MonsterGroupHalfSpellTargetsValid(monster_info, spell_id, monster_group) != 0) {
+                !MonsterGroupAllMembersDying(monster_group) &&
+                MonsterGroupHalfSpellTargetsValid(monster_info, spell_id, monster_group)) {
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_GROUP;
                 slot.iGroupID = monster_group->group_id;
-                if (MonsterActionReachesTarget(monster_info, record, 0, &slot) != 0) {
+                if (MonsterActionReachesTarget(monster_info, record, 0, &slot)) {
                     targets->Add(slot);
                 }
             }
         }
-        if (PartyHalfSpellTargetsValid(monster_info, spell_id) == 0) {
+        if (!PartyHalfSpellTargetsValid(monster_info, spell_id)) {
             break;
         }
         ResetCombatSlot(&slot);
         slot.iType = W8_TARGET_KIND_PARTY;
-        if (MonsterActionReachesTarget(monster_info, record, 0, &slot) == 0) {
+        if (!MonsterActionReachesTarget(monster_info, record, 0, &slot)) {
             break;
         }
         targets->Add(slot);
@@ -1975,32 +1974,31 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
                 member->highest_condition < W8_CONDITION_DEAD && member->fInCombat != 0 &&
                 MonsterHostility(monster_info, member) == 1 &&
-                MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
+                MonsterAttackReachesMonster(monster_info, record, 0, member)) {
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_MONSTER;
                 slot.iMonsterID = member->location_id;
                 ResolveTargetPoint(&slot, target_type == W8_TARGET_TYPE_RADIUS);
                 slot.iType = W8_TARGET_KIND_PLACE;
-                if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0 &&
-                    SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) == 0) {
+                if (MonsterSpellTargetOK(monster_info, spell_id, &slot) &&
+                    !SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot)) {
                     targets->Add(slot);
                 }
             }
         }
-        if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind) !=
-            0) {
+        if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind)) {
             ResetCombatSlot(&slot);
             slot.iType = W8_TARGET_KIND_PARTY;
             ResolveTargetPoint(&slot, target_type == W8_TARGET_TYPE_RADIUS);
             slot.iType = W8_TARGET_KIND_PLACE;
-            if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0 &&
-                SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) == 0) {
+            if (MonsterSpellTargetOK(monster_info, spell_id, &slot) &&
+                !SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot)) {
                 for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
                     if (g_status.buffers.XChar[index].fOccupied != 0 &&
                         g_status.buffers.Char[index].hp_current != 0 &&
                         g_status.buffers.Char[index].highest_condition < W8_CONDITION_DEAD &&
                         MonsterVsCharDisposition(index, monster_info) == 1 &&
-                        MonsterAttackReachesCharacter(monster_info, record, 0, index) != 0) {
+                        MonsterAttackReachesCharacter(monster_info, record, 0, index)) {
                         targets->Add(slot);
                     }
                 }
@@ -2010,8 +2008,8 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
     case W8_TARGET_TYPE_ALL_ENEMIES:
         ResetCombatSlot(&slot);
         slot.iType = W8_TARGET_KIND_ALL_ENEMIES;
-        if (MonsterSpellTargetOK(monster_info, spell_id, &slot) == 0 ||
-            SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) != 0) {
+        if (!MonsterSpellTargetOK(monster_info, spell_id, &slot) ||
+            SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot)) {
             break;
         }
         targets->Add(slot);
@@ -2023,7 +2021,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         break;
     default:
         ResetCombatSlot(&slot);
-        if (MonsterSpellTargetOK(monster_info, spell_id, &slot) == 0) {
+        if (!MonsterSpellTargetOK(monster_info, spell_id, &slot)) {
             break;
         }
         targets->Add(slot);
@@ -2076,11 +2074,11 @@ void CheckMonsterGroupsLeaveCombat(void)
     for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
         if (group->members_active == 0 || group->fInCombat == 0 ||
-            MonsterGroupAllMembersDying(group) != 0) {
+            MonsterGroupAllMembersDying(group)) {
             continue;
         }
         if (group->ubDisposition == W8_DISPOSITION_NEUTRAL) {
-            if (MonsterGroupHasReinforcement(group) == 0) {
+            if (!MonsterGroupHasReinforcement(group)) {
                 MonsterGroupLeaveCombat(group);
             }
             continue;
@@ -2093,7 +2091,7 @@ void CheckMonsterGroupsLeaveCombat(void)
                 0xc0b, MONSTER_AI_CPP, IListGetAt(group->monsters, index), 1));
             if (member->fActive == 0 || member->hp_current == 0 ||
                 member->highest_condition >= W8_CONDITION_DEAD ||
-                MonsterHasNoVisibleEnemy(member, 0) != 0) {
+                MonsterHasNoVisibleEnemy(member, 0)) {
                 continue;
             }
             if (group->ubDisposition != W8_DISPOSITION_HOSTILE) {
@@ -2109,7 +2107,7 @@ void CheckMonsterGroupsLeaveCombat(void)
                 if (reach <= minimum) {
                     reach = minimum;
                 }
-                if (reach < nearest && MonsterGroupCanEngage(group) == 0) {
+                if (reach < nearest && !MonsterGroupCanEngage(group)) {
                     MonsterGroupLeaveCombat(group);
                     break;
                 }
@@ -2122,7 +2120,7 @@ void CheckMonsterGroupsLeaveCombat(void)
                     0xc0b, MONSTER_AI_CPP, IListGetAt(group->monsters, member_index), 1));
                 if (other->fActive != 0 && other->hp_current != 0 &&
                     other->highest_condition < W8_CONDITION_DEAD &&
-                    MonsterHasNoVisibleEnemy(other, 1) == 0) {
+                    !MonsterHasNoVisibleEnemy(other, 1)) {
                     ++engaged;
                     break;
                 }
@@ -2139,7 +2137,7 @@ void CheckMonsterGroupsLeaveCombat(void)
     for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
         if (group->members_active != 0 && group->fInCombat != 0 &&
-            MonsterGroupAllMembersDying(group) == 0) {
+            !MonsterGroupAllMembersDying(group)) {
             MonsterGroupLeaveCombat(group);
         }
     }
@@ -2199,7 +2197,7 @@ bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
         member = GetGroupMemberInfo(monster_group, index);
         if (member->fActive != 0 && member->hp_current > 0 &&
             member->highest_condition < W8_CONDITION_DEAD &&
-            MonsterHasVisibleTarget(member, party_only, hostility, within_reach) != 0) {
+            MonsterHasVisibleTarget(member, party_only, hostility, within_reach)) {
             return 1;
         }
     }
@@ -2286,7 +2284,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, bool e
     if (record->special_attack_kind == 0) {
         return 0;
     }
-    if (MonsterIsCycleSupported(monster_info->p3D, 0x12) == 0) {
+    if (!MonsterIsCycleSupported(monster_info->p3D, 0x12)) {
         if (g_special_attack_cycle_error_reported == 0) {
             FormatDebugMessage(0, "ERROR: %ls is missing a SPECIAL ATTACK animation cycle", record);
             g_special_attack_cycle_error_reported = true;
@@ -2301,7 +2299,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, bool e
         return 0;
     }
     if (monster_info->uiCondition[W8_CONDITION_SILENCED] != 0 &&
-        MonsterSpecialAttackHonorsCastingBlock(record->special_attack_kind) != 0) {
+        MonsterSpecialAttackHonorsCastingBlock(record->special_attack_kind)) {
         return 0;
     }
     if (g_special_attack_table[record->special_attack_kind][0] ==
@@ -2339,7 +2337,7 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterReco
         monster_info->Target.point = position;
         return 1;
     }
-    return AimMonsterAtSpellTarget(monster_info, W8_AI_SPELL_PLACE) != 0;
+    return AimMonsterAtSpellTarget(monster_info, W8_AI_SPELL_PLACE);
 }
 
 /* Whether the action a monster has settled on can actually be carried out. An
@@ -2380,7 +2378,7 @@ bool IsMonsterActionUsable(W8MonsterInfo* monster_info)
     default:
         return 0;
     }
-    return MonsterSpellHasPartyTarget(monster_info, spell_id, &monster_info->Target) != 0;
+    return MonsterSpellHasPartyTarget(monster_info, spell_id, &monster_info->Target);
 }
 
 /* How near the nearest member of a group has come. The search starts at
@@ -2468,7 +2466,7 @@ bool MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id
             ResetCombatSlot(&slot);
             slot.iType = W8_TARGET_KIND_MONSTER;
             slot.iMonsterID = location_id;
-            if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+            if (MonsterSpellTargetOK(monster_info, spell_id, &slot)) {
                 ++valid;
             }
         }
@@ -2495,7 +2493,7 @@ bool PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id)
             ResetCombatSlot(&slot);
             slot.iType = W8_TARGET_KIND_CHARACTER;
             slot.iChar = index;
-            if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+            if (MonsterSpellTargetOK(monster_info, spell_id, &slot)) {
                 ++valid;
             }
         }
@@ -2656,7 +2654,7 @@ void CheckMonsterGroupsEnterCombat(void)
     for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         group = GetMonsterGroupByListIndex(index);
         if (group->fInCombat == 0) {
-            if (ShouldMonsterGroupEnterCombat(group) != 0) {
+            if (ShouldMonsterGroupEnterCombat(group)) {
                 MonsterGroupEnterCombat(group);
                 if (group->ubDisposition == W8_DISPOSITION_NEUTRAL) {
                     record = MonsterGroupGetRecord(group);
@@ -2686,7 +2684,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
     float path_distance;
     srVector3T<float> party;
 
-    if (MonsterGroupAllMembersDying(monster_group) != 0 || monster_group->members_active == 0) {
+    if (MonsterGroupAllMembersDying(monster_group) || monster_group->members_active == 0) {
         return 0;
     }
     if (monster_group->leader_location_id == -0x32323233 ||
@@ -2701,7 +2699,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
         return 0;
     }
     if (monster_group->ubDisposition == W8_DISPOSITION_NEUTRAL) {
-        if (MonsterGroupHasReinforcement(monster_group) != 0) {
+        if (MonsterGroupHasReinforcement(monster_group)) {
             return 1;
         }
     } else {
@@ -2709,7 +2707,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             member = GetGroupMemberInfo(monster_group, index);
             if (member->fActive != 0 && member->hp_current != 0 &&
                 member->highest_condition < W8_CONDITION_DEAD &&
-                MonsterHasVisibleTarget(member, 0, 4, 1) != 0) {
+                MonsterHasVisibleTarget(member, 0, 4, 1)) {
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
                         GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
                 minimum = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
@@ -2726,7 +2724,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             }
         }
         if (monster_group->ubDisposition == W8_DISPOSITION_HOSTILE &&
-            MonsterGroupHasRenderableMember(monster_group, 1) != 0) {
+            MonsterGroupHasRenderableMember(monster_group, 1)) {
             if (GetGroupNearestDistance(monster_group) <= CalcRangeDistance(W8_RANGE_EXTREME)) {
                 return 1;
             }

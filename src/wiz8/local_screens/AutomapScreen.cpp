@@ -1375,9 +1375,9 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
                     bit += 0x20;
                 }
             }
-            if (g_automap_visited_cells->Test(bit) != 0) {
+            if (g_automap_visited_cells->Test(bit)) {
                 srVector3T<float> position = GetAutomapCellPosition(bit);
-                if (g_automap_lit_cells->Test(bit) == 0) {
+                if (!g_automap_lit_cells->Test(bit)) {
                     g_automap_lit_cells->Set(bit);
                     LightAutomapCell(&position);
                     ++lit;
@@ -1429,7 +1429,7 @@ void UpdateAutomapBounds(void)
                         bit += 0x20;
                     }
                 }
-                if (g_automap_visited_cells->Test(bit) != 0) {
+                if (g_automap_visited_cells->Test(bit)) {
                     srVector3T<float> position = GetAutomapCellPosition(bit);
                     if (position.x <= g_automap_bounds_min.x) {
                         g_automap_bounds_min.x = position.x;
@@ -1443,7 +1443,7 @@ void UpdateAutomapBounds(void)
                     if (g_automap_bounds_max.z <= position.z) {
                         g_automap_bounds_max.z = position.z;
                     }
-                    if (g_automap_lit_cells->Test(bit) == 0) {
+                    if (!g_automap_lit_cells->Test(bit)) {
                         g_automap_lit_cells->Set(bit);
                         LightAutomapCell(&position);
                     }
@@ -2273,7 +2273,7 @@ stModelInstance2D* CreateAutomapTextMarker(void)
 unsigned char HandleAutomapNoteInput(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
-        if (input->usEvent == LEFT_BUTTON_UP && IsCursorInsideViewport() != 0) {
+        if (input->usEvent == LEFT_BUTTON_UP && IsCursorInsideViewport()) {
             srVector3T<float> point;
             if (GetCursorPositionInViewport(&point) != 0) {
                 int layer = g_automap_layer + 1;

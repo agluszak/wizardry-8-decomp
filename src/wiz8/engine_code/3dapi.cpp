@@ -587,7 +587,7 @@ void DestroyWorld(W8World* world)
     DestroyWorldCollections(world);
     if (g_world_cleanup_flag != 0)
         RenderFrame();
-    if (IsWorldCursorVisible() != 0)
+    if (IsWorldCursorVisible())
         HideWorldCursor();
 
     g_worlds.Remove(world);
@@ -664,7 +664,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                 if (dx * dx + dy * dy + dz * dz > g_automap_refresh_distance_squared) {
                     s_last_automap_refresh_position = camera_position;
                     camera_position.y -= g_default_world_height;
-                    if (AutomapHasCellAt(&camera_position) != 0) {
+                    if (AutomapHasCellAt(&camera_position)) {
                         SetWorldMeshVertexLightTable(g_world, 1);
                         UpdateAutomapBounds();
                         SetWorldMeshVertexLightTable(g_world, 0);

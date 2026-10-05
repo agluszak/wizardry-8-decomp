@@ -343,7 +343,7 @@ void stTextureFile::invalidate()
 // FUNCTION: WIZ8 0x0047C8E0
 stTextureFile::~stTextureFile()
 {
-    if (IsTextureInReadMeshScratch(this) != 0) {
+    if (IsTextureInReadMeshScratch(this)) {
         ReleaseReadMeshScratch();
     }
     invalidate();

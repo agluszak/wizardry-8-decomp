@@ -352,7 +352,7 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
         /* LoadPathAI stores its result only on success; the base-typed AI
            slot takes the loaded path from there. */
         W8PathAI* path;
-        if (LoadPathAI(&path, info->hFile) == 0) {
+        if (!LoadPathAI(&path, info->hFile)) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x1e6,
                          0);
         } else {
@@ -722,12 +722,11 @@ void W8GrCycle::UpdateLights()
             stParametricLightDefinition* cycle_definition =
                 static_cast<stParametricLightDefinition*>(definition);
             if ((cycle_definition->flags & 3) == 3 && (cycle_definition->flags & 0x40) != 0) {
-                if (cycle_definition->IsEnabledForSubcycle(representation->subcycle) == 0) {
+                if (!cycle_definition->IsEnabledForSubcycle(representation->subcycle)) {
                     if (light->parent_ != 0) {
                         light->setParent(0, 0);
                     }
-                } else if ((representation->subcycle == 0 &&
-                            cycle_definition->subcycle_min == 0) ||
+                } else if ((representation->subcycle == 0 && cycle_definition->subcycle_min == 0) ||
                            light->parent_ == srCore.getRootNode()) {
                     light->setParent(g_world->dynamic_scene, 0);
                     light->m_path_index = 0;
@@ -740,7 +739,7 @@ void W8GrCycle::UpdateLights()
                 light->Reset();
             }
             light->SetDefinitionTime(representation->subcycle + frame_fraction);
-            if (definition->IsEnabledForSubcycle(0) == 0) {
+            if (!definition->IsEnabledForSubcycle(0)) {
                 if (light->parent_ != 0) {
                     light->setParent(0, 0);
                 }

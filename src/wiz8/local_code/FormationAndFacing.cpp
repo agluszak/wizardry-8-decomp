@@ -256,12 +256,11 @@ static bool g_combat_preserve_party_facing;
 void SyncPartyFacingFromCamera(void)
 {
     unsigned int yaw;
-    unsigned int movement_stopped;
+    bool movement_stopped;
 
     yaw = static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN;
     movement_stopped = IsLevelMovementStopped();
-    if ((gXStatus.fCombatMode == 0 || g_combat_preserve_party_facing == 0) &&
-        static_cast<unsigned char>(movement_stopped) == 0) {
+    if ((gXStatus.fCombatMode == 0 || g_combat_preserve_party_facing == 0) && !movement_stopped) {
         g_status.party_facing = static_cast<int>(yaw);
         if (yaw != g_status.party_heading) {
             g_status.party_heading = yaw;

@@ -111,7 +111,7 @@ bool OnCrankTriggerActivated(Trigger* trigger)
         npc = GetNpcStateByKind(0x2a);
         QueueNpcScriptNotice(npc, 0, 0x18, 1, 0);
         ResumeNpc(npc, 1);
-        if (FindEntityByName("NP_catwalk", &position, 0, 0) != 0) {
+        if (FindEntityByName("NP_catwalk", &position, 0, 0)) {
             SpawnMonsters(0x14a, 1, &position, 1, 1, 0, 0);
         }
         return true;

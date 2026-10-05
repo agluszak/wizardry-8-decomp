@@ -585,7 +585,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                 if (0 < entry->item_number) {
                     item_index = FindItemByLegacyNumber(entry->item_number);
                     price = g_item_records[item_index].value;
-                    if (ItemHasHiddenProperties(item_index) == 0) {
+                    if (!ItemHasHiddenProperties(item_index)) {
                         price /= 2;
                     }
                     if (best_value < price) {

@@ -143,7 +143,7 @@ void stMaterial::getMaterialInfo(srVertexProcessor::MaterialInfo& info)
 // FUNCTION: WIZ8 0x00492720
 stMaterial::~stMaterial()
 {
-    if (IsReadMeshMaterial(this) != 0) {
+    if (IsReadMeshMaterial(this)) {
         ReleaseReadMeshScratch();
     }
 }
@@ -1825,7 +1825,7 @@ static unsigned char MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialReco
     if (1 < static_cast<int>(geometry->m_polygon_count)) {
         polygon = geometry->m_polygons + 1;
         for (index = 1; index < static_cast<int>(geometry->m_polygon_count); ++index, ++polygon) {
-            if (g_prop_sun_bits->Test(index) != 0) {
+            if (g_prop_sun_bits->Test(index)) {
                 ++missing;
             }
             polygon->texture = polygon->material;

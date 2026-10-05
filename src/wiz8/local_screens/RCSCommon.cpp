@@ -98,14 +98,14 @@ static void OnCampPageButton1(void);
 static void OnCampPageButton2(void);
 static void OnCampPageButton3(void);
 static void CampPageDismissAction(void);
-static void OnCampItemActionButton0(void);
-static void OnCampItemActionButton1(void);
-static void OnCampItemActionButton2(void);
-static void OnCampItemActionButton3(void);
-static void OnCampItemActionButton4(void);
-static void OnCampItemActionButton5(void);
-static void OnCampItemActionButton6(void);
-static void OnCampItemActionButton7(void);
+static void OnCampIdentifyItem(void);
+static void OnCampMoveItem(void);
+static void OnCampSplitStack(void);
+static void OnCampUseItem(void);
+static void OnCampDropItem(void);
+static void OnCampCastSpell(void);
+static void OnCampUseItemOnItem(void);
+static void OnCampUseItemOnCharacter(void);
 
 static void ShowDismissCharacterDialog(void);
 static void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
@@ -121,7 +121,7 @@ void SelectCampCharacter(int slot)
     switch (g_camp_screen->page) {
     case 0:
         EnableCampActionButtons();
-        if (g_camp_screen->realm_flags[0] != 0) {
+        if (g_camp_screen->item_filters[0] != 0) {
             g_camp_screen->item_scroll = 0;
             RebuildCampItemList();
         }
@@ -171,7 +171,7 @@ void TryGiveHeldItemToCampPortrait(int slot)
         ShowCampNoticeLine(gppStringList[0x901], 0, 1, 0);
         return;
     }
-    if (IsCampActionAllowed(slot) == 0) {
+    if (!IsCampActionAllowed(slot)) {
         return;
     }
     AddItemToCharacter(character, &g_status.item_in_hand, 0, 0, 0);
@@ -341,7 +341,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                 }
             } else {
                 if (gXStatus.iTargetingMode == W8_TARGET_NEED_CHARACTER_INDIRECT) {
-                    if (IsDeadCharacterTargetable(static_cast<int>(target_slot)) == 0) {
+                    if (!IsDeadCharacterTargetable(static_cast<int>(target_slot))) {
                         QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
                                             g_character_event_kind2, 0,
                                             g_character_event_no_flags,
@@ -1221,14 +1221,14 @@ int CreateCampButtonPanel(void)
                 g_item_action_controls[5]->AddLayoutFlags(g_W8TextControlLayoutToggle);
                 g_item_action_controls[6]->AddLayoutFlags(g_W8TextControlLayoutToggle);
                 g_item_action_controls[7]->AddLayoutFlags(g_W8TextControlLayoutToggle);
-                g_item_action_controls[0]->m_primaryActivationCallback = OnCampItemActionButton0;
-                g_item_action_controls[1]->m_primaryActivationCallback = OnCampItemActionButton1;
-                g_item_action_controls[2]->m_primaryActivationCallback = OnCampItemActionButton2;
-                g_item_action_controls[3]->m_primaryActivationCallback = OnCampItemActionButton3;
-                g_item_action_controls[4]->m_primaryActivationCallback = OnCampItemActionButton4;
-                g_item_action_controls[5]->m_primaryActivationCallback = OnCampItemActionButton5;
-                g_item_action_controls[6]->m_primaryActivationCallback = OnCampItemActionButton6;
-                g_item_action_controls[7]->m_primaryActivationCallback = OnCampItemActionButton7;
+                g_item_action_controls[0]->m_primaryActivationCallback = OnCampIdentifyItem;
+                g_item_action_controls[1]->m_primaryActivationCallback = OnCampMoveItem;
+                g_item_action_controls[2]->m_primaryActivationCallback = OnCampSplitStack;
+                g_item_action_controls[3]->m_primaryActivationCallback = OnCampUseItem;
+                g_item_action_controls[4]->m_primaryActivationCallback = OnCampDropItem;
+                g_item_action_controls[5]->m_primaryActivationCallback = OnCampCastSpell;
+                g_item_action_controls[6]->m_primaryActivationCallback = OnCampUseItemOnItem;
+                g_item_action_controls[7]->m_primaryActivationCallback = OnCampUseItemOnCharacter;
                 g_item_actions_panel->SetEnabled(1);
                 g_camp_page_buttons[0]->EnableSecondaryState(0);
                 return 1;
@@ -1284,18 +1284,18 @@ void RefreshCampItemActions(bool invalidate)
         if (g_camp_screen->page == 0 && g_status.game_started != 0) {
             switch (index) {
             case 0:
-                control->SetEnabled(IsPartySlotEligible(giReviewCharSlot) != 0);
+                control->SetEnabled(IsPartySlotEligible(giReviewCharSlot));
                 continue;
             case 1:
                 control->SetEnabled(gXStatus.fCombatMode == 0 &&
-                                    IsPartySlotEligible(giReviewCharSlot) != 0);
+                                    IsPartySlotEligible(giReviewCharSlot));
                 continue;
             case 2:
                 if (!g_status.item_in_cursor) {
                     control->SetEnabled(1);
                     continue;
                 }
-                if (CanSplitItemStack(held) == 0) {
+                if (!CanSplitItemStack(held)) {
                     control->SetEnabled(0);
                     continue;
                 }
@@ -1305,8 +1305,7 @@ void RefreshCampItemActions(bool invalidate)
                     control->SetEnabled(1);
                     continue;
                 }
-                if (IsEquippableItemClass(held) != 0 &&
-                    gXStatus.held_item_source == giReviewCharSlot) {
+                if (IsEquippableItemClass(held) && gXStatus.held_item_source == giReviewCharSlot) {
                     control->SetEnabled(1);
                     continue;
                 }
@@ -1316,7 +1315,7 @@ void RefreshCampItemActions(bool invalidate)
                     control->SetEnabled(0);
                     continue;
                 }
-                if (IsPartySlotEligible(giReviewCharSlot) == 0) {
+                if (!IsPartySlotEligible(giReviewCharSlot)) {
                     control->SetEnabled(0);
                     continue;
                 }
@@ -1336,41 +1335,41 @@ void RefreshCampItemActions(bool invalidate)
                 continue;
             case 5:
                 control->SetEnabled(
-                    IsPartySlotEligible(giReviewCharSlot) != 0 &&
-                    CharacterHasTrait(g_review_character, W8_TRAIT_REMOVE_CURSED_ITEMS) != 0);
+                    IsPartySlotEligible(giReviewCharSlot) &&
+                    CharacterHasTrait(g_review_character, W8_TRAIT_REMOVE_CURSED_ITEMS));
                 continue;
             case 6:
                 if (g_review_character->spell_learned[0x17] != 1) {
                     break;
                 }
-                if (IsPartySlotEligible(giReviewCharSlot) == 0 || gXStatus.fCombatMode != 0) {
+                if (!IsPartySlotEligible(giReviewCharSlot) || gXStatus.fCombatMode != 0) {
                     break;
                 }
                 spell = &g_spell_records[0x17];
                 if (spell->spell_point_cost > g_review_character->iSPLeft[spell->realm]) {
                     break;
                 }
-                if (SpellUsableNow(0x17, 0) == 0) {
+                if (!SpellUsableNow(0x17, 0)) {
                     break;
                 }
                 if (!g_status.item_in_cursor) {
                     control->SetEnabled(1);
                     continue;
                 }
-                control->SetEnabled(CanItemLeaveItsSlot(held) != 0);
+                control->SetEnabled(CanItemLeaveItsSlot(held));
                 continue;
             case 7:
                 if (g_review_character->spell_learned[0x3a] != 1) {
                     break;
                 }
-                if (IsPartySlotEligible(giReviewCharSlot) == 0 || gXStatus.fCombatMode != 0) {
+                if (!IsPartySlotEligible(giReviewCharSlot) || gXStatus.fCombatMode != 0) {
                     break;
                 }
                 spell = &g_spell_records[0x3a];
                 if (spell->spell_point_cost > g_review_character->iSPLeft[spell->realm]) {
                     break;
                 }
-                control->SetEnabled(SpellUsableNow(0x3a, 0) != 0);
+                control->SetEnabled(SpellUsableNow(0x3a, 0));
                 continue;
             }
             control->SetEnabled(0);
@@ -1505,7 +1504,7 @@ static void CampPageDismissAction(void)
    click performs the held-item action or arms the button's targeting mode;
    while it is down the click falls back to clearing the action mode. */
 // FUNCTION: WIZ8 0x005b5c30
-static void OnCampItemActionButton0(void)
+static void OnCampIdentifyItem(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[0]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
@@ -1521,7 +1520,7 @@ static void OnCampItemActionButton0(void)
 }
 
 // FUNCTION: WIZ8 0x005b5c80
-static void OnCampItemActionButton1(void)
+static void OnCampMoveItem(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[1]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
@@ -1536,7 +1535,7 @@ static void OnCampItemActionButton1(void)
 }
 
 // FUNCTION: WIZ8 0x005b5cd0
-static void OnCampItemActionButton2(void)
+static void OnCampSplitStack(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[2]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
@@ -1551,7 +1550,7 @@ static void OnCampItemActionButton2(void)
 }
 
 // FUNCTION: WIZ8 0x005b5d10
-static void OnCampItemActionButton3(void)
+static void OnCampUseItem(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[3]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
@@ -1566,12 +1565,12 @@ static void OnCampItemActionButton3(void)
 }
 
 // FUNCTION: WIZ8 0x005b5d50
-static void OnCampItemActionButton4(void)
+static void OnCampDropItem(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[4]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor) {
-            if (ResolvePendingCampCharacter(1) != 0) {
+            if (ResolvePendingCampCharacter(1)) {
                 DropHeldCampItem();
             }
             return;
@@ -1583,7 +1582,7 @@ static void OnCampItemActionButton4(void)
 }
 
 // FUNCTION: WIZ8 0x005b5d90
-static void OnCampItemActionButton5(void)
+static void OnCampCastSpell(void)
 {
     bool eligible;
     unsigned char active;
@@ -1606,7 +1605,7 @@ static void OnCampItemActionButton5(void)
 }
 
 // FUNCTION: WIZ8 0x005b5df0
-static void OnCampItemActionButton6(void)
+static void OnCampUseItemOnItem(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[6]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
@@ -1624,7 +1623,7 @@ static void OnCampItemActionButton6(void)
 }
 
 // FUNCTION: WIZ8 0x005b5e60
-static void OnCampItemActionButton7(void)
+static void OnCampUseItemOnCharacter(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[7]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {

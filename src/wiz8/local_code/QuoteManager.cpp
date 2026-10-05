@@ -140,7 +140,7 @@ int PickRandomPartySpeaker(unsigned int event_type, unsigned char excluded_slot)
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 && slot != excluded_slot &&
             character->hp_current != 0 && character->highest_condition < W8_CONDITION_ASLEEP &&
-            FormatCharacterQuoteText(character, event_type, 0) != 0) {
+            FormatCharacterQuoteText(character, event_type, 0)) {
             eligible[count++] = slot;
         }
     }
@@ -813,7 +813,7 @@ unsigned char W8CharacterEvent::Dispatch()
     }
     metadata = 0xffffffff;
     if ((flags & W8_EVENT_BYPASS_CHECKS) == 0) {
-        if (CanDispatchCharacterEvent(party_slot, event_type, flags) == 0 ||
+        if (!CanDispatchCharacterEvent(party_slot, event_type, flags) ||
             IsConditionMet(event_type) == 0) {
             goto finish_without_dispatch;
         }
@@ -1016,7 +1016,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
             }
         }
         if (use_modal_gate != 0 && g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-            IsModalOpen() == 0) {
+            !IsModalOpen()) {
             layout_quote = 1;
         }
         if (layout_quote == 0 || g_settings.pc_subtitles == 0) {
@@ -1089,7 +1089,7 @@ void W8CharacterEventQueue::RestartFollowUpClock(W8CharacterEvent* entry)
 // FUNCTION: WIZ8 0x0052E1C0
 void W8CharacterEventQueue::ProcessFollowUpEvents()
 {
-    if (IsMipeActive() != 0 || GetEnvironmentFlag() == 0) {
+    if (IsMipeActive() || GetEnvironmentFlag() == 0) {
         return;
     }
     if ((follow_up_flags & 1) == 0) {
@@ -1170,7 +1170,7 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
             }
         }
     }
-    if ((ShouldDeferCharacterEventForNpcScript(0) != 0 || IsNpcScriptSessionActive() != 0) &&
+    if ((ShouldDeferCharacterEventForNpcScript(0) || IsNpcScriptSessionActive()) &&
         (entry->flags & W8_EVENT_NO_NPC_DEFER) == 0) {
         npc_deferred_events.Add(entry);
         return 1;
@@ -1243,13 +1243,13 @@ unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entr
 }
 
 // FUNCTION: WIZ8 0x0052E460
-unsigned char W8CharacterEventQueue::HasActiveEvents()
+bool W8CharacterEventQueue::HasActiveEvents()
 {
     return active_events.count > 0;
 }
 
 // FUNCTION: WIZ8 0x0052E470
-unsigned char W8CharacterEventQueue::IsMainQueueEmpty() const
+bool W8CharacterEventQueue::IsMainQueueEmpty() const
 {
     return pending_events.count <= 0;
 }
@@ -1270,8 +1270,8 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
         return;
     }
 
-    if (npc_deferred_events.count > 0 && ShouldDeferCharacterEventForNpcScript(0) == 0 &&
-        IsNpcScriptSessionActive() == 0) {
+    if (npc_deferred_events.count > 0 && !ShouldDeferCharacterEventForNpcScript(0) &&
+        !IsNpcScriptSessionActive()) {
         for (index = 0; index < npc_deferred_events.count; ++index) {
             QueueEntry(npc_deferred_events.data[index]);
         }
@@ -1381,11 +1381,11 @@ W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int 
         return 0;
     }
     attempts = 0;
-    bool can_dispatch = CanDispatchCharacterEvent(character_slot, event_type, 0) != 0;
+    bool can_dispatch = CanDispatchCharacterEvent(character_slot, event_type, 0);
     while (!can_dispatch && attempts < 0x32) {
         character_slot = GetRandomCharacter(0, 0, excluded_slot, -1);
         ++attempts;
-        can_dispatch = CanDispatchCharacterEvent(character_slot, event_type, 0) != 0;
+        can_dispatch = CanDispatchCharacterEvent(character_slot, event_type, 0);
     }
     if (attempts == 0x32) {
         return 0;
@@ -1606,7 +1606,7 @@ void QueueConditionChangeReaction(W8Character* character)
     int attempts;
     unsigned int reaction;
 
-    if (IsSedexusCaptureActive() != 0) {
+    if (IsSedexusCaptureActive()) {
         return;
     }
     if (g_status.skip_next_condition_reaction != 0) {
@@ -1670,7 +1670,7 @@ void QueueConditionChangeReaction(W8Character* character)
               reaction < g_remapped_event_count + g_first_remapped_event)) &&
             (slot = GetRandomCharacter(0, 0, excluded_slot, -1)) != -1) {
             attempts = 0;
-            while (CanDispatchCharacterEvent(slot, reaction, 0) == 0) {
+            while (!CanDispatchCharacterEvent(slot, reaction, 0)) {
                 if (attempts >= 0x32) {
                     return;
                 }
@@ -1701,7 +1701,7 @@ void QueueConditionChangeReaction(W8Character* character)
 // FUNCTION: WIZ8 0x0052F790
 void QueueConditionClearedReaction(W8Character* character, W8Condition condition)
 {
-    if (IsSedexusCaptureActive() != 0) {
+    if (IsSedexusCaptureActive()) {
         return;
     }
     if (g_status.skip_next_condition_reaction != 0) {
@@ -1882,7 +1882,7 @@ int UpdateCharacterEventState(void)
         }
 #endif
         if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
-            IsPortraitObscuredByNpcDialogue(party_slot) != 0) {
+            IsPortraitObscuredByNpcDialogue(party_slot)) {
             continue;
         }
         if (record->damage_splat_active == 0 && record->effect_icon_active == 0 &&

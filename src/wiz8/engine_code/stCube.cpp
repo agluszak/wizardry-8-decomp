@@ -806,7 +806,7 @@ W8WorldCursorNode* FindWorldCursorNodeAtPoint(W8WorldCursorNode* after, srVector
             bounds.maximum.x += static_cast<float>(location.x);
             bounds.maximum.y += static_cast<float>(location.y);
             bounds.maximum.z += static_cast<float>(location.z);
-            if (PointInsideBounds(point, &bounds.minimum, &bounds.maximum) != 0) {
+            if (PointInsideBounds(point, &bounds.minimum, &bounds.maximum)) {
                 return entry;
             }
         }

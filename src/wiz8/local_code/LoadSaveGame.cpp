@@ -1039,7 +1039,7 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
     int file_level;
     int count;
 
-    if (LevelBuildInfoByID(level, &info) == 0) {
+    if (!LevelBuildInfoByID(level, &info)) {
         srAssertFail("LevelFilesExist(ulLevel, &LevelName)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\LoadSaveGame.cpp", 0x366, 0);
     }
@@ -1765,9 +1765,9 @@ unsigned char AutoSaveIfAllowed(bool forced)
     char name[64];
 
     gXStatus.save_notice_shown = false;
-    if (g_status.world_cursor_gate == 0 && AnyMonsterDying() == 0 &&
+    if (g_status.world_cursor_gate == 0 && !AnyMonsterDying() &&
         ((g_settings.auto_save != 0 && forced == 0) || g_status.iron_man != 0) &&
-        gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
+        gXStatus.fCombatMode == 0 && !IsSightRangeOverridden() &&
         IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fCampMode == 0) {
         strcpy(name,
@@ -1826,7 +1826,7 @@ void ProcessMainGameAutoSave(void)
     if (g_status.world_cursor_gate != 0) {
         return;
     }
-    if (AnyMonsterDying() != 0) {
+    if (AnyMonsterDying()) {
         return;
     }
     if (g_settings.auto_save == 0 && g_status.iron_man == 0) {
@@ -1835,7 +1835,7 @@ void ProcessMainGameAutoSave(void)
     if (gXStatus.fCombatMode != 0) {
         return;
     }
-    if (IsSightRangeOverridden() != 0) {
+    if (IsSightRangeOverridden()) {
         return;
     }
     if (IsLevelDataFlag4EffectivelySet() == 0) {
@@ -1859,9 +1859,9 @@ void ProcessMainGameAutoSave(void)
         return;
     }
     gXStatus.save_notice_shown = false;
-    if (g_status.world_cursor_gate == 0 && AnyMonsterDying() == 0 &&
+    if (g_status.world_cursor_gate == 0 && !AnyMonsterDying() &&
         (g_settings.auto_save != 0 || g_status.iron_man != 0) && gXStatus.fCombatMode == 0 &&
-        IsSightRangeOverridden() == 0 && IsLevelDataFlag4EffectivelySet() != 0 &&
+        !IsSightRangeOverridden() && IsLevelDataFlag4EffectivelySet() != 0 &&
         gXStatus.fNpcDialogueMode == 0 && gXStatus.fCampMode == 0) {
         if (g_status.iron_man != 0) {
             strcpy(name, ConvertWideStringToString(GetLastSaveName()));

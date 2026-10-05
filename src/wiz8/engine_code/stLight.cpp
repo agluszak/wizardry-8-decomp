@@ -328,7 +328,7 @@ void stLight::Update()
         if (prop != 0) {
             instance = prop->ToggleRepAnimationDefault();
             srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
-            if (MeshHasAnimatedTexture(model) == 0) {
+            if (!MeshHasAnimatedTexture(model)) {
                 m_prop = 0;
                 instance = 0;
             }

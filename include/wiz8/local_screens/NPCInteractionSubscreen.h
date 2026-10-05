@@ -326,8 +326,8 @@ struct W8NpcInteractionState {
        the first open (count still below 1) queues the greeting lines. */
     int transcript_open_count;
     /* 0x260: the "PC Items"/"Party Items" pool toggle of the trade layouts:
-       raised by the screen reset and SelectNpcTradeMode1 ("PC Items"),
-       cleared by SelectNpcTradeMode0 ("Party Items"); it mirrors the button
+       raised by the screen reset and SelectNpcPartyItems ("PC Items"),
+       cleared by SelectNpcStockItems ("Party Items"); it mirrors the button
        pair so UpdateNpcDialogueSubMode can restore it. */
     bool trade_pc_items;
     /* 0x261: the main text box is collapsed to a single line while the
@@ -486,7 +486,7 @@ inline void CloseNpcDialogueIfActive(void)
    dialogue mode up, scripted_dialogue clear, the controller enabled, and its top
    edge above the slot's band. Portrait and character-update paths skip the
    covered rows through this. */
-unsigned char IsPortraitObscuredByNpcDialogue(unsigned int party_slot); /* 0x0056EC90 */
+bool IsPortraitObscuredByNpcDialogue(unsigned int party_slot); /* 0x0056EC90 */
 void RecordLevelEntryDialogueState(void);
 unsigned char IsNpcDialogueCursorActive(void); /* 0x0056EFB0 */
 /* 0x0056EFF0: forward a portrait pick into an active NPC dialogue. */
@@ -502,12 +502,12 @@ void NpcDialogueTextBoxWheelAt(short x, unsigned short y, bool flag); /* 0x0056F
 /* True when an NPC quote/portrait session is active: finish voice playback and
    report that the click was consumed. */
 bool FinishNpcVoiceIfSessionActive(void); /* 0x00577A20 */
-void ToggleNpcTradeFilterButton0(void);
-void ToggleNpcTradeFilterButton1(void);
-void ToggleNpcTradeFilterButton3(void);
-void ToggleNpcTradeFilterButton4(void);
-void ToggleNpcTradeFilterButton2(void);
-void ToggleNpcTradeFilterButton5(void);
+void ToggleNpcHandItemFilter(void);
+void ToggleNpcAccessoryItemFilter(void);
+void ToggleNpcBodyItemFilter(void);
+void ToggleNpcOtherItemFilter(void);
+void ToggleNpcCharacterUsabilityFilter(void);
+void ToggleNpcPartyUsabilityFilter(void);
 void BackOutNpcDialogue(void);
 void SubmitNpcWhereIsQuery(void);
 void SubmitNpcDialogueInput(void);
@@ -526,16 +526,16 @@ void ScrollNpcDialogueDown(void);
 void SubmitNpcDialogueKeyword(void);
 void RefreshNpcDialogueTranscript(void);
 void SyncNpcDialogueListFilter(void);
-void SelectNpcDialogueCategory1(void);
-void SelectNpcDialogueCategory2(void);
-void SelectNpcDialogueCategory0(void);
-void SelectNpcDialogueCategory3(void);
+void SelectNpcPeopleTopics(void);
+void SelectNpcPlaceTopics(void);
+void SelectNpcItemTopics(void);
+void SelectNpcMiscTopics(void);
 void SelectNpcDialogueCategoryAll(void);
-void SetNpcDialogueSubMode3(void);
-void SetNpcDialogueSubMode2(void);
-void SetNpcDialogueSubMode5(void);
-void SelectNpcTradeMode1(void);
-void SelectNpcTradeMode0(void);
+void SelectNpcSellMode(void);
+void SelectNpcGiveMode(void);
+void SelectNpcShopliftMode(void);
+void SelectNpcPartyItems(void);
+void SelectNpcStockItems(void);
 void OpenNpcItemAssay(void);
 void OnNpcAssayDialogClosed(W8DialogBase* dialog);
 void ConfirmNpcTradeSlot(void);

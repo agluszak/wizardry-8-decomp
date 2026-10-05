@@ -683,7 +683,7 @@ void OctBuildPreTree::FindLeafRegions(W8OctBuildNode* node, const W8BoundingBox*
 {
     for (unsigned short region = 1; region < spatial.m_region_count; ++region) {
         if ((spatial.m_region_volumes[region].flags & 4) == 0 &&
-            BoundsInsideFrustum(&spatial.m_region_volumes[region], bounds) != 0) {
+            BoundsInsideFrustum(&spatial.m_region_volumes[region], bounds)) {
             if (node->region_arrays[1] == 0) {
                 unsigned short* list = static_cast<unsigned short*>(malloc(100));
                 if (list == 0) {
@@ -804,7 +804,7 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
                 unsigned short hits = 0;
                 for (unsigned short region = 1; region < spatial.m_region_id_bound; ++region) {
                     if (PointInsideFrustum(&vert->position,
-                                           spatial.m_region_volumes[region].m_planes) != 0) {
+                                           spatial.m_region_volumes[region].m_planes)) {
                         ++hits;
                         vert->m_region = region;
                     }
@@ -1000,7 +1000,7 @@ unsigned short OctBuildPreTree::SplitSharedPolygon(W8OctPreTreeGeometry* geometr
             inside = 0;
             for (int corner = 0; corner < 3; ++corner) {
                 if (PointInsideFrustum(&polygon->vertices[corner]->position,
-                                       spatial.m_region_volumes[region].m_planes) != 0) {
+                                       spatial.m_region_volumes[region].m_planes)) {
                     inside = 1;
                     break;
                 }

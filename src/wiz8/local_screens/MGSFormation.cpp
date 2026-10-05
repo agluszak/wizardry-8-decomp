@@ -365,7 +365,7 @@ static void UpdateFormationCells(void)
             cell = position->bQuadrant * 3 + position->bQuadrantSlot;
             primary = g_formation_cell_controls[cell];
             overlay = g_formation_cell_overlays[cell];
-            if (CanHoldFormationPlace(slot) == 0) {
+            if (!CanHoldFormationPlace(slot)) {
                 sprite = position->facing * 3 + 2;
                 primary->m_normalSprite = sprite;
                 primary->m_alternateNormalSprite = sprite;
@@ -413,7 +413,7 @@ static void SelectFormationCell(void)
 {
     int index;
 
-    if (CanHoldFormationPlace(g_formation_cell_slots[g_formation_active_cell]) != 0) {
+    if (CanHoldFormationPlace(g_formation_cell_slots[g_formation_active_cell])) {
         for (index = 0; index < 15; ++index) {
             W8TextControl* control = g_formation_cell_controls[index];
 
@@ -437,7 +437,7 @@ static void AcceptFormationChanges(void)
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied != 0 && CanHoldFormationPlace(slot) != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied != 0 && CanHoldFormationPlace(slot) &&
             gXStatus.edited_formation.positions[slot].bQuadrant !=
                 g_status.formation.positions[slot].bQuadrant) {
             StartBreathCycle(slot, 0);
@@ -489,7 +489,7 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
                 ClockIsTicking(g_formation_drag_clock) == 0 && g_formation_drag_cell == -1 &&
                 g_formation_active_cell != -1) {
-                if (CanHoldFormationPlace(g_formation_cell_slots[region->callback_id]) == 0) {
+                if (!CanHoldFormationPlace(g_formation_cell_slots[region->callback_id])) {
                     region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
                     return 1;
                 }
@@ -530,7 +530,7 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
             g_formation_cell_overlays[region->callback_id]->OnMouseLeave(0);
             g_formation_cell_overlays[region->callback_id]->Invalidate(0);
             if (gfLeftButtonState != 0 && g_formation_drag_cell == -1 &&
-                CanHoldFormationPlace(g_formation_cell_slots[region->callback_id]) != 0) {
+                CanHoldFormationPlace(g_formation_cell_slots[region->callback_id])) {
                 g_formation_active_cell = region->callback_id;
                 BeginFormationDrag(event);
                 g_formation_cell_overlays[region->callback_id]->Invalidate(0);
@@ -649,7 +649,7 @@ static void DropFormationSlot(int cell)
             SetFormationPosition(&gXStatus.edited_formation, g_formation_drag_slot, -1, -1, 0, 1,
                                  1);
             SeatFormationSlotInRow(&gXStatus.edited_formation, g_formation_drag_slot, cell / 3);
-        } else if (CanHoldFormationPlace(g_formation_cell_slots[cell]) == 0) {
+        } else if (!CanHoldFormationPlace(g_formation_cell_slots[cell])) {
             cell = -1;
         } else {
             SwapFormationSlots(&gXStatus.edited_formation, g_formation_drag_slot,

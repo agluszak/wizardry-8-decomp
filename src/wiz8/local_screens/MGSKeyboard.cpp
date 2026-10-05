@@ -234,10 +234,10 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
         gXStatus.fTrapInteractMode != 0 && TextBoxHandleKey(input) != 0) {
         return 1;
     }
-    if (IsMipeActive() != 0 && HandleMipeKey(input) != 0) {
+    if (IsMipeActive() && HandleMipeKey(input) != 0) {
         return 1;
     }
-    if (IsRecordModeActive() != 0) {
+    if (IsRecordModeActive()) {
         if (gfKeyState[0x11] == 0 && HandleRecordModeKey(input, PromptRecordModeEntry) == 1) {
             ApplyRecordModeLine();
             return 1;
@@ -253,7 +253,7 @@ void DispatchMGSCommand(W8MGSCommand command)
 {
     switch (command) {
     case W8_MGS_COMMAND_CANCEL:
-        if (IsWorldCursorVisible() != 0) {
+        if (IsWorldCursorVisible()) {
             ToggleWorldCursor();
         } else if (gXStatus.fSurprisePossible != 0) {
             AcknowledgeSurprise();
@@ -267,9 +267,9 @@ void DispatchMGSCommand(W8MGSCommand command)
             SetTargetingMode(W8_TARGET_NEED_NONE);
         } else if (gXStatus.fReviewCharacterMode != 0) {
             CloseFormationPanel();
-        } else if (IsNpcScriptSessionActive() != 0) {
+        } else if (IsNpcScriptSessionActive()) {
             TryFinishNpcVoicePlayback(1);
-        } else if (gXStatus.character_event_queue->HasActiveEvents() != 0) {
+        } else if (gXStatus.character_event_queue->HasActiveEvents()) {
             gXStatus.character_event_queue->CompleteFirstActiveEvent();
         } else {
             if (gXStatus.fCombatMode != 0) {
@@ -372,7 +372,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         break;
     }
     case W8_MGS_COMMAND_LOOK_LEVEL:
-        if (IsWorldCursorVisible() != 0) {
+        if (IsWorldCursorVisible()) {
             UpdateWorldCursorPlacement();
         } else {
             LevelCamera();
@@ -408,7 +408,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         }
         break;
     case W8_MGS_COMMAND_OPTIONS:
-        if (gXStatus.fNpcDialogueMode != 0 || CanOpenNpcDialogue() != 0 ||
+        if (gXStatus.fNpcDialogueMode != 0 || CanOpenNpcDialogue() ||
             gXStatus.fLockInteractMode != 0 || gXStatus.fTrapInteractMode != 0 ||
             gXStatus.fCampMode != 0 || gXStatus.fLockInteract != 0 || gXStatus.fTrapInteract != 0) {
             break;
@@ -422,8 +422,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         TryMGSActionKey(W8_MGS_ACTION_JOURNAL);
         break;
     case W8_MGS_COMMAND_INVENTORY:
-        if (CanOpenNpcDialogue() != 0 || gXStatus.fCampMode != 0 ||
-            g_status.selected_character == -1 ||
+        if (CanOpenNpcDialogue() || gXStatus.fCampMode != 0 || g_status.selected_character == -1 ||
             (gXStatus.fNpcDialogueMode != 0 &&
              g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT)) {
             break;
@@ -573,8 +572,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         }
         if (g_combat_state->execution_active == 0) {
             BeginCombatExecution();
-        } else if (gXStatus.fPartyMovementUi != 0 && CanPartyMove() == 0 &&
-                   IsLevelMovementStopped() == 0) {
+        } else if (gXStatus.fPartyMovementUi != 0 && !CanPartyMove() && !IsLevelMovementStopped()) {
             BeginFreeTurnPhase();
         }
         break;
@@ -628,7 +626,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         ToggleNumericHitPoints();
         break;
     case W8_MGS_COMMAND_DEBUG_INJECT_CLICK:
-        if (IsCursorImageInsideViewport() != 0) {
+        if (IsCursorImageInsideViewport()) {
             unsigned int position = (static_cast<unsigned int>(gusMouseYPos) << 16) | gusMouseXPos;
             QueueEvent(LEFT_BUTTON_DOWN, 0, position);
             QueueEvent(LEFT_BUTTON_UP, 0, position);
@@ -1042,7 +1040,7 @@ static void KeyboardMenuCastRecordedSpell(void)
 {
 
     CloseKeyboardMenu();
-    if (CanPartySlotCastRecordedSpell(g_selected_party_slot) != 0) {
+    if (CanPartySlotCastRecordedSpell(g_selected_party_slot)) {
         StartCharacterSpellCast(g_selected_party_slot, 0);
         RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
     }

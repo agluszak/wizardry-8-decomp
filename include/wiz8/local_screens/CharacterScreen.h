@@ -400,7 +400,7 @@ public:
     virtual void ShowSkillInfo(W8Skill value) = 0;
     virtual void ShowDescription(int first, int second) = 0;
     virtual void ShowCharacterSummary() = 0;
-    virtual unsigned char HasDialog() = 0;
+    virtual bool HasDialog() = 0;
     virtual W8Character* GetOriginalCharacter() = 0;
 };
 static_assert(sizeof(W8CharacterPageHost) == 0x4, "W8CharacterPageHost_size");
@@ -428,7 +428,7 @@ public:
     virtual void ShowSkillInfo(W8Skill value) override;
     virtual void ShowDescription(int first, int second) override;
     virtual void ShowCharacterSummary() override;
-    virtual unsigned char HasDialog() override;
+    virtual bool HasDialog() override;
     virtual W8Character* GetOriginalCharacter() override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl* control) override;

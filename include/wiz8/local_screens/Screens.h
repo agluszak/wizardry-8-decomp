@@ -14,7 +14,7 @@ W8ScreenId GetPendingScreenState(void);
 void SetPendingScreenState(W8ScreenId value);
 void RequestScreenTransition(void);
 // bool-byte-ok: screen-table unsigned char (*)() slot
-unsigned char IsScreenTransitionPending(void);
+bool IsScreenTransitionPending(void);
 void RequestExitScreen(void);
 unsigned char ExitScreenEnter(void);
 void ExitScreenFrame(void);

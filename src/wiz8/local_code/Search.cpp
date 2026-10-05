@@ -111,7 +111,7 @@ W8SearchableView* CollectSearchablesInView(void)
                 float ahead = NormalizeAngle(yaw - heading);
                 float behind = NormalizeAngle(heading - yaw);
                 if ((half_cone <= ahead && half_cone <= behind) || g_octree == 0 ||
-                    g_octree->HasLineOfSight(&camera, &position, 1) == 0) {
+                    !g_octree->HasLineOfSight(&camera, &position, 1)) {
                     continue;
                 }
                 g_search_view.items.Add(searchable);

@@ -128,7 +128,7 @@ void ArnikaLevelSetup(void)
         if (npc != 0) {
             monster_info = GetNpcMonsterInfo(npc);
             if (monster_info != 0 && monster_info->p3D != 0 &&
-                FindEntityByName("Inside_Inn", &position, 0, 0) != 0) {
+                FindEntityByName("Inside_Inn", &position, 0, 0)) {
                 monster_info->p3D->SetPosition(&position);
             }
         }
@@ -190,7 +190,7 @@ void ArnikaLaserScanMaster(int command)
 // FUNCTION: WIZ8 0x004E0A80
 bool ArnikaScannerDoor(Trigger* pTrigger)
 {
-    if (FindItemOnParty(0x27b, 0, 0, 2, 0) == 0) {
+    if (!FindItemOnParty(0x27b, 0, 0, 2, 0)) {
         return 0;
     }
     if (GetLocationVarIDByName("HLLDoorOpen") == -1) {
@@ -222,7 +222,7 @@ void ArnikaWarningSound(int command)
             }
             return;
         }
-        if (FindEntityByName("ULLspawn", &position, 0, 0) == 0) {
+        if (!FindEntityByName("ULLspawn", &position, 0, 0)) {
             return;
         }
         g_warning_gate = 0;
@@ -285,7 +285,7 @@ bool ArnikaMookholo(Trigger* pTrigger)
         GetLocationVarValueByName("MookDoorOpen") != 0) {
         return 0;
     }
-    if (FindEntityByName("Mookholo", &position, 0, 0) != 0) {
+    if (FindEntityByName("Mookholo", &position, 0, 0)) {
         group = SpawnMonsters(0xb, 1, &position, 0, 1, 0, 0);
         if (GetLocationVarIDByName("ScregActive") != -1) {
             SetTriggerVariableByName("ScregActive", 1);
@@ -361,7 +361,7 @@ bool ArnikaYellowButton(Trigger* pTrigger)
     W8MonsterInfo* info;
 
     g_trigger_feedback = 1;
-    if (FindEntityByName("Bguards", &position, 0, 0) != 0) {
+    if (FindEntityByName("Bguards", &position, 0, 0)) {
         group = SpawnMonsters(0xc, 6, &position, 1, 1, 0, 0);
         if (group != 0) {
             info = MonsterGetScriptPartByLocationIndex(
@@ -436,7 +436,7 @@ bool ArnikaGenVaultDoor(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
-    if (FindEntityByName("Golem", &position, 0, 0) != 0) {
+    if (FindEntityByName("Golem", &position, 0, 0)) {
         if (GetLocationVarIDByName("GolemSpawned") != -1) {
             return 0;
         }

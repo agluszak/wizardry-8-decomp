@@ -119,7 +119,7 @@ void ReleasePartyMovement(void)
 void UpdatePartyMovementPanel(void)
 {
     RegionSetEnable(0x1c);
-    if (CanPartyMove() != 0) {
+    if (CanPartyMove()) {
         g_party_movement_buttons[1]->SetActive(1);
         g_party_movement_buttons[0]->SetActive(0);
         return;
@@ -152,7 +152,7 @@ void DrawPartyMovementPanel(void)
     panel_live =
         g_party_movement_panel->m_fEnabled != 0 &&
         (g_party_movement_panel->m_fDirty != 0 || g_party_movement_panel->m_fLayoutDirty != 0);
-    if (CanPartyMove() == 0) {
+    if (!CanPartyMove()) {
         if (g_party_movement_buttons[0]->m_active == 0) {
             g_party_movement_buttons[0]->SetActive(1);
             g_party_movement_buttons[0]->Invalidate(0);
@@ -176,8 +176,8 @@ void DrawPartyMovementPanel(void)
     }
     g_party_movement_panel->Redraw();
     right = 0x1b9 - g_level_block->move_percent * 0xf6 / 100;
-    if (CanPartyMove() == 0) {
-        if (IsLevelMovementStopped() == 0) {
+    if (!CanPartyMove()) {
+        if (!IsLevelMovementStopped()) {
             image = 1;
             caption = ((g_level_block->move_percent != 100) - 1 & 0x77f) - 1;
         } else {
@@ -240,8 +240,7 @@ void DrawPartyMovementGauge(short right, short image, bool panel_live, int capti
         frame = 0;
     }
     unsigned int action;
-    if (CanPartyMove() == 0 ||
-        (g_combat_state->execution_active != 0 && IsPartyEngaged() == 0)) {
+    if (!CanPartyMove() || (g_combat_state->execution_active != 0 && IsPartyEngaged() == 0)) {
         action = g_combat_state->uiCurrentPartyAction;
     } else {
         action = g_combat_state->uiNextPartyAction;

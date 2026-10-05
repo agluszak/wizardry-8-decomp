@@ -475,7 +475,7 @@ void ProcessNpcScriptingFrame(void)
 {
     W8Character* character;
     bool can_open_dialogue;
-    char dialogue_ready;
+    bool dialogue_ready;
     int environment;
     int party_slot;
     int sedexus_party_slot;
@@ -547,7 +547,7 @@ void ProcessNpcScriptingFrame(void)
             if (g_npc_interaction_state->script_busy == 0 &&
                 g_npc_interaction_state->dialogue_panel_hidden != 0 &&
                 (dialogue_ready = gXStatus.character_event_queue->IsMainQueueEmpty(),
-                 dialogue_ready != 0)) {
+                 dialogue_ready)) {
                 SetNpcDialoguePanelVisible(1);
             }
         }
@@ -1455,8 +1455,8 @@ void ProcessMessageBoxQueue(void)
             for (index = 0; index < quote->entry_count; ++index) {
                 unsigned char kind = quote->entries[index].kind;
                 if ((kind == 0x12 || kind == 0x1e) &&
-                    (kind == 0x1e || NpcKnowsFact(g_npc_scripting.npc,
-                                                  static_cast<W8FactId>(line->quote_index)) == 0)) {
+                    (kind == 0x1e || !NpcKnowsFact(g_npc_scripting.npc,
+                                                   static_cast<W8FactId>(line->quote_index)))) {
                     RunNpcScriptLine(0x12, 0);
                     g_npc_interaction_state->script_busy = 0xff;
                     W8MessageBoxLine* continuation = new W8MessageBoxLine;
@@ -2491,7 +2491,7 @@ void ShowString(wchar_t* text)
 {
     wchar_t* copy = new wchar_t[0x200];
     wcscpy(copy, text);
-    if (IsLevelMovementStopped() == 0) {
+    if (!IsLevelMovementStopped()) {
         W8MessageBoxPayload reset_level_state_payload;
         reset_level_state_payload.argument = 1;
         W8MessageBoxPayload reset_level_state_extra;
@@ -2505,7 +2505,7 @@ void ShowString(wchar_t* text)
     portrait_message_extra.text = 0;
     AddMessageBoxLine(W8_NPC_MSG_PORTRAIT_MESSAGE, portrait_message_payload,
                       portrait_message_extra);
-    if (IsLevelMovementStopped() == 0) {
+    if (!IsLevelMovementStopped()) {
         W8MessageBoxPayload reset_level_state_payload;
         reset_level_state_payload.argument = 0;
         W8MessageBoxPayload reset_level_state_extra;
@@ -2598,9 +2598,9 @@ void EndScriptedPortraitPick(int party_slot)
     }
     if (g_status.buffers.XChar[party_slot].npc_index == -1 &&
         character->highest_condition < W8_CONDITION_ASLEEP) {
-        if (FindItemOnCharacter(character, 0x1fd, &found, 0, 0) != 0 &&
-            FindItemOnCharacter(character, 0x1fe, &found, 0, 0) != 0 &&
-            FindItemOnCharacter(character, 0x1ff, &found, 0, 0) != 0) {
+        if (FindItemOnCharacter(character, 0x1fd, &found, 0, 0) &&
+            FindItemOnCharacter(character, 0x1fe, &found, 0, 0) &&
+            FindItemOnCharacter(character, 0x1ff, &found, 0, 0)) {
             SetFact(W8_FACT_ALSEDEXUS_SACRIFICE_NOT_DRESSED, 0, 0);
             swprintf(g_status.monster_name_buffer, g_format_al_s, character->name);
             g_status.sedexus_party_slot = party_slot;

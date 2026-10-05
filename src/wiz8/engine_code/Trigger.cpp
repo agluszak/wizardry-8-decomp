@@ -1157,7 +1157,7 @@ void W8TriggerEvent::Update()
         }
     }
 
-    if (timer.GetProgress() <= 1.0f || trigger->HasActorWithinRadius(5000.0f, 1) != 0) {
+    if (timer.GetProgress() <= 1.0f || trigger->HasActorWithinRadius(5000.0f, 1)) {
         return;
     }
 
@@ -2760,7 +2760,7 @@ void Trigger::Run(int source)
             }
             if (action_data != 0 && (action_data->door_flags & W8_DOOR_KEY_REQUIRED) != 0 &&
                 action_data->item != -1) {
-                if (FindItemOnParty(action_data->item, 0, 0, 2, 0) == 0) {
+                if (!FindItemOnParty(action_data->item, 0, 0, 2, 0)) {
                     ShowNoticef(3, L"Your party doesn't have required key.");
                     break;
                 }
@@ -2835,7 +2835,7 @@ void Trigger::Run(int source)
             }
             if (action_data != 0 && (action_data->door_flags & W8_DOOR_KEY_REQUIRED) != 0 &&
                 action_data->item != -1) {
-                if (FindItemOnParty(action_data->item, 0, 0, 2, 0) == 0) {
+                if (!FindItemOnParty(action_data->item, 0, 0, 2, 0)) {
                     ShowNoticef(3, L"Your party doesn't have required key.");
                     break;
                 }

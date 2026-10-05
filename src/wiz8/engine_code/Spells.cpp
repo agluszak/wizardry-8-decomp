@@ -589,8 +589,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
             if (index != -1) {
                 if (index / SPELL_CYCLES_PER_GROUP == group) {
                     W8GrCycle* loaded = *visual;
-                    if (LoadGrCycle(context, pac_value, &loaded, index, 1, "Data\\Spells", 2, 0) !=
-                        0) {
+                    if (LoadGrCycle(context, pac_value, &loaded, index, 1, "Data\\Spells", 2, 0)) {
                         *visual = static_cast<W8SpellVisual*>(loaded);
                         RegisterGrCycle(pac_value, *visual);
                         success = 1;
@@ -838,7 +837,7 @@ W8SpellVisual* SpawnCameraSpellEffect(const char* name, int power_level, int val
     int cycle = -1;
 
     if (name != 0) {
-        if (LoadSpellVisualResource(&context, name, W8_SPELL_VISUAL_FLASH, &visual, 1) != 0) {
+        if (LoadSpellVisualResource(&context, name, W8_SPELL_VISUAL_FLASH, &visual, 1)) {
             visual->SetNavigationMode(4);
             visual->active = 0;
             visual->SetPitchRollEnabled(1, 1);
@@ -853,7 +852,7 @@ W8SpellVisual* SpawnCameraSpellEffect(const char* name, int power_level, int val
         delete visual;
     }
     generic = 0;
-    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_FLASH, &generic, 1) != 0) {
+    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_FLASH, &generic, 1)) {
         generic->SetNavigationMode(4);
         generic->active = 0;
         generic->SetPitchRollEnabled(1, 1);
@@ -913,7 +912,7 @@ W8SpellVisual* CreateMonsterSpellEffect(const char* mls_name, int power_level, W
     int cycle = -1;
 
     if (mls_name != 0) {
-        if (LoadSpellVisualResource(&context, mls_name, W8_SPELL_VISUAL_TARGET, &visual, 1) != 0) {
+        if (LoadSpellVisualResource(&context, mls_name, W8_SPELL_VISUAL_TARGET, &visual, 1)) {
             visual->SetNavigationMode(4);
             visual->active = 0;
             visual->SetPitchRollEnabled(1, 1);
@@ -928,7 +927,7 @@ W8SpellVisual* CreateMonsterSpellEffect(const char* mls_name, int power_level, W
         delete visual;
     }
     generic = 0;
-    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_TARGET, &generic, 1) != 0) {
+    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_TARGET, &generic, 1)) {
         generic->SetNavigationMode(4);
         generic->active = 0;
         generic->SetPitchRollEnabled(1, 1);
@@ -977,7 +976,7 @@ static W8SpellVisual* CreateConeSpellVisual(const char* mls_name, int power_leve
     int cycle = -1;
 
     if (mls_name != 0) {
-        if (LoadSpellVisualResource(&context, mls_name, W8_SPELL_VISUAL_CONE, &visual, 1) != 0) {
+        if (LoadSpellVisualResource(&context, mls_name, W8_SPELL_VISUAL_CONE, &visual, 1)) {
             visual->SetNavigationMode(4);
             visual->active = 0;
             visual->SetPitchRollEnabled(1, 1);
@@ -992,7 +991,7 @@ static W8SpellVisual* CreateConeSpellVisual(const char* mls_name, int power_leve
         delete visual;
     }
     generic = 0;
-    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_CONE, &generic, 1) != 0) {
+    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_CONE, &generic, 1)) {
         generic->SetNavigationMode(4);
         generic->active = 0;
         generic->SetPitchRollEnabled(1, 1);

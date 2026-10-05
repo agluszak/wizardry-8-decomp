@@ -806,11 +806,11 @@ static bool CanHoldItemsTogether(int first_item_id, int second_item_id)
     }
     if (g_item_records[first_item_id].equip_class == W8_ITEM_EQUIP_CLASS_RANGED_WEAPON ||
         g_item_records[second_item_id].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-        return CompatiblePartnerItems(first_item_id, second_item_id) != 0;
+        return CompatiblePartnerItems(first_item_id, second_item_id);
     }
     if (g_item_records[second_item_id].equip_class == W8_ITEM_EQUIP_CLASS_RANGED_WEAPON ||
         g_item_records[first_item_id].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-        return CompatiblePartnerItems(second_item_id, first_item_id) != 0;
+        return CompatiblePartnerItems(second_item_id, first_item_id);
     }
     if (g_item_records[first_item_id].equip_class >= W8_ITEM_EQUIP_CLASS_AMMUNITION) {
         return true;
@@ -1700,7 +1700,7 @@ void StashDepartingCharacterItems(W8Character* character)
             (g_item_records[item_id].binds_on_equip == 0 || item->bind_announced ||
              g_equip_slot_icons[equip_slot] == -1 ||
              character->uiCondition[W8_CONDITION_DEAD] != 0) &&
-            AddItemToParty(item, 0, 0) == 0) {
+            !AddItemToParty(item, 0, 0)) {
             DropUnstoredCharacterItem(item);
             ShowNoticef(0, gppStringList[0x7d3], &g_item_records[item_id]);
         }
@@ -1709,7 +1709,7 @@ void StashDepartingCharacterItems(W8Character* character)
     for (int slot = 0; slot < 8; ++slot) {
         W8ItemInstance* item = &character->backpack[slot];
         item_id = character->EquippedItem[slot].iItemNo;
-        if (item_id != -1 && AddItemToParty(item, 0, 0) == 0) {
+        if (item_id != -1 && !AddItemToParty(item, 0, 0)) {
             DropUnstoredCharacterItem(item);
             ShowNoticef(0, gppStringList[0x7d3], &g_item_records[item_id]);
         }
@@ -1789,7 +1789,7 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
         srAssertFail("fCHAR_OCCUPIED(uiChar)", PC_ITEM_CPP, 0x195, 0);
     }
 
-    if (IsPartySlotEligible(uiChar) != 0) {
+    if (IsPartySlotEligible(uiChar)) {
         W8Character* character = &g_status.buffers.Char[uiChar];
         if (StoreItemWithCharacterOrParty(character, item, party_first, 1, 0)) {
             stored = 1;
@@ -1806,7 +1806,7 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
         return stored;
     }
 
-    if (IsPartySlotEligible(uiChar) == 0 && !party_first) {
+    if (!IsPartySlotEligible(uiChar) && !party_first) {
         ShowNoticeLine(gppStringList[0x1f5], 0, 1, 0);
     } else {
         ShowNoticeLine(gppStringList[0x90c], 0, 1, 0);
@@ -1832,7 +1832,7 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
         srAssertFail("fCHAR_OCCUPIED(uiChar)", PC_ITEM_CPP, 0x195, 0);
     }
 
-    if (IsPartySlotEligible(uiChar) == 0) {
+    if (!IsPartySlotEligible(uiChar)) {
         if (!party_first) {
             return 0;
         }
@@ -3279,7 +3279,7 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
             return 1;
         }
     }
-    if (SpellUsableNow(record->spell_id, 0) == 0) {
+    if (!SpellUsableNow(record->spell_id, 0)) {
         ShowNoticeLine(gppStringList[0x7a6], callback, 1, 0);
         return 1;
     }
@@ -3298,7 +3298,7 @@ bool CharacterHasServiceItem(W8Character* character)
 
     item = character->backpack;
     for (index = 0; index < 8; ++index, ++item) {
-        if (item->iItemNo != -1 && CanCharacterActivateItem(character, item) != 0) {
+        if (item->iItemNo != -1 && CanCharacterActivateItem(character, item)) {
             record = &g_item_records[item->iItemNo];
             if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
                 record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
@@ -3309,7 +3309,7 @@ bool CharacterHasServiceItem(W8Character* character)
     }
     item = character->EquippedItem;
     for (index = 0; index < 0xc; ++index, ++item) {
-        if (item->iItemNo != -1 && CanCharacterActivateItem(character, item) != 0) {
+        if (item->iItemNo != -1 && CanCharacterActivateItem(character, item)) {
             record = &g_item_records[item->iItemNo];
             if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
                 record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
@@ -3321,7 +3321,7 @@ bool CharacterHasServiceItem(W8Character* character)
     if (g_status.party_item_count != 0) {
         item = g_status.party_item_pool;
         for (index = 0; index < g_status.party_item_count; ++index, ++item) {
-            if (item->iItemNo != -1 && CanCharacterActivateItem(character, item) != 0) {
+            if (item->iItemNo != -1 && CanCharacterActivateItem(character, item)) {
                 record = &g_item_records[item->iItemNo];
                 if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
                     record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
@@ -4230,7 +4230,7 @@ void BindCharacterItems(int party_slot, int arg_2)
         }
     }
 
-    if (IsPartySlotEligible(party_slot) != 0) {
+    if (IsPartySlotEligible(party_slot)) {
         if (SwapWeaponSetSlots(party_slot, static_cast<char>(arg_2), 1) != 0) {
             g_status.buffers.XChar[party_slot].weapon_swap_pending = 0;
         }

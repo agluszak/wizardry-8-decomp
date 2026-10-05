@@ -942,7 +942,7 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
         g_hide_invisible_items = show_invisible;
         for (item_index = 0; item_index < PLLength(gXStatus.plsItemList); ++item_index) {
             world_item = ItemInfo(item_index);
-            if (ItemHasFlags(world_item, 1) != 0) {
+            if (ItemHasFlags(world_item, 1)) {
                 if (show_invisible) {
                     if (world_item->fActive) {
                         DeactivateWorldItem(world_item);
@@ -2999,7 +2999,7 @@ void UpdateMipeSelection(void)
             float distance;
 
             marker = entry->marker_item;
-            if (marker == 0 || marker->IsSelected() == 0) {
+            if (marker == 0 || !marker->IsSelected()) {
                 continue;
             }
             distance = marker->DistanceToCamera(GetWorld());

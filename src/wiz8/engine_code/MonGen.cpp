@@ -481,7 +481,7 @@ unsigned char MonGen::CanGenerateEncounter(bool force)
     float distance;
 
     if (g_generator_save_flag != 0 || gXStatus.world_update_blocked != 0 ||
-        gXStatus.fCombatMode != 0 || gXStatus.fNpcDialogueMode != 0 || IsMipeActive() != 0 ||
+        gXStatus.fCombatMode != 0 || gXStatus.fNpcDialogueMode != 0 || IsMipeActive() ||
         generation_enabled == 0) {
         return 0;
     }
@@ -494,7 +494,7 @@ unsigned char MonGen::CanGenerateEncounter(bool force)
         if (distance > 200000.0f || distance < 35000.0f) {
             return 0;
         }
-        if (g_octree != 0 && g_octree->HasLineOfSight(&camera, &spawn_position, 1) != 0) {
+        if (g_octree != 0 && g_octree->HasLineOfSight(&camera, &spawn_position, 1)) {
             return 0;
         }
     }
@@ -623,7 +623,7 @@ void CullExpiredEncounters(void)
     int index;
 
     GetCameraPosition(&party);
-    if (IsSightRangeOverridden() == 0) {
+    if (!IsSightRangeOverridden()) {
         span = g_encounter_culling_time_seconds * g_sight_default;
     } else {
         span = g_encounter_culling_time_seconds * g_encounter_culling_scale_fast *

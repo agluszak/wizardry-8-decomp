@@ -591,9 +591,8 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                             if (_strnicmp(pacName, g_missile_cycle_names[index],
                                           strlen(g_missile_cycle_names[index])) == 0) {
                                 loaded_cycle = *ppMissile;
-                                loaded =
-                                    LoadGrCycle(context, pacFileName, &loaded_cycle, index, 1,
-                                                "Data\\Missiles", 1, "Data\\Spells\\Bitmaps") != 0;
+                                loaded = LoadGrCycle(context, pacFileName, &loaded_cycle, index, 1,
+                                                     "Data\\Missiles", 1, "Data\\Spells\\Bitmaps");
                                 if (loaded) {
                                     *ppMissile = static_cast<W8Missile*>(loaded_cycle);
                                 }
@@ -674,7 +673,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
     }
     loaded_cycle = *ppMissile;
     loaded = LoadGrCycle(context, name, &loaded_cycle, 0, 1, "Data\\Missiles", 1,
-                         "Data\\Spells\\Bitmaps") != 0;
+                         "Data\\Spells\\Bitmaps");
     if (loaded) {
         *ppMissile = static_cast<W8Missile*>(loaded_cycle);
         RegisterGrCycle(name, *ppMissile);

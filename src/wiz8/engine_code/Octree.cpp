@@ -463,8 +463,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
     unsigned int region = 1;
     if (1 < m_spatial.m_region_count) {
         do {
-            if (SphereInsideFrustum(point, radius, m_spatial.m_region_volumes[region].m_planes) !=
-                    0 &&
+            if (SphereInsideFrustum(point, radius, m_spatial.m_region_volumes[region].m_planes) &&
                 m_spatial.m_region_volumes[region].m_region_bit != 0) {
                 m_current_regions->Set(m_spatial.m_region_volumes[region].m_region_bit);
             }
@@ -492,7 +491,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                 if (model != 0) {
                     W8BoundingBox bounds;
                     model->getBoundingBox(bounds.minimum, bounds.maximum);
-                    if (SphereNearBounds(point, radius, &bounds) != 0) {
+                    if (SphereNearBounds(point, radius, &bounds)) {
                         out->Add(instance);
                     }
                 }
@@ -605,7 +604,7 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
             strcat(expected_regions, region_label);
 
             W8OctRegionVolume* volume = &m_spatial.m_region_volumes[region_index];
-            if (PointInsideFrustum(location, volume->m_planes) == 0) {
+            if (!PointInsideFrustum(location, volume->m_planes)) {
                 continue;
             }
             if (match_count == 0) {
@@ -639,7 +638,7 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
             break;
         }
         W8OctRegionVolume* volume = &m_spatial.m_region_volumes[region_index];
-        if (PointInsideFrustum(location, volume->m_planes) == 0) {
+        if (!PointInsideFrustum(location, volume->m_planes)) {
             continue;
         }
         if (reported_region == 0 && region_index != g_octree_region_debug_last) {
@@ -672,7 +671,7 @@ unsigned int W8Octree::GetSectorForPosition(const srVector3T<float>* position)
 {
     srVector3T<float> point = *position;
     for (unsigned int region = 1; region < m_spatial.m_region_count; ++region) {
-        if (PointInsideFrustum(&point, m_spatial.m_region_volumes[region].m_planes) != 0) {
+        if (PointInsideFrustum(&point, m_spatial.m_region_volumes[region].m_planes)) {
             return m_spatial.m_region_volumes[region].m_region_bit;
         }
     }
@@ -900,7 +899,7 @@ void W8Octree::CollectVisibleCells()
                         cell_y * m_spatial.m_region_grid_cell + m_spatial.m_minimum.y + offset;
                     point.z =
                         cell_z * m_spatial.m_region_grid_cell + m_spatial.m_minimum.z + offset;
-                    if (PointInsideFrustum(&point, view.frustum_planes) == 0) {
+                    if (!PointInsideFrustum(&point, view.frustum_planes)) {
                         continue;
                     }
                 }
@@ -3010,7 +3009,7 @@ unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
     for (unsigned int index = 0; index < m_gd_result_count; ++index) {
         unsigned int mesh_index = m_aulGDObjs[index] >> 0x10;
         if (mesh_index < m_meshCount && g_world->psrMeshes[mesh_index] != 0 &&
-            m_pAlphaBits->Test(mesh_index) == 0) {
+            !m_pAlphaBits->Test(mesh_index)) {
             stMeshModel* model =
                 static_cast<stMeshModel*>(g_world->psrMeshes[mesh_index]->getModel());
             const srVector4T<float>* planes = model->getPolyEq();
@@ -3065,7 +3064,7 @@ unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
                 triangle[0] = vertices[poly_vertex->x];
                 triangle[1] = vertices[poly_vertex->y];
                 triangle[2] = vertices[poly_vertex->z];
-                if (PointInsideTriangle(triangle, axis, &point) != 0 && t < trace->hit_limit) {
+                if (PointInsideTriangle(triangle, axis, &point) && t < trace->hit_limit) {
                     trace->hit_limit = t;
                     hit = true;
                     contact = point;
@@ -3125,7 +3124,7 @@ unsigned long* W8Octree::CollectPolygonsNearPoint(srVector3T<float>* center, flo
         stMeshModel* model = 0;
         const srVector4T<float>* plane = 0;
         if (mesh_index < m_meshCount && g_world->psrMeshes[mesh_index] != 0 &&
-            m_pAlphaBits->Test(mesh_index) == 0) {
+            !m_pAlphaBits->Test(mesh_index)) {
             model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh_index]->getModel());
             unsigned int polygon = m_aulGDObjs[index] & 0xffff;
             plane = model->getPolyEq() + polygon;
@@ -5137,10 +5136,9 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                                     clear = pathing->TestPathCellClearance(
                                         &candidate, radius * g_float_005ebc7c, 0);
                                 }
-                                if (clear != 0 &&
-                                    (avoid_triggers == 0 ||
-                                     InsideDestinationTrigger(candidate.x, candidate.y,
-                                                              candidate.z) == 0)) {
+                                if (clear != 0 && (avoid_triggers == 0 ||
+                                                   !InsideDestinationTrigger(
+                                                       candidate.x, candidate.y, candidate.z))) {
                                     if (first_only != 0) {
                                         srVector3T<float> camera = g_startup_world->GetPosition();
                                         float camera_dx = camera.x - candidate.x;

@@ -1341,13 +1341,13 @@ void W8Prop::SetPosition(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x0044e360
 bool W8Prop::TriggerHasActionMessage()
 {
-    return trigger != 0 && trigger->HasActionMessage() != 0;
+    return trigger != 0 && trigger->HasActionMessage();
 }
 
 // FUNCTION: WIZ8 0x0044e380
 bool W8Prop::TriggerRequiresItem()
 {
-    return trigger != 0 && trigger->RequiresItem() != 0;
+    return trigger != 0 && trigger->RequiresItem();
 }
 
 /* Whether a prop with a selectable trigger is visible from `position`: the
