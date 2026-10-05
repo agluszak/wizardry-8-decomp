@@ -347,7 +347,7 @@ void W8OptionsSaveLoadPanel::SetCurrent(int current)
 void W8OptionsSaveLoadPanel::OnPrimary(W8TextControl* control)
 {
     if (control == m_delete_button) {
-        g_options_screen->ShowNotification(this, 1, 0x828, 1);
+        g_options_screen->ShowNotification(this, true, 0x828, 1);
         return;
     }
     if (control != m_action_button) {
@@ -369,15 +369,15 @@ void W8OptionsSaveLoadPanel::OnPrimary(W8TextControl* control)
     if (editor == 0 && m_current == 0 && m_selection.m_selectedIndex == 0) {
         SaveSelectedSave();
     } else {
-        g_options_screen->ShowNotification(this, 1, 0x829, 2);
+        g_options_screen->ShowNotification(this, true, 0x829, 2);
     }
 }
 
 // FUNCTION: WIZ8 0x005aadd0
-void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
+void W8OptionsSaveLoadPanel::OnDialogClosed(bool accepted, int value)
 {
     int selected_slot;
-    if (reason == 0) {
+    if (!accepted) {
         if (value == 2) {
             if (g_options_screen->m_text_editor != 0 || m_panel != 12 ||
                 m_selection.m_selectedIndex != 0) {
@@ -408,7 +408,7 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
             char path[260];
             sprintf(path, "%s\\%S.%s", "Saves", m_previous_name, g_save_extension);
             if (DeleteFileA(path) == 0) {
-                g_options_screen->ShowNotification(this, 0, 0x82e, 0);
+                g_options_screen->ShowNotification(this, false, 0x82e, 0);
                 return;
             }
         }
@@ -446,7 +446,7 @@ void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned c
     Get16BitStringFromField(0, slot->name);
     if (wcslen(slot->name) == 0) {
         wcscpy(slot->name, m_previous_name);
-        g_options_screen->ShowNotification(this, 0, 0x82a, 4);
+        g_options_screen->ShowNotification(this, false, 0x82a, 4);
         return;
     }
 
@@ -458,10 +458,10 @@ void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned c
         if (SaveSlotFileExists(ConvertWideStringToString(slot->name)) == 0) {
             SaveSelectedSave();
         } else {
-            g_options_screen->ShowNotification(this, 1, 0x829, 2);
+            g_options_screen->ShowNotification(this, true, 0x829, 2);
         }
     } else {
-        g_options_screen->ShowNotification(this, 1, 0x829, 3);
+        g_options_screen->ShowNotification(this, true, 0x829, 3);
     }
 }
 
@@ -506,7 +506,7 @@ void W8OptionsSaveLoadPanel::DeleteSelectedSave()
     char path[260];
     sprintf(path, "%s\\%S.%s", "Saves", slot->name, g_save_extension);
     if (DeleteFileA(path) == 0) {
-        g_options_screen->ShowNotification(this, 0, 0x82f, 0);
+        g_options_screen->ShowNotification(this, false, 0x82f, 0);
         return;
     }
 
@@ -560,14 +560,14 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
     int selected_slot = m_current * 5 + m_selection.m_selectedIndex;
     W8SaveSlot* slot = *g_options_screen->m_save_slots.GetAt(selected_slot);
     if (wcslen(slot->name) == 0) {
-        g_options_screen->ShowNotification(this, 0, 0x82a, 0);
+        g_options_screen->ShowNotification(this, false, 0x82a, 0);
         return;
     }
 
     char path[260];
     sprintf(path, "%s\\%S.%s", "Saves", slot->name, g_save_extension);
     if (FileExists(path) != 0 && DeleteFileA(path) == 0) {
-        g_options_screen->ShowNotification(this, 0, 0x82e, 0);
+        g_options_screen->ShowNotification(this, false, 0x82e, 0);
         return;
     }
     SetLastSaveName(slot->name);
@@ -844,7 +844,7 @@ void W8OptionsKeyboardPanel::Invalidate(const W8ControlsRect* bounds)
 // FUNCTION: WIZ8 0x005abd00
 void W8OptionsKeyboardPanel::OnPrimary(W8TextControl*)
 {
-    g_options_screen->ShowNotification(this, 1, 0x834, 0);
+    g_options_screen->ShowNotification(this, true, 0x834, 0);
 }
 
 // FUNCTION: WIZ8 0x005abd30
@@ -899,10 +899,10 @@ unsigned char W8OptionsKeyboardPanel::OnKey(unsigned short key, unsigned short m
 }
 
 // FUNCTION: WIZ8 0x005abe60
-void W8OptionsKeyboardPanel::OnDialogClosed(unsigned char reason, int)
+void W8OptionsKeyboardPanel::OnDialogClosed(bool accepted, int)
 {
     m_selection.SetSelected(-1);
-    if (reason != 0) {
+    if (accepted) {
         ResetMGSKeyboardBindings();
         RefreshBindingLabels();
     }
@@ -1394,12 +1394,12 @@ void W8OptionsScreen::SelectPanel(int selected, bool notify)
 }
 
 // FUNCTION: WIZ8 0x005a9690
-void W8OptionsScreen::ShowNotification(W8DialogCloseListener* listener, int caption, int message,
-                                       int value)
+void W8OptionsScreen::ShowNotification(W8DialogCloseListener* listener, bool allow_cancel,
+                                       int message, int value)
 {
     m_modal_closing = true;
     delete m_active_modal;
-    W8NotificationDialog* dialog = new W8NotificationDialog(message, caption, value);
+    W8NotificationDialog* dialog = new W8NotificationDialog(message, allow_cancel, value);
     m_active_modal = dialog;
     if (listener != 0) {
         dialog->notify_target = listener;
@@ -1416,7 +1416,7 @@ void W8OptionsScreen::OnPrimary(W8TextControl*)
         delete m_text_editor;
         m_text_editor = 0;
     }
-    ShowNotification(this, 1, 0x832, 0);
+    ShowNotification(this, true, 0x832, 0);
 }
 
 // FUNCTION: WIZ8 0x005a9720
@@ -1776,7 +1776,7 @@ void W8OptionsPanel::Redraw()
     Controls::Redraw();
     if (redraw_text) {
         for (int index = 0; index < m_text_buffers.count; ++index) {
-            (*m_text_buffers.GetAt(index))->RenderToTarget(0, 1, -14);
+            (*m_text_buffers.GetAt(index))->RenderToTarget(0, true, -14);
         }
     }
 }
@@ -1786,7 +1786,7 @@ void W8OptionsMenuSet::Redraw()
 {
     if (m_fEnabled && (m_fDirty || m_fLayoutDirty)) {
         Controls::Redraw();
-        m_page_text->RenderToTarget(0, 1, -14);
+        m_page_text->RenderToTarget(0, true, -14);
     }
 }
 
@@ -1952,9 +1952,9 @@ void W8OptionsMenuSet::OnPrimary(W8TextControl* control)
    state transition: only an accepted close outside combat saves an active
    party, then the common audio-state update runs for every accepted close. */
 // FUNCTION: WIZ8 0x005a9ac0
-void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
+void W8OptionsScreen::OnDialogClosed(bool accepted, int)
 {
-    if (reason != 0) {
+    if (accepted) {
         if (g_status.game_started && !gXStatus.fCombatMode && AnyCharacterActive()) {
             AutoSaveIfAllowed(true);
         }
@@ -2086,7 +2086,7 @@ void OptionsScreenFrame()
 
     W8MessageDialogBase** active_modal = &screen->m_active_modal;
     if (*active_modal != 0) {
-        if ((*active_modal)->ProcessInput() == 0) {
+        if (!(*active_modal)->ProcessInput()) {
             if (!screen->m_modal_closing) {
                 delete *active_modal;
                 *active_modal = 0;

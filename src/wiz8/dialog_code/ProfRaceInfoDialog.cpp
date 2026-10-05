@@ -75,7 +75,7 @@ W8ProfRaceInfoDialogBase::W8ProfRaceInfoDialogBase()
 int W8ProfRaceInfoDialogBase::CreateControls()
 {
     W8DialogBase::CreateControls();
-    if (PopulateText() == 0) {
+    if (!PopulateText()) {
         m_error = 7;
         return 7;
     }
@@ -109,7 +109,7 @@ void W8ProfRaceInfoDialogBase::DestroyControls()
 // FUNCTION: WIZ8 0x005DED60
 void W8ProfRaceInfoDialogBase::Draw()
 {
-    if ((m_dirty_flags & 1) != 0) {
+    if ((m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) != 0) {
         if (!m_initialized) {
             CreateControls();
         }
@@ -140,7 +140,7 @@ void W8ProfRaceInfoDialogBase::Draw()
             top += 0xe;
         }
     }
-    m_text_area.Draw(0);
+    m_text_area.Draw(false);
     m_scroll_bar.Draw(false);
     m_button.Draw();
 }
@@ -158,11 +158,11 @@ void W8ProfRaceInfoDialogBase::DrawTextLine(unsigned int layout_mode, int left, 
     bounds.bottom = bounds.top + height;
     buffer.SetLayoutBounds(&bounds, true, true);
     buffer.SetText(text, font);
-    buffer.RenderToTarget(0, 0, -0xe);
+    buffer.RenderToTarget(0, false, -0xe);
 }
 
 // FUNCTION: WIZ8 0x005DEFB0
-unsigned char W8ProfRaceInfoDialogBase::PopulateText()
+bool W8ProfRaceInfoDialogBase::PopulateText()
 {
     W8ControlsRect bounds;
     bounds.left = m_x + 0xa2;
@@ -171,7 +171,7 @@ unsigned char W8ProfRaceInfoDialogBase::PopulateText()
     bounds.bottom = m_y + 0xe1;
     m_text_area.Configure(&bounds, g_wiz_text_font_secondary, 0);
     m_text_area.SetEntrySpacing(0);
-    return 1;
+    return true;
 }
 
 /* Same folded body as W8MonsterInfoDialog::OnRightButtonUp at 0x005D6E60;
@@ -230,7 +230,7 @@ W8ProfessionInfoDialog::W8ProfessionInfoDialog(W8Profession uiIndex)
 }
 
 // FUNCTION: WIZ8 0x005DF250
-unsigned char W8ProfessionInfoDialog::PopulateText()
+bool W8ProfessionInfoDialog::PopulateText()
 {
     W8ProfRaceInfoDialogBase::PopulateText();
     m_text_area.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
@@ -279,15 +279,15 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
         break;
     case 8:
         m_text_area.AddEntry(0, g_item_records[599].display_name, 10, 0xf, 0);
-        return 1;
+        return true;
     case 9:
         m_text_area.AddEntry(0, g_item_records[324].display_name, 10, 0xf, 0);
-        return 1;
+        return true;
     default:
-        return 1;
+        return true;
     }
     m_text_area.AddEntry(0, FormatWideString(gppStringList[0x151], first, second), 10, 0xf, 0);
-    return 1;
+    return true;
 }
 
 /* The same shape, except that only the first eleven races have minimums and the
@@ -315,7 +315,7 @@ W8RaceInfoDialog::W8RaceInfoDialog(W8Race uiIndex)
 }
 
 // FUNCTION: WIZ8 0x005DF6F0
-unsigned char W8RaceInfoDialog::PopulateText()
+bool W8RaceInfoDialog::PopulateText()
 {
     W8ProfRaceInfoDialogBase::PopulateText();
     m_text_area.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
@@ -328,10 +328,10 @@ unsigned char W8RaceInfoDialog::PopulateText()
             if (!listed) {
                 m_text_area.AddEntry(0, gppStringList[0x154], 10, 0xf, 0);
             }
-            return 1;
+            return true;
         }
         m_text_area.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
         listed = true;
     }
-    return 1;
+    return true;
 }

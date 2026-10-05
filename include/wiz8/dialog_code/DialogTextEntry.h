@@ -30,7 +30,7 @@ private:
     bool m_selected;               /* 0x5c */
     bool m_entry_highlighted;      /* 0x5d: highlighted keyword palette */
     unsigned char m_category;      /* 0x5e: text-area filter key */
-    unsigned char m_shorten;       /* 0x5f */
+    unsigned char m_shorten_mask;  /* 0x5f: raw shortening bit from text-area behavior flags */
     bool m_marked;                 /* 0x60: marked transcript entry palette */
 };
 static_assert(sizeof(W8DialogTextEntry) == 0x64, "W8DialogTextEntry_size");

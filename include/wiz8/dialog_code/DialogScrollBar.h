@@ -17,7 +17,7 @@ public:
     };
     W8DialogScrollBar(); /* 0x005E0C40 */
     ~W8DialogScrollBar();
-    unsigned char CreateControls(const Resources* resources); /* 0x005E0CA0 */
+    bool CreateControls(const Resources* resources);          /* 0x005E0CA0 */
     void DestroyControls();                                   /* 0x005E0E00 */
     void SetLayout(int x, int y, int entry_count, int first_visible_entry, int entry_height,
                    int view_height); /* 0x005E0EB0 */

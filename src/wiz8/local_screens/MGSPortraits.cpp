@@ -248,7 +248,7 @@ static void DrawDamageSplatOverlay(unsigned int party_slot)
             W8TextBuffer splat_text(&bounds, 0, 0, 0, 4);
             splat_text.SetText(FormatWideString(g_format_d, entry->damage_splat_amount),
                                g_wiz_text_bold_font);
-            splat_text.RenderToTarget(0, 0, -0xe);
+            splat_text.RenderToTarget(0, false, -0xe);
         }
         if (gXStatus.fCombatMode) {
             entry->combat_portrait_dirty = true;
@@ -604,7 +604,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled)
             InvalidateRegion(bounds.left, bounds.top + 1, bounds.right, bounds.bottom, 0);
             ColorFillVideoSurfaceArea(-14, bounds.left, bounds.top + 1, bounds.right, bounds.bottom,
                                       0x8000);
-            text.RenderToTarget(0, 0, -14);
+            text.RenderToTarget(0, false, -14);
         }
     }
 

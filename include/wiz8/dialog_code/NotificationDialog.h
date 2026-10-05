@@ -3,7 +3,7 @@
 #include "wiz8/dialog_code/MessageDialogBase.h"
 
 struct W8DialogCloseListener {
-    virtual void OnDialogClosed(unsigned char reason, int value) = 0;
+    virtual void OnDialogClosed(bool accepted, int value) = 0;
 };
 
 /* Modal Dialog Code class identified by its constructor. The base owns the
@@ -11,8 +11,8 @@ struct W8DialogCloseListener {
 // VTABLE: WIZ8 0x005eef6c
 class W8NotificationDialog : public W8MessageDialogBase {
 public:
-    W8NotificationDialog(int message_index, int caption_id, int notify_value);
-    virtual unsigned char ProcessInput() override; /* 0x005A81A0 */
+    W8NotificationDialog(int message_index, bool cancel_allowed, int notify_value);
+    virtual bool ProcessInput() override; /* 0x005A81A0 */
 
 public:
     /* OptionsScreen installs the notification receiver directly. */

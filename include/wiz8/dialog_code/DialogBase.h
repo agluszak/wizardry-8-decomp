@@ -3,6 +3,18 @@
 #include "wiz8/local_code/Widget.h"
 #include <wchar.h>
 
+enum W8DialogKind {
+    W8_DIALOG_BASIC = 0,
+    W8_DIALOG_MESSAGE = 1,
+    W8_DIALOG_LIST_BOX = 3,
+    W8_DIALOG_TRIGGER_ITEM_PICKER = 4,
+    W8_DIALOG_SPLIT_AMOUNT = 5,
+    W8_DIALOG_CHARACTER_SUMMARY = 6,
+    W8_DIALOG_NPC = 7
+};
+
+enum { W8_DIALOG_DIRTY_REDRAW = 1u };
+
 class W8DialogBase;
 class W8DialogButton;
 typedef void (*W8DialogDestroyCallback)(W8DialogBase* dialog);
@@ -22,7 +34,7 @@ public:
     virtual int CreateControls();              /* 0x005DCAF0 */
     virtual void DestroyControls();            /* 0x005DCC30 */
     virtual void Draw();                       /* 0x005DC890 */
-    virtual int GetDialogType();               /* 0x005D6FA0: base=0, modal=1, list=3 */
+    virtual W8DialogKind GetDialogType();      /* 0x005D6FA0: base=0, modal=1, list=3 */
     virtual void SetText(const wchar_t* text); /* 0x005DC940 */
     /* Slots 6, 7 and 8 of the table at 0x005EFAF8 are 0x005DC9C0, 0x005DC9F0 and
        0x005DCA70 - the three setters a derived constructor calls directly
@@ -31,7 +43,7 @@ public:
     virtual void SetOrigin(int x, int y);                    /* 0x005DC9C0 */
     virtual void SetExtent(int width, int height);           /* 0x005DC9F0 */
     virtual void SetBackground(const char* path, int flags); /* 0x005DCA70 */
-    virtual unsigned char ProcessInput();                    /* 0x005DCCE0 */
+    virtual bool ProcessInput();                             /* 0x005DCCE0 */
     virtual void OnNumericInputChanged(int control_id);
     virtual void OnRightButtonDown();
     virtual void OnRightButtonUp();

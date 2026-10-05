@@ -185,7 +185,7 @@ void W8SplitItemDialog::DestroyControls()
 }
 
 // FUNCTION: WIZ8 0x005DD480
-unsigned char W8SplitItemDialog::CreateButtons()
+bool W8SplitItemDialog::CreateButtons()
 {
     int count;
     int index;
@@ -200,7 +200,7 @@ unsigned char W8SplitItemDialog::CreateButtons()
         m_buttons[index] = new W8DialogButton;
         if (m_buttons[index] == 0) {
             DestroyButtons();
-            return 0;
+            return false;
         }
     }
     m_buttons[0]->Configure("Data\\Dialogs\\popup_splititem.sti", 0xc, 9, 10, 0xd, 0xb,
@@ -248,11 +248,11 @@ unsigned char W8SplitItemDialog::CreateButtons()
                                           g_split_button_offsets[index].y + m_y);
         m_buttons[index]->m_owner = this;
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005DD750
-unsigned char W8SplitItemDialog::CreateTextBuffers()
+bool W8SplitItemDialog::CreateTextBuffers()
 {
     int count;
     int index;
@@ -275,7 +275,7 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         if (m_texts[index] == 0) {
             DestroyTextBuffers();
-            return 0;
+            return false;
         }
     }
     m_texts[2]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
@@ -299,11 +299,11 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
             L"%s (%s)", gppStringList[g_equip_class_name_ids[GetItemEquipClass(m_item)]],
             gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(m_item)]]),
         g_wiz_text_font_secondary);
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005DDA60
-unsigned char W8SplitItemDialog::CreateNumericInput()
+bool W8SplitItemDialog::CreateNumericInput()
 {
     W8ControlsRect bounds;
 
@@ -318,10 +318,10 @@ unsigned char W8SplitItemDialog::CreateNumericInput()
         NoOp();
         delete m_count_input;
         m_count_input = 0;
-        return 0;
+        return false;
     }
     m_count_input->m_maximum = m_stack_total;
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005DDB60
@@ -343,7 +343,7 @@ void W8SplitItemDialog::Draw()
     } else if (m_kind <= 2) {
         text_count = 14;
     }
-    if ((m_dirty_flags & 1) != 0) {
+    if ((m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) != 0) {
         if (!m_initialized) {
             CreateControls();
         }
@@ -375,7 +375,7 @@ void W8SplitItemDialog::Draw()
     }
     for (index = 0; index < text_count; ++index) {
         if (m_texts[index] != 0) {
-            m_texts[index]->RenderToTarget(0, 0, -0xe);
+            m_texts[index]->RenderToTarget(0, false, -0xe);
         }
     }
     if (m_count_input != 0) {
@@ -531,15 +531,15 @@ void W8SplitItemDialog::OnNumericInputChanged(int value)
 }
 
 // FUNCTION: WIZ8 0x005DE120
-unsigned char W8SplitItemDialog::HandleInputEvent(const InputAtom* input)
+bool W8SplitItemDialog::HandleInputEvent(const InputAtom* input)
 {
     int index;
     W8DialogNumericInput** field;
 
     field = &m_count_input;
     for (index = 0; index < 1; ++index) {
-        if (*field != 0 && (*field)->m_active != 0 && (*field)->HandleInput(input) != 0) {
-            return 1;
+        if (*field != 0 && (*field)->m_active != 0 && (*field)->HandleInput(input)) {
+            return true;
         }
         ++field;
     }
@@ -557,7 +557,7 @@ unsigned char W8SplitItemDialog::HandleInputEvent(const InputAtom* input)
 }
 
 // FUNCTION: WIZ8 0x005DE1B0
-unsigned char W8SplitItemDialog::ProcessInput()
+bool W8SplitItemDialog::ProcessInput()
 {
     POINT mouse;
     InputAtom input;

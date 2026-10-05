@@ -6,7 +6,7 @@
    original unit. */
 
 // FUNCTION: WIZ8 0x005ad280
-int W8MessageDialogBase::GetDialogType()
+W8DialogKind W8MessageDialogBase::GetDialogType()
 {
-    return 1;
+    return W8_DIALOG_MESSAGE;
 }

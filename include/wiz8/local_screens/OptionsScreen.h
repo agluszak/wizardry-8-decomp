@@ -296,7 +296,7 @@ public:
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSelectionChanged(W8ControlSelection* selection, int selected) override;
     virtual unsigned char OnKey(unsigned short key, unsigned short modifiers) override;
-    virtual void OnDialogClosed(unsigned char reason, int value) override;
+    virtual void OnDialogClosed(bool accepted, int value) override;
     void ClearDuplicateBinding(unsigned short key);
     void RefreshBindingLabels();
     int m_panel;
@@ -330,7 +330,7 @@ public:
     virtual void SetActive(bool active) override;
     virtual void SetCurrent(int current) override;
     virtual void OnPrimary(W8TextControl* control) override;
-    virtual void OnDialogClosed(unsigned char reason, int value) override;
+    virtual void OnDialogClosed(bool accepted, int value) override;
     virtual void OnTextEditComplete(W8OptionsTextEditor* editor, unsigned char cancelled) override;
     virtual void OnEditSaveName(W8OptionsSaveRow* row) override;
     virtual void OnActivateSave(W8OptionsSaveRow* row) override;
@@ -450,12 +450,13 @@ public:
     void CreateControls();
     unsigned char ProcessInput(const InputAtom* input);
     void Redraw();
-    void ShowNotification(W8DialogCloseListener* listener, int caption, int message, int value);
+    void ShowNotification(W8DialogCloseListener* listener, bool allow_cancel, int message,
+                          int value);
     void BeginSaveNameEdit(W8OptionsTextEditor::Listener* listener, int row, const wchar_t* text);
     virtual void OnSelectionChanged(W8ControlSelection* control, int selected) override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
-    virtual void OnDialogClosed(unsigned char reason, int value) override;
+    virtual void OnDialogClosed(bool accepted, int value) override;
 
     W8Vector<W8SaveSlot*> m_save_slots;
     bool m_redraw_pending;

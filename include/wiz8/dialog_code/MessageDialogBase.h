@@ -20,16 +20,15 @@ public:
     virtual int CreateControls() override;                     /* 0x005D2D00 */
     virtual void DestroyControls() override;                   /* slot 2, 0x005D2F40 */
     virtual void Draw() override;                              /* 0x005D2660 */
-    virtual int GetDialogType() override;                      /* 0x005AD280 */
-    virtual unsigned char ProcessInput() override;             /* slot 9, 0x005D3080 */
-    virtual unsigned char HandleInput(const InputAtom* input); /* slot 14 */
+    virtual W8DialogKind GetDialogType() override;             /* 0x005AD280 */
+    virtual bool ProcessInput() override;                      /* slot 9, 0x005D3080 */
+    virtual bool HandleInput(const InputAtom* input);          /* slot 14 */
 
     /* Called on this object from outside the class by the Please Wait screen,
        which is what puts it here rather than under protected. */
     void SetMessage(const wchar_t* message, int line_count, unsigned short characters_per_line,
-                    unsigned char confirmation, unsigned char cancel, bool size_to_message,
-                    bool wrap_message, int maximum_width,
-                    int maximum_height); /* 0x005D2800 */
+                    bool confirmation, bool cancel, bool size_to_message, bool wrap_message,
+                    int maximum_width, int maximum_height); /* 0x005D2800 */
     /* The party-selection screen calls this centering helper on a freshly
        allocated base dialog, so it is part of the public surface rather than
        a derived-only helper. */
@@ -42,7 +41,7 @@ public:
 
     /* Both are read and written on this object from outside the class by the
        Please Wait screen's frame handler, which is what puts them here. */
-    unsigned char close_result; /* 0x54: cleared; a derived close passes it on */
+    bool accepted;              /* 0x54: cleared; a derived close passes it on */
     bool is_open;               /* 0x55: set, and gates the close path */
 
 protected:
@@ -56,8 +55,8 @@ protected:
     unsigned char unknown_07c[0x10];
     wchar_t** m_lines;            /* 0x8c */
     unsigned int m_line_count;    /* 0x90 */
-    unsigned char m_show_confirm; /* 0x94 */
-    unsigned char allow_cancel;   /* 0x95: changes Escape handling */
+    bool m_show_confirm;          /* 0x94 */
+    bool allow_cancel;            /* 0x95: changes Escape handling */
     unsigned char unknown_096[2];
 }; /* 0x98 */
 

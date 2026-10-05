@@ -602,11 +602,11 @@ public:
 
     void SetMode(int mode);
     void SetSelection(int selection, bool highlighted, bool refresh);
-    void OpenNotification(const wchar_t* message, int kind, int value);
+    void OpenNotification(const wchar_t* message, bool allow_cancel, int value);
     void Setup();
     void InvalidatePartySelectionComposition();
     void DrawPartySelectionComposition();
-    void ApplyPartySelectionConfirmation(int value, unsigned char result);
+    void ApplyPartySelectionConfirmation(int value, bool accepted);
     void LoadImportedPartyFile(int selection);
     void TogglePartyMemberSelection();
 
@@ -1033,7 +1033,7 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
         W8ControlsRect bounds = {0x85, 0x30, 0x139, 0xba};
         W8TextBuffer overlay(&bounds, gppStringList[0x6b8], g_options_title_font,
                              g_W8TextBufferAlignBottom | g_W8TextBufferAlignCenter, 4);
-        overlay.RenderToTarget(0, 0, -14);
+        overlay.RenderToTarget(0, false, -14);
     }
 
     {
@@ -1041,7 +1041,7 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
         W8TextBuffer name(
             &name_bounds, FormatWideString(L"%s (%s)", character->name_part_2, character->name),
             g_wiz_text_bold_font, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
-        name.RenderToTarget(0, 0, -14);
+        name.RenderToTarget(0, false, -14);
     }
 
     SetFont(g_wiz_text_font_secondary);
@@ -1153,7 +1153,7 @@ void W8PartySelectionOptionPanel::Redraw()
     }
 
     for (int index = 0; index < m_entries.count; ++index) {
-        m_entries.data[index]->RenderToTarget(0, 1, -14);
+        m_entries.data[index]->RenderToTarget(0, true, -14);
     }
     if (m_mode == 2) {
         DrawCatalogImage(-14, 0x102, 0, 1, m_render_left, m_render_top, 2, 0);
@@ -1628,7 +1628,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         case 0:
         case 1:
             if (CountActiveCharacters() != 0) {
-                OpenNotification(gppStringList[0x6d3], 1, 5);
+                OpenNotification(gppStringList[0x6d3], true, 5);
                 return;
             }
             RequestScreenTransition();
@@ -1651,7 +1651,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
     if (control == m_delete_button) {
         OpenNotification(FormatWideString(L"%s %s %s?", gppStringList[0x6d4], m_character->name,
                                           gppStringList[0x6d5]),
-                         1, 1);
+                         true, 1);
         return;
     }
     if (control == m_review_button) {
@@ -1678,8 +1678,8 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         switch (m_mode) {
         case 0:
             if (static_cast<unsigned int>(CountActiveCharacters()) < 6) {
-                OpenNotification(FormatWideString(gppStringList[0x6d9], CountActiveCharacters()), 1,
-                                 3);
+                OpenNotification(FormatWideString(gppStringList[0x6d9], CountActiveCharacters()),
+                                 true, 3);
                 return;
             }
             /* fall through */
@@ -1720,7 +1720,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         return;
     }
     if (CountActiveCharacters() != 0) {
-        OpenNotification(gppStringList[0x6d6], 1, 4);
+        OpenNotification(gppStringList[0x6d6], true, 4);
         return;
     }
 
@@ -1750,7 +1750,7 @@ void W8PartySelectionController::OnDecision(W8PartySelectionInputHandler*, unsig
         wchar_t slot_name[64];
         Get16BitStringFromField(0, slot_name);
         if (SaveSlotFileExists(ConvertWideStringToString(slot_name))) {
-            OpenNotification(gppStringList[0x829], 1, 2);
+            OpenNotification(gppStringList[0x829], true, 2);
             return;
         }
         if (m_input_handler) {
@@ -1770,7 +1770,7 @@ void W8PartySelectionController::OnDecision(W8PartySelectionInputHandler*, unsig
                 RequestScreenTransition();
                 return;
             }
-            OpenNotification(gppStringList[0x6d3], 1, 5);
+            OpenNotification(gppStringList[0x6d3], true, 5);
             return;
         case 2:
         case 3:
@@ -1830,7 +1830,7 @@ void W8PartySelectionController::DrawPartySelectionComposition()
     m_control0->Redraw();
     m_import_panel->Redraw();
     m_bottom_panel->Redraw();
-    m_text_buffer->RenderToTarget(0, 0, -14);
+    m_text_buffer->RenderToTarget(0, false, -14);
     if (m_dialog) {
         m_dialog->Draw();
     }
@@ -1842,7 +1842,8 @@ void W8PartySelectionController::DrawPartySelectionComposition()
 /* Install the party-selection confirmation/notification dialog and retain the value
    consumed by ApplyPartySelectionConfirmation after the modal closes. */
 // FUNCTION: WIZ8 0x005c25e0
-void W8PartySelectionController::OpenNotification(const wchar_t* message, int kind, int value)
+void W8PartySelectionController::OpenNotification(const wchar_t* message, bool allow_cancel,
+                                                  int value)
 {
     m_dialog_value = value;
     m_dialog = new W8MessageDialogBase;
@@ -1853,7 +1854,8 @@ void W8PartySelectionController::OpenNotification(const wchar_t* message, int ki
     m_dialog->SetExtent(0xa0, 100);
     m_dialog->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
     m_dialog->SetClientExtent(0xfa, 200);
-    m_dialog->SetMessage(const_cast<wchar_t*>(message), 1, 0x32, 1, kind, true, true, 0, 0x15e);
+    m_dialog->SetMessage(const_cast<wchar_t*>(message), 1, 0x32, true, allow_cancel, true, true, 0,
+                         0x15e);
     ActivateDialogRegion(0x138);
 }
 
@@ -1861,7 +1863,7 @@ void W8PartySelectionController::OpenNotification(const wchar_t* message, int ki
    delete, save-slot creation, option entry, imported-party replacement, or
    leaving the screen; cancellation only restores the mode-4 toggle. */
 // FUNCTION: WIZ8 0x005c26c0
-void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned char accepted)
+void W8PartySelectionController::ApplyPartySelectionConfirmation(int, bool accepted)
 {
     if (!accepted) {
         if (m_dialog_value == 4) {
@@ -1945,7 +1947,7 @@ void W8PartySelectionController::LoadImportedPartyFile(int selection)
         int result = ImportWizardry7Party(path);
         if (result != 0) {
             ResetForNewGame();
-            OpenNotification(gppStringList[(result == 2 ? 0x1b60 : 0x1b5c) / 4], 0, 0);
+            OpenNotification(gppStringList[(result == 2 ? 0x1b60 : 0x1b5c) / 4], false, 0);
         }
     }
 
@@ -2104,7 +2106,7 @@ void PartySelectionScreenFrame(void)
     if (controller->m_dialog) {
         controller->m_dialog->ProcessInput();
         if (!controller->m_dialog->is_open) {
-            unsigned char result = controller->m_dialog->close_result;
+            bool result = controller->m_dialog->accepted;
             delete controller->m_dialog;
             controller->m_dialog = 0;
             ClearActiveRegionIfMatches(0x138);
@@ -2135,7 +2137,7 @@ void PartySelectionScreenFrame(void)
                     if (CountActiveCharacters() == 0) {
                         RequestScreenTransition();
                     } else {
-                        controller->OpenNotification(gppStringList[0x6d3], 1, 5);
+                        controller->OpenNotification(gppStringList[0x6d3], true, 5);
                     }
                     break;
                 case 2:

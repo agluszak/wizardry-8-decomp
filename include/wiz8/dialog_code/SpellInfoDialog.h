@@ -21,7 +21,7 @@ public:
     virtual void OnMouseWheel(int delta) override;
 
 private:
-    unsigned char PopulateText(); /* 0x005DBEE0 */
+    bool PopulateText();          /* 0x005DBEE0 */
     void DrawLabels();            /* 0x005DC490 */
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 

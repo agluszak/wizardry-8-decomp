@@ -237,7 +237,7 @@ struct W8NpcInteractionState {
        0x005EE9D0 and then the derived table 0x005EE9DC here, so this member is
        the thin derived W8Vector, not the base. */
     W8Vector<W8DialogueTranscriptRecord*> dialogue_transcript;
-    unsigned char transcript_sorted;
+    bool transcript_sorted;
     /* 0x1ed: the item a pending NPC notice carries; the queued-notice block
        at 0x0068EE60 copies it here when the dialogue opens. */
     W8ItemInstance pending_item;

@@ -13,13 +13,13 @@ extern BOOLEAN g_dialog_font_enabled;
 extern unsigned char g_dialog_font_foreground;
 extern unsigned char g_dialog_font_background;
 void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
-                         bool background);
+                         unsigned char background);
 W8DialogBase* CreateCharacterSummaryDialog(W8Character* character);
-W8DialogBase* CreateDialogByKind(int kind);
-unsigned char GetDialogResult(W8DialogBase* dialog);
+W8DialogBase* CreateDialogByKind(W8DialogKind kind);
+bool GetDialogResult(W8DialogBase* dialog);
 void SetDialogPrompt(W8MessageDialogBase* dialog, wchar_t* text, int, int);
 void DrawDialog(W8DialogBase* dialog);
-unsigned char ProcessDialogInput(W8DialogBase* dialog);
+bool ProcessDialogInput(W8DialogBase* dialog);
 void SetDialogDestroyCallback(W8DialogBase* dialog, W8DialogDestroyCallback callback);
 /* The shared empty wide string dialogs hand to SetText; defined in
    OptionsScreen.cpp, referenced across dialog and screen TUs. */

@@ -660,7 +660,7 @@ done:
    shares the buffer's layout and palette state but prints directly to the
    selected target, then restores the full-screen clip. */
 // FUNCTION: WIZ8 0x004f39b0
-void W8TextBuffer::RenderToTarget(int offset, unsigned char force, int target)
+void W8TextBuffer::RenderToTarget(int offset, bool force, int target)
 {
     wchar_t* line = m_buffer;
     if (line == 0 || (!force && !m_geometryDirty)) {
@@ -915,7 +915,7 @@ void W8TextControl::Redraw(unsigned char full_redraw)
 
     if (full_redraw == 0 && !m_dirty) {
         if (m_textBuffer.HasBuffer()) {
-            m_textBuffer.RenderToTarget(text_state, 0, -14);
+            m_textBuffer.RenderToTarget(text_state, false, -14);
         }
         return;
     }

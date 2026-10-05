@@ -1175,7 +1175,7 @@ void LearnSpell(W8Character* character, int spell_id, bool announce)
     wcscat(line, g_spell_records[spell_id].display_name);
     wcscat(line, L"\" - ");
     wcscat(line, FormatWideString(gppStringList[0x1ba], realm_name, character->sp_max[realm]));
-    ShowNoticeLine(line, 0, 1, 0);
+    ShowNoticeLine(line, 0, true, false);
 }
 
 // GLOBAL: WIZ8 0x0068c510
@@ -1202,7 +1202,7 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item)
     spell_id = g_item_records[item->iItemNo].spell_id;
 
     if (!CanCharacterLearnSpell(character, spell_id)) {
-        ShowNoticeLine(FormatWideString(gppStringList[0x1bb], character->name), 0, 1, 0);
+        ShowNoticeLine(FormatWideString(gppStringList[0x1bb], character->name), 0, true, false);
         return;
     }
 

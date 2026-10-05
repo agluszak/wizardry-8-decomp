@@ -39,13 +39,12 @@
  * cursor ids are the numbers the original uses, and nothing here names them.
  */
 
-/* Run the first screen command predicate and reset this target through its
-   second virtual slot when command zero succeeds. */
+/* Query whether scrolling is possible, or scroll and invalidate the transcript. */
 // FUNCTION: WIZ8 0x0055EBB0
-bool W8NpcDialogueTextController::HandleScrollDownCommand(unsigned int command)
+bool W8NpcDialogueTextController::HandleScrollDownCommand(bool check_only)
 {
-    if (text_area.ScrollDown(static_cast<unsigned char>(command)) != 0) {
-        if (static_cast<char>(command) == 0) {
+    if (text_area.ScrollDown(check_only)) {
+        if (!check_only) {
             Invalidate(0);
         }
         return true;
@@ -54,10 +53,10 @@ bool W8NpcDialogueTextController::HandleScrollDownCommand(unsigned int command)
 }
 
 // FUNCTION: WIZ8 0x0055EBE0
-bool W8NpcDialogueTextController::HandleScrollUpCommand(unsigned int command)
+bool W8NpcDialogueTextController::HandleScrollUpCommand(bool check_only)
 {
-    if (text_area.ScrollUp(static_cast<unsigned char>(command)) != 0) {
-        if (static_cast<char>(command) == 0) {
+    if (text_area.ScrollUp(check_only)) {
+        if (!check_only) {
             Invalidate(0);
         }
         return true;
@@ -328,7 +327,7 @@ void SetItemCursor(int overlay_video_object)
 
 /* Dispatch one already-built notice line to the camp or main-game dialog. */
 // FUNCTION: WIZ8 0x0055F260
-void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation, int cancel)
+void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, bool confirmation, bool cancel)
 {
     switch (g_current_screen_state.id) {
     case W8_SCREEN_CAMP:

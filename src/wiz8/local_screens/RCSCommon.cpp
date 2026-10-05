@@ -159,19 +159,19 @@ void TryGiveHeldItemToCampPortrait(int slot)
     }
     character = &g_status.buffers.Char[slot];
     if (character->uiCondition[W8_CONDITION_MISSING] != 0) {
-        ShowCampNoticeLine(gppStringList[0x907], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x907], 0, true, false);
         return;
     }
     if (character->uiCondition[W8_CONDITION_WEBBED] != 0) {
-        ShowCampNoticeLine(gppStringList[0x908], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x908], 0, true, false);
         return;
     }
     if (character->uiCondition[W8_CONDITION_TURNCOAT] != 0) {
-        ShowCampNoticeLine(gppStringList[0x909], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x909], 0, true, false);
         return;
     }
     if (!IsPartySlotEligible(slot)) {
-        ShowCampNoticeLine(gppStringList[0x901], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x901], 0, true, false);
         return;
     }
     if (!IsCampActionAllowed(slot)) {
@@ -217,7 +217,7 @@ void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
     W8TextBuffer buffer(&bounds, text, g_wiz_text_font_secondary, layout_mode, 4);
-    buffer.RenderToTarget(0, 0, -14);
+    buffer.RenderToTarget(0, false, -14);
 }
 
 // FUNCTION: WIZ8 0x005b6e90
@@ -225,7 +225,7 @@ void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
     W8TextBuffer buffer(&bounds, text, g_wiz_text_bold_font, layout_mode, 4);
-    buffer.RenderToTarget(0, 0, -14);
+    buffer.RenderToTarget(0, false, -14);
 }
 
 // FUNCTION: WIZ8 0x005b6f30
@@ -233,7 +233,7 @@ void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned
 {
     W8ControlsRect bounds = {left, top, left + width, top + 18};
     W8TextBuffer buffer(&bounds, text, g_wiz_text_font_secondary, layout_mode, 4);
-    buffer.RenderToTarget(0, 0, -14);
+    buffer.RenderToTarget(0, false, -14);
 }
 
 /* Draws text honoring the same layout mask pairs as the buffered variants
@@ -651,7 +651,8 @@ static void ShowDismissCharacterDialog(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x90a, 0);
     }
 
-    W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+    W8MessageDialogBase* dialog =
+        static_cast<W8MessageDialogBase*>(CreateDialogByKind(W8_DIALOG_MESSAGE));
     dialog->SetClientExtent(0xfa, 200);
 
     W8Character* character = &g_status.buffers.Char[giReviewCharSlot];
@@ -665,8 +666,8 @@ static void ShowDismissCharacterDialog(void)
     } else {
         format = gppStringList[0x92f];
     }
-    dialog->SetMessage(FormatWideString(format, character->name), 1, 0x32, 1, 1, true, true, 0,
-                       0x15e);
+    dialog->SetMessage(FormatWideString(format, character->name), 1, 0x32, true, true, true, true,
+                       0, 0x15e);
     SetDialogDestroyCallback(dialog, OnDismissCharacterDialogClosed);
     DisplayCampDialog(dialog);
 }
@@ -1070,7 +1071,7 @@ void DrawCampVitals(void)
     text->SetText(
         gppStringList[g_profession_name_message_ids[g_review_character->iProfession + 0x10]],
         g_smfnt_font);
-    text->RenderToTarget(0, 0, -14);
+    text->RenderToTarget(0, false, -14);
     if (g_settings.numeric_hit_points != 0) {
         bounds.left = 0x10e;
         bounds.right = 0x120;
@@ -1080,7 +1081,7 @@ void DrawCampVitals(void)
         text->SetFontStateIndex(-1);
         formatted = FormatWideString(g_format_d, g_review_character->hp_current);
         text->SetText(formatted, g_smfnt_font);
-        text->RenderToTarget(0, 0, -14);
+        text->RenderToTarget(0, false, -14);
     }
     InvalidateRegion(0x10c, bar_top, 0x124, frame_column + 0x38, 0);
     delete text;

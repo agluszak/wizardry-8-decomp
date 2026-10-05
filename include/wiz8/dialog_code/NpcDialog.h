@@ -30,8 +30,8 @@ public:
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
     virtual void Draw() override;
-    virtual int GetDialogType() override; /* 0x005DB1A0: 7 */
-    virtual unsigned char ProcessInput() override;
+    virtual W8DialogKind GetDialogType() override; /* 0x005DB1A0: 7 */
+    virtual bool ProcessInput() override;
 
 private:
     /* Copies the pressed option's user-data index into m_selected_option and

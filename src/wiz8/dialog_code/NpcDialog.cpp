@@ -186,7 +186,7 @@ void W8NpcDialog::DestroyControls()
 void W8NpcDialog::Draw()
 {
     int index;
-    if ((m_dirty_flags & 1) != 0) {
+    if ((m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) != 0) {
         if (!m_initialized) {
             CreateControls();
         }
@@ -209,13 +209,13 @@ void W8NpcDialog::Draw()
     }
     for (index = 0; index < 2; ++index) {
         if (m_text_buffers[index] != 0) {
-            m_text_buffers[index]->RenderToTarget(0, 0, -0xe);
+            m_text_buffers[index]->RenderToTarget(0, false, -0xe);
         }
     }
 }
 
 // FUNCTION: WIZ8 0x005DAE90
-unsigned char W8NpcDialog::ProcessInput()
+bool W8NpcDialog::ProcessInput()
 {
     POINT mouse;
     InputAtom input;
@@ -228,7 +228,7 @@ unsigned char W8NpcDialog::ProcessInput()
             if (input.usEvent == KEY_DOWN && input.usParam == 0xd && m_message->kind == 19) {
                 Get16BitStringFromField(m_input_field, m_input_text);
                 g_npc_dialog->m_keep_open = false;
-                return 1;
+                return true;
             }
             unsigned short type;
             switch (input.usEvent) {
@@ -263,7 +263,7 @@ void W8NpcDialog::OptionSelected(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005DB1A0
-int W8NpcDialog::GetDialogType()
+W8DialogKind W8NpcDialog::GetDialogType()
 {
-    return 7;
+    return W8_DIALOG_NPC;
 }

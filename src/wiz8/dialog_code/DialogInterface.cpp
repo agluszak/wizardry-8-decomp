@@ -34,30 +34,30 @@ W8DialogBase* CreateCharacterSummaryDialog(W8Character* character)
 }
 
 // FUNCTION: WIZ8 0x005cf300
-W8DialogBase* CreateDialogByKind(int kind)
+W8DialogBase* CreateDialogByKind(W8DialogKind kind)
 {
     W8DialogBase* dialog;
 
     switch (kind) {
-    case 0:
+    case W8_DIALOG_BASIC:
         dialog = new W8DialogBase;
         dialog->SetText(L"Test Dialog");
         dialog->SetOrigin(160, 120);
         dialog->SetExtent(320, 240);
         break;
-    case 1:
+    case W8_DIALOG_MESSAGE:
         dialog = new W8MessageDialogBase;
         dialog->SetOrigin(240, 190);
         dialog->SetExtent(160, 100);
         dialog->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
         return dialog;
-    case 3:
+    case W8_DIALOG_LIST_BOX:
         dialog = new W8ListBoxDialog;
         dialog->SetText(L"ListBox Dialog");
         dialog->SetOrigin(200, 100);
         dialog->SetExtent(240, 280);
         break;
-    case 5:
+    case W8_DIALOG_SPLIT_AMOUNT:
         dialog = new W8SplitAmountDialog;
         dialog->SetText(&g_empty_wide_string);
         dialog->SetOrigin(159, 184);
@@ -71,7 +71,7 @@ W8DialogBase* CreateDialogByKind(int kind)
 
 // FUNCTION: WIZ8 0x005cf250
 void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
-                         bool background)
+                         unsigned char background)
 {
     g_dialog_interface_font = font;
     g_dialog_font_enabled = enabled;
@@ -84,13 +84,13 @@ void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
 // FUNCTION: WIZ8 0x005CF4F0
 void SetDialogPrompt(W8MessageDialogBase* dialog, wchar_t* text, int, int)
 {
-    dialog->SetMessage(text, 1, 0x32, 1, 1, true, false, 0, 0);
+    dialog->SetMessage(text, 1, 0x32, true, true, true, false, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x005cf510
-unsigned char GetDialogResult(W8DialogBase* dialog)
+bool GetDialogResult(W8DialogBase* dialog)
 {
-    return static_cast<W8MessageDialogBase*>(dialog)->close_result;
+    return static_cast<W8MessageDialogBase*>(dialog)->accepted;
 }
 
 // FUNCTION: WIZ8 0x005cf520
@@ -103,7 +103,7 @@ void DrawDialog(W8DialogBase* dialog)
 }
 
 // FUNCTION: WIZ8 0x005cf550
-unsigned char ProcessDialogInput(W8DialogBase* dialog)
+bool ProcessDialogInput(W8DialogBase* dialog)
 {
     if (dialog == 0) {
         srAssertFail("pDialog", DIALOG_INTERFACE_CPP, 0x74, 0);

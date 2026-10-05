@@ -356,7 +356,7 @@ void W8JournalPanel::Redraw()
 {
     if (m_fEnabled && (m_fDirty || m_fLayoutDirty)) {
         Controls::Redraw();
-        m_page_text->RenderToTarget(0, 1, -14);
+        m_page_text->RenderToTarget(0, true, -14);
     }
 }
 

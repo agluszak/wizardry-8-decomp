@@ -1401,7 +1401,7 @@ unsigned char CampScreenEnter(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp", 0x16f,
                      0);
     show_equip_message:
-        ShowCampNoticeLine(g_camp_screen->text_buffer, 0, 1, 0);
+        ShowCampNoticeLine(g_camp_screen->text_buffer, 0, true, false);
     }
     g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     ResetTransientRenderScenes();
@@ -1452,7 +1452,7 @@ void CampScreenFrame(void)
                         if (!IsPartySlotEligible(giReviewCharSlot)) {
                             wchar_t* text =
                                 FormatWideString(gppStringList[0x931], g_camp_character->name);
-                            ShowCampNoticeLine(text, 0, 1, 0);
+                            ShowCampNoticeLine(text, 0, true, false);
                         } else {
                             QueueCharacterEvent(g_camp_character, g_effect36, 0,
                                                 g_effect_argument0,
@@ -1468,7 +1468,7 @@ void CampScreenFrame(void)
                 }
             } else if (input.usParam == 'X' && gfKeyState[0x12] && !gfKeyState[0x11] &&
                        !gfKeyState[0x10]) {
-                ShowCampNoticeLine(gppStringList[0x832], OnQuitGameDialogClosed, 1, 1);
+                ShowCampNoticeLine(gppStringList[0x832], OnQuitGameDialogClosed, true, true);
             }
         }
     }
@@ -1546,7 +1546,7 @@ void DismissSelectedPartyCharacter(void)
             return;
         }
         wchar_t* text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-        ShowCampNoticeLine(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, true, false);
         return;
     }
     if (IsMessageBoxActive()) {
@@ -1576,7 +1576,7 @@ void DrawCampScreen(void)
         if (state->redraw_flags == W8_CAMP_REDRAW_ALL) {
             state->item_redraw_flags = 0xffffffff;
             if (state->dialog != 0) {
-                state->dialog->m_dirty_flags |= 1;
+                state->dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
             }
         }
         DrawCampHeader();
@@ -1884,10 +1884,11 @@ void DisplayCampDialog(W8DialogBase* dialog)
 }
 
 // FUNCTION: WIZ8 0x005a4c00
-void ShowCampNoticeLine(const wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
-                        int cancel)
+void ShowCampNoticeLine(const wchar_t* text, W8DialogDestroyCallback callback, bool confirmation,
+                        bool cancel)
 {
-    W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+    W8MessageDialogBase* dialog =
+        static_cast<W8MessageDialogBase*>(CreateDialogByKind(W8_DIALOG_MESSAGE));
 
     dialog->SetClientExtent(0xfa, 200);
     dialog->SetMessage(text, 1, 0x32, confirmation, cancel, true, true, 0, 0x15e);
@@ -1908,7 +1909,7 @@ static void SelectPendingCampCharacter()
                             g_character_event_full_volume);
     } else {
         wchar_t* text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-        ShowCampNoticeLine(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, true, false);
     }
 }
 
@@ -1972,33 +1973,33 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
     }
     if (!g_status.game_started) {
         text = gppStringList[0x900];
-        ShowCampNoticeLine(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, true, false);
         return;
     }
     character = &g_status.buffers.Char[giReviewCharSlot];
     if (character->uiCondition[W8_CONDITION_MISSING] != 0 &&
         (origin == W8_ITEM_ORIGIN_EQUIPPED || origin == W8_ITEM_ORIGIN_BACKPACK)) {
         text = gppStringList[0x907];
-        ShowCampNoticeLine(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, true, false);
         return;
     }
     if (character->uiCondition[W8_CONDITION_WEBBED] != 0 &&
         (origin == W8_ITEM_ORIGIN_EQUIPPED || origin == W8_ITEM_ORIGIN_BACKPACK)) {
         text = gppStringList[0x908];
-        ShowCampNoticeLine(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, true, false);
         return;
     }
     if (character->uiCondition[W8_CONDITION_TURNCOAT] != 0 &&
         (origin == W8_ITEM_ORIGIN_EQUIPPED || origin == W8_ITEM_ORIGIN_BACKPACK)) {
         text = gppStringList[0x909];
-        ShowCampNoticeLine(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, true, false);
         return;
     }
     if (character->highest_condition >= W8_CONDITION_TURNCOAT &&
         origin != W8_ITEM_ORIGIN_PARTY_POOL && g_status.item_in_cursor &&
         gXStatus.held_item_source != giReviewCharSlot) {
         text = gppStringList[0x901];
-        ShowCampNoticeLine(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, true, false);
         return;
     }
 
@@ -2122,7 +2123,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
     if (item->iItemNo != -1 && origin == W8_ITEM_ORIGIN_EQUIPPED) {
         if (!CanUnequipSlotItem(g_review_character, equip_slot)) {
             text = gppStringList[0x90b];
-            ShowCampNoticeLine(text, 0, 1, 0);
+            ShowCampNoticeLine(text, 0, true, false);
             if (item->bound) {
                 return;
             }
@@ -2176,7 +2177,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
                         RebuildCampItemList();
                     } else {
                         text = gppStringList[0x90c];
-                        ShowCampNoticeLine(text, 0, 1, 0);
+                        ShowCampNoticeLine(text, 0, true, false);
                     }
                 } else if (slot_index < g_status.party_item_count) {
                     /* An empty hand picks the clicked pool row up. */
@@ -2216,7 +2217,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
                         paired = &g_review_character->EquippedItem[paired_slot];
                         if (!CanUnequipSlotItem(g_review_character, paired_slot)) {
                             text = gppStringList[0x916];
-                            ShowCampNoticeLine(text, 0, 1, 0);
+                            ShowCampNoticeLine(text, 0, true, false);
                             if (paired->bound) {
                                 return;
                             }
@@ -2251,13 +2252,13 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
                                             g_status.buffers.XChar[giReviewCharSlot].npc_index),
                                         paired)) {
                                     text = gppStringList[0x90c];
-                                    ShowCampNoticeLine(text, 0, 1, 0);
+                                    ShowCampNoticeLine(text, 0, true, false);
                                     return;
                                 }
                             }
                             if (!AddItemToParty(paired, 0, true)) {
                                 text = gppStringList[0x90c];
-                                ShowCampNoticeLine(text, 0, 1, 0);
+                                ShowCampNoticeLine(text, 0, true, false);
                                 return;
                             }
                             SwapItemInstances(item, &g_status.item_in_hand, g_review_character,
@@ -2403,7 +2404,7 @@ bool ResolvePendingCampCharacter(bool force)
             return false;
         }
         text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-        ShowCampNoticeLine(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, true, false);
         return false;
     }
     return true;
@@ -2476,7 +2477,7 @@ bool IsCampActionAllowed(int party_slot)
             }
         }
     }
-    ShowCampNoticeLine(message, 0, 1, 0);
+    ShowCampNoticeLine(message, 0, true, false);
     return false;
 }
 
@@ -2848,7 +2849,7 @@ void ShowEndingScreen(void)
     bounds.bottom = 0x1d0;
     {
         W8TextBuffer buffer(&bounds, text, g_options_detail_font, g_W8TextBufferAlignBottom, 4);
-        buffer.RenderToTarget(0, 0, -14);
+        buffer.RenderToTarget(0, false, -14);
     }
     SetRadarMapVisible(false);
     SetFormationBoardVisible(false);

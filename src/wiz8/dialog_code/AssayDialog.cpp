@@ -131,20 +131,20 @@ int W8AssayDialog::CreateControls()
 
     W8DialogBase::CreateControls();
     m_item_portrait_dirty = true;
-    if (PopulateText() == 0) {
+    if (!PopulateText()) {
         m_error = 7;
         return 7;
     }
-    if (m_scroll_bar.CreateControls(&g_assay_scroll_resources) != 0) {
+    if (m_scroll_bar.CreateControls(&g_assay_scroll_resources)) {
         m_scroll_bar.SetLayout(g_assay_scroll_x_offset + m_x, g_assay_scroll_y_offset + m_y,
                                m_text_area.GetTotalLineCount(), 0, m_text_area.GetLineHeight(),
                                g_assay_text_area_offsets.bottom - g_assay_text_area_offsets.top);
         m_scroll_bar.m_owner = this;
-        if (PopulateRequirements() == 0) {
+        if (!PopulateRequirements()) {
             m_error = 7;
             return 7;
         }
-        if (CreateTextBuffers() != 0) {
+        if (CreateTextBuffers()) {
             m_buttons[0]->SetVisible(gXStatus.assay_professions_tab);
             SetProfessionIconsVisible(gXStatus.assay_professions_tab);
             m_buttons[1]->SetVisible(!gXStatus.assay_professions_tab);
@@ -212,7 +212,7 @@ static int AppendAssayRequirements(const W8ItemRequirement* requirement, int cou
 }
 
 // FUNCTION: WIZ8 0x005d7310
-unsigned char W8AssayDialog::PopulateText()
+bool W8AssayDialog::PopulateText()
 {
     W8ControlsRect bounds;
     const W8ItemDatabaseRecord* record;
@@ -597,7 +597,7 @@ unsigned char W8AssayDialog::PopulateText()
         m_text_area.AddEntry(gppStringList[0x90f], description, 10, 0xf, 0);
     }
     m_text_area.m_dirty = true;
-    return 1;
+    return true;
 }
 
 /* The SurRender headers pull <iostream>, so retail emitted the VC6 stream
@@ -610,7 +610,7 @@ void W8AssayDialog::Draw()
 {
     int index;
 
-    if ((m_dirty_flags & 1) != 0) {
+    if ((m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) != 0) {
         if (!m_initialized) {
             CreateControls();
         }
@@ -641,10 +641,10 @@ void W8AssayDialog::Draw()
     }
     for (index = 0; index < W8_ASSAY_TEXT_BUFFER_COUNT; ++index) {
         if (m_text_buffers[index] != 0) {
-            m_text_buffers[index]->RenderToTarget(0, 0, -0xe);
+            m_text_buffers[index]->RenderToTarget(0, false, -0xe);
         }
     }
-    m_text_area.Draw(0);
+    m_text_area.Draw(false);
     m_scroll_bar.Draw(false);
 }
 
@@ -676,9 +676,9 @@ void W8AssayDialog::ShowPrimaryTab()
     }
     gXStatus.assay_professions_tab = true;
     m_buttons[0]->SetVisible(true);
-    SetProfessionIconsVisible(1);
+    SetProfessionIconsVisible(true);
     m_buttons[1]->SetVisible(false);
-    SetRaceIconsVisible(0);
+    SetRaceIconsVisible(false);
     m_buttons[0]->m_dirty = true;
     m_buttons[1]->m_dirty = true;
     m_buttons[3]->m_dirty = true;
@@ -697,9 +697,9 @@ void W8AssayDialog::ShowSecondaryTab()
     }
     gXStatus.assay_professions_tab = false;
     m_buttons[0]->SetVisible(false);
-    SetProfessionIconsVisible(0);
+    SetProfessionIconsVisible(false);
     m_buttons[1]->SetVisible(true);
-    SetRaceIconsVisible(1);
+    SetRaceIconsVisible(true);
     m_buttons[0]->m_dirty = true;
     m_buttons[1]->m_dirty = true;
     m_buttons[2]->m_dirty = true;
@@ -734,7 +734,7 @@ void W8AssayDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visi
 }
 
 // FUNCTION: WIZ8 0x005d8850
-unsigned char W8AssayDialog::PopulateRequirements()
+bool W8AssayDialog::PopulateRequirements()
 {
     int index;
     unsigned short us_index;
@@ -751,7 +751,7 @@ unsigned char W8AssayDialog::PopulateRequirements()
                     m_buttons[index] = 0;
                 }
             }
-            return 0;
+            return false;
         }
     }
 
@@ -915,11 +915,11 @@ unsigned char W8AssayDialog::PopulateRequirements()
                                       m_y + g_assay_button_offsets[index].y);
         m_buttons[index]->m_owner = this;
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005d8fb0
-unsigned char W8AssayDialog::CreateTextBuffers()
+bool W8AssayDialog::CreateTextBuffers()
 {
     int index;
     W8ControlsRect bounds;
@@ -942,7 +942,7 @@ unsigned char W8AssayDialog::CreateTextBuffers()
                     m_text_buffers[index] = 0;
                 }
             }
-            return 0;
+            return false;
         }
     }
 
@@ -961,11 +961,11 @@ unsigned char W8AssayDialog::CreateTextBuffers()
         text = FormatWideString(g_assay_format, GetItemUnitWeight(item) * g_float_005ed8b8);
     }
     m_text_buffers[4]->SetText(text, g_wiz_text_font_secondary);
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005d9330
-void W8AssayDialog::SetProfessionIconsVisible(int show)
+void W8AssayDialog::SetProfessionIconsVisible(bool show)
 {
     unsigned int profession;
     int button_index;
@@ -1021,8 +1021,8 @@ void W8AssayDialog::SetProfessionIconsVisible(int show)
         default:
             continue;
         }
-        m_buttons[button_index]->SetVisible(show != 0);
-        if (show != 0) {
+        m_buttons[button_index]->SetVisible(show);
+        if (show) {
             m_buttons[button_index]->SetEnabled(
                 (record->profession_mask & (1 << (profession & 0x1f))) != 0);
         }
@@ -1031,7 +1031,7 @@ void W8AssayDialog::SetProfessionIconsVisible(int show)
 }
 
 // FUNCTION: WIZ8 0x005d9460
-void W8AssayDialog::SetRaceIconsVisible(int show)
+void W8AssayDialog::SetRaceIconsVisible(bool show)
 {
     unsigned int race;
     unsigned int us_index;
@@ -1111,8 +1111,8 @@ void W8AssayDialog::SetRaceIconsVisible(int show)
         default:
             continue;
         }
-        m_buttons[button_index]->SetVisible(show != 0);
-        if (show != 0) {
+        m_buttons[button_index]->SetVisible(show);
+        if (show) {
             m_buttons[button_index]->SetEnabled((record->race_mask & (1 << (race & 0x1f))) != 0);
         }
         m_buttons[button_index]->m_dirty = true;

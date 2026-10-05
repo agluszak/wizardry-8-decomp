@@ -59,7 +59,7 @@ W8StatInfoDialogBase::~W8StatInfoDialogBase()
 int W8StatInfoDialogBase::CreateControls()
 {
     W8DialogBase::CreateControls();
-    if (PopulateText() == 0) {
+    if (!PopulateText()) {
         m_error = 7;
         return 7;
     }
@@ -92,7 +92,7 @@ void W8StatInfoDialogBase::DestroyControls()
 // FUNCTION: WIZ8 0x005dfae0
 void W8StatInfoDialogBase::Draw()
 {
-    if ((m_dirty_flags & 1) != 0) {
+    if ((m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) != 0) {
         if (!m_initialized) {
             CreateControls();
         }
@@ -102,7 +102,7 @@ void W8StatInfoDialogBase::Draw()
         W8DialogBase::Draw();
         DrawTitle();
     }
-    textarea.Draw(0);
+    textarea.Draw(false);
     scrollbar.Draw(false);
     button.Draw();
 }
@@ -159,7 +159,7 @@ void W8StatInfoDialogBase::ScrollCallback(W8DialogScrollBar* scroll_bar, int fir
 }
 
 // FUNCTION: WIZ8 0x005dfdb0
-unsigned char W8StatInfoDialogBase::PopulateText()
+bool W8StatInfoDialogBase::PopulateText()
 {
     W8ControlsRect bounds;
     bounds.left = m_x + 0x11;
@@ -170,7 +170,7 @@ unsigned char W8StatInfoDialogBase::PopulateText()
     textarea.SetEntrySpacing(0);
     textarea.AddEntry(gppStringList[0x155], gppStringList[m_detail_id], 10, 0xf, 0);
     textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005dfc70
@@ -211,7 +211,7 @@ W8SkillInfoDialog::~W8SkillInfoDialog()
 }
 
 // FUNCTION: WIZ8 0x005dffa0
-unsigned char W8SkillInfoDialog::PopulateText()
+bool W8SkillInfoDialog::PopulateText()
 {
     W8StatInfoDialogBase::PopulateText();
     textarea.AddEntry(gppStringList[0x156], &g_empty_wide_string, 10, 0xf, 0);
@@ -234,7 +234,7 @@ unsigned char W8SkillInfoDialog::PopulateText()
         textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
         textarea.AddEntry(0, FormatWideString(gppStringList[0x159], 0x19), 10, 3, 0);
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005e0180

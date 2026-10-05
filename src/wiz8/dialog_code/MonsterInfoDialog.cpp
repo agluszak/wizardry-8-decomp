@@ -59,7 +59,7 @@ W8MonsterInfoDialog::~W8MonsterInfoDialog()
 int W8MonsterInfoDialog::CreateControls()
 {
     W8DialogBase::CreateControls();
-    if (PopulateText() == 0) {
+    if (!PopulateText()) {
         m_error = 7;
         return 7;
     }
@@ -96,7 +96,7 @@ static int g_monster_resistance_label_gates[6][2] = {
 };
 
 // FUNCTION: WIZ8 0x005d6160
-unsigned char W8MonsterInfoDialog::PopulateText()
+bool W8MonsterInfoDialog::PopulateText()
 {
     W8ControlsRect bounds;
     wchar_t text[2000];
@@ -454,7 +454,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         }
         m_text_area.AddEntry(L"Combat Strategy", strategy, 5, 0xf, 0);
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005d6e60
@@ -501,7 +501,7 @@ void W8MonsterInfoDialog::DestroyControls()
 // FUNCTION: WIZ8 0x005d6080
 void W8MonsterInfoDialog::Draw()
 {
-    if ((m_dirty_flags & 1) != 0) {
+    if ((m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) != 0) {
         if (!m_initialized) {
             CreateControls();
         }
@@ -518,7 +518,7 @@ void W8MonsterInfoDialog::Draw()
         INT16 width = StringPixLength(name, g_wiz_text_font_secondary);
         gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, g_format_s, name);
     }
-    m_text_area.Draw(0);
+    m_text_area.Draw(false);
     m_scroll_bar.Draw(false);
     m_button.Draw();
 }

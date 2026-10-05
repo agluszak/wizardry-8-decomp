@@ -147,12 +147,12 @@ void W8CharacterPageEntry::Redraw()
                                    g_wiz_text_font_secondary);
         m_first_text->FillBounds(0x8000);
         m_second_text->FillBounds(0x8000);
-        m_label->RenderToTarget(0, 1, -14);
-        m_first_text->RenderToTarget(0, 1, -14);
-        m_second_text->RenderToTarget(0, 1, -14);
+        m_label->RenderToTarget(0, true, -14);
+        m_first_text->RenderToTarget(0, true, -14);
+        m_second_text->RenderToTarget(0, true, -14);
         m_dirty = false;
     } else if (!m_draw_background && m_dirty) {
-        m_label->RenderToTarget(0, 1, -14);
+        m_label->RenderToTarget(0, true, -14);
         m_dirty = false;
     }
 }

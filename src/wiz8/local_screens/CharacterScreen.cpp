@@ -203,11 +203,11 @@ void W8CharacterScreen::UpdateDialog()
         if (m_dialog_response == 1) {
             gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
             if (UpdateCharacterEventState() == 0 &&
-                static_cast<W8MessageDialogBase*>(m_dialog)->close_result) {
+                static_cast<W8MessageDialogBase*>(m_dialog)->accepted) {
                 m_dialog->m_keep_open = false;
             }
         }
-        if (m_dialog->ProcessInput() == 0) {
+        if (!m_dialog->ProcessInput()) {
             ClearActiveRegionIfMatches(0x138);
             m_controls->Invalidate(0);
             m_pages[m_page_index]->Prepare();
@@ -217,7 +217,7 @@ void W8CharacterScreen::UpdateDialog()
     "-Wsometimes-uninitialized" // uninit-ok: uncaptured response can use a stale stack byte as acceptance
             unsigned char accepted;
             if (m_capture_dialog_result) {
-                accepted = static_cast<W8MessageDialogBase*>(m_dialog)->close_result;
+                accepted = static_cast<W8MessageDialogBase*>(m_dialog)->accepted;
                 m_capture_dialog_result = false;
             }
             delete m_dialog;
@@ -507,7 +507,7 @@ void W8CharacterScreen::DrawHeader()
     text.SetLayoutBounds(&bounds, true, true);
     text.SetText(gppStringList[g_character_page_title_ids[m_page_index]],
                  g_options_detail_font);
-    text.RenderToTarget(0, 1, -14);
+    text.RenderToTarget(0, true, -14);
     DrawCatalogImageAndInvalidate(-14, 0x107, 0, 1, 0, 0, 2, 0);
 
     if (m_mode == 0) {
@@ -529,7 +529,7 @@ void W8CharacterScreen::DrawHeader()
         if (m_mode != 0) {
             text.SetLayoutBounds(&bounds, true, true);
             text.SetText(m_character.name, g_wiz_text_font_secondary);
-            text.RenderToTarget(0, 1, -14);
+            text.RenderToTarget(0, true, -14);
         }
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, true, true);
@@ -538,12 +538,12 @@ void W8CharacterScreen::DrawHeader()
                              gppStringList[g_gender_name_message_rows[m_character.gender][0]],
                              gppStringList[g_race_name_message_ids[m_character.iRace]]),
             g_wiz_text_font_secondary);
-        text.RenderToTarget(0, 1, -14);
+        text.RenderToTarget(0, true, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[g_profession_name_message_ids[m_character.iProfession]],
                      g_wiz_text_font_secondary);
-        text.RenderToTarget(0, 1, -14);
+        text.RenderToTarget(0, true, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(
@@ -552,7 +552,7 @@ void W8CharacterScreen::DrawHeader()
                 gppStringList[g_profession_level_name_message_ids[m_character.iProfession]
                                                                  [m_character.level_band]]),
             g_wiz_text_font_secondary);
-        text.RenderToTarget(0, 1, -14);
+        text.RenderToTarget(0, true, -14);
     }
     m_header_dirty = false;
 }
@@ -628,7 +628,7 @@ void W8CharacterScreen::ShowMessage(wchar_t* text, int confirmation, int respons
         m_dialog->SetOrigin(0xa0, 100);
         m_dialog->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
         static_cast<W8MessageDialogBase*>(m_dialog)->SetClientExtent(0xfa, 200);
-        static_cast<W8MessageDialogBase*>(m_dialog)->SetMessage(text, 1, 0x32, 1, confirmation,
+        static_cast<W8MessageDialogBase*>(m_dialog)->SetMessage(text, 1, 0x32, true, confirmation,
                                                                 true, true, 0, 0x15e);
         ActivateDialogRegion(0x138);
         m_capture_dialog_result = true;

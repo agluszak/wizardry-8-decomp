@@ -307,14 +307,14 @@ void W8CharacterSpellsPage::Redraw()
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[m_creation_state->spell_points_total == 0 ? 0xeb : 0xea],
                      g_wiz_text_font_secondary);
-        text.RenderToTarget(0, 1, -14);
+        text.RenderToTarget(0, true, -14);
 
         bounds.top = 0x173;
         bounds.bottom = 0x18a;
         bounds.right = 0x8f;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xf4], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, 1, -14);
+        text.RenderToTarget(0, true, -14);
         m_prepared = false;
     }
 
@@ -329,7 +329,7 @@ void W8CharacterSpellsPage::Redraw()
                                       m_creation_state->spell_points_remaining,
                                       m_creation_state->spell_points_total),
                      g_options_detail_font);
-        text.RenderToTarget(0, 1, -14);
+        text.RenderToTarget(0, true, -14);
         m_dirty = false;
     }
 
@@ -347,13 +347,13 @@ void W8CharacterSpellsPage::Redraw()
             text.SetFontStateIndex(1);
             text.SetText(FormatWideString(g_format_s0, gppStringList[0xf2]),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, 0, -14);
+            text.RenderToTarget(0, false, -14);
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(
                 FormatWideString(g_format_d, m_character->skills[0x1c + realm].points),
                 g_wiz_text_font_secondary);
-            text.RenderToTarget(0, 0, -14);
+            text.RenderToTarget(0, false, -14);
 
             text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
             bounds.left += 0x58;
@@ -362,7 +362,7 @@ void W8CharacterSpellsPage::Redraw()
             text.SetFontStateIndex(1);
             text.SetText(FormatWideString(g_format_s0, gppStringList[0xf3]),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, 0, -14);
+            text.RenderToTarget(0, false, -14);
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d_slash_d,
@@ -370,7 +370,7 @@ void W8CharacterSpellsPage::Redraw()
                                               m_character, static_cast<W8SpellRealm>(realm)),
                                           m_character->sp_max[realm]),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, 0, -14);
+            text.RenderToTarget(0, false, -14);
         }
     }
 

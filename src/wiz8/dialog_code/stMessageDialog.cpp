@@ -26,7 +26,7 @@
 
 // FUNCTION: WIZ8 0x005d25b0
 W8MessageDialogBase::W8MessageDialogBase()
-    : close_result(0), is_open(1), m_edge_image(-1), m_message_button(-1), m_confirm_button(-1),
+    : accepted(false), is_open(true), m_edge_image(-1), m_message_button(-1), m_confirm_button(-1),
       m_confirm_image(-1), m_cancel_button(-1), m_cancel_image(-1), m_lines(0), m_line_count(0)
 {
 }
@@ -78,10 +78,9 @@ void W8MessageDialogBase::Draw()
 
 // FUNCTION: WIZ8 0x005d2800
 void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
-                                     unsigned short characters_per_line, unsigned char confirmation,
-                                     unsigned char cancel, bool size_to_message,
-                                     bool wrap_message, int maximum_width,
-                                     int maximum_height)
+                                     unsigned short characters_per_line, bool confirmation,
+                                     bool cancel, bool size_to_message, bool wrap_message,
+                                     int maximum_width, int maximum_height)
 {
     /* 0x005D2950 compares the line counter unsigned; the signed compare in
        this function is the width clamp at 0x005D295E, and `width` carries it. */
@@ -246,27 +245,28 @@ int W8MessageDialogBase::CreateControls()
             return m_error = 3;
         }
     }
-    m_message_button =
-        CreateTextButton(0, g_dialog_interface_font, g_dialog_font_foreground,
-                         g_dialog_font_background, m_edge_image, static_cast<short>(m_x + 9),
-                         static_cast<short>(m_y + 9), static_cast<short>(m_width - 0x12),
-                         static_cast<short>(m_height - 0x12), 0x8004, 0x7e, 0, 0);
+    m_message_button = CreateTextButton(
+        0, g_dialog_interface_font, g_dialog_font_foreground, g_dialog_font_background,
+        m_edge_image, static_cast<short>(m_x + 9), static_cast<short>(m_y + 9),
+        static_cast<short>(m_width - 0x12), static_cast<short>(m_height - 0x12),
+        BUTTON_NO_TOGGLE | BUTTON_IGNORE_CLICKS, MSYS_PRIORITY_HIGHEST - 1, BUTTON_NO_CALLBACK,
+        BUTTON_NO_CALLBACK);
 
     m_confirm_image = LoadButtonImage(
         Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
         3, 0, 1, 2, 2);
     if (m_confirm_image != -1) {
         m_confirm_button =
-            QuickCreateButton(m_confirm_image, 0, 0, 4, 0x7f, MessageDialogConfirmCallback,
-                              MessageDialogConfirmCallback);
+            QuickCreateButton(m_confirm_image, 0, 0, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGHEST,
+                              MessageDialogConfirmCallback, MessageDialogConfirmCallback);
     }
     m_cancel_image = LoadButtonImage(
         Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
         7, 4, 5, 6, 6);
     if (m_cancel_image != -1) {
         m_cancel_button =
-            QuickCreateButton(m_cancel_image, 0, 0, 4, 0x7f, MessageDialogCancelCallback,
-                              MessageDialogCancelCallback);
+            QuickCreateButton(m_cancel_image, 0, 0, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGHEST,
+                              MessageDialogCancelCallback, MessageDialogCancelCallback);
     }
     if (m_confirm_button != -1 && m_cancel_button != -1) {
         int button_width;
@@ -331,31 +331,31 @@ void W8MessageDialogBase::DestroyControls()
 }
 
 // FUNCTION: WIZ8 0x005d3020
-unsigned char W8MessageDialogBase::HandleInput(const InputAtom* input)
+bool W8MessageDialogBase::HandleInput(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN) {
         return is_open;
     }
 
-    if (allow_cancel != 0) {
+    if (allow_cancel) {
         int key = toupper(input->usParam);
         if (key == ESC) {
-            close_result = 0;
+            accepted = false;
             is_open = false;
-            return 0;
+            return false;
         }
         if (key != '\r') {
             return is_open;
         }
     }
 
-    close_result = 1;
+    accepted = true;
     is_open = false;
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005d3080
-unsigned char W8MessageDialogBase::ProcessInput()
+bool W8MessageDialogBase::ProcessInput()
 {
     POINT mouse;
     InputAtom input;
@@ -400,23 +400,23 @@ void MessageDialogConfirmCallback(GUI_BUTTON* button, int reason)
                      0);
     }
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        if (!(button->uiFlags & 2)) {
-            button->uiFlags |= 2;
-            dialog->m_dirty_flags |= 1;
+        if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
+            button->uiFlags |= BUTTON_CLICKED_ON;
+            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
-        if (button->uiFlags & 2) {
-            dialog->close_result = 1;
+        if (button->uiFlags & BUTTON_CLICKED_ON) {
+            dialog->accepted = true;
             dialog->is_open = false;
-            button->uiFlags &= ~2u;
-            dialog->m_dirty_flags |= 1;
+            button->uiFlags &= ~BUTTON_CLICKED_ON;
+            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
     } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-        button->Area.uiFlags |= 1;
-        dialog->m_dirty_flags |= 1;
+        button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-        button->Area.uiFlags &= ~1u;
-        dialog->m_dirty_flags |= 1;
+        button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }
 
@@ -429,22 +429,22 @@ void MessageDialogCancelCallback(GUI_BUTTON* button, int reason)
                      0);
     }
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        if (!(button->uiFlags & 2)) {
-            button->uiFlags |= 2;
-            dialog->m_dirty_flags |= 1;
+        if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
+            button->uiFlags |= BUTTON_CLICKED_ON;
+            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
-        if (button->uiFlags & 2) {
-            dialog->close_result = 0;
+        if (button->uiFlags & BUTTON_CLICKED_ON) {
+            dialog->accepted = false;
             dialog->is_open = false;
-            button->uiFlags &= ~2u;
-            dialog->m_dirty_flags |= 1;
+            button->uiFlags &= ~BUTTON_CLICKED_ON;
+            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
     } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-        button->Area.uiFlags |= 1;
-        dialog->m_dirty_flags |= 1;
+        button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-        button->Area.uiFlags &= ~1u;
-        dialog->m_dirty_flags |= 1;
+        button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }
