@@ -1098,7 +1098,7 @@ static void SpellCastingDialogResult(W8DialogBase* dialog)
     int index;
 
     index = gpSCSV->uiSpellIndex;
-    if (GetDialogResult(dialog) != 0) {
+    if (GetDialogResult(dialog)) {
         gpSCSV->dialog_confirmed = true;
         return;
     }
@@ -1398,10 +1398,10 @@ void TryCommitSpellCast(void)
     if (gpSCSV->uiSpellToCast == 0x4b && !gpSCSV->dialog_confirmed) {
         if (!IsModalOpen() &&
             g_status.buffers.Char[g_status.selected_character].has_saved_location) {
-            ShowMainGameNoticeLine(gppStringList[0x7a4], SpellCastingDialogResult, 1, 1);
+            ShowMainGameNoticeLine(gppStringList[0x7a4], SpellCastingDialogResult, true, true);
         }
     } else if (gpSCSV->uiSpellToCast == 0x49 && !gpSCSV->dialog_confirmed && !IsModalOpen()) {
-        ShowMainGameNoticeLine(gppStringList[0x7a5], SpellCastingDialogResult, 1, 1);
+        ShowMainGameNoticeLine(gppStringList[0x7a5], SpellCastingDialogResult, true, true);
     }
     if (ready && !IsModalOpen()) {
         gpSCSV->closing = true;
@@ -1426,17 +1426,17 @@ void ShowSpellCastingError(int spell_id)
 {
     gpSCSV->override_spell = spell_id;
     if (!SpellUsableNow(spell_id, false)) {
-        ShowMainGameNoticeLine(gppStringList[0x79e], SpellCastingNoticeClosed, 1, 0);
+        ShowMainGameNoticeLine(gppStringList[0x79e], SpellCastingNoticeClosed, true, false);
     } else if (GetCharacterRealmSpellPoints(gpSCSV->caster, gpSCSV->iSpellRealm) <
                g_spell_records[spell_id].spell_point_cost) {
-        ShowMainGameNoticeLine(gppStringList[0x7a0], SpellCastingNoticeClosed, 1, 0);
+        ShowMainGameNoticeLine(gppStringList[0x7a0], SpellCastingNoticeClosed, true, false);
     } else if (!SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), spell_id,
                                        false)) {
-        ShowMainGameNoticeLine(gppStringList[0x7a1], SpellCastingNoticeClosed, 1, 0);
+        ShowMainGameNoticeLine(gppStringList[0x7a1], SpellCastingNoticeClosed, true, false);
     } else if (IsTeleportCastMissingAnchor(gpSCSV->caster, spell_id)) {
-        ShowMainGameNoticeLine(gppStringList[0x7a2], SpellCastingNoticeClosed, 1, 0);
+        ShowMainGameNoticeLine(gppStringList[0x7a2], SpellCastingNoticeClosed, true, false);
     } else if (IsSpellBlockedForCharacter(gpSCSV->caster, spell_id)) {
-        ShowMainGameNoticeLine(gppStringList[0x79f], SpellCastingNoticeClosed, 1, 0);
+        ShowMainGameNoticeLine(gppStringList[0x79f], SpellCastingNoticeClosed, true, false);
     }
     gpSCSV->override_spell = 0;
 }

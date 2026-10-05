@@ -189,9 +189,9 @@ unsigned char MainMenuScreenEnter(void)
 
     pending = g_pending_main_menu_message;
     if (pending != 0) {
-        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(W8_DIALOG_MESSAGE));
         dialog->SetClientExtent(0xfa, 200);
-        dialog->SetMessage(pending, 1, 0x32, 1, 0, true, true, 0, 0x15e);
+        dialog->SetMessage(pending, 1, 0x32, true, false, true, true, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
         g_main_menu_dialog = dialog;
         delete[] g_pending_main_menu_message;
@@ -199,9 +199,9 @@ unsigned char MainMenuScreenEnter(void)
         return 1;
     }
     if (!HasEnoughFreeDiskSpace() && !g_main_menu_warning_shown) {
-        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(W8_DIALOG_MESSAGE));
         dialog->SetClientExtent(0xfa, 200);
-        dialog->SetMessage(gppStringList[0x7ee], 1, 0x32, 1, 0, true, true, 0, 0x15e);
+        dialog->SetMessage(gppStringList[0x7ee], 1, 0x32, true, false, true, true, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
         g_main_menu_warning_shown = true;
         g_main_menu_dialog = dialog;
@@ -232,7 +232,7 @@ void MainMenuScreenFrame()
     }
     if (g_main_menu_dialog != 0) {
         DrawDialog(g_main_menu_dialog);
-        if (ProcessDialogInput(g_main_menu_dialog) == 0) {
+        if (!ProcessDialogInput(g_main_menu_dialog)) {
             delete g_main_menu_dialog;
             g_main_menu_dialog = 0;
             g_main_menu_redraw = true;

@@ -210,10 +210,10 @@ void W8DialogNumericInput::Backspace()
 }
 
 // FUNCTION: WIZ8 0x005e19a0
-unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
+bool W8DialogNumericInput::HandleInput(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
-        return 0;
+        return false;
     }
     switch (input->usParam) {
     case 0x30:
@@ -228,7 +228,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
     case 0x39:
         if (m_active && m_caret != -1) {
             TypeDigit(static_cast<wchar_t>(input->usParam));
-            return 1;
+            return true;
         }
         break;
     case 0x60:
@@ -243,19 +243,19 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
     case 0x69:
         if (m_active && m_caret != -1) {
             TypeDigit(static_cast<wchar_t>(input->usParam - 0x30));
-            return 1;
+            return true;
         }
         break;
     case 0x2e:
         if (m_active && m_caret != -1) {
             DeleteForward();
-            return 1;
+            return true;
         }
         break;
     case 8:
         if (m_active && m_caret != -1) {
             Backspace();
-            return 1;
+            return true;
         }
         break;
     case 0x27:
@@ -264,7 +264,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
             m_dirty = true;
             m_caret = next < 0 ? 0 : next;
             m_button->m_dirty = true;
-            return 1;
+            return true;
         }
         break;
     case 0x25:
@@ -278,7 +278,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
             m_caret = length;
             m_dirty = true;
             m_button->m_dirty = true;
-            return 1;
+            return true;
         }
         break;
     case 0x1b:
@@ -289,7 +289,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
         m_button->m_dirty = true;
         break;
     default:
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }

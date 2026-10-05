@@ -82,7 +82,7 @@ W8SpellInfoDialog::~W8SpellInfoDialog()
 int W8SpellInfoDialog::CreateControls()
 {
     W8DialogBase::CreateControls();
-    if (PopulateText() == 0) {
+    if (!PopulateText()) {
         m_error = 7;
         return 7;
     }
@@ -121,7 +121,7 @@ void W8SpellInfoDialog::Draw()
     W8SpellRealm realm;
     W8SpellRealmAnimation* animation;
 
-    if ((m_dirty_flags & 1) != 0) {
+    if ((m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) != 0) {
         if (!m_initialized) {
             CreateControls();
         }
@@ -131,7 +131,7 @@ void W8SpellInfoDialog::Draw()
         W8DialogBase::Draw();
         DrawLabels();
     }
-    m_text_area.Draw(0);
+    m_text_area.Draw(false);
     m_scroll_bar.Draw(false);
     m_button.Draw();
     steps = static_cast<int>(m_timer.GetProgress());
@@ -146,7 +146,7 @@ void W8SpellInfoDialog::Draw()
 }
 
 // FUNCTION: WIZ8 0x005dbee0
-unsigned char W8SpellInfoDialog::PopulateText()
+bool W8SpellInfoDialog::PopulateText()
 {
     W8ControlsRect bounds;
     W8SpellRuntimeRecord* record;
@@ -298,7 +298,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
         text[0] != L'\0') {
         m_text_area.AddEntry(gppStringList[0x12c], text, 10, 0xf, 0);
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005dc490

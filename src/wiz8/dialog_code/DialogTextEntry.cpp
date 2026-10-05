@@ -31,7 +31,7 @@ W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
     m_category = category;
     SetLayoutBounds(bounds, true, true);
     SetLayoutMode(layout_mode);
-    m_shorten = shorten;
+    m_shorten_mask = shorten;
     m_prefix_length = prefix ? wcslen(prefix) + 2 : 0;
     m_buffer = new wchar_t[wcslen(text) + m_prefix_length + 1];
     if (m_prefix_length != 0) {
@@ -54,7 +54,7 @@ void W8DialogTextEntry::Draw(bool force)
     }
     wchar_t* copy = new wchar_t[wcslen(m_buffer) + 5];
     wcscpy(copy, m_buffer);
-    if (m_shorten) {
+    if (m_shorten_mask) {
         ShortenTextToWidth(copy, m_buffer, width - 5, m_font);
     }
     SetFont(m_font);

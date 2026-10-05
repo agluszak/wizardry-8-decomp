@@ -1369,7 +1369,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
         srAssertFail("pIntoPCItem->iItemNo != -1", PC_ITEM_CPP, 2923, 0);
     }
     if (!destination->identified || !held->identified) {
-        ShowCampNoticeLine(gppStringList[0x163], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x163], 0, true, false);
         return 0;
     }
 
@@ -1453,9 +1453,10 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
             return stacked;
         }
         if (!found) {
-            ShowCampNoticeLine(gppStringList[0x161], 0, 1, 0);
+            ShowCampNoticeLine(gppStringList[0x161], 0, true, false);
         } else {
-            ShowCampNoticeLine(FormatWideString(gppStringList[0x162], character->name), 0, 1, 0);
+            ShowCampNoticeLine(FormatWideString(gppStringList[0x162], character->name), 0, true,
+                               false);
         }
     }
     return merged;
@@ -1674,7 +1675,7 @@ static void DropUnstoredCharacterItem(W8ItemInstance* item)
     if ((g_item_records[g_status.item_in_hand.iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) == 0) {
         DropHeldItem(0);
     } else {
-        ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
+        ShowNoticeLine(gppStringList[0x4ef], 0, true, false);
     }
     if (was_in_cursor) {
         g_status.item_in_hand = saved_hand;
@@ -1806,9 +1807,9 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
     }
 
     if (!IsPartySlotEligible(uiChar) && !party_first) {
-        ShowNoticeLine(gppStringList[0x1f5], 0, 1, 0);
+        ShowNoticeLine(gppStringList[0x1f5], 0, true, false);
     } else {
-        ShowNoticeLine(gppStringList[0x90c], 0, 1, 0);
+        ShowNoticeLine(gppStringList[0x90c], 0, true, false);
     }
     return stored;
 }
@@ -1858,7 +1859,7 @@ bool DropItemInHand(int arg_1)
 {
     if ((g_item_records[g_status.item_in_hand.iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) !=
         0) {
-        ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
+        ShowNoticeLine(gppStringList[0x4ef], 0, true, false);
         return false;
     }
     DropHeldItem(arg_1);
@@ -3257,14 +3258,14 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
         record->equip_class == W8_ITEM_EQUIP_CLASS_OTHER || CanCastFromItem(character, item)) {
         if (gXStatus.fCombatMode || gXStatus.fCampMode || gXStatus.fLockInteract ||
             gXStatus.fTrapInteract) {
-            ShowNoticeLine(gppStringList[0x7a6], callback, 1, 0);
+            ShowNoticeLine(gppStringList[0x7a6], callback, true, false);
             return 1;
         }
         return 0;
     }
     if (character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
         record->equip_class == W8_ITEM_EQUIP_CLASS_INSTRUMENT) {
-        ShowNoticeLine(gppStringList[0x7a7], callback, 1, 0);
+        ShowNoticeLine(gppStringList[0x7a7], callback, true, false);
         return 1;
     }
     if (gXStatus.fItemSelectMode) {
@@ -3273,12 +3274,12 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
                                             ItemClassNormalizesTarget(record));
         SetUseItemSelectOverrideItem(0);
         if (!has_target) {
-            ShowNoticeLine(gppStringList[0x7a8], callback, 1, 0);
+            ShowNoticeLine(gppStringList[0x7a8], callback, true, false);
             return 1;
         }
     }
     if (!SpellUsableNow(record->spell_id, false)) {
-        ShowNoticeLine(gppStringList[0x7a6], callback, 1, 0);
+        ShowNoticeLine(gppStringList[0x7a6], callback, true, false);
         return 1;
     }
     return 0;

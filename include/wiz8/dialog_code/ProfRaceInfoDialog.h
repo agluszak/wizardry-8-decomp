@@ -49,7 +49,7 @@ public:
     virtual void OnMouseWheel(int delta) override;
 
 protected:
-    virtual unsigned char PopulateText();
+    virtual bool PopulateText();
 
 private:
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
@@ -76,7 +76,7 @@ public:
     W8ProfessionInfoDialog(W8Profession uiIndex);
 
 private:
-    virtual unsigned char PopulateText() override;
+    virtual bool PopulateText() override;
 
     W8Profession m_uiIndex; /* 0x170 */
 };
@@ -87,7 +87,7 @@ public:
     W8RaceInfoDialog(W8Race uiIndex);
 
 private:
-    virtual unsigned char PopulateText() override;
+    virtual bool PopulateText() override;
 
     W8Race m_uiIndex; /* 0x170 */
 };

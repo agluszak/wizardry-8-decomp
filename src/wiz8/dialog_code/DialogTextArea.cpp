@@ -15,15 +15,14 @@
    0x005EF898 (marked in the header) holds 0x005D2590, so only that copy
    pairs to the recompiled sdd. */
 
-/* The NPC-dialogue translation unit's own copies of the 1/2/4 text-buffer
-   layout masks; they sit immediately ahead of this file's vector vtable at
-   0x005EF898 in retail data. */
+/* Behavior masks for contained text entries: single-line layout, pointer
+   selection and shortening to the available width. */
 // GLOBAL: WIZ8 0x005EF888
-extern const unsigned int g_W8DialogTextAreaAlignLeft = 0x01;
+extern const unsigned int g_W8DialogTextAreaNoWrap = 0x01;
 // GLOBAL: WIZ8 0x005EF88C
-extern const unsigned int g_W8DialogTextAreaAlignCenter = 0x02;
+extern const unsigned int g_W8DialogTextAreaPointSelection = 0x02;
 // GLOBAL: WIZ8 0x005EF890
-extern const unsigned int g_W8DialogTextAreaAlignRight = 0x04;
+extern const unsigned int g_W8DialogTextAreaShortenText = 0x04;
 
 // FUNCTION: WIZ8 0x005d1ab0
 void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
@@ -52,10 +51,10 @@ void W8DialogTextArea::Configure(const W8ControlsRect* bounds, int font, unsigne
 }
 
 // FUNCTION: WIZ8 0x005d1900
-void W8DialogTextArea::Draw(unsigned char force)
+void W8DialogTextArea::Draw(bool force)
 {
     unsigned int font_height = GetFontHeight(m_font);
-    if (force || m_dirty || selection_dirty) {
+    if (force || m_dirty || m_selection_dirty) {
         W8ControlsRect bounds;
         if (m_relayout_needed) {
             bounds.left = m_bounds.left;
@@ -74,7 +73,7 @@ void W8DialogTextArea::Draw(unsigned char force)
         }
         m_relayout_needed = false;
         m_dirty = false;
-        selection_dirty = false;
+        m_selection_dirty = false;
     }
 }
 
@@ -150,38 +149,38 @@ void W8DialogTextArea::SetLineHeight(unsigned int height)
 }
 
 // FUNCTION: WIZ8 0x005d1e80
-unsigned char W8DialogTextArea::SelectEntry(int index)
+bool W8DialogTextArea::SelectEntry(int index)
 {
     if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_selected) {
         (*m_visible_lines.GetAt(index))->SetSelected(true);
         m_selected_visible_entry = index;
-        selection_dirty = true;
-        return 1;
+        m_selection_dirty = true;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005d1ed0
-unsigned char W8DialogTextArea::ClearSelection()
+bool W8DialogTextArea::ClearSelection()
 {
     if (m_visible_lines.count == 0) {
         m_selected_visible_entry = -1;
     } else if (m_selected_visible_entry != -1) {
         (*m_visible_lines.GetAt(m_selected_visible_entry))->SetSelected(false);
-        selection_dirty = true;
+        m_selection_dirty = true;
         m_selected_visible_entry = -1;
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005d2120
-unsigned char W8DialogTextArea::CopyEntryText(unsigned int index, wchar_t* output)
+bool W8DialogTextArea::CopyEntryText(unsigned int index, wchar_t* output)
 {
     if (index >= static_cast<unsigned int>(m_all_lines.count))
-        return 0;
+        return false;
     (*m_all_lines.GetAt(index))->CopyTextTo(output);
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005d1dd0
@@ -204,17 +203,17 @@ unsigned int W8DialogTextArea::HitTestEntry(int, int y)
 }
 
 // FUNCTION: WIZ8 0x005d1f20
-unsigned char W8DialogTextArea::UpdateSelectionFromPoint(int, int y)
+bool W8DialogTextArea::UpdateSelectionFromPoint(int, int y)
 {
     unsigned int position = 0;
     unsigned int spacing = static_cast<unsigned int>(m_entry_spacing) / GetFontHeight(m_font);
-    if (!(m_behavior_flags & 2))
-        return 0;
+    if (!(m_behavior_flags & g_W8DialogTextAreaPointSelection))
+        return false;
     int line_height = GetLineHeight();
     unsigned int target = (y - m_bounds.top) / line_height;
     if (target == static_cast<unsigned int>(m_selected_visible_entry))
-        return 0;
-    unsigned char changed = ClearSelection();
+        return false;
+    bool changed = ClearSelection();
     for (unsigned int index = m_first_visible_entry;
          index < static_cast<unsigned int>(m_visible_lines.count); ++index) {
         for (unsigned int line = m_first_visible_line;
@@ -228,22 +227,22 @@ unsigned char W8DialogTextArea::UpdateSelectionFromPoint(int, int y)
 }
 
 // FUNCTION: WIZ8 0x005d20a0
-unsigned char W8DialogTextArea::ClearPointSelection()
+bool W8DialogTextArea::ClearPointSelection()
 {
-    return (m_behavior_flags & 2) ? ClearSelection() : 0;
+    return (m_behavior_flags & g_W8DialogTextAreaPointSelection) ? ClearSelection() : 0;
 }
 
 // FUNCTION: WIZ8 0x005d20f0
-unsigned char W8DialogTextArea::CopyVisibleEntryText(unsigned int index, wchar_t* output)
+bool W8DialogTextArea::CopyVisibleEntryText(unsigned int index, wchar_t* output)
 {
     if (index >= static_cast<unsigned int>(m_visible_lines.count))
-        return 0;
+        return false;
     (*m_visible_lines.GetAt(index))->CopyTextTo(output);
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005d2150
-unsigned char W8DialogTextArea::HighlightVisibleEntry(int index)
+bool W8DialogTextArea::HighlightVisibleEntry(int index)
 {
     if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_entry_highlighted) {
         W8DialogTextEntry* entry = *m_visible_lines.GetAt(index);
@@ -252,14 +251,14 @@ unsigned char W8DialogTextArea::HighlightVisibleEntry(int index)
             entry->SetGeometryDirty();
         }
         m_highlighted_entry = index;
-        selection_dirty = true;
-        return 1;
+        m_selection_dirty = true;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005d21a0
-unsigned char W8DialogTextArea::ClearEntryHighlight()
+bool W8DialogTextArea::ClearEntryHighlight()
 {
     if (m_visible_lines.count == 0) {
         m_highlighted_entry = -1;
@@ -269,11 +268,11 @@ unsigned char W8DialogTextArea::ClearEntryHighlight()
             entry->m_entry_highlighted = false;
             entry->SetGeometryDirty();
         }
-        selection_dirty = true;
+        m_selection_dirty = true;
         m_highlighted_entry = -1;
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005d2420
@@ -303,7 +302,7 @@ void W8DialogTextArea::SetEntryMarked(int index, bool state)
         entry->m_marked = state;
         entry->SetGeometryDirty();
     }
-    selection_dirty = true;
+    m_selection_dirty = true;
 }
 
 // FUNCTION: WIZ8 0x005d16c0
@@ -312,15 +311,15 @@ int W8DialogTextArea::AddEntry(const wchar_t* prefix, const wchar_t* text,
                                unsigned char category)
 {
     W8DialogTextEntry* entry;
-    if (m_behavior_flags & 1) {
+    if (m_behavior_flags & g_W8DialogTextAreaNoWrap) {
         entry = new W8DialogTextEntry(
             prefix, text, prefix_palette, text_palette, &m_bounds, m_font, category,
             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft | g_dialog_text_layout_mask,
-            m_behavior_flags & 4);
+            m_behavior_flags & g_W8DialogTextAreaShortenText);
     } else {
         entry = new W8DialogTextEntry(prefix, text, prefix_palette, text_palette, &m_bounds, m_font,
                                       category, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft,
-                                      m_behavior_flags & 4);
+                                      m_behavior_flags & g_W8DialogTextAreaShortenText);
     }
     if (m_line_height_override != -1)
         entry->SetLineHeight(m_line_height_override);
@@ -389,22 +388,22 @@ void W8DialogTextArea::RebuildVisibleEntries()
 void W8DialogTextArea::SetCategoryFilter(signed char category)
 {
     m_category_filter = category;
-    selection_dirty = true;
+    m_selection_dirty = true;
     m_relayout_needed = true;
     RebuildVisibleEntries();
 }
 
 // FUNCTION: WIZ8 0x005d2480
-void W8DialogTextArea::SetSorted(unsigned char sorted)
+void W8DialogTextArea::SetSorted(bool sorted)
 {
     m_sorted = sorted;
-    selection_dirty = true;
+    m_selection_dirty = true;
     m_relayout_needed = true;
     RebuildVisibleEntries();
 }
 
 // FUNCTION: WIZ8 0x005d1ae0
-unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
+bool W8DialogTextArea::ScrollDown(bool check_only)
 {
     unsigned int spacing = static_cast<unsigned int>(m_entry_spacing) / GetFontHeight(m_font);
     int height = m_bounds.bottom - m_bounds.top;
@@ -430,7 +429,7 @@ unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
                 } else {
                     if (static_cast<unsigned int>(m_first_visible_entry) >=
                         static_cast<unsigned int>(m_visible_lines.count - 1)) {
-                        return 0;
+                        return false;
                     }
                     if (!check_only) {
                         ++m_first_visible_entry;
@@ -441,19 +440,19 @@ unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
                     m_dirty = true;
                     m_relayout_needed = true;
                 }
-                return 1;
+                return true;
             }
         }
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005d1c00
-unsigned char W8DialogTextArea::ScrollUp(unsigned char check_only)
+bool W8DialogTextArea::ScrollUp(bool check_only)
 {
     unsigned int spacing = static_cast<unsigned int>(m_entry_spacing) / GetFontHeight(m_font);
     if (m_all_lines.count == 0 || (m_first_visible_entry == 0 && m_first_visible_line == 0)) {
-        return 0;
+        return false;
     }
     if (!check_only) {
         if (m_first_visible_line != 0) {
@@ -468,7 +467,7 @@ unsigned char W8DialogTextArea::ScrollUp(unsigned char check_only)
         m_dirty = true;
         m_relayout_needed = true;
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005d14d0
@@ -486,11 +485,11 @@ W8DialogTextArea::W8DialogTextArea()
     m_font = 0;
     m_layout_initialized = false;
     m_dirty = false;
-    selection_dirty = false;
+    m_selection_dirty = false;
     m_entry_spacing = 0;
     m_behavior_flags = 0;
     m_relayout_needed = false;
-    m_sorted = 0;
+    m_sorted = false;
 }
 
 // FUNCTION: WIZ8 0x005d1590

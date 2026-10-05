@@ -19,4 +19,5 @@ void RequestExitScreen(void);
 unsigned char ExitScreenEnter(void);
 void ExitScreenFrame(void);
 /* 0x0055F260 dispatches one already-built line to the active screen. */
-void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation, int cancel);
+void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, bool confirmation,
+                    bool cancel);

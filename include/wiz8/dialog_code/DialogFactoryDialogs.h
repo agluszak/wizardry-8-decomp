@@ -30,7 +30,7 @@ public:
     void SetActive(bool active);                     /* 0x005E14D0 */
     void SetActive(bool active, const POINT* point); /* 0x005E1500 */
     void Draw(bool force);                           /* 0x005E15C0 */
-    unsigned char HandleInput(const InputAtom* input);        /* 0x005E19A0 */
+    bool HandleInput(const InputAtom* input);        /* 0x005E19A0 */
 
 private:
     /* 0x005E17A0: write a digit character at the caret position and re-parse
@@ -71,9 +71,9 @@ public:
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
     virtual void Draw() override;
-    virtual int GetDialogType() override;
+    virtual W8DialogKind GetDialogType() override;
     virtual void SetText(const wchar_t* text) override;
-    virtual unsigned char ProcessInput() override;
+    virtual bool ProcessInput() override;
 
 private:
     /* 0x005CC650: text-area button height divided by the dialog font height. */
@@ -81,7 +81,7 @@ private:
     /* 0x005CCB80: select a text line and scroll it into the visible range. */
     void SetCurrentLine(int line);
     /* 0x005CD2B0: keyboard handling for the visible text list. */
-    unsigned char HandleInputEvent(const InputAtom* input);
+    bool HandleInputEvent(const InputAtom* input);
 
     /* SGP move/click callbacks for the text area, the scroll arrow buttons and
        the confirmation buttons. Recovered in Dialog Code\stListBox.cpp. */
@@ -152,22 +152,22 @@ public:
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
     virtual void Draw() override;
-    virtual unsigned char ProcessInput() override;
+    virtual bool ProcessInput() override;
     virtual void OnNumericInputChanged(int value) override;
 
 private:
     /* 0x005D9B30: create and place the six dialog buttons. */
-    unsigned char CreateButtons();
+    bool CreateButtons();
     /* 0x005D9D10: create the three text buffers above the numeric field. */
-    unsigned char CreateTextBuffers();
+    bool CreateTextBuffers();
     /* 0x005D9E30: create the numeric entry field and its backing button. */
-    unsigned char CreateNumericInput();
+    bool CreateNumericInput();
     /* 0x005DA090: enable the plus/minus buttons from the current split. */
     void UpdateButtonStates();
     /* 0x005DA000: push the split into the text buffers and the numeric field. */
     void UpdateTextBuffers();
     /* 0x005DA180: keyboard handling for the plus/minus buttons and the field. */
-    unsigned char HandleInputEvent(const InputAtom* input);
+    bool HandleInputEvent(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. */
     static void SplitDecrementOne(W8DialogButton* button);
@@ -208,15 +208,15 @@ public:
     virtual int CreateControls() override;         /* 0x005CDC10 */
     virtual void DestroyControls() override;       /* 0x005CDC40 */
     virtual void Draw() override;                  /* 0x005CDC70 */
-    virtual int GetDialogType() override;          /* 0x005CF240 */
-    virtual unsigned char ProcessInput() override; /* 0x005CEF00 */
+    virtual W8DialogKind GetDialogType() override; /* 0x005CF240 */
+    virtual bool ProcessInput() override;          /* 0x005CEF00 */
 
     int AddItem(W8WorldItem* item);
     W8WorldItem* ReturnItemsToGroup();
     void SetItemGroup(W8WorldItem* group);
 
 private:
-    unsigned char CreateButtons();
+    bool CreateButtons();
     /* Clamp and apply the first visible item row. Fewer than five items force
        the first row. Out-of-range input is ignored, not clamped. */
     void SetFirstVisible(int index);
@@ -234,7 +234,7 @@ private:
        the beep. An emptied picker closes itself. */
     void TransferSelectedItems(int destination);
     /* Handle one event the picker owns: keyboard list navigation and clicks. */
-    unsigned char HandleInputEvent(const InputAtom* input);
+    bool HandleInputEvent(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure.
        CloseOwningDialog is public because AssayDialog also stores it
@@ -285,19 +285,19 @@ public:
     virtual int CreateControls() override;                        /* 0x005DD130 */
     virtual void DestroyControls() override;                      /* 0x005DD3C0 */
     virtual void Draw() override;                                 /* 0x005DDB60 */
-    virtual unsigned char ProcessInput() override;                /* 0x005DE1B0 */
+    virtual bool ProcessInput() override;                         /* 0x005DE1B0 */
     virtual void OnNumericInputChanged(int value) override;       /* 0x005DDFA0 */
 
 private:
     /* 0x005DD480: create and place the arrow, frame, accept and cancel
        buttons; eight for inventory splits, ten in trade modes. */
-    unsigned char CreateButtons();
+    bool CreateButtons();
     void DestroyButtons();
     /* 0x005DD750: create the label text buffers and fill the item-name rows. */
-    unsigned char CreateTextBuffers();
+    bool CreateTextBuffers();
     void DestroyTextBuffers();
     /* 0x005DDA60: create the count entry field over its backing button. */
-    unsigned char CreateNumericInput();
+    bool CreateNumericInput();
     /* 0x005DCC00: refresh the two trade-price labels in trade modes. */
     void UpdateCostLabels();
     /* 0x005DDE60: enable the minus/plus arrows while each side has count. */
@@ -307,7 +307,7 @@ private:
     /* Shared refresh for the numeric-field and split-count callbacks. */
     void UpdateTotals();
     /* 0x005DE120: numeric-field and Enter/Escape handling for ProcessInput. */
-    unsigned char HandleInputEvent(const InputAtom* input);
+    bool HandleInputEvent(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. */
     static void OnSplitDecrement(W8DialogButton* button);     /* 0x005DE350 */

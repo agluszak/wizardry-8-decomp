@@ -218,7 +218,7 @@ void PleaseWaitScreenFrame(void)
         if (g_swap_disc_dialog->is_open) {
             g_swap_disc_dialog->Draw();
             if (!g_swap_disc_dialog->ProcessInput()) {
-                if (!g_swap_disc_dialog->close_result) {
+                if (!g_swap_disc_dialog->accepted) {
                     delete g_swap_disc_dialog;
                     g_swap_disc_dialog = 0;
                     RequestScreenTransition();

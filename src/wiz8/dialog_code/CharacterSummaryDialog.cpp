@@ -114,7 +114,7 @@ bool W8CharacterSummaryDialog::CreateQuoteText()
 // FUNCTION: WIZ8 0x005e07b0
 void W8CharacterSummaryDialog::Draw()
 {
-    if (m_dirty_flags & 1) {
+    if (m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) {
         if (!m_initialized) {
             CreateControls();
         }
@@ -122,7 +122,7 @@ void W8CharacterSummaryDialog::Draw()
         W8DialogBase::Draw();
     }
     if (m_quote_text != 0) {
-        m_quote_text->RenderToTarget(0, 0, -14);
+        m_quote_text->RenderToTarget(0, false, -14);
     }
     RenderPartyPortrait(m_character->portrait_index, m_x + 11, m_y + 11, 2, 1, 0);
     if (!m_portrait_clock_started) {
@@ -147,13 +147,13 @@ void W8CharacterSummaryDialog::OnNumericInputChanged(int value)
 }
 
 // FUNCTION: WIZ8 0x005e0880
-unsigned char W8CharacterSummaryDialog::HandleInputEvent(const InputAtom* input)
+bool W8CharacterSummaryDialog::HandleInputEvent(const InputAtom* input)
 {
     W8DialogNumericInput* inputs[] = {m_numeric_input};
     for (int index = 0; index < 1; ++index) {
         if (inputs[index] != 0 && inputs[index]->m_active) {
             if (inputs[index]->HandleInput(input)) {
-                return 1;
+                return true;
             }
             break;
         }
@@ -172,7 +172,7 @@ unsigned char W8CharacterSummaryDialog::HandleInputEvent(const InputAtom* input)
 }
 
 // FUNCTION: WIZ8 0x005e0920
-unsigned char W8CharacterSummaryDialog::ProcessInput()
+bool W8CharacterSummaryDialog::ProcessInput()
 {
     POINT mouse;
     InputAtom input;
@@ -214,7 +214,7 @@ unsigned char W8CharacterSummaryDialog::ProcessInput()
 }
 
 // FUNCTION: WIZ8 0x005e0c30
-int W8CharacterSummaryDialog::GetDialogType()
+W8DialogKind W8CharacterSummaryDialog::GetDialogType()
 {
-    return 6;
+    return W8_DIALOG_CHARACTER_SUMMARY;
 }

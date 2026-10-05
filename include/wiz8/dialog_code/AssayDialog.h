@@ -29,11 +29,11 @@ public:
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
 private:
-    unsigned char PopulateText();             /* 0x005D7310 */
-    unsigned char PopulateRequirements();     /* 0x005D8850 */
-    unsigned char CreateTextBuffers();        /* 0x005D8FB0 */
-    void SetProfessionIconsVisible(int show); /* 0x005D9330 */
-    void SetRaceIconsVisible(int show);       /* 0x005D9460 */
+    bool PopulateText();                       /* 0x005D7310 */
+    bool PopulateRequirements();               /* 0x005D8850 */
+    bool CreateTextBuffers();                  /* 0x005D8FB0 */
+    void SetProfessionIconsVisible(bool show); /* 0x005D9330 */
+    void SetRaceIconsVisible(bool show);       /* 0x005D9460 */
     void ShowPrimaryTab();                    /* 0x005D9620 */
     void ShowSecondaryTab();                  /* 0x005D96A0 */
     static void PrimaryTabCallback(W8DialogButton* button);

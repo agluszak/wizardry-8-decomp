@@ -56,7 +56,7 @@ W8DialogBase::~W8DialogBase()
 // FUNCTION: WIZ8 0x005dc890
 void W8DialogBase::Draw()
 {
-    if ((m_dirty_flags & 1) == 0) {
+    if ((m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) == 0) {
         return;
     }
     if (!m_initialized) {
@@ -68,12 +68,12 @@ void W8DialogBase::Draw()
         }
         if (!DrawButton(m_resource)) {
             m_error = 9;
-            m_dirty_flags &= ~1u;
+            m_dirty_flags &= ~W8_DIALOG_DIRTY_REDRAW;
             return;
         }
         InvalidateRegion(m_x, m_y, m_x + m_width, m_y + m_height, 1);
     }
-    m_dirty_flags &= ~1u;
+    m_dirty_flags &= ~W8_DIALOG_DIRTY_REDRAW;
 }
 
 // FUNCTION: WIZ8 0x005dc940
@@ -92,7 +92,7 @@ void W8DialogBase::SetText(const wchar_t* text)
     if (m_resource != -1) {
         SpecifyButtonText(m_resource, const_cast<wchar_t*>(text));
     }
-    m_dirty_flags |= 1;
+    m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
 }
 
 // FUNCTION: WIZ8 0x005dc9c0
@@ -103,7 +103,7 @@ void W8DialogBase::SetOrigin(int x, int y)
     if (m_resource != -1) {
         SetButtonPosition(m_resource, static_cast<short>(x), static_cast<short>(y));
     }
-    m_dirty_flags |= 1;
+    m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
 }
 
 // FUNCTION: WIZ8 0x005dc9f0
@@ -116,7 +116,7 @@ void W8DialogBase::SetExtent(int width, int height)
         }
         m_width = width;
         m_height = height;
-        m_dirty_flags |= 1;
+        m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }
 
@@ -134,7 +134,7 @@ void W8DialogBase::SetBackground(const char* path, int flags)
         }
     }
     m_background_flags = flags;
-    m_dirty_flags |= 1;
+    m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
 }
 
 // FUNCTION: WIZ8 0x005dcaf0
@@ -168,11 +168,12 @@ int W8DialogBase::CreateControls()
     m_resource =
         CreateTextButton(0, m_font, m_foreground, m_background, m_border, static_cast<short>(m_x),
                          static_cast<short>(m_y), static_cast<short>(m_width),
-                         static_cast<short>(m_height), 0x8004, 0x7d, 0, 0);
+                         static_cast<short>(m_height), BUTTON_NO_TOGGLE | BUTTON_IGNORE_CLICKS,
+                         MSYS_PRIORITY_HIGHEST - 2, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     if (m_resource != -1) {
         SpecifyButtonTextOffsets(m_resource, 3, 3, 1);
         SpecifyButtonMultiColorFont(m_resource, g_dialog_font_enabled);
-        m_dirty_flags |= 1;
+        m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         m_initialized = true;
         return 0;
     }
@@ -205,7 +206,7 @@ void W8DialogBase::DestroyControls()
 }
 
 // FUNCTION: WIZ8 0x005dcce0
-unsigned char W8DialogBase::ProcessInput()
+bool W8DialogBase::ProcessInput()
 {
     POINT mouse;
     InputAtom input;
@@ -256,9 +257,9 @@ void DialogCloseButtonCallback(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005d6fa0
-int W8DialogBase::GetDialogType()
+W8DialogKind W8DialogBase::GetDialogType()
 {
-    return 0;
+    return W8_DIALOG_BASIC;
 }
 
 /* Retail ICF shares this one-argument no-op with the retained widget Redraw

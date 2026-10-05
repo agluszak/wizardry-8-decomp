@@ -187,8 +187,8 @@ public:
                                 int render_target, int render_arg_1c, int render_arg_20,
                                 int margin_image, int line_image); /* 0x0055DE40 */
     virtual void Redraw() override;                                /* 0x0055DF80 */
-    bool HandleScrollDownCommand(unsigned int command);
-    bool HandleScrollUpCommand(unsigned int command);
+    bool HandleScrollDownCommand(bool check_only);
+    bool HandleScrollUpCommand(bool check_only);
     /* Add one keyword line to the transcript unless the text is already
        present; a nonzero mark puts the new entry in state 0x60, and any
        leftover "[No Keywords]" placeholder is removed afterwards. */
@@ -212,7 +212,7 @@ public:
     /* Drop every transcript line from the text area and invalidate. */
     void ClearTranscriptEntries();                  /* 0x0055EA40 */
     int GetSelectedTranscriptEntryIndex();          /* 0x0055EAB0 */
-    void SetTranscriptSorted(unsigned char sorted); /* 0x0055EAC0 */
+    void SetTranscriptSorted(bool sorted);          /* 0x0055EAC0 */
     void RemoveSelectedTranscriptEntry();           /* 0x0055EA70 */
     /* Open the transcript upward to fit its lines (capped at 0xff pixels)
        and enable its scroll region. */
@@ -695,8 +695,8 @@ unsigned char MainGameScreenInitialize(void);
 unsigned char MainGameScreenEnter(void);
 void MainGameScreenFrame(void);
 unsigned char MainGameScreenLeave(int leaving);
-void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
-                            int cancel); /* 0x00569A50 */
+void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, bool confirmation,
+                            bool cancel); /* 0x00569A50 */
 
 unsigned char CombatBarRegionEvent(const InputAtom* event, struct W8Region* region);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);

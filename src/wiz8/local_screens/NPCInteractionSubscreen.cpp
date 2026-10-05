@@ -444,7 +444,7 @@ void ResetMainScreenStateBlock(void)
 
     memset(g_npc_interaction_state, 0, sizeof(W8NpcInteractionState));
     g_npc_interaction_state->dialogue_category_filter = unset;
-    g_npc_interaction_state->transcript_sorted = 0;
+    g_npc_interaction_state->transcript_sorted = false;
     g_npc_interaction_state->pending_trade_toggle = false;
     g_npc_interaction_state->selected_trade_row = unset;
     g_npc_interaction_state->trade_pc_items = true;
@@ -1135,9 +1135,11 @@ void ServiceNpcDialogue(void)
                 ->W8Widget::Invalidate(true);
         }
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_UP_BUTTON]->SetEnabled(
-            static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->HandleScrollUpCommand(1) != 0);
+            static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
+                ->HandleScrollUpCommand(true) != 0);
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_DOWN_BUTTON]->SetEnabled(
-            static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->HandleScrollDownCommand(1) != 0);
+            static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
+                ->HandleScrollDownCommand(true) != 0);
     }
     if (static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24]) != 0 &&
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_highlighted != 0 &&
@@ -2003,7 +2005,8 @@ void LeaveNpcDialogueLayout(void)
 // FUNCTION: WIZ8 0x00570530
 void PromptNpcDispositionChange(void)
 {
-    W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+    W8MessageDialogBase* dialog =
+        static_cast<W8MessageDialogBase*>(CreateDialogByKind(W8_DIALOG_MESSAGE));
 
     SetDialogPrompt(dialog, gppStringList[0x798], 0, 0);
     dialog->m_destroy_callback = OnNpcDispositionPromptClosed;
@@ -2013,7 +2016,7 @@ void PromptNpcDispositionChange(void)
 // FUNCTION: WIZ8 0x00570570
 void OnNpcDispositionPromptClosed(W8DialogBase* dialog)
 {
-    if (GetDialogResult(dialog) != 0) {
+    if (GetDialogResult(dialog)) {
         SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, 2);
         QueueNpcScriptLine(0x18, false, false, false);
         QueueNpcMessageLine(W8_NPC_MSG_CLOSE_RESUME_NPC, 0);
@@ -2293,7 +2296,7 @@ void OpenNpcDialogueTranscriptLayout(void)
     static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->Expand();
     SyncNpcDialogueTranscriptScrollButtons();
     SyncDialogueCategoryButtons();
-    if (g_npc_interaction_state->transcript_sorted != 0) {
+    if (g_npc_interaction_state->transcript_sorted) {
         static_cast<W8TextControl*>(
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SORT_BUTTON])
             ->EnableSecondaryState(true);
@@ -2419,13 +2422,15 @@ void EnterNpcTradeOptions(void)
 // FUNCTION: WIZ8 0x005715F0
 void ScrollNpcDialogueUp(void)
 {
-    static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->HandleScrollUpCommand(0);
+    static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
+        ->HandleScrollUpCommand(false);
 }
 
 // FUNCTION: WIZ8 0x00571610
 void ScrollNpcDialogueDown(void)
 {
-    static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->HandleScrollDownCommand(0);
+    static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
+        ->HandleScrollDownCommand(false);
 }
 
 // FUNCTION: WIZ8 0x00571630
@@ -2528,9 +2533,9 @@ void SyncNpcDialogueListFilter(void)
 {
     if (static_cast<unsigned char>(static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SORT_BUTTON])->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
-        g_npc_interaction_state->transcript_sorted = 1;
+        g_npc_interaction_state->transcript_sorted = true;
     } else {
-        g_npc_interaction_state->transcript_sorted = 0;
+        g_npc_interaction_state->transcript_sorted = false;
     }
     static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->SetTranscriptSorted(
         g_npc_interaction_state->transcript_sorted);
@@ -4282,7 +4287,7 @@ void SyncDialogueCategoryButtons(void)
 // FUNCTION: WIZ8 0x00575520
 void OnNpcTradeDialogClosed(W8DialogBase* dialog)
 {
-    if (GetDialogResult(dialog) == 0) {
+    if (!GetDialogResult(dialog)) {
         return;
     }
     ConfirmNpcTradePurchase();
@@ -4337,10 +4342,10 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
             ConfirmNpcTradePurchase();
             return 1;
         }
-        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(W8_DIALOG_MESSAGE));
         dialog->SetClientExtent(0xfa, 200);
         message = FormatWideString(gppStringList[0x7d6]);
-        dialog->SetMessage(message, 1, 0x32, 1, 1, true, true, 0, 0x15e);
+        dialog->SetMessage(message, 1, 0x32, true, true, true, true, 0, 0x15e);
         SetDialogDestroyCallback(dialog, OnNpcTradeDialogClosed);
         OpenModal(dialog);
         return 1;

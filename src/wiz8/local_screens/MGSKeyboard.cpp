@@ -279,12 +279,12 @@ void DispatchMGSCommand(W8MGSCommand command)
                 }
             }
             ClearRecordModeValue();
-            ShowMainGameNoticeLine(gppStringList[0x779], OnLeaveGameConfirmClosed, 1, 1);
+            ShowMainGameNoticeLine(gppStringList[0x779], OnLeaveGameConfirmClosed, true, true);
         }
         InvalidateRegion(0xa8, 0x16e, 0x1c4, 0x1ba, 0);
         break;
     case W8_MGS_COMMAND_QUIT_GAME:
-        ShowMainGameNoticeLine(gppStringList[0x832], OnQuitGameDialogClosed, 1, 1);
+        ShowMainGameNoticeLine(gppStringList[0x832], OnQuitGameDialogClosed, true, true);
         break;
     case W8_MGS_COMMAND_TOGGLE_FULLSCREEN:
         ResetTransientRenderScenes();

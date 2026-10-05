@@ -430,8 +430,9 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
         }
         g_text_box_mode = 0;
     } else if (force_dialog) {
-        W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetMessage(text, 1, 50, 1, 0, true, false, 0, 0);
+        W8MessageDialogBase* dialog =
+            static_cast<W8MessageDialogBase*>(CreateDialogByKind(W8_DIALOG_MESSAGE));
+        dialog->SetMessage(text, 1, 50, true, false, true, false, 0, 0);
         SetDialogDestroyCallback(dialog, NoticeDialogDestroyed);
         OpenModal(dialog);
         DrawDialog(g_modal_owner);
@@ -2567,5 +2568,5 @@ void RefreshTextBoxMode(unsigned short mode)
             length += 1 + wcslen(line->wString);
         }
     }
-    ShowNoticeLine(merged, 0, 1, 0);
+    ShowNoticeLine(merged, 0, true, false);
 }

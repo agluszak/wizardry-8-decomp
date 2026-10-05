@@ -25,15 +25,15 @@ public:
     virtual int CreateControls() override;                     /* 0x005E04E0 */
     virtual void DestroyControls() override;                   /* 0x005E0590 */
     virtual void Draw() override;                              /* 0x005E07B0 */
-    virtual int GetDialogType() override;                      /* 0x005E0C30 */
-    virtual unsigned char ProcessInput() override;             /* 0x005E0920 */
+    virtual W8DialogKind GetDialogType() override;             /* 0x005E0C30 */
+    virtual bool ProcessInput() override;                      /* 0x005E0920 */
     virtual void OnNumericInputChanged(int value) override;    /* 0x005E0860 */
 
     void DrawPortraitAnimationFrame(); /* 0x005E0830 */
 
 private:
     bool CreateQuoteText();
-    unsigned char HandleInputEvent(const InputAtom* input);
+    bool HandleInputEvent(const InputAtom* input);
 
     bool m_voice_started;
     unsigned char pad_055[3];

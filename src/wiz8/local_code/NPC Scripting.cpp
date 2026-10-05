@@ -1905,7 +1905,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_TRAVEL_CONFIRM:
-        ShowMainGameNoticeLine(gppStringList[0x7eb], OnNpcTravelConfirmationClosed, 1, 1);
+        ShowMainGameNoticeLine(gppStringList[0x7eb], OnNpcTravelConfirmationClosed, true, true);
         g_pending_npc_travel_level = line->payload.argument;
         break;
     case W8_NPC_MSG_MOVE_TO_BOOK: {

@@ -573,7 +573,7 @@ void ApplyAttributeChange(W8Character* character, W8Attribute attribute)
                                      gppStringList[g_character_description_first_ids[attribute]],
                                      character->name,
                                      gppStringList[g_character_skill_name_ids[skill_id]]),
-                    0, 1, 0);
+                    0, true, false);
             }
         }
     } else {

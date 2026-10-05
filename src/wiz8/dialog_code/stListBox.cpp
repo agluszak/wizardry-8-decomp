@@ -55,7 +55,7 @@ void W8ListBoxDialog::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
         dialog->SetCurrentLine(dialog->m_selected_line - 1);
     }
     if (UpdateDialogArrowState(button, reason)) {
-        dialog->m_dirty_flags |= 1;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }
 
@@ -70,7 +70,7 @@ void W8ListBoxDialog::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
         dialog->SetCurrentLine(dialog->m_selected_line + 1);
     }
     if (UpdateDialogArrowState(button, reason)) {
-        dialog->m_dirty_flags |= 1;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }
 
@@ -84,20 +84,20 @@ void W8ListBoxDialog::OkButtonCallback(GUI_BUTTON* button, INT32 reason)
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
             button->uiFlags |= BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= 1;
+            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
             dialog->m_keep_open = false;
             button->uiFlags &= ~BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= 1;
+            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
     } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
         button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= 1;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
         button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= 1;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }
 
@@ -111,21 +111,21 @@ void W8ListBoxDialog::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
             button->uiFlags |= BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= 1;
+            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
             dialog->m_keep_open = false;
             dialog->SetCurrentLine(-1);
             button->uiFlags &= ~BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= 1;
+            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
     } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
         button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= 1;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
         button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= 1;
+        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }
 

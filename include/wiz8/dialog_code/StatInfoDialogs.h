@@ -22,7 +22,7 @@ public:
     virtual void OnRightButtonUp() override;
     virtual void OnMouseWheel(int delta) override;
     virtual void DrawTitle();
-    virtual unsigned char PopulateText();
+    virtual bool PopulateText();
 
 protected:
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
@@ -61,7 +61,7 @@ public:
     virtual ~W8SkillInfoDialog() override;
 
 protected:
-    virtual unsigned char PopulateText() override;
+    virtual bool PopulateText() override;
 
 private:
     W8Skill m_skill;
