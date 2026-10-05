@@ -103,4 +103,4 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input); /* 0x00591890 */
 /* Poll the camera/movement command bindings and set the world-render flags;
    retail 0x005929D0/0x00592A10 bounded inside the demo MGSKeyboard.cpp hull. */
 void HandleManualCameraHotkeys(void);
-void ApplyWorldRenderHotkeys(void);
+void ApplyCameraMotionHotkeys(void);

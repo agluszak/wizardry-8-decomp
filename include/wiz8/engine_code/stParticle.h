@@ -27,7 +27,7 @@ public:
     unsigned char ActivateParticle(unsigned int* out_index, bool replace_when_full);
     void InitializeParticlePosition(srVector3T<float>* output);
     void SetTexture(srTextureIFace* texture);
-    void SetRetainedObject(srMaterialIFace* material);
+    void SetMaterial(srMaterialIFace* material);
     void SetRenderFlags(srShader flags);
     void SetFlutter(W8ParticleFlutterMode mode);
     void SetParticleScale(float scale);
@@ -53,7 +53,8 @@ public:
     /* Per-particle world positions; the retail allocation assert spells the
        buffer pParticle. */
     srVector3T<float>* particle_positions;
-    srMaterialIFace* retained;
+    /* Shared reference: setter and copy acquire it; destruction releases it. */
+    srMaterialIFace* material;
     srShader render_flags;
     srTextureIFace* texture;
     unsigned int vertex_count;

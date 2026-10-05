@@ -6516,7 +6516,7 @@ unsigned char W8PathParameters::PredictNavigatorCollision()
         if (approach * approach > delta.LengthSquared()) {
             approach = DotProduct(delta, direction);
             if (approach > g_float_zero) {
-                relative = movement->velocity - g_level_data->camera_forward;
+                relative = movement->velocity - g_level_data->camera_motion_velocity;
                 relative.Normalize();
                 approach = DotProduct(delta, relative);
                 approach = approach - (combined * approach) / delta.Length();

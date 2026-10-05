@@ -236,8 +236,8 @@ extern int g_renderer_mode;
 extern int g_overlay_render_mode;
 extern int g_paired_render_mode;
 extern float g_surface_scale;
-extern int g_surface_state1;
-extern int g_surface_state0;
+extern int g_surface_opaque_shader_bits;
+extern int g_surface_alpha_blend_shader_bits;
 struct W8ViewportRect {
     int left;
     int top;

@@ -435,7 +435,7 @@ stModelInstance::stModelInstance(srNode* parent)
         setParent(parent, 1);
     }
     damage_stage = -1;
-    retained = 0;
+    highlight_material = 0;
     light_scale = 1.0f;
     diffuse_scale_enabled = false;
     diffuse_scale = 0.0f;
@@ -456,7 +456,7 @@ stModelInstance& stModelInstance::operator=(const stModelInstance& other)
     damage_stage_tables = other.damage_stage_tables;
     damage_stage = other.damage_stage;
     highlight_pass_mode = other.highlight_pass_mode;
-    retained = 0;
+    highlight_material = 0;
     light_scale = other.light_scale;
     diffuse_scale = 0.0f;
     diffuse_scale_enabled = false;
@@ -480,8 +480,8 @@ void stModelInstance::setModel(srModel* model)
 // FUNCTION: WIZ8 0x0047EF70
 stModelInstance::~stModelInstance()
 {
-    if (retained != 0) {
-        retained->release();
+    if (highlight_material != 0) {
+        highlight_material->release();
     }
 }
 
@@ -541,7 +541,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     }
 
     // c-style-cast-ok: the pick key is an opaque void* token
-    SetPickKey(((render_flags >> 4) & 1) != 0 ? (void*)0 : (void*)this);
+    SetPickKey((render_flags & RENDER_NO_PICK) != 0 ? (void*)0 : (void*)this);
 
     srVector4T<float> ambient;
     renderer.getAmbientLight(ambient);
@@ -564,16 +564,16 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
 
     if (highlight_colour.x != g_float_zero || highlight_colour.y != g_float_zero ||
         highlight_colour.z != g_float_zero || highlight_colour.w != g_float_zero) {
-        if (retained == 0) {
-            retained = new srMaterial;
+        if (highlight_material == 0) {
+            highlight_material = new srMaterial;
             srVector4T<float> zero;
             zero.Set(0.0f, 0.0f, 0.0f, 0.0f);
-            retained->setAmbient(zero);
-            retained->setDiffuse(zero);
-            retained->setSpecular(zero);
-            retained->setOpacity(0.35);
+            highlight_material->setAmbient(zero);
+            highlight_material->setDiffuse(zero);
+            highlight_material->setSpecular(zero);
+            highlight_material->setOpacity(0.35);
         }
-        retained->setEmissive(highlight_colour);
+        highlight_material->setEmissive(highlight_colour);
     }
 
     bool first_pass = true;
@@ -581,7 +581,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     while (model != 0) {
         model->SetAmbientColor(ambient_color);
         model->getTriMesh(mesh);
-        if (((render_flags >> 3) & 1) != 0 && first_pass) {
+        if ((render_flags & RENDER_SHADOW) != 0 && first_pass) {
             RenderShadow(renderer, mesh);
         }
 
@@ -638,10 +638,10 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             }
         } else {
             mesh.vertex_materials[0][0] = 0;
-            mesh.materials[0][0] = retained;
+            mesh.materials[0][0] = highlight_material;
         }
 
-        if (((render_flags >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
+        if ((render_flags & RENDER_NO_PICK) != 0 && !renderer.isPickStackEmpty()) {
             srGERD::Pick pick;
             renderer.popPick(pick);
             model->RenderTriMeshWithEquations(renderer, mesh, poly_normals);
@@ -713,7 +713,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                         }
                     }
 
-                    mesh.materials[0][0] = retained;
+                    mesh.materials[0][0] = highlight_material;
                     mesh.shaders[1].value = (mesh.shaders[0].value & 0xffff5cb7) | 0x40a0;
                     mesh.poly_shaders[1] = 0;
                     mesh.poly_textures[0][1] = 0;
@@ -752,7 +752,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     mesh.positions = g_vertex_scratch->data;
                     mesh.control_flags |= 0x40;
 
-                    if (((render_flags >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
+                    if ((render_flags & RENDER_NO_PICK) != 0 && !renderer.isPickStackEmpty()) {
                         srGERD::Pick pick;
                         renderer.popPick(pick);
                         model->RenderTriMeshWithEquations(renderer, mesh, poly_normals);

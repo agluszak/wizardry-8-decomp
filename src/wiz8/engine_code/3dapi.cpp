@@ -635,7 +635,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
         if (g_level_flags != 0) {
             *g_level_flags &= ~0x200u;
         }
-        if (world->game_data != 0 && (flags & 0x40) == 0) {
+        if (world->game_data != 0 && (flags & W8_CAMERA_MOTION_SKIP) == 0) {
             world->camera->getRotation(rotation);
             world->game_data->ApplyCameraMotionFlags(flags, &rotation, &motion_saved);
             world->camera->setRotation(rotation);

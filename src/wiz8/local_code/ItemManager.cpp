@@ -203,7 +203,8 @@ static W8WorldItem* CreateTableItem(int item_id, const srVector3T<float>* positi
         ReplaceOrCreateItem(&item, item_id, false, false, false);
         item_pointer = &item;
     }
-    result = CreateWorldItem(item_pointer, position, 3, false);
+    result = CreateWorldItem(item_pointer, position, W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE,
+                             false);
     if (result == 0) {
         srAssertFail("pItemInfo", "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp", 0x18e,
                      0);
@@ -293,9 +294,6 @@ int GenerateItemsFromTable(W8GrowableVector<W8WorldItem*>* output_items, unsigne
 
 // GLOBAL: WIZ8 0x00689b54
 int g_world_item_cursor;
-
-/* Bit 1 of the world item's own flag word. */
-enum { W8_WORLD_ITEM_FLAG_02 = 2 };
 
 // FUNCTION: WIZ8 0x004f6cc0
 void FreeWorldItemGroup(W8WorldItem* item)
@@ -424,12 +422,12 @@ W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
 }
 
 // FUNCTION: WIZ8 0x004f94a0
-void SetWorldItemFlag02(W8WorldItem* item, bool enabled)
+void SetWorldItemFalling(W8WorldItem* item, bool enabled)
 {
     if (enabled) {
-        item->flags |= W8_WORLD_ITEM_FLAG_02;
+        item->flags |= W8_WORLD_ITEM_FALLING;
     } else {
-        item->flags &= ~W8_WORLD_ITEM_FLAG_02;
+        item->flags &= ~W8_WORLD_ITEM_FALLING;
     }
 }
 
@@ -690,7 +688,7 @@ void ActivateItem(W8WorldItem* item)
         srAssertFail("fSuccess", ITEM_MANAGER_CPP, 0x1f2,
                      FormatString("ActivateItem: ERROR - ItemRead %s failed", zItemName));
     }
-    if (ItemHasFlags(item, 4)) {
+    if (ItemHasFlags(item, W8_WORLD_ITEM_RADAR_BLIP_LIT)) {
         item->p3D->LightRadarBlip();
     }
     position = item->position;
@@ -768,11 +766,11 @@ void SetWorldItemHighlight(int runtime_id, bool on)
     }
     W8ItemRep* rep = static_cast<W8ItemRep*>(world_item->m_pRep);
     if (on) {
-        rep->flags |= 0x10;
+        rep->flags |= W8_ITEM_ENTITY_HIGHLIGHT_GREEN;
         world_item->SetHighlight(true);
         return;
     }
-    rep->flags &= ~0x10;
+    rep->flags &= ~W8_ITEM_ENTITY_HIGHLIGHT_GREEN;
     world_item->SetHighlight(false);
 }
 
@@ -795,7 +793,7 @@ int PickNearestItemUnderCursor(int cursor_x, int cursor_y, float max_distance)
         if (!item->fActive) {
             continue;
         }
-        if (static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & 4) {
+        if (static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & W8_ITEM_ENTITY_NO_PICKUP) {
             continue;
         }
         if (!item->p3D->IsSelected()) {
@@ -829,7 +827,7 @@ void UpdateNearbyWorldItems(void)
             item->sector_id = -1;
             SettleWorldItem(item);
         }
-        if (ItemHasFlags(item, 2)) {
+        if (ItemHasFlags(item, W8_WORLD_ITEM_FALLING)) {
             AdvanceFallingWorldItem(item);
         }
         if (!item->fActive) {
@@ -838,7 +836,7 @@ void UpdateNearbyWorldItems(void)
                     if (item == 0) {
                         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3e6, 0);
                     }
-                    if (ItemHasFlags(item, 1)) {
+                    if (ItemHasFlags(item, W8_WORLD_ITEM_HIDDEN)) {
                         goto next_item;
                     }
                 }
@@ -903,7 +901,8 @@ void DropHeldItem(int arg_1)
     srVector3T<float> position = camera + delta;
     position.y = g_octree->SettleToGround(&position, 0, 1, 250.0f) + g_float_005ec3f8;
     if (FindNearbyFreePosition(250.0f, &position, true, true) != 0) {
-        W8WorldItem* item = CreateWorldItem(&g_status.item_in_hand, &position, 3, true);
+        W8WorldItem* item = CreateWorldItem(&g_status.item_in_hand, &position,
+                                            W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
         if (item == 0) {
             // Retail passes the NULL item pointer as the assert message.
             // reinterpret-ok: pointer-valued assert message argument.
@@ -983,7 +982,7 @@ unsigned char InteractWithWorldItem(int runtime_id)
             return result;
         }
     }
-    if ((static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & 4) == 0) {
+    if ((static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & W8_ITEM_ENTITY_NO_PICKUP) == 0) {
         CopyItemInstance(&g_status.item_in_hand, &item->item, 0, true);
     }
     index = ItemIndex(runtime_id);
@@ -1145,7 +1144,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
     float dt;
     int sector;
 
-    if (!ItemHasFlags(item, 2)) {
+    if (!ItemHasFlags(item, W8_WORLD_ITEM_FALLING)) {
         return 0;
     }
 
@@ -1158,7 +1157,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
 
     ground = g_octree->SettleToGround(&probe, &hit, 1, 250.0f);
     if (!hit || fabs(ground - previous_y) < g_camera_snap_epsilon) {
-        item->flags &= ~2u;
+        item->flags &= ~W8_WORLD_ITEM_FALLING;
         item->vertical_velocity = 0.0f;
         return 0;
     }
@@ -1205,7 +1204,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
 
     start.Set(item->position.x, item->position.y + g_world_scale, item->position.z);
 
-    item->flags &= ~2u;
+    item->flags &= ~W8_WORLD_ITEM_FALLING;
     item->vertical_velocity = 0.0f;
 
     g_octree->SettleToGround(&start, &hit, 1, 250.0f);
@@ -1329,7 +1328,8 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                     int rolls = RollDice(&entry->dice);
                     for (roll = 0; roll < rolls; ++roll) {
                         if (entry->type == 0) {
-                            item = SpawnItem(entry->item_id, &position, 3, false);
+                            item = SpawnItem(entry->item_id, &position,
+                                             W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, false);
                             if (item != 0) {
                                 items.Add(item);
                             }
@@ -1348,7 +1348,8 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
             }
             for (index = 0; index < 40; ++index) {
                 if (npc->item_ids[index] != -1 && npc->item_weights[index] == 0) {
-                    item = SpawnItem(npc->item_ids[index], &position, 3, false);
+                    item = SpawnItem(npc->item_ids[index], &position,
+                                     W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, false);
                     if (item != 0) {
                         items.Add(item);
                     }
@@ -1379,7 +1380,8 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                         static_cast<short>(Random(total_weight)) <=
                             static_cast<short>(
                                 static_cast<signed char>(npc->item_weights[pick]))) {
-                        item = SpawnItem(npc->item_ids[pick], &position, 3, false);
+                        item = SpawnItem(npc->item_ids[pick], &position,
+                                         W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, false);
                         if (item != 0) {
                             items.Add(item);
                         }
@@ -1401,9 +1403,10 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
             W8WorldItem* container;
             int item_index;
             if (value == -1) {
-                container = SpawnItem(0x23c, &position, 2, true);
+                container = SpawnItem(0x23c, &position, W8_ITEM_ENTITY_ROTATE, true);
             } else {
-                container = SpawnItem(value, &position, 3, true);
+                container =
+                    SpawnItem(value, &position, W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
             }
             for (item_index = 0; item_index < items.GetCount(); ++item_index) {
                 ItemInfoAddToGroup(container, *items.GetAt(item_index));

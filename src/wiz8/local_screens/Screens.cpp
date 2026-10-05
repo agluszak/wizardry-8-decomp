@@ -379,7 +379,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->text_content_region = CurrentTextLineHasContent() ? 0x57 : -1;
     g_level_block->dialogue_content_region = CurrentDialogueLineHasContent() ? 0x5a : -1;
     g_level_block->world_update_flags = 0;
-    g_level_block->world_render_flags = 0;
+    g_level_block->camera_motion_flags = 0;
     g_level_block->highlighted_item = -1;
     g_level_block->selected_item = -1;
     g_level_block->clock = GetClock();

@@ -5019,7 +5019,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
             colour.Set(0.0f, 0.0f, 0.0f, 1.0f);
             material->setEmissive(colour);
             material->setDiffuse(colour);
-            particle->SetRetainedObject(material);
+            particle->SetMaterial(material);
             particle->SetTexture(
                 LoadTextureFromFolder("Data\\Monsters\\Bitmaps\\", "BloodParticle.tga", true));
             shader.value = 0x100c4b3;

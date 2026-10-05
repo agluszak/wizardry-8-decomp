@@ -1897,7 +1897,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool hov
     if (!selected_line) {
         if (hovered_line) {
             palette = g_font_state_palettes[W8_FONT_PALETTE_RED];
-            if (static_cast<char>(line->font_palette) != 5) {
+            if (line->font_palette != W8_FONT_PALETTE_YELLOW) {
                 palette = g_font_state_palettes[W8_FONT_PALETTE_YELLOW];
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
@@ -1965,7 +1965,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool hov
                 } else {
                     palette_index = line->highlight_color;
                 }
-                if (palette_index < 0xf) {
+                if (palette_index < W8_FONT_PALETTE_TEXT_BOX) {
                     palette = g_font_state_palettes[palette_index];
                 } else {
                     palette = g_level_block->palette;

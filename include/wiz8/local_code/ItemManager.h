@@ -18,7 +18,7 @@ void SetWorldItemHighlight(int runtime_id, bool on); /* 0x004F71E0 */
 int PickNearestItemUnderCursor(int cursor_x, int cursor_y, float max_distance); /* 0x004F7370 */
 unsigned char InteractWithWorldItem(int runtime_id); /* 0x004F7910 */
 W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item); /* 0x004F9210 */
-void SetWorldItemFlag02(W8WorldItem* item, bool enabled);
+void SetWorldItemFalling(W8WorldItem* item, bool enabled);
 void RebuildAllWorldItemInstances(void);
 
 bool InitializeItemManagerState();

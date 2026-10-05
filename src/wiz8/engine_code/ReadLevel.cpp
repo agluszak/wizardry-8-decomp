@@ -542,7 +542,7 @@ static unsigned char ReadWorldProps(W8ReadLevelInfo* pInfo, W8World* pWorld,
             for (model_index = 0; model_index < model_instances.GetCount(); ++model_index) {
                 stModelInstance* instance = *model_instances.GetAt(model_index);
                 if (instance != 0) {
-                    instance->render_flags |= 0x10;
+                    instance->render_flags |= stModelInstance::RENDER_NO_PICK;
                 }
             }
         }
@@ -608,7 +608,8 @@ unsigned char ReadWorldItems(W8ReadLevelInfo* pInfo, W8World* pWorld)
                 item_id = FindItemRecordByName(record.item_name);
             }
             if (item_id >= 0) {
-                world_item = SpawnItem(item_id, &record.position, 3, true);
+                world_item = SpawnItem(item_id, &record.position,
+                                       W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
                 if (world_item != 0) {
                     success = 1;
                     ActivateItem(world_item);
@@ -935,7 +936,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         particle->release_when_done = false;
 
         LoadMaterial(pInfo->bitmap_folder, &record.material, &material, &texture, &render_flags, 1);
-        particle->SetRetainedObject(material);
+        particle->SetMaterial(material);
         srShader shader;
         shader.value = render_flags.value;
         particle->SetRenderFlags(shader);

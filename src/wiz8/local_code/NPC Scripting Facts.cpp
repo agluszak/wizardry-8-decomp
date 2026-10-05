@@ -165,11 +165,13 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         return;
     case W8_FACT_CROCK_KIDNAPPED_PLAYER:
         if (value != 0 && FindEntityByName("NP_BlueFlowers", &position, 0, 0)) {
-            world_item = SpawnItem(0x2eb, &position, 3, true);
+            world_item =
+                SpawnItem(0x2eb, &position, W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
             if (world_item != 0) {
                 ActivateItem(world_item);
             }
-            world_item = SpawnItem(0x2eb, &position, 3, true);
+            world_item =
+                SpawnItem(0x2eb, &position, W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
             if (world_item != 0) {
                 ActivateItem(world_item);
             }

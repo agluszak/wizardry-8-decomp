@@ -992,7 +992,7 @@ static bool MovePartyInCombat(RuntimeCase& test, W8MGSCommand command)
                 "budget=%d modal=%u blocked=%u render_flags=%02x held_key=%u held_down=%u\n",
                 command, last.position.x - before.position.x, last.position.z - before.position.z,
                 last.input_motion, last.world_motion, last.movement_budget,
-                last.modal_owner_present, last.world_update_blocked, last.world_render_flags,
+                last.modal_owner_present, last.world_update_blocked, last.camera_motion_flags,
                 last.held_key, last.held_key_down);
     }
     if (!moved) {

@@ -240,7 +240,7 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
             W8WorldItem* item =
                 static_cast<W8WorldItem*>(PLGet(m_list, static_cast<int>(index)));
             if (item != 0) {
-                SetWorldItemFlag02(item, true);
+                SetWorldItemFalling(item, true);
             }
         }
     }

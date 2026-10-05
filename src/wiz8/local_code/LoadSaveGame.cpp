@@ -1443,7 +1443,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
             item->entity_flags = static_cast<W8ItemRep*>(item_info->p3D->m_pRep)->flags;
         }
         if (g_level_status_loading) {
-            item_info->entity_flags &= ~8;
+            item_info->entity_flags &= ~W8_ITEM_ENTITY_RADAR_SEEN;
         }
         if (!FileWrite(handle, item, sizeof(W8WorldItem), &bytes_written)) {
             return 0;
@@ -1476,7 +1476,7 @@ W8WorldItem* LoadItem(int handle, bool add_to_list)
         item->sector_id = -2;
         item->fActive = false;
         item->p3D = 0;
-        if (ItemHasFlags(item, 1)) {
+        if (ItemHasFlags(item, W8_WORLD_ITEM_HIDDEN)) {
             RegisterSearchableWorldItem(item);
         }
         if (previous != 0) {
@@ -1485,7 +1485,7 @@ W8WorldItem* LoadItem(int handle, bool add_to_list)
             return 0;
         }
         if (g_level_status_loading) {
-            item->entity_flags &= ~8;
+            item->entity_flags &= ~W8_ITEM_ENTITY_RADAR_SEEN;
         }
         previous = item;
         if (item->next == 0) {

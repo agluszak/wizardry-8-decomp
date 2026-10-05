@@ -3387,16 +3387,17 @@ update_screen:
         if (!IsMipeActive() || IsMipeMenuActive()) {
             HandleManualCameraHotkeys();
         } else if (CanUseCurrentAutomapTool()) {
-            ApplyWorldRenderHotkeys();
+            ApplyCameraMotionHotkeys();
         }
     }
     if (!g_camera_path_active) {
         if (g_mouselook_active) {
             if (g_mouselook_left_held) {
                 if (!gfKeyState[0x10]) {
-                    g_level_block->world_render_flags |= 4;
+                    g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_FORWARD;
                 } else {
-                    g_level_block->world_render_flags |= 0x84;
+                    g_level_block->camera_motion_flags |=
+                        W8_CAMERA_MOTION_FORWARD | W8_CAMERA_MOTION_FAST;
                 }
             }
             if (g_mouselook_active) {
@@ -3411,9 +3412,10 @@ update_screen:
 render_world:
     if (!IsScreenTransitionPending()) {
         if (CanUseCurrentAutomapTool()) {
-            UpdateWorldCameraAndPaths(g_world, g_level_block->world_render_flags);
+            UpdateWorldCameraAndPaths(g_world, g_level_block->camera_motion_flags);
             if (g_secondary_world && !g_camera_path_active) {
-                UpdateWorldCameraAndPaths(g_secondary_world, g_level_block->world_render_flags | 0x40);
+                UpdateWorldCameraAndPaths(g_secondary_world, g_level_block->camera_motion_flags |
+                                                                 W8_CAMERA_MOTION_SKIP);
             }
         }
         ApplyWorldUpdateFlags(g_world, g_level_block->world_update_flags);
@@ -3421,7 +3423,7 @@ render_world:
             ApplyWorldUpdateFlags(g_secondary_world, g_level_block->world_update_flags);
         }
         g_level_block->world_update_flags = 0;
-        g_level_block->world_render_flags = 0;
+        g_level_block->camera_motion_flags = 0;
         if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS) {
             UpdateFormationPortraitRefresh();
         }

@@ -204,9 +204,9 @@ srMaterial* g_blit_material;
 // GLOBAL: WIZ8 0x654adc
 srNode* g_surface_nodes[0x12c0];
 // GLOBAL: WIZ8 0x6595dc
-int g_surface_state1;
+int g_surface_opaque_shader_bits;
 // GLOBAL: WIZ8 0x654ad8
-int g_surface_state0;
+int g_surface_alpha_blend_shader_bits;
 // GLOBAL: WIZ8 0x6595e8
 W8ViewportRect g_viewport;
 // GLOBAL: WIZ8 0x00659AB4
@@ -1470,7 +1470,7 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     g_modeler->convert(*model, 1);
     g_modeler->discard();
 
-    shader.value = overlay ? g_surface_state0 : g_surface_state1;
+    shader.value = overlay ? g_surface_alpha_blend_shader_bits : g_surface_opaque_shader_bits;
     if (!surface) {
         shader.value &= ~srShader::MASK_TEXTURING;
     } else {
@@ -1527,7 +1527,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     g_modeler->convert(*model, 1);
     g_modeler->discard();
 
-    shader.value = keep_aspect ? g_surface_state0 : g_surface_state1;
+    shader.value = keep_aspect ? g_surface_alpha_blend_shader_bits : g_surface_opaque_shader_bits;
     if (!texture) {
         shader.value &= ~srShader::MASK_TEXTURING;
     } else {
@@ -2397,7 +2397,7 @@ void PresentMenuOverlayFrame(void)
 void SetPrimarySurfaceTextureHint2Enabled(bool enabled)
 {
     if (g_surface_node) {
-        g_surface_node->setTextureHint2Enabled(enabled);
+        g_surface_node->setAlphaTestEnabled(enabled);
     }
 }
 
@@ -2520,8 +2520,8 @@ unsigned char InitializeRendererSceneObjects(void)
     g_viewport.left = 0;
     g_viewport.top = 0;
     g_viewport.right = 0;
-    g_surface_state1 = 0x100a017;
-    g_surface_state0 = 0x100c0b7;
+    g_surface_opaque_shader_bits = 0x100a017;
+    g_surface_alpha_blend_shader_bits = 0x100c0b7;
     g_dirty_tile_count = 0;
     g_viewport.bottom = 0;
 
@@ -2543,7 +2543,7 @@ unsigned char InitializeRendererSceneObjects(void)
     renderer_name[127] = 0;
     _strupr(renderer_name);
     if (strstr(renderer_name, "GLIDE")) {
-        g_surface_node->enableRendererFlag(1);
+        g_surface_node->enableTextureUpdateFlags(stSurface2D::UPDATE_FULL_TILE);
     }
     g_renderer_mode = strstr(renderer_name, "DIRECT3D") || strstr(renderer_name, "GLIDE") ||
                       strstr(renderer_name, "SOFTWARE2");
@@ -3710,7 +3710,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     if (instance != 0) {
         instance->setModel(model);
     }
-    instance->render_flags |= 0x10;
+    instance->render_flags |= stModelInstance::RENDER_NO_PICK;
     return instance;
 }
 

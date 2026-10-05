@@ -2055,8 +2055,9 @@ void RenderAutomapMarkers(void)
                 break;
             }
         }
-        if ((static_cast<W8ItemRep*>(item->m_pRep)->flags & 4) == 0 &&
-            (detect_all || ((static_cast<W8ItemRep*>(item->m_pRep)->flags >> 3) & 1) != 0 ||
+        if ((static_cast<W8ItemRep*>(item->m_pRep)->flags & W8_ITEM_ENTITY_NO_PICKUP) == 0 &&
+            (detect_all ||
+             (static_cast<W8ItemRep*>(item->m_pRep)->flags & W8_ITEM_ENTITY_RADAR_SEEN) != 0 ||
              HasCameraLineOfSight(&location)) &&
             layer - 1 == g_automap_layer) {
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;

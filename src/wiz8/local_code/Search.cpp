@@ -67,12 +67,12 @@ W8SearchableView::W8SearchableView() : cursor(-1), items() {}
 void W8Searchable::Reveal()
 {
     if (world_item != 0) {
-        if (!ItemHasFlags(world_item, 1)) {
+        if (!ItemHasFlags(world_item, W8_WORLD_ITEM_HIDDEN)) {
             return;
         }
-        SetItemFlags(world_item, 1, false);
-        SetItemFlags(world_item, 4, true);
-        SetItemAndEntityFlags(world_item, 0x80, false);
+        SetItemFlags(world_item, W8_WORLD_ITEM_HIDDEN, false);
+        SetItemFlags(world_item, W8_WORLD_ITEM_RADAR_BLIP_LIT, true);
+        SetItemAndEntityFlags(world_item, W8_ITEM_ENTITY_HIGHLIGHT_BLUE, false);
     } else {
         if (trigger == 0) {
             return;

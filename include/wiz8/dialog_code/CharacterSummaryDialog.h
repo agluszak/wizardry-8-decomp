@@ -48,7 +48,8 @@ private:
     W8Character m_saved_character;
     W8MonsterManagerEntry m_saved_monster_entry;
     W8PartySlotRow m_saved_party_row;
-    unsigned char m_field_1af8;
+    /* Select the original character instead of the temporary party-slot copy. */
+    unsigned char m_use_original_character;
     bool m_portrait_clock_started;
     unsigned char pad_1afa[2];
     TIMER m_portrait_clock;

@@ -68,7 +68,8 @@ void stTexture2D::setupDefaultValues()
 stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int source_height,
                          srNode* parent, int tile_extent)
     : srClassSupport<stSurface2D, srNode, false, 0x1000e>(static_cast<srNode*>(0)),
-      source_surface(source), state(0x10), flags(0x100a017), tile_size(tile_extent),
+      source_surface(source), vertex_array_mask(1 << srRendererDefs::VERTEX_ARRAY_TEXCOORD0),
+      shader_bits(0x100a017), tile_size(tile_extent),
       columns((source_width + tile_extent - 1) / tile_extent),
       rows((source_height + tile_extent - 1) / tile_extent), tile_count(columns * rows),
       width(source_width), height(source_height), tiles(new stTexture2D*[tile_count]),
@@ -96,14 +97,14 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int sour
             tiles[index++] = texture;
         }
     }
-    coordinates[0] = 0.0f;
-    coordinates[1] = 0.0f;
-    coordinates[2] = 1.0f;
-    coordinates[3] = 0.0f;
-    coordinates[4] = 0.0f;
-    coordinates[5] = 1.0f;
-    coordinates[6] = 1.0f;
-    coordinates[7] = 1.0f;
+    texture_coordinates[0] = 0.0f;
+    texture_coordinates[1] = 0.0f;
+    texture_coordinates[2] = 1.0f;
+    texture_coordinates[3] = 0.0f;
+    texture_coordinates[4] = 0.0f;
+    texture_coordinates[5] = 1.0f;
+    texture_coordinates[6] = 1.0f;
+    texture_coordinates[7] = 1.0f;
 }
 
 // FUNCTION: WIZ8 0x0047DFF0
@@ -155,13 +156,13 @@ void stSurface2D::DrawTiles(srGERD* renderer)
     renderer->pushMatrix();
     renderer->loadIdentity();
     renderer->ortho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
-    renderer->setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray>(state));
+    renderer->setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray>(vertex_array_mask));
     renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f)); /* CLIP_LEFT..CLIP_FAR */
     renderer->setCullMode(srGERD::CULL_NONE);
     srShader shader;
-    shader.value = flags;
+    shader.value = shader_bits;
     renderer->setShader(shader);
-    renderer->setTexCoordPointer(2, srRendererDefs::TYPE_FLOAT, 8, coordinates, 0);
+    renderer->setTexCoordPointer(2, srRendererDefs::TYPE_FLOAT, 8, texture_coordinates, 0);
     renderer->setAntiAlias(srGERD::ANTIALIAS_NONE);
 
     for (row = 0; row != rows; ++row) {
@@ -198,7 +199,7 @@ void stSurface2D::DrawTiles(srGERD* renderer)
 // FUNCTION: WIZ8 0x0047E560
 void stSurface2D::setScale(float new_scale)
 {
-    float* coordinate = coordinates;
+    float* coordinate = texture_coordinates;
     float factor = g_float_one / tile_size;
     float delta = (new_scale - scale) * factor;
     int row;
@@ -222,17 +223,17 @@ void stSurface2D::invalidateTiles()
 }
 
 // FUNCTION: WIZ8 0x0047E370
-void stSurface2D::setTextureHint2Enabled(bool enabled)
+void stSurface2D::setAlphaTestEnabled(bool enabled)
 {
     if (!enabled) {
-        flags &= ~srShader::MASK_ALPHATEST;
+        shader_bits &= ~srShader::MASK_ALPHATEST;
         for (int index = 0; index < tile_count; ++index) {
             tiles[index]->disableHint(srTextureIFace::HINT_ONE_BIT_ALPHA);
             tiles[index]->enableHint(srTextureIFace::HINT_NO_ALPHA);
             tiles[index]->invalidate();
         }
     } else {
-        flags |= srShader::MASK_ALPHATEST;
+        shader_bits |= srShader::MASK_ALPHATEST;
         for (int index = 0; index < tile_count; ++index) {
             tiles[index]->disableHint(srTextureIFace::HINT_NO_ALPHA);
             tiles[index]->enableHint(srTextureIFace::HINT_ONE_BIT_ALPHA);
@@ -294,7 +295,7 @@ void stSurface2D::updateRectangle(srGERD* renderer, void*, long, int left, int t
 }
 
 // FUNCTION: WIZ8 0x0047e5b0
-void stSurface2D::enableRendererFlag(unsigned int flag)
+void stSurface2D::enableTextureUpdateFlags(unsigned int flag)
 {
     texture_update_flags |= flag;
 }
