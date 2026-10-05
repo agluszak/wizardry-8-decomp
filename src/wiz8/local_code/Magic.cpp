@@ -1520,6 +1520,14 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
     return 1;
 }
 
+unsigned int GetSpellCastingSkillLevel(const W8Character* character, W8Skill spellbook_skill,
+                                       W8SpellRealm realm)
+{
+    return (character->skills[spellbook_skill].level +
+            character->skills[W8_SKILL_FIRE_MAGIC + realm].level * 4) /
+           5;
+}
+
 /* Which spellbook skill of the spell's own books the character is best at, and
    - when the caller asks - which of those they have actually unlocked. The
    unlocked one wins only when it is not already the best; otherwise the plain
@@ -1575,11 +1583,8 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
             unsigned int skill_figure;
 
             party_slot = CharacterPointerToPartySlot(character);
-            skill_figure =
-                (character->skills[unlocked_skill].level +
-                 character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[spell_id].realm].level *
-                     4) /
-                5;
+            skill_figure = GetSpellCastingSkillLevel(character, unlocked_skill,
+                                                     g_spell_records[spell_id].realm);
             failure = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
 
             shortfall = GetMinimumCasterLevelForSpell(spell_id) -
@@ -1633,10 +1638,7 @@ unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned i
 
     skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
     party_slot = CharacterPointerToPartySlot(character);
-    skill_figure =
-        (character->skills[skill].level +
-         character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[spell_id].realm].level * 4) /
-        5;
+    skill_figure = GetSpellCastingSkillLevel(character, skill, g_spell_records[spell_id].realm);
     chance = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
 
     shortfall = GetMinimumCasterLevelForSpell(spell_id) -
@@ -1698,9 +1700,7 @@ static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
     const W8SpellRuntimeRecord* record = &g_spell_records[spell_id];
     W8Skill skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
     int party_slot = CharacterPointerToPartySlot(character);
-    unsigned int skill_figure = (character->skills[skill].level +
-                                 character->skills[W8_SKILL_FIRE_MAGIC + record->realm].level * 4) /
-                                5;
+    unsigned int skill_figure = GetSpellCastingSkillLevel(character, skill, record->realm);
     unsigned int chance;
     unsigned char book;
     int caster_level;
@@ -2706,8 +2706,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     realm_skill = static_cast<W8Skill>(realm + 0x1c);
     slot = CharacterPointerToPartySlot(character);
     level_index = record->spell_point_cost / 2 + record->spell_level;
-    skill_score =
-        (character->skills[best_skill].level + character->skills[realm + 0x1c].level * 4) / 5;
+    skill_score = GetSpellCastingSkillLevel(character, best_skill, realm);
     if (0x10 < level_index) {
         level_index = 0x10;
     }

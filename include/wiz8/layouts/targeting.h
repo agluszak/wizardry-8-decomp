@@ -122,6 +122,18 @@ struct W8CombatSlot {
     /* 0x1c: the item aimed at, for the one kind that aims at one. */
     W8ItemInstance* pPCItem;
 }; /* 0x20 */
+/* Party movement is distinct from an individual character's action. */
+enum W8PartyAction { W8_PARTY_ACTION_NONE = 0, W8_PARTY_ACTION_WALK = 1, W8_PARTY_ACTION_RUN = 2 };
+
+/* Movement starts at the assigned initiative phase, runs its movement budget,
+   ends the movement phase, then releases the remaining turns in the free phase. */
+enum W8PartyActionStatus {
+    W8_PARTY_ACTION_NOT_STARTED = 0,
+    W8_PARTY_ACTION_IN_PROGRESS = 1,
+    W8_PARTY_ACTION_PHASE_ENDED = 2,
+    W8_PARTY_ACTION_FINISHED = 3
+};
+
 /* The two-word block an action carries beside itself. A spell's holds the
    power level and a spare word; an item use's holds the use kind and the item.
    It is the party slot row's own pair in both cases rather than a copy, which

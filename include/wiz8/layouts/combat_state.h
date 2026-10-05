@@ -254,10 +254,10 @@ struct W8CombatState {
     int pending_deaths[8];   /* 0x8e8 */
     int pending_death_count; /* 0x908 */
     /* 0x90c: the party-action fields the movement assertions pin. */
-    unsigned int uiNextPartyAction;          /* 0x90c */
-    unsigned int uiCurrentPartyAction;       /* 0x910 */
+    W8PartyAction uiNextPartyAction;         /* 0x90c */
+    W8PartyAction uiCurrentPartyAction;      /* 0x910 */
     unsigned int uiPartyActionPhase;         /* 0x914 */
-    unsigned int uiCurrentPartyActionStatus; /* 0x918 */
+    W8PartyActionStatus uiCurrentPartyActionStatus; /* 0x918 */
     /* 0x91c: countdown used to pace synthetic movement progress when
        continuous combat is enabled and the world did not advance this frame. */
     TIMER party_movement_clock;

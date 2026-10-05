@@ -1866,6 +1866,18 @@ void SetTextBoxMode(unsigned char mode, int value)
 /* 0x0058FFC0: draw clickable notice-word overlays for one painted line. */
 static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y);
 
+static void DrawMessageLineText(const W8MessageStorageRecord* line, int x, int y)
+{
+    if (line->length == -1) {
+        gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
+    } else {
+        wchar_t* scratch = g_level_block->text_paint_scratch;
+        wcsncpy(scratch, line->wString, line->length);
+        scratch[line->length] = 0;
+        gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
+    }
+}
+
 /* Paint one message-storage line at (x, y). slot_1d8_match / slot_1e8_match
    select alternate palettes for the editor slot highlights; skip_invalidate
    is forwarded from RedrawTextBoxBody and skips the word-overlay pass when
@@ -1896,13 +1908,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 palette = g_font_state_palettes[5];
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-            if (line->length == -1) {
-                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
-            } else {
-                wcsncpy(scratch, line->wString, line->length);
-                scratch[line->length] = 0;
-                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
-            }
+            DrawMessageLineText(line, x, y);
         } else if (line->highlight_color == 0xff) {
             if (line->font_palette < 0xf) {
                 palette = g_font_state_palettes[line->font_palette];
@@ -1910,13 +1916,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 palette = g_level_block->palette;
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-            if (line->length == -1) {
-                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
-            } else {
-                wcsncpy(scratch, line->wString, line->length);
-                scratch[line->length] = 0;
-                gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
-            }
+            DrawMessageLineText(line, x, y);
         } else {
             draw_x = x;
             if (line->highlight_start != 0) {
@@ -1985,13 +1985,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
         }
     } else {
         SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-        if (line->length == -1) {
-            gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
-        } else {
-            wcsncpy(scratch, line->wString, line->length);
-            scratch[line->length] = 0;
-            gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
-        }
+        DrawMessageLineText(line, x, y);
     }
 
     if (line->length != -1) {

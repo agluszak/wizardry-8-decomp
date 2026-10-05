@@ -33,16 +33,17 @@ bool RunPartyMovementSemanticTest(PartyMovementSemanticResult* result)
     gXStatus.fPartyMovementMode = 1;
     gXStatus.fPartyMovementUi = 0;
 
-    combat.uiCurrentPartyAction = 1;
-    combat.uiCurrentPartyActionStatus = 0;
+    combat.uiCurrentPartyAction = W8_PARTY_ACTION_WALK;
+    combat.uiCurrentPartyActionStatus = W8_PARTY_ACTION_NOT_STARTED;
     CancelPartyMovement();
-    result->cancel_clears_active_move = combat.uiCurrentPartyAction == 0;
+    result->cancel_clears_active_move = combat.uiCurrentPartyAction == W8_PARTY_ACTION_NONE;
 
-    combat.uiCurrentPartyAction = 1;
-    combat.uiCurrentPartyActionStatus = 0;
+    combat.uiCurrentPartyAction = W8_PARTY_ACTION_WALK;
+    combat.uiCurrentPartyActionStatus = W8_PARTY_ACTION_NOT_STARTED;
     level.move_percent = 0;
     BeginFreeTurnPhase();
-    result->completion_marks_finished = combat.uiCurrentPartyActionStatus == 3;
+    result->completion_marks_finished =
+        combat.uiCurrentPartyActionStatus == W8_PARTY_ACTION_FINISHED;
     result->completion_clears_mode = gXStatus.fPartyMovementMode == 0;
     result->completion_releases_ui = gXStatus.fPartyMovementUi == 0;
 

@@ -489,20 +489,7 @@ void AutomapZoomOutButton(void)
                 g_automap_zoom = g_automap_position.y - ground_y;
                 g_automap_zoom_mode = 1;
                 SetAutomapCameraPoint(&g_automap_position);
-                int tool = g_automap_tool;
-                if (g_automap_tool == 0 && g_automap_cursor_inside != 0) {
-                    if (g_automap_zoom <= g_float_005ec360) {
-                        tool = 4;
-                    } else {
-                        tool = 1;
-                    }
-                }
-                SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
-                                              GetCatalogVideoObjectYOffset(tool + 0x14b),
-                                              static_cast<short>(g_automap_cursor_offsets[tool].x),
-                                              static_cast<short>(g_automap_cursor_offsets[tool].y));
-                gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-                RefreshMouseCursorTexture();
+                SetAutomapToolCursor(g_automap_tool);
             } else {
                 g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
                 srVector3T<float> position(g_automap_bounds_min.x + g_automap_bounds_max.x,

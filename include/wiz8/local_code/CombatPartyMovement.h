@@ -12,7 +12,7 @@ void CancelPartyMovement(void);                            /* 0x004F0860 */
 void InterruptActivePartyMovement(void);                   /* 0x004F0990 */
 bool CanPartyMove(void);                                   /* 0x004F0800 */
 void ClearPendingPartyMovement(int excluded_party_slot);   /* 0x004F0560 */
-void StartPartyMovementAction(int move_kind);              /* 0x004F0AF0 */
+void StartPartyMovementAction(W8PartyAction move_kind);    /* 0x004F0AF0 */
 void UpdateActivePartyMovement(void);                      /* 0x004F01D0 */
 void UpdatePartyMovementControl(void);                     /* 0x004F0AA0 */
 void RoundPhaseToStep(unsigned int* phase, unsigned int base);
