@@ -7,7 +7,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from reccmp.ghidriff.report import comparison_changes
+from reccmp.ghidriff.report import comparison_changes, selected_comparison
 from reccmp.ghidriff.results import Outcome
 
 from ..comparison import report_directory
@@ -65,15 +65,19 @@ def comparison_report(
     functions = []
     for address, row in selected[:limit]:
         result = {key: row[key] for key in ("orig", "name", "outcome", "basis", "source")}
-        result["data_findings"] = len(row["data"])
-        result["analysis_failures"] = len(row["failures"])
-        result["diff_lines"] = len(row["code_diff"])
+        evidence = selected_comparison(row)
+        result["selected_pass"] = row["selected_pass"]
+        result["similarity"] = evidence["similarity"]
+        result["data_findings"] = len(evidence["data"])
+        result["analysis_failures"] = len(evidence["failures"])
+        body_diff = evidence["body_diff"] or []
+        result["diff_lines"] = len(body_diff)
         if changes is not None:
             result["change"] = changes[address]
         if diff_lines:
-            result["code_diff"] = row["code_diff"][:remaining_lines]
-            remaining_lines -= len(result["code_diff"])
-            result["diff_truncated"] = len(result["code_diff"]) < len(row["code_diff"])
+            result["body_diff"] = body_diff[:remaining_lines]
+            remaining_lines -= len(result["body_diff"])
+            result["diff_truncated"] = len(result["body_diff"]) < len(body_diff)
         functions.append(result)
     return {
         "report": str(path),

@@ -54,20 +54,24 @@ the compiler index digest. An emitted symbol with failed pairing, an external de
 source remains a failure. Review the containing caller comparisons when a helper is inlined; do not
 change compiler flags, linkage or authored source merely to obtain a standalone procedure.
 
-A row carries `data` findings (a paired object whose contents differ, or referenced literals that
-differ in contents), `failures`, `basis` (how reccmp paired the function), `source`, and, for a code
-difference, `code_diff.artifact`: the unified diff under the returned run directory. The run's
+Each row retains `passes.ordinary` and optional `passes.inline`, with an explicit
+`selected_pass`. Each pass carries `data` findings (changed paired-object contents or referenced
+literals), `failures`, `warnings`, `similarity` and, for a body difference, `body_diff.artifact`.
+Pairing `basis` and `source` belong to the function row. Diffs live under the returned run directory. The run's
 `summary.json` and Ghidriff's report (`<TARGET>.ghidriff.md`, plus `sxs_html/` with `--sxs`) sit in the
 same directory. Each invocation keeps a separate build/reports/compare/<target>/run-* directory;
 latest points to the last completed run. A focused comparison never deletes the full inventory.
 Keep the returned summary path for triage and use it with --report. Read the side-by-side HTML when
 changed spans inside lines are useful.
 
-`code_diff` compares normalized function bodies and referenced-data findings remain part of the
+`body_diff` compares normalized function bodies and referenced-data findings remain part of the
 outcome. Inferred declaration changes are separate `signature_diff` findings with their own
-`.signature.diff` artifacts and CI counts. A declaration-only change is body-clean, not proof of
-ABI equivalence. Raw decompilations and leading warnings remain in Ghidriff's artifacts.
-`code_change_kind: scalar-signedness` tags exact `int`/`uint` body substitutions for triage;
+`.<pass>.signature.diff` artifacts and CI counts. A declaration-only change is body-clean, not proof of
+ABI equivalence. Similarity and outcome come from the same selected pass. Failed retries
+remain analysis failures and ordinary evidence remains available. Raw decompilations and leading
+warnings remain in Ghidriff's artifacts; per-pass `warnings` also preserves native diagnostics.
+The summary's `preparation` records signature corrections and their evidence provenance.
+`change_kind: scalar-signedness` tags exact `int`/`uint` body substitutions for triage;
 these still count as code differences. The tag does not prove enum provenance or equivalence.
 Generic text normalization and declaration/body diff construction have one owner in Ghidriff.
 reccmp adds paired address identity and referenced-data evidence. Identifier normalization preserves

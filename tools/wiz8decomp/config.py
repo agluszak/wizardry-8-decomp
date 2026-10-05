@@ -77,8 +77,9 @@ class Settings(BaseModel):
         return "wizardry8"
 
 
-def load_settings(*, require: bool = True) -> Settings | None:
-    load_dotenv(repository_root() / ".env", override=False)
+def load_settings(*, require: bool = True, repository: Path | None = None) -> Settings | None:
+    root = repository or repository_root()
+    load_dotenv(root / ".env", override=False)
     required_keys = ("GHIDRA_INSTALL_DIR", "WIZ8_INPUT_DIR", "WIZ8_WORK_DIR")
     missing = [key for key in required_keys if not os.environ.get(key)]
     if missing:
@@ -88,7 +89,7 @@ def load_settings(*, require: bool = True) -> Settings | None:
     optional_keys = ("WIZ8_GHIDRA_PROJECT_DIR",)
     values = {key: os.environ[key] for key in required_keys}
     values.update({key: os.environ[key] for key in optional_keys if os.environ.get(key)})
-    return Settings.model_validate(values)
+    return Settings.model_validate({**values, "repo_dir": root})
 
 
 def ghidra_version(install_dir: Path) -> tuple[str | None, str | None]:

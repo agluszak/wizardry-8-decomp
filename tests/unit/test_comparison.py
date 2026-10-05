@@ -273,6 +273,9 @@ def test_build_freshness_warning_uses_input_mtimes(
 
 
 def _products(tmp_path: Path, monkeypatch) -> None:
+    for key in ("GHIDRA_INSTALL_DIR", "WIZ8_INPUT_DIR", "WIZ8_WORK_DIR"):
+        monkeypatch.setenv(key, str(tmp_path / key.lower()))
+    monkeypatch.setattr("wiz8decomp.ghidra.workspace.resolve_seed_program", lambda *_: "fixture")
     (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
     products = tmp_path / "build/decomp"
     products.mkdir(parents=True)
@@ -314,10 +317,20 @@ def _row(address: int, outcome: str, diff: list[str] | None = None) -> dict:
         "basis": "annotation",
         "source": {"path": "src/wiz8/widget.cpp", "line": 3},
         "outcome": outcome,
-        "code_diff": diff or [],
-        "data": [],
-        "failures": [],
-        "unidentified_references": 0,
+        "selected_pass": "ordinary",
+        "passes": {
+            "ordinary": {
+                "outcome": outcome,
+                "body_diff": diff or [],
+                "signature_diff": [],
+                "similarity": 1.0,
+                "change_kind": None,
+                "data": [],
+                "failures": [],
+                "warnings": [],
+                "unidentified_references": 0,
+            }
+        },
     }
 
 
@@ -340,8 +353,10 @@ def test_compare_selected_runs_reccmp_for_the_selected_addresses(tmp_path, monke
     assert result["inlining"]["retried"] == 0
     [row] = result["functions"]
     assert row["outcome"] == "differences"
-    assert row["code_diff"]["lines"] == 2
-    assert (tmp_path / row["code_diff"]["artifact"]).read_text() == "".join(diff)
+    assert row["passes"][row["selected_pass"]]["body_diff"]["lines"] == 2
+    assert (
+        tmp_path / row["passes"][row["selected_pass"]]["body_diff"]["artifact"]
+    ).read_text() == "".join(diff)
 
 
 @pytest.mark.parametrize("inline_diff", [[], ["-return 1;\n", "+return 2;\n"]])
@@ -351,8 +366,11 @@ def test_comparison_keeps_normal_and_inline_diff_artifacts(tmp_path, monkeypatch
     outcome = "differences" if inline_diff else "no-differences"
     raw = {
         **_row(0x401000, outcome, inline_diff),
-        "normal_diff": normal,
-        "inline_normalized_diff": inline_diff,
+        "selected_pass": "inline",
+        "passes": {
+            "ordinary": _row(0x401000, "differences", normal)["passes"]["ordinary"],
+            "inline": _row(0x401000, outcome, inline_diff)["passes"]["ordinary"],
+        },
         "inline_callees": ["0x402000"],
     }
     _fake_reccmp(monkeypatch, [raw])
@@ -365,21 +383,35 @@ def test_comparison_keeps_normal_and_inline_diff_artifacts(tmp_path, monkeypatch
         "normalized_no_differences": int(not inline_diff),
         "analysis_failed": 0,
     }
-    assert (tmp_path / row["normal_diff"]["artifact"]).read_text() == "".join(normal)
+    assert (tmp_path / row["passes"]["ordinary"]["body_diff"]["artifact"]).read_text() == "".join(
+        normal
+    )
     if inline_diff:
-        assert row["inline_normalized_diff"] == row["code_diff"]
-        assert (tmp_path / row["code_diff"]["artifact"]).read_text() == "".join(inline_diff)
+        assert (
+            row["passes"]["inline"]["body_diff"]["artifact"]
+            != row["passes"]["ordinary"]["body_diff"]["artifact"]
+        )
+        assert (
+            tmp_path / row["passes"][row["selected_pass"]]["body_diff"]["artifact"]
+        ).read_text() == "".join(inline_diff)
     else:
-        assert row["inline_normalized_diff"] == []
-        assert "code_diff" not in row
+        assert row["passes"]["inline"]["body_diff"] == []
+        assert row["passes"]["inline"]["similarity"] == 1.0
 
 
 def test_inline_summary_keeps_failed_retry_distinct_from_clean(tmp_path, monkeypatch):
     _products(tmp_path, monkeypatch)
     raw = {
         **_row(0x401000, "analysis-failed"),
-        "normal_diff": [],
-        "inline_normalized_diff": None,
+        "selected_pass": "inline",
+        "passes": {
+            "ordinary": _row(0x401000, "differences", ["-old\n", "+new\n"])["passes"]["ordinary"],
+            "inline": {
+                **_row(0x401000, "analysis-failed")["passes"]["ordinary"],
+                "body_diff": None,
+                "similarity": None,
+            },
+        },
         "inline_callees": ["0x402000"],
     }
     _fake_reccmp(monkeypatch, [raw])
@@ -387,7 +419,7 @@ def test_inline_summary_keeps_failed_retry_distinct_from_clean(tmp_path, monkeyp
     assert result["ok"] is False
     assert result["inlining"] == {
         "retried": 1,
-        "normal_no_differences": 1,
+        "normal_no_differences": 0,
         "normalized_no_differences": 0,
         "analysis_failed": 1,
     }
@@ -703,16 +735,32 @@ def test_comparison_without_native_procedures_is_not_a_binary_health_snapshot(
 
 def test_signature_artifact_is_separate_from_body_artifact(tmp_path, monkeypatch):
     monkeypatch.setattr(comparison, "report_directory", lambda *_: tmp_path)
-    row = {
-        "orig": "0x1000",
-        "outcome": "no-differences",
-        "code_diff": [],
-        "normal_diff": [],
-        "inline_normalized_diff": None,
-        "signature_diff": ["--- orig/f\n", "+++ recomp/f\n", "-uint f();\n", "+int f();\n"],
-    }
+    signature = ["--- orig/f\n", "+++ recomp/f\n", "-uint f();\n", "+int f();\n"]
+    row = _row(0x1000, "no-differences")
+    row["passes"]["ordinary"]["signature_diff"] = signature
     result = comparison._function_row(tmp_path, "WIZ8", row)
     assert result["outcome"] == "no-differences"
-    assert result["signature_diff"]["artifact"] == "00001000.signature.diff"
-    assert (tmp_path / "00001000.signature.diff").read_text() == "".join(row["signature_diff"])
-    assert not (tmp_path / "00001000.diff").exists()
+    assert (
+        result["passes"]["ordinary"]["signature_diff"]["artifact"]
+        == "00001000.ordinary.signature.diff"
+    )
+    assert (tmp_path / "00001000.ordinary.signature.diff").read_text() == "".join(signature)
+    assert not (tmp_path / "00001000.ordinary.diff").exists()
+
+
+def test_frozen_comparison_tools_use_explicit_product_repository(tmp_path, monkeypatch):
+    from wiz8decomp import config
+
+    product = tmp_path / "base-source"
+    snapshot = tmp_path / "head-tools"
+    product.mkdir()
+    snapshot.mkdir()
+    for key in ("GHIDRA_INSTALL_DIR", "WIZ8_INPUT_DIR", "WIZ8_WORK_DIR"):
+        monkeypatch.setenv(key, str(tmp_path / key.lower()))
+    monkeypatch.delenv("WIZ8_GHIDRA_PROJECT_DIR", raising=False)
+    monkeypatch.setattr(config, "repository_root", lambda: snapshot)
+    settings = config.load_settings(repository=product)
+    assert settings is not None
+    assert settings.repo_dir == product
+    assert settings.product_build_dir == product / "build/decomp"
+    assert settings.project_dir == product / "ghidra-project"
