@@ -76,6 +76,8 @@ def compare_base(
     directory: Path,
 ) -> int:
     """One owner for revision switching, partial evidence and restoration."""
+    previous_path = os.environ.get("PATH", "")
+    os.environ["PATH"] = f"{repository / '.venv/bin'}{os.pathsep}{previous_path}"
     status_path = directory / f"{prefix}-base-status.json"
     status = {
         "target": target,
@@ -136,6 +138,7 @@ def compare_base(
             status["status"] = "failed"
             status["restore_error"] = str(error)
             print(f"::error::could not restore head {head}: {error}", flush=True)
+        os.environ["PATH"] = previous_path
         status_path.write_text(json.dumps(status, indent=2) + "\n")
     return int(status["status"] != "completed")
 
