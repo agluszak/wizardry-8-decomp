@@ -86,10 +86,10 @@ W8Prop::W8Prop()
     id = AllocateGrObjectId();
     m_pRep = new W8PropRepresentation();
     m_pTimer = new W8GameTimer();
-    position3.SetZero();
-    position5.SetZero();
-    rotation0.SetIdentity();
-    rotation1.SetIdentity();
+    animation_position.SetZero();
+    previous_animation_position.SetZero();
+    previous_animation_rotation.SetIdentity();
+    animation_rotation.SetIdentity();
     m_gd_prop = 0;
     if (m_pRep == 0) {
         srAssertFail("m_pRep", PROP_CPP, 0x30e, "Prop::Prop() out of memory allocating m_pRep");
@@ -151,7 +151,7 @@ void UpdateWorldProps(W8World* world)
         Trigger* trigger;
 
         if (prop != 0 && (trigger = FindTriggerForProp(world, prop)) != 0 && prop->m_gd_prop != 0) {
-            prop->flags |= 0x80;
+            prop->flags |= W8_PROP_GD_TRIGGER_BOUND;
             prop->m_gd_prop->BindTrigger(trigger);
         }
     }
@@ -190,7 +190,7 @@ W8Prop* FindPropByName(W8World* world, const char* name)
 void W8Prop::GetPosition(srVector3T<float>* out)
 {
     if (AnimationIsRunning(Rep()->animation) == 1) {
-        *out = position3;
+        *out = animation_position;
         return;
     }
     m_pRep->GetLocation(out);
@@ -249,8 +249,8 @@ Trigger* W8Prop::GetTrigger()
 // FUNCTION: WIZ8 0x0044e0a0
 Trigger* W8Prop::GetGDPropOwnerTrigger()
 {
-    if ((this->flags & 0x80) != 0 && this->m_gd_prop != 0) {
-        return this->m_gd_prop->m_owner;
+    if ((this->flags & W8_PROP_GD_TRIGGER_BOUND) != 0 && this->m_gd_prop != 0) {
+        return this->m_gd_prop->m_trigger;
     }
     return 0;
 }
@@ -605,9 +605,8 @@ void W8Prop::UpdatePropAnimation()
     unsigned int total;
     int frames;
 
-    if (rep->active == 0 &&
-        (rep->animation_behaviour != 1 || rep->animation_playing == 0) &&
-        (flags & 0x20) == 0) {
+    if (rep->active == 0 && (rep->animation_behaviour != 1 || rep->animation_playing == 0) &&
+        (flags & W8_PROP_ANIMATION_GEOMETRY_DIRTY) == 0) {
         return;
     }
     total = AnimObjValue(rep->animation, 2);
@@ -634,12 +633,12 @@ void W8Prop::UpdatePropAnimation()
         rep->animation_playing = 1;
     }
     if (rep->animation_playing == 0) {
-        if ((flags & 0x20) == 0) {
+        if ((flags & W8_PROP_ANIMATION_GEOMETRY_DIRTY) == 0) {
             return;
         }
         ApplyAnimationPaths(GetWorld());
         BuildOrRefreshPathingRepresentation();
-        flags &= ~0x20;
+        flags &= ~W8_PROP_ANIMATION_GEOMETRY_DIRTY;
         return;
     }
     anim_frame_fraction = m_pTimer->GetProgress();
@@ -653,7 +652,7 @@ void W8Prop::UpdatePropAnimation()
         AdvanceAnimationValue(frames, static_cast<char>(total));
         animation = Rep()->animation;
         if (animation->path != 0) {
-            if ((flags & 2) != 0) {
+            if ((flags & W8_PROP_ACCUMULATE_PATH_FRAMES) != 0) {
                 rep->frame_index += frames;
                 if (rep->frame_index >= animation->frame_count) {
                     rep->frame_index = animation->frame_count;
@@ -665,7 +664,7 @@ void W8Prop::UpdatePropAnimation()
         }
     }
     if (rep->animation_playing == 0) {
-        flags |= 0x20;
+        flags |= W8_PROP_ANIMATION_GEOMETRY_DIRTY;
     }
 }
 
@@ -697,8 +696,8 @@ void W8Prop::ApplyAnimationPaths(W8World* world)
 
                 PathAIApply(path, mesh);
                 static_cast<srNode*>(mesh)->getLocation(location);
-                position5 = position3;
-                position3 = location;
+                previous_animation_position = animation_position;
+                animation_position = location;
             }
         }
     }
@@ -885,7 +884,7 @@ char W8Prop::GetDelta(srVector3T<float>* out, const srVector3T<float>* point)
     unsigned char next = static_cast<unsigned char>(NextAnimationValue());
 
     if (abs(next - Rep()->subcycle) == 1) {
-        *out = position3 - position5;
+        *out = animation_position - previous_animation_position;
         return Rep()->frame_steps;
     }
     out->SetZero();
@@ -901,10 +900,10 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, bool notify)
     Trigger* owner;
     W8TriggerActionData* action;
 
-    if ((flags & 0x80) == 0 || m_gd_prop == 0) {
+    if ((flags & W8_PROP_GD_TRIGGER_BOUND) == 0 || m_gd_prop == 0) {
         return false;
     }
-    owner = m_gd_prop->m_owner;
+    owner = m_gd_prop->m_trigger;
     if (owner == 0) {
         return false;
     }
@@ -979,11 +978,11 @@ void W8Prop::ApplyAnimationFrame()
                 path, static_cast<float>(static_cast<W8PropRepresentation*>(m_pRep)->subcycle));
             PathAIApply(path, mesh);
             static_cast<srNode*>(mesh)->getLocation(location);
-            position3 = location;
-            position5 = location;
+            animation_position = location;
+            previous_animation_position = location;
         }
     }
-    flags |= 0x20;
+    flags |= W8_PROP_ANIMATION_GEOMETRY_DIRTY;
     BuildOrRefreshPathingRepresentation();
 }
 
@@ -1058,12 +1057,12 @@ void W8Prop::AttachAnimationInstances(W8World* world)
             }
             rotation = path->rotations[Rep()->subcycle];
             next = path->rotations[next_frame];
-            instance->getRotation(rotation0);
+            instance->getRotation(previous_animation_rotation);
             if (!(rotation == next)) {
                 W8Quaternion::InterpolateRotation(rotation, next, anim_frame_fraction,
                                                   &rotation);
             }
-            rotation1 = rotation;
+            animation_rotation = rotation;
             current = **path->nodes->GetAt(Rep()->subcycle);
             next_pos = **path->nodes->GetAt(next_frame);
             inv = g_float_one - anim_frame_fraction;
@@ -1095,8 +1094,8 @@ void W8Prop::AttachAnimationInstances(W8World* world)
                     node = node->next_sibling_;
                 } while (node != 0);
             }
-            position5 = position3;
-            position3 = position;
+            previous_animation_position = animation_position;
+            animation_position = position;
         }
     } else {
         instance = static_cast<stModelInstance*>(Rep()->ToggleAnimation(Rep()->subcycle));
@@ -1280,7 +1279,7 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
 {
     srModelInstance* instance;
 
-    if ((flags & 1) == 0) {
+    if ((flags & W8_PROP_COLLIDABLE) == 0) {
         return 0;
     }
     if (AnimationIsRunning(Rep()->animation) != 1) {
@@ -1298,7 +1297,7 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
         m_gd_prop = new GDProp(instance, m_name, static_cast<unsigned short>(Rep()->subcycle),
                                Rep()->footstep_surface, Rep()->footstep_material);
     } else {
-        if ((flags & 0x20) != 0) {
+        if ((flags & W8_PROP_ANIMATION_GEOMETRY_DIRTY) != 0) {
             m_gd_prop->Initialize(instance, true, static_cast<unsigned short>(Rep()->subcycle),
                                   Rep()->footstep_surface, Rep()->footstep_material);
         } else {
@@ -1326,13 +1325,13 @@ void W8Prop::RunMissileTrigger(W8AIMissile* record)
 }
 
 /* Mirror of GetPosition: while the rep node reports itself current
-   the position is stored in position3, otherwise it goes through the rep
+   the position is stored in animation_position, otherwise it goes through the rep
    node's own location. */
 // FUNCTION: WIZ8 0x0044e310
 void W8Prop::SetPosition(srVector3T<float>* position)
 {
     if (AnimationIsRunning(Rep()->animation) == 1) {
-        position3 = *position;
+        animation_position = *position;
         return;
     }
     m_pRep->SetLocation(position);

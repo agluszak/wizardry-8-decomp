@@ -1483,7 +1483,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
     int count = QueryObjects(&ids, minimum, maximum, 3, -1);
     for (int i = 0; i < count && hit == 0; ++i) {
         W8GDSurface* surface = g_octree_game_data->m_pSurfaces + ids[i];
-        if ((surface->flags & 0x1080) == 0) {
+        if ((surface->flags & W8_GD_SURFACE_CROSSING_MASK) == 0) {
             triangle[0] = g_octree_game_data->m_pVertices[surface->vertex_indices[0]];
             triangle[1] = g_octree_game_data->m_pVertices[surface->vertex_indices[1]];
             triangle[2] = g_octree_game_data->m_pVertices[surface->vertex_indices[2]];
@@ -1501,7 +1501,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
         GDProp* prop = *props->GetAt(id);
         if (prop->BoundsOverlap(minimum, maximum) != 0) {
             prop_hit = true;
-            if ((prop->m_flags & 1) != 0)
+            if ((prop->m_flags & W8_GD_PROP_ALWAYS_BLOCKS_PATH) != 0)
                 return 1;
             /* Dead in retail: current_prop was just set to -1 above and
                QueryObjects never republishes it, while support entries are
@@ -1557,7 +1557,7 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
                     props->Add(record->pStopMeshes + 1);
                     prop_number += 2;
                 } else {
-                    record->pStopMeshes[0].m_flags |= 1;
+                    record->pStopMeshes[0].m_flags |= W8_GD_PROP_ALWAYS_BLOCKS_PATH;
                     unsigned short last = 0xffff;
                     if (prop->anim_obj.num_transforms > 0) {
                         W8LevelFileTransform* t = prop->anim_obj.pTransforms;

@@ -1858,13 +1858,13 @@ unsigned char W8Octree::PrepareNavigatorTarget(W8NavigatorMovementState* movemen
                 movement->attachment->InitializeSegment(&movement->position, &target);
                 movement->attachment->separation = separation;
                 result =
-                    pathing->BuildAttachmentPath(movement->attachment, movement->movement_flags);
+                    pathing->BuildAttachmentPath(movement->attachment, movement->navigation_filter);
                 if (result != 0) {
                     W8NavigatorAttachment* attachment = movement->attachment;
-                    attachment->position7[attachment->path_position_index] =
+                    attachment->path_positions[attachment->path_position_index] =
                         movement->target_position;
-                    attachment->position1 =
-                        attachment->position7[attachment->path_position_index];
+                    attachment->path_destination =
+                        attachment->path_positions[attachment->path_position_index];
                     pathing->AdvanceAttachmentWaypoint(&movement->position, attachment);
                     movement->attachment->GetNextPosition(&movement->target_position);
                     return result;
@@ -1872,10 +1872,10 @@ unsigned char W8Octree::PrepareNavigatorTarget(W8NavigatorMovementState* movemen
                 result = pathing->ProbeAttachmentPath(movement->attachment);
                 if (result != 0) {
                     W8NavigatorAttachment* attachment = movement->attachment;
-                    attachment->position7[attachment->path_position_index] =
+                    attachment->path_positions[attachment->path_position_index] =
                         movement->target_position;
-                    attachment->position1 =
-                        attachment->position7[attachment->path_position_index];
+                    attachment->path_destination =
+                        attachment->path_positions[attachment->path_position_index];
                     return result;
                 }
             } else {
@@ -1935,9 +1935,8 @@ unsigned char W8Octree::PrepareNavigatorPatrol(W8NavigatorMovementState* movemen
         srVector3T<float> velocity = movement->velocity;
         movement->attachment->InitializeSegment(&movement->position,
                                                     &movement->target_position);
-        result = pathing->BuildPatrolPath(movement->attachment, movement->movement_flags,
-                                              &movement->target_position, minimum, &velocity,
-                                              maximum);
+        result = pathing->BuildPatrolPath(movement->attachment, movement->navigation_filter,
+                                          &movement->target_position, minimum, &velocity, maximum);
         if (result == 0) {
             return 0;
         }
@@ -1958,8 +1957,8 @@ unsigned char W8Octree::LinkNavigatorTarget(W8NavigatorMovementState* movement,
                                             const srVector3T<float>* target, float separation)
 {
     if (pathing != 0) {
-        return pathing->LinkAttachmentTarget(movement->attachment, movement->movement_flags,
-                                                 target, separation);
+        return pathing->LinkAttachmentTarget(movement->attachment, movement->navigation_filter,
+                                             target, separation);
     }
     return 0;
 }
@@ -4629,9 +4628,9 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     vecPos = vecDir + movement->position;
     movement->position = vecPos;
     attachment = movement->attachment;
-    *attachment->position7 = vecPos;
-    attachment->position4 = *attachment->position7;
-    attachment->position0 = *attachment->position7;
+    *attachment->path_positions = vecPos;
+    attachment->path_length_origin = *attachment->path_positions;
+    attachment->segment_start = *attachment->path_positions;
     return reached;
 }
 

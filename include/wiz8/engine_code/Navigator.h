@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/navigation_flags.h"
+
 struct W8MonsterInfo;
 
 /* Engine Code\Navigator.cpp owns these declarations. */
@@ -23,7 +25,7 @@ struct W8PathAI;
      waypoint edit clears it.
    - START_WAYPOINT marks start_waypoint as the next position to steer to;
      the planner sets both together and the mover clears the bit on arrival.
-   - POSITION_RECORDED is raised whenever position6 is recorded. */
+   - POSITION_RECORDED is raised whenever recorded_position is recorded. */
 enum W8NavigatorAttachmentFlag {
     W8_NAV_ATTACHMENT_RESULT_MASK = 0x0000000f,
     W8_NAV_ATTACHMENT_FOLLOW_PATH = 0x00010000,
@@ -39,20 +41,20 @@ struct W8NavigatorAttachment {
     unsigned short path_cursor;
     unsigned short position_cursor;
     unsigned short path_position_index;
-    /* 0x00456210 sets this to ten and allocates position7 as ten
+    /* 0x00456210 sets this to ten and allocates path_positions as ten
        srVector3T<float>, so it is that array's capacity. */
     unsigned short capacity;
     unsigned short follow_offset;
     unsigned short padding_0e;
-    srVector3T<float> position0;
-    srVector3T<float> position1;
+    srVector3T<float> segment_start;
+    srVector3T<float> path_destination;
     srVector3T<float> start_waypoint; /* valid while W8_NAV_ATTACHMENT_START_WAYPOINT */
-    srVector3T<float> position4;
-    srVector3T<float> position6;
+    srVector3T<float> path_length_origin;
+    srVector3T<float> recorded_position;
     /* The owned vector array uses the vector type's new[]/delete[] overloads,
        which route allocation and release to srHeap. Growth retains the promoted
        allocation count until the final 16-bit capacity store. */
-    srVector3T<float>* position7;
+    srVector3T<float>* path_positions;
     /* 0x00457530 releases this one with free while +0x4c goes back to srHeap,
        so the two allocations do not share an owner. */
     unsigned short* path_values;
@@ -74,9 +76,9 @@ struct W8NavigatorAttachment {
     // FUNCTION: WIZ8 0x004563A0
     ~W8NavigatorAttachment()
     {
-        srVector3T<float>* positions = position7;
+        srVector3T<float>* positions = path_positions;
         if (positions != 0) {
-            position7 = 0;
+            path_positions = 0;
             delete[] positions;
         }
         unsigned short* values = path_values;
@@ -100,7 +102,7 @@ struct W8NavigatorAttachment {
             static_cast<unsigned int>(path_position_index + 1)) {
             GrowPathStorage();
         }
-        srVector3T<float>* slot = position7 + path_position_index;
+        srVector3T<float>* slot = path_positions + path_position_index;
         *slot = *position;
         path_values[path_position_index] = value;
         ++path_position_index;
@@ -128,7 +130,7 @@ struct W8NavigatorAttachment {
                                                 float distance); /* 0x00456F60 */
     /* Trims the recorded route to end at the sphere of `radius` around
        `target`: walks stored positions while they stay inside, interpolates
-       the boundary point into position1 and the route slot, moves the end
+       the boundary point into path_destination and the route slot, moves the end
        index there, and clears flag 0x400000. One when a boundary point was
        installed. */
     unsigned char TruncatePathAtRadius(const srVector3T<float>* target,
@@ -156,7 +158,7 @@ public:
    independently. World collision routines receive this subobject, while the
    surrounding Navigator owns the path and group-following state. */
 struct W8NavigatorMovementState {
-    unsigned int movement_flags;
+    unsigned int navigation_filter;
     unsigned short location_id;
     unsigned short padding_006;
     int leadership_rank;
@@ -387,7 +389,7 @@ public:
     srVector3T<float> position2;
     float minimum_height;
     float maximum_height;
-    srVector3T<float> position5;
+    srVector3T<float> patrol_home;
     unsigned int unknown_048;
     W8Navigator* target_navigator;
     srVector3T<float> target_last_position;

@@ -9,17 +9,17 @@ static_assert(offsetof(W8NavigatorAttachment, path_position_index) == 0x08,
               "W8NavigatorAttachment_path_position_index");
 static_assert(offsetof(W8NavigatorAttachment, capacity) == 0x0a,
               "W8NavigatorAttachment_capacity_0a");
-static_assert(offsetof(W8NavigatorAttachment, position0) == 0x10,
+static_assert(offsetof(W8NavigatorAttachment, segment_start) == 0x10,
               "W8NavigatorAttachment_position_10");
-static_assert(offsetof(W8NavigatorAttachment, position1) == 0x1c,
+static_assert(offsetof(W8NavigatorAttachment, path_destination) == 0x1c,
               "W8NavigatorAttachment_position_1c");
 static_assert(offsetof(W8NavigatorAttachment, start_waypoint) == 0x28,
               "W8NavigatorAttachment_position_28");
-static_assert(offsetof(W8NavigatorAttachment, position4) == 0x34,
+static_assert(offsetof(W8NavigatorAttachment, path_length_origin) == 0x34,
               "W8NavigatorAttachment_position_34");
-static_assert(offsetof(W8NavigatorAttachment, position6) == 0x40,
+static_assert(offsetof(W8NavigatorAttachment, recorded_position) == 0x40,
               "W8NavigatorAttachment_position_40");
-static_assert(offsetof(W8NavigatorAttachment, position7) == 0x4c,
+static_assert(offsetof(W8NavigatorAttachment, path_positions) == 0x4c,
               "W8NavigatorAttachment_position_4c");
 static_assert(offsetof(W8NavigatorAttachment, path_values) == 0x50,
               "W8NavigatorAttachment_path_values");
