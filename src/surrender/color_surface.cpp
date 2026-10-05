@@ -1231,7 +1231,7 @@ void srColorSurface::setPalette(srPalette* palette)
 // FUNCTION: SURRENDER 0x1005B5B0
 unsigned char* srColorSurface::getAddress(long x, long y)
 {
-    return (unsigned char*)data + pitch * y + (pixel_format.pixel_size + 1) * x;
+    return static_cast<unsigned char*>(data) + pitch * y + (pixel_format.pixel_size + 1) * x;
 }
 
 // FUNCTION: SURRENDER 0x1005B5D0
