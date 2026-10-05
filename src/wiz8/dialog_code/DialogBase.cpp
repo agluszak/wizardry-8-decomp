@@ -17,6 +17,15 @@
 // GLOBAL: WIZ8 0x0069CA28
 int g_live_dialog_count;
 
+void W8DialogBase::CreateCloseButton(W8DialogButton& button, int left, int top)
+{
+    button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
+                     DialogCloseButtonCallback, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
+                     W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    button.SetPosition(m_x + left, m_y + top);
+    button.m_owner = this;
+}
+
 // FUNCTION: WIZ8 0x005dc7a0
 W8DialogBase::W8DialogBase()
 {
@@ -179,14 +188,8 @@ int W8DialogBase::CreateControls()
 // FUNCTION: WIZ8 0x005dcc30
 void W8DialogBase::DestroyControls()
 {
-    if (m_resource != -1) {
-        RemoveButton(m_resource);
-        m_resource = -1;
-    }
-    if (m_border != -1) {
-        UnloadGenericButtonImage(m_border);
-        m_border = -1;
-    }
+    ReleaseDialogButtonHandle(m_resource);
+    ReleaseDialogBorderImage(m_border);
     if (m_text) {
         free(m_text);
         m_text = 0;
@@ -210,34 +213,16 @@ bool W8DialogBase::ProcessInput()
     SGPMouseGetPos(&mouse);
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input)) {
-        switch (input.usEvent) {
-        case RIGHT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            OnRightButtonDown();
-            break;
-        case LEFT_BUTTON_DOWN:
-        case LEFT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case LEFT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            OnRightButtonUp();
-            break;
-        case MOUSE_WHEEL:
-            OnMouseWheel(GetMouseWheelDeltaValue(input.usParam));
-            break;
-        case KEY_DOWN:
-            if (input.usParam == 0x1b) {
-                m_keep_open = false;
+        if (DispatchDialogMouseInput(input.usEvent, mouse.x, mouse.y)) {
+            if (input.usEvent == RIGHT_BUTTON_DOWN) {
+                OnRightButtonDown();
+            } else if (input.usEvent == RIGHT_BUTTON_UP) {
+                OnRightButtonUp();
             }
-            break;
+        } else if (input.usEvent == MOUSE_WHEEL) {
+            OnMouseWheel(GetMouseWheelDeltaValue(input.usParam));
+        } else if (input.usEvent == KEY_DOWN && input.usParam == 0x1b) {
+            m_keep_open = false;
         }
     }
     return m_keep_open;

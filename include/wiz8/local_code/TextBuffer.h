@@ -92,3 +92,13 @@ public:
     int m_fontStateIndex; /* 0x48: -1 skips the state-table override */
     bool m_highlighted;
 };
+
+inline void DestroyDialogTextBuffers(W8TextBuffer** buffers, int count)
+{
+    for (int index = 0; index < count; ++index) {
+        if (buffers[index] != 0) {
+            delete buffers[index];
+            buffers[index] = 0;
+        }
+    }
+}

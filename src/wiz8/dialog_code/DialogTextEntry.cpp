@@ -45,6 +45,30 @@ W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
     UpdateLayout();
 }
 
+int W8DialogTextEntry::DrawLine(wchar_t* line, size_t span, int prefix_remaining, int y)
+{
+    int x = GetHorizontalPosition(StringPixLength(line, m_font));
+    if (prefix_remaining > 0) {
+        if (prefix_remaining < static_cast<int>(span)) {
+            wchar_t saved = line[prefix_remaining];
+            line[prefix_remaining] = L'\0';
+            gprintf(x, y, L"%s", line);
+            x += StringPixLength(line, m_font);
+            line[prefix_remaining] = saved;
+            if (!m_selected) {
+                SetFontObjectPalette16BPP(m_font, m_text_palette < 15
+                                                      ? g_font_state_palettes[m_text_palette]
+                                                      : g_wiz_text_font_secondary_palette);
+            }
+            line += prefix_remaining;
+            span -= prefix_remaining;
+        }
+        prefix_remaining -= span;
+    }
+    gprintf(x, y, L"%s", line);
+    return prefix_remaining;
+}
+
 // FUNCTION: WIZ8 0x005d1170
 void W8DialogTextEntry::Draw(bool force)
 {
@@ -84,25 +108,7 @@ void W8DialogTextEntry::Draw(bool force)
     size_t span = wcscspn(line, g_W8LineBreakCharacters);
     while (line[span] != L'\0') {
         line[span] = L'\0';
-        int x = GetHorizontalPosition(StringPixLength(line, m_font));
-        if (prefix_remaining > 0) {
-            if (prefix_remaining < static_cast<int>(span)) {
-                wchar_t saved = line[prefix_remaining];
-                line[prefix_remaining] = L'\0';
-                gprintf(x, y, L"%s", line);
-                x += StringPixLength(line, m_font);
-                line[prefix_remaining] = saved;
-                if (!m_selected) {
-                    SetFontObjectPalette16BPP(m_font, m_text_palette < 15
-                                                          ? g_font_state_palettes[m_text_palette]
-                                                          : g_wiz_text_font_secondary_palette);
-                }
-                line += prefix_remaining;
-                span -= prefix_remaining;
-            }
-            prefix_remaining -= span;
-        }
-        gprintf(x, y, L"%s", line);
+        prefix_remaining = DrawLine(line, span, prefix_remaining, y);
         y += GetLineHeight();
         line[span] = L'\n';
         if (m_layoutBounds.bottom <= y) {
@@ -111,23 +117,7 @@ void W8DialogTextEntry::Draw(bool force)
         line += span + 1;
         span = wcscspn(line, g_W8LineBreakCharacters);
     }
-    {
-        int x = GetHorizontalPosition(StringPixLength(line, m_font));
-        if (prefix_remaining > 0 && prefix_remaining < static_cast<int>(span)) {
-            wchar_t saved = line[prefix_remaining];
-            line[prefix_remaining] = L'\0';
-            gprintf(x, y, L"%s", line);
-            x += StringPixLength(line, m_font);
-            line[prefix_remaining] = saved;
-            if (!m_selected) {
-                SetFontObjectPalette16BPP(m_font, m_text_palette < 15
-                                                      ? g_font_state_palettes[m_text_palette]
-                                                      : g_wiz_text_font_secondary_palette);
-            }
-            line += prefix_remaining;
-        }
-        gprintf(x, y, L"%s", line);
-    }
+    DrawLine(line, span, prefix_remaining, y);
 done:
     InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top, m_layoutBounds.right,
                      m_layoutBounds.bottom, 0);

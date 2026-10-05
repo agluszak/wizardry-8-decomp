@@ -21,6 +21,7 @@ public:
     void SetSelected(bool selected);
 
 private:
+    int DrawLine(wchar_t* line, size_t span, int prefix_remaining, int y);
     friend class W8DialogTextArea;
     /* The controller reads m_category when it snapshots the transcript. */
     friend class W8NpcDialogueTextController;

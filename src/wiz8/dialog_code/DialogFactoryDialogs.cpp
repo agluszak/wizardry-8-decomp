@@ -41,11 +41,26 @@
    below; their addresses sit in an attribution gap, so their original TU is
    unproven rather than their bodies unrecovered. */
 
+void W8ListBoxDialog::ClearLines()
+{
+    int line_count = m_lines.GetCount();
+    for (int index = 0; index < line_count; ++index) {
+        wchar_t* line = *m_lines.GetAt(index);
+        if (line != 0) {
+            free(line);
+        }
+    }
+    m_lines.Clear();
+    m_field_064.Clear();
+    m_selected_line = -1;
+    m_field_074 = 0;
+    m_scrollable = false;
+    m_first_visible_line = 0;
+}
+
 // FUNCTION: WIZ8 0x005cbb40
 W8ListBoxDialog::W8ListBoxDialog()
 {
-    int index;
-
     m_field_078 = 0.05f;
     m_field_07c = 0.2f;
     m_field_080 = 0.9f;
@@ -69,19 +84,7 @@ W8ListBoxDialog::W8ListBoxDialog()
     m_cancel_button = -1;
     m_cancel_image = -1;
     edge_inlay = -1;
-    int line_count = m_lines.GetCount();
-    for (index = 0; index < line_count; ++index) {
-        wchar_t* line = *m_lines.GetAt(index);
-        if (line != 0) {
-            free(line);
-        }
-    }
-    m_lines.Clear();
-    m_field_064.Clear();
-    m_selected_line = -1;
-    m_field_074 = 0;
-    m_scrollable = false;
-    m_first_visible_line = 0;
+    ClearLines();
 }
 
 // FUNCTION: WIZ8 0x005cbce0
@@ -115,6 +118,27 @@ int W8ListBoxDialog::GetVisibleLineCount()
            static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)));
 }
 
+/* Both selection directions clamp the requested top row independently of
+   the selected row. Retail tests a zero area handle, not the -1 sentinel. */
+void W8ListBoxDialog::SetFirstVisibleLine(int requested)
+{
+    if (m_area_button != 0) {
+        int first = requested;
+        if (m_lines.GetCount() - GetVisibleLineCount() < requested) {
+            first = m_lines.GetCount() - GetVisibleLineCount();
+        }
+        if (first < 0) {
+            first = 0;
+        } else if (m_lines.GetCount() - GetVisibleLineCount() < requested) {
+            first = m_lines.GetCount() - GetVisibleLineCount();
+        }
+        if (first != m_first_visible_line) {
+            m_first_visible_line = first;
+            m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x005CCB80
 void W8ListBoxDialog::SetCurrentLine(int line)
 {
@@ -131,37 +155,9 @@ void W8ListBoxDialog::SetCurrentLine(int line)
     }
     int visible = GetVisibleLineCount();
     if (target < m_first_visible_line) {
-        if (m_area_button != 0) {
-            int first = target;
-            if (m_lines.GetCount() - GetVisibleLineCount() < target) {
-                first = m_lines.GetCount() - GetVisibleLineCount();
-            }
-            if (first < 0) {
-                first = 0;
-            } else if (m_lines.GetCount() - GetVisibleLineCount() < target) {
-                first = m_lines.GetCount() - GetVisibleLineCount();
-            }
-            if (first != m_first_visible_line) {
-                m_first_visible_line = first;
-                m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-            }
-        }
+        SetFirstVisibleLine(target);
     } else if (target < m_lines.GetCount() && m_first_visible_line - 1 + visible < target) {
-        int first = target - visible + 1;
-        if (m_area_button != 0) {
-            if (m_lines.GetCount() - GetVisibleLineCount() < first) {
-                first = m_lines.GetCount() - GetVisibleLineCount();
-            }
-            if (first < 0) {
-                first = 0;
-            } else if (m_lines.GetCount() - GetVisibleLineCount() < first) {
-                first = m_lines.GetCount() - GetVisibleLineCount();
-            }
-            if (first != m_first_visible_line) {
-                m_first_visible_line = first;
-                m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-            }
-        }
+        SetFirstVisibleLine(target - visible + 1);
     }
     m_selected_line = target;
     m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
@@ -353,90 +349,25 @@ int W8ListBoxDialog::CreateControls()
 // FUNCTION: WIZ8 0x005cc430
 void W8ListBoxDialog::DestroyControls()
 {
-    int index;
-
     W8DialogBase::DestroyControls();
-    if (m_text_button != -1) {
-        RemoveButton(m_text_button);
-        m_text_button = -1;
-    }
-    if (m_second_text_button != -1) {
-        RemoveButton(m_second_text_button);
-        m_second_text_button = -1;
-    }
-    if (m_area_button != -1) {
-        RemoveButton(m_area_button);
-        m_area_button = -1;
-    }
-    if (m_up_button != -1) {
-        RemoveButton(m_up_button);
-        m_up_button = -1;
-    }
-    if (m_down_button != -1) {
-        RemoveButton(m_down_button);
-        m_down_button = -1;
-    }
-    if (m_slider_button != -1) {
-        RemoveButton(m_slider_button);
-        m_slider_button = -1;
-    }
-    if (m_third_text_button != -1) {
-        RemoveButton(m_third_text_button);
-        m_third_text_button = -1;
-    }
-    if (m_ok_button != -1) {
-        RemoveButton(m_ok_button);
-        m_ok_button = -1;
-    }
-    if (m_cancel_button != -1) {
-        RemoveButton(m_cancel_button);
-        m_cancel_button = -1;
-    }
-    if (area_inlay != -1) {
-        UnloadGenericButtonImage(area_inlay);
-        area_inlay = -1;
-    }
-    if (third_btn_inlay != -1) {
-        UnloadGenericButtonImage(third_btn_inlay);
-        third_btn_inlay = -1;
-    }
-    if (edge_inlay != -1) {
-        UnloadGenericButtonImage(edge_inlay);
-        edge_inlay = -1;
-    }
-    if (m_up_image != -1) {
-        UnloadButtonImage(m_up_image);
-        m_up_image = -1;
-    }
-    if (m_down_image != -1) {
-        UnloadButtonImage(m_down_image);
-        m_down_image = -1;
-    }
-    if (m_slider_image != -1) {
-        UnloadButtonImage(m_slider_image);
-        m_slider_image = -1;
-    }
-    if (m_ok_image != -1) {
-        UnloadButtonImage(m_ok_image);
-        m_ok_image = -1;
-    }
-    if (m_cancel_image != -1) {
-        UnloadButtonImage(m_cancel_image);
-        m_cancel_image = -1;
-    }
-    int line_count = m_lines.GetCount();
-    for (index = 0; index < line_count; ++index) {
-        wchar_t* line = *m_lines.GetAt(index);
-        if (line != 0) {
-            free(line);
-        }
-    }
-    m_lines.Clear();
-    m_field_064.Clear();
-    m_selected_line = -1;
-    m_field_074 = 0;
-    m_scrollable = false;
-    m_first_visible_line = 0;
+    ReleaseDialogButtonHandle(m_text_button);
+    ReleaseDialogButtonHandle(m_second_text_button);
+    ReleaseDialogButtonHandle(m_area_button);
+    ReleaseDialogButtonHandle(m_up_button);
+    ReleaseDialogButtonHandle(m_down_button);
+    ReleaseDialogButtonHandle(m_slider_button);
+    ReleaseDialogButtonHandle(m_third_text_button);
+    ReleaseDialogButtonHandle(m_ok_button);
+    ReleaseDialogButtonHandle(m_cancel_button);
+    ReleaseDialogBorderImage(area_inlay);
+    ReleaseDialogBorderImage(third_btn_inlay);
+    ReleaseDialogBorderImage(edge_inlay);
+    ReleaseDialogButtonImage(m_up_image);
+    ReleaseDialogButtonImage(m_down_image);
+    ReleaseDialogButtonImage(m_slider_image);
+    ReleaseDialogButtonImage(m_ok_image);
+    ReleaseDialogButtonImage(m_cancel_image);
+    ClearLines();
 }
 
 /* The scrolling text area. Rows shrink by the scroll arrow when the list does
@@ -558,30 +489,13 @@ bool W8ListBoxDialog::ProcessInput()
     SGPMouseGetPos(&mouse);
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input) == 1) {
-        switch (input.usEvent) {
-        case LEFT_BUTTON_DOWN:
-        case LEFT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case LEFT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case MOUSE_WHEEL:
+        if (DispatchDialogMouseInput(input.usEvent, mouse.x, mouse.y)) {
+            continue;
+        }
+        if (input.usEvent == MOUSE_WHEEL) {
             SetCurrentLine(m_selected_line - GetMouseWheelDeltaValue(input.usParam));
-            break;
-        default:
+        } else {
             HandleInputEvent(&input);
-            break;
         }
     }
     return m_keep_open;
@@ -663,21 +577,9 @@ W8SplitAmountDialog::W8SplitAmountDialog(int total)
 // FUNCTION: WIZ8 0x005d9ac0
 void W8SplitAmountDialog::DestroyControls()
 {
-    int index;
-
     W8DialogBase::DestroyControls();
-    for (index = 0; index < 6; ++index) {
-        if (m_buttons[index] != 0) {
-            delete m_buttons[index];
-            m_buttons[index] = 0;
-        }
-    }
-    for (index = 0; index < 3; ++index) {
-        if (m_text_buffers[index] != 0) {
-            delete m_text_buffers[index];
-            m_text_buffers[index] = 0;
-        }
-    }
+    DestroyDialogButtons(m_buttons, 6);
+    DestroyDialogTextBuffers(m_text_buffers, 3);
     if (m_split_input != 0) {
         NoOp();
         delete m_split_input;
@@ -696,8 +598,6 @@ W8SplitAmountDialog::~W8SplitAmountDialog()
 // FUNCTION: WIZ8 0x005d99f0
 int W8SplitAmountDialog::CreateControls()
 {
-    int index;
-
     W8DialogBase::CreateControls();
     m_result = W8_SPLIT_RESULT_PENDING;
     if (!CreateButtons()) {
@@ -705,28 +605,13 @@ int W8SplitAmountDialog::CreateControls()
         return 7;
     }
     if (!CreateTextBuffers()) {
-        for (index = 0; index < 6; ++index) {
-            if (m_buttons[index] != 0) {
-                delete m_buttons[index];
-                m_buttons[index] = 0;
-            }
-        }
+        DestroyDialogButtons(m_buttons, 6);
         m_error = 7;
         return 7;
     }
     if (!CreateNumericInput()) {
-        for (index = 0; index < 6; ++index) {
-            if (m_buttons[index] != 0) {
-                delete m_buttons[index];
-                m_buttons[index] = 0;
-            }
-        }
-        for (index = 0; index < 3; ++index) {
-            if (m_text_buffers[index] != 0) {
-                delete m_text_buffers[index];
-                m_text_buffers[index] = 0;
-            }
-        }
+        DestroyDialogButtons(m_buttons, 6);
+        DestroyDialogTextBuffers(m_text_buffers, 3);
         m_error = 7;
         return 7;
     }
@@ -740,17 +625,8 @@ bool W8SplitAmountDialog::CreateButtons()
 {
     int index;
 
-    for (index = 0; index < 6; ++index) {
-        m_buttons[index] = new W8DialogButton;
-        if (m_buttons[index] == 0) {
-            for (index = 0; index < 6; ++index) {
-                if (m_buttons[index] != 0) {
-                    delete m_buttons[index];
-                    m_buttons[index] = 0;
-                }
-            }
-            return false;
-        }
+    if (!AllocateDialogButtons(m_buttons, 6)) {
+        return false;
     }
     m_buttons[0]->Configure("Data\\Dialogs\\popup_splititem.sti", 0xc, 9, 10, 0xd, 0xb,
                             SplitDecrementOne, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
@@ -797,12 +673,7 @@ bool W8SplitAmountDialog::CreateTextBuffers()
             &bounds, gppStringList[g_split_amount_string_ids[index]], g_wiz_text_font_secondary,
             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight, 4);
         if (m_text_buffers[index] == 0) {
-            for (index = 0; index < 3; ++index) {
-                if (m_text_buffers[index] != 0) {
-                    delete m_text_buffers[index];
-                    m_text_buffers[index] = 0;
-                }
-            }
+            DestroyDialogTextBuffers(m_text_buffers, 3);
             return false;
         }
     }
@@ -896,20 +767,8 @@ void W8SplitAmountDialog::UpdateTextBuffers()
 // FUNCTION: WIZ8 0x005da090
 void W8SplitAmountDialog::UpdateButtonStates()
 {
-    if (m_taken == 0) {
-        m_buttons[0]->SetEnabled(false);
-        m_buttons[0]->m_dirty = true;
-    } else if (!m_buttons[0]->IsEnabled()) {
-        m_buttons[0]->SetEnabled(true);
-        m_buttons[0]->m_dirty = true;
-    }
-    if (m_remaining == 0) {
-        m_buttons[1]->SetEnabled(false);
-        m_buttons[1]->m_dirty = true;
-    } else if (!m_buttons[1]->IsEnabled()) {
-        m_buttons[1]->SetEnabled(true);
-        m_buttons[1]->m_dirty = true;
-    }
+    m_buttons[0]->UpdateEnabledState(m_taken != 0);
+    m_buttons[1]->UpdateEnabledState(m_remaining != 0);
     if (m_remaining < 0) {
         m_buttons[4]->SetEnabled(false);
         m_buttons[4]->m_dirty = true;
@@ -931,6 +790,34 @@ void W8SplitAmountDialog::OnNumericInputChanged(int value)
     }
 }
 
+void W8SplitAmountDialog::DecreaseAmount(int amount)
+{
+    m_taken -= amount;
+    if (m_taken < 0) {
+        m_taken = 0;
+    }
+    m_remaining += amount;
+    if (m_remaining > m_total) {
+        m_remaining = m_total;
+    }
+    UpdateButtonStates();
+    UpdateTextBuffers();
+}
+
+void W8SplitAmountDialog::IncreaseAmount(int amount)
+{
+    m_remaining -= amount;
+    if (m_remaining < 0) {
+        m_remaining = 0;
+    }
+    m_taken += amount;
+    if (m_taken > m_total) {
+        m_taken = m_total;
+    }
+    UpdateButtonStates();
+    UpdateTextBuffers();
+}
+
 // FUNCTION: WIZ8 0x005da180
 bool W8SplitAmountDialog::HandleInputEvent(const InputAtom* input)
 {
@@ -949,16 +836,10 @@ bool W8SplitAmountDialog::HandleInputEvent(const InputAtom* input)
         if (key == 0x1b) {
             m_keep_open = false;
         } else if (key == 0x2b) {
-            m_remaining = __max(0, m_remaining - 1);
-            m_taken = __min(m_taken + 1, m_total);
-            UpdateButtonStates();
-            UpdateTextBuffers();
+            IncreaseAmount(1);
             return m_keep_open;
         } else if (key == 0x2d) {
-            m_taken = __max(0, m_taken - 1);
-            m_remaining = __min(m_remaining + 1, m_total);
-            UpdateButtonStates();
-            UpdateTextBuffers();
+            DecreaseAmount(1);
             return m_keep_open;
         }
     }
@@ -968,45 +849,7 @@ bool W8SplitAmountDialog::HandleInputEvent(const InputAtom* input)
 // FUNCTION: WIZ8 0x005da2a0
 bool W8SplitAmountDialog::ProcessInput()
 {
-    POINT mouse;
-    InputAtom input;
-
-    SGPMouseGetPos(&mouse);
-    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
-    while (DequeueEvent(&input) == 1) {
-        switch (input.usEvent) {
-        case LEFT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case LEFT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_REPEAT, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case LEFT_BUTTON_UP:
-            if (m_active_field != 0) {
-                m_active_field->SetActive(false);
-            }
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_REPEAT, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        default:
-            HandleInputEvent(&input);
-            break;
-        }
-    }
+    ProcessNumericDialogInputEvents(this, m_active_field, &W8SplitAmountDialog::HandleInputEvent);
     return m_keep_open;
 }
 
@@ -1014,17 +857,7 @@ bool W8SplitAmountDialog::ProcessInput()
 void W8SplitAmountDialog::SplitDecrementOne(W8DialogButton* button)
 {
     if (button != 0) {
-        W8SplitAmountDialog* dialog = static_cast<W8SplitAmountDialog*>(button->m_owner);
-        dialog->m_taken -= 1;
-        if (dialog->m_taken < 0) {
-            dialog->m_taken = 0;
-        }
-        dialog->m_remaining += 1;
-        if (dialog->m_remaining > dialog->m_total) {
-            dialog->m_remaining = dialog->m_total;
-        }
-        dialog->UpdateButtonStates();
-        dialog->UpdateTextBuffers();
+        static_cast<W8SplitAmountDialog*>(button->m_owner)->DecreaseAmount(1);
     }
 }
 
@@ -1032,17 +865,7 @@ void W8SplitAmountDialog::SplitDecrementOne(W8DialogButton* button)
 void W8SplitAmountDialog::SplitDecrementFive(W8DialogButton* button)
 {
     if (button != 0) {
-        W8SplitAmountDialog* dialog = static_cast<W8SplitAmountDialog*>(button->m_owner);
-        dialog->m_taken -= 5;
-        if (dialog->m_taken < 0) {
-            dialog->m_taken = 0;
-        }
-        dialog->m_remaining += 5;
-        if (dialog->m_remaining > dialog->m_total) {
-            dialog->m_remaining = dialog->m_total;
-        }
-        dialog->UpdateButtonStates();
-        dialog->UpdateTextBuffers();
+        static_cast<W8SplitAmountDialog*>(button->m_owner)->DecreaseAmount(5);
     }
 }
 
@@ -1050,17 +873,7 @@ void W8SplitAmountDialog::SplitDecrementFive(W8DialogButton* button)
 void W8SplitAmountDialog::SplitIncrementOne(W8DialogButton* button)
 {
     if (button != 0) {
-        W8SplitAmountDialog* dialog = static_cast<W8SplitAmountDialog*>(button->m_owner);
-        dialog->m_remaining -= 1;
-        if (dialog->m_remaining < 0) {
-            dialog->m_remaining = 0;
-        }
-        dialog->m_taken += 1;
-        if (dialog->m_taken > dialog->m_total) {
-            dialog->m_taken = dialog->m_total;
-        }
-        dialog->UpdateButtonStates();
-        dialog->UpdateTextBuffers();
+        static_cast<W8SplitAmountDialog*>(button->m_owner)->IncreaseAmount(1);
     }
 }
 
@@ -1068,17 +881,7 @@ void W8SplitAmountDialog::SplitIncrementOne(W8DialogButton* button)
 void W8SplitAmountDialog::SplitIncrementFive(W8DialogButton* button)
 {
     if (button != 0) {
-        W8SplitAmountDialog* dialog = static_cast<W8SplitAmountDialog*>(button->m_owner);
-        dialog->m_remaining -= 5;
-        if (dialog->m_remaining < 0) {
-            dialog->m_remaining = 0;
-        }
-        dialog->m_taken += 5;
-        if (dialog->m_taken > dialog->m_total) {
-            dialog->m_taken = dialog->m_total;
-        }
-        dialog->UpdateButtonStates();
-        dialog->UpdateTextBuffers();
+        static_cast<W8SplitAmountDialog*>(button->m_owner)->IncreaseAmount(5);
     }
 }
 
@@ -1145,19 +948,12 @@ W8TriggerItemPickerDialog::W8TriggerItemPickerDialog()
 // FUNCTION: WIZ8 0x005cd820
 W8TriggerItemPickerDialog::~W8TriggerItemPickerDialog()
 {
-    int index;
-
     if (m_destroy_callback != 0) {
         m_destroy_callback(this);
         m_destroy_callback = 0;
     }
     W8DialogBase::DestroyControls();
-    for (index = 0; index < 13; ++index) {
-        if (m_buttons[index] != 0) {
-            delete m_buttons[index];
-            m_buttons[index] = 0;
-        }
-    }
+    DestroyDialogButtons(m_buttons, 13);
 }
 
 /* Allocate the thirteen button slots, then configure their frame images,
@@ -1171,12 +967,7 @@ bool W8TriggerItemPickerDialog::CreateButtons()
     for (index = 0; index < 13; ++index) {
         m_buttons[index] = new W8DialogButton;
         if (m_buttons[index] == 0) {
-            for (index = 0; index < 13; ++index) {
-                if (m_buttons[index] != 0) {
-                    delete m_buttons[index];
-                    m_buttons[index] = 0;
-                }
-            }
+            DestroyDialogButtons(m_buttons, 13);
             return false;
         }
         m_buttons[index]->m_owner = this;
@@ -1232,12 +1023,7 @@ bool W8TriggerItemPickerDialog::CreateButtons()
     m_buttons[8]->m_right_toggles = true;
     for (index = 0; index < 13; ++index) {
         if (m_buttons[index] == 0) {
-            for (index = 0; index < 13; ++index) {
-                if (m_buttons[index] != 0) {
-                    delete m_buttons[index];
-                    m_buttons[index] = 0;
-                }
-            }
+            DestroyDialogButtons(m_buttons, 13);
             return false;
         }
     }
@@ -1456,60 +1242,41 @@ void W8TriggerItemPickerDialog::ToggleVisibleItem3(W8DialogButton* button)
 
 /* The four right-click callbacks copy the visible row's world item and open
    the assay dialog on it. */
-// FUNCTION: WIZ8 0x005ce970
-void W8TriggerItemPickerDialog::ShowVisibleItemInfo0(W8DialogButton* button)
+void W8TriggerItemPickerDialog::ShowVisibleItemInfo(W8DialogButton* button, int row)
 {
     if (button != 0) {
         W8TriggerItemPickerDialog* dialog =
             static_cast<W8TriggerItemPickerDialog*>(button->m_owner);
-        if (dialog->m_first_item < dialog->items.GetCount()) {
+        if (dialog->m_first_item < dialog->items.GetCount() + row) {
             W8ItemInstance* instance =
-                CopyWorldItemInstance(*dialog->items.GetAt(dialog->m_first_item));
+                CopyWorldItemInstance(*dialog->items.GetAt(dialog->m_first_item + row));
             OpenAssayDialog(instance, -1);
         }
     }
+}
+
+// FUNCTION: WIZ8 0x005ce970
+void W8TriggerItemPickerDialog::ShowVisibleItemInfo0(W8DialogButton* button)
+{
+    ShowVisibleItemInfo(button, 0);
 }
 
 // FUNCTION: WIZ8 0x005ce9b0
 void W8TriggerItemPickerDialog::ShowVisibleItemInfo1(W8DialogButton* button)
 {
-    if (button != 0) {
-        W8TriggerItemPickerDialog* dialog =
-            static_cast<W8TriggerItemPickerDialog*>(button->m_owner);
-        if (dialog->m_first_item < dialog->items.GetCount() + 1) {
-            W8ItemInstance* instance =
-                CopyWorldItemInstance(*dialog->items.GetAt(dialog->m_first_item + 1));
-            OpenAssayDialog(instance, -1);
-        }
-    }
+    ShowVisibleItemInfo(button, 1);
 }
 
 // FUNCTION: WIZ8 0x005ce9f0
 void W8TriggerItemPickerDialog::ShowVisibleItemInfo2(W8DialogButton* button)
 {
-    if (button != 0) {
-        W8TriggerItemPickerDialog* dialog =
-            static_cast<W8TriggerItemPickerDialog*>(button->m_owner);
-        if (dialog->m_first_item < dialog->items.GetCount() + 2) {
-            W8ItemInstance* instance =
-                CopyWorldItemInstance(*dialog->items.GetAt(dialog->m_first_item + 2));
-            OpenAssayDialog(instance, -1);
-        }
-    }
+    ShowVisibleItemInfo(button, 2);
 }
 
 // FUNCTION: WIZ8 0x005cea30
 void W8TriggerItemPickerDialog::ShowVisibleItemInfo3(W8DialogButton* button)
 {
-    if (button != 0) {
-        W8TriggerItemPickerDialog* dialog =
-            static_cast<W8TriggerItemPickerDialog*>(button->m_owner);
-        if (dialog->m_first_item < dialog->items.GetCount() + 3) {
-            W8ItemInstance* instance =
-                CopyWorldItemInstance(*dialog->items.GetAt(dialog->m_first_item + 3));
-            OpenAssayDialog(instance, -1);
-        }
-    }
+    ShowVisibleItemInfo(button, 3);
 }
 
 /* The two scroll arrows step the first visible row through SetFirstVisible. */
@@ -1729,38 +1496,13 @@ bool W8TriggerItemPickerDialog::ProcessInput()
         if (HitTestPartyPortrait(&input) != 0) {
             continue;
         }
-        switch (input.usEvent) {
-        case LEFT_BUTTON_DOWN:
-        case LEFT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case LEFT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case MOUSE_WHEEL: {
-            short delta = GetMouseWheelDeltaValue(input.usParam);
-            int first_item = m_first_item - delta;
-            if (items.GetCount() <= 4) {
-                m_first_item = 0;
-            } else if (first_item >= 0 && first_item <= items.GetCount() - 4) {
-                m_first_item = first_item;
-                m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-            }
-            break;
+        if (DispatchDialogMouseInput(input.usEvent, mouse.x, mouse.y)) {
+            continue;
         }
-        default:
+        if (input.usEvent == MOUSE_WHEEL) {
+            SetFirstVisible(m_first_item - GetMouseWheelDeltaValue(input.usParam));
+        } else {
             HandleInputEvent(&input);
-            break;
         }
     }
     return m_keep_open;
@@ -1910,15 +1652,8 @@ int W8TriggerItemPickerDialog::CreateControls()
 // FUNCTION: WIZ8 0x005cdc40
 void W8TriggerItemPickerDialog::DestroyControls()
 {
-    int index;
-
     W8DialogBase::DestroyControls();
-    for (index = 0; index < 13; ++index) {
-        if (m_buttons[index] != 0) {
-            delete m_buttons[index];
-            m_buttons[index] = 0;
-        }
-    }
+    DestroyDialogButtons(m_buttons, 13);
 }
 
 // FUNCTION: WIZ8 0x005ce6e0

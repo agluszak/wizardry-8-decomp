@@ -258,17 +258,8 @@ unsigned char CreateSubMenuScrollButtons(void)
 {
     int i;
 
-    for (i = 0; i < 2; ++i) {
-        g_submenu_scroll_buttons[i] = new W8DialogButton;
-        if (g_submenu_scroll_buttons[i] == 0) {
-            for (i = 0; i < 2; ++i) {
-                if (g_submenu_scroll_buttons[i] != 0) {
-                    delete g_submenu_scroll_buttons[i];
-                    g_submenu_scroll_buttons[i] = 0;
-                }
-            }
-            return 0;
-        }
+    if (!AllocateDialogButtons(g_submenu_scroll_buttons, 2)) {
+        return 0;
     }
     g_submenu_scroll_buttons[0]->Configure("Data\\Main Interface\\main_scroll_arrows.sti", 3, 0, 1,
                                            2, 2, SubMenuScrollArrowUp, BUTTON_NO_CALLBACK, false,
@@ -307,17 +298,8 @@ unsigned char CreateSubMenuPanelButtons(void)
 {
     int index;
 
-    for (index = 0; index < 2; ++index) {
-        g_submenu_panel_buttons[index] = new W8DialogButton;
-        if (g_submenu_panel_buttons[index] == 0) {
-            for (index = 0; index < 2; ++index) {
-                if (g_submenu_panel_buttons[index] != 0) {
-                    delete g_submenu_panel_buttons[index];
-                    g_submenu_panel_buttons[index] = 0;
-                }
-            }
-            return 0;
-        }
+    if (!AllocateDialogButtons(g_submenu_panel_buttons, 2)) {
+        return 0;
     }
     g_submenu_panel_buttons[0]->Configure(g_submenu_icons_path, 0x21, 0x1e, 0x1f, 0x20, 0x22,
                                           SubMenuPanelCloseButton, BUTTON_NO_CALLBACK, false,
@@ -462,17 +444,8 @@ unsigned char CreateCombatStanceButtons(void)
 {
     int index;
 
-    for (index = 0; index < 5; ++index) {
-        g_combat_stance_buttons[index] = new W8DialogButton;
-        if (g_combat_stance_buttons[index] == 0) {
-            for (index = 0; index < 5; ++index) {
-                if (g_combat_stance_buttons[index] != 0) {
-                    delete g_combat_stance_buttons[index];
-                    g_combat_stance_buttons[index] = 0;
-                }
-            }
-            return 0;
-        }
+    if (!AllocateDialogButtons(g_combat_stance_buttons, 5)) {
+        return 0;
     }
     g_combat_stance_buttons[0]->Configure(
         g_attack_confirm_path, 3, 0, 1, 2, 2, MainGameCombatConfirmButton, BUTTON_NO_CALLBACK,
@@ -523,17 +496,8 @@ unsigned char CreateRoofButtons(void)
 {
     int index;
 
-    for (index = 0; index < 3; ++index) {
-        g_roof_buttons[index] = new W8DialogButton;
-        if (g_roof_buttons[index] == 0) {
-            for (index = 0; index < 3; ++index) {
-                if (g_roof_buttons[index] != 0) {
-                    delete g_roof_buttons[index];
-                    g_roof_buttons[index] = 0;
-                }
-            }
-            return 0;
-        }
+    if (!AllocateDialogButtons(g_roof_buttons, 3)) {
+        return 0;
     }
     g_roof_buttons[0]->Configure(g_roof_buttons_path, 9, 0, 6, 3, 6, MainGameRoofButton0,
                                  BUTTON_NO_CALLBACK, true, MSYS_PRIORITY_HIGHEST, 0x38,
@@ -787,17 +751,8 @@ unsigned char CreateLayoutArrowButtons(void)
 {
     int index;
 
-    for (index = 0; index < 6; ++index) {
-        g_layout_arrow_buttons[index] = new W8DialogButton;
-        if (g_layout_arrow_buttons[index] == 0) {
-            for (index = 0; index < 6; ++index) {
-                if (g_layout_arrow_buttons[index] != 0) {
-                    delete g_layout_arrow_buttons[index];
-                    g_layout_arrow_buttons[index] = 0;
-                }
-            }
-            return 0;
-        }
+    if (!AllocateDialogButtons(g_layout_arrow_buttons, 6)) {
+        return 0;
     }
     g_layout_arrow_buttons[0]->Configure(g_layout_arrows_path, 6, 0, 1, BUTTON_NO_IMAGE, 2,
                                          MainGameLayoutRadarButton, BUTTON_NO_CALLBACK, false,
@@ -849,58 +804,18 @@ void CreateMainGameInterfaceButtons(void)
 // FUNCTION: WIZ8 0x00598AE0
 void DestroyMainGameInterfaceButtons(void)
 {
-    int index;
-
-    for (index = 0; index < 9; ++index) {
-        if (g_submenu_buttons[index] != 0) {
-            delete g_submenu_buttons[index];
-            g_submenu_buttons[index] = 0;
-        }
-    }
-    for (index = 0; index < 2; ++index) {
-        if (g_submenu_scroll_buttons[index] != 0) {
-            delete g_submenu_scroll_buttons[index];
-            g_submenu_scroll_buttons[index] = 0;
-        }
-    }
-    for (index = 0; index < 2; ++index) {
-        if (g_submenu_panel_buttons[index] != 0) {
-            delete g_submenu_panel_buttons[index];
-            g_submenu_panel_buttons[index] = 0;
-        }
-    }
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
+    DestroyDialogButtons(g_submenu_buttons, 9);
+    DestroyDialogButtons(g_submenu_scroll_buttons, 2);
+    DestroyDialogButtons(g_submenu_panel_buttons, 2);
+    DestroyControlPanel(gpSubMenuPanel);
+    DestroyTextControls(g_submenu_rows, 5);
     if (g_options_disk_button != 0) {
         delete g_options_disk_button;
         g_options_disk_button = 0;
     }
-    for (index = 0; index < 5; ++index) {
-        if (g_combat_stance_buttons[index] != 0) {
-            delete g_combat_stance_buttons[index];
-            g_combat_stance_buttons[index] = 0;
-        }
-    }
-    for (index = 0; index < 3; ++index) {
-        if (g_roof_buttons[index] != 0) {
-            delete g_roof_buttons[index];
-            g_roof_buttons[index] = 0;
-        }
-    }
-    for (index = 0; index < 6; ++index) {
-        if (g_layout_arrow_buttons[index] != 0) {
-            delete g_layout_arrow_buttons[index];
-            g_layout_arrow_buttons[index] = 0;
-        }
-    }
+    DestroyDialogButtons(g_combat_stance_buttons, 5);
+    DestroyDialogButtons(g_roof_buttons, 3);
+    DestroyDialogButtons(g_layout_arrow_buttons, 6);
 }
 
 static void SetMenuButtonBanksEnabled(bool enabled)
@@ -1573,14 +1488,7 @@ unsigned char BuildSubMenuPanel(short notification)
     g_level_block->combat_end_notification = notification;
     g_submenu_menu = menu;
     g_submenu_entry_count = built;
-    RegionSetEnable(0x27);
-    EnableRegionInput(0xc7);
-    for (index = 0; index < g_submenu_entry_count; ++index) {
-        EnableRegionInput(index + 0xc2);
-    }
-    for (index = g_submenu_entry_count; index < 5; ++index) {
-        DisableRegionInput(index + 0xc2);
-    }
+    EnableSubMenuRegions();
     return 1;
 }
 

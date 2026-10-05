@@ -505,11 +505,22 @@ public:
        value, while callers such as the dialog destructor delete it. */
     T RemoveAt(int position);
 
-    /* Removes the entry at position and deletes the object it pointed at.
-       The spell-effect list teardown is its only retail use: LoadGame calls
-       the out-of-line emission at 0x00516A00 while ResetLiveSessionForLoad
-       inlines the same sequence. */
+    /* Removes the entry before deleting its object. UI ownership teardown
+       repeats this operation in reverse order; spell-effect teardown also
+       calls the out-of-line emission at 0x00516A00. */
     void RemoveAtAndDelete(int position);
+
+    /* Capture the original extent, unlinking each entry before destruction.
+       Destructors may change the vector, so RemoveAt retains its bounds check. */
+    void RemoveAllAndDelete()
+    {
+        int index = GetCount();
+        if (index > 0) {
+            while (--index, index >= 0) {
+                RemoveAtAndDelete(index);
+            }
+        }
+    }
 
     /* Removes the first matching entry, if any, and reports whether one was
        there. The startup entry queues reach it through QueueEntry. */

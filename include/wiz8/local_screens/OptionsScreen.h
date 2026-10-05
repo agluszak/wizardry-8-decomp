@@ -50,6 +50,7 @@ public:
 class W8OptionsSaveRow : public W8TextControl {
 public:
     W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode);
+    void SetSave(W8SaveSlot* save);
     virtual void Redraw(bool full_redraw) override;
     virtual void OnLeftButtonUp(int event) override;
     virtual void OnLeftButtonDoubleClick(int event) override;

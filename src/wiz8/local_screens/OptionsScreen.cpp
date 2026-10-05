@@ -204,9 +204,7 @@ W8OptionsPanelSet::W8OptionsPanelSet()
 
 W8OptionsPanelSet::~W8OptionsPanelSet()
 {
-    for (int index = m_panels.GetCount() - 1; index >= 0; --index) {
-        m_panels.RemoveAtAndDelete(index);
-    }
+    m_panels.RemoveAllAndDelete();
 }
 
 /* Standalone JMP thunk onto Controls::~Controls emitted for this TU. */
@@ -240,6 +238,13 @@ W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel) : W8OptionsPanel(panel
 W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
     : W8OptionsPanel(13), m_message(message)
 {
+}
+
+void W8OptionsSaveRow::SetSave(W8SaveSlot* save)
+{
+    m_save = save;
+    SetEnabled(save != 0);
+    Invalidate(false);
 }
 
 // FUNCTION: WIZ8 0x005aa7d0
@@ -323,15 +328,11 @@ void W8OptionsSaveLoadPanel::SetCurrent(int current)
     for (int slot = first; slot < limit; ++slot) {
         W8SaveSlot* save = *g_options_screen->m_save_slots.GetAt(slot);
         W8OptionsSaveRow* row = *m_rows.GetAt(slot - first);
-        row->m_save = save;
-        row->SetEnabled(save != 0);
-        row->Invalidate(false);
+        row->SetSave(save);
     }
     for (; limit < first + 5; ++limit) {
         W8OptionsSaveRow* row = *m_rows.GetAt(limit - first);
-        row->m_save = 0;
-        row->SetEnabled(false);
-        row->Invalidate(false);
+        row->SetSave(0);
     }
     m_selection.SetSelected(0);
     if (g_options_screen->m_text_editor == 0 && m_panel == 12 && m_selection.m_selectedIndex == 0 &&
@@ -385,9 +386,7 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(bool accepted, int value)
             selected_slot = m_current * 5 + m_selection.m_selectedIndex;
             wcscpy((*g_options_screen->m_save_slots.GetAt(selected_slot))->name, m_previous_name);
             W8OptionsSaveRow* row = *m_rows.GetAt(m_selection.m_selectedIndex);
-            row->m_save = *g_options_screen->m_save_slots.GetAt(selected_slot);
-            row->SetEnabled(row->m_save != 0);
-            row->Invalidate(false);
+            row->SetSave(*g_options_screen->m_save_slots.GetAt(selected_slot));
             if (g_options_screen->m_text_editor != 0 || m_panel != 12 ||
                 m_selection.m_selectedIndex != 0) {
                 return;
@@ -448,9 +447,7 @@ void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned c
     }
 
     W8OptionsSaveRow* row = *m_rows.GetAt(m_selection.m_selectedIndex);
-    row->m_save = slot;
-    row->SetEnabled(slot != 0);
-    row->Invalidate(false);
+    row->SetSave(slot);
     if (m_current == 0 && m_selection.m_selectedIndex == 0) {
         if (SaveSlotFileExists(ConvertWideStringToString(slot->name)) == 0) {
             SaveSelectedSave();
@@ -1325,9 +1322,7 @@ W8OptionsScreen::~W8OptionsScreen()
 {
     int index;
     SelectPanel(-1, true);
-    for (index = m_save_slots.GetCount() - 1; index >= 0; --index) {
-        m_save_slots.RemoveAtAndDelete(index);
-    }
+    m_save_slots.RemoveAllAndDelete();
     delete m_controls;
     delete m_menu_set;
     delete m_menu_selection;
@@ -1683,14 +1678,9 @@ void W8OptionsSelection::OnPrimary(W8TextControl* control)
 // FUNCTION: WIZ8 0x005a8320
 W8OptionsPanel::~W8OptionsPanel()
 {
-    int index;
     DestroyAllControls();
-    for (index = m_text_buffers.GetCount() - 1; index >= 0; --index) {
-        m_text_buffers.RemoveAtAndDelete(index);
-    }
-    for (index = m_option_selections.GetCount() - 1; index >= 0; --index) {
-        m_option_selections.RemoveAtAndDelete(index);
-    }
+    m_text_buffers.RemoveAllAndDelete();
+    m_option_selections.RemoveAllAndDelete();
 }
 
 // FUNCTION: WIZ8 0x005a84e0

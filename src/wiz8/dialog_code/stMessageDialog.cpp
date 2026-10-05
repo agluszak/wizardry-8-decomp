@@ -1,3 +1,4 @@
+#include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/sgp_text.h"
 #include "wiz8/dialog_code/DialogInterface.h"
@@ -292,30 +293,12 @@ void W8MessageDialogBase::DestroyControls()
     unsigned int index;
 
     W8DialogBase::DestroyControls();
-    if (m_edge_image != -1) {
-        UnloadGenericButtonImage(m_edge_image);
-        m_edge_image = -1;
-    }
-    if (m_message_button != -1) {
-        RemoveButton(m_message_button);
-        m_message_button = -1;
-    }
-    if (m_confirm_button != -1) {
-        RemoveButton(m_confirm_button);
-        m_confirm_button = -1;
-    }
-    if (m_cancel_button != -1) {
-        RemoveButton(m_cancel_button);
-        m_cancel_button = -1;
-    }
-    if (m_confirm_image != -1) {
-        UnloadButtonImage(m_confirm_image);
-        m_confirm_image = -1;
-    }
-    if (m_cancel_image != -1) {
-        UnloadButtonImage(m_cancel_image);
-        m_cancel_image = -1;
-    }
+    ReleaseDialogBorderImage(m_edge_image);
+    ReleaseDialogButtonHandle(m_message_button);
+    ReleaseDialogButtonHandle(m_confirm_button);
+    ReleaseDialogButtonHandle(m_cancel_button);
+    ReleaseDialogButtonImage(m_confirm_image);
+    ReleaseDialogButtonImage(m_cancel_image);
     if (m_lines) {
         for (index = 0; index < m_line_count; ++index) {
             free(m_lines[index]);
@@ -359,28 +342,9 @@ bool W8MessageDialogBase::ProcessInput()
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
 
     while (DequeueEvent(&input)) {
-        unsigned short mouse_event;
-
-        switch (input.usEvent) {
-        case LEFT_BUTTON_DOWN:
-        case LEFT_BUTTON_REPEAT:
-            mouse_event = LEFT_BUTTON_DOWN;
-            break;
-        case LEFT_BUTTON_UP:
-            mouse_event = LEFT_BUTTON_UP;
-            break;
-        case RIGHT_BUTTON_DOWN:
-            mouse_event = RIGHT_BUTTON_DOWN;
-            break;
-        case RIGHT_BUTTON_UP:
-            mouse_event = RIGHT_BUTTON_UP;
-            break;
-        default:
+        if (!DispatchDialogMouseInput(input.usEvent, mouse.x, mouse.y)) {
             return HandleInput(&input);
         }
-
-        MSYS_SGP_Mouse_Handler_Hook(mouse_event, mouse.x, mouse.y, gfLeftButtonState,
-                                    gfRightButtonState);
     }
 
     return is_open;
@@ -394,23 +358,15 @@ void MessageDialogConfirmCallback(GUI_BUTTON* button, int reason)
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp", 0x267,
                      0);
     }
-    if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
-            button->uiFlags |= BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-        }
-    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+    if (!(reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) &&
+        (reason & MSYS_CALLBACK_REASON_LBUTTON_UP)) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
             dialog->accepted = true;
             dialog->is_open = false;
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
-    } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-        button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-    } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-        button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+    } else if (UpdateDialogArrowState(button, reason)) {
         dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }
@@ -423,23 +379,15 @@ void MessageDialogCancelCallback(GUI_BUTTON* button, int reason)
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp", 0x28c,
                      0);
     }
-    if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
-            button->uiFlags |= BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-        }
-    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+    if (!(reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) &&
+        (reason & MSYS_CALLBACK_REASON_LBUTTON_UP)) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
             dialog->accepted = false;
             dialog->is_open = false;
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
-    } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-        button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-    } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-        button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+    } else if (UpdateDialogArrowState(button, reason)) {
         dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }

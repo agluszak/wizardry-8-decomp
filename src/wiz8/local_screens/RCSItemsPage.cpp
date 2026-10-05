@@ -1306,19 +1306,8 @@ int CreateCampActionPanel(void)
 // FUNCTION: WIZ8 0x005B9220
 void ReleaseCampActionPanel(void)
 {
-    Controls* panel = g_camp_action_panel;
-    if (panel != 0) {
-        delete panel;
-        g_camp_action_panel = 0;
-    }
-    W8TextControl** control = g_camp_action_buttons;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_camp_action_buttons + 2);
+    DestroyControlPanel(g_camp_action_panel);
+    DestroyTextControls(g_camp_action_buttons, 2);
 }
 
 // FUNCTION: WIZ8 0x005b9270
@@ -1418,19 +1407,8 @@ int CreateItemsTabPanel(void)
 // FUNCTION: WIZ8 0x005B9760
 void ReleaseItemsTabPanel(void)
 {
-    Controls* panel = g_camp_item_filter_panel;
-    if (panel != 0) {
-        delete panel;
-        g_camp_item_filter_panel = 0;
-    }
-    W8TextControl** control = g_camp_item_filter_buttons;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_camp_item_filter_buttons + 7);
+    DestroyControlPanel(g_camp_item_filter_panel);
+    DestroyTextControls(g_camp_item_filter_buttons, 7);
 }
 
 /* Item filter buttons keep their secondary state when the corresponding
@@ -1595,19 +1573,8 @@ int CreateCampSecondaryPanel(void)
 // FUNCTION: WIZ8 0x005B9EA0
 void ReleaseCampSecondaryPanel(void)
 {
-    Controls* panel = g_camp_secondary_panel;
-    if (panel != 0) {
-        delete panel;
-        g_camp_secondary_panel = 0;
-    }
-    W8TextControl** control = g_camp_page_tabs;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_camp_page_tabs + 2);
+    DestroyControlPanel(g_camp_secondary_panel);
+    DestroyTextControls(g_camp_page_tabs, 2);
 }
 
 // FUNCTION: WIZ8 0x005b9ef0

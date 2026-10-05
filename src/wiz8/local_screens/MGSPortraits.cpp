@@ -1093,29 +1093,14 @@ void ShadeStatusBarGap(int length, int left, int top)
 void ReleasePortraitControls(void)
 {
     DisablePortraitControls();
-    Controls* panel = g_portrait_panel;
-    if (panel != 0) {
-        delete panel;
-        g_portrait_panel = 0;
-    }
-    W8TextControl** control = g_portrait_controls;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_portrait_controls + 8);
+    DestroyControlPanel(g_portrait_panel);
+    DestroyTextControls(g_portrait_controls, 8);
 }
 
 // FUNCTION: WIZ8 0x0059BF70
 void ReleaseConditionButtons(void)
 {
-    Controls* panel = g_condition_buttons_panel;
-    if (panel != 0) {
-        delete panel;
-        g_condition_buttons_panel = 0;
-    }
+    DestroyControlPanel(g_condition_buttons_panel);
     W8ConditionButton** control = g_condition_buttons;
     do {
         if (*control != 0) {

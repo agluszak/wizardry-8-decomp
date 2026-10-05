@@ -1,5 +1,7 @@
 #pragma once
 
+void SyncNpcDialogueTranscriptScrollButtons();
+
 #include "input.h"
 #include "wiz8/vector.h"
 #include "wiz8/layouts/item_instance.h"

@@ -506,12 +506,7 @@ void RedrawRcsDismissPanel(void)
 // FUNCTION: WIZ8 0x005b6540
 void DestroyRcsLevelUpPanel(void)
 {
-    Controls* panel = g_level_up_panel;
-
-    if (panel != 0) {
-        delete panel;
-        g_level_up_panel = 0;
-    }
+    DestroyControlPanel(g_level_up_panel);
     if (g_level_up_button != 0) {
         delete g_level_up_button;
         g_level_up_button = 0;
@@ -616,12 +611,7 @@ unsigned char CampDismissButtonRegionEvent(const InputAtom* event, W8Region* reg
 // FUNCTION: WIZ8 0x005b6880
 void DestroyRcsDismissPanel(void)
 {
-    Controls* panel = g_dismiss_panel;
-
-    if (panel != 0) {
-        delete panel;
-        g_dismiss_panel = 0;
-    }
+    DestroyControlPanel(g_dismiss_panel);
     if (g_dismiss_button != 0) {
         delete g_dismiss_button;
         g_dismiss_button = 0;
@@ -679,11 +669,7 @@ void ReleaseFormationBoard(void)
 // FUNCTION: WIZ8 0x005B2580
 void DestroyFormationPanel(void)
 {
-    Controls* panel = g_formation_panel;
-    if (panel != 0) {
-        delete panel;
-        g_formation_panel = 0;
-    }
+    DestroyControlPanel(g_formation_panel);
     for (unsigned int index = 0; index < 15; ++index) {
         if (g_formation_cell_controls[index] != 0) {
             delete g_formation_cell_controls[index];
@@ -694,14 +680,7 @@ void DestroyFormationPanel(void)
             g_formation_cell_overlays[index] = 0;
         }
     }
-    W8TextControl** control = g_formation_action_buttons;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_formation_action_buttons + 3);
+    DestroyTextControls(g_formation_action_buttons, 3);
 }
 
 /* The upper-left character block. While an input mode is up it lists the
@@ -1180,26 +1159,9 @@ int CreateCampButtonPanel(void)
 // FUNCTION: WIZ8 0x005b55f0
 void DestroyCampButtonPanel(void)
 {
-    Controls* panel;
-    int index;
-
-    panel = g_item_actions_panel;
-    if (panel != 0) {
-        delete panel;
-        g_item_actions_panel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_camp_page_buttons[index] != 0) {
-            delete g_camp_page_buttons[index];
-            g_camp_page_buttons[index] = 0;
-        }
-    }
-    for (index = 0; index < 8; ++index) {
-        if (g_item_action_controls[index] != 0) {
-            delete g_item_action_controls[index];
-            g_item_action_controls[index] = 0;
-        }
-    }
+    DestroyControlPanel(g_item_actions_panel);
+    DestroyTextControls(g_camp_page_buttons, 5);
+    DestroyTextControls(g_item_action_controls, 8);
     RegionSetDisable(0x2e);
     RegionSetDisable(0x2d);
 }

@@ -101,5 +101,22 @@ struct Controls {
     }
 
 protected:
+    void RedrawChildren(bool full_redraw)
+    {
+        for (int index = 0; index < m_controls.GetCount(); ++index) {
+            if (ControlAt(index)->m_active) {
+                ControlAt(index)->Redraw(full_redraw);
+            }
+        }
+        m_fLayoutDirty = false;
+    }
     void RedrawControls(bool full_redraw);
 };
+
+inline void DestroyControlPanel(Controls*& panel)
+{
+    if (panel != 0) {
+        delete panel;
+        panel = 0;
+    }
+}

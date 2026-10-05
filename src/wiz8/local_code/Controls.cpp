@@ -132,13 +132,36 @@ void Controls::EnableRegionSet(bool enable)
     }
 }
 
+// FUNCTION: WIZ8 0x004f40f0
+void W8Widget::SetActive(bool active)
+{
+    m_active = active;
+    if (m_region != -1) {
+        if (active) {
+            EnableRegionInput(m_region);
+            return;
+        }
+        DisableRegionInput(m_region);
+    }
+}
+
 // FUNCTION: WIZ8 0x004f3f10
 W8Widget::~W8Widget()
 {
-    m_active = false;
-    if (m_region != -1) {
-        DisableRegionInput(m_region);
-    }
+    SetActive(false);
+}
+
+void W8Widget::UpdateRegionBounds(int left, int top, int right, int bottom)
+{
+    SetRegionBounds(m_region,
+                    static_cast<unsigned short>(static_cast<short>(left) +
+                                                static_cast<short>(m_pPanel->m_bounds.left)),
+                    static_cast<unsigned short>(static_cast<short>(top) +
+                                                static_cast<short>(m_pPanel->m_bounds.top)),
+                    static_cast<unsigned short>(static_cast<short>(right) +
+                                                static_cast<short>(m_pPanel->m_bounds.left)),
+                    static_cast<unsigned short>(static_cast<short>(bottom) +
+                                                static_cast<short>(m_pPanel->m_bounds.top)));
 }
 
 /* Move a widget between panels, preserving its existing region when it has
@@ -161,15 +184,7 @@ void W8Widget::SetPanel(Controls* panel)
         SetRegionOwner(region, panel);
     }
     if (m_region != -1) {
-        SetRegionBounds(m_region,
-                        static_cast<unsigned short>(static_cast<short>(m_left) +
-                                                    static_cast<short>(m_pPanel->m_bounds.left)),
-                        static_cast<unsigned short>(static_cast<short>(m_top) +
-                                                    static_cast<short>(m_pPanel->m_bounds.top)),
-                        static_cast<unsigned short>(static_cast<short>(m_right) +
-                                                    static_cast<short>(m_pPanel->m_bounds.left)),
-                        static_cast<unsigned short>(static_cast<short>(m_bottom) +
-                                                    static_cast<short>(m_pPanel->m_bounds.top)));
+        UpdateRegionBounds(m_left, m_top, m_right, m_bottom);
     }
 }
 
@@ -195,8 +210,6 @@ W8Widget::W8Widget(Controls* owner, unsigned int region, int left, int top, int 
     Controls* holder;
     unsigned int taken;
     int index;
-    int origin_x;
-    int origin_y;
 
     m_right = right;
     m_pPanel = owner;
@@ -213,14 +226,7 @@ W8Widget::W8Widget(Controls* owner, unsigned int region, int left, int top, int 
     m_top = top;
     m_bottom = bottom;
     if (region != 0xffffffff) {
-        origin_y = owner->m_bounds.top;
-        origin_x = owner->m_bounds.left;
-        SetRegionBounds(
-            region,
-            static_cast<unsigned short>(static_cast<short>(origin_x) + static_cast<short>(left)),
-            static_cast<unsigned short>(static_cast<short>(origin_y) + static_cast<short>(top)),
-            static_cast<unsigned short>(static_cast<short>(right) + static_cast<short>(origin_x)),
-            static_cast<unsigned short>(static_cast<short>(bottom) + static_cast<short>(origin_y)));
+        UpdateRegionBounds(left, top, right, bottom);
         DisableRegionInput(m_region);
     }
 
@@ -323,24 +329,12 @@ void W8Widget::SetRegion(unsigned int region)
 {
     Controls* holder;
     unsigned int bound;
-    int origin_x;
-    int origin_y;
 
     m_region = region;
     if (region != 0xffffffff) {
         holder = m_pPanel;
         if (holder != 0) {
-            origin_y = holder->m_bounds.top;
-            origin_x = holder->m_bounds.left;
-            SetRegionBounds(region,
-                            static_cast<unsigned short>(static_cast<short>(m_left) +
-                                                        static_cast<short>(origin_x)),
-                            static_cast<unsigned short>(static_cast<short>(m_top) +
-                                                        static_cast<short>(origin_y)),
-                            static_cast<unsigned short>(static_cast<short>(m_right) +
-                                                        static_cast<short>(origin_x)),
-                            static_cast<unsigned short>(static_cast<short>(m_bottom) +
-                                                        static_cast<short>(origin_y)));
+            UpdateRegionBounds(m_left, m_top, m_right, m_bottom);
         }
     }
     bound = m_region;
@@ -392,6 +386,23 @@ W8TextBuffer::W8TextBuffer()
     m_pendingBounds.bottom = 0;
 }
 
+// FUNCTION: WIZ8 0x004f34d0
+void W8TextBuffer::SetText(const wchar_t* text, int font)
+{
+    m_font = font;
+    m_lineCount = 0;
+    delete[] m_buffer;
+    if (text != 0) {
+        m_buffer = new wchar_t[wcslen(text) + 1];
+        wcscpy(m_buffer, text);
+        UpdateLayout();
+        m_geometryDirty = true;
+        return;
+    }
+    m_buffer = 0;
+    m_geometryDirty = true;
+}
+
 // FUNCTION: WIZ8 0x004f33a0
 W8TextBuffer::W8TextBuffer(const W8ControlsRect* bounds, const wchar_t* text, int font,
                            unsigned int layout_mode, int render_mode)
@@ -409,17 +420,7 @@ W8TextBuffer::W8TextBuffer(const W8ControlsRect* bounds, const wchar_t* text, in
     m_highlighted = false;
     m_layoutBounds = *bounds;
     m_pendingBounds = *bounds;
-    m_lineCount = 0;
-    m_font = font;
-    if (text != 0) {
-        m_buffer = new wchar_t[wcslen(text) + 1];
-        wcscpy(m_buffer, text);
-        UpdateLayout();
-        m_geometryDirty = true;
-        return;
-    }
-    m_buffer = 0;
-    m_geometryDirty = true;
+    SetText(text, font);
 }
 
 // FUNCTION: WIZ8 0x004f34a0
@@ -432,23 +433,6 @@ void W8TextBuffer::SetLayoutMode(unsigned int layout_mode)
     if ((m_layoutMode & 0x38) == 0) {
         m_layoutMode |= 8;
     }
-}
-
-// FUNCTION: WIZ8 0x004f34d0
-void W8TextBuffer::SetText(const wchar_t* text, int font)
-{
-    m_font = font;
-    m_lineCount = 0;
-    delete[] m_buffer;
-    if (text != 0) {
-        m_buffer = new wchar_t[wcslen(text) + 1];
-        wcscpy(m_buffer, text);
-        UpdateLayout();
-        m_geometryDirty = true;
-        return;
-    }
-    m_buffer = 0;
-    m_geometryDirty = true;
 }
 
 // FUNCTION: WIZ8 0x004f3540
@@ -775,6 +759,23 @@ W8TextControl::W8TextControl()
     m_textBuffer.MarkGeometryDirty(10);
 }
 
+/* Refresh the cached extent from the preferred text handle, falling back to
+   the alternate handle. */
+// FUNCTION: WIZ8 0x004F4800
+bool W8TextControl::MeasureText()
+{
+    int handle;
+
+    if (m_imageObject != -1 && m_imageFrame != -1 &&
+        ((handle = m_normalSprite) != -1 || (handle = m_pressedSprite) != -1)) {
+        GetCatalogImageSize(m_imageObject, m_imageFrame, handle, &m_measured_w, &m_measured_h);
+        return true;
+    }
+    m_measured_w = -1;
+    m_measured_h = -1;
+    return false;
+}
+
 /* The 182-caller text-control constructor. The first six arguments construct
    the reviewed widget base, while the implicit W8TextBuffer constructor owns
    the second EH state. The remaining positional values and the two measured
@@ -799,22 +800,17 @@ W8TextControl::W8TextControl(Controls* panel, unsigned int region, int left, int
     m_listener = 0;
     m_pressedTextOffset = 1;
 
-    int measured_text = text_48;
-    if (text_40 == -1 || text_44 == -1 ||
-        (measured_text == -1 && (measured_text = text_4c) == -1)) {
-        m_measured_w = -1;
-        m_measured_h = -1;
-    } else {
-        GetCatalogImageSize(text_40, text_44, measured_text, &m_measured_w, &m_measured_h);
-    }
+    MeasureText();
 
-    if (right == 0) {
-        right = left + m_measured_w;
+    if (right == 0 || bottom == 0) {
+        if (right == 0) {
+            right = left + m_measured_w;
+        }
+        if (bottom == 0) {
+            bottom = top + m_measured_h;
+        }
+        SetBounds(left, top, right, bottom);
     }
-    if (bottom == 0) {
-        bottom = top + m_measured_h;
-    }
-    SetBounds(left, top, right, bottom);
 
     m_textBuffer.SetLayoutBounds(panel->m_bounds.left + left, panel->m_bounds.top + top,
                                  panel->m_bounds.left + right, panel->m_bounds.top + bottom);
@@ -824,88 +820,25 @@ W8TextControl::W8TextControl(Controls* panel, unsigned int region, int left, int
     m_textBuffer.MarkGeometryDirty(10);
 }
 
-/* Refresh the cached extent from the preferred text handle, falling back to
-   the alternate handle. */
-// FUNCTION: WIZ8 0x004F4800
-bool W8TextControl::MeasureText()
-{
-    int handle;
-
-    if (m_imageObject != -1 && m_imageFrame != -1 &&
-        ((handle = m_normalSprite) != -1 || (handle = m_pressedSprite) != -1)) {
-        GetCatalogImageSize(m_imageObject, m_imageFrame, handle, &m_measured_w, &m_measured_h);
-        return true;
-    }
-    m_measured_w = -1;
-    m_measured_h = -1;
-    return false;
-}
-
 /* Where the text should be drawn: the panel origin plus either the widget's
    corner or an alignment computed from its cached measured extent. */
 // FUNCTION: WIZ8 0x004f4850
 void W8TextControl::GetTextOrigin(int* px, int* py)
 {
-    short* measured;
-    short width;
-    int handle;
-    int x;
-
     if (m_pPanel == 0) {
         srAssertFail("m_pPanel != NULL", "C:\\Projects\\Wizardry 8\\Local Code\\Controls.cpp",
                      0x739, 0);
     }
     *px = m_pPanel->m_bounds.left;
-    measured = &m_measured_w;
     *py = m_pPanel->m_bounds.top;
-    width = *measured;
-    if (width == -1 || m_measured_h == -1) {
-        if (m_imageObject == -1 || m_imageFrame == -1) {
-            *measured = -1;
-            m_measured_h = -1;
-            goto plain;
-        }
-        handle = m_normalSprite;
-        if (handle == -1) {
-            handle = m_pressedSprite;
-        }
-        if (handle == -1) {
-            *measured = -1;
-            m_measured_h = -1;
-            goto plain;
-        }
-        GetCatalogImageSize(m_imageObject, m_imageFrame, handle, measured, &m_measured_h);
-        if ((m_layoutFlags & g_W8TextControlLayoutImageAtOrigin) != 0) {
-            *px = *px + m_left;
-            *py = *py + m_top;
-            return;
-        }
-        if ((m_layoutFlags & g_W8TextControlLayoutImageLeft) != 0) {
-            x = m_left;
-            goto aligned;
-        }
-        width = *measured;
-    } else {
-        if ((m_layoutFlags & g_W8TextControlLayoutImageAtOrigin) != 0) {
-            *px = *px + m_left;
-            *py = *py + m_top;
-            return;
-        }
-        if ((m_layoutFlags & g_W8TextControlLayoutImageLeft) != 0) {
-            x = m_left;
-            goto aligned;
-        }
+    if (((m_measured_w == -1 || m_measured_h == -1) && !MeasureText()) ||
+        (m_layoutFlags & g_W8TextControlLayoutImageAtOrigin) != 0) {
+        *px += m_left;
+        *py += m_top;
+        return;
     }
-    x = m_right - static_cast<int>(width);
-
-aligned:
-    *px = *px + x;
-    *py = *py + ((m_bottom - static_cast<int>(m_measured_h)) - m_top) / 2 + m_top;
-    return;
-
-plain:
-    *px = *px + m_left;
-    *py = *py + m_top;
+    *px += (m_layoutFlags & g_W8TextControlLayoutImageLeft) != 0 ? m_left : m_right - m_measured_w;
+    *py += ((m_bottom - m_measured_h) - m_top) / 2 + m_top;
 }
 
 // FUNCTION: WIZ8 0x004f4990
@@ -988,15 +921,7 @@ void W8TextControl::SetBoundsFromRect(const W8ControlsRect* bounds)
 {
     SetBounds(bounds->left, bounds->top, bounds->right, bounds->bottom);
     if (m_region != -1 && m_pPanel != 0) {
-        SetRegionBounds(m_region,
-                        static_cast<unsigned short>(static_cast<short>(bounds->left) +
-                                                    static_cast<short>(m_pPanel->m_bounds.left)),
-                        static_cast<unsigned short>(static_cast<short>(bounds->top) +
-                                                    static_cast<short>(m_pPanel->m_bounds.top)),
-                        static_cast<unsigned short>(static_cast<short>(bounds->right) +
-                                                    static_cast<short>(m_pPanel->m_bounds.left)),
-                        static_cast<unsigned short>(static_cast<short>(bounds->bottom) +
-                                                    static_cast<short>(m_pPanel->m_bounds.top)));
+        UpdateRegionBounds(bounds->left, bounds->top, bounds->right, bounds->bottom);
     }
 }
 
@@ -1030,16 +955,7 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
     W8Widget::SetBounds(left, top, right, bottom);
     if (m_pPanel != 0) {
         if (m_region != -1) {
-            SetRegionBounds(
-                m_region,
-                static_cast<unsigned short>(static_cast<short>(left) +
-                                            static_cast<short>(m_pPanel->m_bounds.left)),
-                static_cast<unsigned short>(static_cast<short>(top) +
-                                            static_cast<short>(m_pPanel->m_bounds.top)),
-                static_cast<unsigned short>(static_cast<short>(right) +
-                                            static_cast<short>(m_pPanel->m_bounds.left)),
-                static_cast<unsigned short>(static_cast<short>(bottom) +
-                                            static_cast<short>(m_pPanel->m_bounds.top)));
+            UpdateRegionBounds(left, top, right, bottom);
         }
         if ((m_layoutFlags & g_W8TextControlLayoutTextBesideImage) != 0) {
             UpdateTextLayout();
@@ -2040,14 +1956,7 @@ void Controls::SetEnabled(bool enable)
     for (index = 0; index < m_controls.GetCount(); ++index) {
         W8Widget* control = ControlAt(index);
 
-        control->m_active = enable;
-        if (control->m_region != -1) {
-            if (!enable) {
-                DisableRegionInput(control->m_region);
-            } else {
-                EnableRegionInput(control->m_region);
-            }
-        }
+        control->SetActive(enable);
     }
 }
 
@@ -2060,13 +1969,7 @@ void Controls::RemoveControl(W8Widget* control)
 // FUNCTION: WIZ8 0x004f2df0
 void Controls::DestroyAllControls()
 {
-    int index = m_controls.GetCount();
-
-    if (index > 0) {
-        while (--index, index >= 0) {
-            m_controls.RemoveAtAndDelete(index);
-        }
-    }
+    m_controls.RemoveAllAndDelete();
 }
 
 /* Adds a rectangle to the panel's pending redraw. A null rectangle means the
@@ -2134,12 +2037,7 @@ void Controls::RedrawControls(bool full_redraw)
         m_fDirty = false;
         m_dirtyRect.left = -1;
     }
-    for (int index = 0; index < m_controls.GetCount(); ++index) {
-        if (ControlAt(index)->m_active) {
-            ControlAt(index)->Redraw(full_redraw);
-        }
-    }
-    m_fLayoutDirty = false;
+    RedrawChildren(full_redraw);
 }
 
 /* Flushes pending panel drawing, then asks each enabled child to redraw. A
@@ -2207,19 +2105,6 @@ void W8Widget::DisableRegionHelp()
 {
     if (m_region != -1) {
         SetRegionHelp(m_region, false, -1);
-    }
-}
-
-// FUNCTION: WIZ8 0x004f40f0
-void W8Widget::SetActive(bool active)
-{
-    m_active = active;
-    if (m_region != -1) {
-        if (active) {
-            EnableRegionInput(m_region);
-            return;
-        }
-        DisableRegionInput(m_region);
     }
 }
 

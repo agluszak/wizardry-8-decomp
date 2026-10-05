@@ -342,6 +342,16 @@ void W8CharacterStatsRow::BuildSubpanel()
     }
 }
 
+void W8CharacterStatsRow::Invalidate()
+{
+    m_decrement->Invalidate(false);
+    m_increment->Invalidate(false);
+    m_value_control->Invalidate(false);
+    if (m_subpanel != 0) {
+        m_subpanel->Invalidate(0);
+    }
+}
+
 /* Select one record by index, updating the value control and telling the
    owning page when the selection actually moved. */
 // FUNCTION: WIZ8 0x005c96c0
@@ -540,32 +550,17 @@ void W8CharacterStatsPage::UpdateRowValues()
     W8Profession profession = m_character->iProfession;
     W8CharacterStatsRow* row = m_profession_row;
     row->SetValue(profession);
-    row->m_decrement->Invalidate(false);
-    row->m_increment->Invalidate(false);
-    row->m_value_control->Invalidate(false);
-    if (row->m_subpanel != 0) {
-        row->m_subpanel->Invalidate(0);
-    }
+    m_profession_row->Invalidate();
 
     W8Race race = m_character->iRace;
     row = m_race_row;
     row->SetValue(race);
-    row->m_decrement->Invalidate(false);
-    row->m_increment->Invalidate(false);
-    row->m_value_control->Invalidate(false);
-    if (row->m_subpanel != 0) {
-        row->m_subpanel->Invalidate(0);
-    }
+    m_race_row->Invalidate();
 
     W8Gender gender = m_character->gender;
     row = m_gender_row;
     row->SetValue(gender);
-    row->m_decrement->Invalidate(false);
-    row->m_increment->Invalidate(false);
-    row->m_value_control->Invalidate(false);
-    if (row->m_subpanel != 0) {
-        row->m_subpanel->Invalidate(0);
-    }
+    m_gender_row->Invalidate();
 }
 
 /* The entries only need enabling the first time the rows become usable. */
@@ -762,12 +757,7 @@ void W8CharacterStatsPage::Prepare()
         m_gender_row,
     };
     for (int index = 0; index < 3; ++index) {
-        rows[index]->m_decrement->Invalidate(false);
-        rows[index]->m_increment->Invalidate(false);
-        rows[index]->m_value_control->Invalidate(false);
-        if (rows[index]->m_subpanel != 0) {
-            rows[index]->m_subpanel->Invalidate(0);
-        }
+        rows[index]->Invalidate();
     }
 }
 

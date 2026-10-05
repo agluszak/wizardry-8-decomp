@@ -51,6 +51,16 @@ public:
     int GetX();
     int GetY();
     void SetEnabled(bool enabled);
+    void UpdateEnabledState(bool enabled)
+    {
+        if (!enabled) {
+            SetEnabled(false);
+            m_dirty = true;
+        } else if (!IsEnabled()) {
+            SetEnabled(true);
+            m_dirty = true;
+        }
+    }
     bool IsEnabled();
     void SetPressed(bool pressed);
     unsigned char IsPressed();
@@ -130,3 +140,53 @@ private:
 }; /* 0x48 */
 
 static_assert(sizeof(W8DialogButton) == 0x48, "W8DialogButton_size");
+
+/* Button arrays keep unallocated slots as supplied by their owner. Failure
+   deletes every non-null slot in the full array, in ascending order. */
+inline void DestroyDialogButtons(W8DialogButton** buttons, int count)
+{
+    for (int index = 0; index < count; ++index) {
+        if (buttons[index] != 0) {
+            delete buttons[index];
+            buttons[index] = 0;
+        }
+    }
+}
+
+inline bool AllocateDialogButtons(W8DialogButton** buttons, int count)
+{
+    for (int index = 0; index < count; ++index) {
+        buttons[index] = new W8DialogButton;
+        if (buttons[index] == 0) {
+            DestroyDialogButtons(buttons, count);
+            return false;
+        }
+    }
+    return true;
+}
+
+/* Dialog handles keep their sentinel until release finishes. Removal,
+   ordinary images and generic borders have distinct SGP resource owners. */
+inline void ReleaseDialogButtonHandle(INT32& handle)
+{
+    if (handle != -1) {
+        RemoveButton(handle);
+        handle = -1;
+    }
+}
+
+inline void ReleaseDialogButtonImage(INT32& handle)
+{
+    if (handle != -1) {
+        UnloadButtonImage(handle);
+        handle = -1;
+    }
+}
+
+inline void ReleaseDialogBorderImage(INT16& handle)
+{
+    if (handle != -1) {
+        UnloadGenericButtonImage(handle);
+        handle = -1;
+    }
+}
