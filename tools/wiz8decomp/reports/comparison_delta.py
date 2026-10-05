@@ -414,6 +414,20 @@ def pr_comparison_report(
     if head_summary.get("target") != target or base_summary.get("target") != target:
         raise ValueError("comparison summary target does not match requested target")
 
+    if head_summary["inputs"]["orig"]["sha256"] != base_summary["inputs"]["orig"]["sha256"]:
+        raise ValueError("Comparisons use different original binaries")
+    policy_keys = (
+        "normalization_key",
+        "ghidra_version",
+        "decompiler_timeout",
+        "threaded",
+        "max_ram_percent",
+        "wizardry_revision",
+    )
+    for key in policy_keys:
+        if head_summary["inputs"][key] != base_summary["inputs"][key]:
+            raise ValueError(f"Comparison policies differ: {key}")
+
     head_ghidriff = _read_json(head_ghidriff_path)
     base_ghidriff = _read_json(base_ghidriff_path)
     report["emission_regressions"] = non_emission_regressions(head_summary, base_summary)
@@ -431,6 +445,7 @@ def pr_comparison_report(
         _read_json(base_direct_calls_path) if base_direct_calls_path is not None else None,
     )
     report["comparison"] = {
+        "inputs": {"head": head_summary["inputs"], "base": base_summary["inputs"]},
         "head": head_metrics,
         "base": base_metrics,
         "delta": _metric_delta(head_metrics, base_metrics),

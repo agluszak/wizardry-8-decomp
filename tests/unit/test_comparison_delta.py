@@ -46,6 +46,15 @@ def _row(
 def _summary(*rows: dict) -> dict:
     return {
         "target": "WIZ8",
+        "inputs": {
+            "orig": {"sha256": "fixture-original"},
+            "normalization_key": "fixture-policy",
+            "ghidra_version": "12.1.4",
+            "decompiler_timeout": 60,
+            "threaded": True,
+            "max_ram_percent": 60,
+            "wizardry_revision": "head",
+        },
         "requested": len(rows),
         "functions": list(rows),
     }
@@ -386,3 +395,21 @@ def test_declaration_findings_do_not_reduce_body_quality() -> None:
     assert metrics["signature_differences"] == 1
     assert metrics["scalar_signedness_differences"] == 1
     assert metrics["average_similarity"] == 0.95
+
+
+def test_pr_delta_rejects_different_comparison_policies(tmp_path: Path):
+    head = _summary(_row(1, "no-differences"))
+    base = _summary(_row(1, "no-differences"))
+    base["inputs"]["normalization_key"] = "older-policy"
+    paths = {}
+    for name, value in {
+        "head_summary": head,
+        "base_summary": base,
+        "head_ghidriff": _ghidriff(),
+        "base_ghidriff": _ghidriff(),
+    }.items():
+        path = tmp_path / f"{name}.json"
+        path.write_text(json.dumps(value))
+        paths[f"{name}_path"] = path
+    with pytest.raises(ValueError, match="Comparison policies differ: normalization_key"):
+        pr_comparison_report("WIZ8", **paths)
