@@ -9,6 +9,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from reccmp.ghidriff.report import selected_comparison
+
 _ANALYZED = frozenset({"differences", "no-differences"})
 _NON_EMITTED = ("internal-non-emission", "template-non-emission", "header-emission")
 
@@ -27,28 +29,18 @@ def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _similarities(summary: dict[str, Any], ghidriff: dict[str, Any]) -> tuple[list[float], int]:
-    """Read Ghidriff facts by exact pairs and count pairs without a recorded ratio."""
-    ratios: dict[tuple[int, int], float] = {}
-    for function in ghidriff["functions"]["modified"]:
-        pair = (int(function["old"]["address"], 16), int(function["new"]["address"], 16))
-        if pair in ratios:
-            raise ValueError("Ghidriff report has duplicate function pairs")
-        ratios[pair] = float(function["ratio"])
-
+def _similarities(summary: dict[str, Any]) -> tuple[list[float], int]:
+    """Scores from the same producer-selected passes as the reported outcomes."""
     similarities = []
     unscored = 0
     for row in summary.get("functions", ()):
         if row.get("outcome") not in _ANALYZED:
             continue
-        if not row.get("code_diff"):
-            similarities.append(1.0)
-            continue
-        pair = (int(row["orig"], 16), int(row["recomp"], 16))
-        if pair not in ratios:
+        score = selected_comparison(row)["similarity"]
+        if score is None:
             unscored += 1
-            continue
-        similarities.append(ratios[pair])
+        else:
+            similarities.append(float(score))
     return similarities, unscored
 
 
@@ -210,13 +202,14 @@ def header_regression_candidates(
     }
 
 
-def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dict[str, Any]:
+def comparison_metrics(summary: dict[str, Any]) -> dict[str, Any]:
     functions = list(summary.get("functions", ()))
     outcomes = Counter(str(row.get("outcome") or "") for row in functions)
     analyzed = outcomes["differences"] + outcomes["no-differences"]
-    similarities, similarity_unscored = _similarities(summary, ghidriff)
+    similarities, similarity_unscored = _similarities(summary)
     clean = outcomes["no-differences"]
     retried = [row for row in functions if row.get("inline_callees")]
+    passes = [selected_comparison(row) for row in functions if "passes" in row]
     return {
         "requested": int(summary.get("requested") or len(functions)),
         "analyzed": analyzed,
@@ -229,14 +222,14 @@ def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dic
         "clean_rate": clean / analyzed if analyzed else None,
         "differences": outcomes["differences"],
         "code_differences": sum(
-            bool(row.get("code_diff")) for row in functions if row.get("outcome") in _ANALYZED
+            bool(evidence["body_diff"]) for evidence in passes if evidence["outcome"] in _ANALYZED
         ),
-        "signature_differences": sum(bool(row.get("signature_diff")) for row in functions),
+        "signature_differences": sum(bool(evidence["signature_diff"]) for evidence in passes),
         "scalar_signedness_differences": sum(
-            row.get("code_change_kind") == "scalar-signedness" for row in functions
+            evidence["change_kind"] == "scalar-signedness" for evidence in passes
         ),
         "data_differences": sum(
-            bool(row.get("data")) for row in functions if row.get("outcome") in _ANALYZED
+            bool(evidence["data"]) for evidence in passes if evidence["outcome"] in _ANALYZED
         ),
         "non_emitted": sum(outcomes[kind] for kind in _NON_EMITTED),
         "internal_non_emission": outcomes["internal-non-emission"],
@@ -246,12 +239,16 @@ def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dic
         "unpaired": outcomes["unpaired"],
         "analysis_failed": outcomes["analysis-failed"],
         "unidentified_references": sum(
-            int(row.get("unidentified_references") or 0) for row in functions
+            int(evidence["unidentified_references"]) for evidence in passes
         ),
+        "analysis_warnings": sum(len(evidence["warnings"]) for evidence in passes),
+        "preparation_corrections": len(summary.get("preparation", ())),
         "inline_retries": len(retried),
         "inline_normalized_clean": sum(row.get("outcome") == "no-differences" for row in retried),
         "inline_still_different": sum(row.get("outcome") == "differences" for row in retried),
-        "inline_retry_failures": sum(row.get("inline_normalized_diff") is None for row in retried),
+        "inline_retry_failures": sum(
+            row["passes"]["inline"]["outcome"] == "analysis-failed" for row in retried
+        ),
     }
 
 
@@ -421,8 +418,8 @@ def pr_comparison_report(
     base_ghidriff = _read_json(base_ghidriff_path)
     report["emission_regressions"] = non_emission_regressions(head_summary, base_summary)
     report["ok"] = report["ok"] and not report["emission_regressions"]
-    head_metrics = comparison_metrics(head_summary, head_ghidriff)
-    base_metrics = comparison_metrics(base_summary, base_ghidriff)
+    head_metrics = comparison_metrics(head_summary)
+    base_metrics = comparison_metrics(base_summary)
     head_allocators = allocator_call_disagreements(
         head_ghidriff,
         head_summary,

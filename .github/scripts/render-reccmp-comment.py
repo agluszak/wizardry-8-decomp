@@ -125,8 +125,8 @@ if comparison_rows:
         )
     print()
     print(
-        "_Similarity is Ghidriff's normalized, signature-ignored code ratio. "
-        "Average and median use scored functions only; missing ratios are excluded. "
+        "_Similarity is Ghidriff's normalized body ratio from the selected ordinary or inline pass. "
+        "Average and median use scored functions only; missing pass scores are excluded. "
         "Exact code and data-only differences contribute 100% code similarity._"
     )
 

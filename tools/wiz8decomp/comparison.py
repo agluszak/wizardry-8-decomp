@@ -382,7 +382,7 @@ def _run_reccmp(
     if target == "WIZ8":
         from .ghidra.workspace import resolve_seed_program
 
-        settings = load_settings()
+        settings = load_settings(repository=repository)
         assert settings is not None
         argv.extend(
             (
@@ -427,28 +427,30 @@ def _run_reccmp(
 
 def _function_row(repository: Path, target: str, row: dict[str, Any]) -> dict[str, Any]:
     """Keep both comparison passes available without printing their whole diffs."""
-    diff_fields = {"code_diff", "normal_diff", "inline_normalized_diff", "signature_diff"}
-    result = {key: value for key, value in row.items() if key not in diff_fields}
-    for key in sorted(diff_fields & row.keys()):
-        diff = row[key]
-        if not diff:
-            if key != "code_diff":
-                result[key] = diff
-            continue
-        suffix = ".normal" if key == "normal_diff" and row.get("inline_callees") else ""
-        if key == "signature_diff":
-            suffix = ".signature"
-        path = (
-            report_directory(repository, target).resolve()
-            / f"{int(row['orig'], 16):08x}{suffix}.diff"
-        )
-        atomic_write(path, "".join(diff))
-        result[key] = {
-            "lines": sum(
-                1 for line in diff if line[:1] in "+-" and not line.startswith(("+++", "---"))
-            ),
-            "artifact": str(path.relative_to(repository)),
-        }
+    result = dict(row)
+    if "passes" not in row:
+        return result  # Project-owned non-emission classifications have no analysis pass.
+    result["passes"] = {}
+    for name, evidence in row["passes"].items():
+        compact = dict(evidence)
+        result["passes"][name] = compact
+        for field in ("body_diff", "signature_diff"):
+            diff = evidence[field]
+            if not diff:
+                continue
+            suffix = ".signature" if field == "signature_diff" else ""
+            path = (
+                report_directory(repository, target).resolve()
+                / f"{int(row['orig'], 16):08x}.{name}{suffix}.diff"
+            )
+            atomic_write(path, "".join(diff))
+            compact[field] = {
+                "lines": sum(
+                    1 for line in diff if line[:1] in "+-" and not line.startswith(("+++", "---"))
+                ),
+                "artifact": str(path.relative_to(repository)),
+            }
+
     return result
 
 
@@ -602,6 +604,7 @@ def compare_selected(
         "target": target,
         "requested": len(functions),
         "inputs": (summary or {}).get("inputs", {}),
+        "preparation": (summary or {}).get("preparation", []),
         "ok": counts["analysis-failed"] == 0 and counts["unpaired"] == 0 and counts["missing"] == 0,
         "selected": len(functions),
         "counts": {
@@ -616,11 +619,15 @@ def compare_selected(
         },
         "inlining": {
             "retried": len(retries),
-            "normal_no_differences": sum(row.get("normal_diff") == [] for row in retries),
-            "normalized_no_differences": sum(
-                row.get("inline_normalized_diff") == [] for row in retries
+            "normal_no_differences": sum(
+                row["passes"]["ordinary"]["outcome"] == "no-differences" for row in retries
             ),
-            "analysis_failed": sum(row["outcome"] == "analysis-failed" for row in retries),
+            "normalized_no_differences": sum(
+                row["passes"]["inline"]["outcome"] == "no-differences" for row in retries
+            ),
+            "analysis_failed": sum(
+                row["passes"]["inline"]["outcome"] == "analysis-failed" for row in retries
+            ),
         },
         "report": {
             "summary": str((output / "summary.json").relative_to(repository))

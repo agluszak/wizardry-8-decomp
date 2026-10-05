@@ -41,8 +41,8 @@ same operation. No source model changes to improve scores.
   Each contains its text result, referenced-data findings and diagnostics.
 - Give temporary Ghidra mutations one transaction owner. Flush caches around
   rollback. Retry reference collection must not overwrite ordinary evidence.
-- Select the existing eligible successful retry deterministically, never by
-  score. Preserve failed retries as analysis failures and ordinary evidence for
+- Select an eligible retry deterministically, never by score. Preserve failed
+  retries as analysis failures and retain ordinary evidence for
   inspection. Avoid retries for already-clean ordinary comparisons.
 - Replace overlapping normal_diff/inline_normalized_diff/code_diff payloads with
   pass records and an explicit selected-pass identifier. Update consumers
@@ -120,8 +120,22 @@ from source changes in reported results.
   meaningful-difference preservation and idempotence fixtures pass.
   Fork revisions: Ghidriff `63d09e8`, reccmp `33778b3e`; 59 focused Ghidriff tests and 70 reccmp
   tests passed. Wizardry integration/pinning is part of the same batch PR.
-- Batch 2: pending.
-- Batch 3: pending.
+- Batch 2: implemented. Ordinary and inline passes own their text, score, data
+  findings, failures and warnings. Results identify one selected pass; failed
+  retries still gate completion. Retry references no longer overwrite ordinary
+  references, and one transaction owner flushes caches around temporary flags.
+  Removed the overlapping diff fields and Wizardry's ordinary-score join.
+  Preparation diagnostics persist in private ProgramDB properties with provenance.
+  Direct tail-only callees now participate in binary-derived parameter inference;
+  focused, larger and repeated-state native fixtures recover the ECX argument.
+  This fixes a demonstrated preparation gap; the full #877 portrait result still
+  needs CI comparison. Fork revision: reccmp `ee66e5b5`; 79 focused tests passed,
+  including six native Ghidra cases, and focused typing/lint checks passed.
+- Batch 3: started with a prerequisite for the new result format. CI freezes the
+  head comparison package before adopting baseline source and passes the product
+  repository explicitly. Baseline comparisons therefore use the head report
+  policy and dependency pins. Explicit product/manifest orchestration, complete
+  fingerprints and the remaining CI lifecycle simplification are still pending.
 
 Starting completed CI inventory (#900): WIZ8 5,389 analyzed, 2,657 clean, 2,732
 different, 81.69% average similarity; SURRENDER 2,245 analyzed, 1,532 clean, 713

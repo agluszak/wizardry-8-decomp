@@ -32,6 +32,13 @@ if [[ -z "$merge_base" ]]; then
   exit 1
 fi
 
+# Freeze the head comparison implementation before adopting the base source.
+# Both products use the head's pinned reccmp/Ghidriff and report policy;
+# build configuration stays base-owned.
+comparison_tools="$(mktemp -d "$RUNNER_TEMP/$prefix-comparison-tools.XXXXXX")"
+comparison_python="$PWD/.venv/bin/python"
+git archive "$head_sha" tools/wiz8decomp | tar -x -C "$comparison_tools"
+
 git checkout --detach "$merge_base"
 uv run --no-sync wiz8 prepare --comparison-target "$target"
 uv run --no-sync wiz8 build "$build_target"
@@ -42,13 +49,13 @@ if [[ -s "$head_summary" ]]; then
   if (( ${#addresses[@]} > 0 )); then
     # Use the same source/PDB classification on both sides. Numeric CLI
     # selectors deliberately skip it, and raw reccmp summaries hide this debt.
-    uv run --no-sync python - "$target" "$head_summary" "$base_summary" <<'PYTHON'
+    PYTHONPATH="$comparison_tools/tools" "$comparison_python" - "$target" "$head_summary" "$base_summary" <<'PYTHON'
 import json
 import sys
 from pathlib import Path
 from wiz8decomp.comparison import compare_selected
 from wiz8decomp.config import load_settings
-settings = load_settings()
+settings = load_settings(repository=Path.cwd())
 target, head, output = sys.argv[1:]
 addresses = [int(row["orig"], 16) for row in json.loads(Path(head).read_text())["functions"]]
 result = compare_selected(

@@ -12,14 +12,34 @@ from wiz8decomp.reports.comparison_delta import (
 )
 
 
-def _row(address: int, outcome: str, *, code: bool = False, data: bool = False) -> dict:
+def _row(
+    address: int,
+    outcome: str,
+    *,
+    code: bool = False,
+    data: bool = False,
+    score: float | None = None,
+) -> dict:
     return {
         "orig": hex(address),
         "recomp": hex(0x10000 + address),
         "outcome": outcome,
-        "code_diff": ["-old", "+new"] if code else [],
-        "data": [{"kind": "object-contents"}] if data else [],
-        "unidentified_references": 1,
+        "selected_pass": "ordinary",
+        "passes": {
+            "ordinary": {
+                "outcome": outcome,
+                "body_diff": ["-old", "+new"] if code else [],
+                "signature_diff": [],
+                "change_kind": None,
+                "similarity": score
+                if code
+                else (1.0 if outcome in {"no-differences", "differences"} else None),
+                "data": [{"kind": "object-contents"}] if data else [],
+                "failures": [],
+                "warnings": [],
+                "unidentified_references": 1,
+            }
+        },
     }
 
 
@@ -48,7 +68,7 @@ def _ghidriff(*pairs: tuple[int, float]) -> dict:
 
 def test_missing_ratio_does_not_discard_scored_similarity() -> None:
     summary = _summary(_row(1, "no-differences"), _row(2, "differences", code=True))
-    metrics = comparison_metrics(summary, _ghidriff((3, 0.9)))
+    metrics = comparison_metrics(summary)
     assert metrics["average_similarity"] == 1.0
     assert metrics["median_similarity"] == 1.0
     assert metrics["similarity_scored"] == 1
@@ -58,16 +78,18 @@ def test_missing_ratio_does_not_discard_scored_similarity() -> None:
     assert metrics["code_differences"] == 1
 
 
-def test_duplicate_ratio_pairs_are_rejected() -> None:
-    with pytest.raises(ValueError, match="duplicate function pairs"):
-        comparison_metrics(
-            _summary(_row(1, "differences", code=True)), _ghidriff((1, 0.8), (1, 0.9))
-        )
+def test_selected_inline_score_does_not_use_ordinary_score() -> None:
+    row = _row(1, "differences", code=True, score=0.1)
+    row["selected_pass"] = "inline"
+    row["inline_callees"] = ["0x9"]
+    row["passes"]["inline"] = {**row["passes"]["ordinary"], "similarity": 0.9}
+    metrics = comparison_metrics(_summary(row))
+    assert metrics["average_similarity"] == 0.9
 
 
 @pytest.mark.parametrize("summary", [_summary(), _summary(_row(1, "differences", code=True))])
 def test_similarity_without_scored_functions_is_unknown(summary: dict) -> None:
-    metrics = comparison_metrics(summary, _ghidriff())
+    metrics = comparison_metrics(summary)
     assert metrics["average_similarity"] is None
     assert metrics["median_similarity"] is None
     assert metrics["similarity_scored"] == 0
@@ -80,7 +102,7 @@ def test_comment_discloses_partial_similarity_coverage(monkeypatch, capsys) -> N
     report = {
         "project": {"head": {"source_functions": 2, "paired": 2}, "delta": {}},
         "comparison": {
-            "head": comparison_metrics(summary, _ghidriff()),
+            "head": comparison_metrics(summary),
             "delta": {},
             "transitions": {"resolved": 0, "newly_different": 0},
         },
@@ -95,17 +117,17 @@ def test_comment_discloses_partial_similarity_coverage(monkeypatch, capsys) -> N
     assert "Unpaired | Analysis failed | Missing" in rendered
     assert "Similarity scores" in rendered
     assert "| 1/2 | 100.00% |" in rendered
-    assert "missing ratios are excluded" in rendered
+    assert "missing pass scores are excluded" in rendered
 
 
-def test_comparison_metrics_use_ghidriff_ratio_and_exact_matches() -> None:
+def test_comparison_metrics_use_selected_pass_scores() -> None:
     summary = _summary(
         _row(1, "no-differences"),
-        _row(2, "differences", code=True),
+        _row(2, "differences", code=True, score=0.8),
         _row(3, "differences", data=True),
         _row(4, "unpaired"),
     )
-    metrics = comparison_metrics(summary, _ghidriff((2, 0.8)))
+    metrics = comparison_metrics(summary)
 
     assert metrics["analyzed"] == 3
     assert metrics["average_similarity"] == pytest.approx((1.0 + 0.8 + 1.0) / 3)
@@ -120,21 +142,18 @@ def test_comparison_metrics_use_ghidriff_ratio_and_exact_matches() -> None:
 
 
 def test_comparison_metrics_count_inline_retries_by_retry_outcome() -> None:
-    clean = {**_row(1, "no-differences"), "inline_callees": ["0x9"], "inline_normalized_diff": []}
-    different = {
-        **_row(2, "differences", code=True),
-        "inline_callees": ["0x9"],
-        "inline_normalized_diff": ["-old", "+new"],
-    }
-    failed = {
-        **_row(3, "analysis-failed"),
-        "inline_callees": ["0x9"],
-        "inline_normalized_diff": None,
-    }
-    ordinary = {**_row(4, "differences", code=True), "inline_callees": []}
-    metrics = comparison_metrics(
-        _summary(clean, different, failed, ordinary), _ghidriff((2, 0.9), (4, 0.8))
-    )
+    clean = _row(1, "no-differences")
+    different = _row(2, "differences", code=True, score=0.9)
+    failed = _row(3, "analysis-failed")
+    for row in (clean, different, failed):
+        row["selected_pass"] = "inline"
+        row["inline_callees"] = ["0x9"]
+        row["passes"]["inline"] = row["passes"]["ordinary"]
+        row["passes"]["ordinary"] = _row(99, "differences", code=True, score=0.2)["passes"][
+            "ordinary"
+        ]
+    ordinary = _row(4, "differences", code=True, score=0.8)
+    metrics = comparison_metrics(_summary(clean, different, failed, ordinary))
 
     assert metrics["inline_retries"] == 3
     assert metrics["inline_normalized_clean"] == 1
@@ -145,13 +164,13 @@ def test_comparison_metrics_count_inline_retries_by_retry_outcome() -> None:
 def test_pr_report_contains_comparison_and_data_deltas(tmp_path: Path) -> None:
     head_summary = _summary(
         _row(1, "no-differences"),
-        _row(2, "differences", code=True),
+        _row(2, "differences", code=True, score=0.9),
         _row(3, "differences", data=True),
         _row(4, "unpaired"),
     )
     base_summary = _summary(
-        _row(1, "differences", code=True),
-        _row(2, "differences", code=True),
+        _row(1, "differences", code=True, score=0.8),
+        _row(2, "differences", code=True, score=0.6),
         _row(3, "no-differences"),
         _row(4, "unpaired"),
     )
@@ -312,7 +331,7 @@ def test_classified_comparison_coverage_includes_all_debt():
             )
         ]
     )
-    metrics = comparison_metrics(summary, _ghidriff())
+    metrics = comparison_metrics(summary)
     assert [
         metrics[key]
         for key in [
@@ -357,12 +376,11 @@ def test_pr_report_cli_fails_on_new_export_debt(tmp_path: Path, added: bool):
 
 
 def test_declaration_findings_do_not_reduce_body_quality() -> None:
-    declaration = {**_row(1, "no-differences"), "signature_diff": ["-uint", "+int"]}
-    signedness = {
-        **_row(2, "differences", code=True),
-        "code_change_kind": "scalar-signedness",
-    }
-    metrics = comparison_metrics(_summary(declaration, signedness), _ghidriff((2, 0.9)))
+    declaration = _row(1, "no-differences")
+    declaration["passes"]["ordinary"]["signature_diff"] = ["-uint", "+int"]
+    signedness = _row(2, "differences", code=True, score=0.9)
+    signedness["passes"]["ordinary"]["change_kind"] = "scalar-signedness"
+    metrics = comparison_metrics(_summary(declaration, signedness))
     assert metrics["clean"] == 1
     assert metrics["code_differences"] == 1
     assert metrics["signature_differences"] == 1
