@@ -321,7 +321,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
         if (directions != 0) {
             free(directions);
             directions = 0;
-            mesh->flags |= 2;
+            mesh->flags |= W8_MESH_VERTEX_LIGHTING_DIRTY;
         }
         mesh = mesh->next;
     }
@@ -371,7 +371,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
         for (stMeshModel* model = static_cast<stMeshModel*>(world->update_mesh_source->getModel());
              model != 0; model = model->next) {
             model->vertex_light_table = table;
-            model->flags |= 2;
+            model->flags |= W8_MESH_VERTEX_LIGHTING_DIRTY;
         }
     } else {
         for (unsigned int mesh = 0; mesh < world->octree->m_meshCount; ++mesh) {
@@ -380,7 +380,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
                      model != 0; model = model->next) {
                     model->vertex_light_table = table;
-                    model->flags |= 2;
+                    model->flags |= W8_MESH_VERTEX_LIGHTING_DIRTY;
                 }
             }
         }

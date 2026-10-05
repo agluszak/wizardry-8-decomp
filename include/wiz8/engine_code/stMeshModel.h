@@ -60,6 +60,7 @@ public:
     srVector3T<float>* GetVertexLocations(unsigned int frame, bool load, float interpolation);
     srVector3T<float>* GetVertexNormals(unsigned int frame, bool load); /* 0x00471CA0 */
     srVector3T<float>* GetPolygonNormals(unsigned int frame, bool load);
+    void ClearVertexLights();
     void SetAmbientColor(const srVector3T<float>& color);
     unsigned char AllocateFrameBuffers(unsigned int uiFrame, unsigned char flags); /* 0x00471720 */
     srVector3T<float>* GetVertexLights(bool initialize, int table);                /* 0x00472100 */

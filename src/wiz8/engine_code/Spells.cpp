@@ -208,7 +208,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
     host->current_cycle = cycle;
     animation = host->emitters[cycle];
     host->active = 1;
-    host->frame_direction = 1;
+    host->frame_direction = W8_ANIMATION_FORWARD;
     if (host->SetCycleFrameLod(cycle, 0, 2) != 0) {
         host->m_bLOD = 2;
     } else if (host->SetCycleFrameLod(cycle, 0, 1) != 0) {
@@ -498,7 +498,7 @@ unsigned char W8SpellEmitterHost::ReadCycleData(W8ReadLevelInfo* info, W8SpellVi
     }
     emitter_playback_scales[emitter] = animation->playback_scale;
     active = 1;
-    frame_direction = 1;
+    frame_direction = W8_ANIMATION_FORWARD;
     timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     animation_behaviour = animation->behaviour;
     frame_method = animation->frame_method;
@@ -515,6 +515,19 @@ unsigned char W8SpellEmitterHost::ReadCycleData(W8ReadLevelInfo* info, W8SpellVi
         }
     }
     return success;
+}
+
+static int FindSpellCycleByName(const char* name)
+{
+    if (name == 0) {
+        srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x532, 0);
+    }
+    for (int index = 0; index < SPELL_NUM_CYCLES; ++index) {
+        if (_strnicmp(name, g_spell_cycle_names[index], strlen(g_spell_cycle_names[index])) == 0) {
+            return index;
+        }
+    }
+    return -1;
 }
 
 /* Load one named spell visual resource. When a shared visual of the same
@@ -559,7 +572,6 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
         char wave_path[256];
         int frame;
         int index;
-        int i;
         W8SoundEventKind sound_type;
         float intensity;
         float duration;
@@ -573,22 +585,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
             if (strlen(line) <= 2) {
                 continue;
             }
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-pointer-compare"
-            if (pac_name == 0) {
-                srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x532,
-                             0);
-            }
-#pragma clang diagnostic pop
-
-            index = -1;
-            for (i = 0; i < SPELL_NUM_CYCLES; ++i) {
-                if (_strnicmp(pac_name, g_spell_cycle_names[i], strlen(g_spell_cycle_names[i])) ==
-                    0) {
-                    index = i;
-                    break;
-                }
-            }
+            index = FindSpellCycleByName(pac_name);
             if (index != -1) {
                 if (index / SPELL_CYCLES_PER_GROUP == group) {
                     W8GrCycle* loaded = *visual;
@@ -616,21 +613,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
                     distance = 10.0f;
                     sscanf(line, "%s %s %d %f %f %f", pac_command, pac_name, &frame, &intensity,
                            &duration, &distance);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-pointer-compare"
-                    if (pac_name == 0) {
-                        srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
-                                     0x532, 0);
-                    }
-#pragma clang diagnostic pop
-                    index = -1;
-                    for (i = 0; i < SPELL_NUM_CYCLES; ++i) {
-                        if (_strnicmp(pac_name, g_spell_cycle_names[i],
-                                      strlen(g_spell_cycle_names[i])) == 0) {
-                            index = i;
-                            break;
-                        }
-                    }
+                    index = FindSpellCycleByName(pac_name);
                     effect = new W8CameraShakeEffect(duration, 1, intensity,
                                                      distance * g_world_scale, 0);
                     if (effect != 0) {
@@ -646,21 +629,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
             memcpy(loop_name, &g_empty_ambient_name, 2);
             memset(loop_name + 2, 0, sizeof(loop_name) - 2);
             sscanf(line, "%s %s %d %s %s", pac_command, pac_name, &frame, pac_value, loop_name);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-pointer-compare"
-            if (pac_name == 0) {
-                srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x532,
-                             0);
-            }
-#pragma clang diagnostic pop
-            index = -1;
-            for (i = 0; i < SPELL_NUM_CYCLES; ++i) {
-                if (_strnicmp(pac_name, g_spell_cycle_names[i], strlen(g_spell_cycle_names[i])) ==
-                    0) {
-                    index = i;
-                    break;
-                }
-            }
+            index = FindSpellCycleByName(pac_name);
             if (*visual != 0 && (*visual)->IsCycleSupported(static_cast<signed char>(index))) {
                 sprintf(wave_path, "Data\\Spells\\Sounds\\%s.WAV", pac_value);
                 event = CreateSoundEvent(sound_type, index, frame, 0, wave_path,

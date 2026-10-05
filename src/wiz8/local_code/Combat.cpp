@@ -147,7 +147,8 @@ unsigned char StartCombat(int surprise)
     if (gXStatus.npc_combat_notice_pending == 0) {
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             monster_info = MonsterGetScriptPartByLocationIndex(index);
-            if (monster_info->fInCombat != 0 && monster_info->ubDisposition == DISP_HOSTILE &&
+            if (monster_info->fInCombat != 0 &&
+                monster_info->ubDisposition == W8_DISPOSITION_HOSTILE &&
                 monster_info->hp_current > 0 &&
                 monster_info->highest_condition < W8_CONDITION_PARALYZED) {
                 npc = GetNpcStateForMonsterInfo(monster_info, 0);
@@ -228,7 +229,7 @@ unsigned char StartCombat(int surprise)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
-            monster_info->hp_current > 0 && monster_info->ubDisposition == DISP_HOSTILE) {
+            monster_info->hp_current > 0 && monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) {
             float distance = monster_info->p3D->GetDistanceToPlayer();
             if (distance < nearest_distance) {
                 nearest_distance = distance;
@@ -243,7 +244,7 @@ unsigned char StartCombat(int surprise)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0) {
-            monster_info->action_kind = -1;
+            monster_info->action_kind = W8_MONSTER_ACTION_NONE;
             monster_info->action_detail = 0;
             monster_info->pCombat->phase = 0;
             monster_info->pCombat->active = 1;
@@ -387,7 +388,7 @@ bool QueueNpcCombatScript(void)
             for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
                 W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
                 if (group->members_active && group->fInCombat &&
-                    group->ubDisposition == DISP_HOSTILE &&
+                    group->ubDisposition == W8_DISPOSITION_HOSTILE &&
                     MonsterGroupGetRecord(group)->faction_id == faction) {
                     hostile_group_present = true;
                     break;
@@ -398,7 +399,7 @@ bool QueueNpcCombatScript(void)
             for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
                 W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
                 if (group->members_active && group->fInCombat &&
-                    group->ubDisposition == DISP_HOSTILE &&
+                    group->ubDisposition == W8_DISPOSITION_HOSTILE &&
                     MonsterGroupGetRecord(group)->faction_id == 4) {
                     hostile_group_present = true;
                     break;
@@ -646,10 +647,10 @@ void BeginCombatExecution(void)
             monster->highest_condition >= W8_CONDITION_WEBBED) {
             continue;
         }
-        if (monster->action_kind == 1) {
+        if (monster->action_kind == W8_MONSTER_ACTION_WAIT) {
             PostMonsterNotice(monster, gppStringList[0x228]);
         }
-        if (monster->action_kind == 8) {
+        if (monster->action_kind == W8_MONSTER_ACTION_PROTECT) {
             if (monster->Target.iType == W8_TARGET_KIND_MONSTER) {
                 unsigned int target_index = MonsterGetIndexByLocationID(
                     0x601, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
@@ -815,7 +816,7 @@ void NotifyNearbyMonsters(int what)
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
             monster_info->highest_condition < W8_CONDITION_WEBBED &&
             monster_info->uiCondition[W8_CONDITION_BLIND] == 0 &&
-            monster_info->ubDisposition == 1) {
+            monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) {
             if (monster_info->p3D->GetDistanceToPlayer() <= CalcRangeDistance(W8_RANGE_SHORT)) {
                 MonsterForwardReferencePosition(monster_info->p3D, what);
             }
@@ -918,7 +919,7 @@ void EndMonsterTurn(W8MonsterInfo* monster_info)
     W8CombatSlot chosen;
     int target_location;
 
-    monster_info->action_kind = -1;
+    monster_info->action_kind = W8_MONSTER_ACTION_NONE;
     monster_info->action_detail = 0;
     monster_info->pCombat->phase = 0;
     monster_info->pCombat->active = 1;
@@ -957,10 +958,10 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
     }
 
     scale = GetMonsterCombatMoveRange(monster_info);
-    if (monster_info->action_kind == 9) {
+    if (monster_info->action_kind == W8_MONSTER_ACTION_CONTROLLED_MOVE) {
         speed = 0x32;
     } else {
-        if (monster_info->action_kind == 7) {
+        if (monster_info->action_kind == W8_MONSTER_ACTION_BACK_OFF) {
             speed = 0x96;
         }
         if (monster_info->enchantments[W8_ENCHANTMENT_HASTE].turns == 0) {
@@ -997,7 +998,7 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
     if (combat->active == 0) {
         return;
     }
-    if (monster_info->action_kind == 0 && combat->attacks_per_round != 0) {
+    if (monster_info->action_kind == W8_MONSTER_ACTION_ATTACK && combat->attacks_per_round != 0) {
         if (ChooseRandomMonsterAction(monster_info, 1, 0, 0)) {
             next = combat->phase +
                    (100 - g_combat_state->round_counter) / (combat->attacks_per_round + 1);
@@ -1760,14 +1761,14 @@ void AssignCombatPhases(void)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         if (monster_info->fInCombat != 0) {
             bool side_done;
-            if (monster_info->ubDisposition == DISP_HOSTILE) {
+            if (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) {
                 side_done = g_combat_state->monsters_surprised;
             } else {
                 side_done = g_combat_state->party_surprised;
             }
             if (monster_info->hp_current == 0 ||
                 monster_info->highest_condition > W8_CONDITION_WEBBED || side_done != 0) {
-                monster_info->action_kind = -1;
+                monster_info->action_kind = W8_MONSTER_ACTION_NONE;
                 monster_info->pCombat->phase = 0;
                 monster_info->pCombat->active = 1;
             } else {
@@ -1916,7 +1917,7 @@ void AdvanceCombatRound(void)
     while (index < PLLength(gXStatus.plsMonsterList)) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0) {
-            if (monster_info->action_kind == 1 ||
+            if (monster_info->action_kind == W8_MONSTER_ACTION_WAIT ||
                 monster_info->highest_condition == W8_CONDITION_ASLEEP ||
                 monster_info->highest_condition == W8_CONDITION_UNCONSCIOUS) {
                 int sides = static_cast<unsigned int>(monster_info->stamina_max) / 0x14 - 1;
@@ -1927,7 +1928,7 @@ void AdvanceCombatRound(void)
                 RestoreMonsterStamina(monster_info, RollDice(&dice), 0);
             }
             if (monster_info->pCombat->special_cooldown != 0 &&
-                monster_info->action_kind != 3) {
+                monster_info->action_kind != W8_MONSTER_ACTION_SPECIAL_ATTACK) {
                 monster_info->pCombat->special_cooldown =
                     monster_info->pCombat->special_cooldown - 1;
             }
@@ -2050,7 +2051,7 @@ void RollCombatSurprise(char arg_1)
                 if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
                     monster_info->hp_current != 0 &&
                     monster_info->highest_condition < W8_CONDITION_PARALYZED &&
-                    monster_info->ubDisposition == 1 &&
+                    monster_info->ubDisposition == W8_DISPOSITION_HOSTILE &&
                     monster_info->party_threat.sight_state == W8_SIGHT_SEEN) {
                     found = true;
                     break;
@@ -2079,7 +2080,7 @@ void RollCombatSurprise(char arg_1)
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
             monster_info->hp_current != 0 &&
             monster_info->highest_condition < W8_CONDITION_PARALYZED &&
-            monster_info->ubDisposition == 1 &&
+            monster_info->ubDisposition == W8_DISPOSITION_HOSTILE &&
             monster_info->player_visibility.sight_state == W8_SIGHT_SEEN) {
             found = true;
             break;
@@ -2431,10 +2432,10 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         case 5:
         case 6:
         case 10:
-            monster_info->action_kind = -1;
+            monster_info->action_kind = W8_MONSTER_ACTION_NONE;
             break;
         case 7:
-            monster_info->action_kind = -1;
+            monster_info->action_kind = W8_MONSTER_ACTION_NONE;
             ClearMonsterCondition(monster_info->location_id, W8_CONDITION_WEBBED);
             break;
         case 8:
@@ -2444,26 +2445,26 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             }
             break;
         case 0xb:
-            monster_info->action_kind = 9;
+            monster_info->action_kind = W8_MONSTER_ACTION_CONTROLLED_MOVE;
             break;
         case 0xc:
-            monster_info->action_kind = 4;
+            monster_info->action_kind = W8_MONSTER_ACTION_ADVANCE;
             break;
         }
         if (monster_info->pCombat->berserk != 0) {
-            monster_info->action_kind = 0;
+            monster_info->action_kind = W8_MONSTER_ACTION_ATTACK;
             if (ChooseRandomMonsterAction(monster_info, 1, 0, berserked) == 0) {
                 if (interrupt == 8) {
                     FormatDebugMessage(
                         1, "ERROR: %ls (ID %d) is attacking friends with nobody in range",
                         record->name0, monster_info->location_id);
                 }
-                monster_info->action_kind = -1;
+                monster_info->action_kind = W8_MONSTER_ACTION_NONE;
             }
         }
     }
     while (true) {
-        if (monster_info->action_kind != -1) {
+        if (monster_info->action_kind != W8_MONSTER_ACTION_NONE) {
             tried[monster_info->action_kind] = 1;
         }
         if (MonsterActionTargetsEnemies(monster_info->action_kind, monster_info->action_detail,
@@ -2473,8 +2474,8 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             MakeTargetGroupHostile(&monster_source, &monster_info->Target);
         }
         switch (monster_info->action_kind) {
-        case 5:
-        case 7:
+        case W8_MONSTER_ACTION_APPROACH:
+        case W8_MONSTER_ACTION_BACK_OFF:
             if (monster_info->uiCondition[W8_CONDITION_BLIND] == 0 || record->kind == '\f') {
                 if (record->prefer_ranged_actions == 0) {
                     range = GetBestMonsterAttackRange(record, 1);
@@ -2503,7 +2504,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                             monster_info->p3D, target_info->p3D, approach_distance, engage_distance,
                             position, sight, &move_flag);
                     } else {
-                        if (monster_info->ubDisposition != 1) {
+                        if (monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
                             break;
                         }
                         move_result = MonsterConfigureMovementToPlayer(
@@ -2511,7 +2512,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                             &move_flag);
                     }
                     if (move_result == 1 || (move_result == 3 && move_flag != 0)) {
-                        if (monster_info->action_kind == 5) {
+                        if (monster_info->action_kind == W8_MONSTER_ACTION_APPROACH) {
                             if (g_settings.verbose_combat_messages != 0) {
                                 if (monster_info->Target.iType == W8_TARGET_KIND_MONSTER) {
                                     PostMonsterNotice(monster_info, gppStringList[0x238],
@@ -2537,15 +2538,16 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                         break;
                     }
                 }
-                monster_info->action_kind = 6;
+                monster_info->action_kind = W8_MONSTER_ACTION_RETURN_TO_START;
                 continue;
             }
             break;
-        case 6:
+        case W8_MONSTER_ACTION_RETURN_TO_START:
             if (monster_info->summoned != 0 ||
-                (monster_info->ubDisposition == 2 && gXStatus.hostile_monster_count == 0)) {
+                (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY &&
+                 gXStatus.hostile_monster_count == 0)) {
                 ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, 0));
-                monster_info->action_kind = 1;
+                monster_info->action_kind = W8_MONSTER_ACTION_WAIT;
                 continue;
             }
             SetUpMonsterTurn(monster_info);
@@ -2554,7 +2556,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 ShowNoticef(9, gppStringList[0x23a], GetMonsterName(monster_info, NULL, 0));
             }
             break;
-        case 4:
+        case W8_MONSTER_ACTION_ADVANCE:
             SetUpMonsterTurn(monster_info);
             result = MonsterLinkToStartupNavigator(monster_info->p3D) != 0;
             if (result != 0) {
@@ -2566,14 +2568,14 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 }
             }
             break;
-        case 9:
+        case W8_MONSTER_ACTION_CONTROLLED_MOVE:
             SetUpMonsterTurn(monster_info);
             result = IsMonsterControlPointInRange(monster_info) != 0;
             break;
-        case 0:
+        case W8_MONSTER_ACTION_ATTACK:
             result = StartMonsterAttack(monster_info, record);
             break;
-        case 2: {
+        case W8_MONSTER_ACTION_SPELL: {
             int spell_id = monster_info->action_detail;
             unsigned int power = ChooseMonsterSpellPowerLevel(monster_info, record, spell_id);
             if (CanMonsterAimSpell(monster_info, spell_id) == 0 ||
@@ -2588,37 +2590,42 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             result = 1;
             break;
         }
-        case 3:
+        case W8_MONSTER_ACTION_SPECIAL_ATTACK:
             result = MonsterFleeAction(monster_info, record);
             break;
-        case 8:
+        case W8_MONSTER_ACTION_PROTECT:
             result = CanMonsterProtectTarget(monster_info);
             break;
-        case 1:
+        case W8_MONSTER_ACTION_WAIT:
             result = 1;
+            break;
+        default:
             break;
         }
         if (result != 0) {
-            if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
+            if (monster_info->action_kind != W8_MONSTER_ACTION_WAIT &&
+                monster_info->action_kind != W8_MONSTER_ACTION_PROTECT) {
                 MonsterSetNavigatorHalted(monster_info->p3D, 0);
             }
             break;
         }
         if (interrupt != -1 || monster_info->pCombat->active != 0 ||
-            monster_info->action_kind == 9) {
-            monster_info->action_kind = -1;
+            monster_info->action_kind == W8_MONSTER_ACTION_CONTROLLED_MOVE) {
+            monster_info->action_kind = W8_MONSTER_ACTION_NONE;
             break;
         }
         UpdateMonsterAI(monster_info);
-        if (monster_info->action_kind == -1 || tried[monster_info->action_kind] != '\0') {
-            monster_info->action_kind = 1;
+        if (monster_info->action_kind == W8_MONSTER_ACTION_NONE ||
+            tried[monster_info->action_kind] != '\0') {
+            monster_info->action_kind = W8_MONSTER_ACTION_WAIT;
         }
-        if (monster_info->action_kind == 1) {
+        if (monster_info->action_kind == W8_MONSTER_ACTION_WAIT) {
             ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, 0));
             break;
         }
     }
-    if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
+    if (monster_info->action_kind != W8_MONSTER_ACTION_WAIT &&
+        monster_info->action_kind != W8_MONSTER_ACTION_PROTECT) {
         g_combat_state->passive_round = 0;
     }
     if (IsMonsterActionUsable(monster_info) != 0) {
@@ -2834,17 +2841,18 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
     W8Monster* monster;
 
     switch (monster_info->action_kind) {
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 9:
+    case W8_MONSTER_ACTION_ADVANCE:
+    case W8_MONSTER_ACTION_APPROACH:
+    case W8_MONSTER_ACTION_RETURN_TO_START:
+    case W8_MONSTER_ACTION_BACK_OFF:
+    case W8_MONSTER_ACTION_CONTROLLED_MOVE:
         PointCameraAtMonster(monster_info, 0, 1);
         if (monster_info->p3D->movement_complete == 0) {
             outcome = 2;
             break;
         }
-        if ((monster_info->action_kind == 5 || monster_info->action_kind == 7) &&
+        if ((monster_info->action_kind == W8_MONSTER_ACTION_APPROACH ||
+             monster_info->action_kind == W8_MONSTER_ACTION_BACK_OFF) &&
             monster_info->hp_current != 0 &&
             monster_info->highest_condition < W8_CONDITION_WEBBED &&
             monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
@@ -2874,7 +2882,7 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
             progress_pct = 100;
         }
         if (static_cast<int>(Random(100)) < 100 - progress_pct) {
-            if (monster_info->action_kind != 9) {
+            if (monster_info->action_kind != W8_MONSTER_ACTION_CONTROLLED_MOVE) {
                 UpdateMonsterAI(monster_info);
             }
             outcome = monster_info->action_kind;
@@ -2889,18 +2897,18 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
         }
         outcome = 3;
         break;
-    case 0:
+    case W8_MONSTER_ACTION_ATTACK:
         record = GetMonsterDataForInfo(monster_info);
         outcome = ContinueMonsterAttack(monster_info, record);
         break;
-    case 2:
+    case W8_MONSTER_ACTION_SPELL:
         if (monster_info->fSpellReleased == 0) {
             srAssertFail("pMonsterInfo->fSpellReleased",
                          "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0xff2, 0);
         }
         outcome = 2;
         break;
-    case 3:
+    case W8_MONSTER_ACTION_SPECIAL_ATTACK:
         record = GetMonsterDataForInfo(monster_info);
         outcome = ExecuteMonsterSpecialAttack(monster_info, record);
         break;
@@ -2965,7 +2973,7 @@ int GetConditionInterrupt(W8TargetSource* source)
         }
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x11aa, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", source->iMonsterID, 1));
-        moving = monster_info->action_kind == 4;
+        moving = monster_info->action_kind == W8_MONSTER_ACTION_ADVANCE;
         condition_turns = monster_info->uiCondition;
         can_attack =
             RateMonsterBestAttack(monster_info, GetMonsterDataForInfo(monster_info), 0) == 0;
@@ -3278,7 +3286,8 @@ void UpdateCombat(void)
         g_combat_state->pActionMonsterInfo = 0;
         W8MonsterCombatState* combat = monster_info->pCombat;
         if (combat->active != 0) {
-            if (monster_info->action_kind == 0 && combat->attacks_per_round != 0 &&
+            if (monster_info->action_kind == W8_MONSTER_ACTION_ATTACK &&
+                combat->attacks_per_round != 0 &&
                 ChooseRandomMonsterAction(monster_info, 1, 0, 0) != 0) {
                 combat->phase =
                     combat->phase + (100U - g_combat_state->round_counter) /
@@ -3349,7 +3358,7 @@ void ScheduleCombatActor(void)
                     g_combat_state->pActionMonsterInfo = monster_info;
                     break;
                 }
-                monster_info->action_kind = -1;
+                monster_info->action_kind = W8_MONSTER_ACTION_NONE;
                 combat->phase = 0;
                 if (combat->active == 0) {
                     combat->active = 1;
@@ -3522,12 +3531,14 @@ short GetCombatActionProgress(int* out_total)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
             monster_info->highest_condition < W8_CONDITION_ASLEEP &&
-            monster_info->fMotionless == 0 && monster_info->action_kind != 1 &&
-            monster_info->action_kind != 8 && monster_info->action_kind != -1) {
-            total +=
-                monster_info->action_kind == 0 ? monster_info->pCombat->attacks_per_round0 : 1;
+            monster_info->fMotionless == 0 && monster_info->action_kind != W8_MONSTER_ACTION_WAIT &&
+            monster_info->action_kind != W8_MONSTER_ACTION_PROTECT &&
+            monster_info->action_kind != W8_MONSTER_ACTION_NONE) {
+            total += monster_info->action_kind == W8_MONSTER_ACTION_ATTACK
+                         ? monster_info->pCombat->attacks_per_round0
+                         : 1;
             if (monster_info->pCombat->active != 0) {
-                completed += monster_info->action_kind == 0
+                completed += monster_info->action_kind == W8_MONSTER_ACTION_ATTACK
                                  ? monster_info->pCombat->attacks_per_round0 -
                                        monster_info->pCombat->attacks_per_round
                                  : 1;

@@ -1365,14 +1365,7 @@ void ResetAutomapLighting(void)
             if (instance != 0) {
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
                      model != 0; model = model->next) {
-                    srVector3T<float>* lights = model->GetVertexLights(1, 1);
-                    int count = model->vertex_location_count * 3;
-                    if (count != 0) {
-                        // reinterpret-ok: vertex-light floats zeroed via dword fill.
-                        srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights), 0,
-                                                static_cast<SRDWORD>(count));
-                    }
-                    model->flags |= 2;
+                    model->ClearVertexLights();
                 }
             }
         }
@@ -1380,14 +1373,7 @@ void ResetAutomapLighting(void)
         for (stMeshModel* model =
                  static_cast<stMeshModel*>(g_world->update_mesh_source->getModel());
              model != 0; model = model->next) {
-            srVector3T<float>* lights = model->GetVertexLights(1, 1);
-            int count = model->vertex_location_count * 3;
-            if (count != 0) {
-                // reinterpret-ok: vertex-light floats zeroed via dword fill.
-                srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights), 0,
-                                        static_cast<SRDWORD>(count));
-            }
-            model->flags |= 2;
+            model->ClearVertexLights();
         }
     }
     g_automap_lit_cells->ClearAll();

@@ -908,7 +908,8 @@ void W8TextControl::Redraw(unsigned char full_redraw)
     }
 
     int text_state = 0;
-    if ((m_stateFlags & 1) != 0 && (m_flags & g_W8TextControlLayoutTextBesideImage) == 0) {
+    if ((m_stateFlags & g_W8TextControlStatePressed) != 0 &&
+        (m_flags & g_W8TextControlLayoutTextBesideImage) == 0) {
         text_state = m_pressedTextOffset;
     }
 
@@ -939,7 +940,7 @@ void W8TextControl::Redraw(unsigned char full_redraw)
             m_dirty = false;
             return;
         }
-    } else if ((m_stateFlags & 1) == 0) {
+    } else if ((m_stateFlags & g_W8TextControlStatePressed) == 0) {
         sprite = m_alternateTextEnabled != 0 && m_alternateNormalSprite != -1
                      ? m_alternateNormalSprite
                      : m_normalSprite;
@@ -1081,7 +1082,8 @@ void W8TextControl::RemoveLayoutFlags(unsigned int flags)
 // FUNCTION: WIZ8 0x004f4c40
 void W8TextControl::EnableSecondaryState(unsigned char immediate)
 {
-    if ((m_flags & g_W8TextControlLayoutToggle) != 0 && (m_stateFlags & 2) == 0) {
+    if ((m_flags & g_W8TextControlLayoutToggle) != 0 &&
+        (m_stateFlags & g_W8TextControlStateSecondary) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         m_stateFlags |= g_W8TextControlStateSecondary;
         InvalidateCore(immediate);
@@ -1091,7 +1093,8 @@ void W8TextControl::EnableSecondaryState(unsigned char immediate)
 // FUNCTION: WIZ8 0x004f4cb0
 void W8TextControl::DisableSecondaryState(unsigned char immediate)
 {
-    if ((m_flags & g_W8TextControlLayoutToggle) != 0 && (m_stateFlags & 2) != 0) {
+    if ((m_flags & g_W8TextControlLayoutToggle) != 0 &&
+        (m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         m_stateFlags &= ~g_W8TextControlStateSecondary;
         InvalidateCore(immediate);
@@ -1113,7 +1116,7 @@ void W8TextControl::OnMouseEnter(int event)
         PushButtonSoundScheme(0, 1);
     }
 
-    if ((m_stateFlags & 1) == 0) {
+    if ((m_stateFlags & g_W8TextControlStatePressed) == 0) {
         if (m_alternateNormalSprite == -1) {
             return;
         }
@@ -1147,7 +1150,7 @@ void W8TextControl::OnMouseLeave(int event)
         m_stateFlags &= ~4u;
     }
 
-    if ((m_stateFlags & 1) == 0) {
+    if ((m_stateFlags & g_W8TextControlStatePressed) == 0) {
         if (m_alternateNormalSprite == -1) {
             return;
         }
@@ -1157,15 +1160,35 @@ void W8TextControl::OnMouseLeave(int event)
     }
 
     if (m_alternatePressedSprite != -1 ||
-        (m_alternateNormalSprite != -1 && (m_flags & 0x10) != 0)) {
+        (m_alternateNormalSprite != -1 && (m_flags & g_W8TextControlMask) != 0)) {
         SetAlternateTextEnabled(0);
         InvalidateCore(static_cast<unsigned char>(event));
     }
-    if ((m_stateFlags & 2) != 0) {
+    if ((m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         return;
     }
     m_stateFlags &= ~g_W8TextControlStatePressed;
     InvalidateCore(static_cast<unsigned char>(event));
+}
+
+void W8TextControl::NotifyPrimaryActivation()
+{
+    if (m_listener != 0) {
+        m_listener->OnPrimary(this);
+    }
+    if (m_primaryActivationCallback != 0) {
+        m_primaryActivationCallback();
+    }
+}
+
+void W8TextControl::NotifySecondaryActivation()
+{
+    if (m_listener != 0) {
+        m_listener->OnSecondary(this);
+    }
+    if (m_secondaryActivationCallback != 0) {
+        m_secondaryActivationCallback();
+    }
 }
 
 // FUNCTION: WIZ8 0x004f4f70
@@ -1191,9 +1214,9 @@ void W8TextControl::OnLeftButtonDown(int event)
         if (m_imageObject != -1 && m_imageFrame != -1) {
             InvalidateCore(static_cast<unsigned char>(event));
         }
-    } else if ((m_stateFlags & 1) == 0) {
+    } else if ((m_stateFlags & g_W8TextControlStatePressed) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
-        if ((m_flags & 0x10) == 0) {
+        if ((m_flags & g_W8TextControlMask) == 0) {
             InvalidateCore(static_cast<unsigned char>(event));
         }
     }
@@ -1235,7 +1258,7 @@ void W8TextControl::OnLeftButtonUp(int event)
         }
         return;
     }
-    if ((m_stateFlags & 1) == 0) {
+    if ((m_stateFlags & g_W8TextControlStatePressed) == 0) {
         return;
     }
     if ((m_flags & 0x20) != 0) {
@@ -1245,10 +1268,10 @@ void W8TextControl::OnLeftButtonUp(int event)
     if ((m_flags & g_W8TextControlLayoutToggle) == 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         InvalidateCore(static_cast<unsigned char>(event));
-    } else if ((m_stateFlags & 2) == 0) {
+    } else if ((m_stateFlags & g_W8TextControlStateSecondary) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         m_stateFlags |= g_W8TextControlStateSecondary;
-        if ((m_flags & 0x10) != 0) {
+        if ((m_flags & g_W8TextControlMask) != 0) {
             InvalidateCore(static_cast<unsigned char>(event));
         }
     } else if ((m_flags & g_W8TextControlLayoutStayLatched) == 0) {
@@ -1263,12 +1286,7 @@ void W8TextControl::OnLeftButtonUp(int event)
         PushButtonSoundScheme(0, 1);
         return;
     }
-    if (m_listener != 0) {
-        m_listener->OnPrimary(this);
-    }
-    if (m_primaryActivationCallback != 0) {
-        m_primaryActivationCallback();
-    }
+    NotifyPrimaryActivation();
 }
 
 // FUNCTION: WIZ8 0x004f5290
@@ -1293,28 +1311,19 @@ void W8TextControl::OnRightButtonUp(int)
         PushButtonSoundScheme(0, 1);
         return;
     }
-    if (m_listener != 0) {
-        m_listener->OnSecondary(this);
-    }
-    if (m_secondaryActivationCallback != 0) {
-        m_secondaryActivationCallback();
-    }
+    NotifySecondaryActivation();
 }
 
 // FUNCTION: WIZ8 0x004f5230
 void W8TextControl::ActivatePrimary(int)
 {
-    if ((m_flags & 0x100) != 0 && m_active && m_enabled && (m_stateFlags & 1) != 0) {
+    if ((m_flags & 0x100) != 0 && m_active && m_enabled &&
+        (m_stateFlags & g_W8TextControlStatePressed) != 0) {
         m_stateFlags |= 4;
         if ((m_flags & 0x20) == 0) {
             PlayButtonSound(3);
         }
-        if (m_listener != 0) {
-            m_listener->OnPrimary(this);
-        }
-        if (m_primaryActivationCallback != 0) {
-            m_primaryActivationCallback();
-        }
+        NotifyPrimaryActivation();
     }
 }
 
@@ -1325,7 +1334,8 @@ void W8TextControl::OnLeftButtonDoubleClick(int)
         if ((m_flags & 0x20) != 0) {
             PushButtonSoundScheme(0, 1);
         }
-        if ((m_flags & g_W8TextControlLayoutToggle) != 0 && (m_stateFlags & 2) == 0) {
+        if ((m_flags & g_W8TextControlLayoutToggle) != 0 &&
+            (m_stateFlags & g_W8TextControlStateSecondary) == 0) {
             return;
         }
         if (m_leftDoubleClickCallback != 0) {
@@ -1347,12 +1357,7 @@ void W8TextControl::ActivateSecondary(int)
         if ((m_flags & 0x20) == 0) {
             PlayButtonSound(3);
         }
-        if (m_listener != 0) {
-            m_listener->OnSecondary(this);
-        }
-        if (m_secondaryActivationCallback != 0) {
-            m_secondaryActivationCallback();
-        }
+        NotifySecondaryActivation();
     }
 }
 
@@ -1840,12 +1845,7 @@ void W8HelpTextControl::OnRightButtonUp(int)
             PushButtonSoundScheme(0, 1);
             return;
         }
-        if (m_listener != 0) {
-            m_listener->OnSecondary(this);
-        }
-        if (m_secondaryActivationCallback != 0) {
-            m_secondaryActivationCallback();
-        }
+        NotifySecondaryActivation();
         return;
     }
     if (!m_active && m_enabled) {

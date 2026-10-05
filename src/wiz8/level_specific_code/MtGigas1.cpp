@@ -97,8 +97,8 @@ bool MtGigas1Lift2(Trigger* pTrigger)
 /* Activation callback on PRESSUREPLATE: ticks the secret door. The plate
    counts as held while the camera stands inside the prop's XZ bounds or the
    prop still has list entries. On the down edge it opens secretDoor-01 and
-   drops the plate (setting 1, rumble + open sounds); on the release edge it
-   reverses both (setting 3, close + rumble sounds) and clears PPlateDown. */
+   drops the plate (forward animation, rumble + open sounds); on the release edge it
+   reverses both (reverse animation, close + rumble sounds) and clears PPlateDown. */
 // FUNCTION: WIZ8 0x004DBBD0
 bool MtGigas1PressurePlate(Trigger* pTrigger)
 {
@@ -127,7 +127,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
             pPlateTrigger->Run(-1);
             W8Prop* prop = pPlateTrigger->GetProp();
             if (prop != 0) {
-                prop->SetSetting6E(1);
+                prop->SetAnimationDirection(W8_ANIMATION_FORWARD);
             }
         }
         pPlateTrigger = FindTriggerByName("plate");
@@ -135,7 +135,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
             pPlateTrigger->Run(-1);
             W8Prop* prop = pPlateTrigger->GetProp();
             if (prop != 0) {
-                prop->SetSetting6E(1);
+                prop->SetAnimationDirection(W8_ANIMATION_FORWARD);
             }
         }
         g_plate_down = 1;
@@ -152,7 +152,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
         pPlateTrigger->Run(-1);
         W8Prop* prop = pPlateTrigger->GetProp();
         if (prop != 0) {
-            prop->SetSetting6E(3);
+            prop->SetAnimationDirection(W8_ANIMATION_REVERSE);
         }
     }
     pPlateTrigger = FindTriggerByName("plate");
@@ -160,7 +160,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
         pPlateTrigger->Run(-1);
         W8Prop* prop = pPlateTrigger->GetProp();
         if (prop != 0) {
-            prop->SetSetting6E(3);
+            prop->SetAnimationDirection(W8_ANIMATION_REVERSE);
         }
     }
     g_plate_down = 0;

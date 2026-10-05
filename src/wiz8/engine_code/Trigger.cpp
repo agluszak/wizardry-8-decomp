@@ -1363,6 +1363,8 @@ W8StringTriggerActionData::~W8StringTriggerActionData()
     }
 }
 
+char* NextTriggerRecipient(char** cursor);
+
 /* Clear the running bit and run every comma-separated recipient trigger once
    when the link-out and state-gate bits are set. */
 // FUNCTION: WIZ8 0x00441590
@@ -1375,16 +1377,7 @@ void Trigger::RunLinkedTriggers()
         (flags & W8_TRIGGER_LINK_ON_DEACTIVATE) != 0 && m_pacRecipients != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
-            strcpy(g_trigger_parse_buffer, recipient);
-            char* comma = strchr(g_trigger_parse_buffer, ',');
-            if (comma == 0) {
-                recipient = 0;
-            } else {
-                recipient = strchr(recipient, ',') + 1;
-                *comma = '\0';
-            }
-
-            Trigger* trigger = FindTriggerByName(g_trigger_parse_buffer);
+            Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
                 trigger->Run(-1);
             }
@@ -2296,16 +2289,7 @@ finish_linked_triggers:
     if ((flags & W8_TRIGGER_FIRE_LINKED) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
-            strcpy(g_trigger_parse_buffer, recipient);
-            char* comma = strchr(g_trigger_parse_buffer, ',');
-            if (comma == 0) {
-                recipient = 0;
-            } else {
-                recipient = strchr(recipient, ',') + 1;
-                *comma = '\0';
-            }
-
-            Trigger* trigger = FindTriggerByName(g_trigger_parse_buffer);
+            Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
                 trigger->FinishAction();
             }
@@ -2317,16 +2301,7 @@ reactivate_linked_triggers:
         (flags & W8_TRIGGER_REACTIVATE_LINKED) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
-            strcpy(g_trigger_parse_buffer, recipient);
-            char* comma = strchr(g_trigger_parse_buffer, ',');
-            if (comma == 0) {
-                recipient = 0;
-            } else {
-                recipient = strchr(recipient, ',') + 1;
-                *comma = '\0';
-            }
-
-            Trigger* trigger = FindTriggerByName(g_trigger_parse_buffer);
+            Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
                 trigger->Run(-1);
             }

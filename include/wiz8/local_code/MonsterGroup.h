@@ -11,7 +11,6 @@ struct W8MonsterInfo;
 
 /* The dispositions a group or member carries, spelled by the MONSTERS.SLF
    parser and the 0x00530f10 assertion. */
-enum { DISP_NEUTRAL = 0, DISP_HOSTILE = 1, DISP_FRIENDLY = 2 };
 
 bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 

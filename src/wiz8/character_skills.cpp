@@ -517,6 +517,21 @@ void ResetCharacterAttributes(W8Character* character)
     InitializeSkillBaseLevels(character);
 }
 
+static int GetEffectiveSkillLevel(const W8Character* character, W8Skill skill_id)
+{
+    int level = character->skills[skill_id].points;
+    if (skill_id == g_profession_bonus_skills[character->iProfession]) {
+        unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
+        if (bonus == 0) {
+            bonus = 1;
+        }
+        level += bonus;
+    }
+    level += character->bonus.skill_bonus[skill_id];
+    ClampInteger(&level, 0, 0x7d);
+    return level;
+}
+
 /* Rebuild every skill level from the value already spent on it, the
    profession's bonus skill and the race and profession adjustment bytes the
    modifier block carries, clamped to zero through 125. The equipment refresh
@@ -527,17 +542,8 @@ void ResetCharacterSkills(W8Character* character)
     unsigned int index;
 
     for (index = 0; index < 0x29; ++index) {
-        int value = character->skills[index].points;
-        if (index == static_cast<unsigned int>(g_profession_bonus_skills[character->iProfession])) {
-            unsigned int bonus = static_cast<unsigned int>(value * 0x19) / 100;
-            if (bonus == 0) {
-                bonus = 1;
-            }
-            value += bonus;
-        }
-        value += character->bonus.skill_bonus[index];
-        ClampInteger(&value, 0, 0x7d);
-        character->skills[index].level = value;
+        character->skills[index].level =
+            GetEffectiveSkillLevel(character, static_cast<W8Skill>(index));
         UnequipUnusableItems(character);
     }
 }
@@ -595,17 +601,7 @@ void ApplySkillChange(W8Character* character, W8Skill skill_id)
 {
     RefreshCharacterSkillAvailability(character);
 
-    int level = character->skills[skill_id].points;
-    if (skill_id == g_profession_bonus_skills[character->iProfession]) {
-        unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
-        if (bonus == 0) {
-            bonus = 1;
-        }
-        level += bonus;
-    }
-    level += character->bonus.skill_bonus[skill_id];
-    ClampInteger(&level, 0, 0x7d);
-    character->skills[skill_id].level = level;
+    character->skills[skill_id].level = GetEffectiveSkillLevel(character, skill_id);
     UnequipUnusableItems(character);
     RecalculateCharacterDerivedStats(character);
 }

@@ -441,6 +441,20 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
     }
 }
 
+void W8MessageStorageRecord::ClearEntries()
+{
+    W8PList* list = entries;
+    if (list) {
+        unsigned int count = PLLength(list);
+        for (unsigned int entry = 0; entry < count; ++entry) {
+            free(PLGet(list, entry));
+        }
+        PListClear(list);
+        PLDestroy(list);
+        entries = 0;
+    }
+}
+
 // FUNCTION: WIZ8 0x0058fd30
 void ReleaseMessageStorage(void)
 {
@@ -450,16 +464,7 @@ void ReleaseMessageStorage(void)
             if (record->wString) {
                 free(record->wString);
             }
-            W8PList* entries = record->entries;
-            if (entries) {
-                unsigned int count = PLLength(entries);
-                for (unsigned int entry = 0; entry < count; ++entry) {
-                    free(PLGet(entries, entry));
-                }
-                PListClear(entries);
-                PLDestroy(entries);
-                record->entries = 0;
-            }
+            record->ClearEntries();
             memset(record, 0, sizeof(*record));
         }
     }
@@ -816,16 +821,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         free(line->wString);
         line->wString = 0;
     }
-    W8PList* entries = line->entries;
-    if (entries) {
-        unsigned int count = PLLength(entries);
-        for (unsigned int entry = 0; entry < count; ++entry) {
-            free(PLGet(entries, entry));
-        }
-        PListClear(entries);
-        PLDestroy(entries);
-        line->entries = 0;
-    }
+    line->ClearEntries();
     if (g_status.text_box_lines_shown[text_box] == *lines_used) {
         if (!(g_status.text_box_lines_shown[text_box] > 0)) {
             srAssertFail("gStatus.uiTextBoxLinesShown[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0xfa9,
@@ -1572,12 +1568,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
 
     unsigned short us_event = event->usEvent;
     if (us_event < RIGHT_BUTTON_DOWN + 1) {
-        if (us_event == RIGHT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
-            return 1;
-        }
-        if (us_event == LEFT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        if (region->CaptureButtonDown(us_event)) {
             return 1;
         }
         if (us_event != LEFT_BUTTON_UP && us_event != LEFT_BUTTON_REPEAT) {
@@ -1662,12 +1653,7 @@ unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* reg
 
     unsigned short us_event = event->usEvent;
     if (us_event < RIGHT_BUTTON_DOWN + 1) {
-        if (us_event == RIGHT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
-            return 1;
-        }
-        if (us_event == LEFT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        if (region->CaptureButtonDown(us_event)) {
             return 1;
         }
         if (us_event != LEFT_BUTTON_UP && us_event != LEFT_BUTTON_REPEAT) {

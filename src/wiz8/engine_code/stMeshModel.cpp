@@ -1388,6 +1388,16 @@ srVector3T<float>* stMeshModel::GetPolygonNormals(unsigned int frame, bool load)
     return m_pPolyNormal[frame];
 }
 
+void stMeshModel::ClearVertexLights()
+{
+    srVector3T<float>* lights = GetVertexLights(1, 1);
+    int count = vertex_location_count * 3;
+    if (count != 0) {
+        FillDwordBuffer(lights, 0, count);
+    }
+    flags |= W8_MESH_VERTEX_LIGHTING_DIRTY;
+}
+
 // FUNCTION: WIZ8 0x00472990
 void stMeshModel::SetAmbientColor(const srVector3T<float>& color)
 {

@@ -43,7 +43,7 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
             if (gXStatus.fCombatMode != 0 && group->fInCombat != 0) {
                 continue;
             }
-        } else if (flag == 0 && info->ubDisposition != 1) {
+        } else if (flag == 0 && info->ubDisposition != W8_DISPOSITION_HOSTILE) {
             continue;
         }
         W8MonsterRecord* record = GetMonsterDataForInfo(info);

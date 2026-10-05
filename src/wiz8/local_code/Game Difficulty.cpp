@@ -17,7 +17,7 @@
 // FUNCTION: WIZ8 0x0055ccb0
 void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
 {
-    if (monster_info->ubDisposition == DISP_HOSTILE) {
+    if (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) {
         switch (g_settings.difficulty) {
         case 0:
             *value = (*value * 3 * 20) / 100;
@@ -28,7 +28,7 @@ void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
         default:
             break;
         }
-    } else if (monster_info->ubDisposition == DISP_FRIENDLY) {
+    } else if (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY) {
         switch (g_settings.difficulty) {
         case 0:
             *value = (*value * 7 * 20) / 100;

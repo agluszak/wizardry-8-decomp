@@ -1514,7 +1514,7 @@ stModelInstance* W8GameData::CreateTraceModel()
     }
     mesh->setName("GameData Mesh");
     mesh->duplicate_on_reuse = 0;
-    mesh->flags &= ~2U;
+    mesh->flags &= ~W8_MESH_VERTEX_LIGHTING_DIRTY;
     stModelInstance* instance = CreateModelInstance(mesh);
     instance->setName("GameData Mesh");
     return instance;
@@ -2887,15 +2887,15 @@ unsigned char W8LevelDataRecord::ToggleBoundProps()
     BeginPartyMovement();
     if (primary_contact_prop_id >= 0) {
         prop = *g_world->collidable_props->GetAt(primary_contact_prop_id);
-        if (prop->IsSetting6FTwo()) {
-            prop->ToggleSetting6E();
+        if (prop->IsAnimationPingPong()) {
+            prop->ReverseAnimationDirection();
             toggled = true;
             if (secondary_contact_prop_id >= 0) {
                 prop = *g_world->collidable_props->GetAt(secondary_contact_prop_id);
-                if (!prop->IsSetting6FTwo()) {
+                if (!prop->IsAnimationPingPong()) {
                     return 0;
                 }
-                prop->ToggleSetting6E();
+                prop->ReverseAnimationDirection();
             }
         }
     }

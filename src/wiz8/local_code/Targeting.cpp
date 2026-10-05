@@ -190,7 +190,7 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
         source_hostile =
             MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0xdf3, TARGETING_CPP, source->iMonsterID, 1))
-                ->ubDisposition == DISP_HOSTILE;
+                ->ubDisposition == W8_DISPOSITION_HOSTILE;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         target_hostile =
@@ -199,11 +199,11 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
         target_hostile =
             MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0xe06, TARGETING_CPP, target->iMonsterID, 1))
-                ->ubDisposition == DISP_HOSTILE;
+                ->ubDisposition == W8_DISPOSITION_HOSTILE;
     } else if (target->iType == W8_TARGET_KIND_GROUP) {
         target_hostile = GetMonsterGroupByListIndex(
                              GetMonsterGroupIndexByID(0xe0b, TARGETING_CPP, target->iGroupID, 1))
-                             ->ubDisposition == DISP_HOSTILE;
+                             ->ubDisposition == W8_DISPOSITION_HOSTILE;
     } else {
         srAssertFail("FALSE", TARGETING_CPP, 0xe11, 0);
         return 0;
@@ -1066,7 +1066,7 @@ static int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext 
 
         if (monster_info->fActive == 0 || monster_info->fInCombat == 0 ||
             monster_info->hp_current == 0 ||
-            MonsterVsCharDisposition(party_slot, monster_info) != DISP_HOSTILE ||
+            MonsterVsCharDisposition(party_slot, monster_info) != W8_DISPOSITION_HOSTILE ||
             !CanPartyMemberAimAtMonster(party_slot, 2, monster_info, context, 0)) {
             continue;
         }

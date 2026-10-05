@@ -792,8 +792,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                                                g_status.world_clock -
                                                monster_info->party_threat.last_seen_clock))) &&
                                  (ShowMonsterTargetMarker(monster_info) == 0)) &&
-                                (monster_info->ubDisposition == 1 ||
-                                 monster_info->ubDisposition == 0) &&
+                                (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE ||
+                                 monster_info->ubDisposition == W8_DISPOSITION_NEUTRAL) &&
                                 (g_sight_marker_tick == 0 || now - g_sight_marker_tick > 199)) {
                                 g_sight_marker_tick = now;
                                 int party_slot = GetRandomCharacter(0, 0, -1, -1);

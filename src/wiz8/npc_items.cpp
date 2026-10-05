@@ -115,6 +115,21 @@ static unsigned char JitterNpcStockQuantity(unsigned char amount)
     return amount;
 }
 
+static void RemoveDepletedNpcStock(W8NpcState* npc)
+{
+    unsigned int count = PLLength(npc->items);
+    for (unsigned int index = 0; index < count; ++index) {
+        W8NpcItemEntry* entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+        if (entry != 0 && entry->quantity == 0) {
+            delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, index));
+            if (index != 0) {
+                --index;
+            }
+            count = PLLength(npc->items);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0055a7b0
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
 {
@@ -238,17 +253,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, bool force)
     }
     DecayNpcInventory(npc);
     RestockNpcItems(npc);
-    count = PLLength(npc->items);
-    for (index = 0; index < count; ++index) {
-        entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-        if (entry != 0 && entry->quantity == 0) {
-            delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, index));
-            if (index != 0) {
-                --index;
-            }
-            count = PLLength(npc->items);
-        }
-    }
+    RemoveDepletedNpcStock(npc);
     npc->maintenance_clock = g_status.world_clock;
     npc->restock_clock = g_status.world_clock;
     return 1;
@@ -814,9 +819,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
     unsigned char available;
     unsigned char moved;
     unsigned char unit;
-    unsigned int count;
     unsigned int price;
-    unsigned int i;
     W8ItemInstance hand;
     W8ItemInstance stack;
     W8NpcItemEntry* entry;
@@ -866,17 +869,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
             if (remaining_out != 0) {
                 *remaining_out = available - moved;
             }
-            count = PLLength(npc->items);
-            for (i = 0; i < count; ++i) {
-                entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, i));
-                if (entry != 0 && entry->quantity == 0) {
-                    delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, i));
-                    if (i != 0) {
-                        --i;
-                    }
-                    count = PLLength(npc->items);
-                }
-            }
+            RemoveDepletedNpcStock(npc);
             return 1;
         }
     }

@@ -494,7 +494,7 @@ void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
     }
     MonsterInfoFromID(0x25a, GROUP_ATTACKS_CPP, group->leader_location_id, 1);
     monster_info = MonsterInfoFromID(0x25b, GROUP_ATTACKS_CPP, pAttackerSlot->iMonsterID, 1);
-    if (monster_info->ubDisposition == 2) {
+    if (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY) {
         disposition = 2;
     } else {
         disposition = 1;

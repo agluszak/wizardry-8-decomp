@@ -2070,6 +2070,29 @@ void W8MainGameScreen::SelectTextEntry(int index)
         SoundPlay((STR)g_trap_sounds[index] /* c-style-cast-ok: SGP STR boundary */, 0));
 }
 
+int W8MainGameScreen::GetTrapInteractionChance() const
+{
+    int chance;
+    int skill;
+
+    chance = m_difficulty;
+    if (chance < 0) {
+        chance = 0;
+    }
+    skill = GetPartySlotLocksTrapsLevel(m_selected_character);
+    if (skill > -1) {
+        skill += m_target_difficulty * 6;
+    }
+    skill -= g_table2[chance];
+    chance = (skill * 3) / 2 + (11 - g_settings.difficulty) * 10;
+    if (chance < 0) {
+        chance = 0;
+    } else if (chance > 0x63) {
+        chance = 0x63;
+    }
+    return chance;
+}
+
 // FUNCTION: WIZ8 0x005897f0
 void W8MainGameScreen::OnPrimary(W8TextControl* control)
 {
@@ -2102,21 +2125,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     m_selected_character = slot;
     skill = GetPartySlotLocksTrapsLevel(slot);
     hold = g_float_005ebca0 - skill * g_camera_snap_epsilon;
-    chance = m_difficulty;
-    if (chance < 0) {
-        chance = 0;
-    }
-    skill = GetPartySlotLocksTrapsLevel(m_selected_character);
-    if (skill > -1) {
-        skill += m_target_difficulty * 6;
-    }
-    skill -= g_table2[chance];
-    chance = (skill * 3) / 2 + (11 - g_settings.difficulty) * 10;
-    if (chance < 0) {
-        chance = 0;
-    } else if (chance > 0x63) {
-        chance = 0x63;
-    }
+    chance = GetTrapInteractionChance();
     roll = static_cast<int>(Random(0x64));
     if (roll < chance) {
         m_disarm_state = 1;
@@ -2336,7 +2345,6 @@ void EnableTrapInteractionPanelRegions(void)
 void W8MainGameScreen::ApplyInspectSuccess()
 {
     int chance;
-    int skill;
     int column;
     int* values;
     int roll;
@@ -2345,21 +2353,7 @@ void W8MainGameScreen::ApplyInspectSuccess()
     PracticeCharacterSkill(&g_status.buffers.Char[m_selected_character], W8_SKILL_LOCKS_TRAPS, 1,
                            0);
     RefreshActionPanel();
-    chance = m_difficulty;
-    if (chance < 0) {
-        chance = 0;
-    }
-    skill = GetPartySlotLocksTrapsLevel(m_selected_character);
-    if (skill > -1) {
-        skill += m_target_difficulty * 6;
-    }
-    skill -= g_table2[chance];
-    chance = (skill * 3) / 2 + (11 - g_settings.difficulty) * 10;
-    if (chance < 0) {
-        chance = 0;
-    } else if (chance > 0x63) {
-        chance = 0x63;
-    }
+    chance = GetTrapInteractionChance();
     for (column = 0; column < 8; ++column) {
         roll = static_cast<int>(Random(0x64));
         if (roll < chance) {
@@ -3638,14 +3632,7 @@ unsigned char MainGameScreenLeave(int leaving)
     }
 
     if (g_level_block->formation_board_visible) {
-        g_level_block->formation_board_visible = 0;
-        RegionSetDisable(0x13);
-        ReleaseFormationBoard();
-        RequestRedraw(0x8200);
-        if (g_formation_panel_shown) {
-            SetViewportMode(GetMainGameViewportMode());
-        }
-        g_formation_panel_shown = 0;
+        SetFormationBoardVisible(0);
     }
 
     if (g_level_block->radar_map_visible) {
@@ -5334,14 +5321,7 @@ void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable)
         g_level_block->tooltip_kind = 0;
     }
     if (g_level_block->formation_board_visible != 0) {
-        g_level_block->formation_board_visible = 0;
-        RegionSetDisable(0x13);
-        ReleaseFormationBoard();
-        RequestRedraw(0x8200);
-        if (g_formation_panel_shown != 0) {
-            SetViewportMode(GetMainGameViewportMode());
-        }
-        g_formation_panel_shown = 0;
+        SetFormationBoardVisible(0);
     }
     if (g_level_block->radar_map_visible != 0) {
         SetRadarMapVisible(0);
@@ -5366,15 +5346,7 @@ void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable)
             g_level_block->action_panel_visible = g_settings.portraits_action_panel_preference;
             g_level_block->formation_board_visible = 1;
             if (g_level_block->formation_board_visible != 0) {
-                g_level_block->formation_board_visible = 1;
-                g_level_block->formation_board_alternate = 0;
-                RegionSetEnable(0x13);
-                RefreshFormationBoard();
-                RequestRedraw(0x8200);
-                if (g_formation_panel_shown != 1) {
-                    SetViewportMode(GetMainGameViewportMode());
-                }
-                g_formation_panel_shown = 1;
+                SetFormationBoardVisible(1);
             }
             if (g_level_block->radar_map_visible != 0) {
                 SetRadarMapVisible(1);
@@ -5393,15 +5365,7 @@ void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable)
             g_level_block->action_panel_visible = g_settings.formation_action_panel_preference;
             g_level_block->formation_board_visible = g_settings.formation_board_preference;
             if (g_level_block->formation_board_visible != 0) {
-                g_level_block->formation_board_visible = 1;
-                g_level_block->formation_board_alternate = 0;
-                RegionSetEnable(0x13);
-                RefreshFormationBoard();
-                RequestRedraw(0x8200);
-                if (g_formation_panel_shown != 1) {
-                    SetViewportMode(GetMainGameViewportMode());
-                }
-                g_formation_panel_shown = 1;
+                SetFormationBoardVisible(1);
             }
             if (g_level_block->radar_map_visible != 0) {
                 SetRadarMapVisible(1);
@@ -6083,12 +6047,7 @@ unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event, W8Region* 
 
     us_event = event->usEvent;
     if (us_event < RIGHT_BUTTON_UP) {
-        if (us_event == RIGHT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
-            return 1;
-        }
-        if (us_event == LEFT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        if (region->CaptureButtonDown(us_event)) {
             return 1;
         }
         if (us_event != LEFT_BUTTON_UP) {
@@ -6295,12 +6254,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
     unsigned int us_event = event->usEvent;
 
     if (us_event <= RIGHT_BUTTON_DOWN) {
-        if (us_event == RIGHT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
-            return 1;
-        }
-        if (us_event == LEFT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        if (region->CaptureButtonDown(us_event)) {
             return 1;
         }
         if (us_event != LEFT_BUTTON_UP) {

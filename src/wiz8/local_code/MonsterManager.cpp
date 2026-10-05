@@ -412,16 +412,16 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
         if (killer_info == 0) {
             srAssertFail("pKillerMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x381, 0);
         }
-        if (killer_info->ubDisposition != 2) {
+        if (killer_info->ubDisposition != W8_DISPOSITION_FRIENDLY) {
             goto done;
         }
     }
     ApplyFactionChange(0, 1, static_cast<signed char>(record->faction_id), monster_list_index);
 done:
     MonsterKilled(record->record_id, killer_party_slot);
-    if (monster_info->fInCombat != 0 && ((monster_info->ubDisposition == 1 &&
+    if (monster_info->fInCombat != 0 && ((monster_info->ubDisposition == W8_DISPOSITION_HOSTILE &&
                                           monster_info->uiCondition[W8_CONDITION_TURNCOAT] == 0) ||
-                                         (monster_info->ubDisposition == 2 &&
+                                         (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY &&
                                           monster_info->uiCondition[W8_CONDITION_TURNCOAT] != 0))) {
         ++g_combat_state->combat_result;
         if (g_status.current_level < W8_LEVEL_COUNT) {
@@ -1267,7 +1267,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     ResetCombatSlot(&monster_info->Target);
     MonsterSetHighlightMask(monster_info->p3D, 0);
     monster_info->p3D->flags = 0;
-    if (monster_info->ubDisposition == 1) {
+    if (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) {
         RecountCombatMonsters();
     }
     if (gXStatus.fCombatMode != 0) {
@@ -1315,7 +1315,7 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
     free(monster_info->pCombat);
     monster_info->pCombat = 0;
     monster_info->fInCombat = false;
-    if (monster_info->ubDisposition == 1) {
+    if (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) {
         RecountCombatMonsters();
     }
 }
@@ -1630,7 +1630,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
     bool suppress_exact_health = 0;
     unsigned int health_knowledge;
 
-    if (monster_info->ubDisposition != 1) {
+    if (monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
         W8MonsterRecord* record;
         W8NpcState* npc;
 
@@ -1787,7 +1787,7 @@ void EvaluateCombatDifficulty(void)
 
     for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList); ++monster_index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(monster_index);
-        if (monster->fInCombat && monster->ubDisposition == DISP_HOSTILE &&
+        if (monster->fInCombat && monster->ubDisposition == W8_DISPOSITION_HOSTILE &&
             monster->hp_current > 0 && monster->highest_condition < W8_CONDITION_DEAD) {
             unsigned int health_percent = monster->hp_current * 100 / monster->uiHPMax;
             hostile_experience +=
@@ -1816,7 +1816,7 @@ void EvaluateCombatDifficulty(void)
                          group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
                         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
                         if (group->members_active && group->fInCombat &&
-                            group->ubDisposition == DISP_HOSTILE &&
+                            group->ubDisposition == W8_DISPOSITION_HOSTILE &&
                             MonsterGroupGetRecord(group)->faction_id == faction) {
                             count_character = false;
                             break;

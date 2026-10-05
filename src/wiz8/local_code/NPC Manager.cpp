@@ -1758,7 +1758,7 @@ W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, bool allow_un
     return 0;
 }
 
-static void AdjustNpcDisposition(W8NpcState* npc, char delta)
+static void AdjustNpcDisposition(W8NpcState* npc, signed char delta)
 {
     int sum = npc->disposition + delta;
     if (sum > 99) {
@@ -1823,7 +1823,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
             quotient = scale / 5;
         }
         delta = scale + level * quotient / 100;
-        AdjustNpcDisposition(npc, static_cast<char>(delta));
+        AdjustNpcDisposition(npc, static_cast<signed char>(delta));
         PracticeCharacterSkill(&g_status.buffers.Char[kind], W8_SKILL_COMMUNICATION, 8, 0);
         GetNpcDisposition(npc);
         return;
@@ -1879,13 +1879,13 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         if (delta > 0) {
             delta = static_cast<int>(average_level * delta / monster_level);
         }
-        AdjustNpcDisposition(npc, static_cast<char>(delta));
+        AdjustNpcDisposition(npc, static_cast<signed char>(delta));
         PracticeCharacterSkill(&g_status.buffers.Char[value], W8_SKILL_COMMUNICATION, 5, 0);
         GetNpcDisposition(npc);
         return;
     }
     case 4: {
-        AdjustNpcDisposition(npc, static_cast<char>(gold));
+        AdjustNpcDisposition(npc, static_cast<signed char>(gold));
         GetNpcDisposition(npc);
         return;
     }

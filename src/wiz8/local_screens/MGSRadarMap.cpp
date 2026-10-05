@@ -97,20 +97,25 @@ const float g_float_005eecf0 = 38.0f;
 static stModelInstance2D* AcquireRadarBlip(int sector, bool lit);
 static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool lit);
 
+static void ResetRadarBlips()
+{
+    for (int sector = 0; sector < 18; ++sector) {
+        W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
+        int count = pool->count;
+
+        g_radar_icon_cursors[sector] = 0;
+        for (int index = 0; index < count; ++index) {
+            (*pool->GetAt(index))->setFlag(srNode::FLAG_DISABLE);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x005a20e0
 void EnableRadarMap(bool enable)
 {
     g_radar_map_enabled = enable;
     if (enable == 0) {
-        for (int sector = 0; sector < 18; ++sector) {
-            W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
-            int count = pool->count;
-
-            g_radar_icon_cursors[sector] = 0;
-            for (int index = 0; index < count; ++index) {
-                (*pool->GetAt(index))->setFlag(srNode::FLAG_DISABLE);
-            }
-        }
+        ResetRadarBlips();
     }
 }
 
@@ -320,15 +325,7 @@ void UpdateRadarBlips(void)
     srVector3T<float> bounds_max;
     bool detect_all;
 
-    for (int sector = 0; sector < 18; ++sector) {
-        W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
-        int count = pool->count;
-
-        g_radar_icon_cursors[sector] = 0;
-        for (int index = 0; index < count; ++index) {
-            (*pool->GetAt(index))->setFlag(srNode::FLAG_DISABLE);
-        }
-    }
+    ResetRadarBlips();
     if (g_radar_map_enabled == 0 || gXStatus.fSurprisePossible != 0) {
         return;
     }

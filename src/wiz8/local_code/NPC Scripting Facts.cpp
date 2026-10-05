@@ -1009,7 +1009,8 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     for (unsigned int entry_index = 0; entry_index < PLLength(gXStatus.plsMonsterList);
          ++entry_index) {
         W8MonsterInfo* entry = MonsterGetScriptPartByLocationIndex(entry_index);
-        if (entry->fActive && entry->ubDisposition == DISP_HOSTILE && entry->p3D->IsDying() == 0) {
+        if (entry->fActive && entry->ubDisposition == W8_DISPOSITION_HOSTILE &&
+            entry->p3D->IsDying() == 0) {
             TintHighlightedMonster(entry->p3D, W8_TARGET_HIGHLIGHT_NONE);
             MonsterStartsDying(entry, 1);
         }

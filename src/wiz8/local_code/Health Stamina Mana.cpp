@@ -473,29 +473,29 @@ int MonsterActionFatigueCost(const W8MonsterInfo* monster_info)
     int cost = 0;
 
     switch (monster_info->action_kind) {
-    case 4:
-    case 7:
+    case W8_MONSTER_ACTION_ADVANCE:
+    case W8_MONSTER_ACTION_BACK_OFF:
         cost = Random(5) + 5;
         break;
-    case 5:
-    case 6:
+    case W8_MONSTER_ACTION_APPROACH:
+    case W8_MONSTER_ACTION_RETURN_TO_START:
         cost = Random(3) + 3;
         break;
-    case 1:
-    case 9:
+    case W8_MONSTER_ACTION_WAIT:
+    case W8_MONSTER_ACTION_CONTROLLED_MOVE:
         cost = Random(2) + 1;
         break;
-    case 0:
+    case W8_MONSTER_ACTION_ATTACK:
         if (monster_info->action_detail == 3) {
             cost = Random(8) + 5;
         } else {
             cost = Random(3) + 2;
         }
         break;
-    case -1:
-    case 2:
-    case 3:
-    case 8:
+    case W8_MONSTER_ACTION_NONE:
+    case W8_MONSTER_ACTION_SPELL:
+    case W8_MONSTER_ACTION_SPECIAL_ATTACK:
+    case W8_MONSTER_ACTION_PROTECT:
         break;
     default:
         srAssertFail("FALSE", HEALTH_STAMINA_MANA_CPP, 1774,

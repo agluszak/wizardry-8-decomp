@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "wiz8/monster_actions.h"
+
 #include "timer.h"
 
 #include "surrender/srMath.h"
@@ -196,7 +198,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
    id words QueueMonsterAction fills by target kind, and a random 1..100
    tie-break so equal decisions do not always resolve the same way. */
 struct W8MonsterAction {
-    int action_kind;         /* 0x00 */
+    W8MonsterActionKind action_kind; /* 0x00 */
     int action_detail;       /* 0x04 */
     int attack_index;        /* 0x08 */
     W8CombatSlot target;     /* 0x0c */
@@ -450,7 +452,7 @@ struct W8MonsterInfo {
     bool fSpellReleased;
     /* 0x2e1: the action the monster is taking, -1 through 9. Its whole domain
        is enumerated by MonsterActionFatigueCost, whose error text names it. */
-    int action_kind;
+    W8MonsterActionKind action_kind;
     /* 0x2e5: qualifies action kind zero; three costs markedly more. */
     int action_detail;
     unsigned int spell_power_level;

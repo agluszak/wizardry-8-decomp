@@ -115,7 +115,7 @@ bool AnyMonsterEngaged(void)
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->fInCombat != 0 && monster_info->ubDisposition == 1 &&
+        if (monster_info->fInCombat != 0 && monster_info->ubDisposition == W8_DISPOSITION_HOSTILE &&
             monster_info->hp_current != 0 &&
             monster_info->highest_condition < W8_CONDITION_WEBBED) {
             return true;

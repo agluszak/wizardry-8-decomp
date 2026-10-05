@@ -3272,7 +3272,7 @@ unsigned int W8PathingService::StepMonsterAlongPath(W8NavigatorMovementState* mo
         float angle = NormalizeAngle(static_cast<float>(atan2(direction.x, direction.z)));
         movement->target_yaw = angle;
         movement->yaw = angle;
-        if (group->ubDisposition == DISP_HOSTILE) {
+        if (group->ubDisposition == W8_DISPOSITION_HOSTILE) {
             UpdateMonsterSight(monster_info, 1, 0);
             DoMonsterRTAI(monster_info, 1);
             if (monster_info->fInCombat != 0) {
@@ -4975,7 +4975,7 @@ stModelInstance* W8PathingService::BuildPathVisualization()
     }
     model->setActivePolygonCount(active_count);
     model->setDirtyAll();
-    model->flags &= ~2U;
+    model->flags &= ~W8_MESH_VERTEX_LIGHTING_DIRTY;
     return m_pPathModelInstance;
 }
 
@@ -5185,7 +5185,7 @@ void W8PathingService::BuildSearchVisualization()
     }
     model->setActivePolygonCount(active_count);
     model->setDirtyAll();
-    model->flags &= ~2U;
+    model->flags &= ~W8_MESH_VERTEX_LIGHTING_DIRTY;
 }
 
 /* Select the editor color for one waypoint. Disabled surfaces are black; the

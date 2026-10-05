@@ -502,11 +502,12 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
             if (condition == W8_CONDITION_HEXED || condition == W8_CONDITION_BLIND) {
                 RefreshMonsterSight(monster_info);
             } else if (condition == W8_CONDITION_TURNCOAT) {
-                if (monster_info->ubDisposition == 0) {
+                if (monster_info->ubDisposition == W8_DISPOSITION_NEUTRAL) {
                     monster_info->uiCondition[W8_CONDITION_TURNCOAT] = 0;
                     return;
                 }
-                SetMonsterHostility(monster_info, (monster_info->ubDisposition == 1) + 1);
+                SetMonsterHostility(monster_info,
+                                    (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) + 1);
             }
         }
         slot = 0x13;

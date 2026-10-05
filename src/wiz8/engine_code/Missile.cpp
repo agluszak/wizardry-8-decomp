@@ -924,7 +924,7 @@ unsigned char W8MissileRep::ReadCycleData(W8ReadLevelInfo* info, W8Missile* miss
     }
     emitter_playback_scales[emitter] = animation->playback_scale;
     active = 1;
-    frame_direction = 1;
+    frame_direction = W8_ANIMATION_FORWARD;
     timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     animation_behaviour = animation->behaviour;
     frame_method = animation->frame_method;
@@ -1237,7 +1237,7 @@ void W8Missile::SetCycle(signed char cycle)
     m_pRep->current_cycle = cycle;
     animation = m_pRep->emitters[cycle];
     m_pRep->active = 1;
-    m_pRep->frame_direction = 1;
+    m_pRep->frame_direction = W8_ANIMATION_FORWARD;
     if (m_pRep->SetCycleFrameLod(cycle, 0, 2) != 0) {
         m_pRep->m_bLOD = 2;
     } else if (m_pRep->SetCycleFrameLod(cycle, 0, 1) != 0) {

@@ -3852,7 +3852,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                 radius += g_startup_world->radius;
             }
         } else if (TargetSourceIsMonster(source, 0)) {
-            if (monster_info->ubDisposition == 2) {
+            if (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY) {
                 distance = (centre.x - player_pos.x) * (centre.x - player_pos.x) +
                            (centre.y - player_pos.y) * (centre.y - player_pos.y) +
                            (centre.z - player_pos.z) * (centre.z - player_pos.z);
@@ -3860,7 +3860,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                     monster_info->player_visibility.los_flags[sight_flag] != '\0') {
                     marked = true;
                 }
-            } else if (monster_info->ubDisposition != 1) {
+            } else if (monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
                 FormatDebugMessage(1,
                                    "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, "
                                    "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
@@ -3924,9 +3924,9 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         if (TargetSourceIsCharacter(source, 0)) {
             side = 1;
         } else if (TargetSourceIsMonster(source, 0)) {
-            if (monster_info->ubDisposition == 2) {
+            if (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY) {
                 side = 1;
-            } else if (monster_info->ubDisposition == 1) {
+            } else if (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) {
                 side = 2;
                 if (TargetInRangeAndArcs(&camera, g_startup_world->radius, &eye,
                                          monster->radius, heading, elevation) != 0 &&
@@ -3949,7 +3949,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                     side = 2;
                 } else if (source->iMonsterID != -1) {
                     if (MonsterInfoFromID(0x9f3, MAGIC_CPP, source->iMonsterID, 1)->ubDisposition !=
-                        2) {
+                        W8_DISPOSITION_FRIENDLY) {
                         side = 1;
                     } else {
                         side = 2;
@@ -3981,7 +3981,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         if (TargetSourceIsCharacter(source, 1)) {
             side = (source->fBackfire != 0 || source->fReflection != 0) ? 1 : 2;
         } else if (TargetSourceIsMonster(source, 1)) {
-            if (monster_info->ubDisposition != 2 && monster_info->ubDisposition != 1) {
+            if (monster_info->ubDisposition != W8_DISPOSITION_FRIENDLY &&
+                monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
                 FormatDebugMessage(1,
                                    "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, "
                                    "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
@@ -4017,7 +4018,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         target->point = eye;
         radius = CalcRangeDistance(g_spell_records[spell_id].range_category, source);
         if (TargetSourceIsCharacter(source, 1) ||
-            (TargetSourceIsMonster(source, 1) && monster_info->ubDisposition == 2)) {
+            (TargetSourceIsMonster(source, 1) &&
+             monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY)) {
             side = (source->fBackfire != 0 || source->fReflection != 0) ? 2 : 1;
         } else if (TargetSourceIsMonster(source, 1)) {
             side = (source->fBackfire != 0 || source->fReflection != 0) ? 1 : 2;

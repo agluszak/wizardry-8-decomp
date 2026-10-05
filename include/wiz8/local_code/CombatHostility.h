@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wiz8/layouts/targeting.h"
+#include "wiz8/monster_actions.h"
 
 struct W8MonsterInfo;
 struct W8MonsterGroup;
@@ -19,7 +20,7 @@ bool CharacterActionTargetsEnemies(W8Character* character, W8ActionKind action_k
                                    int action_detail, W8ActionDetailBlock* detail);
 /* 0x00547440: the monster-side counterpart; action kinds 0 and 3 always count,
    kind 2 defers to MonsterCanAimSpell. */
-bool MonsterActionTargetsEnemies(int action_kind, int action_detail,
+bool MonsterActionTargetsEnemies(W8MonsterActionKind action_kind, int action_detail,
                                  unsigned int* spell_power_level);
 bool MonsterCanAimSpell(int spell_id);
 bool CombatAllowsLiveGroups(void);

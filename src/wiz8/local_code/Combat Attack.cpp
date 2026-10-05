@@ -224,7 +224,7 @@ int ApplyDamageReduction(const W8MonsterInfo* monster_info, const W8MonsterRecor
 unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                 unsigned int attack, int unused, int hostile_only)
 {
-    int action_kind;
+    W8MonsterActionKind action_kind;
     bool reaches;
 
     if (attack >= W8_MAX_MONSTER_ATTACKS) {
@@ -246,7 +246,7 @@ unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* re
         return W8_MONSTER_ATTACK_NOT_USABLE;
     }
     action_kind = monster_info->action_kind;
-    monster_info->action_kind = 0;
+    monster_info->action_kind = W8_MONSTER_ACTION_ATTACK;
     reaches = MonsterAttackReachesAnyone(monster_info, attack, hostile_only);
     monster_info->action_kind = action_kind;
     return !reaches ? W8_MONSTER_ATTACK_OUT_OF_REACH : W8_MONSTER_ATTACK_USABLE;
@@ -422,7 +422,7 @@ bool CanMonsterProtectCombatant(W8MonsterInfo* monster_info, W8CombatSlot* targe
         if (!CanPartySlotParticipate(target_slot)) {
             return 0;
         }
-        if (MonsterVsCharDisposition(target_slot, monster_info) != DISP_FRIENDLY) {
+        if (MonsterVsCharDisposition(target_slot, monster_info) != W8_DISPOSITION_FRIENDLY) {
             return 0;
         }
         if (MonsterAttackReachesCharacter(monster_info, record, 0, target_slot) == 0) {
@@ -442,7 +442,7 @@ bool CanMonsterProtectCombatant(W8MonsterInfo* monster_info, W8CombatSlot* targe
         if (GetMonsterDataForInfo(target_info)->untargetable != 0) {
             return 0;
         }
-        if (MonsterHostility(monster_info, target_info) != DISP_FRIENDLY) {
+        if (MonsterHostility(monster_info, target_info) != W8_DISPOSITION_FRIENDLY) {
             return 0;
         }
         if (MonsterAttackReachesMonster(monster_info, record, 0, target_info) == 0) {
@@ -558,7 +558,8 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
             monster_info->hp_current != 0 && monster_info->highest_condition < W8_CONDITION_BLIND &&
             (record->flags & W8_MONSTER_FLAG_BODYGUARD) != 0 &&
-            record->attacks[0].fHasAttack != 0 && monster_info->action_kind == 8 &&
+            record->attacks[0].fHasAttack != 0 &&
+            monster_info->action_kind == W8_MONSTER_ACTION_PROTECT &&
             monster_info->pCombat->interception_count < record->attacks_per_round &&
             memcmp(target, &monster_info->Target, sizeof(W8CombatSlot)) == 0 &&
             CanMonsterProtectCombatant(monster_info, target) != 0) {
@@ -1111,10 +1112,10 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, W8AttackMode attack_mode)
                 (record->flags & W8_MONSTER_FLAG_VULNERABLE_FROM_BEHIND) != 0) {
                 modifier -= 2;
             }
-            if (monster_info->action_kind == 1) {
+            if (monster_info->action_kind == W8_MONSTER_ACTION_WAIT) {
                 modifier += 2;
             }
-            distracted = monster_info->action_kind == 4;
+            distracted = monster_info->action_kind == W8_MONSTER_ACTION_ADVANCE;
         }
         out_of_formation = monster_info->modifiers.out_of_formation;
     } else if (target->iType == W8_TARGET_KIND_CHARACTER) {
@@ -1964,7 +1965,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         if (record->attack_multiple_targets != 0 && range < W8_RANGE_LONG) {
             repick_target = monster_info->Target;
             if (ChooseRandomMonsterAction(monster_info, 0, 1, 0) == 0 ||
-                monster_info->action_kind != 0) {
+                monster_info->action_kind != W8_MONSTER_ACTION_ATTACK) {
                 combat->uiSwingsRemaining = 0;
             } else {
                 repicked = 1;
@@ -2310,7 +2311,8 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
             notices = false;
             if (second->hp_current != 0 && second->stamina != 0 &&
                 second->highest_condition < W8_CONDITION_WEBBED &&
-                second->uiCondition[W8_CONDITION_BLIND] == 0 && second->action_kind == 1) {
+                second->uiCondition[W8_CONDITION_BLIND] == 0 &&
+                second->action_kind == W8_MONSTER_ACTION_WAIT) {
                 attempts = second_combat->spot_attempts;
                 if (attempts == 0) {
                     notices = true;
@@ -2528,9 +2530,10 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
         out_of_formation = monster_info->modifiers.out_of_formation;
-        int action_kind = monster_info->action_kind;
-        bVar10 = action_kind == 4;
-        target_exposed = action_kind == 1 || action_kind == 8;
+        W8MonsterActionKind action_kind = monster_info->action_kind;
+        bVar10 = action_kind == W8_MONSTER_ACTION_ADVANCE;
+        target_exposed =
+            action_kind == W8_MONSTER_ACTION_WAIT || action_kind == W8_MONSTER_ACTION_PROTECT;
     } else {
         if (g_combat_state->TargetHit.iChar == -1) {
             srAssertFail("gpCombat->TargetHit.iChar != BAD_INDEX", COMBAT_ATTACK_CPP, 0xbff, 0);
@@ -2779,10 +2782,11 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         record = GetMonsterDataForInfo(target_info);
         GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0xd4c, COMBAT_ATTACK_CPP, target_info->monster_group_id, 1));
-        int action_kind = target_info->action_kind;
+        W8MonsterActionKind action_kind = target_info->action_kind;
         out_of_formation = target_info->modifiers.out_of_formation;
-        bVar10 = action_kind == 4;
-        target_exposed = action_kind == 1 || action_kind == 8;
+        bVar10 = action_kind == W8_MONSTER_ACTION_ADVANCE;
+        target_exposed =
+            action_kind == W8_MONSTER_ACTION_WAIT || action_kind == W8_MONSTER_ACTION_PROTECT;
         target = NULL;
     }
 
@@ -3797,7 +3801,7 @@ char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
             if (monster_info->hp_current != 0 && monster_info->stamina != 0 &&
                 monster_info->highest_condition < W8_CONDITION_WEBBED &&
                 monster_info->uiCondition[W8_CONDITION_BLIND] == 0 &&
-                monster_info->action_kind == 1) {
+                monster_info->action_kind == W8_MONSTER_ACTION_WAIT) {
                 if (monster_info->pCombat->spot_attempts == 0) {
                     noticed = true;
                 } else {
