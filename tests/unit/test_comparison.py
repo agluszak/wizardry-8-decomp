@@ -699,3 +699,20 @@ def test_comparison_without_native_procedures_is_not_a_binary_health_snapshot(
     binary = tmp_path / "Wiz8.exe"
     binary.write_bytes(b"product")
     assert comparison.last_comparison(tmp_path, "WIZ8", binary) is None
+
+
+def test_signature_artifact_is_separate_from_body_artifact(tmp_path, monkeypatch):
+    monkeypatch.setattr(comparison, "report_directory", lambda *_: tmp_path)
+    row = {
+        "orig": "0x1000",
+        "outcome": "no-differences",
+        "code_diff": [],
+        "normal_diff": [],
+        "inline_normalized_diff": None,
+        "signature_diff": ["--- orig/f\n", "+++ recomp/f\n", "-uint f();\n", "+int f();\n"],
+    }
+    result = comparison._function_row(tmp_path, "WIZ8", row)
+    assert result["outcome"] == "no-differences"
+    assert result["signature_diff"]["artifact"] == "00001000.signature.diff"
+    assert (tmp_path / "00001000.signature.diff").read_text() == "".join(row["signature_diff"])
+    assert not (tmp_path / "00001000.diff").exists()

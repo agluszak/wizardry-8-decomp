@@ -63,6 +63,13 @@ latest points to the last completed run. A focused comparison never deletes the 
 Keep the returned summary path for triage and use it with --report. Read the side-by-side HTML when
 changed spans inside lines are useful.
 
+`code_diff` compares normalized function bodies and referenced-data findings remain part of the
+outcome. Inferred declaration changes are separate `signature_diff` findings with their own
+`.signature.diff` artifacts and CI counts. A declaration-only change is body-clean, not proof of
+ABI equivalence. Raw decompilations and leading warnings remain in Ghidriff's artifacts.
+`code_change_kind: scalar-signedness` tags exact `int`/`uint` body substitutions for triage;
+these still count as code differences. The tag does not prove enum provenance or equivalence.
+
 ## Inspect saved results
 
 ```sh
