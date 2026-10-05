@@ -2263,13 +2263,13 @@ void ExecuteCharacterAction(int party_slot)
         }
         break;
     case 0:
-        result = StartCharacterAttack(party_slot, -1);
+        result = StartCharacterAttack(party_slot, W8_ATTACK_MODE_NONE);
         break;
     case -1:
         result = 0;
         break;
     case 1:
-        result = StartCharacterAttack(party_slot, 3);
+        result = StartCharacterAttack(party_slot, W8_ATTACK_MODE_BERSERK);
         break;
     case 4:
         if (g_combat_state->characters[party_slot].defend_switched != 0 &&

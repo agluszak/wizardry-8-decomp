@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_ITEM_TABLES_H
 #define WIZ8_LAYOUTS_ITEM_TABLES_H
 
+#include "wiz8/attack_modes.h"
 #include "wiz8/dice.h"
 
 #pragma pack(push, 1)
@@ -122,7 +123,7 @@ struct W8ItemDatabaseRecord {
     /* 0x050..0x05f: the item's missile-attack modifier block; the missile
        resolver sums it byte-wise across the wielded and paired weapons into
        the fired effect definition's condition_chances. */
-    unsigned char missile_values[0x10];
+    unsigned char missile_values[W8_ATTACK_EFFECT_COUNT];
     /* 0x060: the item's missile bonus, summed across both weapons into the
        effect definition's value_1c. */
     unsigned char missile_magnitude;

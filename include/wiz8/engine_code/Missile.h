@@ -3,6 +3,7 @@
 unsigned char LoadMissileDatabase(void);
 void ReleaseMissileDatabase(void);
 
+#include "wiz8/attack_modes.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/local_code/MagicEffects.h"
@@ -173,7 +174,7 @@ struct W8MissileTableRecord {
        "Data\\Missiles" script path. */
     char cycle_name[0x40];
     float radius;    /* 0x140: replaces the launched effect's radius */
-    int attack_mode; /* 0x144: the attack mode the hit is resolved with */
+    W8AttackMode attack_mode; /* 0x144: the attack mode the hit is resolved with */
     unsigned char unknown_148[8];
     /* 0x150: copied into the launched effect block's magnitude_base. */
     int magnitude_base;
@@ -182,7 +183,7 @@ struct W8MissileTableRecord {
     bool spell_missile;
     /* 0x155: the percentage chances the missile's hit effect assigns each
        condition; CastSpellFromSource copies them into its effect block. */
-    unsigned char condition_chances[0x10];
+    unsigned char condition_chances[W8_ATTACK_EFFECT_COUNT];
     /* 0x165: the missile weapon's impact sound class; MakePCHitSound bounds it
        against the 28 material-impact rows. */
     int weapon_sound_class;

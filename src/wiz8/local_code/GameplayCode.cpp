@@ -709,7 +709,8 @@ void CalcAttacks(W8Character* character)
             }
             memset(attack->condition_chances, 0, sizeof(attack->condition_chances));
             if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective > 49) {
-                attack->condition_chances[6] = (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 50) / 5;
+                attack->condition_chances[W8_ATTACK_EFFECT_KNOCK_OUT] =
+                    (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 50) / 5;
             }
         }
 

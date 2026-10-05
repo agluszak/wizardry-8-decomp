@@ -4024,7 +4024,8 @@ prepare_attack:
     attack_block.magnitude_base = attack->missile_magnitude;
 
     if (selected_attack != 0) {
-        accuracy = GetMonsterAttackScore(monster_info, attack, monster_info->action_detail, 0);
+        accuracy = GetMonsterAttackScore(monster_info, attack,
+                                         static_cast<W8AttackMode>(monster_info->action_detail), 0);
         CombatLog("TO HIT (MISSILE ACCURACY): Chance %d", accuracy);
     } else {
         accuracy = 50;

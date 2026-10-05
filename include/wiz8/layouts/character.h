@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_CHARACTER_H
 #define WIZ8_LAYOUTS_CHARACTER_H
 
+#include "wiz8/attack_modes.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/conditions.h"
 #include "wiz8/load_category.h"
@@ -122,7 +123,8 @@ struct W8HandAttack {
     int damage_percent; /* 0x29: percent damage multiplier, paired with modifier damage_percent */
     W8Dice damage_dice;                  /* 0x2d */
     unsigned short attack_flags;         /* 0x31 */
-    unsigned char condition_chances[16]; /* 0x33: unarmed condition probabilities */
+    unsigned char
+        condition_chances[W8_ATTACK_EFFECT_COUNT]; /* 0x33: unarmed condition probabilities */
     unsigned char unknown_43[0x18];
 }; /* 0x5b */
 

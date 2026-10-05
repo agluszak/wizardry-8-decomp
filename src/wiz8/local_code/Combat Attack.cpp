@@ -110,7 +110,6 @@ int GetCharacterHandDamageBonus(const W8Character* character, int hand)
 }
 
 /* Nine attack modes, one bit each, held in the low half of a word. */
-enum { W8_ATTACK_MODE_COUNT = 9 };
 
 /* Clear a forty-eight byte attack block. */
 // FUNCTION: WIZ8 0x00543260
@@ -146,7 +145,7 @@ int NormalizeAttackMode(int attack_mode)
    many as the roll asked for - so a mask with one bit always answers that bit
    however the roll came out. */
 // FUNCTION: WIZ8 0x00542db0
-unsigned int ChooseAttackMode(unsigned int attack_modes)
+W8AttackMode ChooseAttackMode(unsigned int attack_modes)
 {
     unsigned int wanted;
     unsigned int seen = 0;
@@ -163,7 +162,7 @@ unsigned int ChooseAttackMode(unsigned int attack_modes)
             mode = 0;
         }
     }
-    return mode;
+    return static_cast<W8AttackMode>(mode);
 }
 
 /* Whether one character can swing this round: engaged, in better shape than
@@ -708,24 +707,24 @@ bool CanCharacterAttackItsTarget(int party_slot)
    attacker is a monster or a character - the same nine modes score differently
    for each. Its error text carries the function's own name. */
 // FUNCTION: WIZ8 0x00542e10
-static int AttackModeMod(int is_character, int attack_mode)
+static int AttackModeMod(int is_character, W8AttackMode attack_mode)
 {
     if (is_character == 0) {
         switch (attack_mode) {
-        case 0:
-        case 2:
-        case 8:
+        case W8_ATTACK_MODE_SWING:
+        case W8_ATTACK_MODE_BASH:
+        case W8_ATTACK_MODE_SHOOT:
             return 0;
-        case 1:
-        case 6:
+        case W8_ATTACK_MODE_THRUST:
+        case W8_ATTACK_MODE_KICK:
             return -10;
-        case 3:
+        case W8_ATTACK_MODE_BERSERK:
             return -30;
-        case 4:
+        case W8_ATTACK_MODE_THROW:
             return -5;
-        case 5:
+        case W8_ATTACK_MODE_PUNCH:
             return 5;
-        case 7:
+        case W8_ATTACK_MODE_LASH:
             return 10;
         default:
             srAssertFail("FALSE", COMBAT_ATTACK_CPP, 3626,
@@ -734,20 +733,20 @@ static int AttackModeMod(int is_character, int attack_mode)
         }
     }
     switch (attack_mode) {
-    case 0:
-    case 6:
+    case W8_ATTACK_MODE_SWING:
+    case W8_ATTACK_MODE_KICK:
         return 0;
-    case 1:
-    case 8:
+    case W8_ATTACK_MODE_THRUST:
+    case W8_ATTACK_MODE_SHOOT:
         return 10;
-    case 2:
-    case 5:
+    case W8_ATTACK_MODE_BASH:
+    case W8_ATTACK_MODE_PUNCH:
         return -5;
-    case 3:
+    case W8_ATTACK_MODE_BERSERK:
         return -30;
-    case 4:
+    case W8_ATTACK_MODE_THROW:
         return 5;
-    case 7:
+    case W8_ATTACK_MODE_LASH:
         return -10;
     default:
         srAssertFail("FALSE", COMBAT_ATTACK_CPP, 3663,
@@ -778,7 +777,7 @@ unsigned short g_attack_flag_name_ids[9][2] = {
 };
 
 // GLOBAL: WIZ8 0x0061e9cc
-unsigned short g_damage_type_name_ids[0x10] = {
+unsigned short g_attack_effect_name_ids[W8_ATTACK_EFFECT_COUNT] = {
     1330, 1331, 1332, 1333, 1334, 1335, 1336, 1337, 1338, 1339, 1340, 1341, 1342, 1343, 1344, 1345,
 };
 
@@ -935,7 +934,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
     char source_color;
     char target_color;
     unsigned int hit_location;
-    int attack_mode;
+    W8AttackMode attack_mode;
     int chance;
     int penetration_roll;
     unsigned int magnitude;
@@ -1101,7 +1100,7 @@ void PrepareCharacterAttacks(int party_slot)
    fatigue share, plus the four points a distracted or flanked target loses
    against anything but the special modes. */
 // FUNCTION: WIZ8 0x005468d0
-int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode)
+int GetTargetArmorClassModifier(W8CombatSlot* target, W8AttackMode attack_mode)
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
@@ -1157,7 +1156,7 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode)
         return 0;
     }
     if (distracted != 0 && out_of_formation == 0 &&
-        (attack_mode != 4 && (attack_mode <= 6 || attack_mode > 8))) {
+        (attack_mode != W8_ATTACK_MODE_THROW && (attack_mode <= W8_ATTACK_MODE_KICK || attack_mode > W8_ATTACK_MODE_SHOOT))) {
         modifier -= 4;
     }
     return modifier;
@@ -1166,7 +1165,7 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode)
 /* Which of the hand's attack modes this swing uses: a random one of the set
    mode bits, walked cyclically until the roll's-th set bit. */
 // FUNCTION: WIZ8 0x00542ca0
-unsigned int CharChooseHandAttackMode(W8Character* character, int hand)
+W8AttackMode CharChooseHandAttackMode(W8Character* character, int hand)
 {
     W8ItemInstance* item;
     unsigned short modes;
@@ -1262,7 +1261,7 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
    character's total, or ten minus the monster record's evasion - unless the
    monster is out of formation, which costs it a flat five. */
 // FUNCTION: WIZ8 0x00542ee0
-int GetTargetArmorClass(W8CombatSlot* target, int attack_mode)
+int GetTargetArmorClass(W8CombatSlot* target, W8AttackMode attack_mode)
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
@@ -1292,7 +1291,7 @@ int GetTargetArmorClass(W8CombatSlot* target, int attack_mode)
    location and attack-mode terms each target kind carries, with the
    situational modifier applied a second time through the base. */
 // FUNCTION: WIZ8 0x00542fc0
-int TargetArmorClassAtLocation(W8CombatSlot* target, int attack_mode, int hit_location)
+int TargetArmorClassAtLocation(W8CombatSlot* target, W8AttackMode attack_mode, int hit_location)
 {
     W8Character* character;
     W8MonsterInfo* monster_info;
@@ -1411,7 +1410,7 @@ unsigned int CapAttackDamageByTargetHealth(unsigned int damage)
    an attack whose record only reaches short range is a data error, corrected
    to long and reported; the reverse is corrected to short the same way. */
 // FUNCTION: WIZ8 0x0053ffe0
-void StartMonsterAttackCycle(W8MonsterInfo* monster_info, int action_detail)
+void StartMonsterAttackCycle(W8MonsterInfo* monster_info, W8AttackMode action_detail)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     unsigned int attack = monster_info->pCombat->attack_index;
@@ -1419,31 +1418,31 @@ void StartMonsterAttackCycle(W8MonsterInfo* monster_info, int action_detail)
     signed char cycle;
 
     switch (action_detail) {
-    case 1:
+    case W8_ATTACK_MODE_THRUST:
         cycle = 10;
         break;
-    case 8:
+    case W8_ATTACK_MODE_SHOOT:
         cycle = 17;
         break;
-    case 4:
+    case W8_ATTACK_MODE_THROW:
         cycle = 13;
         break;
-    case 0:
+    case W8_ATTACK_MODE_SWING:
         cycle = 9;
         break;
-    case 6:
+    case W8_ATTACK_MODE_KICK:
         cycle = 15;
         break;
-    case 2:
+    case W8_ATTACK_MODE_BASH:
         cycle = 11;
         break;
-    case 5:
+    case W8_ATTACK_MODE_PUNCH:
         cycle = 14;
         break;
-    case 7:
+    case W8_ATTACK_MODE_LASH:
         cycle = 16;
         break;
-    case 3:
+    case W8_ATTACK_MODE_BERSERK:
         cycle = 12;
         break;
     default:
@@ -1642,7 +1641,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     W8SpellEffectResult local_report;
     W8MonsterCombatState* combat = monster_info->pCombat;
     unsigned int attack_index = combat->attack_index;
-    int action_detail = monster_info->action_detail;
+    W8AttackMode action_detail = static_cast<W8AttackMode>(monster_info->action_detail);
     W8MonsterAttack* attack = &record->attacks[attack_index];
     W8MonsterInfo* target_info = NULL;
     W8MonsterRecord* target_record;
@@ -2143,7 +2142,7 @@ char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     }
     attack = combat->attack_index;
     --combat->attacks_per_round;
-    int action_detail = monster_info->action_detail;
+    W8AttackMode action_detail = static_cast<W8AttackMode>(monster_info->action_detail);
     if (RateMonsterAttack(monster_info, record, attack, 0, 0) != 0) {
         return 0;
     }
@@ -2219,7 +2218,7 @@ bool CharacterNoticesAttacker(int party_slot)
 void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3)
 {
     W8MonsterCombatState* combat = monster_info->pCombat;
-    int action_detail = monster_info->action_detail;
+    W8AttackMode action_detail = static_cast<W8AttackMode>(monster_info->action_detail);
     unsigned int attack = combat->attack_index;
     W8MonsterAttack* pAttack = &record->attacks[attack];
     W8RangeCategory range = GetMonsterActionRangeCategory(monster_info, record, attack);
@@ -2263,7 +2262,7 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                 if (g_combat_state->natural_attack != 0) {
                     wcscat(g_combat_state->attack_message, L" ");
                     wcscat(g_combat_state->attack_message, gppStringList[0x215]);
-                } else if (action_detail == 3) {
+                } else if (action_detail == W8_ATTACK_MODE_BERSERK) {
                     wcscat(g_combat_state->attack_message, gppStringList[0x215]);
                 }
                 wcscat(g_combat_state->attack_message, text);
@@ -2276,13 +2275,15 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
     if (g_combat_state->natural_attack == 0 && pAttack->ubWeaponNameIndex != 0) {
         if (g_settings.verbose_combat_messages == 0) {
             switch (action_detail) {
-            case 0:
-            case 1:
-            case 4:
+            case W8_ATTACK_MODE_SWING:
+            case W8_ATTACK_MODE_THRUST:
+            case W8_ATTACK_MODE_THROW:
                 wcscat(g_combat_state->attack_message, gppStringList[0x217]);
                 break;
-            case 3:
+            case W8_ATTACK_MODE_BERSERK:
                 wcscat(g_combat_state->attack_message, gppStringList[0x218]);
+                break;
+            default:
                 break;
             }
         } else {
@@ -2373,7 +2374,7 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
    INT/DEX/SPEED/SENSES differential count too; a blinded attacker caps at ten
    unless a trait lets it fight blind. Finally the difficulty scaler runs. */
 // FUNCTION: WIZ8 0x00541c00
-static int GetTargetAttackAttributes(int party_slot, int hand, int attack_mode, char arg_4)
+static int GetTargetAttackAttributes(int party_slot, int hand, W8AttackMode attack_mode, char arg_4)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8HandAttack* attack = &character->Hand[hand];
@@ -2463,7 +2464,7 @@ static int GetTargetAttackAttributes(int party_slot, int hand, int attack_mode, 
    modern weapons, then the target's armour class at the hit location and the
    same attribute differential. */
 // FUNCTION: WIZ8 0x00541ec0
-int GetTargetHitAttackAttributes(int party_slot, int hand, int attack_mode, int hit_location)
+int GetTargetHitAttackAttributes(int party_slot, int hand, W8AttackMode attack_mode, int hit_location)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8HandAttack* attack = &character->Hand[hand];
@@ -2514,7 +2515,7 @@ int GetTargetHitAttackAttributes(int party_slot, int hand, int attack_mode, int 
    through the out params, and returns the damage after bonuses and the
    target's reduction. */
 // FUNCTION: WIZ8 0x005420b0
-int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_mode,
+int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_mode,
                                  unsigned int* out_dice_count, unsigned char* out_hit)
 {
     W8Character* pPC = &g_status.buffers.Char[party_slot];
@@ -2553,7 +2554,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
     }
 
     unsigned int dice_count = 1;
-    if (attack_mode != 4 && (attack_mode < 7 || attack_mode > 8)) {
+    if (attack_mode != W8_ATTACK_MODE_THROW && (attack_mode < W8_ATTACK_MODE_LASH || attack_mode > W8_ATTACK_MODE_SHOOT)) {
         if (bVar10 || out_of_formation != 0 || g_combat_state->unaware != 0) {
             dice_count = 2;
         }
@@ -2563,7 +2564,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
             dice_count += RollBackstabExtraDice(chance);
         }
     }
-    if (attack_mode == 3) {
+    if (attack_mode == W8_ATTACK_MODE_BERSERK) {
         dice_count += 1;
     }
     if (dice_count > 1 && target_exposed != 0 && g_combat_state->unaware == 0) {
@@ -2588,7 +2589,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
 
     W8Dice dice;
     switch (attack_mode) {
-    case 5:
+    case W8_ATTACK_MODE_PUNCH:
         if (pPC->Hand[hand].uiHolds != HOLDS_NOTHING) {
             srAssertFail("pPC->Hand[uiHand].uiHolds == HOLDS_NOTHING", COMBAT_ATTACK_CPP, 0xc55, 0);
         }
@@ -2598,7 +2599,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
             dice = pPC->Hand[1].damage_dice;
         }
         break;
-    case 6:
+    case W8_ATTACK_MODE_KICK:
         if (pPC->Hand[hand].uiHolds != HOLDS_NOTHING) {
             srAssertFail("pPC->Hand[uiHand].uiHolds == HOLDS_NOTHING", COMBAT_ATTACK_CPP, 0xc50, 0);
         }
@@ -2615,7 +2616,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
         }
         break;
     default:
-        if (attack_mode != 3 && pPC->Hand[hand].uiHolds == HOLDS_NOTHING) {
+        if (attack_mode != W8_ATTACK_MODE_BERSERK && pPC->Hand[hand].uiHolds == HOLDS_NOTHING) {
             srAssertFail("pPC->Hand[uiHand].uiHolds != HOLDS_NOTHING", COMBAT_ATTACK_CPP, 0xc5c, 0);
         }
         if (pPC->Hand[hand].uiHolds == HOLDS_NOTHING) {
@@ -2685,7 +2686,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
    halves for natural verbs, a repick surprise penalty, an optional armor and
    attribute comparison against the target, the blind cap, and difficulty. */
 // FUNCTION: WIZ8 0x00542720
-int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, int attack_mode,
+int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, W8AttackMode attack_mode,
                           char arg_4)
 {
     W8MonsterCombatState* combat = monster_info->pCombat;
@@ -2762,7 +2763,7 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, 
 int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* attack,
                                unsigned int* out_dice_count)
 {
-    unsigned int attack_mode = monster_info->action_detail;
+    W8AttackMode attack_mode = static_cast<W8AttackMode>(monster_info->action_detail);
     W8MonsterInfo* target_info;
     W8MonsterRecord* record;
     W8Character* target;
@@ -2802,7 +2803,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
     }
 
     unsigned int dice_count = 1;
-    if (attack_mode != 4 && (attack_mode < 7 || attack_mode > 8)) {
+    if (attack_mode != W8_ATTACK_MODE_THROW && (attack_mode < W8_ATTACK_MODE_LASH || attack_mode > W8_ATTACK_MODE_SHOOT)) {
         if (bVar10 || out_of_formation != 0 || g_combat_state->unaware != 0) {
             dice_count = 2;
         }
@@ -2812,7 +2813,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
             dice_count += RollBackstabExtraDice(chance);
         }
     }
-    if (attack_mode == 3) {
+    if (attack_mode == W8_ATTACK_MODE_BERSERK) {
         dice_count += 1;
     }
     if (dice_count > 1 && target_exposed != 0 && g_combat_state->unaware == 0) {
@@ -2912,7 +2913,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     magnitude = 0xc;
                 }
                 switch (i) {
-                case 0:
+                case W8_ATTACK_EFFECT_SLEEP:
                     resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_ASLEEP,
                                                      W8_SPELL_REALM_AIR, definition->power_level, 0,
                                                      magnitude, verbose, announce, 0);
@@ -2920,7 +2921,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         accumulator->condition_counts[W8_CONDITION_ASLEEP] += (resisted == 0);
                     }
                     break;
-                case 1:
+                case W8_ATTACK_EFFECT_PARALYZE:
                     resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_PARALYZED,
                                                      W8_SPELL_REALM_WATER, definition->power_level,
                                                      0, magnitude, verbose, announce, 0);
@@ -2928,7 +2929,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         accumulator->condition_counts[W8_CONDITION_PARALYZED] += (resisted == 0);
                     }
                     break;
-                case 2:
+                case W8_ATTACK_EFFECT_POISON:
                     magnitude = RollEffectDuration(definition);
                     if (magnitude < 2) {
                         SetDice(&definition->magnitude, count_base * 3, 2,
@@ -2943,7 +2944,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         accumulator->condition_counts[W8_CONDITION_POISONED] += (resisted == 0);
                     }
                     break;
-                case 3:
+                case W8_ATTACK_EFFECT_HEX:
                     resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_HEXED,
                                                      W8_SPELL_REALM_DIVINE, definition->power_level,
                                                      0, magnitude, verbose, announce, 0);
@@ -2951,7 +2952,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         accumulator->condition_counts[W8_CONDITION_HEXED] += (resisted == 0);
                     }
                     break;
-                case 4:
+                case W8_ATTACK_EFFECT_DISEASE:
                     resisted = ResolveAttackOnTarget(
                         source, target, W8_CONDITION_DISEASED, W8_SPELL_REALM_WATER,
                         definition->power_level, 0, W8_CONDITION_INDEFINITE, verbose, announce, 0);
@@ -2959,7 +2960,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         accumulator->condition_counts[W8_CONDITION_DISEASED] += (resisted == 0);
                     }
                     break;
-                case 5:
+                case W8_ATTACK_EFFECT_KILL:
                     resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_DEAD,
                                                      W8_SPELL_REALM_DIVINE, definition->power_level,
                                                      0, W8_CONDITION_INDEFINITE, verbose, 0, 0);
@@ -2991,7 +2992,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         }
                     }
                     break;
-                case 6:
+                case W8_ATTACK_EFFECT_KNOCK_OUT:
                     resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_UNCONSCIOUS,
                                                      W8_SPELL_REALM_EARTH, definition->power_level,
                                                      0, magnitude, verbose, announce, 0);
@@ -2999,7 +3000,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         accumulator->condition_counts[W8_CONDITION_UNCONSCIOUS] += (resisted == 0);
                     }
                     break;
-                case 7:
+                case W8_ATTACK_EFFECT_BLIND:
                     resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_BLIND,
                                                      W8_SPELL_REALM_FIRE, definition->power_level,
                                                      0, magnitude, verbose, announce, 0);
@@ -3007,7 +3008,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         accumulator->condition_counts[W8_CONDITION_BLIND] += (resisted == 0);
                     }
                     break;
-                case 8:
+                case W8_ATTACK_EFFECT_FRIGHTEN:
                     resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_AFRAID,
                                                      W8_SPELL_REALM_MENTAL, definition->power_level,
                                                      0, magnitude, verbose, announce, 0);
@@ -3015,7 +3016,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         accumulator->condition_counts[W8_CONDITION_AFRAID] += (resisted == 0);
                     }
                     break;
-                case 9:
+                case W8_ATTACK_EFFECT_SWALLOW:
                     if (TargetSourceIsMonster(source, 0)) {
                         if (target->iType == W8_TARGET_KIND_CHARACTER) {
                             resisted = ResolveAttackOnTarget(
@@ -3036,7 +3037,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         }
                     }
                     break;
-                case 10:
+                case W8_ATTACK_EFFECT_POSSESS:
                     if (TargetSourceIsMonster(source, 0) &&
                         target->iType == W8_TARGET_KIND_CHARACTER) {
                         resisted = ResolveAttackOnTarget(
@@ -3047,7 +3048,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         }
                     }
                     break;
-                case 0xb:
+                case W8_ATTACK_EFFECT_DRAIN_HP:
                     if (target->iType == W8_TARGET_KIND_CHARACTER) {
                         resisted =
                             TargetResistsCondition(target, W8_SPELL_REALM_EARTH,
@@ -3070,7 +3071,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         }
                     }
                     break;
-                case 0xc:
+                case W8_ATTACK_EFFECT_DRAIN_STAMINA:
                     resisted = TargetResistsCondition(target, W8_SPELL_REALM_WATER,
                                                       definition->power_level, W8_CONDITION_NONE);
                     if (resisted == 0) {
@@ -3097,7 +3098,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         }
                     }
                     break;
-                case 0xd:
+                case W8_ATTACK_EFFECT_DRAIN_SP:
                     if (target->iType == W8_TARGET_KIND_CHARACTER) {
                         resisted =
                             TargetResistsCondition(target, W8_SPELL_REALM_DIVINE,
@@ -3123,7 +3124,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         }
                     }
                     break;
-                case 0xe:
+                case W8_ATTACK_EFFECT_NAUSEATE:
                     resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_NAUSEATED,
                                                      W8_SPELL_REALM_AIR, definition->power_level, 0,
                                                      magnitude, verbose, announce, 0);
@@ -3131,7 +3132,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         accumulator->condition_counts[W8_CONDITION_NAUSEATED] += (resisted == 0);
                     }
                     break;
-                case 0xf:
+                case W8_ATTACK_EFFECT_INSANE:
                     resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_INSANE,
                                                      W8_SPELL_REALM_MENTAL, definition->power_level,
                                                      0, magnitude, verbose, announce, 0);
@@ -3557,7 +3558,7 @@ void FireCharacterItemMissile(int party_slot, W8Character* pc, W8CombatCharacter
     attack_block.magnitude_base = missile_value;
     accuracy = GetTargetAttackAttributes(
         party_slot, row->current_hand,
-        g_status.buffers.XChar[party_slot].attack_mode[row->current_hand], 0);
+        static_cast<W8AttackMode>(g_status.buffers.XChar[party_slot].attack_mode[row->current_hand]), 0);
     CombatLog("TO HIT (MISSILE ACCURACY): Chance %d", accuracy);
     FireMissileSourceToTarget(missile_type, &source,
                               &g_status.buffers.XChar[party_slot].target_out_of_combat,
@@ -3660,7 +3661,7 @@ void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to
    log line, resolves the facing and surprise checks, then either fires the
    wielded missile weapon or queues the melee swing event. */
 // FUNCTION: WIZ8 0x0053d870
-char StartCharacterAttack(int party_slot, int attack_mode)
+char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
 {
     W8Character* character;
     W8CombatCharacterRow* row;
@@ -3669,7 +3670,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     W8MonsterInfo* monster_info;
     wchar_t* verb;
     wchar_t* name;
-    unsigned int mode;
+    W8AttackMode mode;
     unsigned int hand;
     W8RangeCategory range;
     bool noticed;
@@ -3693,7 +3694,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
             return 0;
         }
     }
-    if (attack_mode == -1) {
+    if (attack_mode == W8_ATTACK_MODE_NONE) {
         mode = CharChooseHandAttackMode(character, hand);
     } else {
         mode = attack_mode;
@@ -3767,7 +3768,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         if (hand == 1 && character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo != -1 &&
             g_item_records[character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo].equip_class ==
                 W8_ITEM_EQUIP_CLASS_RANGED_WEAPON) {
-            verb = gppStringList[g_attack_flag_name_ids[8][1]];
+            verb = gppStringList[g_attack_flag_name_ids[W8_ATTACK_MODE_SHOOT][1]];
         } else {
             verb = gppStringList[g_attack_flag_name_ids[mode][1]];
         }
@@ -3779,7 +3780,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 if (g_combat_state->natural_attack != 0) {
                     wcscat(g_combat_state->attack_message, L" ");
                     wcscat(g_combat_state->attack_message, gppStringList[0x215]);
-                } else if (mode == 3) {
+                } else if (mode == W8_ATTACK_MODE_BERSERK) {
                     wcscat(g_combat_state->attack_message, gppStringList[0x215]);
                 }
                 wcscat(g_combat_state->attack_message, name);
@@ -3789,18 +3790,20 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 wcscat(g_combat_state->attack_message, gppStringList[0x216]);
             } else if (g_combat_state->natural_attack == 0) {
                 switch (mode) {
-                case 0:
-                case 1:
-                case 4:
+                case W8_ATTACK_MODE_SWING:
+                case W8_ATTACK_MODE_THRUST:
+                case W8_ATTACK_MODE_THROW:
                     wcscat(g_combat_state->attack_message, gppStringList[0x217]);
                     break;
-                case 3:
+                case W8_ATTACK_MODE_BERSERK:
                     wcscat(g_combat_state->attack_message, gppStringList[0x218]);
                     break;
-                }
+                default:
+                break;
+            }
             }
         } else {
-            if (mode == 3) {
+            if (mode == W8_ATTACK_MODE_BERSERK) {
                 wcscat(g_combat_state->attack_message, gppStringList[0x205]);
                 wcscat(g_combat_state->attack_message, L" ");
             }
@@ -3864,7 +3867,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 if (g_combat_state->natural_attack != 0) {
                     wcscat(g_combat_state->attack_message, L" ");
                     wcscat(g_combat_state->attack_message, gppStringList[0x215]);
-                } else if (mode == 3) {
+                } else if (mode == W8_ATTACK_MODE_BERSERK) {
                     wcscat(g_combat_state->attack_message, gppStringList[0x215]);
                 }
                 wcscat(g_combat_state->attack_message, name);
@@ -3874,15 +3877,17 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 wcscat(g_combat_state->attack_message, gppStringList[0x216]);
             } else if (g_combat_state->natural_attack == 0) {
                 switch (mode) {
-                case 0:
-                case 1:
-                case 4:
+                case W8_ATTACK_MODE_SWING:
+                case W8_ATTACK_MODE_THRUST:
+                case W8_ATTACK_MODE_THROW:
                     wcscat(g_combat_state->attack_message, gppStringList[0x217]);
                     break;
-                case 3:
+                case W8_ATTACK_MODE_BERSERK:
                     wcscat(g_combat_state->attack_message, gppStringList[0x218]);
                     break;
-                }
+                default:
+                break;
+            }
             }
         }
     } else {
@@ -3947,7 +3952,7 @@ int ResolveCharacterAttack(int party_slot)
     int to_hit = 0;
     int roll = 0;
     W8RangeCategory range = W8_RANGE_TOUCH;
-    int attack_mode;
+    W8AttackMode attack_mode;
 
     SetTargetSourceToCharacter(party_slot, &source);
     if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == 0x272) {
@@ -3973,7 +3978,7 @@ int ResolveCharacterAttack(int party_slot)
                            source.iMonsterID);
         return 3;
     } else {
-        attack_mode = party_row->attack_mode[hand];
+        attack_mode = static_cast<W8AttackMode>(party_row->attack_mode[hand]);
         if (row->attack_sound_played == 0) {
             MakePCAttackSound(row, &character->Hand[hand], attack_mode, 1, -1);
             row->attack_sound_played = true;
@@ -4150,7 +4155,7 @@ int ResolveCharacterAttack(int party_slot)
                 }
                 outcome = 2;
                 queued_fatigue = 2;
-                unsigned int mode = attack_mode;
+                W8AttackMode mode = attack_mode;
                 if (row->paired_equip_slot != -1) {
                     mode = CharChooseHandAttackMode(character, 1);
                 }
@@ -4275,10 +4280,10 @@ int ResolveCharacterAttack(int party_slot)
                                         Random(0x19) < skill_level % 0x19) {
                                         ++bonus;
                                     }
-                                    effect.condition_chances[5] += bonus;
+                                    effect.condition_chances[W8_ATTACK_EFFECT_KILL] += bonus;
                                 }
                                 if (CharacterHasTrait(character, W8_TRAIT_KNOCKOUT) != 0) {
-                                    effect.condition_chances[6] +=
+                                    effect.condition_chances[W8_ATTACK_EFFECT_KNOCK_OUT] +=
                                         static_cast<char>(ScaleValueByProfessionLevel(
                                             character, W8_TRAIT_KNOCKOUT, 5.0));
                                 }

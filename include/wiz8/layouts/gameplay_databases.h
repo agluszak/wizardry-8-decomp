@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 #define WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 
+#include "wiz8/attack_modes.h"
 #include "wiz8/fact_state.h"
 #include <stddef.h>
 
@@ -97,7 +98,7 @@ struct W8MonsterAttack {
        adds it alongside the modifier hit bonus and re-reads it inside the
        surprise repick penalty. */
     unsigned char attack_score;
-    unsigned char missile_values[0x10]; /* 0x05 */
+    unsigned char missile_values[W8_ATTACK_EFFECT_COUNT]; /* 0x05 */
     unsigned short attack_modes;           /* 0x15 */
     /* 0x17: the attack's damage dice, packed; the missile path copies it
        into the attack block and the melee path rolls it. */
