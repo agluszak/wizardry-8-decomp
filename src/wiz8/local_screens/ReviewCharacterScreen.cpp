@@ -1957,12 +1957,12 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         return;
     }
     character = &g_status.buffers.Char[giReviewCharSlot];
-    if (character->uiCondition[0x13] != 0 && (origin == 1 || origin == 0)) {
+    if (character->uiCondition[W8_CONDITION_MISSING] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x907];
         ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
-    if (character->uiCondition[0xe] != 0 && (origin == 1 || origin == 0)) {
+    if (character->uiCondition[W8_CONDITION_WEBBED] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x908];
         ShowCampNoticeLine(text, 0, 1, 0);
         return;

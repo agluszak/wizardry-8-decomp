@@ -180,7 +180,7 @@ void ResetMessageStorage(void)
                 while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
                     W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
                     *stored = word;
-                    stored->keyword = 0;
+                    stored->keyword = W8_NOTICE_WORD_NORMAL;
                     stored->redraw = false;
                     PLAdoptAppend(record->entries, stored);
                 }
@@ -285,7 +285,7 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
         while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
             W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
             *stored = word;
-            stored->keyword = 0;
+            stored->keyword = W8_NOTICE_WORD_NORMAL;
             stored->redraw = false;
             PLAdoptAppend(record->entries, stored);
         }
@@ -2418,9 +2418,10 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
     unsigned int count = PLLength(line->entries);
     for (int i = 0; i < static_cast<int>(count); ++i) {
         W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries, i));
-        if (word->keyword != 0) {
-            unsigned short* palette =
-                word->keyword == 2 ? g_font_state_palettes[3] : g_font_state_palettes[5];
+        if (word->keyword != W8_NOTICE_WORD_NORMAL) {
+            unsigned short* palette = word->keyword == W8_NOTICE_WORD_SELECTED
+                                          ? g_font_state_palettes[3]
+                                          : g_font_state_palettes[5];
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             memset(word_text, 0, sizeof(word_text));
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
@@ -2445,8 +2446,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
     }
 }
 
-// FUNCTION: WIZ8 0x00590150
-void ResetUsedNoticeWords(int text_box, bool redraw)
+static void ClearNoticeWordState(int text_box, bool selected, bool redraw)
 {
     for (int i = 0; i < 0x15e; ++i) {
         W8PList* list = g_message_storage[text_box][i].entries;
@@ -2454,8 +2454,8 @@ void ResetUsedNoticeWords(int text_box, bool redraw)
             unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->keyword == 2) {
-                    word->keyword = 0;
+                if ((word->keyword == W8_NOTICE_WORD_SELECTED) == selected) {
+                    word->keyword = W8_NOTICE_WORD_NORMAL;
                     word->redraw = true;
                 }
             }
@@ -2466,25 +2466,31 @@ void ResetUsedNoticeWords(int text_box, bool redraw)
     }
 }
 
+// FUNCTION: WIZ8 0x00590150
+void ResetUsedNoticeWords(int text_box, bool redraw)
+{
+    ClearNoticeWordState(text_box, true, redraw);
+}
+
 // FUNCTION: WIZ8 0x005901D0
 void ClearNoticeWordHover(int text_box, bool redraw)
 {
-    for (int i = 0; i < 0x15e; ++i) {
-        W8PList* list = g_message_storage[text_box][i].entries;
-        if (list != 0) {
-            unsigned int count = PLLength(list);
-            for (int j = 0; j < static_cast<int>(count); ++j) {
-                W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->keyword != 2) {
-                    word->keyword = 0;
-                    word->redraw = true;
-                }
-            }
-        }
+    ClearNoticeWordState(text_box, false, redraw);
+}
+
+static int GetNoticeLineLeft(int text_box, int line)
+{
+    int x_base;
+    if (g_status.text_line_cursor == 3 || g_level_block->text_box_visible == 0) {
+        x_base = g_level_block->text_box_left;
+    } else {
+        x_base = g_level_block->text_box_left +
+                 ((g_level_block->text_box_right - g_level_block->text_box_left) / 2 -
+                  StringPixLength(Wiz8ToSgpWideText(g_message_storage[text_box][line].wString),
+                                  g_level_block->text_box_font) /
+                      2);
     }
-    if (redraw != 0) {
-        RedrawTextBoxBody(1);
-    }
+    return x_base;
 }
 
 // FUNCTION: WIZ8 0x00590250
@@ -2500,23 +2506,15 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
     if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
         line = g_level_block->text_lines[text_box] + (y - g_level_block->text_box_top) / 0xb;
         if (line < static_cast<int>(g_status.text_box_lines_shown[text_box])) {
-            if (g_status.text_line_cursor == 3 || g_level_block->text_box_visible == 0) {
-                x_base = g_level_block->text_box_left;
-            } else {
-                x_base =
-                    g_level_block->text_box_left +
-                    ((g_level_block->text_box_right - g_level_block->text_box_left) / 2 -
-                     StringPixLength(Wiz8ToSgpWideText(g_message_storage[text_box][line].wString),
-                                     g_level_block->text_box_font) /
-                         2);
-            }
+            x_base = GetNoticeLineLeft(text_box, line);
             list = g_message_storage[text_box][line].entries;
             count = PLLength(list);
             offset = x - x_base;
             for (int i = 0; i < static_cast<int>(count); ++i) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, i));
-                if (word->x_start <= offset && offset <= word->x_end && word->keyword != 2) {
-                    word->keyword = 1;
+                if (word->x_start <= offset && offset <= word->x_end &&
+                    word->keyword != W8_NOTICE_WORD_SELECTED) {
+                    word->keyword = W8_NOTICE_WORD_HOVERED;
                 }
             }
         }
@@ -2537,16 +2535,7 @@ W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y
     if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
         line = g_level_block->text_lines[text_box] + (y - g_level_block->text_box_top) / 0xb;
         if (line < static_cast<int>(g_status.text_box_lines_shown[text_box])) {
-            if (g_status.text_line_cursor == 3 || g_level_block->text_box_visible == 0) {
-                x_base = g_level_block->text_box_left;
-            } else {
-                x_base =
-                    g_level_block->text_box_left +
-                    ((g_level_block->text_box_right - g_level_block->text_box_left) / 2 -
-                     StringPixLength(Wiz8ToSgpWideText(g_message_storage[text_box][line].wString),
-                                     g_level_block->text_box_font) /
-                         2);
-            }
+            x_base = GetNoticeLineLeft(text_box, line);
             list = g_message_storage[text_box][line].entries;
             count = PLLength(list);
             offset = x - x_base;

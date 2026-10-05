@@ -685,7 +685,8 @@ static bool CanDispatchCharacterEvent(unsigned int party_slot, unsigned int even
         if (event_type == static_cast<unsigned int>(g_special_event9) ||
             event_type == static_cast<unsigned int>(g_special_event10) ||
             g_special_event16 != 0) {
-            if (character->uiCondition[17] != 0 || character->uiCondition[19] != 0) {
+            if (character->uiCondition[W8_CONDITION_UNCONSCIOUS] != 0 ||
+                character->uiCondition[W8_CONDITION_MISSING] != 0) {
                 return 0;
             }
         } else {
@@ -733,7 +734,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
     W8MonsterManagerEntry* record;
     W8NpcState* npc;
 
-    if (character->uiCondition[8] != 0) {
+    if (character->uiCondition[W8_CONDITION_SILENCED] != 0) {
         sound_event = g_special_event1;
     }
     if (npc_index == -1 || g_status.game_started == 0 ||
@@ -822,7 +823,7 @@ unsigned char W8CharacterEvent::Dispatch()
                 QueueCharacterEvent(character, g_special_event1, 0, 1, 0x7f);
                 return 0;
             }
-            if (character->uiCondition[11] != 0) {
+            if (character->uiCondition[W8_CONDITION_INSANE] != 0) {
                 QueueCharacterEvent(character, g_special_event21, 0, 1, 0x7f);
                 return 0;
             }

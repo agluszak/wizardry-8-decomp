@@ -840,7 +840,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
     }
     if (record->prefer_ranged_actions == 0 &&
         (range_category = GetBestMonsterAttackRange(record, 1)) != W8_RANGE_NONE &&
-        (monster_info->uiCondition[0xc] == 0 || record->kind == 0xc) &&
+        (monster_info->uiCondition[W8_CONDITION_BLIND] == 0 || record->kind == 0xc) &&
         MonsterChooseTarget(monster_info, &chosen, 2) > CalcRangeDistance(range_category)) {
         record = GetMonsterDataForInfo(monster_info);
         hp_ratio = monster_info->hp_current / static_cast<float>(monster_info->uiHPMax);
@@ -900,7 +900,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         }
         if (rating != 0) {
             if (rating == W8_MONSTER_ATTACK_OUT_OF_REACH) {
-                if (monster_info->uiCondition[0xc] != 0 && record->kind != 0xc) {
+                if (monster_info->uiCondition[W8_CONDITION_BLIND] != 0 && record->kind != 0xc) {
                     monster_info->action_kind = 6;
                 } else {
                     record = GetMonsterDataForInfo(monster_info);
@@ -1548,12 +1548,12 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         }
         break;
     case 0x15:
-        if (enchantments[2].turns != 0) {
+        if (enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].turns != 0) {
             return 0;
         }
         break;
     case 0x1b:
-        if (enchantments[3].turns != 0) {
+        if (enchantments[W8_ENCHANTMENT_RAZOR_CLOAK].turns != 0) {
             return 0;
         }
         break;
@@ -1647,22 +1647,22 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         }
         return 1;
     case 0x36:
-        if (enchantments[4].turns != 0) {
+        if (enchantments[W8_ENCHANTMENT_EYE_FOR_AN_EYE].turns != 0) {
             return 0;
         }
         break;
     case 0x38:
-        if (enchantments[5].turns != 0) {
+        if (enchantments[W8_ENCHANTMENT_HASTE].turns != 0) {
             return 0;
         }
         break;
     case 0x3d:
-        if (enchantments[6].turns != 0) {
+        if (enchantments[W8_ENCHANTMENT_SUPERMAN].turns != 0) {
             return 0;
         }
         break;
     case 0x41:
-        if (enchantments[7].turns != 0) {
+        if (enchantments[W8_ENCHANTMENT_BODY_OF_STONE].turns != 0) {
             return 0;
         }
         break;

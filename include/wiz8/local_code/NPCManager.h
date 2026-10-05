@@ -154,3 +154,6 @@ char ScoreNpcTheft(W8Character* character, W8NpcState* npc, int item_id, int cou
 char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, int count);
 void UpdateNpcPartyMember(int party_slot);
 char QueueNpcDepartureEvents(int destination_level);
+
+/* 0x0050C9E0: test the NPC service bit for a region/service id. */
+bool NpcOffersService(W8NpcState* npc, unsigned int service_id);

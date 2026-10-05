@@ -507,7 +507,8 @@ void AdvanceTimedEffects(unsigned int minutes)
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             (character->highest_condition < W8_CONDITION_DEAD ||
-             (character->uiCondition[0x12] == 0 && GetConditionRecordFlag(slot, 1) != 0))) {
+             (character->uiCondition[W8_CONDITION_DEAD] == 0 &&
+              GetConditionRecordFlag(slot, 1) != 0))) {
             GameTurnsPassedChar(slot, minutes);
         }
     }
@@ -1150,7 +1151,7 @@ after_early: {
         ApplyDamageToMonster(monster_info, amount, &source, true, gXStatus.fCombatMode, 0, 0, 0);
     }
 }
-    if (monster_info->uiCondition[2] != 0) {
+    if (monster_info->uiCondition[W8_CONDITION_DISEASED] != 0) {
         frost_condition = true;
     }
     {
@@ -1365,7 +1366,8 @@ void UpdatePartyStamina(int ticks)
         }
         W8Character* character = &g_status.buffers.Char[slot];
         if (character->highest_condition >= W8_CONDITION_DEAD &&
-            (character->uiCondition[0x12] != 0 || GetConditionRecordFlag(slot, 1) == 0)) {
+            (character->uiCondition[W8_CONDITION_DEAD] != 0 ||
+             GetConditionRecordFlag(slot, 1) == 0)) {
             continue;
         }
         if (g_status.party_fatigued != 0 &&
@@ -1385,7 +1387,7 @@ void UpdatePartyStamina(int ticks)
 void RegenCharacterStamina(int party_slot, unsigned int elapsed)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
-    unsigned int frost = character->uiCondition[2];
+    unsigned int frost = character->uiCondition[W8_CONDITION_DISEASED];
     signed char stamina_mod = character->bonus.stamina_regen_adjustment;
     if (stamina_mod < 1) {
         if (stamina_mod < 0) {

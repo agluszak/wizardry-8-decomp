@@ -12,6 +12,12 @@ class Trigger;
 struct W8MonsterInfo;
 struct W8Region;
 
+enum W8NoticeWordState {
+    W8_NOTICE_WORD_NORMAL = 0,
+    W8_NOTICE_WORD_HOVERED = 1,
+    W8_NOTICE_WORD_SELECTED = 2
+};
+
 struct W8NoticeWord {
     short start;
     short end;

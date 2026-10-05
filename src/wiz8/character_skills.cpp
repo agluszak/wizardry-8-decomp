@@ -271,7 +271,7 @@ bool CharacterHasTrait(const W8Character* character, W8Trait trait)
             }
         }
     }
-    if (trait == W8_TRAIT_BREATHE && character->enchantments[1].turns != 0) {
+    if (trait == W8_TRAIT_BREATHE && character->enchantments[W8_ENCHANTMENT_DRACON_BREATH].turns != 0) {
         return true;
     }
     return false;

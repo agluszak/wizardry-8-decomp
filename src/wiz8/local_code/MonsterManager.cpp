@@ -419,9 +419,10 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
     ApplyFactionChange(0, 1, static_cast<signed char>(record->faction_id), monster_list_index);
 done:
     MonsterKilled(record->record_id, killer_party_slot);
-    if (monster_info->fInCombat != 0 &&
-        ((monster_info->ubDisposition == 1 && monster_info->uiCondition[0xd] == 0) ||
-         (monster_info->ubDisposition == 2 && monster_info->uiCondition[0xd] != 0))) {
+    if (monster_info->fInCombat != 0 && ((monster_info->ubDisposition == 1 &&
+                                          monster_info->uiCondition[W8_CONDITION_TURNCOAT] == 0) ||
+                                         (monster_info->ubDisposition == 2 &&
+                                          monster_info->uiCondition[W8_CONDITION_TURNCOAT] != 0))) {
         ++g_combat_state->combat_result;
         if (g_status.current_level < W8_LEVEL_COUNT) {
             ++g_status.level_progress[g_status.current_level].monster_kill_count;
@@ -1898,9 +1899,9 @@ void EvaluateCombatDifficulty(void)
     for (slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (row->fOccupied && character->uiCondition[0x12] == 0) {
+        if (row->fOccupied && character->uiCondition[W8_CONDITION_DEAD] == 0) {
             gXStatus.monster_manager_entries[slot].condition_19_latch =
-                character->uiCondition[0x13] != 0;
+                character->uiCondition[W8_CONDITION_MISSING] != 0;
         }
     }
 }

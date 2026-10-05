@@ -177,7 +177,8 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
         if (source->iChar == BAD_INDEX) {
             srAssertFail("pSource->iChar != BAD_INDEX", TARGETING_CPP, 0xce3, 0);
         }
-        source_hostile = g_status.buffers.Char[source->iChar].uiCondition[13] != 0;
+        source_hostile =
+            g_status.buffers.Char[source->iChar].uiCondition[W8_CONDITION_TURNCOAT] != 0;
     } else {
         if (source->iType != W8_TARGET_SOURCE_MONSTER) {
             srAssertFail("FALSE", TARGETING_CPP, 0xdf9, 0);
@@ -192,7 +193,8 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
                 ->ubDisposition == DISP_HOSTILE;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        target_hostile = g_status.buffers.Char[target->iChar].uiCondition[13] != 0;
+        target_hostile =
+            g_status.buffers.Char[target->iChar].uiCondition[W8_CONDITION_TURNCOAT] != 0;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
         target_hostile =
             MonsterGetScriptPartByLocationIndex(
@@ -3194,7 +3196,7 @@ int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<flo
     W8MonsterInfo* monster_info = GetNextMonsterInfo(1);
     while (monster_info != 0) {
         if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
-            monster_info->uiCondition[0x12] == 0) {
+            monster_info->uiCondition[W8_CONDITION_DEAD] == 0) {
             W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
             if (record->untargetable == 0 &&
                 (monster_info->ubDisposition == disposition || disposition == 3)) {

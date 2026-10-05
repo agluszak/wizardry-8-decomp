@@ -1494,7 +1494,7 @@ void W8Monster::Update()
             UpdateNavigation(0, 0);
         } else {
             UpdateNavigation(monster_info->highest_condition >= W8_CONDITION_WEBBED,
-                             monster_info->uiCondition[5] != 0);
+                             monster_info->uiCondition[W8_CONDITION_SLOWED] != 0);
         }
 
         if (cycle != W8_MONSTER_CYCLE_DIE && script != 0 && gXStatus.fCombatMode == 0) {
@@ -1634,7 +1634,7 @@ void W8Monster::Update()
         m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     }
 
-    if (monster_info != 0 && monster_info->uiCondition[5] != 0) {
+    if (monster_info != 0 && monster_info->uiCondition[W8_CONDITION_SLOWED] != 0) {
         TickAnimation(Query(6) == 4 ? movement.movement_speed * g_float_005ebc7c : 0.5f);
     } else {
         TickAnimation(Query(6) == 4 ? movement.movement_speed : 1.0f);
@@ -2292,7 +2292,8 @@ void W8Monster::ProcessScript()
                         monster_info = MonsterGetScriptPartByLocationIndex(
                             MonsterGetIndexByLocationID(0x1c3a, MONSTER_CPP, location_id, 1));
                         ResetTargetSource(&source);
-                        SetMonsterCondition(monster_info->location_id, 0xf, 6, 0, &source, 1);
+                        SetMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP, 6, 0,
+                                            &source, 1);
                     } else if (_stricmp(token, "ENDBELAWALK") == 0) {
                         flags1 |= W8_MONSTER_PARKED;
                         ClearMainGameTargetState();

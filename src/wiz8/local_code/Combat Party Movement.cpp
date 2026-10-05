@@ -204,14 +204,15 @@ unsigned char GetPartyHasteSteps(unsigned int* out_steps)
             continue;
         }
         character = &g_status.buffers.Char[party_slot];
-        if (character->uiCondition[19] != 0) {
+        if (character->uiCondition[W8_CONDITION_MISSING] != 0) {
             continue;
         }
-        if (character->enchantments[5].turns == 0) {
+        if (character->enchantments[W8_ENCHANTMENT_HASTE].turns == 0) {
             return 0;
         }
-        steps = static_cast<unsigned char>(character->enchantments[5].power * 10);
-        AdjustIntegerByPercent(&steps, character->enchantments[5].percent);
+        steps =
+            static_cast<unsigned char>(character->enchantments[W8_ENCHANTMENT_HASTE].power * 10);
+        AdjustIntegerByPercent(&steps, character->enchantments[W8_ENCHANTMENT_HASTE].percent);
         total += steps;
         ++count;
     }

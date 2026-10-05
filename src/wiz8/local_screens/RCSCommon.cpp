@@ -155,15 +155,15 @@ void TryGiveHeldItemToCampPortrait(int slot)
         return;
     }
     character = &g_status.buffers.Char[slot];
-    if (character->uiCondition[19] != 0) {
+    if (character->uiCondition[W8_CONDITION_MISSING] != 0) {
         ShowCampNoticeLine(gppStringList[0x907], 0, 1, 0);
         return;
     }
-    if (character->uiCondition[14] != 0) {
+    if (character->uiCondition[W8_CONDITION_WEBBED] != 0) {
         ShowCampNoticeLine(gppStringList[0x908], 0, 1, 0);
         return;
     }
-    if (character->uiCondition[13] != 0) {
+    if (character->uiCondition[W8_CONDITION_TURNCOAT] != 0) {
         ShowCampNoticeLine(gppStringList[0x909], 0, 1, 0);
         return;
     }
@@ -186,16 +186,16 @@ bool CanSelectRcsPartySlot(int ui_slot)
     }
 
     W8Character* character = &g_status.buffers.Char[ui_slot];
-    if (character->uiCondition[19] != 0) {
+    if (character->uiCondition[W8_CONDITION_MISSING] != 0) {
         return false;
     }
-    if (character->uiCondition[14] != 0) {
+    if (character->uiCondition[W8_CONDITION_WEBBED] != 0) {
         return false;
     }
-    if (character->uiCondition[11] != 0) {
+    if (character->uiCondition[W8_CONDITION_INSANE] != 0) {
         return false;
     }
-    if (character->uiCondition[13] != 0) {
+    if (character->uiCondition[W8_CONDITION_TURNCOAT] != 0) {
         return false;
     }
     if (gXStatus.fCombatMode) {
@@ -336,7 +336,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                     StartBreathCycle(giReviewCharSlot, 0);
                     return 1;
                 }
-                if (g_status.buffers.Char[target_slot].uiCondition[19] == 0) {
+                if (g_status.buffers.Char[target_slot].uiCondition[W8_CONDITION_MISSING] == 0) {
                     if (g_camp_screen->entry_mode != 7) {
                         TargetCharacterWithHeldItem(target_slot);
                         return 1;
@@ -372,7 +372,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
                 g_camp_screen->redraw_flags |= 1u << (region->callback_id & 0x1f);
                 if ((g_camp_screen->entry_mode == 7 || g_camp_screen->entry_mode == 9) &&
-                    g_status.buffers.Char[target_slot].uiCondition[19] == 0) {
+                    g_status.buffers.Char[target_slot].uiCondition[W8_CONDITION_MISSING] == 0) {
                     if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
                         UpdateItemCursorForState(1, 0, static_cast<int>(target_slot));
                         return 0;
@@ -656,7 +656,7 @@ static void ShowDismissCharacterDialog(void)
 
     W8Character* character = &g_status.buffers.Char[giReviewCharSlot];
     const wchar_t* format;
-    if (character->uiCondition[19] == 0) {
+    if (character->uiCondition[W8_CONDITION_MISSING] == 0) {
         if (character->uiCondition[W8_CONDITION_DEAD] == 0) {
             format = gppStringList[0x92d];
         } else {

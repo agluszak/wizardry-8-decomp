@@ -57,7 +57,7 @@ void RecountCombatMonsters(void)
             if (monster->ubDisposition == DISP_HOSTILE) {
                 ++gXStatus.hostile_monster_count;
             }
-            if (monster->uiCondition[13] != 0) {
+            if (monster->uiCondition[W8_CONDITION_TURNCOAT] != 0) {
             }
         }
     }
@@ -99,7 +99,8 @@ char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
     if (second_faction == 0 || first_faction != second_faction) {
         return 1;
     }
-    if ((first->uiCondition[13] != 0) == (second->uiCondition[13] != 0)) {
+    if ((first->uiCondition[W8_CONDITION_TURNCOAT] != 0) ==
+        (second->uiCondition[W8_CONDITION_TURNCOAT] != 0)) {
         return 0;
     }
     return 1;
@@ -113,7 +114,7 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 {
     unsigned char disposition;
 
-    if (g_status.buffers.Char[character_slot].uiCondition[13] == 0) {
+    if (g_status.buffers.Char[character_slot].uiCondition[W8_CONDITION_TURNCOAT] == 0) {
         return monster_info->ubDisposition;
     }
     disposition = monster_info->ubDisposition;
@@ -135,11 +136,11 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 char CharacterVsCharacterDisposition(int first, int second)
 {
     W8Character* characters = g_status.buffers.Char;
-    unsigned int first_turns = characters[first].uiCondition[13];
-    if (first_turns == 0 && characters[second].uiCondition[13] == 0) {
+    unsigned int first_turns = characters[first].uiCondition[W8_CONDITION_TURNCOAT];
+    if (first_turns == 0 && characters[second].uiCondition[W8_CONDITION_TURNCOAT] == 0) {
         return DISP_FRIENDLY;
     }
-    if (first_turns == 0 || characters[second].uiCondition[13] == 0) {
+    if (first_turns == 0 || characters[second].uiCondition[W8_CONDITION_TURNCOAT] == 0) {
         return DISP_HOSTILE;
     }
     return DISP_FRIENDLY;
@@ -149,7 +150,7 @@ char CharacterVsCharacterDisposition(int first, int second)
 char GetOppositeDisposition(W8TargetSource* source)
 {
     if (TargetSourceIsCharacter(source, 0)) {
-        if (g_status.buffers.Char[source->iChar].uiCondition[13] == 0) {
+        if (g_status.buffers.Char[source->iChar].uiCondition[W8_CONDITION_TURNCOAT] == 0) {
             return DISP_HOSTILE;
         }
     } else if (TargetSourceIsMonster(source, 0)) {
@@ -161,7 +162,7 @@ char GetOppositeDisposition(W8TargetSource* source)
             return 0;
         }
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        if (monster_info->uiCondition[13] == 0) {
+        if (monster_info->uiCondition[W8_CONDITION_TURNCOAT] == 0) {
             if (monster_info->ubDisposition == DISP_FRIENDLY) {
                 return DISP_HOSTILE;
             }
@@ -215,7 +216,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
         unsigned int monster_list_index =
             MonsterGetIndexByLocationID(0x146, COMBAT_HOSTILITY_CPP, target->iMonsterID, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        if (monster_info->uiCondition[13] != 0) {
+        if (monster_info->uiCondition[W8_CONDITION_TURNCOAT] != 0) {
             return;
         }
         group_id = monster_info->monster_group_id;
@@ -235,7 +236,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
             unsigned int monster_list_index =
                 MonsterGetIndexByLocationID(500, COMBAT_HOSTILITY_CPP, monster_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-            if (monster_info->uiCondition[13] == 0) {
+            if (monster_info->uiCondition[W8_CONDITION_TURNCOAT] == 0) {
                 break;
             }
             if (ILLength(group->monsters) <= ++index) {
@@ -677,7 +678,7 @@ int CharacterPrayAction(int party_slot)
                 W8Character* member = &g_status.buffers.Char[index];
                 if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                     member->highest_condition < W8_CONDITION_DEAD &&
-                    member->enchantments[2].power == 0) {
+                    member->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].power == 0) {
                     ++in_range;
                     found = true;
                 }
@@ -688,7 +689,8 @@ int CharacterPrayAction(int party_slot)
                     W8Character* member = &g_status.buffers.Char[index];
                     if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                         member->highest_condition < W8_CONDITION_DEAD &&
-                        member->enchantments[2].power == 0 && --pick == 0) {
+                        member->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].power == 0 &&
+                        --pick == 0) {
                         AppendToLastTextLine(
                             FormatWideString(gppStringList[0x17a], member->name, -1), -1);
                         target.iType = W8_TARGET_KIND_CHARACTER;
@@ -711,7 +713,8 @@ int CharacterPrayAction(int party_slot)
                 W8Character* member = &g_status.buffers.Char[index];
                 if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                     member->highest_condition < W8_CONDITION_DEAD &&
-                    (member->uiCondition[0xb] != 0 || member->uiCondition[0xd] != 0)) {
+                    (member->uiCondition[W8_CONDITION_INSANE] != 0 ||
+                     member->uiCondition[W8_CONDITION_TURNCOAT] != 0)) {
                     ++in_range;
                     found = true;
                 }
@@ -722,7 +725,8 @@ int CharacterPrayAction(int party_slot)
                     W8Character* member = &g_status.buffers.Char[index];
                     if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                         member->highest_condition < W8_CONDITION_DEAD &&
-                        (member->uiCondition[0xb] != 0 || member->uiCondition[0xd] != 0) &&
+                        (member->uiCondition[W8_CONDITION_INSANE] != 0 ||
+                         member->uiCondition[W8_CONDITION_TURNCOAT] != 0) &&
                         --pick == 0) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
                         target.iType = W8_TARGET_KIND_CHARACTER;
@@ -871,7 +875,7 @@ int CharacterPrayAction(int party_slot)
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                 if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
-                    monster->hp_current != 0 && monster->uiCondition[6] == 0) {
+                    monster->hp_current != 0 && monster->uiCondition[W8_CONDITION_AFRAID] == 0) {
                     AppendToLastTextLine(
                         FormatWideString(
                             gppStringList[0x17c],

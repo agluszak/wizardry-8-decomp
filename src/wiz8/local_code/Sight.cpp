@@ -188,8 +188,9 @@ bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target, W8Visibi
     }
     source_record = GetMonsterDataForInfo(source);
     threshold = ComputeSightThreshold(
-        observer_position, target_position, observer_yaw, source->attributes[W8_MONSTER_ATTRIBUTE_SENSES], ranged_bonus,
-        static_cast<unsigned char>(source->uiCondition[12] != 0),
+        observer_position, target_position, observer_yaw,
+        source->attributes[W8_MONSTER_ATTRIBUTE_SENSES], ranged_bonus,
+        static_cast<unsigned char>(source->uiCondition[W8_CONDITION_BLIND] != 0),
         static_cast<unsigned char>(source_record->kind == 12),
         static_cast<int>(target_record->effective_level), penalty_modifier,
         static_cast<int>(record->sight_state), 0, distance);
@@ -664,8 +665,9 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                 observer_position = own_position;
                 target_position = camera_position;
                 float threshold = ComputeSightThreshold(
-                    observer_position, target_position, yaw, monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES], fade_flag,
-                    monster_info->uiCondition[0xc] != 0, record->kind == 0xc,
+                    observer_position, target_position, yaw,
+                    monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES], fade_flag,
+                    monster_info->uiCondition[W8_CONDITION_BLIND] != 0, record->kind == 0xc,
                     static_cast<int>(minimum_level), static_cast<int>(sight_override),
                     monster_info->player_visibility.sight_state, 0, player_distance);
 
@@ -762,7 +764,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                             observer_position, target_position, yaw,
                             character->attributes[W8_ATTRIBUTE_SENSES].effective,
                             static_cast<unsigned char>(character->skills[W8_SKILL_SCOUTING].level),
-                            character->uiCondition[12] != 0,
+                            character->uiCondition[W8_CONDITION_BLIND] != 0,
                             character->iProfession == W8_PROFESSION_MONK, record->effective_level,
                             npc_fade_flag, static_cast<int>(monster_info->party_threat.sight_state),
                             g_status.party_modifiers.sight_override, distance);

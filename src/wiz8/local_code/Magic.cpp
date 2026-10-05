@@ -1698,10 +1698,9 @@ static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
     const W8SpellRuntimeRecord* record = &g_spell_records[spell_id];
     W8Skill skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
     int party_slot = CharacterPointerToPartySlot(character);
-    unsigned int skill_figure =
-        (character->skills[skill].level +
-         character->skills[W8_SKILL_FIRST_REALM + record->realm].level * 4) /
-        5;
+    unsigned int skill_figure = (character->skills[skill].level +
+                                 character->skills[W8_SKILL_FIRE_MAGIC + record->realm].level * 4) /
+                                5;
     unsigned int chance;
     unsigned char book;
     int caster_level;
@@ -2376,7 +2375,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
             affected = false;
             for (index = 0; index < 8; ++index) {
                 if (g_status.buffers.XChar[index].fOccupied &&
-                    g_status.buffers.Char[index].enchantments[3].turns /
+                    g_status.buffers.Char[index].enchantments[W8_ENCHANTMENT_RAZOR_CLOAK].turns /
                             static_cast<float>(duration) <=
                         g_navigator_vertical_phase_step) {
                     affected = true;
@@ -2669,7 +2668,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     if (ValidateSpellTarget(party_slot, spell_id, power_level, false, false) == 0) {
         return 0;
     }
-    if (character->uiCondition[8] != 0 &&
+    if (character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
         (record->alchemy_spell == 0 || character->skills[W8_SKILL_SPELLBOOK_ALCHEMY].level == 0)) {
         return 0;
     }
@@ -3673,7 +3672,7 @@ void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     monster_info = 0;
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         character = &g_status.buffers.Char[source->iChar];
-        if (character->uiCondition[0xc] == 0) {
+        if (character->uiCondition[W8_CONDITION_BLIND] == 0) {
             return;
         }
         if (target->iType == W8_TARGET_KIND_CHARACTER && target->iChar == source->iChar) {
@@ -3691,7 +3690,7 @@ void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             return;
         }
         monster_info = MonsterInfoFromID(0xdcf, MAGIC_CPP, source->iMonsterID, 1);
-        if (monster_info->uiCondition[0xc] == 0) {
+        if (monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
             return;
         }
         if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID == source->iMonsterID) {

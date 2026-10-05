@@ -302,7 +302,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     character->level_band_base = 0;
     status = imported->status;
     if (status == 2 || status == 3) {
-        character->uiCondition[0x12] = 9999;
+        character->uiCondition[W8_CONDITION_DEAD] = 9999;
         character->highest_condition = W8_CONDITION_DEAD;
     } else {
         character->highest_condition = W8_CONDITION_NONE;

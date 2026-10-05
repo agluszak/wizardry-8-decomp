@@ -541,7 +541,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
     case W8_TARGET_NEED_ALLY:
         if ((g_camp_screen->entry_mode == 7 || g_camp_screen->entry_mode == 9) &&
             g_status.buffers.XChar[slot].fOccupied != 0 &&
-            g_status.buffers.Char[slot].uiCondition[0x13] == 0) {
+            g_status.buffers.Char[slot].uiCondition[W8_CONDITION_MISSING] == 0) {
             SetTargetCursor(GetTargetingCursorForState(flag));
             return;
         }

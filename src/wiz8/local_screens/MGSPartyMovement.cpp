@@ -384,7 +384,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
         if (gXStatus.fCombatMode != 0) {
             multiplier += multiplier;
         }
-        if (character->uiCondition[2] != 0) {
+        if (character->uiCondition[W8_CONDITION_DISEASED] != 0) {
             multiplier *= g_float_005ec3b8;
         }
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;

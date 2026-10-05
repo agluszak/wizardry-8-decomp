@@ -251,7 +251,7 @@ unsigned char StartCombat(int surprise)
             RequestRedraw(0x100000);
             if (monster_info->hp_current > 0 &&
                 monster_info->highest_condition < W8_CONDITION_WEBBED &&
-                monster_info->uiCondition[0xc] == 0) {
+                monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
                 MonsterChooseTarget(monster_info, &chosen, 3);
                 if (chosen.iType == 2) {
                     MonsterForwardReferencePosition(monster_info->p3D, 0);
@@ -465,8 +465,8 @@ bool CombatHasContinuingEffects(void)
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
-        if (monster->fActive && monster->hp_current != 0 && monster->uiCondition[0x12] == 0 &&
-            monster->summoned != 0) {
+        if (monster->fActive && monster->hp_current != 0 &&
+            monster->uiCondition[W8_CONDITION_DEAD] == 0 && monster->summoned != 0) {
             return true;
         }
     }
@@ -498,11 +498,10 @@ void ApplyCombatEndEffects(void)
     for (slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (row->fOccupied && character->uiCondition[0x12] == 0 &&
-            character->uiCondition[0x13] != 0 &&
+        if (row->fOccupied && character->uiCondition[W8_CONDITION_DEAD] == 0 &&
+            character->uiCondition[W8_CONDITION_MISSING] != 0 &&
             gXStatus.monster_manager_entries[slot].condition_19_latch == 0 &&
-            (!g_status.condition13_clock ||
-             g_status.pending_condition_party_slot != slot)) {
+            (!g_status.condition13_clock || g_status.pending_condition_party_slot != slot)) {
             ApplyItemEffectToRandomCharacter(g_effect27, slot, 0,
                                              g_character_event_no_flags);
         }
@@ -815,7 +814,8 @@ void NotifyNearbyMonsters(int what)
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
             monster_info->highest_condition < W8_CONDITION_WEBBED &&
-            monster_info->uiCondition[12] == 0 && monster_info->ubDisposition == 1) {
+            monster_info->uiCondition[W8_CONDITION_BLIND] == 0 &&
+            monster_info->ubDisposition == 1) {
             if (monster_info->p3D->GetDistanceToPlayer() <= CalcRangeDistance(W8_RANGE_SHORT)) {
                 MonsterForwardReferencePosition(monster_info->p3D, what);
             }
@@ -926,7 +926,7 @@ void EndMonsterTurn(W8MonsterInfo* monster_info)
     RequestRedraw(0x100000);
 
     if (monster_info->hp_current != 0 && monster_info->highest_condition < W8_CONDITION_WEBBED &&
-        monster_info->uiCondition[12] == 0) {
+        monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
         MonsterChooseTarget(monster_info, &chosen, 3);
         if (chosen.iType == 2) {
             MonsterForwardReferencePosition(monster_info->p3D, 0);
@@ -963,12 +963,12 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
         if (monster_info->action_kind == 7) {
             speed = 0x96;
         }
-        if (monster_info->enchantments[5].turns == 0) {
-            if (monster_info->uiCondition[5] != 0) {
+        if (monster_info->enchantments[W8_ENCHANTMENT_HASTE].turns == 0) {
+            if (monster_info->uiCondition[W8_CONDITION_SLOWED] != 0) {
                 speed -= 0x32;
             }
         } else {
-            speed += monster_info->enchantments[5].power * 10;
+            speed += monster_info->enchantments[W8_ENCHANTMENT_HASTE].power * 10;
         }
     }
 
@@ -1947,7 +1947,7 @@ void AdvanceCombatRound(void)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
             monster_info->highest_condition < W8_CONDITION_WEBBED &&
-            monster_info->uiCondition[0xc] == 0) {
+            monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
             W8CombatSlot chosen;
             MonsterChooseTarget(monster_info, &chosen, 3);
             if (chosen.iType == 2) {
@@ -2475,7 +2475,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         switch (monster_info->action_kind) {
         case 5:
         case 7:
-            if (monster_info->uiCondition[0xc] == 0 || record->kind == '\f') {
+            if (monster_info->uiCondition[W8_CONDITION_BLIND] == 0 || record->kind == '\f') {
                 if (record->prefer_ranged_actions == 0) {
                     range = GetBestMonsterAttackRange(record, 1);
                     sight = 0;

@@ -1926,7 +1926,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             }
             if (range < W8_RANGE_LONG) {
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                    W8Enchantment* enchantment = &target_info->enchantments[3];
+                    W8Enchantment* enchantment =
+                        &target_info->enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
                     if (enchantment->turns != 0) {
                         SetTargetSourceToMonster(target_info, &victim_source);
                         ApplyDiceDamageToMonster(monster_info, &victim_source, enchantment);
@@ -1937,7 +1938,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                     }
                 } else {
                     W8Enchantment* enchantment =
-                        &g_status.buffers.Char[g_combat_state->TargetHit.iChar].enchantments[3];
+                        &g_status.buffers.Char[g_combat_state->TargetHit.iChar]
+                             .enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
                     if (enchantment->turns != 0) {
                         SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &victim_source);
                         ApplyDiceDamageToMonster(monster_info, &victim_source, enchantment);
@@ -2182,7 +2184,7 @@ bool CharacterNoticesAttacker(int party_slot)
     if (g_status.buffers.Char[party_slot].hp_current == 0 ||
         g_status.buffers.Char[party_slot].stamina == 0 ||
         g_status.buffers.Char[party_slot].highest_condition >= W8_CONDITION_WEBBED ||
-        g_status.buffers.Char[party_slot].uiCondition[0xc] != 0) {
+        g_status.buffers.Char[party_slot].uiCondition[W8_CONDITION_BLIND] != 0) {
         return 0;
     }
     if (TryCharacterAction(party_slot, W8_ACTION_DEFEND, 1) == 0 &&
@@ -2307,8 +2309,8 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
             second_combat = second->pCombat;
             notices = false;
             if (second->hp_current != 0 && second->stamina != 0 &&
-                second->highest_condition < W8_CONDITION_WEBBED && second->uiCondition[0xc] == 0 &&
-                second->action_kind == 1) {
+                second->highest_condition < W8_CONDITION_WEBBED &&
+                second->uiCondition[W8_CONDITION_BLIND] == 0 && second->action_kind == 1) {
                 attempts = second_combat->spot_attempts;
                 if (attempts == 0) {
                     notices = true;
@@ -2651,14 +2653,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
         damage = 1;
     }
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-        int reduction = static_cast<int>(monster_info->modifiers.damage_reduction_adjustment) +
-                        record->damage_reduction;
-        if (reduction != 0) {
-            damage = ((100 - reduction) * damage + 50) / 100;
-        }
-        if (damage < 0) {
-            damage = 0;
-        }
+        damage = ApplyDamageReduction(monster_info, record, damage);
     } else {
         damage = ApplyCharacterDamageReduction(target, damage);
     }
@@ -2817,14 +2812,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         rolled = 1;
     }
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-        int reduction = static_cast<int>(target_info->modifiers.damage_reduction_adjustment) +
-                        record->damage_reduction;
-        if (reduction != 0) {
-            rolled = ((100 - reduction) * rolled + 50) / 100;
-        }
-        if (rolled < 0) {
-            rolled = 0;
-        }
+        rolled = ApplyDamageReduction(target_info, record, rolled);
     } else {
         rolled = ApplyCharacterDamageReduction(target, rolled);
     }
@@ -3649,6 +3637,24 @@ void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to
    target, picks the attack mode, rolls this round's swings, builds the combat
    log line, resolves the facing and surprise checks, then either fires the
    wielded missile weapon or queues the melee swing event. */
+static void AppendAttackMessageSuffix(int mode)
+{
+    if (g_settings.verbose_combat_messages != 0 && g_combat_state->natural_attack == 0) {
+        wcscat(g_combat_state->attack_message, gppStringList[0x216]);
+    } else if (g_combat_state->natural_attack == 0) {
+        switch (mode) {
+        case W8_ATTACK_MODE_SWING:
+        case W8_ATTACK_MODE_THRUST:
+        case W8_ATTACK_MODE_THROW:
+            wcscat(g_combat_state->attack_message, gppStringList[0x217]);
+            break;
+        case W8_ATTACK_MODE_BERSERK:
+            wcscat(g_combat_state->attack_message, gppStringList[0x218]);
+            break;
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0053d870
 char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
 {
@@ -3774,23 +3780,7 @@ char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
                 }
                 wcscat(g_combat_state->attack_message, name);
             }
-            if (g_settings.verbose_combat_messages != 0 &&
-                g_combat_state->natural_attack == 0) {
-                wcscat(g_combat_state->attack_message, gppStringList[0x216]);
-            } else if (g_combat_state->natural_attack == 0) {
-                switch (mode) {
-                case W8_ATTACK_MODE_SWING:
-                case W8_ATTACK_MODE_THRUST:
-                case W8_ATTACK_MODE_THROW:
-                    wcscat(g_combat_state->attack_message, gppStringList[0x217]);
-                    break;
-                case W8_ATTACK_MODE_BERSERK:
-                    wcscat(g_combat_state->attack_message, gppStringList[0x218]);
-                    break;
-                default:
-                break;
-            }
-            }
+            AppendAttackMessageSuffix(mode);
         } else {
             if (mode == W8_ATTACK_MODE_BERSERK) {
                 wcscat(g_combat_state->attack_message, gppStringList[0x205]);
@@ -3861,23 +3851,7 @@ char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
                 }
                 wcscat(g_combat_state->attack_message, name);
             }
-            if (g_settings.verbose_combat_messages != 0 &&
-                g_combat_state->natural_attack == 0) {
-                wcscat(g_combat_state->attack_message, gppStringList[0x216]);
-            } else if (g_combat_state->natural_attack == 0) {
-                switch (mode) {
-                case W8_ATTACK_MODE_SWING:
-                case W8_ATTACK_MODE_THRUST:
-                case W8_ATTACK_MODE_THROW:
-                    wcscat(g_combat_state->attack_message, gppStringList[0x217]);
-                    break;
-                case W8_ATTACK_MODE_BERSERK:
-                    wcscat(g_combat_state->attack_message, gppStringList[0x218]);
-                    break;
-                default:
-                break;
-            }
-            }
+            AppendAttackMessageSuffix(mode);
         }
     } else {
         if (g_combat_state->unaware != 0) {
@@ -4320,7 +4294,8 @@ int ResolveCharacterAttack(int party_slot)
             }
             if (range < W8_RANGE_LONG) {
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                    W8Enchantment* enchantment = &monster_info->enchantments[3];
+                    W8Enchantment* enchantment =
+                        &monster_info->enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
                     if (enchantment->turns != 0) {
                         SetTargetSourceToMonster(monster_info, &target_source);
                         ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
@@ -4331,7 +4306,8 @@ int ResolveCharacterAttack(int party_slot)
                     }
                 } else {
                     W8Enchantment* enchantment =
-                        &g_status.buffers.Char[g_combat_state->TargetHit.iChar].enchantments[3];
+                        &g_status.buffers.Char[g_combat_state->TargetHit.iChar]
+                             .enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
                     if (enchantment->turns != 0) {
                         SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &target_source);
                         ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
