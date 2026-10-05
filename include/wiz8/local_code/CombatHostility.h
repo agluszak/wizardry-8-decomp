@@ -2,6 +2,7 @@
 
 #include "wiz8/layouts/targeting.h"
 #include "wiz8/monster_actions.h"
+#include "wiz8/local_code/Factions.h"
 
 struct W8MonsterInfo;
 struct W8MonsterGroup;
@@ -13,7 +14,7 @@ template <class T> class W8GrowableVector;
 
 /* Local Code\Combat Hostility.cpp: whether two monsters count as hostile to
    each other, and whether a spell can be aimed by monster AI. */
-char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second);
+W8Disposition MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second);
 /* 0x00547310: whether a party action aims at enemies (melee kinds, or a spell /
    item-spell whose target type is an enemy band). */
 bool CharacterActionTargetsEnemies(W8Character* character, W8ActionKind action_kind,
@@ -24,22 +25,22 @@ bool MonsterActionTargetsEnemies(W8MonsterActionKind action_kind, int action_det
                                  unsigned int* spell_power_level);
 bool MonsterCanAimSpell(int spell_id);
 bool CombatAllowsLiveGroups(void);
-void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility); /* 0x005477D0 */
+void SetMonsterHostility(W8MonsterInfo* monster, W8Disposition hostility); /* 0x005477D0 */
 void RecountCombatMonsters(void);                                          /* 0x00546E70 */
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
                               bool recurse); /* 0x00547570 */
 
 /* 0x00547010: the disposition two party slots hold toward each other from
    their turncoat state - same side is friendly, split is hostile. */
-char CharacterVsCharacterDisposition(int first, int second);
+W8Disposition CharacterVsCharacterDisposition(int first, int second);
 /* 0x00547080: the disposition opposite to the target source's side - a normal
    party member answers hostile, a monster answers its band flipped, and a
    turncoated target has no opposite. */
-char GetOppositeDisposition(W8TargetSource* source);
+W8Disposition GetOppositeDisposition(W8TargetSource* source);
 /* 0x00547120: run the listed monster ids (skipping the source itself) through
    MakeTargetGroupHostile so each one's group turns on the source. */
 void ProvokeListedMonsterGroups(W8TargetSource* source, W8GrowableVector<int>* monsters);
-char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
+W8Disposition MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
 /* Give every other same-faction group that can see this one its disposition -
    one group going hostile brings the rest of its faction with it. */
 void AlertSameFactionGroups(W8MonsterGroup* monster_group); /* 0x005478A0 */

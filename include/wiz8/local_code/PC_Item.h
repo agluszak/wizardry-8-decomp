@@ -45,10 +45,10 @@ extern wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 enum { W8_ITEM_PROPERTY_MESSAGE_FIRST = 19 };
 extern unsigned short g_item_use_messages[25];
 
-bool AddItemToParty(W8ItemInstance* item, unsigned char announce, bool skip_stacking);
+bool AddItemToParty(W8ItemInstance* item, bool announce, bool skip_stacking);
 unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, bool announce); /* 0x00522090 */
-bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip_if_possible,
-                        char announce, bool skip_stacking);
+bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, bool equip_if_possible,
+                        bool announce, bool skip_stacking);
 void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigned char* origin,
                               unsigned short* slot);
 
@@ -117,7 +117,7 @@ char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
 bool CanItemLeaveItsSlot(const W8ItemInstance* item);                              /* 0x0051F2B0 */
 bool IsItemWornByCharacter(W8Character* character, const W8ItemInstance* item);    /* 0x00520F20 */
 bool IsItemCarriedByCharacter(W8Character* character, const W8ItemInstance* item); /* 0x00520F60 */
-bool DropItemInHand(int arg_1);                                                    /* 0x0051BE50 */
+bool DropItemInHand(int unused);                                                   /* 0x0051BE50 */
 void BindEquippedItem(W8Character* character, W8EquipSlot equip_slot);             /* 0x0051D0D0 */
 bool CanUnequipSlotItem(const W8Character* character, W8EquipSlot equip_slot);     /* 0x0051D1C0 */
 bool AreAllHandSlotsEmpty(const W8Character* character);                           /* 0x0051F8D0 */
@@ -148,9 +148,9 @@ unsigned int CountIdentifyAttemptsNeeded(W8ItemInstance* item, unsigned int perc
 
 bool ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
 
-bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item, char party_first,
-                                   int arg_4, int arg_5); /* 0x0051C280 */
-bool ItemHasHiddenProperties(int item_id);                /* 0x00520750 */
+bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item, bool party_first,
+                                   bool announce, bool equip_if_possible); /* 0x0051C280 */
+bool ItemHasHiddenProperties(int item_id);                                 /* 0x00520750 */
 /* Find the first equipped, or optionally carried, item with a matching
    unidentified database name kind. */
 char FindCharacterItemByDatabaseKind(W8Character* character, short item_kind, W8ItemInstance** out,
@@ -169,7 +169,7 @@ bool AnyPartyMemberCanUseItem(int item_id);
 
 extern unsigned char g_byte;
 
-void BindCharacterItems(int party_slot, int arg_2); /* 0x0051D2C0 */
+void BindCharacterItems(int party_slot, bool announce); /* 0x0051D2C0 */
 /* Whether an item is bound to whoever is wearing it, which is what stops it
    being taken off or swapped away. */
 bool IsItemBoundToWearer(const W8ItemInstance* item); /* 0x0051D180 */
@@ -201,7 +201,7 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item, bool 
 
 /* 0x0051BA00: the item-in-hand form of the same store, reached from the
    portrait screen, after the whole party has had its identification attempt. */
-unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_first);
+unsigned char GiveHeldItemToCharacterOrParty(int uiChar, bool party_first);
 
 /* 0x0051DDE0: use one item as a character's action. `out_uses` receives the
    fatigue cost of the attempt, or -1 when nothing was attempted. */
@@ -216,7 +216,7 @@ unsigned int GetItemUseDifficulty(const W8Character* character, W8Skill skill,
 int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int power);
 
 void AimItemUseAtCurrentTarget(W8Character* character, W8ItemInstance* item);
-unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh);
+unsigned char SwapWeaponSetSlots(int party_slot, bool announce, bool refresh);
 void SplitThrowableStackBetweenHands(W8Character* character, W8EquipSlot equip_slot);
 void RemovePartyPoolEntry(unsigned int index);
 unsigned char FindItemByDatabaseKindOnParty(unsigned short item_kind, W8ItemInstance** found,

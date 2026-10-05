@@ -796,13 +796,13 @@ void ReleaseLoadedVideoFrames(void)
 }
 
 // FUNCTION: WIZ8 0x00548f90
-void DrawCatalogImage(int target, int object, int frame, short image, int left, int top, int mode,
-                      int flags)
+void DrawCatalogImage(UINT32 target, int object, int frame, short image, int left, int top,
+                      UINT32 mode, blt_fx* effects)
 {
     W8VideoObjectSlot* slot;
     short row;
     unsigned int surface;
-    char ok;
+    BOOLEAN ok;
 
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x2d, 0);
@@ -815,7 +815,7 @@ void DrawCatalogImage(int target, int object, int frame, short image, int left, 
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
     if (g_video_frames[slot->first_frame + frame].storage_kind == W8_VIDEO_STORAGE_OBJECT) {
-        ok = BltVideoObjectFromIndex(target, surface, row, left, top, mode, (blt_fx*)flags);
+        ok = BltVideoObjectFromIndex(target, surface, row, left, top, mode, effects);
     } else {
         ok = BltVideoSurface(target, surface, row, left, top, mode, 0);
     }
@@ -835,7 +835,7 @@ void EnsureCatalogFrameLoaded(int object, int frame)
     VSURFACE_DESC request_b;
     W8VideoFrame* record;
     unsigned int handle;
-    char loaded_ok;
+    BOOLEAN loaded_ok;
 
     /* Two nested checks, both in the original: the assertion does not return,
        so the inner one is reachable only when it is compiled out. */
@@ -975,15 +975,15 @@ void InvalidateCatalogImageRect(int object, int frame, int image, int left, int 
     }
 }
 
-/* Draw a catalog video object, then mark the area it covered. The vertical
-   argument is truncated to a short for the draw and passed whole to the mark,
+/* Draw a catalog video object, then mark the area it covered. The subimage
+   index is truncated to a short for the draw and passed whole to the mark,
    and the seventh reaches the mark only as whether it equals two. */
 // FUNCTION: WIZ8 0x00549600
-void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image, int left, int top,
-                                   int mode, int flags)
+void DrawCatalogImageAndInvalidate(UINT32 target, int object, int frame, int image, int left,
+                                   int top, UINT32 mode, blt_fx* effects)
 {
-    DrawCatalogImage(target, object, frame, static_cast<short>(image), left, top, mode, flags);
-    InvalidateCatalogImageRect(object, frame, image, left, top, mode == 2);
+    DrawCatalogImage(target, object, frame, static_cast<short>(image), left, top, mode, effects);
+    InvalidateCatalogImageRect(object, frame, image, left, top, mode == VO_BLT_SRCTRANSPARENCY);
 }
 
 /* Loads the selected catalog frame and returns the dimensions of one of its
@@ -1038,7 +1038,7 @@ void GetCatalogImagePosition(int object, int frame, int image, short* x, short* 
    caller-provided source coordinates. Both surfaces remain locked for exactly
    the pinned SGP conversion call. */
 // FUNCTION: WIZ8 0x005497c0
-unsigned char BlitCatalogSurfaceRectTo16BPP(int target, int left, int top, int right, int bottom,
+unsigned char BlitCatalogSurfaceRectTo16BPP(UINT32 target, int left, int top, int right, int bottom,
                                             int object, int source_x, int source_y)
 {
     SGPRect source_rect;

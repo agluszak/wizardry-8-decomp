@@ -1014,7 +1014,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         if (entry->fActive && entry->ubDisposition == W8_DISPOSITION_HOSTILE &&
             !entry->p3D->IsDying()) {
             TintHighlightedMonster(entry->p3D, W8_TARGET_HIGHLIGHT_NONE);
-            MonsterStartsDying(entry, 1);
+            MonsterStartsDying(entry, true);
         }
     }
 }

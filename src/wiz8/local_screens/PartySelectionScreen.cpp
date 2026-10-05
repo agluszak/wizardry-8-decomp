@@ -186,11 +186,7 @@ int W8PartySelectionCharacterCollection::FindPartySlot(int index)
 // FUNCTION: WIZ8 0x005c34d0
 void W8PartySelectionCharacterCollection::DeleteAt(int index)
 {
-    if (index >= 0 && index < characters.GetCount()) {
-        characters.RemoveAtAndDelete(index);
-    } else {
-        delete static_cast<W8Character*>(0);
-    }
+    characters.RemoveAtAndDelete(index);
 }
 
 /* Enumerate loose CHR files, loading only characters that are not already in
@@ -330,7 +326,7 @@ public:
     {
     }
 
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnMouseMove(int event) override;
     virtual void OnLeftButtonUp(int event) override;
@@ -347,7 +343,7 @@ static_assert(sizeof(W8PartySelectionListControl) == 0x4c, "W8PartySelectionList
 W8_ASSERT_BASE_END(W8PartySelectionListControl, W8RangeListener, m_visible_rows, 0x34);
 
 // FUNCTION: WIZ8 0x005bff60
-void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
+void W8PartySelectionListControl::Redraw(bool full_redraw)
 {
     if (m_active && (m_dirty || full_redraw)) {
         int left = m_pPanel->m_bounds.left + m_left;
@@ -356,8 +352,8 @@ void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
         int bottom = m_pPanel->m_bounds.top + m_bottom;
 
         InvalidateRegion(left, top, right, bottom, 0);
-        BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
-        SetFontDestBuffer(-14, left, top, right, bottom, 0);
+        BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
+        SetFontDestBuffer(FRAME_BUFFER, left, top, right, bottom, 0);
 
         int end = m_first_visible + m_visible_rows;
         if (g_party_selection_character_collection->names.GetCount() <= end) {
@@ -379,7 +375,7 @@ void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
             top += 0x0e;
         }
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
-        SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
+        SetFontDestBuffer(FRAME_BUFFER, 0, 0, 0x280, 0x1e0, 0);
         m_dirty = false;
     }
 }
@@ -446,7 +442,7 @@ public:
 class W8PartySelectionCharacterRow : public W8TextControl {
 public:
     W8PartySelectionCharacterRow(Controls* panel, int top, int row);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void AdjustValue(int amount) override;
     virtual void OnRightButtonUp(int event) override;
     virtual void OnLeftButtonDoubleClick(int event) override;
@@ -525,7 +521,7 @@ W8_ASSERT_BASE_TAIL(W8PartySelectionCharacterGridPanel, W8TextControl::Listener,
 class W8PartySelectionPartySlotRow : public W8TextControl {
 public:
     W8PartySelectionPartySlotRow(Controls* panel, int row);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void OnRightButtonUp(int event) override;
     virtual void OnLeftButtonDoubleClick(int event) override;
 
@@ -657,10 +653,10 @@ void RefreshPartySelectionPortrait(unsigned int party_slot)
     W8PartySelectionPartySlotRow* row = static_cast<W8PartySelectionPartySlotRow*>(*buttons);
     Controls* panel = row->m_pPanel;
     int portrait = g_status.buffers.Char[row->m_row + 2].portrait_index;
-    int flags = 2;
+    unsigned int flags = VO_BLT_SRCTRANSPARENCY;
     if ((g_portrait_descriptors[portrait].render_mode == 1 && row->m_row % 2 == 0) ||
         (g_portrait_descriptors[portrait].render_mode == 2 && row->m_row % 2 != 0)) {
-        flags = 0x1002;
+        flags = VO_BLT_SRCTRANSPARENCY | VO_BLT_MIRROR_Y;
     }
     BlitPartyPortraitAnimation(portrait, panel->m_bounds.left + row->m_left,
                                panel->m_bounds.top + row->m_top, flags, row->m_row + 2, false);
@@ -685,7 +681,7 @@ W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* panel, int 
 }
 
 // FUNCTION: WIZ8 0x005be9b0
-void W8PartySelectionCharacterRow::Redraw(unsigned char full_redraw)
+void W8PartySelectionCharacterRow::Redraw(bool full_redraw)
 {
     if (!m_active || (!full_redraw && !m_dirty)) {
         return;
@@ -696,9 +692,10 @@ void W8PartySelectionCharacterRow::Redraw(unsigned char full_redraw)
         g_party_selection_character_collection->GetCharacter(m_character_index);
     int left = m_pPanel->m_bounds.left + m_left;
     int top = m_pPanel->m_bounds.top + m_top;
-    DrawCatalogImage(-14, 0x13, character->portrait_index, 0, left + 2, top + 2, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, 0x13, character->portrait_index, 0, left + 2, top + 2,
+                     VO_BLT_SRCTRANSPARENCY, 0);
     if (character->fInParty) {
-        ShadowVideoSurfaceRect(-14, left + 2, top + 2, left + 0x2e, top + 0x25);
+        ShadowVideoSurfaceRect(FRAME_BUFFER, left + 2, top + 2, left + 0x2e, top + 0x25);
         SetObjectShade(g_wiz_text_font_secondary_object, 6);
     }
 
@@ -725,7 +722,7 @@ void W8PartySelectionCharacterRow::AdjustValue(int amount)
 void W8PartySelectionCharacterRow::OnRightButtonUp(int event)
 {
     if (m_active && m_enabled) {
-        SetAlternateTextEnabled(0);
+        SetAlternateTextEnabled(false);
         if (m_selection_listener) {
             m_selection_listener->OpenCampForSelectedMember(m_row);
         }
@@ -883,7 +880,7 @@ W8PartySelectionPartySlotRow::W8PartySelectionPartySlotRow(Controls* panel, int 
 }
 
 // FUNCTION: WIZ8 0x005bf280
-void W8PartySelectionPartySlotRow::Redraw(unsigned char full_redraw)
+void W8PartySelectionPartySlotRow::Redraw(bool full_redraw)
 {
     if (!m_active || (!full_redraw && !m_dirty)) {
         return;
@@ -893,20 +890,21 @@ void W8PartySelectionPartySlotRow::Redraw(unsigned char full_redraw)
     int top = m_pPanel->m_bounds.top + m_top;
     W8Character* character = 0;
     if (!g_status.buffers.XChar[m_row + 2].fOccupied) {
-        ColorFillVideoSurfaceArea(-14, left, top, m_pPanel->m_bounds.left + m_right,
+        ColorFillVideoSurfaceArea(FRAME_BUFFER, left, top, m_pPanel->m_bounds.left + m_right,
                                   m_pPanel->m_bounds.top + m_bottom, 0x8000);
     } else {
         character = &g_status.buffers.Char[m_row + 2];
         int portrait = character->portrait_index;
-        int flags = 2;
+        unsigned int flags = VO_BLT_SRCTRANSPARENCY;
         if ((g_portrait_descriptors[portrait].render_mode == 1 && !(m_row & 1)) ||
             (g_portrait_descriptors[portrait].render_mode == 2 && (m_row & 1))) {
-            flags = 0x1002;
+            flags = VO_BLT_SRCTRANSPARENCY | VO_BLT_MIRROR_Y;
         }
         RenderPartyPortrait(portrait, left, top, flags, 1, m_row + 2);
     }
     m_textBuffer.SetText(character ? character->name : 0, g_wiz_text_font_secondary);
-    DrawCatalogImageAndInvalidate(-14, 0x100, 0, 0, left - 0x0d, top - 0x0b, 2, 0);
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x100, 0, 0, left - 0x0d, top - 0x0b,
+                                  VO_BLT_SRCTRANSPARENCY, 0);
     W8TextControl::Redraw(full_redraw);
     if (m_redraw_partner) {
         m_redraw_partner->Invalidate(false);
@@ -920,7 +918,7 @@ void W8PartySelectionPartySlotRow::OnRightButtonUp(int event)
     if (!m_enabled || !m_active) {
         return;
     }
-    SetAlternateTextEnabled(0);
+    SetAlternateTextEnabled(false);
     if (m_row == -1) {
         int slot;
         for (slot = 0; slot < 6; ++slot) {
@@ -991,7 +989,7 @@ void W8PartySelectionCharacterGridPanel::OnPrimary(W8TextControl* control)
             break;
         }
     }
-    control->SetAlternateTextEnabled(0);
+    control->SetAlternateTextEnabled(false);
     g_pending_screen_state.parameter_3 = &g_status.buffers.Char[index + 2];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
@@ -1020,20 +1018,21 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
     }
     m_fDirty = false;
 
-    DrawCatalogImageAndInvalidate(-14, 0xfc, 0, 0, 0x7f, 0xc5, 2, 0);
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0xfc, 0, 0, 0x7f, 0xc5, VO_BLT_SRCTRANSPARENCY, 0);
     if (!m_character) {
-        BlitCatalogSurfaceRectTo16BPP(-14, 0x85, 0x30, 0x139, 0xbf, 0x1b6, 0, 0);
+        BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, 0x85, 0x30, 0x139, 0xbf, 0x1b6, 0, 0);
         InvalidateRegion(0x85, 0x30, 0x139, 0xbf, 0);
         return;
     }
 
     W8Character* character = m_character;
-    DrawCatalogImageAndInvalidate(-14, 0x11, character->portrait_index, 0, 0x85, 0x30, 2, 0);
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x11, character->portrait_index, 0, 0x85, 0x30,
+                                  VO_BLT_SRCTRANSPARENCY, 0);
     if (character->fInParty) {
         W8ControlsRect bounds = {0x85, 0x30, 0x139, 0xba};
         W8TextBuffer overlay(&bounds, gppStringList[0x6b8], g_options_title_font,
                              g_W8TextBufferAlignBottom | g_W8TextBufferAlignCenter, 4);
-        overlay.RenderToTarget(0, false, -14);
+        overlay.RenderToTarget(0, false, FRAME_BUFFER);
     }
 
     {
@@ -1041,7 +1040,7 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
         W8TextBuffer name(
             &name_bounds, FormatWideString(L"%s (%s)", character->name_part_2, character->name),
             g_wiz_text_bold_font, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
-        name.RenderToTarget(0, false, -14);
+        name.RenderToTarget(0, false, FRAME_BUFFER);
     }
 
     SetFont(g_wiz_text_font_secondary);
@@ -1153,10 +1152,11 @@ void W8PartySelectionOptionPanel::Redraw()
     }
 
     for (int index = 0; index < m_entries.GetCount(); ++index) {
-        m_entries.data[index]->RenderToTarget(0, true, -14);
+        m_entries.data[index]->RenderToTarget(0, true, FRAME_BUFFER);
     }
     if (m_page == W8_PARTY_CREATION_SAVE_NAME) {
-        DrawCatalogImage(-14, 0x102, 0, 1, m_render_left, m_render_top, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x102, 0, 1, m_render_left, m_render_top,
+                         VO_BLT_SRCTRANSPARENCY, 0);
     }
 }
 
@@ -1809,7 +1809,7 @@ void W8PartySelectionController::InvalidatePartySelectionComposition()
     m_control1->Invalidate(0);
     m_import_panel->Invalidate(0);
     m_bottom_panel->Invalidate(0);
-    m_text_buffer->m_geometryDirty = true;
+    m_text_buffer->SetGeometryDirty();
 }
 
 /* Draw the party-selection composition in owner order.  The one-shot backdrop is
@@ -1819,9 +1819,9 @@ void W8PartySelectionController::InvalidatePartySelectionComposition()
 void W8PartySelectionController::DrawPartySelectionComposition()
 {
     if (m_redraw_backdrop) {
-        DrawCatalogImageAndInvalidate(-14, 0xfa, 0, 0, 0, 0, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0xfa, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
         if (m_mode == W8_PARTY_SELECT_IMPORT) {
-            DrawCatalogImage(-14, 0x103, 0, 0, 0x140, 0x12e, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x103, 0, 0, 0x140, 0x12e, VO_BLT_SRCTRANSPARENCY, 0);
         }
         m_redraw_backdrop = false;
     }
@@ -1835,7 +1835,7 @@ void W8PartySelectionController::DrawPartySelectionComposition()
     m_control0->Redraw();
     m_import_panel->Redraw();
     m_bottom_panel->Redraw();
-    m_text_buffer->RenderToTarget(0, false, -14);
+    m_text_buffer->RenderToTarget(0, false, FRAME_BUFFER);
     if (m_dialog) {
         m_dialog->Draw();
     }

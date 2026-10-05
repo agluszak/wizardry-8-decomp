@@ -1,3 +1,4 @@
+#include "vsurface.h"
 #include "wiz8/sgp_text.h"
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/engine_code/Video2.h"
@@ -99,7 +100,8 @@ void W8DialogNumericInput::Draw(bool force)
     }
     swprintf(g_numeric_input_text, g_format_d, m_value);
     SetObjectShade(font_object, 4);
-    SetFontDestBuffer(-14, m_bounds.left, m_bounds.top, m_bounds.right, m_bounds.bottom, 0);
+    SetFontDestBuffer(FRAME_BUFFER, m_bounds.left, m_bounds.top, m_bounds.right, m_bounds.bottom,
+                      0);
     unsigned short font_height = GetFontHeight(m_font);
     int text_y = m_bounds.top + __max(0, (m_bounds.bottom - m_bounds.top - font_height) / 2);
     int text_x = m_bounds.right - StringPixLength(g_numeric_input_text, m_font);
@@ -121,7 +123,7 @@ void W8DialogNumericInput::Draw(bool force)
         LineDraw(0, caret_x, caret_top, caret_x, caret_bottom, -1, screen);
         UnlockPrimarySurface();
     }
-    SetFontDestBuffer(-14, 0, 0, 640, 480, 0);
+    SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, 0);
     m_dirty = false;
 }
 

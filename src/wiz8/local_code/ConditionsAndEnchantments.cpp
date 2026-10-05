@@ -190,7 +190,7 @@ void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announ
         if (!can_rest && party_slot > -1 && party_slot < 8 && row->fOccupied &&
             character->hp_current != 0 && character->highest_condition < W8_CONDITION_TURNCOAT &&
             gXStatus.fCombatMode &&
-            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
+            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false)) {
             RefreshCombatTargetHighlights(party_slot, &row->target_in_combat);
         }
     }
@@ -443,7 +443,7 @@ void TickCharacterCondition(unsigned int party_slot, W8Condition condition, unsi
 
 // FUNCTION: WIZ8 0x00523C00
 void SetMonsterCondition(int location_id, W8Condition condition, int duration, int argument,
-                         W8TargetSource* target, char announce)
+                         W8TargetSource* target, bool announce)
 {
     unsigned int list_index;
     W8MonsterInfo* monster_info;
@@ -565,7 +565,7 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
         MonsterStartsDying(monster_info, announce);
         return;
     }
-    if (announce != 0 && (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player)) {
+    if (announce && (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", name,
                     gppStringList[g_condition_notices[condition * 4 + 1]]);
@@ -833,7 +833,7 @@ void CopyCharacterConditionsToTarget(const W8Character* character, const int* ta
                 argument = 0;
             }
             SetMonsterCondition(*target, static_cast<W8Condition>(condition), duration, argument,
-                                &target_block, 0);
+                                &target_block, false);
         }
     }
 }

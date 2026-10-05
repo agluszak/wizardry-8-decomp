@@ -2239,7 +2239,7 @@ void W8Monster::ProcessScript()
                             MonsterGetIndexByLocationID(0x1c3a, MONSTER_CPP, location_id, true));
                         ResetTargetSource(&source);
                         SetMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP, 6, 0,
-                                            &source, 1);
+                                            &source, true);
                     } else if (_stricmp(token, "ENDBELAWALK") == 0) {
                         runtime_flags |= W8_MONSTER_PARKED;
                         ClearMainGameTargetState();

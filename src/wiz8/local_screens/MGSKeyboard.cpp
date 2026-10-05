@@ -517,7 +517,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         break;
     case W8_MGS_COMMAND_SWAP_WEAPONS:
         if (IsScreenInputBlocked() == 0 && g_status.selected_character != -1) {
-            BindCharacterItems(g_status.selected_character, 1);
+            BindCharacterItems(g_status.selected_character, true);
         }
         break;
     case W8_MGS_COMMAND_SWAP_ALL_WEAPONS:

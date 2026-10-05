@@ -1064,7 +1064,7 @@ static void PreviewSpellPowerPipHover(int power_level)
             spell_name = gpSCSV->power_controls[W8_SPELL_NAME_CONTROL];
             panel = gpSCSV->panels[2];
             ColorFillVideoSurfaceArea(
-                -0xe, spell_name->m_left + panel->m_bounds.left,
+                FRAME_BUFFER, spell_name->m_left + panel->m_bounds.left,
                 spell_name->m_top + panel->m_bounds.top, spell_name->m_right + panel->m_bounds.left,
                 spell_name->m_bottom + panel->m_bounds.top, Get16BPPColor(0x10101));
             spell_name->Invalidate(false);

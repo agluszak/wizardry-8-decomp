@@ -50,7 +50,7 @@ public:
 class W8OptionsSaveRow : public W8TextControl {
 public:
     W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void OnLeftButtonUp(int event) override;
     virtual void OnLeftButtonDoubleClick(int event) override;
 
@@ -141,7 +141,7 @@ class W8OptionsSlider : public W8HorizontalRangeThumb {
 public:
     W8OptionsSlider(Controls* owner, int top, float* value, bool alternate);
     virtual void OnMouseMove(int event) override;
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     float* m_value;
 };
 
@@ -257,7 +257,7 @@ public:
 class W8OptionsButton : public W8TextControl {
 public:
     W8OptionsButton(Controls* owner, int left, int top, int right, int bottom, const wchar_t* text);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;
 };
@@ -394,7 +394,7 @@ struct W8OptionsPanelRange {
 class W8OptionsMenuButton : public W8TextControl, public W8TextControl::Listener {
 public:
     W8OptionsMenuButton(Controls* owner, const W8OptionsMenuRow* row);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void EnableSecondaryState(bool immediate) override;
     virtual void OnPrimary(W8TextControl* control) override;
 

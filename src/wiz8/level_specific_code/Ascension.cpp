@@ -431,7 +431,7 @@ bool AscensionPath1Camera(Trigger* pTrigger)
 
         if (info->fActive && info->fInCombat && info->ubDisposition == W8_DISPOSITION_HOSTILE &&
             !info->p3D->IsDying()) {
-            MonsterStartsDying(info, 1);
+            MonsterStartsDying(info, true);
         }
     }
     if (gXStatus.fCombatMode) {

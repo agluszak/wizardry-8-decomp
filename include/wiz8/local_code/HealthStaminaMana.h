@@ -18,9 +18,9 @@ W8Character* FindPartyMemberWithLowestResistance4(void);
 unsigned int FindPartySlotWithLowestHitPoints(void);
 unsigned int FindPartySlotWithLowestSpellPoints(void);
 
-void HealCharacter(int party_slot, int amount, char announce);
-void RestoreCharacterStamina(int party_slot, int amount, char announce);
-void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce);
+void HealCharacter(int party_slot, int amount, bool announce);
+void RestoreCharacterStamina(int party_slot, int amount, bool announce);
+void DrainCharacterSpellPoints(int party_slot, unsigned int amount, bool announce);
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount);
 void RestoreCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, int amount);
 void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
@@ -31,10 +31,10 @@ void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
    body never reads. */
 void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3);
 unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind);
-void DamageCharacter(int party_slot, unsigned int damage, char announce); /* 0x0052B7E0 */
+void DamageCharacter(int party_slot, unsigned int damage, bool announce); /* 0x0052B7E0 */
 void DrainCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, unsigned int amount,
                                     bool announce);        /* 0x0052B6D0 */
-void DrainPartySpellPoints(int arg_1, int arg_2);          /* 0x0052B550 */
+void DrainPartySpellPoints(int amount, bool announce);     /* 0x0052B550 */
 int CalculateMonsterFatigueBand(int current, int maximum); /* 0x0052A780 */
 unsigned int FatigueArmorPenalty(int fatigue_band);
 int SpellCastFatigueCost(int spell_id, int result);
@@ -42,7 +42,7 @@ void SpendCharacterSpellPoints(int party_slot, W8SpellRealm realm, int amount); 
 int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
 void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
                     W8SpellEffectResult* report_to);
-void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, char announce);
+void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, bool announce);
 void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, bool announce);
 /* 0x0052BB60: the monster-side effect application pass the aging producer
    drives for both sign directions. The result block, when given, collects

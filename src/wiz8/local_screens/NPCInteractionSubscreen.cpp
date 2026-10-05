@@ -206,12 +206,13 @@ void W8NpcTypedDialoguePanel::Redraw()
         return;
     }
     if (m_fDirty) {
-        if (m_renderTarget != -1) {
-            DrawCatalogImage(-14, m_renderTarget, m_renderArg0, m_renderArg1, m_bounds.left,
-                             m_bounds.top, 2, 0);
+        if (m_catalogObject != -1) {
+            DrawCatalogImage(FRAME_BUFFER, m_catalogObject, m_catalogFrame, m_catalogImage,
+                             m_bounds.left, m_bounds.top, VO_BLT_SRCTRANSPARENCY, 0);
         }
-        DrawCatalogImage(-14, 0x1a9, 0, 0x10, 0x1df,
-                         g_npc_interaction_state->where_is_query ? 0x19b : 0x18b, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x1a9, 0, 0x10, 0x1df,
+                         g_npc_interaction_state->where_is_query ? 0x19b : 0x18b,
+                         VO_BLT_SRCTRANSPARENCY, 0);
         redrawn = 1;
     } else if (!m_fLayoutDirty) {
         return;
@@ -254,7 +255,7 @@ void W8NpcDialogueOptionsPanel::SetEnabled(bool enable)
 }
 
 /* Base redraw except the foreground catalog image is m_main_text_box_image rather than
-   m_renderArg1 while the expanded dialogue layout is up. */
+   m_catalogImage while the expanded dialogue layout is up. */
 // FUNCTION: WIZ8 0x0056BD30
 void W8NpcDialogueOptionsPanel::Redraw()
 {
@@ -264,13 +265,13 @@ void W8NpcDialogueOptionsPanel::Redraw()
         return;
     }
     if (m_fDirty) {
-        if (m_renderTarget != -1) {
-            DrawCatalogImage(-14, m_renderTarget, m_renderArg0,
+        if (m_catalogObject != -1) {
+            DrawCatalogImage(FRAME_BUFFER, m_catalogObject, m_catalogFrame,
                              g_npc_interaction_state->dialogue_layout ==
                                      W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX
                                  ? m_main_text_box_image
-                                 : m_renderArg1,
-                             m_bounds.left, m_bounds.top, 2, 0);
+                                 : m_catalogImage,
+                             m_bounds.left, m_bounds.top, VO_BLT_SRCTRANSPARENCY, 0);
         }
         redrawn = 1;
     } else if (!m_fLayoutDirty) {
@@ -4597,7 +4598,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
                 if (g_npc_interaction_state->held_item_pending &&
                     g_npc_interaction_state->pending_item.iItemNo == item->iItemNo) {
                     g_npc_interaction_state->held_item_pending = false;
-                    AddItemToParty(&g_npc_interaction_state->pending_item, 1, false);
+                    AddItemToParty(&g_npc_interaction_state->pending_item, true, false);
                     ClearHeldItemDisplay();
                     return 0;
                 }
@@ -5127,12 +5128,12 @@ void ResolveNpcPickpocket(int party_slot)
         swprintf(text, gppStringList[0x74d], character->name, GetItemDisplayName(&item));
         for (slot = 0; slot < 8; ++slot) {
             if (character->backpack[slot].iItemNo == -1) {
-                AddItemToCharacter(character, &item, 0, 0, false);
+                AddItemToCharacter(character, &item, false, false, false);
                 DisplayNpcQuote(text, true);
                 return;
             }
         }
-        AddItemToParty(&item, 0, false);
+        AddItemToParty(&item, false, false);
         DisplayNpcQuote(text, true);
         return;
     case W8_PICKPOCKET_GOLD_TAKEN:

@@ -558,7 +558,7 @@ void MartensBluff2MonsterCrusher(int command)
                 position.x = left + radius;
                 monster->SetPositionInternal(&position);
             } else {
-                MonsterStartsDying(info, 1);
+                MonsterStartsDying(info, true);
                 if (info->monster_species == 0x183) {
                     AwardPartyExperience(10000, 0);
                 }

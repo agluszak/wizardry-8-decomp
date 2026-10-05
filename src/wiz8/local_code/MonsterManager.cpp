@@ -334,7 +334,7 @@ void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
 }
 
 // FUNCTION: WIZ8 0x004e4690
-void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message)
+void MonsterStartsDying(W8MonsterInfo* monster_info, bool display_message)
 {
     if (!monster_info->p3D->IsDying()) {
         StartMonsterCycle(monster_info, 0x15, 1);
@@ -351,7 +351,7 @@ void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message)
    sourced, and - unless the record opts out - land the faction hit and bank
    the kill count and experience for a monster that fought the party. */
 // FUNCTION: WIZ8 0x004E46F0
-void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
+void RecordMonsterKill(W8MonsterInfo* monster_info, bool announce)
 {
     int killer_party_slot = -1;
     if (monster_info == 0) {
@@ -389,7 +389,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
     } else {
         notice_channel = 9;
     }
-    if (announce != 0 && !monster_info->death_processed &&
+    if (announce && !monster_info->death_processed &&
         monster_info->party_threat.sight_state != W8_SIGHT_UNSEEN) {
         ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, 0),
                     gppStringList[g_condition_notices[0x49]]);
@@ -712,7 +712,7 @@ void ProcessMonstersAtCombatEnd(bool forced_cleanup)
             ReleaseMonsterConditionBindings(monster_info);
             if (!forced_cleanup) {
                 monster_info->death_processed = true;
-                MonsterStartsDying(monster_info, 1);
+                MonsterStartsDying(monster_info, true);
             }
         }
     }

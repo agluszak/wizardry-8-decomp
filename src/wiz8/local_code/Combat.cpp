@@ -358,7 +358,7 @@ bool CombatMayAdvanceContinuously(void)
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
         if (row->fOccupied && character->hp_current != 0 &&
-            CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) &&
+            CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false) &&
             CharacterActionTargetsEnemies(character, row->action, row->action_detail0,
                                           &row->action_detail1)) {
             return true;
@@ -626,7 +626,7 @@ void BeginCombatExecution(void)
         for (slot = 0; slot < 8; ++slot) {
             W8PartySlotRow* party = &g_status.buffers.XChar[slot];
             if (!IsPartySlotEligible(slot) ||
-                !CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
+                !CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false)) {
                 continue;
             }
             if (party->action == W8_ACTION_DEFEND) {
@@ -1040,7 +1040,7 @@ unsigned char TryCharacterAction(int party_slot, W8ActionKind action, bool commi
         if (action != W8_ACTION_DEFEND) {
             return 0;
         }
-        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
+        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false)) {
             return 0;
         }
     }
@@ -1316,7 +1316,7 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
     W8Character* character = &g_status.buffers.Char[party_slot];
     if (character->hp_current != 0 && character->highest_condition < W8_CONDITION_TURNCOAT &&
         action_kind != W8_ACTION_NONE) {
-        if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify)) {
+        if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, true, notify)) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
         } else {
             if (!TargetIsInPlay(party_slot, 2, W8_TARGETING_CONTEXT_IN_COMBAT) &&
@@ -1458,8 +1458,8 @@ void ChooseCombatAction(int party_slot, W8TargetingContext context, W8ActionKind
 /* Whether a slot may switch to the given action context, optionally repairing
    the aim state first when the caller allows it. */
 // FUNCTION: WIZ8 0x004e79a0
-bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned char arg_3,
-                          unsigned char arg_4)
+bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, bool allow_missing_target,
+                          bool allow_equipment_changes)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -1490,7 +1490,7 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
     switch (chosen) {
     case W8_ACTION_ATTACK:
         if (!CanAnyHandReachTarget(party_slot)) {
-            if (arg_4 == 0) {
+            if (!allow_equipment_changes) {
                 return false;
             }
             if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo != -1) {
@@ -1511,7 +1511,7 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
         break;
     case W8_ACTION_BERSERK:
         if (!CanCharacterBerserk(party_slot)) {
-            if (arg_4 == 0) {
+            if (!allow_equipment_changes) {
                 return false;
             }
             if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo != -1) {
@@ -1569,7 +1569,7 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
     default:
         break;
     }
-    if (arg_3 == 0) {
+    if (!allow_missing_target) {
         W8TargetingContext validated = GetValidatedTargetingContext(party_slot, context);
         if (!TargetIsInPlay(party_slot, 2, validated)) {
             return false;
@@ -1699,7 +1699,7 @@ void AutoAdvanceSelectedCharacter(void)
         return;
     }
     int selected = g_status.selected_character;
-    if (!CharacterCanSwitchTo(selected, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) &&
+    if (!CharacterCanSwitchTo(selected, W8_TARGETING_CONTEXT_IN_COMBAT, false, false) &&
         IsPartySlotEligible(selected)) {
         return;
     }
@@ -1715,7 +1715,7 @@ void AutoAdvanceSelectedCharacter(void)
         return;
     }
     do {
-        if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) &&
+        if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false) &&
             IsPartySlotEligible(party_slot)) {
             if (g_status.selected_character == party_slot) {
                 return;
@@ -2155,7 +2155,8 @@ void ExecuteCharacterAction(int party_slot)
             g_combat_state->characters[party_slot].action_changed = false;
             if ((slot->pending_action == W8_ACTION_ATTACK ||
                  slot->pending_action == W8_ACTION_BERSERK) &&
-                CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0, 0)) {
+                CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, false,
+                                     false)) {
                 PrepareCharacterAttacks(party_slot);
             }
         } else if ((slot->pending_action == W8_ACTION_ATTACK ||
@@ -2175,7 +2176,7 @@ void ExecuteCharacterAction(int party_slot)
             g_combat_state->characters[party_slot].dead = true;
             RequestRedraw((1 << party_slot) | W8_MAIN_REDRAW_COMBAT_PROGRESS);
         }
-        if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0, 0)) {
+        if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, false, false)) {
             slot->pending_action = W8_ACTION_NONE;
             action = W8_ACTION_NONE;
         }
@@ -2235,7 +2236,7 @@ void ExecuteCharacterAction(int party_slot)
                 }
             }
         }
-        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0, 0)) {
+        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, false, false)) {
             FaceCharacterTowardCombatTarget(party_slot, &slot->target_out_of_combat);
         }
     }
@@ -2989,11 +2990,11 @@ int GetConditionInterrupt(W8TargetSource* source)
         moving = monster_info->action_kind == W8_MONSTER_ACTION_ADVANCE;
         condition_turns = monster_info->uiCondition;
         can_attack =
-            RateMonsterBestAttack(monster_info, GetMonsterDataForInfo(monster_info), 0) == 0;
+            RateMonsterBestAttack(monster_info, GetMonsterDataForInfo(monster_info), false) == 0;
         secondary_flag = monster_info->pCombat->berserk;
         attribute = monster_info->attributes[W8_MONSTER_ATTRIBUTE_STRENGTH];
         second_hand_attack =
-            RateMonsterBestAttack(monster_info, GetMonsterDataForInfo(monster_info), 1) == 0;
+            RateMonsterBestAttack(monster_info, GetMonsterDataForInfo(monster_info), true) == 0;
         controlled = monster_info->control_state == W8_MONSTER_CONTROL_LURED;
     }
     if (condition_turns[W8_CONDITION_NAUSEATED] != 0 && Random(100) < 0x19) {
@@ -3036,14 +3037,14 @@ int GetConditionInterrupt(W8TargetSource* source)
             if (!AreAllHandSlotsEmpty(&g_status.buffers.Char[party_slot]) &&
                 CanUnequipSlotItem(character, W8_EQUIP_SLOT_PRIMARY_WEAPON) &&
                 CanUnequipSlotItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON)) {
-                SwapWeaponSetSlots(party_slot, 0, true);
+                SwapWeaponSetSlots(party_slot, false, true);
                 if (CanAnyHandReachTarget(party_slot) &&
                     CanPartySlotAttackAnyTarget(party_slot, W8_TARGETING_CONTEXT_ATTACK, 1,
                                                 false)) {
                     PostCharacterNotice(party_slot, gppStringList[0x23d]);
                     return 9;
                 }
-                SwapWeaponSetSlots(party_slot, 0, true);
+                SwapWeaponSetSlots(party_slot, false, true);
             }
             return 10;
         }
@@ -3418,18 +3419,20 @@ void ScheduleCombatActor(void)
                     if ((action == W8_ACTION_DEFEND || action == W8_ACTION_PROTECT ||
                          action == W8_ACTION_NONE) &&
                         (g_settings.continuous_combat == 0 ||
-                         CharacterCanSwitchTo(slot, context, 0, 0))) {
+                         CharacterCanSwitchTo(slot, context, false, false))) {
                         interruptible = true;
                     }
                     if ((g_settings.continuous_combat != 0 ||
-                         CharacterCanSwitchTo(slot, context, 0, 0)) &&
+                         CharacterCanSwitchTo(slot, context, false, false)) &&
                         !interruptible) {
                         apply_delay = true;
                     }
                 }
             } else {
-                int action_kind = g_combat_state->pActionMonsterInfo->action_kind;
-                if (action_kind == 1 || action_kind == 8 || action_kind == -1) {
+                W8MonsterActionKind action_kind = g_combat_state->pActionMonsterInfo->action_kind;
+                if (action_kind == W8_MONSTER_ACTION_WAIT ||
+                    action_kind == W8_MONSTER_ACTION_PROTECT ||
+                    action_kind == W8_MONSTER_ACTION_NONE) {
                     interruptible = true;
                 }
                 if (!g_combat_state->pacing_latch && !interruptible) {

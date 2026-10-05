@@ -284,7 +284,8 @@ void DrawCampSpellPages(void)
         DrawCampResistances();
     }
     if (g_camp_screen->redraw_flags == W8_CAMP_REDRAW_ALL) {
-        DrawCatalogImageAndInvalidate(-14, 0x140, 0, 2, 0, 0xa5, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x140, 0, 2, 0, 0xa5, VO_BLT_SRCTRANSPARENCY,
+                                      0);
     }
     for (realm = 0; realm < 6; ++realm) {
         if ((g_camp_screen->redraw_flags & (W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm)) == 0) {
@@ -293,7 +294,8 @@ void DrawCampSpellPages(void)
         left = (realm % 3) * 0xd5 + 3;
         top = (realm / 3) * 0x8c + 0xaa;
         if (character->skill_unlocks[0x1c + realm] != 0) {
-            DrawCatalogImageAndInvalidate(-14, 0x140, 0, 3, left, top, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x140, 0, 3, left, top,
+                                          VO_BLT_SRCTRANSPARENCY, 0);
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
                                       g_font_state_palettes[W8_FONT_PALETTE_GREEN]);
             gprintf(left + 0x1b, top + 8, Wiz8ToSgpWideText(g_format_s0), gppStringList[0x8c7]);
@@ -356,12 +358,13 @@ void DrawCampSpellPages(void)
         }
         animation = &g_spell_realm_animations[realm];
         if (character->sp_max[realm] != 0) {
-            DrawCatalogImageAndInvalidate(-14, animation->image, 0,
-                                          g_camp_screen->animation_frames[realm],
-                                          (realm % 3) * 213 + 5, (realm / 3) * 140 + 0xac, 2, 0);
+            DrawCatalogImageAndInvalidate(
+                FRAME_BUFFER, animation->image, 0, g_camp_screen->animation_frames[realm],
+                (realm % 3) * 213 + 5, (realm / 3) * 140 + 0xac, VO_BLT_SRCTRANSPARENCY, 0);
         } else {
-            DrawCatalogImageAndInvalidate(-14, animation->image, 0, animation->initial_frame,
-                                          (realm % 3) * 213 + 5, (realm / 3) * 140 + 0xac, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, animation->image, 0,
+                                          animation->initial_frame, (realm % 3) * 213 + 5,
+                                          (realm / 3) * 140 + 0xac, VO_BLT_SRCTRANSPARENCY, 0);
         }
     }
 }
@@ -385,7 +388,7 @@ void DrawCampResistances(void)
     unsigned int missing;
     int width;
 
-    DrawCatalogImageAndInvalidate(-14, 0x140, 0, 0, 0x136, 0, 2, 0);
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x140, 0, 0, 0x136, 0, VO_BLT_SRCTRANSPARENCY, 0);
     text = gppStringList[0x8ca];
     width = StringPixLengthArg(
         g_wiz_text_font_secondary, wcslen(text),
@@ -396,7 +399,8 @@ void DrawCampResistances(void)
         animation = &g_spell_realm_animations[index];
         left = (index & 1) * 156 + 0x144;
         top = (index >> 1) * 28 + 0x35;
-        DrawCatalogImage(-14, animation->image, 0, animation->initial_frame, left, top, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, animation->image, 0, animation->initial_frame, left, top,
+                         VO_BLT_SRCTRANSPARENCY, 0);
         if (character->resistances[index].total >= character->resistances[index].base) {
             filled = character->resistances[index].base;
             extra = character->resistances[index].total - filled;
@@ -413,18 +417,21 @@ void DrawCampResistances(void)
             clip.iLeft = left + 0x18;
             clip.iRight = left + 0x18 + filled;
             SetClippingRect(&clip);
-            DrawCatalogImageAndInvalidate(-14, 0x143, 0, 0, left + 0x18, top + 4, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 0, left + 0x18, top + 4,
+                                          VO_BLT_SRCTRANSPARENCY, 0);
         }
         if (extra != 0) {
             clip.iLeft = left + 0x18 + filled;
             clip.iRight = left + 0x18 + filled + extra;
             SetClippingRect(&clip);
-            DrawCatalogImageAndInvalidate(-14, 0x143, 0, 1, left + 0x18, top + 4, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 1, left + 0x18, top + 4,
+                                          VO_BLT_SRCTRANSPARENCY, 0);
         } else if (missing != 0) {
             clip.iLeft = left + 0x18 + filled;
             clip.iRight = left + 0x18 + filled + missing;
             SetClippingRect(&clip);
-            DrawCatalogImageAndInvalidate(-14, 0x143, 0, 2, left + 0x18, top + 4, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 2, left + 0x18, top + 4,
+                                          VO_BLT_SRCTRANSPARENCY, 0);
         }
         SetClippingRect(&saved_clip);
         width = StringPixLengthArg(g_wiz_text_font_secondary, 5, Wiz8ToSgpWideText(g_format_d),
@@ -580,7 +587,7 @@ void DrawCampCharacterInfo(void)
         InvalidateCampPanel();
         return;
     }
-    DrawCatalogImageAndInvalidate(-14, 0x114, 0, 0, 0x136, 0, 2, 0);
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x114, 0, 0, 0x136, 0, VO_BLT_SRCTRANSPARENCY, 0);
     if (character->experience != character->experience_previous_goal) {
         if (character->experience < character->experience_goal) {
             filled = (character->experience - character->experience_previous_goal) * 0x67 /
@@ -595,7 +602,8 @@ void DrawCampCharacterInfo(void)
             clip.iRight = 0x1c0 + filled;
             clip.iBottom = 0x1e0;
             SetClippingRect(&clip);
-            DrawCatalogImageAndInvalidate(-14, 0x11d, 0, 0, 0x1c0, 0x26, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x11d, 0, 0, 0x1c0, 0x26,
+                                          VO_BLT_SRCTRANSPARENCY, 0);
             SetClippingRect(&previous_clip);
         }
     }
@@ -661,8 +669,8 @@ void DrawCampCharacterInfo(void)
                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
             frame = g_spell_realm_animations[realm].initial_frame;
         }
-        DrawCatalogImageAndInvalidate(-14, g_character_resistance_images[realm], 0, frame, 0x22d,
-                                      top, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, g_character_resistance_images[realm], 0, frame,
+                                      0x22d, top, VO_BLT_SRCTRANSPARENCY, 0);
         top += 0x18;
     }
     DrawRcsText(gppStringList[0x922], 0x144, 0x80, 0x45,
@@ -693,7 +701,8 @@ void DrawCampBackpackItems(void)
     int item_id;
 
     if ((state->item_redraw_flags & W8_CAMP_ITEM_REDRAW_BACKPACK_HEADER) != 0) {
-        DrawCatalogImageAndInvalidate(-14, 0x114, 0, 1, 0, 0xa5, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x114, 0, 1, 0, 0xa5, VO_BLT_SRCTRANSPARENCY,
+                                      0);
         DrawRcsBoldText(gppStringList[0x92b], 0xc, 0xae, 0x5d,
                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     }
@@ -708,26 +717,26 @@ void DrawCampBackpackItems(void)
         InvalidateRegion(left, top, right, bottom, 0);
         item_id = character->backpack[slot].iItemNo;
         if (item_id == -1 || CanCharacterUseItem(character, item_id)) {
-            BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
+            BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
         } else {
-            DrawCatalogImage(-14, 0x11a, 0, 0, left, top, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x11a, 0, 0, left, top, VO_BLT_SRCTRANSPARENCY, 0);
         }
         if (item_id != -1) {
-            DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 0,
-                             left + 1, top + 1, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, g_item_video_objects.GetOrCreateVideoObject(item_id), 0,
+                             0, left + 1, top + 1, VO_BLT_SRCTRANSPARENCY, 0);
             DrawCampItemQuantity(&character->backpack[slot], left + 1, top + 0x28, 0x2c);
             if (!character->backpack[slot].identified) {
-                DrawCatalogImage(-14, 0x11b, 0, 0, left, top, 2, 0);
+                DrawCatalogImage(FRAME_BUFFER, 0x11b, 0, 0, left, top, VO_BLT_SRCTRANSPARENCY, 0);
             }
         }
         if (item_id != -1 && g_item_records[item_id].binds_on_equip != 0 &&
             character->backpack[slot].bound) {
-            DrawCatalogImage(-14, 0x115, 0, 0x32, left, top, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x115, 0, 0x32, left, top, VO_BLT_SRCTRANSPARENCY, 0);
         }
         if (state->hover_region == slot + 0xf4 &&
             (item_id != -1 ||
              (g_status.item_in_cursor && state->item_action != W8_CAMP_ITEM_ACTION_MOVE))) {
-            DrawCatalogImage(-14, 0x115, 0, 0x30, left, top, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x115, 0, 0x30, left, top, VO_BLT_SRCTRANSPARENCY, 0);
         }
     }
 }
@@ -745,10 +754,12 @@ void DrawCampEquipmentItems(void)
     int frame;
 
     if ((state->item_redraw_flags & W8_CAMP_ITEM_REDRAW_PAPER_DOLL) != 0) {
-        DrawCatalogImageAndInvalidate(-14, 0x114, 0, 2, 0x71, 0xa5, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x114, 0, 2, 0x71, 0xa5, VO_BLT_SRCTRANSPARENCY,
+                                      0);
         DrawCatalogImageAndInvalidate(
-            -14, g_race_portrait_images[character->iRace * W8_RACE_GNOME + character->gender], 0, 0,
-            0xc2, 0xa5, 2, 0);
+            FRAME_BUFFER,
+            g_race_portrait_images[character->iRace * W8_RACE_GNOME + character->gender], 0, 0,
+            0xc2, 0xa5, VO_BLT_SRCTRANSPARENCY, 0);
         state->redraw_flags |= W8_CAMP_REDRAW_ACTION_PANEL;
     }
     for (slot = 0; slot < 12; ++slot) {
@@ -758,7 +769,7 @@ void DrawCampEquipmentItems(void)
         region = &g_camp_screen_regions[slot];
         InvalidateRegion(region->x, region->y, region->x + region->width,
                          region->y + region->height, 0);
-        BlitCatalogSurfaceRectTo16BPP(-14, region->x, region->y, region->x + region->width,
+        BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, region->x, region->y, region->x + region->width,
                                       region->y + region->height, 0x1b6, 0, 0);
         item_id = character->EquippedItem[slot].iItemNo;
         if (item_id == -1) {
@@ -767,17 +778,20 @@ void DrawCampEquipmentItems(void)
                     character->EquippedItem[GetPairedEquipSlot(static_cast<W8EquipSlot>(slot))]
                         .iItemNo;
                 if (paired != -1 && (g_item_records[paired].flags & W8_ITEM_FLAG_TWO_HANDED) != 0) {
-                    DrawCatalogImageAndInvalidate(-14, 0x146, 0, 0, region->x, region->y, 2, 0);
+                    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x146, 0, 0, region->x, region->y,
+                                                  VO_BLT_SRCTRANSPARENCY, 0);
                 }
             }
         } else {
-            DrawCatalogImageAndInvalidate(-14, g_item_video_objects.GetOrCreateVideoObject(item_id),
-                                          0, 1, region->x, region->y, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER,
+                                          g_item_video_objects.GetOrCreateVideoObject(item_id), 0,
+                                          1, region->x, region->y, VO_BLT_SRCTRANSPARENCY, 0);
             DrawCampItemQuantity(&character->EquippedItem[slot], region->x + 2,
                                  region->y + region->height - 0xd, region->width - 4);
             if (!character->EquippedItem[slot].identified) {
-                DrawCatalogImage(-14, 0x11b, 0, static_cast<short>(region->unidentified_frame),
-                                 region->x, region->y, 2, 0);
+                DrawCatalogImage(FRAME_BUFFER, 0x11b, 0,
+                                 static_cast<short>(region->unidentified_frame), region->x,
+                                 region->y, VO_BLT_SRCTRANSPARENCY, 0);
             }
         }
         switch (slot) {
@@ -800,16 +814,17 @@ void DrawCampEquipmentItems(void)
             goto no_armor_label;
         }
         swprintf(state->text_buffer, g_format_d, character->armor_class_by_location[frame]);
-        DrawCatalogImageAndInvalidate(-14, 0x11c, 0, 0, region->x + 2, region->y + 1, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x11c, 0, 0, region->x + 2, region->y + 1,
+                                      VO_BLT_SRCTRANSPARENCY, 0);
         DrawRcsText(state->text_buffer, region->x + 2, region->y + 2, 0x11,
                     g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     no_armor_label:
-        DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame + 3, region->x - 2,
-                                      region->y - 2, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x115, 0, region->frame + 3, region->x - 2,
+                                      region->y - 2, VO_BLT_SRCTRANSPARENCY, 0);
         if (item_id != -1 && g_item_records[item_id].binds_on_equip != 0 &&
             character->EquippedItem[slot].bound) {
-            DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame + 2, region->x - 2,
-                                          region->y - 2, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x115, 0, region->frame + 2, region->x - 2,
+                                          region->y - 2, VO_BLT_SRCTRANSPARENCY, 0);
         }
         if (state->hover_region == slot + 0xfc) {
             if (!g_status.item_in_cursor) {
@@ -838,7 +853,8 @@ void DrawCampEquipmentItems(void)
             }
             frame = region->frame + 1;
         }
-        DrawCatalogImageAndInvalidate(-14, 0x115, 0, frame, region->x - 2, region->y - 2, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x115, 0, frame, region->x - 2, region->y - 2,
+                                      VO_BLT_SRCTRANSPARENCY, 0);
     }
 }
 
@@ -859,8 +875,10 @@ void DrawCampItemPool(void)
     W8ItemInstance* item;
 
     if ((state->item_redraw_flags & W8_CAMP_ITEM_REDRAW_POOL_HEADER) != 0) {
-        DrawCatalogImageAndInvalidate(-14, 0x114, 0, 3, 0x1de, 0xa5, 2, 0);
-        DrawCatalogImageAndInvalidate(-14, 0x118, 0, 0, 0x202, 0x1a6, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x114, 0, 3, 0x1de, 0xa5,
+                                      VO_BLT_SRCTRANSPARENCY, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x118, 0, 0, 0x202, 0x1a6,
+                                      VO_BLT_SRCTRANSPARENCY, 0);
         state->redraw_flags |= W8_CAMP_REDRAW_REALM_TABS;
     }
     if (!g_status.game_started) {
@@ -891,21 +909,21 @@ void DrawCampItemPool(void)
         }
         InvalidateRegion(left, top, right, bottom, 0);
         if (!CanCharacterUseItem(character, item->iItemNo)) {
-            DrawCatalogImage(-14, 0x11a, 0, 0, left, top, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x11a, 0, 0, left, top, VO_BLT_SRCTRANSPARENCY, 0);
         } else {
-            BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
+            BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
         }
-        DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item->iItemNo), 0, 0,
-                         left + 1, top + 1, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, g_item_video_objects.GetOrCreateVideoObject(item->iItemNo),
+                         0, 0, left + 1, top + 1, VO_BLT_SRCTRANSPARENCY, 0);
         DrawCampItemQuantity(item, left + 1, top + 0x28, 0x2c);
         if (!item->identified) {
-            DrawCatalogImage(-14, 0x11b, 0, 0, left, top, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x11b, 0, 0, left, top, VO_BLT_SRCTRANSPARENCY, 0);
         }
         if (g_item_records[item->iItemNo].binds_on_equip != 0 && item->bound) {
-            DrawCatalogImage(-14, 0x115, 0, 0x32, left, top, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x115, 0, 0x32, left, top, VO_BLT_SRCTRANSPARENCY, 0);
         }
         if (state->hover_region == i + 0x108) {
-            DrawCatalogImage(-14, 0x115, 0, 0x30, left, top, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x115, 0, 0x30, left, top, VO_BLT_SRCTRANSPARENCY, 0);
         }
     }
     i = state->item_list_count - state->item_scroll;
@@ -918,10 +936,11 @@ void DrawCampItemPool(void)
             bottom = top + 0x36;
             if ((state->item_redraw_flags & (W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST << i)) != 0) {
                 InvalidateRegion(left, top, right, bottom, 0);
-                BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
+                BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
                 if (state->hover_region == region_id && g_status.item_in_cursor &&
                     state->item_action != W8_CAMP_ITEM_ACTION_MOVE) {
-                    DrawCatalogImage(-14, 0x115, 0, 0x30, left, top, 2, 0);
+                    DrawCatalogImage(FRAME_BUFFER, 0x115, 0, 0x30, left, top,
+                                     VO_BLT_SRCTRANSPARENCY, 0);
                 }
             }
             ++i;
@@ -1009,11 +1028,11 @@ void W8CampCharacterInfo::SetCombatView(bool enabled)
     m_values[2]->SetActive(enabled);
     m_values[3]->SetActive(enabled);
     if (enabled) {
-        m_renderArg1 = 0;
+        m_catalogImage = 0;
     } else if (g_review_character->armor_class_components[W8_AC_COMPONENT_REFLEXTION] > 0) {
-        m_renderArg1 = 2;
+        m_catalogImage = 2;
     } else {
-        m_renderArg1 = 1;
+        m_catalogImage = 1;
     }
     Invalidate(0);
 }
@@ -1034,9 +1053,9 @@ void W8CampCharacterInfo::Redraw()
     bool redraw = m_fEnabled && m_fDirty;
     if (!m_combat_view &&
         ((g_review_character->armor_class_components[W8_AC_COMPONENT_REFLEXTION] > 0 &&
-          m_renderArg1 != 2) ||
+          m_catalogImage != 2) ||
          (g_review_character->armor_class_components[W8_AC_COMPONENT_REFLEXTION] <= 0 &&
-          m_renderArg1 == 2))) {
+          m_catalogImage == 2))) {
         SetCombatView(false);
     }
     Controls::Redraw();
@@ -2240,7 +2259,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
                             SwapItemInstances(paired, &g_status.item_in_hand, g_review_character,
                                               true);
                             changed = true;
-                        } else if (AddItemToCharacter(g_review_character, paired, 0, 0, true)) {
+                        } else if (AddItemToCharacter(g_review_character, paired, false, false,
+                                                      true)) {
                             SwapItemInstances(item, &g_status.item_in_hand, g_review_character,
                                               true);
                             changed = true;
@@ -2255,7 +2275,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
                                     return;
                                 }
                             }
-                            if (!AddItemToParty(paired, 0, true)) {
+                            if (!AddItemToParty(paired, false, true)) {
                                 text = gppStringList[0x90c];
                                 ShowCampNoticeLine(text, 0, true, false);
                                 return;
@@ -2754,7 +2774,7 @@ void DrawPartyDeathScreen(void)
 {
     const wchar_t* text;
 
-    DrawCatalogImageAndInvalidate(-14, 0x1df, 0, 0, 0, 0, 2, 0);
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x1df, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
     if (gXStatus.party_moving) {
         text = gppStringList[0x777];
     } else {
@@ -2841,14 +2861,14 @@ void ShowEndingScreen(void)
         sound = "";
         text[0] = 0;
     }
-    DrawCatalogImageAndInvalidate(-14, image, 0, 0, 0, 0, 2, 0);
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, image, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
     bounds.left = 0x46;
     bounds.top = 0;
     bounds.right = 0x239;
     bounds.bottom = 0x1d0;
     {
         W8TextBuffer buffer(&bounds, text, g_options_detail_font, g_W8TextBufferAlignBottom, 4);
-        buffer.RenderToTarget(0, false, -14);
+        buffer.RenderToTarget(0, false, FRAME_BUFFER);
     }
     SetRadarMapVisible(false);
     SetFormationBoardVisible(false);

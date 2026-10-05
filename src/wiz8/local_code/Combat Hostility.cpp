@@ -72,7 +72,7 @@ void RecountCombatMonsters(void)
    only matching non-zero factions fall through to the condition-thirteen
    presence test. */
 // FUNCTION: WIZ8 0x00546F80
-char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
+W8Disposition MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
 {
     W8MonsterRecord* first_record;
     W8MonsterRecord* second_record;
@@ -111,7 +111,7 @@ char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
    character carries condition thirteen the hostile and friendly bands swap;
    otherwise the monster's band is returned unchanged. */
 // FUNCTION: WIZ8 0x00546f10
-char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
+W8Disposition MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 {
     W8Disposition disposition;
 
@@ -134,7 +134,7 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 }
 
 // FUNCTION: WIZ8 0x00547010
-char CharacterVsCharacterDisposition(int first, int second)
+W8Disposition CharacterVsCharacterDisposition(int first, int second)
 {
     W8Character* characters = g_status.buffers.Char;
     unsigned int first_turns = characters[first].uiCondition[W8_CONDITION_TURNCOAT];
@@ -148,7 +148,7 @@ char CharacterVsCharacterDisposition(int first, int second)
 }
 
 // FUNCTION: WIZ8 0x00547080
-char GetOppositeDisposition(W8TargetSource* source)
+W8Disposition GetOppositeDisposition(W8TargetSource* source)
 {
     if (TargetSourceIsCharacter(source, 0)) {
         if (g_status.buffers.Char[source->iChar].uiCondition[W8_CONDITION_TURNCOAT] == 0) {
@@ -204,7 +204,7 @@ void ProvokeListedMonsterGroups(W8TargetSource* source, W8GrowableVector<int>* m
 // FUNCTION: WIZ8 0x005471d0
 void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
 {
-    char hostility = GetOppositeDisposition(source);
+    W8Disposition hostility = GetOppositeDisposition(source);
     if (hostility == 0 || !IsTargetStillPresent(target)) {
         return;
     }
@@ -440,7 +440,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, boo
 }
 
 // FUNCTION: WIZ8 0x005477d0
-void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
+void SetMonsterHostility(W8MonsterInfo* monster, W8Disposition hostility)
 {
     W8Disposition previous = monster->ubDisposition;
     if (previous == hostility || monster->p3D->hostility_preserved) {

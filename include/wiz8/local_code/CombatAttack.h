@@ -61,8 +61,8 @@ int TargetArmorClassAtLocation(W8CombatSlot* target, W8AttackMode attack_mode, i
    target and apply the ones that take, reporting into `result` when one is
    given. */
 void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
-                           W8SpellEffectDefinition* definition, unsigned char announce,
-                           unsigned char verbose, W8SpellEffectResult* result);
+                           W8SpellEffectDefinition* definition, bool announce, bool verbose,
+                           W8SpellEffectResult* result);
 
 struct W8MonsterRecord;
 struct W8MonsterAttack;
@@ -90,14 +90,15 @@ enum {
 
 /* An attack the record does not carry, or carries with bad data, is not
    usable; otherwise the attack is usable when it can reach someone, judged as
-   though the monster were idle. `hostile_only` narrows the sweep to enemies.
+   though the monster were idle. `friendly_targets` selects friendly rather than hostile targets.
    RateMonsterBestAttack answers zero as soon as any attack is usable, one for a
    motionless monster, and otherwise the highest reason it saw. */
 unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                unsigned int attack, int unused, int hostile_only); /* 0x0053D4B0 */
+                                unsigned int attack, int unused,
+                                bool friendly_targets); /* 0x0053D4B0 */
 unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                    int hostile_only); /* 0x0053D450 */
-bool CanAnyHandReachTarget(int party_slot);            /* 0x0053D310 */
+                                    bool friendly_targets); /* 0x0053D450 */
+bool CanAnyHandReachTarget(int party_slot);                 /* 0x0053D310 */
 /* 0x0053D2A0: whether `hand` is in play and has a range category at all. */
 bool CanHandReachTarget(int party_slot, unsigned int hand);
 bool CanCharacterAttack(int party_slot); /* 0x00545850 */

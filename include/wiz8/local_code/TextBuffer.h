@@ -29,7 +29,7 @@ public:
     void FillBounds(int colour);
     void RenderText(unsigned char* buffer, unsigned int pitch, int x_offset, int y_offset,
                     bool force);
-    void RenderToTarget(int offset, bool force, int target);
+    void RenderToTarget(int offset, bool force, unsigned int target);
     void UpdateLayout(); /* 0x004F35B0 */
     void SetLayoutMode(unsigned int layout_mode);
     void SetText(const wchar_t* text, int font);
@@ -60,7 +60,7 @@ public:
     {
         m_fontStateIndex = index;
     }
-    void MarkGeometryDirty(int mode)
+    void MarkGeometryDirty(unsigned int mode)
     {
         m_geometryDirty = true;
         m_layoutMode = mode;
@@ -79,7 +79,7 @@ public:
 protected:
     unsigned int m_lineHeight; /* 0x30: cached height, zero means query font */
     wchar_t* m_buffer;         /* 0x34: freed on teardown */
-    int m_layoutMode;          /* 0x38: 10 initially */
+    unsigned int m_layoutMode; /* 0x38: 10 initially */
 public:
     unsigned int m_maxLineWidth; /* 0x3c */
 public:

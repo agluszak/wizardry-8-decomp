@@ -2,6 +2,7 @@
 #define WIZ8_VIDEO_OBJECT_CATALOG_H
 
 #include "vobject.h"
+#include "vsurface.h"
 
 struct W8VideoObjectSlot {
     int first_frame;
@@ -29,12 +30,12 @@ void GetCatalogImageSize(int object, int frame, int image, short* width, short* 
 /* 0x00549700: the image's own offset inside its frame, read from the video object's
    ETRLE subregion table. */
 void GetCatalogImagePosition(int object, int frame, int image, short* x, short* y);
-void DrawCatalogImage(int target, int object, int frame, short image, int left, int top, int mode,
-                      int flags);
+void DrawCatalogImage(UINT32 target, int object, int frame, short image, int left, int top,
+                      UINT32 mode, blt_fx* effects);
 void InvalidateCatalogImageRect(int object, int frame, int image, int left, int top, int flags);
-void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image, int left, int top,
-                                   int mode, int flags);
-unsigned char BlitCatalogSurfaceRectTo16BPP(int target, int left, int top, int right, int bottom,
+void DrawCatalogImageAndInvalidate(UINT32 target, int object, int frame, int image, int left,
+                                   int top, UINT32 mode, blt_fx* effects);
+unsigned char BlitCatalogSurfaceRectTo16BPP(UINT32 target, int left, int top, int right, int bottom,
                                             int object, int source_x, int source_y);
 
 void EnsureCatalogFrameLoaded(int object, int frame);

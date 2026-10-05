@@ -139,18 +139,19 @@ void W8CharacterPageEntry::Redraw()
 {
     if (m_enabled && m_dirty) {
         if (m_draw_background) {
-            DrawCatalogImageAndInvalidate(-14, 0x108, 0, 2, m_x, m_y, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x108, 0, 2, m_x, m_y,
+                                          VO_BLT_SRCTRANSPARENCY, 0);
         }
         m_first_text->SetText(FormatWideString(g_format_d, *m_first), g_wiz_text_font_secondary);
         m_second_text->SetText(FormatWideString(g_format_d, *m_second), g_wiz_text_font_secondary);
         m_first_text->FillBounds(0x8000);
         m_second_text->FillBounds(0x8000);
-        m_label->RenderToTarget(0, true, -14);
-        m_first_text->RenderToTarget(0, true, -14);
-        m_second_text->RenderToTarget(0, true, -14);
+        m_label->RenderToTarget(0, true, FRAME_BUFFER);
+        m_first_text->RenderToTarget(0, true, FRAME_BUFFER);
+        m_second_text->RenderToTarget(0, true, FRAME_BUFFER);
         m_dirty = false;
     } else if (!m_draw_background && m_dirty) {
-        m_label->RenderToTarget(0, true, -14);
+        m_label->RenderToTarget(0, true, FRAME_BUFFER);
         m_dirty = false;
     }
 }
@@ -226,8 +227,8 @@ void W8CharacterPageEntry::OnSecondary(W8TextControl* control)
 // class W8GrowableVector<W8CharacterPageEntry*>
 
 // FUNCTION: WIZ8 0x005afd90
-W8CharacterPage::W8CharacterPage(int render_target)
-    : Controls(0xc3, 0x2b, 0x280, 0x1c1, render_target, 0, 0), m_screen(0)
+W8CharacterPage::W8CharacterPage(int catalog_object)
+    : Controls(0xc3, 0x2b, 0x280, 0x1c1, catalog_object, 0, 0), m_screen(0)
 {
 }
 

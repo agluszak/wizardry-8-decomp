@@ -359,9 +359,9 @@ void W8SplitItemDialog::Draw()
         W8DialogBase::Draw();
     }
     if (m_first_draw) {
-        DrawCatalogImageAndInvalidate(-0xe,
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER,
                                       g_item_video_objects.GetOrCreateVideoObject(m_item->iItemNo),
-                                      0, 0, m_x + 0x18, m_y + 0xe, 2, 0);
+                                      0, 0, m_x + 0x18, m_y + 0xe, VO_BLT_SRCTRANSPARENCY, 0);
         m_first_draw = false;
     }
     if (m_buttons[3]->m_dirty) {
@@ -375,7 +375,7 @@ void W8SplitItemDialog::Draw()
     }
     for (index = 0; index < text_count; ++index) {
         if (m_texts[index] != 0) {
-            m_texts[index]->RenderToTarget(0, false, -0xe);
+            m_texts[index]->RenderToTarget(0, false, FRAME_BUFFER);
         }
     }
     if (m_count_input != 0) {

@@ -940,9 +940,7 @@ void srVP_generic::_dir(srVector3* destination, float* lengths, const srVector4*
                         SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        float length =
-            (float)sqrt(source[index].x * source[index].x + source[index].y * source[index].y +
-                        source[index].z * source[index].z);
+        float length = source[index].xyz().Length();
         lengths[index] = length;
         destination[index].x = source[index].x / length;
         destination[index].y = source[index].y / length;

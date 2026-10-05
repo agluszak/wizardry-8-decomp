@@ -217,8 +217,8 @@ static int PCItemInACSlot(const W8Character* character, int hit_location)
 }
 
 // FUNCTION: WIZ8 0x00549EF0
-void MakePCAttackSound(W8CombatCharacterRow* row, const W8HandAttack* hand_attack,
-                       W8AttackMode arg_3, bool store_handle, int volume)
+void MakePCAttackSound(W8CombatCharacterRow* row, const W8HandAttack* hand_attack, W8AttackMode,
+                       bool store_handle, int volume)
 {
     int weapon_class;
 

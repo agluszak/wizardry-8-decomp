@@ -803,15 +803,13 @@ srVector3T<double> srNode::getWorldSpaceDOF() const
 srVector3T<double> srNode::getWorldSpaceScale() const
 {
     checkTransformation();
-    return srVector3T<double>(sqrt(world_transform0.rows[0].x * world_transform0.rows[0].x +
-                                   world_transform0.rows[1].x * world_transform0.rows[1].x +
-                                   world_transform0.rows[2].x * world_transform0.rows[2].x),
-                              sqrt(world_transform0.rows[0].y * world_transform0.rows[0].y +
-                                   world_transform0.rows[1].y * world_transform0.rows[1].y +
-                                   world_transform0.rows[2].y * world_transform0.rows[2].y),
-                              sqrt(world_transform0.rows[0].z * world_transform0.rows[0].z +
-                                   world_transform0.rows[1].z * world_transform0.rows[1].z +
-                                   world_transform0.rows[2].z * world_transform0.rows[2].z));
+    srVector3T<double> x_axis(world_transform0.rows[0].x, world_transform0.rows[1].x,
+                              world_transform0.rows[2].x);
+    srVector3T<double> y_axis(world_transform0.rows[0].y, world_transform0.rows[1].y,
+                              world_transform0.rows[2].y);
+    srVector3T<double> z_axis(world_transform0.rows[0].z, world_transform0.rows[1].z,
+                              world_transform0.rows[2].z);
+    return srVector3T<double>(x_axis.Length(), y_axis.Length(), z_axis.Length());
 }
 
 // FUNCTION: SURRENDER 0x10054D10
@@ -865,54 +863,19 @@ void srNode::updateTransformation() const
         if ((parent->notifications.value & 2) != 0) {
             parent->updateTransformation();
         }
-        world_transform0.rows[0].x = (parent->world_transform0.rows[0].x * rotation.vectors[0].x +
-                                      parent->world_transform0.rows[0].y * rotation.vectors[1].x +
-                                      parent->world_transform0.rows[0].z * rotation.vectors[2].x) *
-                                     scale.x;
-        world_transform0.rows[1].x = (parent->world_transform0.rows[1].x * rotation.vectors[0].x +
-                                      parent->world_transform0.rows[1].y * rotation.vectors[1].x +
-                                      parent->world_transform0.rows[1].z * rotation.vectors[2].x) *
-                                     scale.x;
-        world_transform0.rows[2].x = (parent->world_transform0.rows[2].x * rotation.vectors[0].x +
-                                      parent->world_transform0.rows[2].y * rotation.vectors[1].x +
-                                      parent->world_transform0.rows[2].z * rotation.vectors[2].x) *
-                                     scale.x;
-        world_transform0.rows[0].y = (parent->world_transform0.rows[0].x * rotation.vectors[0].y +
-                                      parent->world_transform0.rows[0].y * rotation.vectors[1].y +
-                                      parent->world_transform0.rows[0].z * rotation.vectors[2].y) *
-                                     scale.y;
-        world_transform0.rows[1].y = (parent->world_transform0.rows[1].x * rotation.vectors[0].y +
-                                      parent->world_transform0.rows[1].y * rotation.vectors[1].y +
-                                      parent->world_transform0.rows[1].z * rotation.vectors[2].y) *
-                                     scale.y;
-        world_transform0.rows[2].y = (parent->world_transform0.rows[2].x * rotation.vectors[0].y +
-                                      parent->world_transform0.rows[2].y * rotation.vectors[1].y +
-                                      parent->world_transform0.rows[2].z * rotation.vectors[2].y) *
-                                     scale.y;
-        world_transform0.rows[0].z = (parent->world_transform0.rows[0].x * rotation.vectors[0].z +
-                                      parent->world_transform0.rows[0].y * rotation.vectors[1].z +
-                                      parent->world_transform0.rows[0].z * rotation.vectors[2].z) *
-                                     scale.z;
-        world_transform0.rows[1].z = (parent->world_transform0.rows[1].x * rotation.vectors[0].z +
-                                      parent->world_transform0.rows[1].y * rotation.vectors[1].z +
-                                      parent->world_transform0.rows[1].z * rotation.vectors[2].z) *
-                                     scale.z;
-        world_transform0.rows[2].z = (parent->world_transform0.rows[2].x * rotation.vectors[0].z +
-                                      parent->world_transform0.rows[2].y * rotation.vectors[1].z +
-                                      parent->world_transform0.rows[2].z * rotation.vectors[2].z) *
-                                     scale.z;
-        world_transform0.rows[0].w = parent->world_transform0.rows[0].x * location.x +
-                                     parent->world_transform0.rows[0].y * location.y +
-                                     parent->world_transform0.rows[0].z * location.z +
-                                     parent->world_transform0.rows[0].w;
-        world_transform0.rows[1].w = parent->world_transform0.rows[1].x * location.x +
-                                     parent->world_transform0.rows[1].y * location.y +
-                                     parent->world_transform0.rows[1].z * location.z +
-                                     parent->world_transform0.rows[1].w;
-        world_transform0.rows[2].w = parent->world_transform0.rows[2].x * location.x +
-                                     parent->world_transform0.rows[2].y * location.y +
-                                     parent->world_transform0.rows[2].z * location.z +
-                                     parent->world_transform0.rows[2].w;
+        srVector3T<double> x_axis(rotation.vectors[0].x, rotation.vectors[1].x,
+                                  rotation.vectors[2].x);
+        srVector3T<double> y_axis(rotation.vectors[0].y, rotation.vectors[1].y,
+                                  rotation.vectors[2].y);
+        srVector3T<double> z_axis(rotation.vectors[0].z, rotation.vectors[1].z,
+                                  rotation.vectors[2].z);
+        for (int row = 0; row < 3; ++row) {
+            srVector3T<double> basis = parent->world_transform0.rows[row].xyz();
+            world_transform0.rows[row].x = DotProduct(basis, x_axis) * scale.x;
+            world_transform0.rows[row].y = DotProduct(basis, y_axis) * scale.y;
+            world_transform0.rows[row].z = DotProduct(basis, z_axis) * scale.z;
+        }
+        world_transform0.SetTranslation(parent->world_transform0.TransformPoint(location));
     } else {
         parent->getWorldSpaceMatrix(world_transform0);
     }

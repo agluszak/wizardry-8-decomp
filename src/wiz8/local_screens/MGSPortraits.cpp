@@ -238,7 +238,8 @@ static void DrawDamageSplatOverlay(unsigned int party_slot)
         }
         unsigned int object =
             !entry->damage_splat_death_variant ? entry->damage_splat_catalog : 0x92;
-        DrawCatalogImage(-0xe, object, 0, static_cast<short>(frame), left, top, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, object, 0, static_cast<short>(frame), left, top,
+                         VO_BLT_SRCTRANSPARENCY, 0);
         if (entry->damage_splat_frame < 6) {
             W8ControlsRect bounds;
             bounds.left = left;
@@ -248,7 +249,7 @@ static void DrawDamageSplatOverlay(unsigned int party_slot)
             W8TextBuffer splat_text(&bounds, 0, 0, 0, 4);
             splat_text.SetText(FormatWideString(g_format_d, entry->damage_splat_amount),
                                g_wiz_text_bold_font);
-            splat_text.RenderToTarget(0, false, -0xe);
+            splat_text.RenderToTarget(0, false, FRAME_BUFFER);
         }
         if (gXStatus.fCombatMode) {
             entry->combat_portrait_dirty = true;
@@ -282,8 +283,8 @@ void DrawPortraitEffectIcon(unsigned int party_slot)
         if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
             g_level_block->portrait_refresh_pending[party_slot] != 0) {
             DrawCatalogImageAndInvalidate(
-                -0xe, gXStatus.monster_manager_entries[party_slot].effect_icon_catalog, 0, image,
-                (party_slot & 1) << 9 | 0x17, top, 2, 0);
+                FRAME_BUFFER, gXStatus.monster_manager_entries[party_slot].effect_icon_catalog, 0,
+                image, (party_slot & 1) << 9 | 0x17, top, VO_BLT_SRCTRANSPARENCY, 0);
         }
     }
 }
@@ -405,15 +406,16 @@ void RedrawCombatPortraits(void)
         } else {
             portrait_image = combat_row->portrait_image_alternate;
         }
-        DrawCatalogImageAndInvalidate(-0xe, 0x8a, 0, portrait_image, portrait_x, row_y + 0x44, 2,
-                                      0);
-        if (!CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
-            DrawCatalogImageAndInvalidate(-0xe, 0x8b, 0, 0, badge_x, row_y + 0x37, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x8a, 0, portrait_image, portrait_x,
+                                      row_y + 0x44, VO_BLT_SRCTRANSPARENCY, 0);
+        if (!CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false)) {
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x8b, 0, 0, badge_x, row_y + 0x37,
+                                          VO_BLT_SRCTRANSPARENCY, 0);
         } else if (party_row->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
             DrawCatalogImageAndInvalidate(
-                -0xe, 0x8c, 0,
+                FRAME_BUFFER, 0x8c, 0,
                 g_status.buffers.XChar[party_row->target_in_combat.iChar].party_order_index,
-                badge_x, row_y + 0x38, 2, 0);
+                badge_x, row_y + 0x38, VO_BLT_SRCTRANSPARENCY, 0);
         }
         entry->combat_portrait_dirty = false;
     }
@@ -570,19 +572,19 @@ void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled)
         }
         numeric_hp_mode = g_settings.numeric_hit_points != 0;
 
-        DrawCatalogImage(-14, hp_catalog, 0, 0, band_portrait_edge + hp_bar_x, bar_y + menu_y, 2,
-                         0);
+        DrawCatalogImage(FRAME_BUFFER, hp_catalog, 0, 0, band_portrait_edge + hp_bar_x,
+                         bar_y + menu_y, VO_BLT_SRCTRANSPARENCY, 0);
         ShadeStatusBarGap(0x2d - entry->cached_hp_bar, hp_bar_x + band_portrait_edge,
                           bar_y - numeric_hp_mode + menu_y);
 
-        DrawCatalogImage(-14, stamina_catalog, 0, 0, band_portrait_edge + stamina_bar_x,
-                         bar_y + menu_y, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, stamina_catalog, 0, 0, band_portrait_edge + stamina_bar_x,
+                         bar_y + menu_y, VO_BLT_SRCTRANSPARENCY, 0);
         ShadeStatusBarGap(0x2d - entry->cached_stamina_bar, stamina_bar_x + band_portrait_edge,
                           bar_y - numeric_hp_mode + menu_y);
 
         if (SumCharacterSpellPoints(character) != 0) {
-            DrawCatalogImage(-14, spell_catalog, 0, 0, band_portrait_edge + spell_bar_x,
-                             bar_y + menu_y, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, spell_catalog, 0, 0, band_portrait_edge + spell_bar_x,
+                             bar_y + menu_y, VO_BLT_SRCTRANSPARENCY, 0);
             ShadeStatusBarGap(0x2d - entry->cached_spell_bar, spell_bar_x + band_portrait_edge,
                               bar_y - numeric_hp_mode + menu_y);
         }
@@ -602,9 +604,9 @@ void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled)
             SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
             text.SetText(FormatWideString(g_format_d, character->hp_current), g_smfnt_font);
             InvalidateRegion(bounds.left, bounds.top + 1, bounds.right, bounds.bottom, 0);
-            ColorFillVideoSurfaceArea(-14, bounds.left, bounds.top + 1, bounds.right, bounds.bottom,
-                                      0x8000);
-            text.RenderToTarget(0, false, -14);
+            ColorFillVideoSurfaceArea(FRAME_BUFFER, bounds.left, bounds.top + 1, bounds.right,
+                                      bounds.bottom, 0x8000);
+            text.RenderToTarget(0, false, FRAME_BUFFER);
         }
     }
 
@@ -680,10 +682,10 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
         W8Character* character = &g_status.buffers.Char[party_slot];
         if (character->hp_current != 0) {
             int portrait = character->portrait_index;
-            int flags = 2;
+            unsigned int flags = VO_BLT_SRCTRANSPARENCY;
             if ((g_portrait_descriptors[portrait].render_mode == 1 && (party_slot & 1) == 0) ||
                 (g_portrait_descriptors[portrait].render_mode == 2 && (party_slot & 1) != 0)) {
-                flags = 0x1002;
+                flags = VO_BLT_SRCTRANSPARENCY | VO_BLT_MIRROR_Y;
             }
             if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, false) &&
                 ((gXStatus.fCombatMode && g_combat_state->characters[party_slot].dead) ||
@@ -712,7 +714,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
     W8Character* character;
     W8PartySlotRow* party_row;
     W8MonsterManagerEntry* entry;
-    int portrait_flags;
+    unsigned int portrait_flags;
     int portrait_catalog;
     int left_condition_x;
     int right_condition_x;
@@ -738,35 +740,40 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
     entry = &gXStatus.monster_manager_entries[party_slot];
 
     if (!party_row->fOccupied) {
-        DrawCatalogImage(-14, 0x31, 0, 0, menu_x + 0x14, menu_y, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x31, 0, 0, menu_x + 0x14, menu_y, VO_BLT_SRCTRANSPARENCY,
+                         0);
     }
 
     if (overlay_ready) {
         if (!party_row->fOccupied) {
             portrait_catalog = 0x34;
-            portrait_flags = 2;
-            DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
+            portrait_flags = VO_BLT_SRCTRANSPARENCY;
+            DrawCatalogImage(FRAME_BUFFER, portrait_catalog, 0, 0, menu_x + 0x14, menu_y,
+                             portrait_flags, 0);
         } else if (character->hp_current == 0 &&
                    (!entry->damage_splat_death_variant || entry->dead_portrait_revealed)) {
             portrait_catalog = g_dead_portrait_catalog_ids[character->iRace][1];
-            portrait_flags = (party_slot & 1) == 0 ? 2 : 0x1002;
-            DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
+            portrait_flags = (party_slot & 1) == 0 ? VO_BLT_SRCTRANSPARENCY
+                                                   : VO_BLT_SRCTRANSPARENCY | VO_BLT_MIRROR_Y;
+            DrawCatalogImage(FRAME_BUFFER, portrait_catalog, 0, 0, menu_x + 0x14, menu_y,
+                             portrait_flags, 0);
         } else {
             portrait_catalog = character->portrait_index;
-            portrait_flags = 2;
+            portrait_flags = VO_BLT_SRCTRANSPARENCY;
             if ((g_portrait_descriptors[portrait_catalog].render_mode == 1 &&
                  (party_slot & 1) == 0) ||
                 (g_portrait_descriptors[portrait_catalog].render_mode == 2 &&
                  (party_slot & 1) != 0)) {
-                portrait_flags = 0x1002;
+                portrait_flags = VO_BLT_SRCTRANSPARENCY | VO_BLT_MIRROR_Y;
             }
             RenderPartyPortrait(portrait_catalog, menu_x + 0x14, menu_y, portrait_flags, 1,
                                 party_slot);
         }
-        DrawCatalogImage(-14, 0x82, 0, static_cast<short>(grid_row), column_x, menu_y, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x82, 0, static_cast<short>(grid_row), column_x, menu_y,
+                         VO_BLT_SRCTRANSPARENCY, 0);
     }
 
-    DrawCatalogImage(-14, 0x82, 0, 0x10, menu_x + 0x17, menu_y, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, 0x82, 0, 0x10, menu_x + 0x17, menu_y, VO_BLT_SRCTRANSPARENCY, 0);
 
     if (party_row->fOccupied) {
         if (overlay_ready) {
@@ -781,17 +788,18 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                     show_off_hand_row = true;
                     hp_bar_frame = 2;
                 }
-                DrawCatalogImage(-14, 0x80, 0, static_cast<short>(hp_bar_frame), band_menu_edge,
-                                 menu_y, 2, 0);
+                DrawCatalogImage(FRAME_BUFFER, 0x80, 0, static_cast<short>(hp_bar_frame),
+                                 band_menu_edge, menu_y, VO_BLT_SRCTRANSPARENCY, 0);
 
                 if (main_hand_item_id == -1) {
-                    DrawCatalogImage(-14,
-                                     g_empty_hand_catalog_ids[character->iRace * W8_RACE_DWARF], 0,
-                                     0, band_menu_edge + 4, menu_y + 0x17, 2, 0);
+                    DrawCatalogImage(
+                        FRAME_BUFFER, g_empty_hand_catalog_ids[character->iRace * W8_RACE_DWARF], 0,
+                        0, band_menu_edge + 4, menu_y + 0x17, VO_BLT_SRCTRANSPARENCY, 0);
                 } else {
-                    DrawCatalogImage(-14,
+                    DrawCatalogImage(FRAME_BUFFER,
                                      g_item_video_objects.GetOrCreateVideoObject(main_hand_item_id),
-                                     0, 2, band_menu_edge + 3, menu_y + 0x17, 2, 0);
+                                     0, 2, band_menu_edge + 3, menu_y + 0x17,
+                                     VO_BLT_SRCTRANSPARENCY, 0);
                     if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].stack_count != 0) {
                         swprintf(
                             text, g_format_d,
@@ -810,12 +818,14 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                         character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo;
                     if (off_hand_item_id == -1) {
                         DrawCatalogImage(
-                            -14, g_empty_hand_catalog_ids[character->iRace * W8_RACE_DWARF + 1], 0,
-                            0, band_menu_edge + 4, menu_y + 0x2f, 2, 0);
+                            FRAME_BUFFER,
+                            g_empty_hand_catalog_ids[character->iRace * W8_RACE_DWARF + 1], 0, 0,
+                            band_menu_edge + 4, menu_y + 0x2f, VO_BLT_SRCTRANSPARENCY, 0);
                     } else {
                         DrawCatalogImage(
-                            -14, g_item_video_objects.GetOrCreateVideoObject(off_hand_item_id), 0,
-                            2, band_menu_edge + 3, menu_y + 0x2f, 2, 0);
+                            FRAME_BUFFER,
+                            g_item_video_objects.GetOrCreateVideoObject(off_hand_item_id), 0, 2,
+                            band_menu_edge + 3, menu_y + 0x2f, VO_BLT_SRCTRANSPARENCY, 0);
                         if (character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].stack_count !=
                             0) {
                             swprintf(text, g_format_d,
@@ -833,8 +843,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
             }
 
             hp_bar_frame = g_settings.numeric_hit_points == 0 ? 1 : 3;
-            DrawCatalogImage(-14, 0x80, 0, static_cast<short>(hp_bar_frame), band_portrait_edge,
-                             menu_y, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x80, 0, static_cast<short>(hp_bar_frame),
+                             band_portrait_edge, menu_y, VO_BLT_SRCTRANSPARENCY, 0);
             RedrawPartyPortraitBars(party_slot, slot_enabled);
 
             SetFont(g_smfnt_font);
@@ -904,7 +914,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                 highlight_catalog = 0x5e;
                 highlight_y = menu_y + 2;
             }
-            DrawCatalogImage(-14, highlight_catalog, 0, 0, highlight_x, highlight_y, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, highlight_catalog, 0, 0, highlight_x, highlight_y,
+                             VO_BLT_SRCTRANSPARENCY, 0);
         } else {
             int highlight_x;
             int highlight_y;
@@ -923,7 +934,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                 highlight_x = menu_x + 0x17;
                 highlight_catalog = 0x32;
             }
-            DrawCatalogImage(-14, highlight_catalog, 0, 0, highlight_x, highlight_y, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, highlight_catalog, 0, 0, highlight_x, highlight_y,
+                             VO_BLT_SRCTRANSPARENCY, 0);
         }
     }
 
@@ -943,30 +955,37 @@ draw_condition_icons:
     if (character->highest_condition != W8_CONDITION_NONE) {
         condition_frame = static_cast<int>(character->highest_condition) + 0xb6;
     }
-    DrawCatalogImage(-14, condition_frame, 0, 0, left_condition_x, menu_y + 3, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, condition_frame, 0, 0, left_condition_x, menu_y + 3,
+                     VO_BLT_SRCTRANSPARENCY, 0);
 
     if (character->enchantment_top != W8_ENCHANTMENT_NONE) {
         enchantment_frame = character->enchantment_top + 0xc9;
     }
-    DrawCatalogImage(-14, enchantment_frame, 0, 0, right_condition_x, menu_y + 3, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, enchantment_frame, 0, 0, right_condition_x, menu_y + 3,
+                     VO_BLT_SRCTRANSPARENCY, 0);
 
     if (party_row->fOccupied && g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         if (g_level_block->condition_hover_party_slot == static_cast<int>(party_slot)) {
-            DrawCatalogImage(-14, 0x60, 0, 0, left_condition_x - 1, menu_y + 2, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x60, 0, 0, left_condition_x - 1, menu_y + 2,
+                             VO_BLT_SRCTRANSPARENCY, 0);
         } else if (character->highest_condition != W8_CONDITION_NONE) {
-            DrawCatalogImage(-14, 0x61, 0, 0, left_condition_x - 1, menu_y + 2, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x61, 0, 0, left_condition_x - 1, menu_y + 2,
+                             VO_BLT_SRCTRANSPARENCY, 0);
         }
 
         if (g_level_block->enchantment_hover_party_slot == static_cast<int>(party_slot)) {
-            DrawCatalogImage(-14, 0x60, 0, 0, right_condition_x - 1, menu_y + 2, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x60, 0, 0, right_condition_x - 1, menu_y + 2,
+                             VO_BLT_SRCTRANSPARENCY, 0);
         } else if (character->highest_condition != W8_CONDITION_NONE) {
-            DrawCatalogImage(-14, 0x61, 0, 0, right_condition_x - 1, menu_y + 2, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x61, 0, 0, right_condition_x - 1, menu_y + 2,
+                             VO_BLT_SRCTRANSPARENCY, 0);
         }
 
         if (g_level_block->name_hover_party_slot == static_cast<int>(party_slot) &&
             (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
              g_level_block->portrait_refresh_pending[party_slot] != 0)) {
-            DrawCatalogImage(-14, 0x62, 0, 0, menu_x + 0x13, menu_y + 0x48, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x62, 0, 0, menu_x + 0x13, menu_y + 0x48,
+                             VO_BLT_SRCTRANSPARENCY, 0);
         }
 
         if ((g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
@@ -987,7 +1006,8 @@ draw_condition_icons:
             } else {
                 goto portrait_fx;
             }
-            DrawCatalogImage(-14, assay_catalog, 0, 0, band_menu_edge + 1, assay_y, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, assay_catalog, 0, 0, band_menu_edge + 1, assay_y,
+                             VO_BLT_SRCTRANSPARENCY, 0);
         }
     }
 
@@ -1013,7 +1033,8 @@ portrait_fx:
             hp_overlay_catalog = 0x65;
             hp_overlay_x = band_portrait_edge;
         }
-        DrawCatalogImage(-14, hp_overlay_catalog, 0, 0, hp_overlay_x, hp_overlay_y, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, hp_overlay_catalog, 0, 0, hp_overlay_x, hp_overlay_y,
+                         VO_BLT_SRCTRANSPARENCY, 0);
     }
 
     if (!gXStatus.fCombatMode && party_slot < 8 && party_row->fOccupied) {
@@ -1267,7 +1288,7 @@ void CreateLevelButtons(void)
 }
 
 // FUNCTION: WIZ8 0x00599210
-void W8ConditionButton::Redraw(unsigned char full_redraw)
+void W8ConditionButton::Redraw(bool full_redraw)
 {
     bool dirty = m_dirty;
     int left;
@@ -1280,16 +1301,18 @@ void W8ConditionButton::Redraw(unsigned char full_redraw)
     if (m_pPanel == 0) {
         return;
     }
-    if (full_redraw == 0 && !dirty) {
+    if (!full_redraw && !dirty) {
         return;
     }
     GetTextOrigin(&left, &top);
     left += 2;
     top += 2;
     if (m_condition == 0) {
-        DrawCatalogImageAndInvalidate(-14, m_image_object + 0xb6, 0, 0, left, top, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, m_image_object + 0xb6, 0, 0, left, top,
+                                      VO_BLT_SRCTRANSPARENCY, 0);
     } else if (m_condition == 1) {
-        DrawCatalogImageAndInvalidate(-14, m_image_object + 0xc9, 0, 0, left, top, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, m_image_object + 0xc9, 0, 0, left, top,
+                                      VO_BLT_SRCTRANSPARENCY, 0);
     }
 }
 

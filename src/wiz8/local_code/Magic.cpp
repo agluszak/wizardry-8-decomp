@@ -169,7 +169,7 @@ bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id)
    cast it, it has to have somewhere to aim, it has to be able to act, and the
    two combat gates have to agree. */
 // FUNCTION: WIZ8 0x004fb0a0
-bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int power_level)
+bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8CombatSlot* combat_slot;
@@ -2848,7 +2848,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     srMatrix3T<float> local_90;
     double yaw;
     double pitch;
-    char disposition;
+    W8Disposition disposition;
     float heading;
     unsigned int caster_figure;
     unsigned int monster_index;
@@ -2930,9 +2930,9 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     ground_point.z = target->point.z;
                     if ((TargetSourceIsCharacter(source, 0) && !source->fBackfire) ||
                         (!TargetSourceIsCharacter(source, 0) && source->fBackfire)) {
-                        disposition = 2;
+                        disposition = W8_DISPOSITION_FRIENDLY;
                     } else {
-                        disposition = 1;
+                        disposition = W8_DISPOSITION_HOSTILE;
                     }
                     heading = HeadingTowardNearestMonster(ground_point, disposition, 0);
                     if (g_octree->FindNavigatorPosition(

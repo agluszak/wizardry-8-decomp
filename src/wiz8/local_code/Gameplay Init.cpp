@@ -326,7 +326,7 @@ void ResetForNewGame(void)
         if (*id != 0xffffffff) {
             ReplaceOrCreateItem(&item, *id, true, true, true);
             item.stack_count = 1;
-            AddItemToParty(&item, 0, false);
+            AddItemToParty(&item, false, false);
         }
         ++id;
     } while (id < g_starting_item_ids + 6);

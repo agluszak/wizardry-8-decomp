@@ -1,3 +1,4 @@
+#include "vsurface.h"
 #include "wiz8/bink_video.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
@@ -48,7 +49,7 @@ unsigned char IntroScreenEnter(void)
     char path[500];
 
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
-    SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
+    SetFontDestBuffer(FRAME_BUFFER, 0, 0, 0x280, 0x1e0, 0);
     ClearSurfaceRect(0, 0, 0x280, 0x1e0);
     if (g_intro_video_index == 0 && g_settings.intro_seen && !g_status.intro_shown) {
         return 1;

@@ -319,7 +319,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
         record = GetMonsterDataForInfo(monster_info);
         best_range = 0;
         for (attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
-            if (RateMonsterAttack(monster_info, record, attack, 0, 0) ==
+            if (RateMonsterAttack(monster_info, record, attack, 0, false) ==
                     W8_MONSTER_ATTACK_OUT_OF_REACH &&
                 best_range < record->attacks[attack].range_category) {
                 best_range = record->attacks[attack].range_category;
@@ -655,7 +655,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         }
         record = GetMonsterDataForInfo(monster_info);
         for (attack = 0; attack < 3; ++attack) {
-            if (RateMonsterAttack(monster_info, record, attack, 0, 0) == 3 &&
+            if (RateMonsterAttack(monster_info, record, attack, 0, false) == 3 &&
                 best_range < record->attacks[attack].range_category) {
                 best_range = record->attacks[attack].range_category;
             }
@@ -848,7 +848,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         monster_info->action_kind =
             backs_off ? W8_MONSTER_ACTION_BACK_OFF : W8_MONSTER_ACTION_APPROACH;
     } else {
-        rating = RateMonsterBestAttack(monster_info, record, 0);
+        rating = RateMonsterBestAttack(monster_info, record, false);
         chance = record->flee_chance;
         if (chance != 0) {
             if (rating != 0) {
@@ -967,7 +967,7 @@ members:
             member->hp_current == 0 || member->highest_condition >= W8_CONDITION_BLIND) {
             continue;
         }
-        if (RateMonsterBestAttack(member, record, 0) == 0) {
+        if (RateMonsterBestAttack(member, record, false) == 0) {
             return true;
         }
         if (record->spell_chance != 0) {
@@ -1076,8 +1076,8 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, bool target_locked, bo
     bool scan_monsters = false;
     unsigned char avoided[8] = {0};
     unsigned char resisted[8] = {0};
-    bool hostile_only;
-    char disposition_needed;
+    bool friendly_targets;
+    W8Disposition disposition_needed;
 
     record = GetMonsterDataForInfo(monster_info);
     if (monster_info->pCombat->plsCombatActionList != 0 &&
@@ -1168,10 +1168,10 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, bool target_locked, bo
         }
     }
 targets_chosen:
-    hostile_only = monster_info->fInCombat && monster_info->pCombat->berserk;
-    disposition_needed = hostile_only + 1;
+    friendly_targets = monster_info->fInCombat && monster_info->pCombat->berserk;
+    disposition_needed = friendly_targets ? W8_DISPOSITION_FRIENDLY : W8_DISPOSITION_HOSTILE;
     for (attack = attack_lo; attack < attack_hi; ++attack) {
-        if (RateMonsterAttack(monster_info, record, attack, 1, hostile_only) != 0) {
+        if (RateMonsterAttack(monster_info, record, attack, 1, friendly_targets) != 0) {
             continue;
         }
         if (scan_chars && monster_info->player_visibility.los_flags[RangeCategoryUsesSightCondition(
@@ -2215,7 +2215,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, bool party_only,
     unsigned int index;
     W8MonsterInfo* other;
     W8VisibilityRecord* record;
-    char disposition;
+    W8Disposition disposition;
 
     if (within_reach) {
         reach = CalcRangeDistance(GetMonsterBestRangeCategory(monster_info, true, &sight)) +

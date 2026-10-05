@@ -491,8 +491,8 @@ void SplitStackDialogResult(W8DialogBase* dialog)
             }
         }
         if (destination == 0 &&
-            (character == 0 || !AddItemToCharacter(character, &split, 0, 0, false)) &&
-            !AddItemToParty(&split, 0, false)) {
+            (character == 0 || !AddItemToCharacter(character, &split, false, false, false)) &&
+            !AddItemToParty(&split, false, false)) {
             ShowCampNoticeLine(gppStringList[0x915], 0, true, false);
             g_status.item_in_hand.stack_count = remaining;
             if (ResolvePendingCampCharacter(true) && DropItemInHand(0)) {
@@ -661,7 +661,7 @@ void UnequipBothHands(void)
     BindEquippedItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON);
     if (CanUnequipSlotItem(character, W8_EQUIP_SLOT_PRIMARY_WEAPON) &&
         CanUnequipSlotItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON)) {
-        SwapWeaponSetSlots(giReviewCharSlot, 0, true);
+        SwapWeaponSetSlots(giReviewCharSlot, false, true);
         g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT;
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;

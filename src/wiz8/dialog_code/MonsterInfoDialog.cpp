@@ -484,7 +484,7 @@ void W8MonsterInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int firs
         right = left + 0x10e;
         bottom = top + 0xb9;
         InvalidateRegion(left, top, right, bottom, 0);
-        BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
+        BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
         dialog->m_text_area.m_dirty = true;
     }
 }

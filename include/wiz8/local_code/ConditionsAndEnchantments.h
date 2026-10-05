@@ -25,7 +25,7 @@ extern unsigned short g_condition_notices[128];
 
 void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announce);
 void SetMonsterCondition(int location_id, W8Condition condition, int duration, int argument,
-                         W8TargetSource* target, char announce);
+                         W8TargetSource* target, bool announce);
 void ClearMonsterCondition(int location_id, W8Condition condition);
 void ClearMonsterEnchantmentSlot(int location_id, W8EnchantmentSlot slot);
 void ClearCharacterEnchantmentSlot(int party_slot, W8EnchantmentSlot slot);

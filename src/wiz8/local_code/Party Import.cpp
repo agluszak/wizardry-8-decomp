@@ -572,10 +572,10 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                     }
                     ReplaceOrCreateItem(&item, item_index, true, true, true);
                     if (g_item_records[item_index].binds_on_equip == 0) {
-                        StoreItemWithCharacterOrParty(character, &item, 0, 0,
+                        StoreItemWithCharacterOrParty(character, &item, false, false,
                                                       static_cast<unsigned int>(slot == 0));
                     } else {
-                        AddItemToCharacter(character, &item, 0, 0, false);
+                        AddItemToCharacter(character, &item, false, false, false);
                     }
                 }
             }
@@ -612,9 +612,9 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                 item_index = FindItemByLegacyNumber(candidates[slot][best_index].item_number);
                 ReplaceOrCreateItem(&item, item_index, true, true, true);
                 if (g_item_records[item_index].binds_on_equip == 0) {
-                    StoreItemWithCharacterOrParty(character, &item, 0, 0, 1);
+                    StoreItemWithCharacterOrParty(character, &item, false, false, true);
                 } else {
-                    AddItemToCharacter(character, &item, 0, 0, false);
+                    AddItemToCharacter(character, &item, false, false, false);
                 }
                 --maximum[slot];
                 candidates[slot][best_index] = empty_item;
@@ -634,7 +634,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
             if (equip_slot == W8_EQUIP_SLOT_NONE) {
                 if (FindCharacterItemByDatabaseKind(
                         character, g_item_records[item_id].unidentified_name_index, 0, 2) == 0) {
-                    AddItemToCharacter(character, &item, 1, 0, false);
+                    AddItemToCharacter(character, &item, true, false, false);
                 }
             } else {
                 if (equip_slot == W8_EQUIP_SLOT_PRIMARY_WEAPON &&
@@ -642,7 +642,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                     equip_slot = W8_EQUIP_SLOT_SECONDARY_WEAPON;
                 }
                 if (character->EquippedItem[equip_slot].iItemNo == -1) {
-                    AddItemToCharacter(character, &item, 1, 0, false);
+                    AddItemToCharacter(character, &item, true, false, false);
                 }
             }
         }
@@ -665,7 +665,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
         }
         if (give != -1) {
             ReplaceOrCreateItem(&item, give, true, true, true);
-            AddItemToCharacter(character, &item, 1, 0, false);
+            AddItemToCharacter(character, &item, true, false, false);
         }
     }
     RebuildEquipmentAndDerivedStats(character);

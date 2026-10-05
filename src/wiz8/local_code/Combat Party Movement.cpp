@@ -134,7 +134,7 @@ void ClearPendingPartyMovement(int excluded_party_slot)
     g_combat_state->uiNextPartyAction = W8_PARTY_ACTION_NONE;
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         if (party_slot != excluded_party_slot &&
-            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
+            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false)) {
             RefreshCombatTargetHighlights(party_slot,
                                           &g_status.buffers.XChar[party_slot].target_in_combat);
         }

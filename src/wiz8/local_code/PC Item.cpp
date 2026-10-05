@@ -1469,19 +1469,19 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
    and the party pool is tried first; the other is tried after, and then the
    first again, so a full destination never loses the item. */
 // FUNCTION: WIZ8 0x0051c280
-bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item, char party_first,
-                                   int arg_4, int arg_5)
+bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item, bool party_first,
+                                   bool announce, bool equip_if_possible)
 {
     if (!party_first) {
-        if (AddItemToCharacter(character, item, arg_5, arg_4, false)) {
+        if (AddItemToCharacter(character, item, equip_if_possible, announce, false)) {
             return true;
         }
     }
-    if (AddItemToParty(item, arg_4, false)) {
+    if (AddItemToParty(item, announce, false)) {
         return true;
     }
     if (party_first) {
-        if (AddItemToCharacter(character, item, arg_5, arg_4, false)) {
+        if (AddItemToCharacter(character, item, equip_if_possible, announce, false)) {
             return true;
         }
     }
@@ -1493,8 +1493,8 @@ bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item,
    slot is used. The source item is consumed only after a destination accepts
    it, so the caller can still fall back to the party pool on failure. */
 // FUNCTION: WIZ8 0x0051c300
-bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip_if_possible,
-                        char announce, bool skip_stacking)
+bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, bool equip_if_possible,
+                        bool announce, bool skip_stacking)
 {
     W8ItemInstance* stored_item = 0;
     unsigned int stored_index = 0;
@@ -1703,7 +1703,7 @@ void StashDepartingCharacterItems(W8Character* character)
             (g_item_records[item_id].binds_on_equip == 0 || item->bind_announced ||
              g_equip_slot_icons[equip_slot] == -1 ||
              character->uiCondition[W8_CONDITION_DEAD] != 0) &&
-            !AddItemToParty(item, 0, false)) {
+            !AddItemToParty(item, false, false)) {
             DropUnstoredCharacterItem(item);
             ShowNoticef(W8_FONT_PALETTE_RED, gppStringList[0x7d3], &g_item_records[item_id]);
         }
@@ -1712,7 +1712,7 @@ void StashDepartingCharacterItems(W8Character* character)
     for (int slot = 0; slot < 8; ++slot) {
         W8ItemInstance* item = &character->backpack[slot];
         item_id = character->EquippedItem[slot].iItemNo;
-        if (item_id != -1 && !AddItemToParty(item, 0, false)) {
+        if (item_id != -1 && !AddItemToParty(item, false, false)) {
             DropUnstoredCharacterItem(item);
             ShowNoticef(W8_FONT_PALETTE_RED, gppStringList[0x7d3], &g_item_records[item_id]);
         }
@@ -1752,7 +1752,7 @@ void ReleaseGenericItemNames(void)
    doubles as the result the way the compiled body reads it, so a failed
    party-first attempt still reports success. */
 // FUNCTION: WIZ8 0x0051ba00
-unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_first)
+unsigned char GiveHeldItemToCharacterOrParty(int uiChar, bool party_first)
 {
     W8ItemInstance* item = &g_status.item_in_hand;
     unsigned char stored = party_first;
@@ -1794,11 +1794,11 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
 
     if (IsPartySlotEligible(uiChar)) {
         W8Character* character = &g_status.buffers.Char[uiChar];
-        if (StoreItemWithCharacterOrParty(character, item, party_first, 1, 0)) {
+        if (StoreItemWithCharacterOrParty(character, item, party_first, true, false)) {
             stored = 1;
         }
     } else if (stored) {
-        stored = AddItemToParty(item, 1, false);
+        stored = AddItemToParty(item, true, false);
     }
 
     gXStatus.held_item_source = -1;
@@ -1838,13 +1838,13 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item, bool 
         if (!party_first) {
             return 0;
         }
-        stored = AddItemToParty(item, 1, false);
+        stored = AddItemToParty(item, true, false);
         if (!stored) {
             return 0;
         }
     } else {
         W8Character* character = &g_status.buffers.Char[uiChar];
-        stored = StoreItemWithCharacterOrParty(character, item, party_first, 1, 0);
+        stored = StoreItemWithCharacterOrParty(character, item, party_first, true, false);
         if (!stored) {
             return 0;
         }
@@ -1857,13 +1857,13 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item, bool 
 /* Drop whatever is in hand, unless it is one of the items that may not be
    discarded - in which case say so instead. */
 // FUNCTION: WIZ8 0x0051be50
-bool DropItemInHand(int arg_1)
+bool DropItemInHand(int unused)
 {
     if ((g_item_records[g_status.item_in_hand.iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) != 0) {
         ShowNoticeLine(gppStringList[0x4ef], 0, true, false);
         return false;
     }
-    DropHeldItem(arg_1);
+    DropHeldItem(unused);
     return true;
 }
 
@@ -1880,7 +1880,7 @@ void CreateItemIntoHandOrPool(int item_id, bool quality)
     ClearHeldItemDisplay();
     ReplaceOrCreateItem(&created, item_id, true, quality, false);
     if (g_status.item_in_cursor) {
-        AddItemToParty(&created, 0, false);
+        AddItemToParty(&created, false, false);
         return;
     }
     CopyItemInstance(&g_status.item_in_hand, &created, 0, true);
@@ -2613,7 +2613,7 @@ void BindEveryPartyItem(void)
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (!g_status.buffers.XChar[party_slot].item_action_pending) {
-            BindCharacterItems(party_slot, 0);
+            BindCharacterItems(party_slot, false);
         }
     }
     ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x1ed]);
@@ -3015,7 +3015,8 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character, 
         if (gXStatus.fCombatMode) {
             W8ActionKind action = row->action;
             if (action == W8_ACTION_ATTACK || action == W8_ACTION_BERSERK) {
-                if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
+                if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, true,
+                                          false)) {
                     AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
                 } else if (!TargetIsInPlay(party_slot, 2, W8_TARGETING_CONTEXT_IN_COMBAT)) {
                     RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
@@ -3357,7 +3358,7 @@ char InsertItemIntoPartyPool(W8ItemInstance* item, int index)
 }
 
 // FUNCTION: WIZ8 0x00521ef0
-bool AddItemToParty(W8ItemInstance* item, unsigned char announce, bool skip_stacking)
+bool AddItemToParty(W8ItemInstance* item, bool announce, bool skip_stacking)
 {
     wchar_t* display_name = FormatItemDisplayName(item, true);
     unsigned char partially_merged = 0;
@@ -3469,8 +3470,8 @@ void UnequipUnusableItems(W8Character* character)
         destination.identified = false;
         RefreshAfterItemRecordChange(&destination, 0, true);
         SwapItemInstances(item, &destination, character, true);
-        if (!AddItemToCharacter(character, &destination, 0, 0, false)) {
-            AddItemToParty(&destination, 0, false);
+        if (!AddItemToCharacter(character, &destination, false, false, false)) {
+            AddItemToParty(&destination, false, false);
         }
     }
 }
@@ -4005,8 +4006,8 @@ void UpgradeProfessionClassItem(W8Character* character)
             return;
         }
         ReplaceOrCreateItem(&created, 599, false, true, true);
-        if (!AddItemToCharacter(character, &created, 0, 1, false) &&
-            !AddItemToParty(&created, 1, false)) {
+        if (!AddItemToCharacter(character, &created, false, true, false) &&
+            !AddItemToParty(&created, true, false)) {
             return;
         }
         PostCharacterNotice(
@@ -4143,7 +4144,7 @@ unsigned char RemovePartyItemByID(int item_id, bool remove_all)
    has been announced; and an item that cannot be held together with what is
    already there is left where it is, with the pair swapping around it. */
 // FUNCTION: WIZ8 0x0051d3b0
-unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh)
+unsigned char SwapWeaponSetSlots(int party_slot, bool announce, bool refresh)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     int notice_context = gXStatus.fNpcDialogueMode ? 0 : -1;
@@ -4217,7 +4218,7 @@ unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh)
    chosen. Otherwise the weapon sets swap, the row's one-shot flag clears, and
    the portraits redraw. */
 // FUNCTION: WIZ8 0x0051d2c0
-void BindCharacterItems(int party_slot, int arg_2)
+void BindCharacterItems(int party_slot, bool announce)
 {
     if (gXStatus.fCombatMode) {
         if (!g_combat_state->round_active && !gXStatus.fPartyMovementMode) {
@@ -4234,7 +4235,7 @@ void BindCharacterItems(int party_slot, int arg_2)
     }
 
     if (IsPartySlotEligible(party_slot)) {
-        if (SwapWeaponSetSlots(party_slot, static_cast<char>(arg_2), true) != 0) {
+        if (SwapWeaponSetSlots(party_slot, announce, true) != 0) {
             g_status.buffers.XChar[party_slot].weapon_swap_pending = false;
         }
     }

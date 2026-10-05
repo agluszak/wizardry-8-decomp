@@ -185,7 +185,7 @@ void CreditsScreenFrame(void)
         return;
     }
 
-    DrawCatalogImage(-14, 0xe9, 0, 0, 0, 0, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, 0xe9, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
     int y = g_credit_y;
     for (int index = g_credit_line; index < g_credit_lines->GetCount() && y <= 0x1df; ++index) {
         const W8CreditLine* entry = g_credit_lines->GetAt(index);

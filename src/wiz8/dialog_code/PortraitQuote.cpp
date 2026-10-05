@@ -662,7 +662,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         SetFontDestBuffer(bubble->surface, 0, 0, width_px, height_px, 0);
         DrawWrappedText(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1, colour, text,
                         0, 0, 1);
-        SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
+        SetFontDestBuffer(FRAME_BUFFER, 0, 0, 0x280, 0x1e0, 0);
         SetFontForeground(2);
         if (quote_handle == -1 && bubble != 0) {
             index = 0;

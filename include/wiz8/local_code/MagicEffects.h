@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/local_code/Factions.h"
+
 #include "wiz8/layouts/gameplay_databases.h"
 
 #include "wiz8/monster_spell_icons.h"
@@ -39,8 +41,8 @@ void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, W8SpellR
    unit. GroupAttacks.cpp's call sites need the declaration. */
 bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
                            W8Condition condition_id, W8SpellRealm realm, unsigned int power_level,
-                           int argument, int magnitude, char announce_resistance,
-                           char announce_condition, int duration);
+                           int argument, int magnitude, bool announce_resistance,
+                           bool announce_condition, int duration);
 /* 0x005520D0: the saving throw against a condition. A dead target is beyond
    reach and counts as resisting. */
 bool TargetResistsCondition(W8CombatSlot* target, W8SpellRealm realm, unsigned int power_level,
@@ -49,7 +51,7 @@ bool TargetResistsCondition(W8CombatSlot* target, W8SpellRealm realm, unsigned i
    is part of the call but nothing in the body reads it. */
 char InflictConditionOnTarget(W8CombatSlot* target, W8Condition condition_id, W8SpellRealm realm,
                               unsigned int power_level, int argument, unsigned int magnitude,
-                              int source_character, int duration, char announce);
+                              int source_character, int duration, bool announce);
 /* Each scales the value by seven fifths or three fifths on the easy and hard settings and leaves
    it alone on normal; which way round depends on the character's condition
    thirteen or the monster's allegiance flag. */
@@ -77,7 +79,8 @@ unsigned int GetTargetConditionTurns(W8SpellEffectEntry* effect, W8Condition con
 /* 0x0054FF20: heading from a world point toward the nearest live monster, or
    the camera-facing yaw for a hostile disposition - also the fallback when
    no monster is near. */
-float HeadingTowardNearestMonster(srVector3T<float> point, char disposition, int exclusion);
+float HeadingTowardNearestMonster(srVector3T<float> point, W8Disposition disposition,
+                                  int exclusion);
 
 /* 0x0060CFF8: eight bytes per effect id; the leading dword names the HUD
    effect icon and the second the monster visual resource, -1 means none. */

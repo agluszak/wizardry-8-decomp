@@ -689,7 +689,7 @@ unsigned char AutomapScreenEnter(void)
     SetPrimarySurfaceTextureHint2Enabled(false);
     ClearSurfaceRect(0, 0, 640, 480);
     DisableCursorScene();
-    DrawCatalogImageAndInvalidate(-14, 0x14a, 0, 0, 0, 0, 2, 0);
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x14a, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
     UpdateAutomapPageButtons();
     for (int button = 0; button < 16; ++button) {
         if (g_automap_buttons[button]) {

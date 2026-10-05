@@ -1157,12 +1157,12 @@ unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* rec
 
     for (index = 0; index < 12; ++index) {
         if (character->EquippedItem[index].iItemNo != -1) {
-            AddItemToParty(&character->EquippedItem[index], 0, false);
+            AddItemToParty(&character->EquippedItem[index], false, false);
         }
     }
     for (index = 0; index < 8; ++index) {
         if (character->backpack[index].iItemNo != -1) {
-            AddItemToParty(&character->backpack[index], 0, false);
+            AddItemToParty(&character->backpack[index], false, false);
         }
     }
     RemoveCharacterFromParty(slot, false);

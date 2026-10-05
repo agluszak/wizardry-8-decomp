@@ -177,7 +177,7 @@ void TryGiveHeldItemToCampPortrait(int slot)
     if (!IsCampActionAllowed(slot)) {
         return;
     }
-    AddItemToCharacter(character, &g_status.item_in_hand, 0, 0, false);
+    AddItemToCharacter(character, &g_status.item_in_hand, false, false, false);
 }
 
 // FUNCTION: WIZ8 0x005b6d20
@@ -217,7 +217,7 @@ void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
     W8TextBuffer buffer(&bounds, text, g_wiz_text_font_secondary, layout_mode, 4);
-    buffer.RenderToTarget(0, false, -14);
+    buffer.RenderToTarget(0, false, FRAME_BUFFER);
 }
 
 // FUNCTION: WIZ8 0x005b6e90
@@ -225,7 +225,7 @@ void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
     W8TextBuffer buffer(&bounds, text, g_wiz_text_bold_font, layout_mode, 4);
-    buffer.RenderToTarget(0, false, -14);
+    buffer.RenderToTarget(0, false, FRAME_BUFFER);
 }
 
 // FUNCTION: WIZ8 0x005b6f30
@@ -233,7 +233,7 @@ void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned
 {
     W8ControlsRect bounds = {left, top, left + width, top + 18};
     W8TextBuffer buffer(&bounds, text, g_wiz_text_font_secondary, layout_mode, 4);
-    buffer.RenderToTarget(0, false, -14);
+    buffer.RenderToTarget(0, false, FRAME_BUFFER);
 }
 
 /* Draws text honoring the same layout mask pairs as the buffered variants
@@ -308,7 +308,7 @@ unsigned char CampDismissPortraitRegionEvent(const InputAtom* event, W8Region* r
 unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* region)
 {
     int us_event = event->usEvent;
-    unsigned int target_slot = region->callback_id;
+    int target_slot = region->callback_id;
 
     if (us_event <= RIGHT_BUTTON_DOWN) {
         if (region->CaptureButtonDown(us_event)) {
@@ -323,14 +323,13 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                 if (g_camp_screen->page != W8_CAMP_PAGE_ITEMS ||
                     (g_camp_screen->item_action != W8_CAMP_ITEM_ACTION_CAST_SPELL &&
                      g_camp_screen->item_action != W8_CAMP_ITEM_ACTION_USE_ON_CHARACTER)) {
-                    if (!CanPartySlotParticipate(static_cast<int>(target_slot))) {
+                    if (!CanPartySlotParticipate(target_slot)) {
                         QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
                                             g_character_event_kind2, 0, g_character_event_no_flags,
                                             g_character_event_full_volume);
                         return 1;
                     }
-                    AimAtCharacter(giReviewCharSlot, static_cast<int>(target_slot),
-                                   W8_TARGETING_CONTEXT_CURRENT);
+                    AimAtCharacter(giReviewCharSlot, target_slot, W8_TARGETING_CONTEXT_CURRENT);
                     StartBreathCycle(giReviewCharSlot, false);
                     return 1;
                 }
@@ -339,24 +338,24 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                         TargetCharacterWithHeldItem(target_slot);
                         return 1;
                     }
-                    ReportCastResult(static_cast<int>(target_slot));
+                    ReportCastResult(target_slot);
                     return 1;
                 }
             } else {
                 if (gXStatus.iTargetingMode == W8_TARGET_NEED_CHARACTER_INDIRECT) {
-                    if (!IsDeadCharacterTargetable(static_cast<int>(target_slot))) {
+                    if (!IsDeadCharacterTargetable(target_slot)) {
                         QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
                                             g_character_event_kind2, 0, g_character_event_no_flags,
                                             g_character_event_full_volume);
                         return 1;
                     }
-                    AimAtCharacterIndirect(giReviewCharSlot, static_cast<int>(target_slot),
+                    AimAtCharacterIndirect(giReviewCharSlot, target_slot,
                                            W8_TARGETING_CONTEXT_CURRENT);
                     StartBreathCycle(giReviewCharSlot, false);
                     return 1;
                 }
-                if (giReviewCharSlot != static_cast<int>(target_slot)) {
-                    SelectCampCharacter(static_cast<int>(target_slot));
+                if (giReviewCharSlot != target_slot) {
+                    SelectCampCharacter(target_slot);
                     return 1;
                 }
             }
@@ -372,16 +371,16 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                      g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_USE_ON_CHARACTER) &&
                     g_status.buffers.Char[target_slot].uiCondition[W8_CONDITION_MISSING] == 0) {
                     if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                        UpdateItemCursorForState(1, 0, static_cast<int>(target_slot));
+                        UpdateItemCursorForState(1, 0, target_slot);
                         return 0;
                     }
-                    UpdateItemCursorForState(0, 0, static_cast<int>(target_slot));
+                    UpdateItemCursorForState(0, 0, target_slot);
                 }
             }
             return 0;
         }
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && g_status.item_in_cursor) {
-            TryGiveHeldItemToCampPortrait(static_cast<int>(target_slot));
+            TryGiveHeldItemToCampPortrait(target_slot);
         }
     }
     return 1;
@@ -828,7 +827,7 @@ void DrawCampHeader(void)
         if ((state->redraw_flags & 0x7ff) != 0) {
             InvalidateRegion(0, 0, 0x136, 0xa5, 0);
             ColorFillVideoSurfaceArea(0xfffffff2, 0, 0, 0x136, 0xa5, 0x8000);
-            DrawCatalogImage(-14, 0x123, 0, 0, 0, 0, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x123, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
             DrawRcsText(gppStringList[0x8c2], 0xb, 0xd, 0x11e,
                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
             row = 0;
@@ -859,34 +858,36 @@ void DrawCampHeader(void)
     if ((state->redraw_flags & 0x400) != 0) {
         InvalidateRegion(0, 0, 0x136, 0xa5, 0);
         ColorFillVideoSurfaceArea(0xfffffff2, 0, 0, 0x136, 0xa5, 0x8000);
-        DrawCatalogImage(-14, 0x10f, 0, 0, 0, 0, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x10f, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
     }
     if ((state->redraw_flags & W8_CAMP_REDRAW_PORTRAIT) != 0) {
         if (character->hp_current == 0) {
-            DrawCatalogImage(-14, g_dead_portrait_catalog_ids[character->iRace][1], 0, 0, 0xa4, 0xc,
-                             2, 0);
+            DrawCatalogImage(FRAME_BUFFER, g_dead_portrait_catalog_ids[character->iRace][1], 0, 0,
+                             0xa4, 0xc, VO_BLT_SRCTRANSPARENCY, 0);
         } else {
             RenderPartyPortrait(character->portrait_index, 0xa4, 0xc, 2, 1, giReviewCharSlot);
         }
-        DrawCatalogImage(-14, 0x10f, 0, 9, 0xa4, 0xc, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x10f, 0, 9, 0xa4, 0xc, VO_BLT_SRCTRANSPARENCY, 0);
         if (state->portrait_hovered[0] != 0) {
-            DrawCatalogImage(-14, 0x116, 0, 0, 0xa4, 0xc, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x116, 0, 0, 0xa4, 0xc, VO_BLT_SRCTRANSPARENCY, 0);
         }
         if (!gXStatus.fCombatMode) {
             RedrawRcsLevelUpPanel();
             RedrawRcsDismissPanel();
         }
         if (character->highest_condition == W8_CONDITION_NONE) {
-            DrawCatalogImage(-14, 0x2f, 0, 0, 0xa5, 0xe, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x2f, 0, 0, 0xa5, 0xe, VO_BLT_SRCTRANSPARENCY, 0);
         } else {
-            DrawCatalogImage(-14, character->highest_condition + 0xb6, 0, 0, 0xa5, 0xe, 2, 0);
-            DrawCatalogImage(-14, 0x61, 0, 0, 0xa4, 0xd, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, character->highest_condition + 0xb6, 0, 0, 0xa5, 0xe,
+                             VO_BLT_SRCTRANSPARENCY, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x61, 0, 0, 0xa4, 0xd, VO_BLT_SRCTRANSPARENCY, 0);
         }
         if (character->enchantment_top == W8_ENCHANTMENT_NONE) {
-            DrawCatalogImage(-14, 0x30, 0, 0, 0xee, 0xe, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x30, 0, 0, 0xee, 0xe, VO_BLT_SRCTRANSPARENCY, 0);
         } else {
-            DrawCatalogImage(-14, character->enchantment_top + 0xc9, 0, 0, 0xee, 0xe, 2, 0);
-            DrawCatalogImage(-14, 0x61, 0, 0, 0xed, 0xd, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, character->enchantment_top + 0xc9, 0, 0, 0xee, 0xe,
+                             VO_BLT_SRCTRANSPARENCY, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0x61, 0, 0, 0xed, 0xd, VO_BLT_SRCTRANSPARENCY, 0);
         }
         InvalidateRegion(0xa4, 0xc, 0xfe, 0x54, 1);
         DrawCampVitals();
@@ -938,7 +939,8 @@ void DrawCampHeader(void)
             left = band_x + 6;
             top = band_y + 5;
             if (giReviewCharSlot == -1 || !g_status.buffers.XChar[slot].fOccupied) {
-                DrawCatalogImage(-14, 0x10f, 0, slot + 1, band_x + 5, band_y + 4, 2, 0);
+                DrawCatalogImage(FRAME_BUFFER, 0x10f, 0, slot + 1, band_x + 5, band_y + 4,
+                                 VO_BLT_SRCTRANSPARENCY, 0);
             } else {
                 W8Character* member = &g_status.buffers.Char[slot];
                 if (member->hp_current == 0) {
@@ -948,15 +950,18 @@ void DrawCampHeader(void)
                     sub_image = member->portrait_index;
                     image = 0x13;
                 }
-                DrawCatalogImage(-14, image, sub_image, 0, left, top, 2, 0);
+                DrawCatalogImage(FRAME_BUFFER, image, sub_image, 0, left, top,
+                                 VO_BLT_SRCTRANSPARENCY, 0);
                 if (!CanSelectRcsPartySlot(slot)) {
                     ShadowVideoSurfaceRect(0xfffffff2, left, top, band_x + 0x32, band_y + 0x28);
                     ShadowVideoSurfaceRect(0xfffffff2, left, top, band_x + 0x32, band_y + 0x28);
                 }
                 if (state->hover_region == slot + 0xea) {
-                    DrawCatalogImage(-14, 0x117, 0, 0, left, top, 2, 0);
+                    DrawCatalogImage(FRAME_BUFFER, 0x117, 0, 0, left, top, VO_BLT_SRCTRANSPARENCY,
+                                     0);
                 } else if (static_cast<int>(slot) == giReviewCharSlot) {
-                    DrawCatalogImage(-14, 0x117, 0, 1, left, top, 2, 0);
+                    DrawCatalogImage(FRAME_BUFFER, 0x117, 0, 1, left, top, VO_BLT_SRCTRANSPARENCY,
+                                     0);
                 }
             }
             InvalidateRegion(left, top, band_x + 0x33, band_y + 0x29, 0);
@@ -994,7 +999,7 @@ void DrawCampVitals(void)
     } else {
         image = 3;
     }
-    DrawCatalogImage(-14, 0x80, 0, image, 0x10c, 0xb, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, 0x80, 0, image, 0x10c, 0xb, VO_BLT_SRCTRANSPARENCY, 0);
     if (g_review_character->hp_current == 0) {
         return;
     }
@@ -1040,18 +1045,21 @@ void DrawCampVitals(void)
         spell_fill = spell_left * 0x2d / SumCharacterSpellPoints(g_review_character);
     }
     bar_top = frame_column + 0xb;
-    DrawCatalogImage(-14, hp_frame, 0, 0, hp_row + 0x10c, bar_top, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, hp_frame, 0, 0, hp_row + 0x10c, bar_top, VO_BLT_SRCTRANSPARENCY,
+                     0);
     gap = 0x2d - hp_fill;
     if (gap != 0) {
         ShadeStatusBarGap(gap, hp_row + 0x10c, frame_column - numeric + 0xb);
     }
-    DrawCatalogImage(-14, stamina_frame, 0, 0, stamina_row + 0x10c, bar_top, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, stamina_frame, 0, 0, stamina_row + 0x10c, bar_top,
+                     VO_BLT_SRCTRANSPARENCY, 0);
     gap = 0x2d - stamina_fill;
     if (gap != 0) {
         ShadeStatusBarGap(gap, stamina_row + 0x10c, frame_column - numeric + 0xb);
     }
     if (SumCharacterSpellPoints(g_review_character) != 0) {
-        DrawCatalogImage(-14, spell_frame, 0, 0, spell_column + 0x10c, bar_top, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, spell_frame, 0, 0, spell_column + 0x10c, bar_top,
+                         VO_BLT_SRCTRANSPARENCY, 0);
         gap = 0x2d - spell_fill;
         if (gap != 0) {
             ShadeStatusBarGap(gap, spell_column + 0x10c, frame_column - numeric + 0xb);
@@ -1071,7 +1079,7 @@ void DrawCampVitals(void)
     text->SetText(
         gppStringList[g_profession_name_message_ids[g_review_character->iProfession + 0x10]],
         g_smfnt_font);
-    text->RenderToTarget(0, false, -14);
+    text->RenderToTarget(0, false, FRAME_BUFFER);
     if (g_settings.numeric_hit_points != 0) {
         bounds.left = 0x10e;
         bounds.right = 0x120;
@@ -1081,7 +1089,7 @@ void DrawCampVitals(void)
         text->SetFontStateIndex(-1);
         formatted = FormatWideString(g_format_d, g_review_character->hp_current);
         text->SetText(formatted, g_smfnt_font);
-        text->RenderToTarget(0, false, -14);
+        text->RenderToTarget(0, false, FRAME_BUFFER);
     }
     InvalidateRegion(0x10c, bar_top, 0x124, frame_column + 0x38, 0);
     delete text;
@@ -1109,14 +1117,15 @@ void DrawCampHands(void)
         two_handed = true;
         hand_image = 2;
     }
-    DrawCatalogImage(-14, 0x80, 0, hand_image, 0x81, 0xb, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, 0x80, 0, hand_image, 0x81, 0xb, VO_BLT_SRCTRANSPARENCY, 0);
     item_id = g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
     if (item_id == -1) {
-        DrawCatalogImage(-14, g_empty_hand_catalog_ids[g_review_character->iRace * W8_RACE_DWARF],
-                         0, 0, 0x85, 0x22, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER,
+                         g_empty_hand_catalog_ids[g_review_character->iRace * W8_RACE_DWARF], 0, 0,
+                         0x85, 0x22, VO_BLT_SRCTRANSPARENCY, 0);
     } else {
-        DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2, 0x84,
-                         0x22, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2,
+                         0x84, 0x22, VO_BLT_SRCTRANSPARENCY, 0);
         count = g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].stack_count;
         if (count != 0) {
             swprintf(text, g_format_d, count);
@@ -1130,11 +1139,12 @@ void DrawCampHands(void)
         item_id = g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo;
         if (item_id == -1) {
             DrawCatalogImage(
-                -14, g_empty_hand_catalog_ids[g_review_character->iRace * W8_RACE_DWARF + 1], 0, 0,
-                0x85, 0x3a, 2, 0);
+                FRAME_BUFFER,
+                g_empty_hand_catalog_ids[g_review_character->iRace * W8_RACE_DWARF + 1], 0, 0, 0x85,
+                0x3a, VO_BLT_SRCTRANSPARENCY, 0);
         } else {
-            DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2, 0x84,
-                             0x3a, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, g_item_video_objects.GetOrCreateVideoObject(item_id), 0,
+                             2, 0x84, 0x3a, VO_BLT_SRCTRANSPARENCY, 0);
             count = g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].stack_count;
             if (count != 0) {
                 swprintf(text, g_format_d, count);

@@ -2146,7 +2146,7 @@ void UpdateNpcEvents(void)
             index = MonsterGetIndexByLocationID(0xc17, NPC_MANAGER_CPP, group->leader_location_id,
                                                 true);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
-            MonsterStartsDying(monster_info, 1);
+            MonsterStartsDying(monster_info, true);
         }
         g_status.savant_hack_tick = 0;
         g_status.bela_cycle_tick = GetTickCount();

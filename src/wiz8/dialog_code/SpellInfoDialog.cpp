@@ -139,8 +139,8 @@ void W8SpellInfoDialog::Draw()
         animation = &g_spell_realm_animations[realm];
         m_animation_frame += steps;
         m_animation_frame %= animation->frame_count;
-        DrawCatalogImageAndInvalidate(-0xe, animation->image, 0, m_animation_frame, m_x + 0xe,
-                                      m_y + 0xe, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, animation->image, 0, m_animation_frame,
+                                      m_x + 0xe, m_y + 0xe, VO_BLT_SRCTRANSPARENCY, 0);
     }
 }
 
@@ -343,7 +343,7 @@ void W8SpellInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_
         right = left + 0x10e;
         bottom = top + 0xb9;
         InvalidateRegion(left, top, right, bottom, 0);
-        BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
+        BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
         dialog->m_text_area.m_dirty = true;
     }
 }

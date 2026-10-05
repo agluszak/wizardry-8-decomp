@@ -48,9 +48,9 @@ void AimAtCharacter(int actor, int character_slot, W8TargetingContext context); 
 void AimAtCharacterIndirect(int actor, int character_slot,
                             W8TargetingContext context); /* 0x005386C0 */
 void AimAtMonsterLocation(int party_slot, int location_id,
-                          int allow_single_target); /* 0x00537950 */
-void AimAtPlace(int actor);                         /* 0x00538710 */
-void AimAtGroundTarget(int party_slot);             /* 0x00538770 */
+                          bool allow_single_target); /* 0x00537950 */
+void AimAtPlace(int actor);                          /* 0x00538710 */
+void AimAtGroundTarget(int party_slot);              /* 0x00538770 */
 /* 0x0053C130: raise or clear per-monster highlight bits for a party slot. */
 void UpdateSlotMonsterHighlights(int party_slot, bool enable);
 void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
@@ -101,8 +101,8 @@ bool IsTargetStillPresent(const W8CombatSlot* target);
 bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* group,
                                   W8TargetingContext context);
 
-bool CanTargetMonster(int party_slot, int location_id, int allow_single_target,
-                      int reason);                                 /* 0x00536AD0 */
+bool CanTargetMonster(int party_slot, int location_id, bool allow_single_target,
+                      bool notify_failure);                        /* 0x00536AD0 */
 bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group); /* 0x00536D60 */
 void ClearSlotTargeting(int party_slot);                           /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's

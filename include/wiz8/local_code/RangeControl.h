@@ -89,7 +89,7 @@ public:
                            int render_arg_0, int render_arg_1, int background_sprite,
                            int normal_thumb_sprite, int hovered_thumb_sprite,
                            int disabled_thumb_sprite);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     void UpdatePixelPosition();
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;
@@ -98,8 +98,8 @@ public:
     virtual void OnMouseMove(int event) override;
 
 protected:
-    int m_renderArg0; /* 0x34 */
-    int m_renderArg1;
+    int m_catalogObject; /* 0x34 */
+    int m_catalogFrame;
     int m_backgroundSprite;
     int m_normalThumbSprite;
     int m_hoveredThumbSprite;

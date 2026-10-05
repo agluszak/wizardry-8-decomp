@@ -114,16 +114,16 @@ unsigned char DrawMainMenuItem(short item, short state)
 
     switch (state) {
     case 0:
-        DrawCatalogImage(-14, 0xea, 0, slot, 0x98, top, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0xea, 0, slot, 0x98, top, VO_BLT_SRCTRANSPARENCY, 0);
         break;
     case 1:
-        DrawCatalogImage(-14, 0xec, 0, slot, 0x98, top, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0xec, 0, slot, 0x98, top, VO_BLT_SRCTRANSPARENCY, 0);
         break;
     case 2:
-        DrawCatalogImage(-14, 0xeb, 0, slot, 0x98, top, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0xeb, 0, slot, 0x98, top, VO_BLT_SRCTRANSPARENCY, 0);
         break;
     case 3:
-        DrawCatalogImage(-14, 0xed, 0, slot, 0x98, top, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0xed, 0, slot, 0x98, top, VO_BLT_SRCTRANSPARENCY, 0);
         break;
     }
 
@@ -158,10 +158,10 @@ unsigned char MainMenuScreenEnter(void)
     g_main_menu_redraw = true;
     ClearPrimarySurface();
     colour = Get16BPPColor(0x10101);
-    ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
+    ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, 0x280, 0x1e0, colour);
     SetViewport(0, 0, 0x280, 0x1e0);
     g_main_menu_selected_item = 0;
-    DrawCatalogImage(-14, 0xe8, 0, 0, 0, 0, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, 0xe8, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
 
     for (int index = 0; index < 6; ++index) {
         DrawMainMenuItem(index, 0);
@@ -237,7 +237,7 @@ void MainMenuScreenFrame()
             delete g_main_menu_dialog;
             g_main_menu_dialog = 0;
             g_main_menu_redraw = true;
-            DrawCatalogImage(-14, 0xe8, 0, 0, 0, 0, 2, 0);
+            DrawCatalogImage(FRAME_BUFFER, 0xe8, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
             DrawMainMenuItem(0, 0);
             DrawMainMenuItem(1, 0);
             DrawMainMenuItem(2, 0);
@@ -353,7 +353,7 @@ void MainMenuScreenFrame()
             DrawDialog(g_main_menu_dialog);
         }
         if (g_main_menu_overlay_enabled) {
-            BltVideoSurface(-14, g_main_menu_overlay_surface, 0, 0, 0x1d1, 6, 0);
+            BltVideoSurface(FRAME_BUFFER, g_main_menu_overlay_surface, 0, 0, 0x1d1, 6, 0);
         }
         RenderMessageBox();
         ResetTransientRenderScenes();

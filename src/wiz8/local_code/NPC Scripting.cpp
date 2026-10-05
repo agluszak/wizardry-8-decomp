@@ -2117,7 +2117,7 @@ void ProcessMessageBoxQueue(void)
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
             if (monster_info->fActive) {
-                MonsterStartsDying(monster_info, 1);
+                MonsterStartsDying(monster_info, true);
             } else {
                 unsigned int monster_index = MonsterGetIndexByLocationID(
                     0xbbf, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",

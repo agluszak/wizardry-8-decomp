@@ -1341,7 +1341,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     if (record->deleted != 0) {
         RemoveMonster(list_index, true);
     } else if (monster_info->hp_current == 0) {
-        MonsterStartsDying(monster_info, 1);
+        MonsterStartsDying(monster_info, true);
     }
     return 1;
 }

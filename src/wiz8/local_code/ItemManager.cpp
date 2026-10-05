@@ -862,7 +862,7 @@ void UpdateNearbyWorldItems(void)
    ground and lifted back up. When the spot is free the held instance becomes
    a world item; otherwise the refusal sound plays. */
 // FUNCTION: WIZ8 0x004F7610
-void DropHeldItem(int arg_1)
+void DropHeldItem(int)
 {
     srVector3T<float> cursor;
     GetCursorScaledPosition(&cursor);

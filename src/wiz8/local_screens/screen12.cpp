@@ -41,8 +41,8 @@ unsigned char ExitScreenEnter(void)
     ResetVideoFrameState();
     UpdateHeldItemCursor();
     colour = Get16BPPColor(0x10101);
-    ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
-    DrawCatalogImage(-14, 0x1e4, 0, 0, 0, 0, 2, 0);
+    ColorFillVideoSurfaceArea(FRAME_BUFFER, 0, 0, 0x280, 0x1e0, colour);
+    DrawCatalogImage(FRAME_BUFFER, 0x1e4, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
     ResetTransientRenderScenes();
     return 1;
 }

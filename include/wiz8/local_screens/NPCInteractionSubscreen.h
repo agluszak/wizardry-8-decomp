@@ -40,15 +40,15 @@ struct W8SkillNoticePayload;
    0x17,0x166-0xa4,0x1c2); it hosts the six option buttons at +0x170..+0x184.
    Its SetEnabled keeps those six inactive unless the expanded NPC dialogue
    layout (dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) is up, and its Redraw substitutes m_main_text_box_image for
-   m_renderArg1 in that mode. The constructor is inlined into 0x0056D1D0 as
+   m_catalogImage in that mode. The constructor is inlined into 0x0056D1D0 as
    the Controls base call plus m_main_text_box_image = 0x11; no standalone derived body
    exists. */
 // VTABLE: WIZ8 0x005ee9f0
 class W8NpcDialogueOptionsPanel : public Controls {
 public:
-    W8NpcDialogueOptionsPanel(int left, int top, int new_right, int new_bottom, int render_target,
-                              int render_arg_1c, int render_arg_20)
-        : Controls(left, top, new_right, new_bottom, render_target, render_arg_1c, render_arg_20)
+    W8NpcDialogueOptionsPanel(int left, int top, int new_right, int new_bottom, int catalog_object,
+                              int catalog_frame, int catalog_image)
+        : Controls(left, top, new_right, new_bottom, catalog_object, catalog_frame, catalog_image)
     {
         m_main_text_box_image = 0x11;
     }
@@ -67,9 +67,9 @@ static_assert(sizeof(W8NpcDialogueOptionsPanel) == 0x50, "W8NpcDialogueOptionsPa
 // VTABLE: WIZ8 0x005ee9e4
 class W8NpcTypedDialoguePanel : public Controls {
 public:
-    W8NpcTypedDialoguePanel(int left, int top, int new_right, int new_bottom, int render_target,
-                            int render_arg_1c, int render_arg_20)
-        : Controls(left, top, new_right, new_bottom, render_target, render_arg_1c, render_arg_20)
+    W8NpcTypedDialoguePanel(int left, int top, int new_right, int new_bottom, int catalog_object,
+                            int catalog_frame, int catalog_image)
+        : Controls(left, top, new_right, new_bottom, catalog_object, catalog_frame, catalog_image)
     {
     }
     virtual void SetEnabled(bool enable) override; /* 0x0056BAC0 */

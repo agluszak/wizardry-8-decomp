@@ -128,7 +128,7 @@ class W8CharacterStatsRecordControl : public W8TextControl {
 public:
     W8CharacterStatsRecordControl(Controls* owner, int top, int height,
                                   const W8CharacterStatsRecord* record, int variant);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnRightButtonUp(int event) override;
@@ -166,7 +166,7 @@ void W8CharacterStatsValue::SetRecord(const W8CharacterStatsRecord* record)
 
 /* Redraw the current record's name over the value control's own text. */
 // FUNCTION: WIZ8 0x005c9000
-void W8CharacterStatsValue::Redraw(unsigned char full_redraw)
+void W8CharacterStatsValue::Redraw(bool full_redraw)
 {
     W8TextControl::Redraw(full_redraw);
     if (!m_active || m_pPanel == 0) {
@@ -176,7 +176,7 @@ void W8CharacterStatsValue::Redraw(unsigned char full_redraw)
     int top = m_pPanel->m_bounds.top + m_top + 1;
     const W8CharacterStatsRecord* record = m_record;
     unsigned int image = m_enabled ? record->image_enabled : record->image_disabled;
-    DrawCatalogImage(-14, record->object, 0, image, left, top, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, record->object, 0, image, left, top, VO_BLT_SRCTRANSPARENCY, 0);
 }
 
 /* Force the control enabled while the base handles the right-button release,
@@ -225,7 +225,7 @@ W8CharacterStatsRecordControl::W8CharacterStatsRecordControl(Controls* owner, in
 
 /* Redraw the record's catalogue image over the entry's own background. */
 // FUNCTION: WIZ8 0x005c9220
-void W8CharacterStatsRecordControl::Redraw(unsigned char full_redraw)
+void W8CharacterStatsRecordControl::Redraw(bool full_redraw)
 {
     W8TextControl::Redraw(full_redraw);
     if (!m_active || m_pPanel == 0) {
@@ -235,7 +235,7 @@ void W8CharacterStatsRecordControl::Redraw(unsigned char full_redraw)
     int top = m_pPanel->m_bounds.top + m_text_offset + m_top + 1;
     const W8CharacterStatsRecord* record = m_record;
     unsigned int image = m_enabled ? record->image_enabled : record->image_disabled;
-    DrawCatalogImage(-14, record->object, 0, image, left, top, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, record->object, 0, image, left, top, VO_BLT_SRCTRANSPARENCY, 0);
 }
 
 // FUNCTION: WIZ8 0x005c9290
@@ -902,7 +902,7 @@ void W8CharacterStatsPage::Redraw()
         bounds.bottom = top + 0x1a;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0x96], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
 
         if (m_character->iRace != W8_RACE_NONE) {
             bounds.top = top + 0x7e;
@@ -912,7 +912,7 @@ void W8CharacterStatsPage::Redraw()
             text.SetLayoutBounds(&bounds, true, true);
             text.SetText(FormatWideString(g_format_d, m_creation_state->attribute_points_remaining),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, -14);
+            text.RenderToTarget(0, false, FRAME_BUFFER);
         }
 
         text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
@@ -923,7 +923,7 @@ void W8CharacterStatsPage::Redraw()
         int saved_right = bounds.right;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0x87], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
 
         text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
         bounds.left = left + 0x1a;
@@ -932,7 +932,7 @@ void W8CharacterStatsPage::Redraw()
         bounds.bottom = top + 0xb8;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xb1], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
 
         text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft);
         bounds.left = left + 0x1d;
@@ -960,7 +960,7 @@ void W8CharacterStatsPage::Redraw()
                                           [g_profession_bonus_skills[m_character->iProfession]]],
                         gppStringList[0xb2]),
                     g_wiz_text_font_secondary);
-                text.RenderToTarget(0, false, -14);
+                text.RenderToTarget(0, false, FRAME_BUFFER);
                 bounds.top += line_height;
             }
             for (int trait_index = 0; trait_index < 0x20; ++trait_index) {
@@ -968,7 +968,7 @@ void W8CharacterStatsPage::Redraw()
                     text.SetLayoutBounds(&bounds, true, true);
                     text.SetText(gppStringList[g_character_trait_name_ids[trait_index]],
                                  g_wiz_text_font_secondary);
-                    text.RenderToTarget(0, false, -14);
+                    text.RenderToTarget(0, false, FRAME_BUFFER);
                     bounds.top += line_height;
                 }
             }
@@ -981,7 +981,7 @@ void W8CharacterStatsPage::Redraw()
         bounds.bottom = top + 0xb8;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xa6], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
 
         bounds.left = left + 0xf8;
         bounds.top = top + 0xba;
@@ -990,12 +990,12 @@ void W8CharacterStatsPage::Redraw()
         text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xa7], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
         if (m_character->iRace != W8_RACE_NONE) {
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d, m_character->uiHPMax),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, -14);
+            text.RenderToTarget(0, false, FRAME_BUFFER);
         }
 
         bounds.top += 0xe;
@@ -1003,12 +1003,12 @@ void W8CharacterStatsPage::Redraw()
         text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xa9], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
         if (m_character->iRace != W8_RACE_NONE) {
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d, m_character->uiStaminaMax),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, -14);
+            text.RenderToTarget(0, false, FRAME_BUFFER);
         }
 
         bounds.bottom += 0xe;
@@ -1016,13 +1016,13 @@ void W8CharacterStatsPage::Redraw()
         text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xed], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
         if (m_character->iRace != W8_RACE_NONE) {
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d, ComputeLevelUpSpellPointAward(
                                                           m_character, m_creation_state)),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, -14);
+            text.RenderToTarget(0, false, FRAME_BUFFER);
         }
 
         bounds.top += 0xe;
@@ -1030,12 +1030,12 @@ void W8CharacterStatsPage::Redraw()
         text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xad], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
         if (m_character->iRace != W8_RACE_NONE) {
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d, m_character->armor_class_average),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, -14);
+            text.RenderToTarget(0, false, FRAME_BUFFER);
         }
 
         bounds.top += 0xe;
@@ -1043,12 +1043,12 @@ void W8CharacterStatsPage::Redraw()
         text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xaf], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
         if (m_character->iRace != W8_RACE_NONE) {
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d, m_character->carrying_capacity / 10),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, -14);
+            text.RenderToTarget(0, false, FRAME_BUFFER);
         }
 
         text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
@@ -1058,7 +1058,7 @@ void W8CharacterStatsPage::Redraw()
         bounds.bottom = top + 0x14c;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xb9], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
         if (m_character->iRace != W8_RACE_NONE || m_character->iProfession != W8_PROFESSION_NONE) {
             for (int realm = 0; realm < 6; ++realm) {
                 bool first_column = (realm & 1) == 0;
@@ -1074,15 +1074,16 @@ void W8CharacterStatsPage::Redraw()
                     text.SetText(FormatWideString(g_format_plus_d, value),
                                  g_wiz_text_font_secondary);
                 }
-                text.RenderToTarget(0, false, -14);
+                text.RenderToTarget(0, false, FRAME_BUFFER);
             }
         }
         for (int realm_index = 0; realm_index < 6; ++realm_index) {
             bool first_column = (realm_index & 1) == 0;
             int frame_top = (first_column ? 0x155 : 0x16f) + top;
-            DrawCatalogImageAndInvalidate(-14, g_character_resistance_images[realm_index], 0,
-                                          g_spell_realm_animations[realm_index].initial_frame,
-                                          (realm_index / 2) * 0x3f + 0x23 + left, frame_top, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, g_character_resistance_images[realm_index],
+                                          0, g_spell_realm_animations[realm_index].initial_frame,
+                                          (realm_index / 2) * 0x3f + 0x23 + left, frame_top,
+                                          VO_BLT_SRCTRANSPARENCY, 0);
         }
 
         text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
@@ -1092,7 +1093,7 @@ void W8CharacterStatsPage::Redraw()
         bounds.bottom = top + 0x12c;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xb3], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
         if (m_character->iProfession != W8_PROFESSION_NONE) {
             text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft);
             bounds.top = top + 0x12f;
@@ -1103,7 +1104,7 @@ void W8CharacterStatsPage::Redraw()
             text.SetText(gppStringList[g_character_skill_name_ids
                                            [g_profession_bonus_skills[m_character->iProfession]]],
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, -14);
+            text.RenderToTarget(0, false, FRAME_BUFFER);
             for (int index = 0; index < 4; ++index) {
                 if (g_profession_skills[m_character->iProfession][index] != -1) {
                     bounds.top += 0xe;
@@ -1113,7 +1114,7 @@ void W8CharacterStatsPage::Redraw()
                         gppStringList[g_character_skill_name_ids
                                           [g_profession_skills[m_character->iProfession][index]]],
                         g_wiz_text_font_secondary);
-                    text.RenderToTarget(0, false, -14);
+                    text.RenderToTarget(0, false, FRAME_BUFFER);
                 }
             }
             text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
@@ -1124,7 +1125,7 @@ void W8CharacterStatsPage::Redraw()
             text.SetLayoutBounds(&bounds, true, true);
             text.SetText(FormatWideString(g_format_d, m_creation_state->skill_points_total),
                          g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, -14);
+            text.RenderToTarget(0, false, FRAME_BUFFER);
         }
         text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
         bounds.top = top + 0x179;
@@ -1133,7 +1134,7 @@ void W8CharacterStatsPage::Redraw()
         bounds.right = saved_right;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0x87], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, false, -14);
+        text.RenderToTarget(0, false, FRAME_BUFFER);
     }
 
     text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
@@ -1147,31 +1148,31 @@ void W8CharacterStatsPage::Redraw()
         } else {
             text.SetText(gppStringList[0xe6], g_wiz_text_font_secondary);
         }
-        text.RenderToTarget(0, true, -14);
+        text.RenderToTarget(0, true, FRAME_BUFFER);
         bounds.top = 0x162;
         bounds.bottom = 0x179;
         bounds.right = 0x8f;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xe2], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, -14);
+        text.RenderToTarget(0, true, FRAME_BUFFER);
         bounds.top = 0x184;
         bounds.bottom = 0x19b;
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xe4], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, -14);
+        text.RenderToTarget(0, true, FRAME_BUFFER);
         m_prepared = false;
     }
 
     if (m_dirty) {
         W8ControlsRect bounds = {0x8f, 0x162, 0xbf, 0x179};
-        DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x162, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x107, 0, 5, 0x8f, 0x162, VO_BLT_SRCTRANSPARENCY, 0);
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(FormatWideString(g_format_d, m_creation_state->attribute_step_limit),
                      g_options_detail_font);
-        text.RenderToTarget(0, true, -14);
+        text.RenderToTarget(0, true, FRAME_BUFFER);
         bounds.top = 0x184;
         bounds.bottom = 0x19b;
-        DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x184, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x107, 0, 5, 0x8f, 0x184, VO_BLT_SRCTRANSPARENCY, 0);
         text.SetLayoutBounds(&bounds, true, true);
         int total = m_creation_state->attribute_points_total;
         if (total < 1) {
@@ -1181,7 +1182,7 @@ void W8CharacterStatsPage::Redraw()
                                           m_creation_state->attribute_points_remaining, total),
                          g_options_detail_font);
         }
-        text.RenderToTarget(0, true, -14);
+        text.RenderToTarget(0, true, FRAME_BUFFER);
         m_dirty = false;
     }
 

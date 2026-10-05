@@ -1066,8 +1066,9 @@ void RenderBackgroundField(TEXTINPUTNODE* field)
     int bottom = field->region.RegionBottomRightY;
 
     if (style->fBevelling) {
-        ColorFillVideoSurfaceArea(-14, left, top, right, bottom, style->usDarkerColor);
-        ColorFillVideoSurfaceArea(-14, left + 1, top + 1, right, bottom, style->usBrighterColor);
+        ColorFillVideoSurfaceArea(FRAME_BUFFER, left, top, right, bottom, style->usDarkerColor);
+        ColorFillVideoSurfaceArea(FRAME_BUFFER, left + 1, top + 1, right, bottom,
+                                  style->usBrighterColor);
     }
 
     unsigned short colour;
@@ -1078,7 +1079,7 @@ void RenderBackgroundField(TEXTINPUTNODE* field)
     if (field->fUseInactiveTextFieldColor && field != gpActive)
         colour = style->usInactiveTextFieldColor;
 
-    ColorFillVideoSurfaceArea(-14, left, top, right, bottom, colour);
+    ColorFillVideoSurfaceArea(FRAME_BUFFER, left, top, right, bottom, colour);
     InvalidateRegion(left, top, right, bottom, 0);
 }
 
@@ -1165,7 +1166,7 @@ void RenderActiveTextField(void)
         GetTickCount() % 1000 < 500) {
         int left = field->region.RegionTopLeftX + gsCursorX;
         int top = field->region.RegionTopLeftY + vertical_offset;
-        ColorFillVideoSurfaceArea(-14, left, top, left + 1, top + font_height,
+        ColorFillVideoSurfaceArea(FRAME_BUFFER, left, top, left + 1, top + font_height,
                                   pColors->usCursorColor);
     }
     RestoreFontSettings();

@@ -754,7 +754,8 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     signed char health_mod = character->bonus.health_regen_adjustment;
     if (health_mod > 0) {
         if (character->hp_current < static_cast<unsigned int>(character->uiHPMax)) {
-            HealCharacter(party_slot, static_cast<int>(health_mod) * static_cast<int>(minutes), 0);
+            HealCharacter(party_slot, static_cast<int>(health_mod) * static_cast<int>(minutes),
+                          false);
         }
     } else if (health_mod < 0) {
         ApplyDamageToCharacter(party_slot,
@@ -765,7 +766,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     signed char stamina_mod = character->bonus.stamina_regen_adjustment;
     if (stamina_mod > 0) {
         if (character->stamina < character->uiStaminaMax) {
-            RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(minutes), 0);
+            RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(minutes), false);
         }
     } else if (stamina_mod < 0) {
         FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * minutes), false,
@@ -830,7 +831,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         character->health_regen_accumulator =
             minutes * character->health_regen_rate * health_scale +
             character->health_regen_accumulator;
-        HealCharacter(party_slot, static_cast<int>(character->health_regen_accumulator), 0);
+        HealCharacter(party_slot, static_cast<int>(character->health_regen_accumulator), false);
         character->health_regen_accumulator =
             character->health_regen_accumulator -
             static_cast<unsigned int>(character->health_regen_accumulator);
@@ -840,7 +841,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
             minutes * character->stamina_regen_rate * stamina_scale +
             character->stamina_regen_accumulator;
         RestoreCharacterStamina(party_slot, static_cast<int>(character->stamina_regen_accumulator),
-                                0);
+                                false);
         character->stamina_regen_accumulator =
             character->stamina_regen_accumulator -
             static_cast<unsigned int>(character->stamina_regen_accumulator);
@@ -1160,7 +1161,7 @@ after_early: {
                 ApplyDamageToMonster(monster_info, -amount, &source, false, 0, 0, 0, false);
             }
         } else if (monster_info->hp_current < static_cast<unsigned int>(monster_info->uiHPMax)) {
-            HealMonster(monster_info, amount, 0);
+            HealMonster(monster_info, amount, false);
         }
     }
     {
@@ -1198,7 +1199,7 @@ after_early: {
                     monster_info->hp_regen_accumulator;
                 int healed = static_cast<int>(monster_info->hp_regen_accumulator);
 
-                HealMonster(monster_info, healed, 0);
+                HealMonster(monster_info, healed, false);
                 monster_info->hp_regen_accumulator -= static_cast<float>(healed);
             }
             if (monster_info->stamina < monster_info->stamina_max) {
@@ -1387,7 +1388,7 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
                              static_cast<W8SpellEffectResult*>(0));
         }
     } else if (character->stamina < character->uiStaminaMax) {
-        RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(elapsed), 0);
+        RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(elapsed), false);
     }
 
     float scale = g_float_one;
@@ -1415,7 +1416,7 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
     if (scale > g_float_zero && character->stamina < character->uiStaminaMax) {
         character->stamina_regen_accumulator += elapsed * character->stamina_regen_rate * scale;
         int amount = static_cast<int>(character->stamina_regen_accumulator);
-        RestoreCharacterStamina(party_slot, amount, 0);
+        RestoreCharacterStamina(party_slot, amount, false);
         character->stamina_regen_accumulator -=
             static_cast<float>(static_cast<int>(character->stamina_regen_accumulator));
     }

@@ -1,3 +1,4 @@
+#include "vsurface.h"
 #include "wiz8/dialog_code/NpcDialog.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/fonts.h"
@@ -210,7 +211,7 @@ void W8NpcDialog::Draw()
     }
     for (index = 0; index < 2; ++index) {
         if (m_text_buffers[index] != 0) {
-            m_text_buffers[index]->RenderToTarget(0, false, -0xe);
+            m_text_buffers[index]->RenderToTarget(0, false, FRAME_BUFFER);
         }
     }
 }

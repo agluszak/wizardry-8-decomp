@@ -734,7 +734,7 @@ float PathAIGetScale(W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a9750
-W8PathAI* CreateRecord(int unused)
+W8PathAI* CreateRecord(int)
 {
     W8PathAI* path;
 

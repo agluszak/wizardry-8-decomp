@@ -82,8 +82,8 @@ void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting
    context, in the two forms the target-refresh pass asks. */
-bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned char arg_3,
-                          unsigned char arg_4);
+bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, bool allow_missing_target,
+                          bool allow_equipment_changes);
 unsigned char TryCharacterAction(int party_slot, W8ActionKind action, bool commit);
 void NotifyNearbyMonsters(int what);
 void CombatLog(const char* format, ...);

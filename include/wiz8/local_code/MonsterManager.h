@@ -496,7 +496,7 @@ bool InitializeMonsterManagerState(void);
 void ActivateMonsterInWorld(W8MonsterInfo* monster_info);
 void ActivateMonster(W8MonsterInfo* monster_info, W8MonsterActivationMode mode);
 void ClearMonsterPathAndResume(W8MonsterInfo* monster_info);
-void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message);
+void MonsterStartsDying(W8MonsterInfo* monster_info, bool display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,
                                          bool assert_on_failure);
@@ -546,7 +546,7 @@ void EvaluateCombatDifficulty(void); /* 0x004E6CE0 */
 /* The kill bookkeeping a monster's death runs: credit the killer, post the
    "%s %s!" notice, clear conditions the dead monster sourced, apply the
    faction fallout, and bank the kill count and experience when it fought. */
-void RecordMonsterKill(W8MonsterInfo* monster_info, char announce); /* 0x004E46F0 */
+void RecordMonsterKill(W8MonsterInfo* monster_info, bool announce); /* 0x004E46F0 */
 /* The kill-fact recorder RecordMonsterKill hands the record id and the killer
    party slot to; its home TU is the gap before NPC Manager.cpp. */
 void MonsterKilled(int record_id, int killer_party_slot); /* 0x005090C0 */

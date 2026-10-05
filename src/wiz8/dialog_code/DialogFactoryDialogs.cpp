@@ -489,10 +489,10 @@ void W8ListBoxDialog::Draw()
                  m_selected_line) /
                     m_lines.GetCount() +
                 m_y + 3 + dy);
-        ColorFillVideoSurfaceArea(-0xe, m_x + width + dx, m_y + dy + GetButtonHeight(m_up_button),
-                                  m_x + width + dx + GetButtonWidth(m_up_button),
-                                  m_y + height + dy - GetButtonHeight(m_down_button),
-                                  Get16BPPColor(m_fill_colour));
+        ColorFillVideoSurfaceArea(
+            FRAME_BUFFER, m_x + width + dx, m_y + dy + GetButtonHeight(m_up_button),
+            m_x + width + dx + GetButtonWidth(m_up_button),
+            m_y + height + dy - GetButtonHeight(m_down_button), Get16BPPColor(m_fill_colour));
         SetButtonPosition(m_third_text_button, m_x + dx + width, m_y + dy);
         ResizeButton(m_third_text_button, static_cast<short>(GetButtonWidth(m_up_button) + 7),
                      static_cast<short>(height));
@@ -510,7 +510,8 @@ void W8ListBoxDialog::Draw()
     SetFont(g_dialog_interface_font);
     GetButtonArea(m_area_button, &rect);
     SaveFontSettings();
-    SetFontDestBuffer(-0xe, rect.iLeft + 3, rect.iTop + 3, rect.iRight - 3, rect.iBottom - 3, 0);
+    SetFontDestBuffer(FRAME_BUFFER, rect.iLeft + 3, rect.iTop + 3, rect.iRight - 3,
+                      rect.iBottom - 3, 0);
     if (m_lines.GetCount() <= static_cast<int>(visible_lines + m_first_visible_line)) {
         visible_lines = m_lines.GetCount() - m_first_visible_line;
     }
@@ -519,7 +520,7 @@ void W8ListBoxDialog::Draw()
         wchar_t* text = *m_lines.GetAt(line);
         if (line == m_selected_line) {
             ColorFillVideoSurfaceArea(
-                -0xe, m_x + 3 + dx,
+                FRAME_BUFFER, m_x + 3 + dx,
                 m_y + static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font)) * index +
                     2 + dy,
                 width + m_x - 3 + dx,
@@ -849,7 +850,8 @@ void W8SplitAmountDialog::Draw()
         numeric->m_dirty = true;
         numeric->m_button->m_dirty = true;
         W8DialogBase::Draw();
-        DrawCatalogImage(-0xe, 0x1ac, 0, 0, m_x + 0x18, m_y + 0x1a, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x1ac, 0, 0, m_x + 0x18, m_y + 0x1a, VO_BLT_SRCTRANSPARENCY,
+                         0);
     }
     if (m_buttons[3]->m_dirty) {
         W8DialogNumericInput* numeric = m_split_input;
@@ -863,7 +865,7 @@ void W8SplitAmountDialog::Draw()
     }
     for (index = 0; index < 3; ++index) {
         if (m_text_buffers[index] != 0) {
-            m_text_buffers[index]->RenderToTarget(0, false, -0xe);
+            m_text_buffers[index]->RenderToTarget(0, false, FRAME_BUFFER);
         }
     }
     if (m_split_input != 0) {
@@ -1334,10 +1336,10 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
             W8ItemInstance* instance = CopyWorldItemInstance(*items.GetAt(index));
             bool added;
             if (destination == -1) {
-                added = AddItemToParty(instance, 1, false);
+                added = AddItemToParty(instance, true, false);
             } else {
-                added =
-                    AddItemToCharacter(&g_status.buffers.Char[destination], instance, 0, 1, false);
+                added = AddItemToCharacter(&g_status.buffers.Char[destination], instance, false,
+                                           true, false);
             }
             if (added) {
                 items.RemoveAt(index);
@@ -1873,7 +1875,8 @@ void W8TriggerItemPickerDialog::Draw()
         W8WorldItem* world_item = *items.GetAt(item_index);
         W8ItemInstance* item = &world_item->item;
         int video_object = g_item_video_objects.GetOrCreateVideoObject(item->iItemNo);
-        DrawCatalogImage(-0xe, video_object, 0, 0, button->GetX() + 2, button->GetY() + 2, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, video_object, 0, 0, button->GetX() + 2, button->GetY() + 2,
+                         VO_BLT_SRCTRANSPARENCY, 0);
         SetFont(g_wiz_text_font);
         if (item->stack_count > 1) {
             wchar_t* name = GetItemDisplayName(item);

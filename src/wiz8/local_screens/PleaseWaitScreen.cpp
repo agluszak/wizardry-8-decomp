@@ -148,7 +148,7 @@ unsigned char PleaseWaitScreenEnter(void)
     MSYS_Init();
     ResetRegions();
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
-    SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
+    SetFontDestBuffer(FRAME_BUFFER, 0, 0, 0x280, 0x1e0, 0);
     SetPrimarySurfaceTextureHint2Enabled(false);
     DisableCursorScene();
     g_load_descriptor->caption_y = 0;
@@ -196,12 +196,13 @@ static void DrawPleaseWaitScreen()
     int backdrop = static_cast<unsigned int>(g_load_descriptor->parameter) < W8_LEVEL_COUNT
                        ? g_level_backdrops[g_load_descriptor->parameter]
                        : 0xe4;
-    DrawCatalogImage(-14, backdrop, 0, 0, 0, 0, 2, 0);
-    DrawCatalogImage(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, backdrop, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
+    DrawCatalogImage(FRAME_BUFFER, 0x1de, 0, 0, 0, 0x1be, VO_BLT_SRCTRANSPARENCY, 0);
     SetFont(g_level_load_font);
     gprintf(0x6a, 0x1c7, (unsigned short*)"%", /* c-style-cast-ok: SGP UINT16* format */
             g_load_descriptor->caption);
-    DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor->caption_y, 0, 0x185, 2, 0);
+    DrawCatalogImage(FRAME_BUFFER, 0x1dd, 0, g_load_descriptor->caption_y, 0, 0x185,
+                     VO_BLT_SRCTRANSPARENCY, 0);
     ResetTransientRenderScenes();
 }
 
@@ -367,7 +368,8 @@ void UpdatePleaseWaitLoadFrame(void)
     if (tick - g_load_descriptor->entered_tick > 499) {
         g_load_descriptor->caption_y = (g_load_descriptor->caption_y + 1) % 0x18;
         g_load_descriptor->entered_tick = tick;
-        DrawCatalogImageAndInvalidate(-0xe, 0x1dd, 0, g_load_descriptor->caption_y, 0, 0x185, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x1dd, 0, g_load_descriptor->caption_y, 0,
+                                      0x185, VO_BLT_SRCTRANSPARENCY, 0);
         RenderFrame();
     }
 }

@@ -226,7 +226,7 @@ void HealPartyByDice(unsigned char count, unsigned char sides, short base)
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied) {
-            HealCharacter(party_slot, RollDice(&dice), 1);
+            HealCharacter(party_slot, RollDice(&dice), true);
         }
     }
 }
@@ -243,7 +243,7 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied) {
-            RestoreCharacterStamina(party_slot, RollDice(&dice), 0);
+            RestoreCharacterStamina(party_slot, RollDice(&dice), false);
         }
     }
 }
@@ -282,13 +282,13 @@ void RestoreCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, int am
    filter on the eligibility window - an unconscious character still loses
    points. */
 // FUNCTION: WIZ8 0x0052b550
-void DrainPartySpellPoints(int arg_1, int arg_2)
+void DrainPartySpellPoints(int amount, bool announce)
 {
     unsigned int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied) {
-            DrainCharacterSpellPoints(party_slot, arg_1, arg_2);
+            DrainCharacterSpellPoints(party_slot, amount, announce);
         }
     }
 }
@@ -440,7 +440,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
 /* Heal one monster. A monster that is already dead or already whole is left
    alone; healing it to full says so differently from healing it partway. */
 // FUNCTION: WIZ8 0x0052bfd0
-void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, char announce)
+void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, bool announce)
 {
     if (monster_info->hp_current == 0 ||
         monster_info->hp_current == static_cast<unsigned int>(monster_info->uiHPMax) ||
@@ -582,7 +582,7 @@ static int FatigueBandFromMissing(int missing_percent)
    hit points breaks the effects that only held while they were badly hurt -
    the deeper threshold breaks two more than the shallower one. */
 // FUNCTION: WIZ8 0x0052add0
-void HealCharacter(int party_slot, int amount, char announce)
+void HealCharacter(int party_slot, int amount, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     unsigned int hp_max;
@@ -633,7 +633,7 @@ void HealCharacter(int party_slot, int amount, char announce)
    their fatigue, and a change of band re-runs the armour class pass because
    fatigue feeds it. Enough stamina also shakes off exhaustion. */
 // FUNCTION: WIZ8 0x0052b1c0
-void RestoreCharacterStamina(int party_slot, int amount, char announce)
+void RestoreCharacterStamina(int party_slot, int amount, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     int stamina_max;
@@ -679,7 +679,7 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
    Each realm only gives up what it has, and each withdrawal is announced with
    that realm's name. */
 // FUNCTION: WIZ8 0x0052b590
-void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce)
+void DrainCharacterSpellPoints(int party_slot, unsigned int amount, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     unsigned int remaining = amount;
@@ -782,7 +782,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
    it, and a character with no protection against it is put under condition
    one. */
 // FUNCTION: WIZ8 0x0052b7e0
-void DamageCharacter(int party_slot, unsigned int damage, char announce)
+void DamageCharacter(int party_slot, unsigned int damage, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -1422,7 +1422,7 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
    slot, a monster target fatigues the monster spawned from its location
    id. */
 // FUNCTION: WIZ8 0x0052C500
-void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3)
+void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int)
 {
     if (op->iType == W8_TARGET_KIND_CHARACTER) {
         FatigueCharacter(op->iChar, amount, false, 0);

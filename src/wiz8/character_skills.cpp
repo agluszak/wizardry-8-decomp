@@ -395,7 +395,7 @@ void BrewAlchemistPotion(W8Character* character)
         }
         ShowNoticef(slot, gppStringList[0x183], character->name,
                     FormatItemDisplayName(&item, true));
-        StoreItemWithCharacterOrParty(character, &item, 0, 0, 0);
+        StoreItemWithCharacterOrParty(character, &item, false, false, false);
         made = 1;
     }
     if (made != 0) {

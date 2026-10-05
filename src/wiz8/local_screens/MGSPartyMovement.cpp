@@ -198,7 +198,8 @@ void DrawPartyMovementPanel(void)
         clip.iRight = 0x1b9;
         clip.iBottom = 0x1e0;
         SetClippingRect(&clip);
-        DrawCatalogImageAndInvalidate(-0xe, 0x96, 0, image, 0xc3, 0x144, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x96, 0, image, 0xc3, 0x144,
+                                      VO_BLT_SRCTRANSPARENCY, 0);
         SetClippingRect(&previous);
     }
     DrawPartyMovementGauge(right, image, panel_live, caption);
@@ -259,13 +260,13 @@ void DrawPartyMovementGauge(short right, short image, bool panel_live, int capti
         }
         return;
     }
-    DrawCatalogImageAndInvalidate(-0xe, 0x95, 0,
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x95, 0,
                                   g_party_movement_animation_frame + frame_base + frame,
-                                  right - 0xf, 0x142, 2, 0);
+                                  right - 0xf, 0x142, VO_BLT_SRCTRANSPARENCY, 0);
     InvalidateRegion(right - 0xf, 0x142, right - 1, 0x150, 0);
     if (caption != -1) {
         g_party_movement_caption->SetText(gppStringList[caption], g_wiz_text_font_secondary);
-        g_party_movement_caption->RenderToTarget(0, false, -0xe);
+        g_party_movement_caption->RenderToTarget(0, false, FRAME_BUFFER);
     }
 }
 
