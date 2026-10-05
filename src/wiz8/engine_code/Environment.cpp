@@ -632,9 +632,8 @@ void UpdateEnvironmentLighting(void)
         secondary = ApplyWorldLightingIntensity(world, secondary);
     }
 
-    direction.x = g_light_direction.x * scale;
-    direction.y = g_light_direction.y * scale;
-    direction.z = g_light_direction.z * scale;
+    direction = g_light_direction;
+    direction *= scale;
     SaturateColor(&direction);
     PublishLightDirection(&direction);
 
@@ -825,7 +824,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
         world->environment_colour = *colour;
         world->environment_intensity = intensity;
     }
-    for (int index = 0; index < g_environment_lights.count; ++index) {
+    for (int index = 0; index < g_environment_lights.GetCount(); ++index) {
         stLight* light = *g_environment_lights.GetAt(index);
         srVector3T<float> scaled(colour->x, colour->y, colour->z);
 

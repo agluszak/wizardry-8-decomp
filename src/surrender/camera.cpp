@@ -56,15 +56,8 @@ void srCamera::processPush(srGERD* renderer)
     /* The view transform is the inverse world matrix with the translation
        vector negated. */
     srMatrix4T<double> view;
-    view.AdjugateFrom(&world.vectors[0].x);
-    double determinant = world.Det();
-    if (determinant != 1.0) {
-        view.Scale(1.0 / determinant);
-    }
-    view.vectors[3].x = -view.vectors[3].x;
-    view.vectors[3].y = -view.vectors[3].y;
-    view.vectors[3].z = -view.vectors[3].z;
-    view.vectors[3].w = -view.vectors[3].w;
+    view.Inverse(world);
+    view.vectors[3] = -view.vectors[3];
 
     renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
     renderer->pushMatrix();
@@ -102,11 +95,7 @@ void srCamera::processPush(srGERD* renderer)
 // FUNCTION: SURRENDER 0x10048030
 srClass* srCamera::vInstance()
 {
-    srCamera* instance = static_cast<srCamera*>(srHeap.allocate(0x188));
-    if (instance != 0) {
-        return new (instance) srCamera(0);
-    }
-    return 0;
+    return new srCamera(static_cast<srNode*>(0));
 }
 
 // FUNCTION: SURRENDER 0x100482E0

@@ -184,11 +184,7 @@ void srFog::dump(std::ostream& stream)
 // FUNCTION: SURRENDER 0x1004C1B0
 srClass* srFog::vInstance()
 {
-    srFog* instance = static_cast<srFog*>(srHeap.allocate(0x168));
-    if (instance != 0) {
-        return new (instance) srFog(0);
-    }
-    return 0;
+    return new srFog(static_cast<srNode*>(0));
 }
 
 // FUNCTION: SURRENDER 0x1004C210

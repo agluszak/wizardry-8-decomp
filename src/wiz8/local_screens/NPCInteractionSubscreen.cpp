@@ -226,7 +226,7 @@ void W8NpcDialogueOptionsPanel::SetEnabled(bool enable)
     int index;
 
     m_fEnabled = enable;
-    for (index = 0; index < m_controls.count; ++index) {
+    for (index = 0; index < m_controls.GetCount(); ++index) {
         if (enable &&
             (ControlAt(index) == static_cast<W8TextControl*>(
                                      g_npc_interaction_state
@@ -375,7 +375,7 @@ void ClearKeywordLists(void)
     int entry_index;
     int word_index;
 
-    for (file_index = 0; file_index < g_keyword_lists.count; ++file_index) {
+    for (file_index = 0; file_index < g_keyword_lists.GetCount(); ++file_index) {
         file = *g_keyword_lists.GetAt(file_index);
         for (entry_index = 0; entry_index < file->count; ++entry_index) {
             entry = *file->GetAt(entry_index);
@@ -4341,7 +4341,7 @@ bool IsDialoguePlaceKeyword(const wchar_t* name)
 // FUNCTION: WIZ8 0x00575070
 void ClearNpcDialogueTranscript(void)
 {
-    for (int index = 0; index < g_npc_interaction_state->dialogue_transcript.count; ++index) {
+    for (int index = 0; index < g_npc_interaction_state->dialogue_transcript.GetCount(); ++index) {
         free(*g_npc_interaction_state->dialogue_transcript.GetAt(index));
     }
     g_npc_interaction_state->dialogue_transcript.Clear();
@@ -4356,7 +4356,7 @@ unsigned char LoadNpcDialogueTranscript(unsigned int file)
     int text_length;
     int index;
 
-    for (index = 0; index < g_npc_interaction_state->dialogue_transcript.count; ++index) {
+    for (index = 0; index < g_npc_interaction_state->dialogue_transcript.GetCount(); ++index) {
         free(*g_npc_interaction_state->dialogue_transcript.GetAt(index));
     }
     g_npc_interaction_state->dialogue_transcript.Clear();
@@ -4388,9 +4388,9 @@ unsigned char SaveNpcDialogueTranscript(unsigned int file)
 
     version = 2;
     FileWrite(file, &version, 1, &bytes_written);
-    text_length = g_npc_interaction_state->dialogue_transcript.count;
+    text_length = g_npc_interaction_state->dialogue_transcript.GetCount();
     FileWrite(file, &text_length, 4, &bytes_written);
-    for (index = 0; index < g_npc_interaction_state->dialogue_transcript.count; ++index) {
+    for (index = 0; index < g_npc_interaction_state->dialogue_transcript.GetCount(); ++index) {
         W8DialogueTranscriptRecord* record =
             *g_npc_interaction_state->dialogue_transcript.GetAt(index);
         text_length = wcslen(record->text);

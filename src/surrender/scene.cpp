@@ -14,11 +14,7 @@
 // FUNCTION: SURRENDER 0x10056BB0
 srClass* srScene::vInstance()
 {
-    srScene* instance = static_cast<srScene*>(srHeap.allocate(0x190));
-    if (instance != 0) {
-        return new (instance) srScene(0);
-    }
-    return 0;
+    return new srScene(static_cast<srNode*>(0));
 }
 
 // FUNCTION: SURRENDER 0x100565D0
@@ -77,13 +73,9 @@ void srScene::process(const ProcessInfo& info, e_processType type)
     traversal.renderer = 0;
     traversal.renderer = info.renderer;
     first_child_->traverse(traversal);
-    if (traversal.nodes.capacity == 0) {
-        traversal.nodes.setCapacity(8);
-    }
+    traversal.nodes.ensureIndex(0);
     srNode** nodes = traversal.nodes.data;
-    if (traversal.entries.capacity == 0) {
-        traversal.entries.setCapacity(8);
-    }
+    traversal.entries.ensureIndex(0);
     TraverseInfo::Entry* entries = traversal.entries.data;
     long node_count = traversal.node_count;
     long entry_count = traversal.entry_count;

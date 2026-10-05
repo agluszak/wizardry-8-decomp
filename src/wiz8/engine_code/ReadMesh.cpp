@@ -510,7 +510,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
     int type;
     int face_index;
 
-    for (int index = 0; index < mapped_values->count; ++index) {
+    for (int index = 0; index < mapped_values->GetCount(); ++index) {
         mapped_meshes.Add(-1);
         mapped_vertices.Add(-1);
     }
@@ -528,21 +528,21 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
                 }
             }
             if (capacity != 0) {
-                capacities[polygon_types.count] = capacity;
+                capacities[polygon_types.GetCount()] = capacity;
                 polygon_types.Add(render_flags[material]);
             }
         }
     }
 
     if (mesh_count != 0) {
-        *mesh_count = polygon_types.count;
+        *mesh_count = polygon_types.GetCount();
     }
-    *vertex_maps = static_cast<int**>(malloc(polygon_types.count * sizeof(int*)));
+    *vertex_maps = static_cast<int**>(malloc(polygon_types.GetCount() * sizeof(int*)));
     if (vertex_map_count != 0) {
-        *vertex_map_count = polygon_types.count;
+        *vertex_map_count = polygon_types.GetCount();
     }
 
-    for (type = 0; type < polygon_types.count; ++type) {
+    for (type = 0; type < polygon_types.GetCount(); ++type) {
         polygon_counts[type] = 0;
         vertex_counts[type] = 0;
         extra_uv_counts[type] = 0;
@@ -586,7 +586,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
                 (*vertex_maps)[type][vertex] = original_vertex;
                 vertex_shades[type][vertex] = vertex;
                 ++vertex_counts[type];
-                for (int mapped = 0; mapped < mapped_values->count; ++mapped) {
+                for (int mapped = 0; mapped < mapped_values->GetCount(); ++mapped) {
                     if (mapped_values->data[mapped] == original_vertex) {
                         mapped_vertices.SetAt(mapped, static_cast<short>(vertex));
                         mapped_meshes.SetAt(mapped, static_cast<short>(type));
@@ -630,7 +630,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
         }
     }
 
-    for (type = 0; type < polygon_types.count; ++type) {
+    for (type = 0; type < polygon_types.GetCount(); ++type) {
         if (capacities[type] == 0) {
             continue;
         }
@@ -641,9 +641,9 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
                          "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x4e7, 0);
         }
 
-        for (int mapped = 0; mapped < mapped_meshes.count; ++mapped) {
+        for (int mapped = 0; mapped < mapped_meshes.GetCount(); ++mapped) {
             if (mapped_meshes.data[mapped] == type) {
-                for (int entry = 0; entry < mapped_values->count; ++entry) {
+                for (int entry = 0; entry < mapped_values->GetCount(); ++entry) {
                     model->SetMappedVertex(mapped_vertices.data[entry], mapped_keys->data[entry]);
                 }
                 break;

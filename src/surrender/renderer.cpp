@@ -259,18 +259,10 @@ unsigned long srGERD::Renderer::TextureSetCache::intern(const TextureSetKey& key
 void srGERD::Renderer::IndexBatch::alloc(IndexWrite& write, unsigned long count)
 {
     unsigned long needed = count + 0x40 + this->count;
-    if (triangles.capacity <= needed) {
-        triangles.setCapacity(triangles.capacity + 8 + needed);
-    }
-    if (texture_set.capacity <= needed) {
-        texture_set.setCapacity(texture_set.capacity + 8 + needed);
-    }
-    if (sort_key.capacity <= needed) {
-        sort_key.setCapacity(sort_key.capacity + 8 + needed);
-    }
-    if (aux.capacity <= needed) {
-        aux.setCapacity(aux.capacity + 8 + needed);
-    }
+    triangles.ensureIndex(needed);
+    texture_set.ensureIndex(needed);
+    sort_key.ensureIndex(needed);
+    aux.ensureIndex(needed);
     write.triangles = &triangles[this->count];
     write.texture_set = &texture_set[this->count];
     write.sort_key = &sort_key[this->count];
@@ -314,30 +306,14 @@ void srGERD::Renderer::VertexArrays::alloc(srVertexArray& arrays, unsigned long 
     unsigned long needed = count + this->count;
     if (capacity < needed) {
         needed += 0x40;
-        if (diffuse.capacity <= needed) {
-            diffuse.setCapacity(diffuse.capacity + 8 + needed);
-        }
-        if (specular.capacity <= needed) {
-            specular.setCapacity(specular.capacity + 8 + needed);
-        }
-        if (positions.capacity <= needed) {
-            positions.setCapacity(positions.capacity + 8 + needed);
-        }
-        if (st[0].capacity <= needed) {
-            st[0].setCapacity(st[0].capacity + 8 + needed);
-        }
-        if (st[1].capacity <= needed) {
-            st[1].setCapacity(st[1].capacity + 8 + needed);
-        }
-        if (q[0].capacity <= needed) {
-            q[0].setCapacity(q[0].capacity + 8 + needed);
-        }
-        if (q[1].capacity <= needed) {
-            q[1].setCapacity(q[1].capacity + 8 + needed);
-        }
-        if (attributes.capacity <= needed) {
-            attributes.setCapacity(attributes.capacity + 8 + needed);
-        }
+        diffuse.ensureIndex(needed);
+        specular.ensureIndex(needed);
+        positions.ensureIndex(needed);
+        st[0].ensureIndex(needed);
+        st[1].ensureIndex(needed);
+        q[0].ensureIndex(needed);
+        q[1].ensureIndex(needed);
+        attributes.ensureIndex(needed);
 
         unsigned long added = needed - capacity;
         /* reinterpret-ok: the dword fill is the shader-agnostic byte fill the

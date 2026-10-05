@@ -842,8 +842,7 @@ unsigned long srTimer::getUTime(srQuadWord& out, e_timerReadControl control)
         m_read_tick(&m_tick);
     }
     unsigned __int64 units = (unsigned __int64)((m_tick - m_base) * m_units_per_tick);
-    out.lo = (unsigned long)units;
-    out.hi = (unsigned long)(units >> 0x20);
+    out = units;
     return out.lo;
 }
 

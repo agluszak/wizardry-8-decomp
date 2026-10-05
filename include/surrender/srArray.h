@@ -101,6 +101,12 @@ public:
        emits that construction for the non-trivial element type. */
     void setCapacity(unsigned long new_capacity);
 
+    /* Indexed preserving growth, also expanded when renderer batches reserve
+       their last required index before taking pointers to the first one.
+       The required index is inclusive; this is not an exact-size reserve.
+       Method spelling is descriptive. */
+    void ensureIndex(unsigned long index);
+
     T& operator[](unsigned long index);
 
     T* data;
@@ -142,14 +148,19 @@ template <class T> inline void srArray<T>::setCapacity(unsigned long new_capacit
     }
 }
 
+template <class T> void srArray<T>::ensureIndex(unsigned long index)
+{
+    if (index >= capacity) {
+        setCapacity(capacity + 8 + index);
+    }
+}
+
 /* Out of line: the renderer calls it even for element 0 (drawImmediate,
    expandTriangles), while srArray<unsigned long>::operator[] (0x10027120)
    carries setCapacity expanded inside it. */
 template <class T> T& srArray<T>::operator[](unsigned long index)
 {
-    if (index >= capacity) {
-        setCapacity(capacity + 8 + index);
-    }
+    ensureIndex(index);
     return data[index];
 }
 

@@ -2501,6 +2501,40 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
     delete[] columns;
 }
 
+/* The horizontal and vertical filters use the same two eight-byte records:
+   a source index plus a float weight, and a count plus a pointer to those
+   records. Both enlarge/shrink paths expand append and normalization.
+   These are translation-unit-local descriptive names; original spelling is
+   unknown. Normalization rounds the reciprocal to float before multiplying
+   each stored weight and deliberately leaves a zero total unguarded. */
+struct SampleWeight {
+    long index;
+    float weight;
+};
+
+struct SampleContributions {
+    long count;
+    SampleWeight* samples;
+
+    void append(long index, double weight)
+    {
+        SampleWeight& sample = samples[count++];
+        sample.index = index;
+        sample.weight = static_cast<float>(weight);
+    }
+
+    void normalize(double total)
+    {
+        float scale = static_cast<float>(1.0 / total);
+        for (long index = 0; index < count; ++index) {
+            samples[index].weight = scale * samples[index].weight;
+        }
+    }
+};
+
+static_assert(sizeof(SampleWeight) == 8, "SampleWeight_must_be_8");
+static_assert(sizeof(SampleContributions) == 8, "SampleContributions_must_be_8");
+
 // FUNCTION: SURRENDER 0x10059AC0
 void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
 {
@@ -2510,21 +2544,20 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
     if (width != source_width) {
         double support = source.filter->getSupport();
         double scale = (double)width / source_width;
-        long* counts = new long[width * 2];
+        SampleContributions* counts = new SampleContributions[width];
         srARGB* source_row_colors = new srARGB[source_width];
         unsigned long* source_row = (unsigned long*)source_row_colors;
         srARGB* row_colors = new srARGB[width];
         unsigned long* row = (unsigned long*)row_colors;
         srVector4T<float>* channel_vectors = new srVector4T<float>[source_width];
-        float* channels = (float*)channel_vectors;
-        char* storage;
+        SampleWeight* storage;
         if (1.0 <= scale) {
             long entries = 1 - (long)(support * -2.0);
-            storage = new char[entries * width * 8];
+            storage = new SampleWeight[entries * width];
             for (long x = 0; x < width; x++) {
-                long* entry = counts + x * 2;
-                entry[0] = 0;
-                entry[1] = (long)(storage + x * entries * 8);
+                SampleContributions* entry = counts + x;
+                entry->count = 0;
+                entry->samples = storage + x * entries;
                 double center = x / scale - 0.5;
                 double total = 0.0;
                 long first = (long)ceil(center - support);
@@ -2533,27 +2566,21 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
                     double weight = source.filter->getWeight(center - first);
                     if (0.0 < weight) {
                         long index = source.getClampedX(first);
-                        long* slot = (long*)entry[1] + entry[0] * 2;
-                        entry[0] = entry[0] + 1;
-                        slot[0] = index;
-                        *(float*)(slot + 1) = (float)weight;
+                        entry->append(index, weight);
                         total = weight + total;
                     }
                 }
-                for (long i = 0; i < entry[0]; i++) {
-                    float* weight = (float*)((long*)entry[1] + i * 2 + 1);
-                    *weight = (float)(1.0 / total) * *weight;
-                }
+                entry->normalize(total);
             }
         } else {
             double scaled_support = support / scale;
             double inverse = 1.0 / scale;
             long entries = 1 - (long)(scaled_support * -2.0);
-            storage = new char[entries * width * 8];
+            storage = new SampleWeight[entries * width];
             for (long x = 0; x < width; x++) {
-                long* entry = counts + x * 2;
-                entry[0] = 0;
-                entry[1] = (long)(storage + x * entries * 8);
+                SampleContributions* entry = counts + x;
+                entry->count = 0;
+                entry->samples = storage + x * entries;
                 double center = x / scale + 0.5;
                 double total = 0.0;
                 long first = (long)ceil(center - scaled_support);
@@ -2562,51 +2589,43 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
                     double weight = source.filter->getWeight((center - first) / inverse) / inverse;
                     if (0.0 < weight) {
                         long index = source.getClampedX(first);
-                        long* slot = (long*)entry[1] + entry[0] * 2;
-                        entry[0] = entry[0] + 1;
-                        slot[0] = index;
-                        *(float*)(slot + 1) = (float)weight;
+                        entry->append(index, weight);
                         total = weight + total;
                     }
                 }
-                for (long i = 0; i < entry[0]; i++) {
-                    float* weight = (float*)((long*)entry[1] + i * 2 + 1);
-                    *weight = (float)(1.0 / total) * *weight;
-                }
+                entry->normalize(total);
             }
         }
         for (long y = 0; y < height; y++) {
             source.getPixelRow(source_row, y, 0, source_width);
             long x;
             for (x = 0; x < source_width; x++) {
-                unsigned char* pixel = (unsigned char*)&source_row[x];
-                channels[x * 4] = (float)pixel[3];
-                channels[x * 4 + 1] = (float)pixel[2];
-                channels[x * 4 + 2] = (float)pixel[1];
-                channels[x * 4 + 3] = (float)pixel[0];
+                channel_vectors[x].x = static_cast<float>(source_row_colors[x].alpha);
+                channel_vectors[x].y = static_cast<float>(source_row_colors[x].red);
+                channel_vectors[x].z = static_cast<float>(source_row_colors[x].green);
+                channel_vectors[x].w = static_cast<float>(source_row_colors[x].blue);
             }
             for (x = 0; x < width; x++) {
-                long* entry = counts + x * 2;
-                long count = entry[0];
-                long* slot = (long*)entry[1];
+                SampleContributions* entry = counts + x;
+                long count = entry->count;
+                SampleWeight* slot = entry->samples;
                 float a = 0.0f;
                 float r = 0.0f;
                 float g = 0.0f;
                 float b = 0.0f;
                 for (; 0 < count; count--) {
-                    float weight = *(float*)(slot + 1);
-                    float* source_pixel = channels + *slot * 4;
-                    slot = slot + 2;
-                    a = *source_pixel * weight + a;
-                    r = source_pixel[1] * weight + r;
-                    g = source_pixel[2] * weight + g;
-                    b = source_pixel[3] * weight + b;
+                    float weight = slot->weight;
+                    const srVector4T<float>& source_pixel = channel_vectors[slot->index];
+                    ++slot;
+                    a = source_pixel.x * weight + a;
+                    r = source_pixel.y * weight + r;
+                    g = source_pixel.z * weight + g;
+                    b = source_pixel.w * weight + b;
                 }
-                unsigned char* pixel = (unsigned char*)&row[x];
-                pixel[3] = (unsigned char)srFloatToInt(a);
-                pixel[2] = (unsigned char)srFloatToInt(r);
-                pixel[1] = (unsigned char)srFloatToInt(g);
-                pixel[0] = (unsigned char)srFloatToInt(b);
+                row_colors[x].alpha = static_cast<unsigned char>(srFloatToInt(a));
+                row_colors[x].red = static_cast<unsigned char>(srFloatToInt(r));
+                row_colors[x].green = static_cast<unsigned char>(srFloatToInt(g));
+                row_colors[x].blue = static_cast<unsigned char>(srFloatToInt(b));
             }
             setPixelRow(row, y, 0, width);
         }
@@ -2629,21 +2648,20 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
     if (height != source_height) {
         double support = source.filter->getSupport();
         double scale = height / (double)source_height;
-        long* counts = new long[height * 2];
+        SampleContributions* counts = new SampleContributions[height];
         srARGB* source_column_colors = new srARGB[source_height];
         unsigned long* source_column = (unsigned long*)source_column_colors;
         srARGB* column_colors = new srARGB[height];
         unsigned long* column = (unsigned long*)column_colors;
         srVector4T<float>* channel_vectors = new srVector4T<float>[source_height];
-        float* channels = (float*)channel_vectors;
-        char* storage;
+        SampleWeight* storage;
         if (1.0 <= scale) {
             long entries = 1 - (long)(support * -2.0);
-            storage = new char[entries * height * 8];
+            storage = new SampleWeight[entries * height];
             for (long y = 0; y < height; y++) {
-                long* entry = counts + y * 2;
-                entry[0] = 0;
-                entry[1] = (long)(storage + y * entries * 8);
+                SampleContributions* entry = counts + y;
+                entry->count = 0;
+                entry->samples = storage + y * entries;
                 double center = y / scale - 0.5;
                 double total = 0.0;
                 long first = (long)ceil(center - support);
@@ -2652,27 +2670,21 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                     double weight = source.filter->getWeight(center - first);
                     if (0.0 < weight) {
                         long index = source.getClampedY(first);
-                        long* slot = (long*)entry[1] + entry[0] * 2;
-                        entry[0] = entry[0] + 1;
-                        slot[0] = index;
-                        *(float*)(slot + 1) = (float)weight;
+                        entry->append(index, weight);
                         total = weight + total;
                     }
                 }
-                for (long i = 0; i < entry[0]; i++) {
-                    float* weight = (float*)((long*)entry[1] + i * 2 + 1);
-                    *weight = (float)(1.0 / total) * *weight;
-                }
+                entry->normalize(total);
             }
         } else {
             double scaled_support = support / scale;
             double inverse = 1.0 / scale;
             long entries = 1 - (long)(scaled_support * -2.0);
-            storage = new char[entries * height * 8];
+            storage = new SampleWeight[entries * height];
             for (long y = 0; y < height; y++) {
-                long* entry = counts + y * 2;
-                entry[0] = 0;
-                entry[1] = (long)(storage + y * entries * 8);
+                SampleContributions* entry = counts + y;
+                entry->count = 0;
+                entry->samples = storage + y * entries;
                 double center = y / scale + 0.5;
                 double total = 0.0;
                 long first = (long)ceil(center - scaled_support);
@@ -2681,51 +2693,43 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                     double weight = source.filter->getWeight((center - first) / inverse) / inverse;
                     if (0.0 < weight) {
                         long index = source.getClampedY(first);
-                        long* slot = (long*)entry[1] + entry[0] * 2;
-                        entry[0] = entry[0] + 1;
-                        slot[0] = index;
-                        *(float*)(slot + 1) = (float)weight;
+                        entry->append(index, weight);
                         total = weight + total;
                     }
                 }
-                for (long i = 0; i < entry[0]; i++) {
-                    float* weight = (float*)((long*)entry[1] + i * 2 + 1);
-                    *weight = (float)(1.0 / total) * *weight;
-                }
+                entry->normalize(total);
             }
         }
         for (long x = 0; x < width; x++) {
             source.getPixelColumn(source_column, x, 0, source_height);
             long y;
             for (y = 0; y < source_height; y++) {
-                unsigned char* pixel = (unsigned char*)&source_column[y];
-                channels[y * 4] = (float)pixel[3];
-                channels[y * 4 + 1] = (float)pixel[2];
-                channels[y * 4 + 2] = (float)pixel[1];
-                channels[y * 4 + 3] = (float)pixel[0];
+                channel_vectors[y].x = static_cast<float>(source_column_colors[y].alpha);
+                channel_vectors[y].y = static_cast<float>(source_column_colors[y].red);
+                channel_vectors[y].z = static_cast<float>(source_column_colors[y].green);
+                channel_vectors[y].w = static_cast<float>(source_column_colors[y].blue);
             }
             for (y = 0; y < height; y++) {
-                long* entry = counts + y * 2;
-                long count = entry[0];
-                long* slot = (long*)entry[1];
+                SampleContributions* entry = counts + y;
+                long count = entry->count;
+                SampleWeight* slot = entry->samples;
                 float a = 0.0f;
                 float r = 0.0f;
                 float g = 0.0f;
                 float b = 0.0f;
                 for (; 0 < count; count--) {
-                    float weight = *(float*)(slot + 1);
-                    float* source_pixel = channels + *slot * 4;
-                    slot = slot + 2;
-                    a = *source_pixel * weight + a;
-                    r = source_pixel[1] * weight + r;
-                    g = source_pixel[2] * weight + g;
-                    b = source_pixel[3] * weight + b;
+                    float weight = slot->weight;
+                    const srVector4T<float>& source_pixel = channel_vectors[slot->index];
+                    ++slot;
+                    a = source_pixel.x * weight + a;
+                    r = source_pixel.y * weight + r;
+                    g = source_pixel.z * weight + g;
+                    b = source_pixel.w * weight + b;
                 }
-                unsigned char* pixel = (unsigned char*)&column[y];
-                pixel[3] = (unsigned char)srFloatToInt(a);
-                pixel[2] = (unsigned char)srFloatToInt(r);
-                pixel[1] = (unsigned char)srFloatToInt(g);
-                pixel[0] = (unsigned char)srFloatToInt(b);
+                column_colors[y].alpha = static_cast<unsigned char>(srFloatToInt(a));
+                column_colors[y].red = static_cast<unsigned char>(srFloatToInt(r));
+                column_colors[y].green = static_cast<unsigned char>(srFloatToInt(g));
+                column_colors[y].blue = static_cast<unsigned char>(srFloatToInt(b));
             }
             setPixelColumn(column, x, 0, height);
         }

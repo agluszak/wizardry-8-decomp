@@ -235,8 +235,8 @@ W8CharacterPage::W8CharacterPage(int render_target)
 W8CharacterPage::~W8CharacterPage()
 {
     DestroyAllControls();
-    while (m_entries.count > 0) {
-        m_entries.RemoveAtAndDelete(m_entries.count - 1);
+    while (m_entries.GetCount() > 0) {
+        m_entries.RemoveAtAndDelete(m_entries.GetCount() - 1);
     }
 }
 
@@ -253,7 +253,7 @@ void W8CharacterPage::SetCharacter(W8Character* character, W8CharacterCreationSt
 void W8CharacterPage::Redraw()
 {
     Controls::Redraw();
-    for (int index = 0; index < m_entries.count; ++index) {
+    for (int index = 0; index < m_entries.GetCount(); ++index) {
         (*m_entries.GetAt(index))->Redraw();
     }
 }
@@ -262,7 +262,7 @@ void W8CharacterPage::Redraw()
 void W8CharacterPage::Invalidate(const W8ControlsRect* rect)
 {
     Controls::Invalidate(rect);
-    for (int index = 0; index < m_entries.count; ++index) {
+    for (int index = 0; index < m_entries.GetCount(); ++index) {
         W8CharacterPageEntry* entry = *m_entries.GetAt(index);
         entry->MarkDirty();
     }

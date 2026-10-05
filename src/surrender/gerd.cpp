@@ -536,28 +536,7 @@ long srGERD::getPolygonOffset() const
 // FUNCTION: SURRENDER 0x1001CA30
 void srGERD::setClearColor(const srVector4T<float>& color)
 {
-    clear_state.clear_values.color = color;
-    float* clear = &clear_state.clear_values.color.x;
-    if (clear[0] <= 0.0f) {
-        clear[0] = 0.0f;
-    } else if (clear[0] >= 1.0f) {
-        clear[0] = 1.0f;
-    }
-    if (clear[1] <= 0.0f) {
-        clear[1] = 0.0f;
-    } else if (clear[1] >= 1.0f) {
-        clear[1] = 1.0f;
-    }
-    if (clear[2] <= 0.0f) {
-        clear[2] = 0.0f;
-    } else if (clear[2] >= 1.0f) {
-        clear[2] = 1.0f;
-    }
-    if (clear[3] <= 0.0f) {
-        clear[3] = 0.0f;
-    } else if (clear[3] >= 1.0f) {
-        clear[3] = 1.0f;
-    }
+    clear_state.clear_values.color.SetSaturated(color);
 }
 
 // FUNCTION: SURRENDER 0x1001CB00
@@ -1481,16 +1460,9 @@ void srGERD::getNormalMatrix(srMatrix4T<float>& matrix)
 {
     checkViewStateChanges();
     if ((enable_flags.value & (1UL << ENABLE_REVERSE_NORMALS)) != 0) {
-        srVector4T<float> negated;
-        negated.Set(-state.normal_matrix.vectors[0].x, -state.normal_matrix.vectors[0].y,
-                    -state.normal_matrix.vectors[0].z, -state.normal_matrix.vectors[0].w);
-        matrix.vectors[0] = negated;
-        negated.Set(-state.normal_matrix.vectors[1].x, -state.normal_matrix.vectors[1].y,
-                    -state.normal_matrix.vectors[1].z, -state.normal_matrix.vectors[1].w);
-        matrix.vectors[1] = negated;
-        negated.Set(-state.normal_matrix.vectors[2].x, -state.normal_matrix.vectors[2].y,
-                    -state.normal_matrix.vectors[2].z, -state.normal_matrix.vectors[2].w);
-        matrix.vectors[2] = negated;
+        matrix.vectors[0] = -state.normal_matrix.vectors[0];
+        matrix.vectors[1] = -state.normal_matrix.vectors[1];
+        matrix.vectors[2] = -state.normal_matrix.vectors[2];
         matrix.vectors[3] = state.normal_matrix.vectors[3];
         return;
     }
@@ -1693,10 +1665,7 @@ void srGERD::loadIdentity()
         matrix.vectors[1].w != 0.0f || matrix.vectors[2].x != 0.0f || matrix.vectors[2].y != 0.0f ||
         matrix.vectors[2].w != 0.0f || matrix.vectors[3].x != 0.0f || matrix.vectors[3].y != 0.0f ||
         matrix.vectors[3].z != 0.0f) {
-        matrix.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
-        matrix.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
-        matrix.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
-        matrix.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+        matrix.SetIdentity();
         setMatrixDirty();
     }
 }
@@ -2220,22 +2189,10 @@ void srGERD::applyViewStateChanges()
                    (projection.vectors[3].w + projection.vectors[2].w)) != 1.0))) {
             float scale = (float)fabs((projection.vectors[3].z + projection.vectors[2].z) /
                                       (projection.vectors[3].w + projection.vectors[2].w));
-            state.project_clip_near.vectors[0].x *= scale;
-            state.project_clip_near.vectors[0].y *= scale;
-            state.project_clip_near.vectors[0].z *= scale;
-            state.project_clip_near.vectors[0].w *= scale;
-            state.project_clip_near.vectors[1].x *= scale;
-            state.project_clip_near.vectors[1].y *= scale;
-            state.project_clip_near.vectors[1].z *= scale;
-            state.project_clip_near.vectors[1].w *= scale;
-            state.project_clip_near.vectors[2].x *= scale;
-            state.project_clip_near.vectors[2].y *= scale;
-            state.project_clip_near.vectors[2].z *= scale;
-            state.project_clip_near.vectors[2].w *= scale;
-            state.project_clip_near.vectors[3].x *= scale;
-            state.project_clip_near.vectors[3].y *= scale;
-            state.project_clip_near.vectors[3].z *= scale;
-            state.project_clip_near.vectors[3].w *= scale;
+            state.project_clip_near.vectors[0] *= scale;
+            state.project_clip_near.vectors[1] *= scale;
+            state.project_clip_near.vectors[2] *= scale;
+            state.project_clip_near.vectors[3] *= scale;
         }
         if ((state_flags & STATE_CLOSING_WINDOW) == 0) {
             getDD()->setProjectionMatrix(state.project_clip_near,
@@ -2493,12 +2450,7 @@ void srGERD::getMatrix(e_matrixMode mode, srMatrix4T<double>& matrix)
     checkViewStateChanges();
     const srMatrix4T<float>& current = state.matrix_current[mode];
     srMatrix4T<double> result;
-    for (int row = 0; row != 4; ++row) {
-        result.vectors[row].x = (double)current.vectors[row].x;
-        result.vectors[row].y = (double)current.vectors[row].y;
-        result.vectors[row].z = (double)current.vectors[row].z;
-        result.vectors[row].w = (double)current.vectors[row].w;
-    }
+    result = current;
     matrix = result;
 }
 
@@ -2508,12 +2460,7 @@ void srGERD::getMatrix(srMatrix4T<double>& matrix)
     checkViewStateChanges();
     const srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
     srMatrix4T<double> result;
-    for (int row = 0; row != 4; ++row) {
-        result.vectors[row].x = (double)current.vectors[row].x;
-        result.vectors[row].y = (double)current.vectors[row].y;
-        result.vectors[row].z = (double)current.vectors[row].z;
-        result.vectors[row].w = (double)current.vectors[row].w;
-    }
+    result = current;
     matrix = result;
 }
 
@@ -2569,20 +2516,7 @@ void srGERD::multMatrix(const srMatrix4T<double>& matrix)
 {
     assertContext();
     srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
-    for (int row = 0; row != 4; ++row) {
-        float x = current.vectors[row].x;
-        float y = current.vectors[row].y;
-        float z = current.vectors[row].z;
-        float w = current.vectors[row].w;
-        current.vectors[row].x = x * (float)matrix.vectors[0].x + y * (float)matrix.vectors[1].x +
-                                 z * (float)matrix.vectors[2].x + w * (float)matrix.vectors[3].x;
-        current.vectors[row].y = x * (float)matrix.vectors[0].y + y * (float)matrix.vectors[1].y +
-                                 z * (float)matrix.vectors[2].y + w * (float)matrix.vectors[3].y;
-        current.vectors[row].z = x * (float)matrix.vectors[0].z + y * (float)matrix.vectors[1].z +
-                                 z * (float)matrix.vectors[2].z + w * (float)matrix.vectors[3].z;
-        current.vectors[row].w = x * (float)matrix.vectors[0].w + y * (float)matrix.vectors[1].w +
-                                 z * (float)matrix.vectors[2].w + w * (float)matrix.vectors[3].w;
-    }
+    current.MultiplyBy(matrix);
     setMatrixDirty();
 }
 
@@ -2590,12 +2524,7 @@ void srGERD::multMatrix(const srMatrix4T<double>& matrix)
 void srGERD::loadMatrix(const srMatrix4T<double>& matrix)
 {
     srMatrix4T<float> converted;
-    for (int row = 0; row != 4; ++row) {
-        converted.vectors[row].x = (float)matrix.vectors[row].x;
-        converted.vectors[row].y = (float)matrix.vectors[row].y;
-        converted.vectors[row].z = (float)matrix.vectors[row].z;
-        converted.vectors[row].w = (float)matrix.vectors[row].w;
-    }
+    converted = matrix;
     state.matrix_current[state.matrix_mode] = converted;
     setMatrixDirty();
 }
@@ -2773,10 +2702,7 @@ void srGERD::applyClipPlaneChanges()
                             state.clip_planes[plane].x * state.clip_planes[plane].x);
         if (length != 0.0f) {
             float inverse_length = 1.0f / length;
-            state.clip_planes[plane].x *= inverse_length;
-            state.clip_planes[plane].y *= inverse_length;
-            state.clip_planes[plane].z *= inverse_length;
-            state.clip_planes[plane].w *= inverse_length;
+            state.clip_planes[plane] *= inverse_length;
         }
     }
     dirty &= ~DIRTY_CLIP_PLANES;
@@ -2946,27 +2872,8 @@ void srGERD::setFogColor(const srVector3T<float>& color)
 // FUNCTION: SURRENDER 0x1001C6B0
 void srGERD::setFogColor(const srVector4T<float>& color)
 {
-    srVector4T<float> clamped = color;
-    if (clamped.x <= 0.0f) {
-        clamped.x = 0.0f;
-    } else if (clamped.x >= 1.0f) {
-        clamped.x = 1.0f;
-    }
-    if (clamped.y <= 0.0f) {
-        clamped.y = 0.0f;
-    } else if (clamped.y >= 1.0f) {
-        clamped.y = 1.0f;
-    }
-    if (clamped.z <= 0.0f) {
-        clamped.z = 0.0f;
-    } else if (clamped.z >= 1.0f) {
-        clamped.z = 1.0f;
-    }
-    if (clamped.w <= 0.0f) {
-        clamped.w = 0.0f;
-    } else if (clamped.w >= 1.0f) {
-        clamped.w = 1.0f;
-    }
+    srVector4T<float> clamped;
+    clamped.SetSaturated(color);
     if (clamped.x != fog_color.x || clamped.y != fog_color.y || clamped.z != fog_color.z ||
         clamped.w != fog_color.w) {
         flushImmediateRenderers();
@@ -3519,21 +3426,12 @@ void srGERD::initMatrices()
 {
     state.matrix_mode = MATRIX_MODELVIEW;
     for (long i = 0; i < 2; i++) {
-        state.matrix_current[i].vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
-        state.matrix_current[i].vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
-        state.matrix_current[i].vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
-        state.matrix_current[i].vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+        state.matrix_current[i].SetIdentity();
         state.matrix_class[i] = srMatrix4T<float>::TYPE_IDENTITY;
         state.matrix_stacks[i].depth = 0;
     }
-    state.normal_matrix.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
-    state.normal_matrix.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
-    state.normal_matrix.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
-    state.normal_matrix.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
-    state.inverse_modelview.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
-    state.inverse_modelview.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
-    state.inverse_modelview.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
-    state.inverse_modelview.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+    state.normal_matrix.SetIdentity();
+    state.inverse_modelview.SetIdentity();
 }
 
 // FUNCTION: SURRENDER 0x1001CD60

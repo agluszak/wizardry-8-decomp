@@ -624,9 +624,7 @@ void srMeshModel::scale(const srVector3T<float>& scale)
 {
     srVector3T<float>* vertices = getVertexLoc();
     for (long index = 0; index < vertex_location_count; index++) {
-        vertices[index].x = vertices[index].x * scale.x;
-        vertices[index].y = vertices[index].y * scale.y;
-        vertices[index].z = scale.z * vertices[index].z;
+        vertices[index] *= scale;
     }
     setDirty(DIRTY_BOUNDS);
     setDirty(DIRTY_POLYGON_NORMALS);
@@ -639,15 +637,7 @@ void srMeshModel::applyMatrix(const srMatrix3T<float>& matrix)
 {
     srVector3T<float>* vertices = getVertexLoc();
     for (long index = 0; index < vertex_location_count; index++) {
-        float x = vertices[index].x;
-        float y = vertices[index].y;
-        float z = vertices[index].z;
-        vertices[index].x =
-            matrix.vectors[0].x * x + matrix.vectors[0].y * y + matrix.vectors[0].z * z;
-        vertices[index].y =
-            matrix.vectors[1].x * x + matrix.vectors[1].y * y + matrix.vectors[1].z * z;
-        vertices[index].z =
-            matrix.vectors[2].x * x + matrix.vectors[2].y * y + matrix.vectors[2].z * z;
+        vertices[index].Transform(matrix);
     }
     setDirty(DIRTY_BOUNDS);
     setDirty(DIRTY_POLYGON_NORMALS);
@@ -660,9 +650,7 @@ void srMeshModel::relocateVertices(const srVector3T<float>& offset)
 {
     srVector3T<float>* vertices = getVertexLoc();
     for (long index = 0; index < vertex_location_count; index++) {
-        vertices[index].x = vertices[index].x + offset.x;
-        vertices[index].y = vertices[index].y + offset.y;
-        vertices[index].z = offset.z + vertices[index].z;
+        vertices[index] += offset;
     }
     setDirty(DIRTY_BOUNDS);
     setDirty(DIRTY_POLYGON_NORMALS);
@@ -685,9 +673,7 @@ void srMeshModel::centerVertices()
         }
         double inverse = 1.0 / count;
         srVector3T<float> offset;
-        offset.x = -(sum.x * inverse);
-        offset.y = -(sum.y * inverse);
-        offset.z = -(sum.z * inverse);
+        offset = -(sum * inverse);
         relocateVertices(offset);
     }
 }

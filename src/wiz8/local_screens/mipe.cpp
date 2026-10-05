@@ -1804,9 +1804,9 @@ static int HandleMonsterGeneratorKey(unsigned short key)
 static void RebuildMipeEncounterCategory(W8PList* list)
 {
     PListClear(list);
-    int count = g_encounter_tables.count;
+    int count = g_encounter_tables.GetCount();
     int index = 0;
-    if (0 < g_encounter_tables.count) {
+    if (0 < g_encounter_tables.GetCount()) {
         do {
             W8EncounterTableRuntime* entry = GetEncounterTable(index);
             if (entry->category == static_cast<unsigned int>(g_mipe_category)) {
@@ -1977,14 +1977,14 @@ void HandleMipeGeneratorTableKey(unsigned short key)
     int count;
     unsigned int table_index;
 
-    count = g_encounter_tables.count;
+    count = g_encounter_tables.GetCount();
     switch (key) {
     case 0xd:
         if (g_mipe_state->generator != 0) {
             found = 0;
             table_index = 0;
             index = g_mipe_table_base + g_mipe_table_row;
-            if (0 < g_encounter_tables.count) {
+            if (0 < g_encounter_tables.GetCount()) {
                 unsigned int category = g_mipe_category & 0xff;
                 do {
                     entry = GetEncounterTable(table_index);
@@ -2043,16 +2043,16 @@ void HandleMipeGeneratorTableKey(unsigned short key)
             list = g_mipe_category_list;
             unsigned char category;
             if (g_mipe_category == 0) {
-                g_mipe_category = static_cast<unsigned char>(g_encounter_names.count);
+                g_mipe_category = static_cast<unsigned char>(g_encounter_names.GetCount());
                 ++wraps;
             }
             category = g_mipe_category - 1;
             g_mipe_category = category;
             if (g_mipe_category_list != 0) {
                 PListClear(g_mipe_category_list);
-                count = g_encounter_tables.count;
+                count = g_encounter_tables.GetCount();
                 index = 0;
-                if (0 < g_encounter_tables.count) {
+                if (0 < g_encounter_tables.GetCount()) {
                     do {
                         entry = GetEncounterTable(index);
                         if (entry->category == static_cast<unsigned int>(category)) {
@@ -2081,7 +2081,7 @@ void HandleMipeGeneratorTableKey(unsigned short key)
         wraps = 0;
         do {
             list = g_mipe_category_list;
-            if ((g_mipe_category & 0xff) < g_encounter_names.count - 1) {
+            if ((g_mipe_category & 0xff) < g_encounter_names.GetCount() - 1) {
                 ++g_mipe_category;
             } else {
                 ++wraps;

@@ -554,7 +554,7 @@ void AutomapLayerDownButton(void)
 // FUNCTION: WIZ8 0x00584130
 void AutomapLayerUpButton(void)
 {
-    if (g_automap_layer < g_automap_layers.count) {
+    if (g_automap_layer < g_automap_layers.GetCount()) {
         SetAutomapLayer(g_automap_layer + 1);
     }
 }
@@ -707,13 +707,13 @@ unsigned char AutomapScreenEnter(void)
         W8Vector<char*> excluded_textures(5);
         int line = 0;
         int section = -1;
-        while (section < g_status.current_level && line < script.lines.count) {
+        while (section < g_status.current_level && line < script.lines.GetCount()) {
             if (strchr((*script.lines.GetAt(line))->text, '['))
                 ++section;
             ++line;
         }
-        if (line < script.lines.count && section == g_status.current_level) {
-            for (; line < script.lines.count; ++line) {
+        if (line < script.lines.GetCount() && section == g_status.current_level) {
+            for (; line < script.lines.GetCount(); ++line) {
                 char* text = (*script.lines.GetAt(line))->text;
                 if (strchr(text, '['))
                     break;
@@ -1212,7 +1212,7 @@ void SetAutomapCameraPoint(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x00580F20
 void SetAutomapLayer(int layer)
 {
-    if (layer < 0 || g_automap_layers.count == 0 || g_automap_layers.count <= layer ||
+    if (layer < 0 || g_automap_layers.GetCount() == 0 || g_automap_layers.GetCount() <= layer ||
         *g_automap_layers.GetAt(layer) == 0) {
         g_automap_near_clip = 1.0f;
     } else {
@@ -1229,7 +1229,7 @@ void SetAutomapLayer(int layer)
     g_automap_overlay_redraw = true;
     if (g_automap_buttons != 0) {
         if (g_automap_buttons[9] != 0) {
-            g_automap_buttons[9]->SetEnabled(layer != g_automap_layers.count - 1);
+            g_automap_buttons[9]->SetEnabled(layer != g_automap_layers.GetCount() - 1);
         }
         if (g_automap_buttons[8] != 0) {
             g_automap_buttons[8]->SetEnabled(layer != 0);
@@ -1284,7 +1284,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
     float ground;
     if (g_octree_game_data->octree->TraceLineOfSight(&from, &to, true, -3, -3, true, 0) == 0) {
         ground = g_automap_grid_min.y;
-        if (g_automap_layers.count != 0 && 1 < g_automap_layers.count &&
+        if (g_automap_layers.GetCount() != 0 && 1 < g_automap_layers.GetCount() &&
             *g_automap_layers.GetAt(1) != 0) {
             ground = static_cast<float>((*g_automap_layers.GetAt(1))->getLocationY());
         }
@@ -1648,25 +1648,25 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
     }
     float floor_y;
     int layer = note->layer + 1;
-    if (layer < 0 || g_automap_layers.count == 0 || g_automap_layers.count <= layer ||
+    if (layer < 0 || g_automap_layers.GetCount() == 0 || g_automap_layers.GetCount() <= layer ||
         *g_automap_layers.GetAt(layer) == 0) {
         floor_y = g_automap_grid_min.y;
-    } else if (layer < g_automap_layers.count) {
+    } else if (layer < g_automap_layers.GetCount()) {
         floor_y = static_cast<float>(g_automap_layers.data[layer]->getLocationY());
     } else {
         floor_y = static_cast<float>((*g_automap_layers.data)->getLocationY());
     }
     int index = 0;
-    if (0 < g_automap_layers.count) {
+    if (0 < g_automap_layers.GetCount()) {
         do {
-            if (index >= 0 && g_automap_layers.count != 0 && index < g_automap_layers.count &&
-                *g_automap_layers.GetAt(index) != 0) {
+            if (index >= 0 && g_automap_layers.GetCount() != 0 &&
+                index < g_automap_layers.GetCount() && *g_automap_layers.GetAt(index) != 0) {
                 if ((*g_automap_layers.GetAt(index))->getLocation().y < floor_y) {
                     break;
                 }
             }
             ++index;
-        } while (index < g_automap_layers.count);
+        } while (index < g_automap_layers.GetCount());
     }
     if (index - 1 == g_automap_layer) {
         float left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
@@ -1813,7 +1813,7 @@ unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position)
     if (GetCursorPositionInViewport(&point) != 0) {
         int layer = g_automap_layer + 1;
         float height;
-        if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
+        if (layer >= 0 && g_automap_layers.GetCount() != 0 && layer < g_automap_layers.GetCount() &&
             g_automap_layers.data[layer] != 0) {
             height = static_cast<float>((*g_automap_layers.GetAt(layer))->getLocationY());
         } else {
@@ -1838,13 +1838,13 @@ W8AutomapNote* FindAutomapNoteUnderCursor(void)
 
     if (g_automap_page != 2 && GetCursorPositionInViewport(&point) != 0) {
         int layer = g_automap_layer + 1;
-        if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
+        if (layer >= 0 && g_automap_layers.GetCount() != 0 && layer < g_automap_layers.GetCount() &&
             *g_automap_layers.GetAt(layer) != 0) {
             (*g_automap_layers.GetAt(layer))->getLocationY();
         }
         float x = (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
         float y = g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom;
-        for (unsigned int index = 0; index < static_cast<unsigned int>(g_automap_notes->count);
+        for (unsigned int index = 0; index < static_cast<unsigned int>(g_automap_notes->GetCount());
              ++index) {
             W8AutomapNote* note = *g_automap_notes->GetAt(index);
             if (note->layer == g_automap_layer) {
@@ -2002,9 +2002,9 @@ void RenderAutomapMarkers(void)
         srVector3T<float> location;
         location = 0.0f;
         monster->m_pRep->GetLocation(&location);
-        for (int layer = 0; layer < g_automap_layers.count; ++layer) {
-            if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
-                *g_automap_layers.GetAt(layer) != 0 &&
+        for (int layer = 0; layer < g_automap_layers.GetCount(); ++layer) {
+            if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
+                layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0 &&
                 (*g_automap_layers.GetAt(layer))->getLocation().y < location.y) {
                 break;
             }
@@ -2048,9 +2048,9 @@ void RenderAutomapMarkers(void)
         srVector3T<float> location;
         item->GetSearchPosition(&location);
         int layer = 0;
-        for (; layer < g_automap_layers.count; ++layer) {
-            if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
-                *g_automap_layers.GetAt(layer) != 0 &&
+        for (; layer < g_automap_layers.GetCount(); ++layer) {
+            if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
+                layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0 &&
                 (*g_automap_layers.GetAt(layer))->getLocation().y < location.y) {
                 break;
             }
@@ -2090,8 +2090,8 @@ void RenderAutomapMarkers(void)
         for (unsigned int index = 0; index < count; ++index) {
             W8AutomapNote* note = *g_automap_notes->GetAt(index);
             int layer = note->layer + 1;
-            if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
-                *g_automap_layers.GetAt(layer) != 0) {
+            if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
+                layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0) {
                 (*g_automap_layers.GetAt(layer))->getLocationY();
             }
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
@@ -2278,8 +2278,8 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
             srVector3T<float> point;
             if (GetCursorPositionInViewport(&point) != 0) {
                 int layer = g_automap_layer + 1;
-                if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
-                    *g_automap_layers.GetAt(layer) != 0) {
+                if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
+                    layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0) {
                     (*g_automap_layers.GetAt(layer))->getLocationY();
                 }
                 g_automap_editing_note->position.Set(

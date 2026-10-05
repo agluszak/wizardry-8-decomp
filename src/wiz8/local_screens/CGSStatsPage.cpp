@@ -573,7 +573,7 @@ void W8CharacterStatsPage::Refresh()
 {
     UpdateRowValues();
     if (m_character->iRace != W8_RACE_NONE || m_character->iProfession != W8_PROFESSION_NONE) {
-        for (int index = 0; index < m_entries.count; ++index) {
+        for (int index = 0; index < m_entries.GetCount(); ++index) {
             if (!m_rows_initialized) {
                 m_entries.data[index]->SetEnabled(true);
             }
@@ -592,7 +592,7 @@ void W8CharacterStatsPage::Accept()
     Invalidate(0);
     m_dirty = true;
     m_screen->UpdateNavigation(this);
-    for (int index = 0; index < m_entries.count; ++index) {
+    for (int index = 0; index < m_entries.GetCount(); ++index) {
         m_entries.data[index]->UpdateButtons();
     }
 }
@@ -611,7 +611,7 @@ void W8CharacterStatsPage::GetNavigationState(bool* next_enabled, bool* exit_ena
     *exit_enabled =
         m_creation_state->attribute_points_remaining < m_creation_state->attribute_points_total;
     if (*next_enabled != nav_next_state) {
-        for (int index = 0; index < m_entries.count; ++index) {
+        for (int index = 0; index < m_entries.GetCount(); ++index) {
             m_entries.data[index]->SetIncrementAllowed(!*next_enabled);
         }
         nav_next_state = *next_enabled;
@@ -690,7 +690,7 @@ void W8CharacterStatsPage::OnRowExpanded(W8CharacterStatsRow* row)
     } else {
         m_gender_row->m_increment->SetActive(false);
     }
-    for (int entry_index = 0; entry_index < m_entries.count; ++entry_index) {
+    for (int entry_index = 0; entry_index < m_entries.GetCount(); ++entry_index) {
         m_entries.data[entry_index]->SetHelpActive(false);
     }
     for (int control_index = 0; control_index < 5; ++control_index) {
@@ -712,7 +712,7 @@ void W8CharacterStatsPage::OnRowCollapsed(W8CharacterStatsRow* row)
     } else {
         m_gender_row->m_increment->SetActive(true);
     }
-    for (int entry_index = 0; entry_index < m_entries.count; ++entry_index) {
+    for (int entry_index = 0; entry_index < m_entries.GetCount(); ++entry_index) {
         m_entries.data[entry_index]->SetHelpActive(true);
     }
     for (int control_index = 0; control_index < 5; ++control_index) {

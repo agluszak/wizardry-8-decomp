@@ -248,43 +248,16 @@ int srNode::setParent(srNode* parent, int preserve_world_transform)
             srVector3T<double> parent_location;
             srVector3T<double> parent_scale;
             parent->getWorldSpaceCoordinates(parent_rotation, parent_location, parent_scale);
-            srVector3T<double> columns[3];
-            columns[0].x = parent_rotation.vectors[0].x;
-            columns[0].y = parent_rotation.vectors[1].x;
-            columns[0].z = parent_rotation.vectors[2].x;
-            columns[1].x = parent_rotation.vectors[0].y;
-            columns[1].y = parent_rotation.vectors[1].y;
-            columns[1].z = parent_rotation.vectors[2].y;
-            columns[2].x = parent_rotation.vectors[0].z;
-            columns[2].y = parent_rotation.vectors[1].z;
-            columns[2].z = parent_rotation.vectors[2].z;
-            srVector3T<double> rows[3];
-            for (int row = 0; row < 3; ++row) {
-                rows[row].x = DotProduct(columns[0], rotation.vectors[row]);
-                rows[row].y = DotProduct(columns[1], rotation.vectors[row]);
-                rows[row].z = DotProduct(columns[2], rotation.vectors[row]);
-            }
-            rotation.SetRows(rows[0], rows[1], rows[2]);
-            for (int axis = 0; axis < 3; ++axis) {
-                for (int prior = 0; prior < axis; ++prior) {
-                    rotation.vectors[axis] -=
-                        rotation.vectors[prior] *
-                        DotProduct(rotation.vectors[axis], rotation.vectors[prior]);
-                }
-                rotation.vectors[axis] /= rotation.vectors[axis].Length();
-            }
+            rotation.MultiplyBy(parent_rotation);
+            rotation.OrthonormalizeRows();
             srVector3T<double> inverse_scale;
             inverse_scale.x = 1.0 / parent_scale.x;
             inverse_scale.y = 1.0 / parent_scale.y;
             inverse_scale.z = 1.0 / parent_scale.z;
             location -= parent_location;
-            location.x *= inverse_scale.x;
-            location.y *= inverse_scale.y;
-            location.z *= inverse_scale.z;
+            location *= inverse_scale;
             location = parent_rotation.TransformTransposed(location);
-            scale.x *= inverse_scale.x;
-            scale.y *= inverse_scale.y;
-            scale.z *= inverse_scale.z;
+            scale *= inverse_scale;
         }
     }
     notifyDependent();
@@ -1376,13 +1349,7 @@ void srNode::pitchAt(const srVector3T<double>& target, double amount)
     if (angle != 0.0) {
         rotation.RotateAboutX(sin(angle), cos(angle));
     }
-    for (int row = 0; row != 3; ++row) {
-        for (int earlier = 0; earlier < row; ++earlier) {
-            rotation.vectors[row] -= rotation.vectors[earlier] *
-                                     DotProduct(rotation.vectors[row], rotation.vectors[earlier]);
-        }
-        rotation.vectors[row] *= 1.0 / rotation.vectors[row].Length();
-    }
+    rotation.OrthonormalizeRows();
     setWorldSpaceRotation(rotation);
 }
 
@@ -1406,13 +1373,7 @@ void srNode::yawAt(const srVector3T<double>& target, double amount)
     if (angle != 0.0) {
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
-    for (int row = 0; row != 3; ++row) {
-        for (int earlier = 0; earlier < row; ++earlier) {
-            rotation.vectors[row] -= rotation.vectors[earlier] *
-                                     DotProduct(rotation.vectors[row], rotation.vectors[earlier]);
-        }
-        rotation.vectors[row] *= 1.0 / rotation.vectors[row].Length();
-    }
+    rotation.OrthonormalizeRows();
     setWorldSpaceRotation(rotation);
 }
 
@@ -1432,13 +1393,7 @@ void srNode::rollUp(double amount)
     if (angle != 0.0) {
         rotation.RotateAboutZ(sin(angle), cos(angle));
     }
-    for (int row = 0; row != 3; ++row) {
-        for (int earlier = 0; earlier < row; ++earlier) {
-            rotation.vectors[row] -= rotation.vectors[earlier] *
-                                     DotProduct(rotation.vectors[row], rotation.vectors[earlier]);
-        }
-        rotation.vectors[row] *= 1.0 / rotation.vectors[row].Length();
-    }
+    rotation.OrthonormalizeRows();
     setWorldSpaceRotation(rotation);
 }
 
@@ -1453,13 +1408,7 @@ void srNode::rollAt(const srVector3T<double>& target, double amount)
     if (angle != 0.0) {
         rotation.RotateAboutZ(sin(angle), cos(angle));
     }
-    for (int row = 0; row != 3; ++row) {
-        for (int earlier = 0; earlier < row; ++earlier) {
-            rotation.vectors[row] -= rotation.vectors[earlier] *
-                                     DotProduct(rotation.vectors[row], rotation.vectors[earlier]);
-        }
-        rotation.vectors[row] *= 1.0 / rotation.vectors[row].Length();
-    }
+    rotation.OrthonormalizeRows();
     setWorldSpaceRotation(rotation);
 }
 

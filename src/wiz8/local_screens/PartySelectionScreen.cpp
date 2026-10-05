@@ -112,7 +112,7 @@ W8PartySelectionCharacterCollection::~W8PartySelectionCharacterCollection()
 {
     int index;
     ClearCharacters();
-    for (index = 0; index < names.count; ++index) {
+    for (index = 0; index < names.GetCount(); ++index) {
         delete names.data[index];
     }
     names.Clear();
@@ -121,7 +121,7 @@ W8PartySelectionCharacterCollection::~W8PartySelectionCharacterCollection()
 void W8PartySelectionCharacterCollection::ClearCharacters()
 {
     int index;
-    for (index = 0; index < characters.count; ++index) {
+    for (index = 0; index < characters.GetCount(); ++index) {
         W8Character* character = GetCharacter(index);
         if (!character->fInParty) {
             delete character;
@@ -146,7 +146,7 @@ void W8PartySelectionCharacterCollection::ReloadCharacters()
 // FUNCTION: WIZ8 0x005be4b0
 W8Character* W8PartySelectionCharacterCollection::GetCharacter(int index)
 {
-    if (index >= 0 && index < characters.count) {
+    if (index >= 0 && index < characters.GetCount()) {
         return characters.data[index];
     }
     return 0;
@@ -186,7 +186,7 @@ int W8PartySelectionCharacterCollection::FindPartySlot(int index)
 // FUNCTION: WIZ8 0x005c34d0
 void W8PartySelectionCharacterCollection::DeleteAt(int index)
 {
-    if (index >= 0 && index < characters.count) {
+    if (index >= 0 && index < characters.GetCount()) {
         characters.RemoveAtAndDelete(index);
     } else {
         delete static_cast<W8Character*>(0);
@@ -289,13 +289,13 @@ static void SortPartySelectionCharactersByTime(W8Character** characters, SGP_FIL
 // FUNCTION: WIZ8 0x005be650
 void W8PartySelectionCharacterCollection::SortCharactersByWriteTime()
 {
-    if (characters.count <= 1) {
+    if (characters.GetCount() <= 1) {
         return;
     }
 
-    SGP_FILETIME* times = new SGP_FILETIME[characters.count];
-    memset(times, 0, characters.count * sizeof(SGP_FILETIME));
-    for (int index = 0; index < characters.count; ++index) {
+    SGP_FILETIME* times = new SGP_FILETIME[characters.GetCount()];
+    memset(times, 0, characters.GetCount() * sizeof(SGP_FILETIME));
+    for (int index = 0; index < characters.GetCount(); ++index) {
         char path[128];
         BuildCharacterPath(path, characters.data[index]->name, -1);
         int handle = FileOpen(path, FILE_ACCESS_READ, 0);
@@ -306,7 +306,7 @@ void W8PartySelectionCharacterCollection::SortCharactersByWriteTime()
             FileClose(handle);
         }
     }
-    SortPartySelectionCharactersByTime(characters.data, times, 0, characters.count - 1);
+    SortPartySelectionCharactersByTime(characters.data, times, 0, characters.GetCount() - 1);
     delete[] times;
 }
 
@@ -360,8 +360,8 @@ void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
         SetFontDestBuffer(-14, left, top, right, bottom, 0);
 
         int end = m_first_visible + m_visible_rows;
-        if (g_party_selection_character_collection->names.count <= end) {
-            end = g_party_selection_character_collection->names.count;
+        if (g_party_selection_character_collection->names.GetCount() <= end) {
+            end = g_party_selection_character_collection->names.GetCount();
         }
         top += 1;
         SetFont(g_wiz_text_font_secondary);
@@ -651,7 +651,7 @@ void RefreshPartySelectionPortrait(unsigned int party_slot)
 {
     W8TextControl** buttons = g_party_selection_controller->m_control1->m_control.m_lsButtons.data;
     if (static_cast<int>(party_slot - 2) <
-        g_party_selection_controller->m_control1->m_control.m_lsButtons.count) {
+        g_party_selection_controller->m_control1->m_control.m_lsButtons.GetCount()) {
         buttons += party_slot - 2;
     }
     W8PartySelectionPartySlotRow* row = static_cast<W8PartySelectionPartySlotRow*>(*buttons);
@@ -680,7 +680,7 @@ W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* panel, int 
 {
     AddLayoutFlags(0x11);
     m_character_index = g_party_selection_character_collection->first_visible + m_row;
-    SetActive(m_character_index < g_party_selection_character_collection->characters.count);
+    SetActive(m_character_index < g_party_selection_character_collection->characters.GetCount());
     Invalidate(false);
 }
 
@@ -744,12 +744,12 @@ void W8PartySelectionCharacterRow::OnLeftButtonDoubleClick(int event)
 
 void W8PartySelectionCharacterPanel::RefreshVisibleRows()
 {
-    for (int index = 0; index < m_controls.count; ++index) {
+    for (int index = 0; index < m_controls.GetCount(); ++index) {
         W8PartySelectionCharacterRow* row =
             static_cast<W8PartySelectionCharacterRow*>(ControlAt(index));
         row->m_character_index = g_party_selection_character_collection->first_visible + row->m_row;
         row->SetActive(row->m_character_index <
-                       g_party_selection_character_collection->characters.count);
+                       g_party_selection_character_collection->characters.GetCount());
         row->Invalidate(false);
     }
 }
@@ -815,9 +815,9 @@ void W8PartySelectionCharacterPanel::SetSelectedRow(int selection)
     m_selected_row = selection;
     int visible = selection - g_party_selection_character_collection->first_visible;
     if (visible < 0 || visible > 5 ||
-        g_party_selection_character_collection->characters.count <
+        g_party_selection_character_collection->characters.GetCount() <
             g_party_selection_character_collection->first_visible + 6) {
-        int maximum = g_party_selection_character_collection->characters.count - 6;
+        int maximum = g_party_selection_character_collection->characters.GetCount() - 6;
         int first = selection < maximum ? selection : maximum;
         if (first < 0) {
             first = 0;
@@ -1152,7 +1152,7 @@ void W8PartySelectionOptionPanel::Redraw()
         return;
     }
 
-    for (int index = 0; index < m_entries.count; ++index) {
+    for (int index = 0; index < m_entries.GetCount(); ++index) {
         m_entries.data[index]->RenderToTarget(0, true, -14);
     }
     if (m_page == W8_PARTY_CREATION_SAVE_NAME) {
@@ -1205,10 +1205,10 @@ unsigned char W8PartySelectionInputHandler::HandleInput(const InputAtom* input)
 void W8PartySelectionOptionPanel::SetOptionPanelMode(W8PartyCreationPage page)
 {
     m_page = page;
-    while (m_entries.count > 0) {
-        m_entries.RemoveAtAndDelete(m_entries.count - 1);
+    while (m_entries.GetCount() > 0) {
+        m_entries.RemoveAtAndDelete(m_entries.GetCount() - 1);
     }
-    for (int index = 0; index < m_controls.count; ++index) {
+    for (int index = 0; index < m_controls.GetCount(); ++index) {
         ControlAt(index)->SetActive(page == W8_PARTY_CREATION_OPTIONS);
     }
 
@@ -1365,8 +1365,8 @@ void W8PartySelectionController::Setup()
 W8PartySelectionOptionPanel::~W8PartySelectionOptionPanel()
 {
     DestroyAllControls();
-    while (m_entries.count > 0) {
-        m_entries.RemoveAtAndDelete(m_entries.count - 1);
+    while (m_entries.GetCount() > 0) {
+        m_entries.RemoveAtAndDelete(m_entries.GetCount() - 1);
     }
 }
 
@@ -1422,7 +1422,7 @@ void W8PartySelectionController::SetMode(W8PartySelectionMode mode)
 
         m_character_panel->m_range = m_range;
         m_range->m_listener = m_character_panel;
-        int maximum = g_party_selection_character_collection->characters.count - 6;
+        int maximum = g_party_selection_character_collection->characters.GetCount() - 6;
         if (maximum < 0) {
             maximum = 0;
         }
@@ -1438,13 +1438,13 @@ void W8PartySelectionController::SetMode(W8PartySelectionMode mode)
         }
         m_character_panel->m_control.SetSelected(selected);
         m_character_panel->m_control.m_selectionListener = m_character_panel;
-        for (int index = 0; index < m_character_panel->m_controls.count; ++index) {
+        for (int index = 0; index < m_character_panel->m_controls.GetCount(); ++index) {
             W8PartySelectionCharacterRow* row =
                 static_cast<W8PartySelectionCharacterRow*>(m_character_panel->ControlAt(index));
             row->m_character_index =
                 g_party_selection_character_collection->first_visible + row->m_row;
             row->SetActive(row->m_character_index <
-                           g_party_selection_character_collection->characters.count);
+                           g_party_selection_character_collection->characters.GetCount());
             row->Invalidate(false);
         }
 
@@ -1461,7 +1461,7 @@ void W8PartySelectionController::SetMode(W8PartySelectionMode mode)
         break;
     }
     case W8_PARTY_SELECT_IMPORT: {
-        if (g_party_selection_character_collection->names.count == 0) {
+        if (g_party_selection_character_collection->names.GetCount() == 0) {
             char search[128];
             GETFILESTRUCT find;
             sprintf(search, "%s\\*.*", "Saves\\Import");
@@ -1499,7 +1499,8 @@ void W8PartySelectionController::SetMode(W8PartySelectionMode mode)
         m_import_panel->EnableRegionSet(true);
 
         m_range->m_listener = m_list;
-        int maximum = g_party_selection_character_collection->names.count - m_list->m_visible_rows;
+        int maximum =
+            g_party_selection_character_collection->names.GetCount() - m_list->m_visible_rows;
         if (maximum < 0) {
             maximum = 0;
         }
@@ -1582,7 +1583,8 @@ void W8PartySelectionController::SetSelection(int selection, bool party_slot, bo
             int character_index = -1;
             if (selection >= 0 && g_status.buffers.XChar[selection + 2].fOccupied) {
                 for (int index = 0;
-                     index < g_party_selection_character_collection->characters.count; ++index) {
+                     index < g_party_selection_character_collection->characters.GetCount();
+                     ++index) {
                     if (g_party_selection_character_collection->GetCharacter(index) ==
                         m_character) {
                         character_index = index;
@@ -1728,7 +1730,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
     }
 
     W8PartySelectionCharacterCollection* collection = g_party_selection_character_collection;
-    for (int index = 0; index < collection->characters.count; ++index) {
+    for (int index = 0; index < collection->characters.GetCount(); ++index) {
         W8Character* previous = collection->GetCharacter(index);
         if (!previous->fInParty) {
             continue;
@@ -1892,14 +1894,14 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(W8PartyConfirma
 
         m_character_panel->m_range = m_range;
         m_range->m_listener = m_character_panel;
-        int maximum = collection->characters.count - 6;
+        int maximum = collection->characters.GetCount() - 6;
         if (maximum < 0) {
             maximum = 0;
         }
         m_range->SetRange(0, maximum);
         m_range->SetRangeEnabled(maximum > 0);
         m_range->Invalidate(0);
-        if (selected > 0 || collection->characters.count == 0) {
+        if (selected > 0 || collection->characters.GetCount() == 0) {
             --selected;
         }
         SetSelection(selected, false, true);
@@ -1921,7 +1923,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(W8PartyConfirma
         SetMode(W8_PARTY_SELECT_OPTIONS);
         return;
     case W8_PARTY_CONFIRM_IMPORT: {
-        for (int index = 0; index < collection->characters.count; ++index) {
+        for (int index = 0; index < collection->characters.GetCount(); ++index) {
             W8Character* previous = collection->GetCharacter(index);
             if (!previous->fInParty) {
                 continue;
@@ -1947,7 +1949,7 @@ void W8PartySelectionController::LoadImportedPartyFile(int selection)
 {
     ResetForNewGame();
     W8PartySelectionCharacterCollection* collection = g_party_selection_character_collection;
-    if (selection >= 0 && selection < collection->names.count) {
+    if (selection >= 0 && selection < collection->names.GetCount()) {
         char path[128];
         sprintf(path, "%s\\%s", "Saves\\Import", *collection->names.GetAt(selection));
         int result = ImportWizardry7Party(path);
@@ -1994,7 +1996,7 @@ void W8PartySelectionController::TogglePartyMemberSelection()
             delete character;
             collection->characters.SetAt(selected, &g_status.buffers.Char[slot]);
         }
-        if (selected < collection->characters.count - 1) {
+        if (selected < collection->characters.GetCount() - 1) {
             ++selected;
         }
         SetSelection(selected, false, true);
@@ -2167,7 +2169,7 @@ void PartySelectionScreenFrame(void)
             case VK_DOWN:
                 if (controller->m_mode == W8_PARTY_SELECT_CHARACTERS &&
                     controller->m_character_panel->m_selected_row <
-                        g_party_selection_character_collection->characters.count - 1) {
+                        g_party_selection_character_collection->characters.GetCount() - 1) {
                     controller->SetSelection(controller->m_character_panel->m_selected_row + 1,
                                              false, true);
                 }

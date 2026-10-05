@@ -46,13 +46,6 @@ W8GrowableVector<W8Navigator*> g_registered_navigators(5);
 
 } // namespace
 
-// FUNCTION: WIZ8 0x00456ae0
-void W8NavigatorAttachment::RecordPosition(const srVector3T<float>* position)
-{
-    flags |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
-    recorded_position = *position;
-}
-
 /* Trims the recorded route to the boundary of the `radius` sphere around
    `target`: walks stored positions while they stay inside, then lerps the
    crossing point into path_destination and over the first outside waypoint, moves
@@ -631,7 +624,7 @@ void W8Navigator::ClearMovementStopped()
     if (g_combat_inactive != 0 && linked_navigator == 0) {
         g_navigator_group.Clear();
         CollectGroupNavigators(&g_navigator_group);
-        for (int index = 0; index < g_navigator_group.count; ++index) {
+        for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
             g_navigator_group.data[index]->movement_stopped = false;
         }
     }
