@@ -167,7 +167,7 @@ void srMeshModel::setUVCount(long count)
                 }
             }
         }
-        setDirty(static_cast<e_flags>(3));
+        setDirty(DIRTY_TRI_MESH);
     }
 }
 
@@ -380,14 +380,14 @@ unsigned long* srMeshModel::getVertexShadeIndex(int table)
 // FUNCTION: SURRENDER 0x10041B60
 void srMeshModel::setDirtyBounds()
 {
-    setDirty(static_cast<e_flags>(0));
+    setDirty(DIRTY_BOUNDS);
 }
 
 // FUNCTION: SURRENDER 0x10041B90
 void srMeshModel::setDirtyNormals()
 {
-    setDirty(static_cast<e_flags>(1));
-    setDirty(static_cast<e_flags>(2));
+    setDirty(DIRTY_POLYGON_NORMALS);
+    setDirty(DIRTY_VERTEX_NORMALS);
 }
 
 // FUNCTION: SURRENDER 0x1003DEA0
@@ -401,10 +401,10 @@ void srMeshModel::freeAll()
     vertex_location_count = 0;
     polygon_count = 0;
     active_polygon_count = 0;
-    setDirty(static_cast<e_flags>(0));
-    setDirty(static_cast<e_flags>(1));
-    setDirty(static_cast<e_flags>(2));
-    setDirty(static_cast<e_flags>(3));
+    setDirty(DIRTY_BOUNDS);
+    setDirty(DIRTY_POLYGON_NORMALS);
+    setDirty(DIRTY_VERTEX_NORMALS);
+    setDirty(DIRTY_TRI_MESH);
     active_polygons.Release();
     poly_vertices.Release();
     poly_equations.Release();
@@ -539,7 +539,7 @@ void srMeshModel::calculateBounds()
             } while (count != 0);
         }
         bounds_radius = sqrtf(bounds_radius) * 1.00001f;
-        updateAllClients(static_cast<Client::e_update>(0));
+        updateAllClients(Client::UPDATE_BOUNDS);
         dirty_flags.value &= 0xfffffffe;
     }
 }
@@ -629,10 +629,10 @@ void srMeshModel::scale(const srVector3T<float>& scale)
         vertices[index].y = vertices[index].y * scale.y;
         vertices[index].z = scale.z * vertices[index].z;
     }
-    setDirty(static_cast<e_flags>(0));
-    setDirty(static_cast<e_flags>(1));
-    setDirty(static_cast<e_flags>(2));
-    setDirty(static_cast<e_flags>(3));
+    setDirty(DIRTY_BOUNDS);
+    setDirty(DIRTY_POLYGON_NORMALS);
+    setDirty(DIRTY_VERTEX_NORMALS);
+    setDirty(DIRTY_TRI_MESH);
 }
 
 // FUNCTION: SURRENDER 0x1003E780
@@ -650,10 +650,10 @@ void srMeshModel::applyMatrix(const srMatrix3T<float>& matrix)
         vertices[index].z =
             matrix.vectors[2].x * x + matrix.vectors[2].y * y + matrix.vectors[2].z * z;
     }
-    setDirty(static_cast<e_flags>(0));
-    setDirty(static_cast<e_flags>(1));
-    setDirty(static_cast<e_flags>(2));
-    setDirty(static_cast<e_flags>(3));
+    setDirty(DIRTY_BOUNDS);
+    setDirty(DIRTY_POLYGON_NORMALS);
+    setDirty(DIRTY_VERTEX_NORMALS);
+    setDirty(DIRTY_TRI_MESH);
 }
 
 // FUNCTION: SURRENDER 0x1003E8C0
@@ -665,10 +665,10 @@ void srMeshModel::relocateVertices(const srVector3T<float>& offset)
         vertices[index].y = vertices[index].y + offset.y;
         vertices[index].z = offset.z + vertices[index].z;
     }
-    setDirty(static_cast<e_flags>(0));
-    setDirty(static_cast<e_flags>(1));
-    setDirty(static_cast<e_flags>(2));
-    setDirty(static_cast<e_flags>(3));
+    setDirty(DIRTY_BOUNDS);
+    setDirty(DIRTY_POLYGON_NORMALS);
+    setDirty(DIRTY_VERTEX_NORMALS);
+    setDirty(DIRTY_TRI_MESH);
 }
 
 // FUNCTION: SURRENDER 0x1003E9B0
@@ -768,10 +768,10 @@ void srMeshModel::flipFaces()
             polygons[polygon].x = polygons[polygon].y;
             polygons[polygon].y = first;
         }
-        setDirty(static_cast<e_flags>(0));
-        setDirty(static_cast<e_flags>(1));
-        setDirty(static_cast<e_flags>(2));
-        setDirty(static_cast<e_flags>(3));
+        setDirty(DIRTY_BOUNDS);
+        setDirty(DIRTY_POLYGON_NORMALS);
+        setDirty(DIRTY_VERTEX_NORMALS);
+        setDirty(DIRTY_TRI_MESH);
     }
 }
 
@@ -868,9 +868,9 @@ void srMeshModel::setBounds(const srVector3T<float>& minimum, const srVector3T<f
     bounds_maximum = maximum;
     bounds_center = center;
     bounds_radius = radius;
-    clearDirty(static_cast<e_flags>(0));
-    updateAllClients(static_cast<Client::e_update>(0));
-    setDirty(static_cast<e_flags>(3));
+    clearDirty(DIRTY_BOUNDS);
+    updateAllClients(Client::UPDATE_BOUNDS);
+    setDirty(DIRTY_TRI_MESH);
 }
 
 // FUNCTION: SURRENDER 0x1003FE40
@@ -993,10 +993,10 @@ void srMeshModel::reindexPolygons(const unsigned long* indices)
             }
             delete[] forward;
         }
-        setDirty(static_cast<e_flags>(0));
-        setDirty(static_cast<e_flags>(1));
-        setDirty(static_cast<e_flags>(2));
-        setDirty(static_cast<e_flags>(3));
+        setDirty(DIRTY_BOUNDS);
+        setDirty(DIRTY_POLYGON_NORMALS);
+        setDirty(DIRTY_VERTEX_NORMALS);
+        setDirty(DIRTY_TRI_MESH);
     }
 }
 
@@ -1077,10 +1077,10 @@ void srMeshModel::reindexVertices(const unsigned long* indices)
                 *corner = forward[*corner];
             }
         }
-        setDirty(static_cast<e_flags>(0));
-        setDirty(static_cast<e_flags>(1));
-        setDirty(static_cast<e_flags>(2));
-        setDirty(static_cast<e_flags>(3));
+        setDirty(DIRTY_BOUNDS);
+        setDirty(DIRTY_POLYGON_NORMALS);
+        setDirty(DIRTY_VERTEX_NORMALS);
+        setDirty(DIRTY_TRI_MESH);
         delete[] forward;
     }
 }
@@ -1455,8 +1455,8 @@ void srMeshModel::dump(std::ostream& stream)
         for (stage = 0; stage < 2; ++stage) {
             uvs[stage] = getVertexTexCoords(pass, stage, 0);
         }
-        srPtr<srMaterialIFace>* front = getVertexMaterial(pass, static_cast<e_side>(0), 0);
-        srPtr<srMaterialIFace>* back = getVertexMaterial(pass, static_cast<e_side>(1), 0);
+        srPtr<srMaterialIFace>* front = getVertexMaterial(pass, SIDE_FRONT, 0);
+        srPtr<srMaterialIFace>* back = getVertexMaterial(pass, SIDE_BACK, 0);
         bool defined = dig != 0 || scg != 0 || dcg != 0 || front != 0 || back != 0;
         for (stage = 0; stage < 2; ++stage) {
             if (uvs[stage] != 0) {
@@ -2081,7 +2081,7 @@ float srMeshModel::getSortBias() const
 void srMeshModel::disable(e_control control)
 {
     render_control.set(control, 0);
-    setDirty(static_cast<e_flags>(3));
+    setDirty(DIRTY_TRI_MESH);
 }
 
 // FUNCTION: SURRENDER 0x10041870

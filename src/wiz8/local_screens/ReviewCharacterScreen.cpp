@@ -2694,7 +2694,7 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
     }
     static_cast<srMeshModel*>(g_fade_overlay->getModel())->setShader(shader, 0);
     static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->getModel())
-                                 ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+                                 ->getMaterial(0, srMeshModel::SIDE_FRONT))
         ->setOpacity(fade_out != 0 ? 1.0f : 0.0f);
     g_fade_tick_base = GetTickCount();
 }
@@ -2715,7 +2715,7 @@ unsigned char UpdateScreenFade(void)
         g_level_block->review_transition_done = 0;
         if (g_fade_out == 0) {
             static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->getModel())
-                                         ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+                                         ->getMaterial(0, srMeshModel::SIDE_FRONT))
                 ->setOpacity(1.0f);
             RenderFrame();
             RenderFrame();
@@ -2730,7 +2730,7 @@ unsigned char UpdateScreenFade(void)
     float progress = static_cast<float>(elapsed) / g_fade_duration;
     srMaterial* material =
         static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->getModel())
-                                     ->getMaterial(0, static_cast<srMeshModel::e_side>(0)));
+                                     ->getMaterial(0, srMeshModel::SIDE_FRONT));
     if (g_fade_out == 0) {
         material->setOpacity(progress);
     } else {

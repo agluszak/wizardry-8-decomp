@@ -8885,7 +8885,7 @@ void CreateSurpriseFade(void)
     shader.value = (shader.value & ~0x6040) | 0xa0;
     static_cast<srMeshModel*>(g_surprise_fade_node->getModel())->setShader(shader, 0);
     static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->getModel())
-                                 ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+                                 ->getMaterial(0, srMeshModel::SIDE_FRONT))
         ->setOpacity(0.0);
     g_surprise_fade_tick_base = GetTickCount();
     g_surprise_fade_in = 1;
@@ -8897,7 +8897,7 @@ void ReverseSurpriseFade(void)
     if (gXStatus.surprise_phase == 0) {
         srMaterial* material =
             static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->getModel())
-                                         ->getMaterial(0, static_cast<srMeshModel::e_side>(0)));
+                                         ->getMaterial(0, srMeshModel::SIDE_FRONT));
         float opacity = material->parms.diffuse.w;
         unsigned long now = GetTickCount();
         g_surprise_fade_in = g_surprise_fade_in == 0;
@@ -8959,7 +8959,7 @@ unsigned char UpdateSurpriseFade(void)
     }
 
     static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->getModel())
-                                 ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+                                 ->getMaterial(0, srMeshModel::SIDE_FRONT))
         ->setOpacity(opacity);
 
     if (boundary) {

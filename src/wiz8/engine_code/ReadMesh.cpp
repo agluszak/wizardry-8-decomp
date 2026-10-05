@@ -661,10 +661,10 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
             }
         }
         if (one_material) {
-            model->setMaterial(vertex_materials[type][0], 0, static_cast<srMeshModel::e_side>(0));
+            model->setMaterial(vertex_materials[type][0], 0, srMeshModel::SIDE_FRONT);
         } else {
             srPtr<srMaterialIFace>* model_materials =
-                model->getVertexMaterial(0, static_cast<srMeshModel::e_side>(0), 1);
+                model->getVertexMaterial(0, srMeshModel::SIDE_FRONT, 1);
             for (int vertex = 0; vertex < vertex_counts[type]; ++vertex) {
                 model_materials[vertex] = vertex_materials[type][vertex];
                 model_materials[vertex]->addReference();
@@ -724,7 +724,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
             first_model = model;
         }
     }
-    first_model->setDirty(static_cast<srMeshModel::e_flags>(0));
+    first_model->setDirty(srMeshModel::DIRTY_BOUNDS);
     return first_model;
 }
 
@@ -1134,7 +1134,7 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
             reader.Read(info->hFile, g_multi_mesh_materials, g_multi_mesh_textures,
                         g_multi_mesh_render_flags, meshes, g_read_mesh_material_count);
         meshes[g_read_mesh_index] = model;
-        model->setDirty(static_cast<srMeshModel::e_flags>(0));
+        model->setDirty(srMeshModel::DIRTY_BOUNDS);
         model->getBoundingBox(minimum, maximum);
     }
 

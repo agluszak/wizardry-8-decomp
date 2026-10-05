@@ -164,7 +164,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     material->parms.diffuse.w = 0.35f;
     material->parms.shininess = 1.0f;
     material->dirty = 1;
-    modeller.setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
+    modeller.setMaterial(material, 0, srMeshModel::SIDE_FRONT);
 
     srShader shader;
     shader.value = 0x0100c5b3; /* packed srShader: LEQUAL, color write, dst 1-srcA, fog, modulate */
@@ -197,8 +197,8 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     modeller.convert(*model, 1);
     model->setTexture(texture, 0, 0);
 
-    model->setDirty(static_cast<srMeshModel::e_flags>(3));
-    model->setDirty(static_cast<srMeshModel::e_flags>(0));
+    model->setDirty(srMeshModel::DIRTY_TRI_MESH);
+    model->setDirty(srMeshModel::DIRTY_BOUNDS);
 
     srVector3T<float> minimum;
     srVector3T<float> maximum;

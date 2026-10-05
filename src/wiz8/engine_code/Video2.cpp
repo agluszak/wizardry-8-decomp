@@ -1496,7 +1496,7 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
         texture->setMipmap(srTextureIFace::MIPMAP_NONE);
         texture->setWrapS(srTextureIFace::WRAP_CLAMP);
         texture->setWrapT(srTextureIFace::WRAP_CLAMP);
-        model->setMaterial(g_blit_material, 0, static_cast<srMeshModel::e_side>(0));
+        model->setMaterial(g_blit_material, 0, srMeshModel::SIDE_FRONT);
         model->setTexture(texture, 0, 0);
         texture->enableHint(overlay ? srTextureIFace::HINT_ONE_BIT_ALPHA
                                     : srTextureIFace::HINT_NO_ALPHA);
@@ -1543,7 +1543,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     if (!texture) {
         shader.value &= ~srShader::MASK_TEXTURING;
     } else {
-        model->setMaterial(g_blit_material, 0, static_cast<srMeshModel::e_side>(0));
+        model->setMaterial(g_blit_material, 0, srMeshModel::SIDE_FRONT);
         model->setTexture(texture, 0, 0);
     }
     model->setShader(shader, 0);
@@ -2701,7 +2701,7 @@ void SetMouseCursorTexture(srTextureIFace* texture)
         texture = g_cursor_texture;
     }
     g_cursor_model->setTexture(texture, 0, 0);
-    g_cursor_model->setDirty(static_cast<srMeshModel::e_flags>(3));
+    g_cursor_model->setDirty(srMeshModel::DIRTY_TRI_MESH);
 }
 
 // FUNCTION: WIZ8 0x004291C0
@@ -3120,7 +3120,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     material->parms.shininess = 1.0f;
     material->parms.diffuse.w = 1.0f;
     material->dirty = 1;
-    model->setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
+    model->setMaterial(material, 0, srMeshModel::SIDE_FRONT);
 
     stModelInstance2D* instance = new stModelInstance2D(g_scene_user);
     instance->setName("Video2DPolyColored");
@@ -3713,7 +3713,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
         shader.value = 0x100c0b3;
         model->enable(srMeshModel::CONTROL_STARTUP);
     }
-    model->setMaterial(g_blit_material, 0, static_cast<srMeshModel::e_side>(0));
+    model->setMaterial(g_blit_material, 0, srMeshModel::SIDE_FRONT);
     model->setTexture(texture, 0, 0);
     model->setShader(shader, 0);
 

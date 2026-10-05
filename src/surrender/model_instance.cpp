@@ -75,7 +75,7 @@ void srModelInstance::getLocalBounds(BoundInfo& bounds)
 // FUNCTION: SURRENDER 0x1004F320
 void srModelInstance::updateClient(srModel::Client::e_update update)
 {
-    if (update == 0) {
+    if (update == srModel::Client::UPDATE_BOUNDS) {
         notifyParents(srFlags<e_notify>(0));
     }
 }

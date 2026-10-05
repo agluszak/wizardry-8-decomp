@@ -153,8 +153,8 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
         srVector3T<float>* vertex_lights = mesh->GetVertexLights(1, -1);
         mesh->GetVertexSunlight(1);
         srPtr<srMaterialIFace>* vertex_materials =
-            mesh->getVertexMaterial(0, static_cast<srMeshModel::e_side>(0), 0);
-        srMaterialIFace* material_iface = mesh->getMaterial(0, static_cast<srMeshModel::e_side>(0));
+            mesh->getVertexMaterial(0, srMeshModel::SIDE_FRONT, 0);
+        srMaterialIFace* material_iface = mesh->getMaterial(0, srMeshModel::SIDE_FRONT);
         srVector4T<float> material_diffuse;
         if (material_iface != 0) {
             material_diffuse = static_cast<srMaterial*>(material_iface)->parms.diffuse;
@@ -278,8 +278,8 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                                         material_diffuse = static_cast<srMaterial*>(vertex_material)
                                                                ->parms.diffuse;
                                     } else {
-                                        srMaterialIFace* base_material = mesh->getMaterial(
-                                            0, static_cast<srMeshModel::e_side>(0));
+                                        srMaterialIFace* base_material =
+                                            mesh->getMaterial(0, srMeshModel::SIDE_FRONT);
                                         if (base_material != 0) {
                                             material_diffuse =
                                                 static_cast<srMaterial*>(base_material)

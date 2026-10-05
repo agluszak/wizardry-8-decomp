@@ -99,7 +99,7 @@ stMeshModel::stMeshModel(long polygons, long vertices)
     m_pVertexNormal = 0;
     m_pPolyNormal = 0;
     render_control.value &= ~0x10UL;
-    setDirty(static_cast<e_flags>(0));
+    setDirty(DIRTY_BOUNDS);
     lerp_buffer = 0;
     automap_polygons = 0;
     automap_polygon_count = 0;
@@ -296,7 +296,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
         sunlight = vertex_sunlight.data;
         if (lights != 0 && sunlight != 0) {
             dig = getVertexDIG(0, 1);
-            vertex_materials = getVertexMaterial(0, static_cast<e_side>(0), 0);
+            vertex_materials = getVertexMaterial(0, SIDE_FRONT, 0);
             if (vertex_materials == 0) {
                 if ((IsZeroVector(&ambient_color) != 0) || vertex_light_table == 1) {
                     CopyDwordBuffer(dig, lights, vertex_location_count * 3);
@@ -312,7 +312,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                 } else {
                     /* Retail indexes material ambient at +0x28; that is
                        srMaterial::parms.ambient on the concrete type. */
-                    material = static_cast<srMaterial*>(getMaterial(0, static_cast<e_side>(0)));
+                    material = static_cast<srMaterial*>(getMaterial(0, SIDE_FRONT));
                     ambient_rgb = material->parms.ambient.xyz();
                     count = vertex_location_count;
                     scaled = ambient_color;

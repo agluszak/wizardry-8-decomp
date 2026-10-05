@@ -1457,7 +1457,7 @@ stModelInstance* W8GameData::CreateTraceModel()
     srVector3T<float>* vertex_locs = mesh->getVertexLoc();
     srVector2T<float>* texcoords = mesh->getVertexTexCoords(0, 0, 1);
     srPtr<srMaterialIFace>* vertex_materials =
-        mesh->getVertexMaterial(0, static_cast<srMeshModel::e_side>(0), 1);
+        mesh->getVertexMaterial(0, srMeshModel::SIDE_FRONT, 1);
     unsigned long* shade_indices = mesh->getVertexShadeIndex(1);
     int vertex = 0;
     for (int index = 0; index < m_iNumSurfaces; ++index) {
@@ -1486,7 +1486,7 @@ stModelInstance* W8GameData::CreateTraceModel()
         vertex += 3;
     }
     mesh->setShader(*g_oct_mesh_default_shader, 0);
-    mesh->setDirty(static_cast<srMeshModel::e_flags>(3));
+    mesh->setDirty(srMeshModel::DIRTY_TRI_MESH);
     srVector3T<float>* normals = mesh->getVertexNormal();
     srVector3T<float>* dig = mesh->getVertexDIG(0, 1);
     for (int i = 0; i < vertex; ++i) {

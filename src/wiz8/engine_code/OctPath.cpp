@@ -5298,8 +5298,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization()
     srVector3i* polygons = model->getPolyVertex();
     srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 1);
     srVector2T<float>* texture_coordinates = model->getVertexTexCoords(0, 0, 1);
-    srPtr<srMaterialIFace>* materials =
-        model->getVertexMaterial(0, static_cast<srMeshModel::e_side>(0), 1);
+    srPtr<srMaterialIFace>* materials = model->getVertexMaterial(0, srMeshModel::SIDE_FRONT, 1);
     unsigned long* shade_indices = model->getVertexShadeIndex(1);
 
     for (index = 0; index < polygon_count; ++index) {

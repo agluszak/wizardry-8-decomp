@@ -800,7 +800,15 @@ public:
         SCALE_TYPE_UNIFORM = 1,    /* equal column lengths, not 1 */
         SCALE_TYPE_NON_UNIFORM = 2 /* unequal column lengths */
     };
-    enum e_type {};
+    /* classifyMatrix (0x100215A0) distinguishes these zero patterns.
+       1 and 2 are not produced by the recovered classifier. */
+    enum e_type {
+        TYPE_GENERAL = 0,
+        TYPE_AFFINE = 3,
+        TYPE_IDENTITY = 4,
+        TYPE_ORTHOGRAPHIC = 5,
+        TYPE_PERSPECTIVE = 6
+    };
 
     srMatrix4T<T>* Invert();
     srMatrix4T<T>* Inverse(srMatrix4T<T>& source);
