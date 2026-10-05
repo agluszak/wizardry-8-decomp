@@ -330,12 +330,12 @@ public:
     Trigger* trigger;
     int registry_weight;
     srVector3T<float> formation;
-    unsigned char defining_orders;
-    unsigned char orders_finished;
+    bool defining_orders;
+    bool orders_finished;
     W8MonsterOrderMode order_mode;
-    unsigned char deaf;
-    unsigned char face_party;
-    unsigned char stay_home;
+    bool deaf;
+    bool face_party;
+    bool stay_home;
     unsigned char padding_292[2];
     float patrol_distance;
     float patrol_variation;

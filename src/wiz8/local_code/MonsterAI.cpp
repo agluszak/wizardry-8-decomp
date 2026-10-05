@@ -357,7 +357,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
                         0x14b, MONSTER_AI_CPP, monster_info->monster_group_id, true)));
             }
             if (alert == 0) {
-                if (monster_info->p3D->orders_finished == 0) {
+                if (!monster_info->p3D->orders_finished) {
                     decision = W8_RT_AI_IDLE;
                 } else {
                     update = ChooseMonsterRTAIMode(monster_info, &decision);
@@ -365,7 +365,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
             } else if (alert <= 2) {
                 switch (monster_info->ubDisposition) {
                 case W8_DISPOSITION_NEUTRAL:
-                    if (monster_info->p3D->orders_finished == 0) {
+                    if (!monster_info->p3D->orders_finished) {
                         decision = W8_RT_AI_IDLE;
                     } else {
                         update = ChooseMonsterRTAIMode(monster_info, &decision);
@@ -380,7 +380,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
                     }
                     break;
                 case W8_DISPOSITION_FRIENDLY:
-                    if (monster_info->p3D->orders_finished == 0) {
+                    if (!monster_info->p3D->orders_finished) {
                         decision = W8_RT_AI_IDLE;
                     } else {
                         update = ChooseMonsterRTAIMode(monster_info, &decision);
@@ -399,7 +399,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
 
         mode = monster_info->ai_mode & W8_MONSTER_AI_MODE_MASK;
         if (mode != W8_RT_AI_PATROL_AREA &&
-            (monster_info->p3D->face_party == 0 || monster_info->pathing_cooldown != 0 ||
+            (!monster_info->p3D->face_party || monster_info->pathing_cooldown != 0 ||
              mode != W8_RT_AI_FACE_DIRECTION || !monster_info->player_visibility.line_of_sight ||
              (monster_info->p3D->movement.position - g_startup_world->GetPosition()).Length() >=
                  g_float_005ec2f8)) {
@@ -435,7 +435,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
     monster = monster_info->p3D;
     mode = W8_RT_AI_IDLE;
     changed = false;
-    if (monster->face_party != 0 && monster_info->pathing_cooldown == 0 &&
+    if (monster->face_party && monster_info->pathing_cooldown == 0 &&
         monster_info->player_visibility.line_of_sight) {
         srVector3T<float> delta;
 

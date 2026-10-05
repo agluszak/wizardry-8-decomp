@@ -1281,12 +1281,12 @@ W8Monster::W8Monster(const W8Monster& rhs)
     m_pRep = static_cast<W8MonsterRep*>(rhs.m_pRep->Clone());
     m_pRep->spell_icons = PLCreate();
 
-    defining_orders = 0;
-    orders_finished = 0;
+    defining_orders = false;
+    orders_finished = false;
     order_mode = W8_MONSTER_ORDER_NONE;
-    deaf = 0;
-    face_party = 0;
-    stay_home = 0;
+    deaf = false;
+    face_party = false;
+    stay_home = false;
     patrol_index = 0;
     direction_x = 0;
     direction_y = 0;
@@ -1728,7 +1728,7 @@ unsigned char W8Monster::SetScript(const char* script_name, bool reset_orders)
         sound = 0;
     }
     if (reset_orders) {
-        orders_finished = 0;
+        orders_finished = false;
     }
 
     registry = srCore.getRegistry();
@@ -1904,7 +1904,7 @@ void W8Monster::ProcessScript()
 
     monster_index = MonsterGetIndexByLocationID(0x1a4a, MONSTER_CPP, location_id, true);
     monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-    if (orders_finished != 0) {
+    if (orders_finished) {
         if (monster_info == 0 || (monster_info->ai_mode & W8_MONSTER_AI_RESTORE_SCRIPT) == 0) {
             return;
         }
@@ -1963,7 +1963,7 @@ void W8Monster::ProcessScript()
             continue;
         }
 
-        if (defining_orders == 0) {
+        if (!defining_orders) {
             switch (command) {
             case MONSCR_GOTO: {
                 token = strtok(0, " \t");
@@ -2248,10 +2248,10 @@ void W8Monster::ProcessScript()
                 }
                 break;
             case MONSCR_BEGINORDERS:
-                defining_orders = 1;
+                defining_orders = true;
                 break;
             case MONSCR_DEAF:
-                deaf = 1;
+                deaf = true;
                 break;
             case MONSCR_DOACTION:
                 token = strtok(0, " \t");
@@ -2363,7 +2363,7 @@ void W8Monster::ProcessScript()
             case MONSCR_FACE:
                 token = strtok(0, " \t");
                 if (token != 0 && _stricmp(token, "PARTY") == 0) {
-                    face_party = 1;
+                    face_party = true;
                 } else if (token != 0) {
                     int direction = -1;
                     for (int index = MONSCR_EAST; index <= MONSCR_SOUTHEAST; ++index) {
@@ -2397,8 +2397,8 @@ void W8Monster::ProcessScript()
                 }
                 break;
             case MONSCR_ENDORDERS:
-                defining_orders = 0;
-                orders_finished = 1;
+                defining_orders = false;
+                orders_finished = true;
                 script_wait = MONSCR_ENDORDERS;
                 break;
             case MONSCR_GUARD:
@@ -2425,7 +2425,7 @@ void W8Monster::ProcessScript()
                         break;
                 }
                 if (command == MONSCR_GUARD && added != 0) {
-                    orders_finished = 0;
+                    orders_finished = false;
                     order_mode = W8_MONSTER_ORDER_GUARD;
                 } else if (added != 0) {
                     order_mode = command == MONSCR_POINTPATROL
@@ -2435,10 +2435,10 @@ void W8Monster::ProcessScript()
                 break;
             }
             case MONSCR_DEAF:
-                deaf = 1;
+                deaf = true;
                 break;
             case MONSCR_TURNTOFACEPARTY:
-                face_party = 1;
+                face_party = true;
                 break;
             case MONSCR_LOOKABOUT:
                 token = strtok(0, " \t");
@@ -2460,7 +2460,7 @@ void W8Monster::ProcessScript()
                 }
                 break;
             case MONSCR_STAYHOME:
-                stay_home = 1;
+                stay_home = true;
                 break;
             default:
                 break;
@@ -2927,7 +2927,7 @@ unsigned char W8Monster::GetPatrolPoint(srVector3T<float>* point)
 {
     srVector3T<float>* patrol_point;
 
-    if (orders_finished == 0 || patrol_index < 0) {
+    if (!orders_finished || patrol_index < 0) {
         return 0;
     }
     if (vector.GetCount() == 0) {

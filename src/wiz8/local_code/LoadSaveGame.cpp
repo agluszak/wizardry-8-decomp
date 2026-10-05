@@ -818,6 +818,7 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
     float patrol_value;
     unsigned char unborn;
     unsigned char value;
+    bool script_flag;
     srVector3T<float> location;
     srVector3T<float> point;
     W8MonsterInfo* info;
@@ -857,14 +858,14 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
     chunks->Write(&unborn, 1, 0);
     monster = info->p3D;
     monster->SaveMovementState(chunks->m_hFile);
-    value = monster->defining_orders;
-    chunks->Write(&value, 1, 0);
+    script_flag = monster->defining_orders;
+    chunks->Write(&script_flag, 1, 0);
     value = monster->order_mode;
     chunks->Write(&value, 1, 0);
-    value = monster->orders_finished;
-    chunks->Write(&value, 1, 0);
-    value = monster->deaf;
-    chunks->Write(&value, 1, 0);
+    script_flag = monster->orders_finished;
+    chunks->Write(&script_flag, 1, 0);
+    script_flag = monster->deaf;
+    chunks->Write(&script_flag, 1, 0);
     patrol_value = monster->patrol_distance;
     chunks->Write(&patrol_value, 4, 0);
     patrol_value = monster->patrol_variation;
@@ -883,10 +884,10 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
     for (component = 0; component < 3; ++component) {
         chunks->Write(&point.x + component, 4, 0);
     }
-    value = monster->face_party;
-    chunks->Write(&value, 1, 0);
-    value = monster->stay_home;
-    chunks->Write(&value, 1, 0);
+    script_flag = monster->face_party;
+    chunks->Write(&script_flag, 1, 0);
+    script_flag = monster->stay_home;
+    chunks->Write(&script_flag, 1, 0);
     return 1;
 }
 
@@ -1187,6 +1188,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     unsigned char unborn = 0;
     unsigned char has_script;
     unsigned char value;
+    bool script_flag;
     float patrol_value;
 
     sprintf(script_name, "");
@@ -1286,14 +1288,14 @@ unsigned char LoadMonster(W8Chunk* chunk)
         monster->LoadMovementState(chunk->m_hFile);
     }
     if (record_version >= 3) {
-        chunk->Read(&value, 1, 0);
-        monster->defining_orders = value;
+        chunk->Read(&script_flag, 1, 0);
+        monster->defining_orders = script_flag;
         chunk->Read(&value, 1, 0);
         monster->order_mode = value;
-        chunk->Read(&value, 1, 0);
-        monster->orders_finished = value;
-        chunk->Read(&value, 1, 0);
-        monster->deaf = value;
+        chunk->Read(&script_flag, 1, 0);
+        monster->orders_finished = script_flag;
+        chunk->Read(&script_flag, 1, 0);
+        monster->deaf = script_flag;
         chunk->Read(&patrol_value, 4, 0);
         monster->patrol_distance = patrol_value;
         chunk->Read(&patrol_value, 4, 0);
@@ -1318,12 +1320,12 @@ unsigned char LoadMonster(W8Chunk* chunk)
             monster->direction_z = point.z;
         }
         if (record_version >= 6) {
-            chunk->Read(&value, 1, 0);
-            monster->face_party = value;
+            chunk->Read(&script_flag, 1, 0);
+            monster->face_party = script_flag;
         }
         if (record_version >= 7) {
-            chunk->Read(&value, 1, 0);
-            monster->stay_home = value;
+            chunk->Read(&script_flag, 1, 0);
+            monster->stay_home = script_flag;
         }
         monster_info->ai_mode |= W8_MONSTER_AI_REAPPLY_MODE;
     }
