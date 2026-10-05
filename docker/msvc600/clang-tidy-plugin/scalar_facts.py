@@ -71,6 +71,7 @@ class ScalarFacts:
     signatures: dict[str, tuple[str, int, int, bool, str]] = field(default_factory=dict)
     callback_slots: dict[str, tuple[int, int, bool]] = field(default_factory=dict)
     callback_bindings: set[tuple[str, str, int, int, bool]] = field(default_factory=set)
+    constant_locations: set[tuple[str, int, str, int, int]] = field(default_factory=set)
     constants: dict[str, set[int]] = field(default_factory=lambda: defaultdict(set))
     operations: set[Use] = field(default_factory=set)
     escapes: set[Use] = field(default_factory=set)
@@ -290,6 +291,9 @@ def read_scalar_facts(directory: Path) -> ScalarFacts:
                         facts.flows.add(flow)
                     elif tag == "K":
                         facts.constants[parts[1]].add(int(parts[2]))
+                        facts.constant_locations.add(
+                            (parts[1], int(parts[2]), parts[3], int(parts[4]), int(parts[5]))
+                        )
                     elif tag in {"U", "A", "H", "G"}:
                         use = Use(parts[1], parts[2], parts[3], int(parts[4]), int(parts[5]))
                         if tag == "U":
@@ -2338,6 +2342,50 @@ def boolean_expression_edits(facts: ScalarFacts, source):
         if identity not in seen:
             seen.add(identity)
             edits.append((key, file, start, end - start, original[start:end], replacement.encode()))
+    # K facts already bind producer locations to the exact destination, including
+    # call arguments, initializers, assignments and returns. Replace only an
+    # entire literal token; constant-folded arithmetic is not a literal edit.
+    literal_owners = defaultdict(set)
+    for key, _, file, line, column in facts.constant_locations:
+        literal_owners[file, line, column].add(key)
+    for key, value, file, line, column in sorted(facts.constant_locations):
+        declaration = facts.declarations.get(key)
+        if (
+            declaration is None
+            or declaration.domain != "bool"
+            or key in facts.inconsistent
+            or value not in {0, 1}
+            or len(hashes[file]) != 1
+            or not file.startswith(("src/wiz8/", "include/wiz8/", "tests/runtime/"))
+        ):
+            continue
+        original = source(file, next(iter(hashes[file])))
+        lines = original.splitlines(keepends=True)
+        if not 1 <= line <= len(lines):
+            continue
+        # One literal atom can serve several concrete template owners. Every
+        # observed destination must agree before editing their shared spelling.
+        if any(
+            owner not in facts.declarations
+            or facts.declarations[owner].domain != "bool"
+            or owner in facts.inconsistent
+            for owner in literal_owners[file, line, column]
+        ):
+            continue
+        start = sum(map(len, lines[: line - 1])) + column - 1
+        literal = re.match(rb"[01][uUlL]*\b", original[start:])
+        if literal is None or int(literal[0].rstrip(b"uUlL")) != value:
+            continue
+        end = start + literal.end()
+        tail = original[end:].lstrip()
+        if not tail.startswith((b",", b")", b";", b"}", b"]")):
+            continue
+        identity = file, start, end
+        if identity not in seen:
+            seen.add(identity)
+            edits.append(
+                (key, file, start, end - start, original[start:end], b"true" if value else b"false")
+            )
     return edits
 
 

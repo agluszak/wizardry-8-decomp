@@ -1229,36 +1229,36 @@ void AddCharacterStartingEquipment(W8Character* character)
         if (g_starting_equipment[set][slot] == -1) {
             continue;
         }
-        ReplaceOrCreateItem(&item, g_starting_equipment[set][slot], 1, 1, 1);
-        AddItemToCharacter(character, &item, 1, 0, 0);
+        ReplaceOrCreateItem(&item, g_starting_equipment[set][slot], true, true, true);
+        AddItemToCharacter(character, &item, 1, 0, false);
     }
 
     switch (character->iProfession) {
     case W8_PROFESSION_PRIEST:
         if (character->skills[W8_SKILL_STAFF_WAND].level >
             character->skills[W8_SKILL_MACE_FLAIL].level) {
-            ReplaceOrCreateItem(&item, 0x16, 1, 1, 1);
+            ReplaceOrCreateItem(&item, 0x16, true, true, true);
         } else {
-            ReplaceOrCreateItem(&item, 0x52, 1, 1, 1);
+            ReplaceOrCreateItem(&item, 0x52, true, true, true);
         }
         break;
     case W8_PROFESSION_FIGHTER:
         if (character->skills[W8_SKILL_AXE].level > character->skills[W8_SKILL_SWORD].level) {
-            ReplaceOrCreateItem(&item, 0x12, 1, 1, 1);
+            ReplaceOrCreateItem(&item, 0x12, true, true, true);
         } else {
-            ReplaceOrCreateItem(&item, 7, 1, 1, 1);
+            ReplaceOrCreateItem(&item, 7, true, true, true);
         }
         break;
     case W8_PROFESSION_GADGETEER:
-        ReplaceOrCreateItem(&item, 599, 1, 1, 1);
+        ReplaceOrCreateItem(&item, 599, true, true, true);
         break;
     case W8_PROFESSION_BARD:
-        ReplaceOrCreateItem(&item, 0x144, 1, 1, 1);
+        ReplaceOrCreateItem(&item, 0x144, true, true, true);
         break;
     default:
         RebuildEquipmentAndDerivedStats(character);
         return;
     }
-    AddItemToCharacter(character, &item, 1, 0, 0);
+    AddItemToCharacter(character, &item, 1, 0, false);
     RebuildEquipmentAndDerivedStats(character);
 }

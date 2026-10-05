@@ -267,7 +267,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         } else if (gXStatus.fReviewCharacterMode) {
             CloseFormationPanel();
         } else if (IsNpcScriptSessionActive()) {
-            TryFinishNpcVoicePlayback(1);
+            TryFinishNpcVoicePlayback(true);
         } else if (gXStatus.character_event_queue->HasActiveEvents()) {
             gXStatus.character_event_queue->CompleteFirstActiveEvent();
         } else {
@@ -366,8 +366,8 @@ void DispatchMGSCommand(W8MGSCommand command)
     }
     case W8_MGS_COMMAND_SHOW_VERSION: {
         char version_text[0x40];
-        FormatVersionBanner(version_text, 1, 1, 1);
-        ShowNotice(0xc, ConvertStringToWide(version_text), -1, -1, 0);
+        FormatVersionBanner(version_text, true, true, true);
+        ShowNotice(0xc, ConvertStringToWide(version_text), -1, -1, false);
         break;
     }
     case W8_MGS_COMMAND_LOOK_LEVEL:
@@ -386,19 +386,19 @@ void DispatchMGSCommand(W8MGSCommand command)
         }
         if (IsScreenInputBlocked() != 0) {
             ApplyMainGameModeFlag(static_cast<W8MainUiMode>((g_level_block->main_ui_mode - 1) & 1),
-                                  1);
+                                  true);
         } else {
             ApplyMainGameModeFlag(static_cast<W8MainUiMode>((g_level_block->main_ui_mode + 1) % 3),
-                                  1);
+                                  true);
         }
         break;
     case W8_MGS_COMMAND_PREV_LAYOUT:
         if (IsScreenInputBlocked() != 0) {
             ApplyMainGameModeFlag(static_cast<W8MainUiMode>((g_level_block->main_ui_mode - 1) & 1),
-                                  1);
+                                  true);
         } else {
             ApplyMainGameModeFlag(static_cast<W8MainUiMode>((g_level_block->main_ui_mode + 2) % 3),
-                                  1);
+                                  true);
         }
         break;
     case W8_MGS_COMMAND_AUTOMAP:
@@ -426,7 +426,7 @@ void DispatchMGSCommand(W8MGSCommand command)
              g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT)) {
             break;
         }
-        OpenCharacterScreenForPartySlot(g_status.selected_character, 0);
+        OpenCharacterScreenForPartySlot(g_status.selected_character, false);
         break;
     case W8_MGS_COMMAND_USE_ITEM:
         TryMGSActionKey(W8_MGS_ACTION_USE_ITEM_VIEW);
@@ -459,23 +459,23 @@ void DispatchMGSCommand(W8MGSCommand command)
             break;
         }
         if (g_status.iron_man != 0 && !g_dev_mode) {
-            ShowNotice(0xc, gppStringList[0x82c], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x82c], -1, -1, false);
             break;
         }
         if (gXStatus.fCombatMode) {
             if (g_dev_mode) {
                 EndCombat(0);
             } else {
-                ShowNotice(0xc, gppStringList[0x774], -1, -1, 0);
+                ShowNotice(0xc, gppStringList[0x774], -1, -1, false);
                 break;
             }
         }
         SelectQuickSaveSlotForWrite(slot_name);
         if (SaveGame(slot_name, 0)) {
             SetLastSaveName(ConvertStringToWide(slot_name));
-            ShowNotice(0xc, gppStringList[0x6f5], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x6f5], -1, -1, false);
         } else {
-            ShowNotice(0xc, gppStringList[0x6f6], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x6f6], -1, -1, false);
         }
         break;
     }
@@ -485,7 +485,7 @@ void DispatchMGSCommand(W8MGSCommand command)
             break;
         }
         if (g_status.iron_man != 0 && !g_dev_mode) {
-            ShowNotice(0xc, gppStringList[0x82c], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x82c], -1, -1, false);
             break;
         }
         if (FindStartupQuickSave(slot_name)) {
@@ -498,7 +498,7 @@ void DispatchMGSCommand(W8MGSCommand command)
             SetMainGameMode(0);
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
-            ShowNotice(0xc, gppStringList[0x786], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x786], -1, -1, false);
         }
         break;
     }
@@ -635,7 +635,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         g_settings.auto_advance_character ^= 1;
         ShowNotice(0xc,
                    gppStringList[g_settings.auto_advance_character != 0 ? 0x1f68 / 4 : 0x1f6c / 4],
-                   -1, -1, 0);
+                   -1, -1, false);
         break;
     case W8_MGS_COMMAND_TEXTBOX_SCROLL_UP:
         ScrollTextBoxUp(1);
@@ -650,7 +650,7 @@ void DispatchMGSCommand(W8MGSCommand command)
     case W8_MGS_COMMAND_DEBUG_MONSTER_SCRIPT:
         if (g_level_block->highlighted_item != -1) {
             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                0x1b9, MGSKEYBOARD_CPP, g_level_block->highlighted_item, 1));
+                0x1b9, MGSKEYBOARD_CPP, g_level_block->highlighted_item, true));
         }
         break;
     default:
@@ -800,7 +800,7 @@ unsigned char BuildKeyboardMenu(void)
             control->m_secondaryActivationCallback = CloseKeyboardMenu;
             g_keyboard_menu_pages[row] = menu;
             g_keyboard_menu_items[row] = item;
-            SetRegionHelp(row + 0xb4, 1, g_submenu_entry_help_ids[menu * 5 + item]);
+            SetRegionHelp(row + 0xb4, true, g_submenu_entry_help_ids[menu * 5 + item]);
             ++row;
         }
     }
@@ -810,8 +810,8 @@ unsigned char BuildKeyboardMenu(void)
         g_keyboard_row_positions[row].y + 0x12, 0x89, 0, 0xbd, 0xbd, 0xbf, 0xbf, -1);
     g_keyboard_menu_rows[row]->m_primaryActivationCallback = CloseKeyboardMenu;
     g_keyboard_menu_rows[row]->m_secondaryActivationCallback = CloseKeyboardMenu;
-    SetRegionHelp(row + 0xb4, 1, 0x11);
-    g_keyboard_menu_panel->SetEnabled(1);
+    SetRegionHelp(row + 0xb4, true, 0x11);
+    g_keyboard_menu_panel->SetEnabled(true);
     RefreshKeyboardMenuRows();
     return 1;
 }
@@ -881,7 +881,7 @@ void RefreshKeyboardMenuRows(void)
                     g_spell_records[g_status.buffers.XChar[g_selected_party_slot].spell_id].realm *
                     7;
             }
-            row->SetEnabled(0);
+            row->SetEnabled(false);
         } else {
             if (menu == W8_SUBMENU_SPELLS && item == 1) {
                 adjust =
@@ -900,9 +900,9 @@ void RefreshKeyboardMenuRows(void)
             row->m_pressedSprite = message;
             row->m_alternateNormalSprite = icon;
             row->m_alternatePressedSprite = icon;
-            row->SetActive(1);
+            row->SetActive(true);
         }
-        row->Invalidate(0);
+        row->Invalidate(false);
         ++index;
         row = g_keyboard_menu_rows[index];
         --remaining;
@@ -969,7 +969,7 @@ void RedrawKeyboardMenuPanel(bool invalidate)
 
 static void ChooseKeyboardMenuAction(W8ActionKind action)
 {
-    ChooseAction(g_selected_party_slot, action, -1, 0, 0, 1);
+    ChooseAction(g_selected_party_slot, action, -1, 0, false, 1);
     RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
     CloseKeyboardMenu();
 }
@@ -1118,7 +1118,7 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
         row_id = region->callback_id;
         if (g_keyboard_menu_pages[row_id] == W8_SUBMENU_SPELLS &&
             g_keyboard_menu_items[row_id] == 1) {
-            SetRegionHelpForceEnabled(1);
+            SetRegionHelpForceEnabled(true);
             if (g_keyboard_menu_rows[region->callback_id]->m_enabled == 0) {
                 SetRegionHelpText(gppStringList[0x5a]);
                 return 1;
@@ -1136,7 +1136,7 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
         if (g_keyboard_menu_items[row_id] != 2) {
             return 1;
         }
-        SetRegionHelpForceEnabled(1);
+        SetRegionHelpForceEnabled(true);
         if (g_keyboard_menu_rows[region->callback_id]->m_enabled == 0) {
             SetRegionHelpText(gppStringList[0x5d]);
             return 1;
@@ -1144,7 +1144,7 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
         party_row = &g_status.buffers.XChar[g_selected_party_slot];
         item = FindCharacterItemAt(g_selected_party_slot, party_row->item_origin,
                                    party_row->item_slot);
-        name = FormatItemDisplayName(item, 0);
+        name = FormatItemDisplayName(item, false);
         SetRegionHelpText(FormatWideString(g_format_s_colon_s, gppStringList[0x5d], name));
         return 1;
     }

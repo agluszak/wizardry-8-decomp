@@ -24,7 +24,7 @@ bool SeaCavesHigardiChest01(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_Spirit01", &position, 0, 0)) {
-        SpawnMonsters(0x1f2, 1, &position, 1, 0, 0, 0);
+        SpawnMonsters(0x1f2, 1, &position, 1, false, false, false);
     }
     return true;
 }
@@ -36,7 +36,7 @@ bool SeaCavesHigardiChest02(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_Spirit02", &position, 0, 0)) {
-        SpawnMonsters(0x1f2, 1, &position, 1, 0, 0, 0);
+        SpawnMonsters(0x1f2, 1, &position, 1, false, false, false);
     }
     return true;
 }
@@ -48,7 +48,7 @@ bool SeaCavesHigardiChest03(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_Spirit03", &position, 0, 0)) {
-        SpawnMonsters(0x1f2, 1, &position, 1, 0, 0, 0);
+        SpawnMonsters(0x1f2, 1, &position, 1, false, false, false);
     }
     return true;
 }
@@ -60,7 +60,7 @@ bool SeaCavesHigardiChest04(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_Spirit04", &position, 0, 0)) {
-        SpawnMonsters(0x1f2, 1, &position, 1, 0, 0, 0);
+        SpawnMonsters(0x1f2, 1, &position, 1, false, false, false);
     }
     return true;
 }
@@ -72,7 +72,7 @@ bool SeaCavesHigardiChest05(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_Spirit05", &position, 0, 0)) {
-        SpawnMonsters(0x1f2, 1, &position, 1, 0, 0, 0);
+        SpawnMonsters(0x1f2, 1, &position, 1, false, false, false);
     }
     return true;
 }
@@ -101,7 +101,7 @@ bool SeaCavesDoorTomb(Trigger* pTrigger)
         return true;
     }
     group = GetMonsterGroupByListIndex(
-        GetMonsterGroupIndexByID(0x4b, SEACAVES_CPP, monster_info->monster_group_id, 1));
+        GetMonsterGroupIndexByID(0x4b, SEACAVES_CPP, monster_info->monster_group_id, true));
     if (group != 0) {
         GiveBirthToMonster(group);
     }

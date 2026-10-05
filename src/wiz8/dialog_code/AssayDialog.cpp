@@ -255,7 +255,7 @@ unsigned char W8AssayDialog::PopulateText()
                              FormatWideString(g_format_plus_d, record->attack_damage_bonus), 10,
                              0xf, 0);
     }
-    slot_mask = GetItemEquipSlotMask(m_item->iItemNo, 1, 1, 1, 1);
+    slot_mask = GetItemEquipSlotMask(m_item->iItemNo, true, true, true, true);
     count = 0;
     for (bit = 0; bit < 12; ++bit) {
         if (bit != 8 && bit != 9 && (slot_mask & (1 << bit)) != 0) {
@@ -645,7 +645,7 @@ void W8AssayDialog::Draw()
         }
     }
     m_text_area.Draw(0);
-    m_scroll_bar.Draw(0);
+    m_scroll_bar.Draw(false);
 }
 
 /* Same folded body as W8MonsterInfoDialog::OnRightButtonUp at 0x005D6E60;
@@ -755,69 +755,70 @@ unsigned char W8AssayDialog::PopulateRequirements()
         }
     }
 
-    m_buttons[0]->Configure("Data\\Dialogs\\popup_iteminfo.sti", -1, 1, 1, 1, 1, 0, 0, 0, 0, -1, 0,
-                            0);
-    m_buttons[1]->Configure("Data\\Dialogs\\popup_iteminfo.sti", -1, 2, 2, 2, 2, 0, 0, 0, 0, -1, 0,
-                            0);
+    m_buttons[0]->Configure("Data\\Dialogs\\popup_iteminfo.sti", -1, 1, 1, 1, 1, 0, 0, false, 0, -1,
+                            0, 0);
+    m_buttons[1]->Configure("Data\\Dialogs\\popup_iteminfo.sti", -1, 2, 2, 2, 2, 0, 0, false, 0, -1,
+                            0, 0);
     m_buttons[2]->Configure("Data\\Dialogs\\iteminfo_tabbutton.sti", 3, 0, 1, 4, 2,
-                            PrimaryTabCallback, 0, 1, 0x7f, 0x115, 0, 0);
+                            PrimaryTabCallback, 0, true, 0x7f, 0x115, 0, 0);
     m_buttons[3]->Configure("Data\\Dialogs\\iteminfo_tabbutton.sti", 8, 5, 6, 9, 7,
-                            SecondaryTabCallback, 0, 1, 0x7f, 0x116, 0, 0);
-    m_buttons[4]->Configure("Data\\Dialogs\\popup_iteminfo.sti", -1, 3, 3, 3, 3, 0, 0, 0, 0, -1, 0,
-                            0);
+                            SecondaryTabCallback, 0, true, 0x7f, 0x116, 0, 0);
+    m_buttons[4]->Configure("Data\\Dialogs\\popup_iteminfo.sti", -1, 3, 3, 3, 3, 0, 0, false, 0, -1,
+                            0, 0);
     m_buttons[5]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 2, 2,
-                            W8TriggerItemPickerDialog::CloseOwningDialog, 0, 0, 0x7f, 0x12, 0, 0);
-    m_buttons[6]->Configure("Data\\Dialogs\\icons_profession.sti", 1, 0, -1, 0, -1, 0, 0, 0, 0x7f,
-                            0x2ad, 0, 0);
-    m_buttons[7]->Configure("Data\\Dialogs\\icons_profession.sti", 3, 2, -1, 2, -1, 0, 0, 0, 0x7f,
-                            0x2a7, 0, 0);
-    m_buttons[8]->Configure("Data\\Dialogs\\icons_profession.sti", 5, 4, -1, 4, -1, 0, 0, 0, 0x7f,
-                            0x2b0, 0, 0);
-    m_buttons[9]->Configure("Data\\Dialogs\\icons_profession.sti", 7, 6, -1, 6, -1, 0, 0, 0, 0x7f,
-                            0x2ac, 0, 0);
-    m_buttons[10]->Configure("Data\\Dialogs\\icons_profession.sti", 9, 8, -1, 8, -1, 0, 0, 0, 0x7f,
-                             0x2a6, 0, 0);
-    m_buttons[11]->Configure("Data\\Dialogs\\icons_profession.sti", 0xb, 10, -1, 10, -1, 0, 0, 0,
-                             0x7f, 0x2a4, 0, 0);
-    m_buttons[12]->Configure("Data\\Dialogs\\icons_profession.sti", 0xd, 0xc, -1, 0xc, -1, 0, 0, 0,
-                             0x7f, 0x2aa, 0, 0);
-    m_buttons[13]->Configure("Data\\Dialogs\\icons_profession.sti", 0xf, 0xe, -1, 0xe, -1, 0, 0, 0,
-                             0x7f, 0x2b1, 0, 0);
+                            W8TriggerItemPickerDialog::CloseOwningDialog, 0, false, 0x7f, 0x12, 0,
+                            0);
+    m_buttons[6]->Configure("Data\\Dialogs\\icons_profession.sti", 1, 0, -1, 0, -1, 0, 0, false,
+                            0x7f, 0x2ad, 0, 0);
+    m_buttons[7]->Configure("Data\\Dialogs\\icons_profession.sti", 3, 2, -1, 2, -1, 0, 0, false,
+                            0x7f, 0x2a7, 0, 0);
+    m_buttons[8]->Configure("Data\\Dialogs\\icons_profession.sti", 5, 4, -1, 4, -1, 0, 0, false,
+                            0x7f, 0x2b0, 0, 0);
+    m_buttons[9]->Configure("Data\\Dialogs\\icons_profession.sti", 7, 6, -1, 6, -1, 0, 0, false,
+                            0x7f, 0x2ac, 0, 0);
+    m_buttons[10]->Configure("Data\\Dialogs\\icons_profession.sti", 9, 8, -1, 8, -1, 0, 0, false,
+                             0x7f, 0x2a6, 0, 0);
+    m_buttons[11]->Configure("Data\\Dialogs\\icons_profession.sti", 0xb, 10, -1, 10, -1, 0, 0,
+                             false, 0x7f, 0x2a4, 0, 0);
+    m_buttons[12]->Configure("Data\\Dialogs\\icons_profession.sti", 0xd, 0xc, -1, 0xc, -1, 0, 0,
+                             false, 0x7f, 0x2aa, 0, 0);
+    m_buttons[13]->Configure("Data\\Dialogs\\icons_profession.sti", 0xf, 0xe, -1, 0xe, -1, 0, 0,
+                             false, 0x7f, 0x2b1, 0, 0);
     m_buttons[14]->Configure("Data\\Dialogs\\icons_profession.sti", 0x11, 0x10, -1, 0x10, -1, 0, 0,
-                             0, 0x7f, 0x2a8, 0, 0);
+                             false, 0x7f, 0x2a8, 0, 0);
     m_buttons[15]->Configure("Data\\Dialogs\\icons_profession.sti", 0x13, 0x12, -1, 0x12, -1, 0, 0,
-                             0, 0x7f, 0x2ae, 0, 0);
+                             false, 0x7f, 0x2ae, 0, 0);
     m_buttons[16]->Configure("Data\\Dialogs\\icons_profession.sti", 0x15, 0x14, -1, 0x14, -1, 0, 0,
-                             0, 0x7f, 0x2a9, 0, 0);
+                             false, 0x7f, 0x2a9, 0, 0);
     m_buttons[17]->Configure("Data\\Dialogs\\icons_profession.sti", 0x17, 0x16, -1, 0x16, -1, 0, 0,
-                             0, 0x7f, 0x2af, 0, 0);
+                             false, 0x7f, 0x2af, 0, 0);
     m_buttons[18]->Configure("Data\\Dialogs\\icons_profession.sti", 0x19, 0x18, -1, 0x18, -1, 0, 0,
-                             0, 0x7f, 0x2a5, 0, 0);
+                             false, 0x7f, 0x2a5, 0, 0);
     m_buttons[19]->Configure("Data\\Dialogs\\icons_profession.sti", 0x1b, 0x1a, -1, 0x1a, -1, 0, 0,
-                             0, 0x7f, 0x2b2, 0, 0);
+                             false, 0x7f, 0x2b2, 0, 0);
     m_buttons[20]->Configure("Data\\Dialogs\\icons_profession.sti", 0x1d, 0x1c, -1, 0x1c, -1, 0, 0,
-                             0, 0x7f, 0x2ab, 0, 0);
-    m_buttons[21]->Configure("Data\\Dialogs\\icons_race.sti", 1, 0, -1, 0, -1, 0, 0, 0, 0x7f, 0x28a,
-                             0, 0);
-    m_buttons[22]->Configure("Data\\Dialogs\\icons_race.sti", 3, 2, -1, 2, -1, 0, 0, 0, 0x7f, 0x28c,
-                             0, 0);
-    m_buttons[23]->Configure("Data\\Dialogs\\icons_race.sti", 5, 4, -1, 4, -1, 0, 0, 0, 0x7f, 0x285,
-                             0, 0);
-    m_buttons[24]->Configure("Data\\Dialogs\\icons_race.sti", 7, 6, -1, 6, -1, 0, 0, 0, 0x7f, 0x28e,
-                             0, 0);
-    m_buttons[25]->Configure("Data\\Dialogs\\icons_race.sti", 9, 8, -1, 8, -1, 0, 0, 0, 0x7f, 0x284,
-                             0, 0);
-    m_buttons[26]->Configure("Data\\Dialogs\\icons_race.sti", 0xb, 10, -1, 10, -1, 0, 0, 0, 0x7f,
-                             0x28b, 0, 0);
-    m_buttons[27]->Configure("Data\\Dialogs\\icons_race.sti", 0xd, 0xc, -1, 0xc, -1, 0, 0, 0, 0x7f,
-                             0x286, 0, 0);
-    m_buttons[28]->Configure("Data\\Dialogs\\icons_race.sti", 0xf, 0xe, -1, 0xe, -1, 0, 0, 0, 0x7f,
-                             0x288, 0, 0);
-    m_buttons[29]->Configure("Data\\Dialogs\\icons_race.sti", 0x11, 0x10, -1, 0x10, -1, 0, 0, 0,
+                             false, 0x7f, 0x2ab, 0, 0);
+    m_buttons[21]->Configure("Data\\Dialogs\\icons_race.sti", 1, 0, -1, 0, -1, 0, 0, false, 0x7f,
+                             0x28a, 0, 0);
+    m_buttons[22]->Configure("Data\\Dialogs\\icons_race.sti", 3, 2, -1, 2, -1, 0, 0, false, 0x7f,
+                             0x28c, 0, 0);
+    m_buttons[23]->Configure("Data\\Dialogs\\icons_race.sti", 5, 4, -1, 4, -1, 0, 0, false, 0x7f,
+                             0x285, 0, 0);
+    m_buttons[24]->Configure("Data\\Dialogs\\icons_race.sti", 7, 6, -1, 6, -1, 0, 0, false, 0x7f,
+                             0x28e, 0, 0);
+    m_buttons[25]->Configure("Data\\Dialogs\\icons_race.sti", 9, 8, -1, 8, -1, 0, 0, false, 0x7f,
+                             0x284, 0, 0);
+    m_buttons[26]->Configure("Data\\Dialogs\\icons_race.sti", 0xb, 10, -1, 10, -1, 0, 0, false,
+                             0x7f, 0x28b, 0, 0);
+    m_buttons[27]->Configure("Data\\Dialogs\\icons_race.sti", 0xd, 0xc, -1, 0xc, -1, 0, 0, false,
+                             0x7f, 0x286, 0, 0);
+    m_buttons[28]->Configure("Data\\Dialogs\\icons_race.sti", 0xf, 0xe, -1, 0xe, -1, 0, 0, false,
+                             0x7f, 0x288, 0, 0);
+    m_buttons[29]->Configure("Data\\Dialogs\\icons_race.sti", 0x11, 0x10, -1, 0x10, -1, 0, 0, false,
                              0x7f, 0x287, 0, 0);
-    m_buttons[30]->Configure("Data\\Dialogs\\icons_race.sti", 0x13, 0x12, -1, 0x12, -1, 0, 0, 0,
+    m_buttons[30]->Configure("Data\\Dialogs\\icons_race.sti", 0x13, 0x12, -1, 0x12, -1, 0, 0, false,
                              0x7f, 0x28d, 0, 0);
-    m_buttons[31]->Configure("Data\\Dialogs\\icons_race.sti", 0x15, 0x14, -1, 0x14, -1, 0, 0, 0,
+    m_buttons[31]->Configure("Data\\Dialogs\\icons_race.sti", 0x15, 0x14, -1, 0x14, -1, 0, 0, false,
                              0x7f, 0x289, 0, 0);
 
     for (us_index = 0; us_index < NUM_RPC_RACES; ++us_index) {
@@ -872,7 +873,7 @@ unsigned char W8AssayDialog::PopulateRequirements()
             break;
         }
         m_buttons[button_index]->Configure("Data\\Dialogs\\icons_race.sti", frame + 1, frame, -1,
-                                           frame, -1, 0, 0, 0, 0x7f, tooltip_index, 0, 0);
+                                           frame, -1, 0, 0, false, 0x7f, tooltip_index, 0, 0);
         m_buttons[button_index]->SetVisible(false);
     }
 
@@ -912,7 +913,7 @@ unsigned char W8AssayDialog::CreateTextBuffers()
         }
     }
 
-    m_text_buffers[0]->SetText(FormatItemDisplayName(m_item, 0), g_wiz_text_font_secondary);
+    m_text_buffers[0]->SetText(FormatItemDisplayName(m_item, false), g_wiz_text_font_secondary);
     equip_class = GetItemEquipClass(m_item);
     m_text_buffers[2]->SetText(gppStringList[g_equip_class_name_ids[equip_class]],
                                g_wiz_text_font_secondary);

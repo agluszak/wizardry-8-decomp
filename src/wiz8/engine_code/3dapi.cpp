@@ -349,7 +349,7 @@ void UpdateWorld(W8World* world)
 {
     if (world == 0) {
         srAssertFail("pWorld", THREE_D_API_CPP, 0x106, 0);
-        CreateTriggerShakeEvent(0x6a4, 70.0f, 5000.0f, 1);
+        CreateTriggerShakeEvent(0x6a4, 70.0f, 5000.0f, true);
     }
 
     if (world != g_secondary_world) {
@@ -1073,8 +1073,8 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
         second.RotateAboutY(sin(opposite_angle), cos(opposite_angle));
         second += *position;
 
-        g_octree->TraceLineOfSight(position, &first, 1, -3, -3, 1, 0);
-        g_octree->TraceLineOfSight(position, &second, 1, -3, -3, 1, 0);
+        g_octree->TraceLineOfSight(position, &first, true, -3, -3, true, 0);
+        g_octree->TraceLineOfSight(position, &second, true, -3, -3, true, 0);
 
         first -= *position;
         second -= *position;
@@ -1093,7 +1093,7 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
     } while (angle < g_camera_pi);
 
     if (check_items) {
-        W8WorldItem* item = GetNextWorldItem(1);
+        W8WorldItem* item = GetNextWorldItem(true);
         while (item != 0) {
             W8Item* owner = item->p3D;
             if (owner != 0) {
@@ -1106,12 +1106,12 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
                     return 0;
                 }
             }
-            item = GetNextWorldItem(0);
+            item = GetNextWorldItem(false);
         }
     }
 
     if (check_monsters) {
-        W8MonsterInfo* info = GetNextMonsterInfo(1);
+        W8MonsterInfo* info = GetNextMonsterInfo(true);
         while (info != 0) {
             W8Monster* monster = info->p3D;
             if (monster != 0) {
@@ -1124,7 +1124,7 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
                     return 0;
                 }
             }
-            info = GetNextMonsterInfo(0);
+            info = GetNextMonsterInfo(false);
         }
     }
     return 1;
@@ -1150,7 +1150,7 @@ unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position,
         candidate = offset + *position;
         srVector3T<float> unblocked = candidate;
 
-        g_octree->TraceLineOfSight(position, &candidate, 1, -3, -3, 1, 0);
+        g_octree->TraceLineOfSight(position, &candidate, true, -3, -3, true, 0);
         if (candidate == unblocked &&
             AdjustWorldCollisionPosition(radius, &candidate, check_items, check_monsters)) {
             *position = candidate;

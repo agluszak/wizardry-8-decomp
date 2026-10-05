@@ -30,7 +30,7 @@ static W8NpcItemEntry* CreateNpcItemEntry(int item_id)
     W8NpcItemEntry* entry = new W8NpcItemEntry;
     if (entry != 0) {
         memset(entry, 0, sizeof(*entry));
-        ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
+        ReplaceOrCreateItem(&entry->item, item_id, true, true, false);
     }
     entry->item.stack_count = 0;
     return entry;
@@ -590,11 +590,11 @@ unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char
 
     if ((g_item_records[item->iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) == 0) {
         if (NpcAcceptsTradeItemClass(npc, item)) {
-            ReplaceOrCreateItem(&stack, item->iItemNo, 0, item->identified, 0);
+            ReplaceOrCreateItem(&stack, item->iItemNo, false, item->identified, false);
             stack.stack_count = quantity;
             amount = CalculateTradeStackPrice(npc, &stack, 0);
             if (!suppress_payment) {
-                AddPartyGold(amount, 0);
+                AddPartyGold(amount, false);
             }
             SoundPlay(g_sound_cash_transaction, 0);
             if (item->stack_count == 0) {
@@ -761,7 +761,7 @@ int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, int mode, unsigned
                                 bool identified)
 {
     W8ItemInstance item;
-    ReplaceOrCreateItem(&item, item_id, 0, identified, 0);
+    ReplaceOrCreateItem(&item, item_id, false, identified, false);
     item.stack_count = stack_count;
     return CalculateTradeStackPrice(npc, &item, mode);
 }
@@ -830,7 +830,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
     }
     available = entry->item.stack_count;
     for (;;) {
-        ReplaceOrCreateItem(&hand, entry->item.iItemNo, 1, 1, 0);
+        ReplaceOrCreateItem(&hand, entry->item.iItemNo, true, true, false);
         if (g_item_records[hand.iItemNo].quantity_kind == W8_ITEM_QUANTITY_NONE) {
             unit = 1;
         } else if (g_item_records[hand.iItemNo].quantity_kind != W8_ITEM_QUANTITY_STACK) {
@@ -847,15 +847,15 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
                 hand.stack_count = unit;
             }
         }
-        if (AddItemToPartyOrDrop(&hand, 0) == 0 && !g_status.item_in_cursor) {
-            DisplayNpcQuote(gppStringList[0x6b1], 0);
+        if (AddItemToPartyOrDrop(&hand, false) == 0 && !g_status.item_in_cursor) {
+            DisplayNpcQuote(gppStringList[0x6b1], false);
         }
         moved += unit;
         if (quantity <= moved) {
             if (moved == 0) {
                 return 0;
             }
-            ReplaceOrCreateItem(&stack, entry->item.iItemNo, 0, 1, 0);
+            ReplaceOrCreateItem(&stack, entry->item.iItemNo, false, true, false);
             stack.stack_count = moved;
             price = CalculateTradeStackPrice(npc, &stack, 1);
             SoundPlay(g_sound_cash_transaction, 0);
@@ -982,43 +982,43 @@ void MatureNpcDelayedItems(W8NpcState* npc)
         if (npc->record->kind == 3) {
             switch (entry->item.iItemNo) {
             case 0x28a:
-                SetFact(W8_FACT_ZYNARYX_PLATE_COMPLETE, 1, 0);
+                SetFact(W8_FACT_ZYNARYX_PLATE_COMPLETE, 1, false);
                 break;
             case 0x28b:
-                SetFact(W8_FACT_STEELHIDE_COMPLETE, 1, 0);
+                SetFact(W8_FACT_STEELHIDE_COMPLETE, 1, false);
                 break;
             case 0x28c:
-                SetFact(W8_FACT_FEATHERWEIGHT_COMPLETE, 1, 0);
+                SetFact(W8_FACT_FEATHERWEIGHT_COMPLETE, 1, false);
                 break;
             case 0x28d:
-                SetFact(W8_FACT_BEASTSLAYER_COMPLETE, 1, 0);
+                SetFact(W8_FACT_BEASTSLAYER_COMPLETE, 1, false);
                 break;
             case 0x28e:
-                SetFact(W8_FACT_EBON_STAFF_COMPLETE, 1, 0);
+                SetFact(W8_FACT_EBON_STAFF_COMPLETE, 1, false);
                 break;
             default:
                 break;
             }
         } else if (npc->record->kind == 0x49) {
             if (entry->item.iItemNo == 0x1b0) {
-                SetFact(W8_FACT_TRYNNIE_FUZZFAS_POTION_DONE, 1, 0);
-                SetFact(W8_FACT_TRYNNIE_FUZZFAS_POTION, 0, 0);
+                SetFact(W8_FACT_TRYNNIE_FUZZFAS_POTION_DONE, 1, false);
+                SetFact(W8_FACT_TRYNNIE_FUZZFAS_POTION, 0, false);
                 return;
             }
         } else if (npc->record->kind == 0x39) {
             if (entry->item.iItemNo == 500) {
-                SetFact(W8_FACT_FERRO_MIRROR_ARMOR_ALL_INGREDIENTS, 0, 0);
-                SetFact(W8_FACT_MIRROR_ARMOR_COMPLETE, 1, 0);
+                SetFact(W8_FACT_FERRO_MIRROR_ARMOR_ALL_INGREDIENTS, 0, false);
+                SetFact(W8_FACT_MIRROR_ARMOR_COMPLETE, 1, false);
                 return;
             }
             if (entry->item.iItemNo == 0x1f5) {
-                SetFact(W8_FACT_FERRO_IVORY_BLADE_ALL_INGREDIENTS, 0, 0);
-                SetFact(W8_FACT_IVORY_BLADE_COMPLETE, 1, 0);
+                SetFact(W8_FACT_FERRO_IVORY_BLADE_ALL_INGREDIENTS, 0, false);
+                SetFact(W8_FACT_IVORY_BLADE_COMPLETE, 1, false);
                 return;
             }
             if (entry->item.iItemNo == 0x1f8) {
-                SetFact(W8_FACT_FERRO_VAMPIRE_CHAIN_ALL_INGREDIENTS, 0, 0);
-                SetFact(W8_FACT_VAMPIRE_CHAIN_COMPLETE, 1, 0);
+                SetFact(W8_FACT_FERRO_VAMPIRE_CHAIN_ALL_INGREDIENTS, 0, false);
+                SetFact(W8_FACT_VAMPIRE_CHAIN_COMPLETE, 1, false);
                 return;
             }
         }
@@ -1029,6 +1029,6 @@ void MatureNpcDelayedItems(W8NpcState* npc)
 // FUNCTION: WIZ8 0x0055BCC0
 void RestockNpcInventory(W8NpcState* npc)
 {
-    MaintainNpcStock(npc, 0);
+    MaintainNpcStock(npc, false);
     MatureNpcDelayedItems(npc);
 }

@@ -35,17 +35,17 @@
 // FUNCTION: WIZ8 0x005063e0
 void PostNewGameLoad(void)
 {
-    SetFactNotificationsSuppressed(1);
+    SetFactNotificationsSuppressed(true);
     AddDialogueTranscriptKeyword(gppStringList[0x7e7], 3);
     AddDialogueTranscriptKeyword(gppStringList[0x7e8], 3);
-    SetFact(W8_FACT_FACTION_HIGARDI_FELLOW_FRIENDLY, 1, 0);
-    SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 1, 0);
-    SetFact(W8_FACT_RAPAX_QUEEN_LOCKED_UP, 1, 0);
-    SetFact(W8_FACT_RODAN_LOCKED_IN_CAGE, 1, 0);
-    SetFact(W8_FACT_DRAZIC_LOCKED_IN_CAGE, 1, 0);
-    SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 1, 0);
-    SetFact(W8_FACT_FACTION_RATTKIN_COMMON_FRIENDLY, 1, 0);
-    SetFactNotificationsSuppressed(0);
+    SetFact(W8_FACT_FACTION_HIGARDI_FELLOW_FRIENDLY, 1, false);
+    SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 1, false);
+    SetFact(W8_FACT_RAPAX_QUEEN_LOCKED_UP, 1, false);
+    SetFact(W8_FACT_RODAN_LOCKED_IN_CAGE, 1, false);
+    SetFact(W8_FACT_DRAZIC_LOCKED_IN_CAGE, 1, false);
+    SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 1, false);
+    SetFact(W8_FACT_FACTION_RATTKIN_COMMON_FRIENDLY, 1, false);
+    SetFactNotificationsSuppressed(false);
 }
 
 /* Reads the fact array back, then re-applies the consequences that do not
@@ -67,7 +67,7 @@ void LoadFactState(int save_handle)
     if (!GetFact(W8_FACT_IMPORT_TRANG)) {
         if (!GetFact(W8_FACT_IMPORT_UMPANI)) {
             if (!GetFact(W8_FACT_VIRGIN)) {
-                SetFact(W8_FACT_IMPORT_NOALIGN, 1, 0);
+                SetFact(W8_FACT_IMPORT_NOALIGN, 1, false);
             }
         }
     }
@@ -119,16 +119,16 @@ unsigned char EvaluateFact(W8FactId fact_id)
             break;
         }
         case W8_FACT_PEACE_DRAZIC_IN_PARTY:
-            return NpcLeadHasNameStyle(0x10);
+            return NpcLeadHasNameStyle(W8_NPC_DRAZIC);
         case W8_FACT_PEACE_RODAN_IN_PARTY:
-            return NpcLeadHasNameStyle(0x11);
+            return NpcLeadHasNameStyle(W8_NPC_RODAN);
         case W8_FACT_PEACE_TWO_IN_PARTY:
-            if (!NpcLeadHasNameStyle(0x11) || !NpcLeadHasNameStyle(0x10)) {
+            if (!NpcLeadHasNameStyle(W8_NPC_RODAN) || !NpcLeadHasNameStyle(W8_NPC_DRAZIC)) {
                 return 0;
             }
             break;
         case W8_FACT_VI_IN_PARTY:
-            return NpcLeadHasNameStyle(0x18);
+            return NpcLeadHasNameStyle(W8_NPC_VI_DOMINA);
         case W8_FACT_GLUMPH_DEAD: {
             W8NpcState* npc = GetNpcStateByKind(0x2b);
             if (npc == 0) {
@@ -205,7 +205,7 @@ unsigned char EvaluateFact(W8FactId fact_id)
         case W8_FACT_FACTION_HIGARDI_FELLOW_FRIENDLY:
             return GetFactionDisposition(W8_FACTION_BROTHERHOOD) == W8_FACTION_FRIENDLY;
         case W8_FACT_MYLES_IN_PARTY:
-            return NpcLeadHasNameStyle(7);
+            return NpcLeadHasNameStyle(W8_NPC_MYLES);
         case W8_FACT_FATHER_IN_PARTY:
             if (g_status.rpc_active) {
                 unsigned int slot = 0;
@@ -247,9 +247,9 @@ unsigned char EvaluateFact(W8FactId fact_id)
         case W8_FACT_FACTION_RAPAX_COMMON_FRIENDLY:
             return GetFactionDisposition(W8_FACTION_RAPAX_COMMON) == W8_FACTION_FRIENDLY;
         case W8_FACT_TRYNNIE_SPARKLE_IN_PARTY:
-            return NpcLeadHasNameStyle(0x38);
+            return NpcLeadHasNameStyle(W8_NPC_SPARKLE);
         case W8_FACT_VI_IS_DEAD: {
-            if (!NpcLeadHasNameStyle(0x18)) {
+            if (!NpcLeadHasNameStyle(W8_NPC_VI_DOMINA)) {
                 return g_fact_values[fact_id];
             }
             W8NpcState* npc = GetNpcStateByKind(0x18);

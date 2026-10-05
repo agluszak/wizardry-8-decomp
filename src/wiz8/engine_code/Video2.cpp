@@ -1197,13 +1197,13 @@ void RenderFrame(void)
 
     first_page = g_active_page ? g_scene_prerender0 : g_scene_prerender1;
     second_page = g_active_page ? g_scene_prerender1 : g_scene_prerender0;
-    RenderScene(first_page, g_overlay_camera, 0, 0);
-    RenderScene(second_page, g_overlay_camera, 0, 0);
+    RenderScene(first_page, g_overlay_camera, 0, false);
+    RenderScene(second_page, g_overlay_camera, 0, false);
     g_gerd->setTextureReduction(g_resident_texture_policy);
 
     if (g_render_mesh_sky && g_secondary_world != 0 && g_monster_shadow_updates_enabled) {
         RenderScene(g_secondary_world->static_scene, g_secondary_world->camera, &g_viewport.left,
-                    0);
+                    false);
     }
     if (g_world != 0 && g_world_render_enabled) {
 #ifdef WIZ8_RUNTIME_TESTS
@@ -1215,7 +1215,7 @@ void RenderFrame(void)
             g_cursor_hotspot_y + g_cursor_height < g_viewport.top ||
             g_viewport.right < g_cursor_hotspot_x + g_cursor_width ||
             g_viewport.bottom < g_cursor_hotspot_y + g_cursor_height) {
-            RenderScene(g_world->static_scene, g_world->camera, &g_viewport.left, 1);
+            RenderScene(g_world->static_scene, g_world->camera, &g_viewport.left, true);
         } else {
             int half_width = (g_viewport.right - g_viewport.left) / 2;
             int half_height = (g_viewport.bottom - g_viewport.top) / 2;
@@ -1231,7 +1231,7 @@ void RenderFrame(void)
             pick.value_10 = 0;
             g_gerd->setPickKey(0);
             g_gerd->pushPick(pick);
-            RenderScene(g_world->static_scene, g_world->camera, &g_viewport.left, 1);
+            RenderScene(g_world->static_scene, g_world->camera, &g_viewport.left, true);
             g_gerd->popPick(pick);
             SetPickedModelInstance(pick.selected_model);
             ResolvePickedProp(g_world);
@@ -1248,16 +1248,16 @@ void RenderFrame(void)
         if (g_overlay_scenes_enabled) {
             const int* overlay_viewport = g_overlay_viewport;
             if (!g_fullscreen_scene_last) {
-                RenderScene(g_scene_fullscreen, g_overlay_camera, overlay_viewport, 0);
+                RenderScene(g_scene_fullscreen, g_overlay_camera, overlay_viewport, false);
             }
-            RenderScene(g_scene_overlay0, g_overlay_camera, 0, 0);
-            RenderScene(g_scene_user, g_overlay_camera, 0, 0);
-            RenderScene(g_scene_square, g_square_camera, overlay_viewport, 0);
+            RenderScene(g_scene_overlay0, g_overlay_camera, 0, false);
+            RenderScene(g_scene_user, g_overlay_camera, 0, false);
+            RenderScene(g_scene_square, g_square_camera, overlay_viewport, false);
             if (g_fullscreen_scene_last) {
-                RenderScene(g_scene_fullscreen, g_overlay_camera, overlay_viewport, 0);
+                RenderScene(g_scene_fullscreen, g_overlay_camera, overlay_viewport, false);
             }
             if (g_cursor_scene_enabled) {
-                RenderScene(g_cursor_scene, g_overlay_camera, 0, 0);
+                RenderScene(g_cursor_scene, g_overlay_camera, 0, false);
             }
         }
     g_gerd->endFrame();
@@ -1635,7 +1635,7 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
     g_cursor_node = MakePolygonBrush(g_cursor_scene, g_mouse_surface, extent / 640.0,
                                      extent / 480.0, mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
     g_cursor_node->setName("MouseResize");
-    PositionMouseCursor(g_cursor_width, g_cursor_height, 0);
+    PositionMouseCursor(g_cursor_width, g_cursor_height, false);
     g_cursor_model = static_cast<srMeshModel*>(g_cursor_node->getModel());
     g_cursor_model->enable(srMeshModel::CONTROL_STARTUP);
     g_cursor_model->setSortBias(-100000.0f);
@@ -1845,7 +1845,7 @@ void SyncSystemCursor(void)
         cursor.x -= top_left.x;
         cursor.y -= top_left.y;
         if (cursor.x != g_cursor_width || cursor.y != g_cursor_height) {
-            PositionMouseCursor(cursor.x, cursor.y, 1);
+            PositionMouseCursor(cursor.x, cursor.y, true);
         }
         if (g_system_cursor_visible) {
             g_system_cursor_visible = false;
@@ -1863,7 +1863,7 @@ void SyncSystemCursor(void)
     else if (cursor.y >= 480)
         cursor.y = 480;
     if (cursor.x != g_cursor_width || cursor.y != g_cursor_height) {
-        PositionMouseCursor(cursor.x, cursor.y, 1);
+        PositionMouseCursor(cursor.x, cursor.y, true);
         if (!g_fullscreen) {
             GetClientRect(ghWindow, &client);
             top_left.x = client.left;
@@ -1943,7 +1943,7 @@ unsigned char InitializeMouseCursorScene(void)
         g_cursor_texture->setWrapS(srTextureIFace::WRAP_CLAMP);
         g_cursor_texture->setWrapT(srTextureIFace::WRAP_CLAMP);
         g_cursor_texture->addReference();
-        PositionMouseCursor(640, 480, 1);
+        PositionMouseCursor(640, 480, true);
     }
     return 1;
 }
@@ -2991,7 +2991,7 @@ srModelInstance* Video2DRectToSquarePolygon(const W8ControlsRect* rect, void* so
             instance->overlay_scene_flag |= 1;
             instance->render_state.width = static_cast<unsigned short>(size);
             instance->render_state.height = static_cast<unsigned short>(size);
-            PositionToolTipNode(node, rect->left, rect->top, 0);
+            PositionToolTipNode(node, rect->left, rect->top, false);
             return node;
         }
         surface->release();
@@ -3138,7 +3138,7 @@ stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsR
 // FUNCTION: WIZ8 0x004257D0
 void Position2DNodeUnsnapped(srNode* node, int x, int y)
 {
-    PositionToolTipNode(node, x, y, 0);
+    PositionToolTipNode(node, x, y, false);
 }
 
 // FUNCTION: WIZ8 0x004264F0
@@ -3157,7 +3157,7 @@ void VideoPositionToolTip(INT32 x, INT32 y)
         INT32 offset = x;
         for (int index = 0; index < g_screen_transition_object_count; ++index) {
             srNode* node = static_cast<srNode*>(g_screen_transition_objects[index]);
-            PositionToolTipNode(node, offset, y, 1);
+            PositionToolTipNode(node, offset, y, true);
             offset += static_cast<stModelInstance2D*>(node)->GetScaledWidth();
         }
         g_help_box_y = y;
@@ -3325,7 +3325,7 @@ void VideoToolTip(UINT16* text)
         surface->setHLine(0, y, g_help_box_width, *(unsigned long*)colour);
     }
     buffer->RenderText(static_cast<unsigned char*>(data),
-                       static_cast<unsigned int>(surface->getPitch()), 2, 1, 1);
+                       static_cast<unsigned int>(surface->getPitch()), 2, 1, true);
     unsigned long border_colour;
     PackColourToLong(&border_colour, 1.0, 0.93, 0.6, 0.33);
     surface->setHLine(0, 0, g_help_box_width, border_colour);
@@ -3370,7 +3370,7 @@ void VideoToolTip(UINT16* text)
     int offset = position_x;
     for (int index = 0; index < g_screen_transition_object_count; ++index) {
         srNode* object = static_cast<srNode*>(g_screen_transition_objects[index]);
-        PositionToolTipNode(object, offset, position_y, 1);
+        PositionToolTipNode(object, offset, position_y, true);
         offset += static_cast<stModelInstance2D*>(object)->GetScaledWidth();
     }
     g_help_box_x = position_x;

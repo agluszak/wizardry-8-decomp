@@ -43,7 +43,7 @@ bool RapaxUpperFloorAirBox(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         item_id = GetItemInHand();
         if (item_id == 0x1cb || item_id == 0x1cd || item_id == 0x1cc || item_id == 0x1ce) {
-            SetFact(W8_FACT_RAPAX_TREASURY_RAIDED, 1, 0);
+            SetFact(W8_FACT_RAPAX_TREASURY_RAIDED, 1, false);
             SetFactionDispositionBand(0x12, 0);
             ClearHeldItemDisplay();
             if (item_id == 0x1cb) {
@@ -57,7 +57,7 @@ bool RapaxUpperFloorAirBox(Trigger* pTrigger)
             if (var_id == -1 || GetLocationVarValueByName("TdoorOpen") == 0) {
                 if (FindEntityByName("NP_SlipItem", &entity_position, 0, 0)) {
                     position = entity_position;
-                    world_item = SpawnItem(item_id, &position, 3, 1);
+                    world_item = SpawnItem(item_id, &position, 3, true);
                     if (world_item != 0) {
                         ActivateItem(world_item);
                     }
@@ -112,7 +112,7 @@ bool RapaxUpperFloorDoorDone(Trigger* pTrigger)
                     item_id = GetLocationVarValueByName("TMakeTreasureNumber");
                     if (FindEntityByName("NP_SlipItem", &entity_position, 0, 0)) {
                         position = entity_position;
-                        world_item = SpawnItem(item_id, &position, 3, 1);
+                        world_item = SpawnItem(item_id, &position, 3, true);
                         if (world_item != 0) {
                             ActivateItem(world_item);
                         }

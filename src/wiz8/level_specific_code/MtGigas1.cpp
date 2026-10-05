@@ -70,7 +70,7 @@ bool MtGigas1Lift1(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     g_trigger_feedback = 1;
     return false;
 }
@@ -89,7 +89,7 @@ bool MtGigas1Lift2(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     g_trigger_feedback = 1;
     return false;
 }
@@ -178,7 +178,7 @@ bool MtGigas1MudWall(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_BadassMonster", &position, 0, 0)) {
-        SpawnMonsters(0x157, 1, &position, 1, 1, 0, 0);
+        SpawnMonsters(0x157, 1, &position, 1, true, false, false);
     }
     return true;
 }

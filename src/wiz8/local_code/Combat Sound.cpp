@@ -263,7 +263,7 @@ void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlo
             g_item_records[g_combat_state->characters[iChar].paired_item_id].weapon_sound_class;
     }
     int target_material = GetCombatTargetMaterial(target, hit_location, 415);
-    PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
+    PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, true, volume);
 }
 
 // FUNCTION: WIZ8 0x0054A0E0
@@ -272,7 +272,7 @@ void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, 
     int weapon_class = g_missile_table[missile->missile_table_index].weapon_sound_class;
 
     int target_material = GetCombatTargetMaterial(target, hit_location, 465);
-    PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
+    PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, true, volume);
 }
 
 // FUNCTION: WIZ8 0x0054A270
@@ -289,5 +289,5 @@ void MakeMonsterHitSound(const W8MonsterAttack* attack, W8CombatSlot* target, in
     }
     weapon_class = attack->weapon_class;
     int target_material = GetCombatTargetMaterial(target, hit_location, 504);
-    PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
+    PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, true, volume);
 }

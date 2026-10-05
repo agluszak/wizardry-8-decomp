@@ -76,19 +76,19 @@ W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool c
     m_decrement = new W8TextControl(owner, 0xffffffff, relative_split + 0x1b, y + 1, 0, 0,
                                         0x10a, 0, 0x19, 0x1b, 0x1a, 0x1d, 0x1c);
     m_decrement->AddLayoutFlags(0x100);
-    m_decrement->SetEnabled(0);
-    m_decrement->SetActive(0);
+    m_decrement->SetEnabled(false);
+    m_decrement->SetActive(false);
     m_decrement->m_listener = this;
 
     m_increment = new W8TextControl(owner, 0xffffffff, relative_split + 0x3d, y + 1, 0, 0,
                                         0x10a, 0, 0x1e, 0x20, 0x1f, 0x22, 0x21);
     m_increment->AddLayoutFlags(0x100);
-    m_increment->SetActive(0);
+    m_increment->SetActive(false);
     m_increment->m_listener = this;
 
     m_help = new W8TextControl(owner, 0xffffffff, x, y, relative_split, y + 0xc, -1, -1, -1, -1,
                                    -1, -1, -1);
-    m_help->SetActive(0);
+    m_help->SetActive(false);
     m_help->m_listener = this;
 }
 
@@ -105,7 +105,7 @@ void W8CharacterPageEntry::SetContent(unsigned int id, const wchar_t* label, uns
         m_help->DisableRegionHelp();
     else
         m_help->EnableRegionHelp(help_id);
-    SetEnabled(1);
+    SetEnabled(true);
     UpdateButtons();
     MarkDirty();
 }
@@ -166,8 +166,8 @@ void W8CharacterPageEntry::SetLabelFontState(int state)
 // FUNCTION: WIZ8 0x005afc00
 void W8CharacterPageEntry::MarkDirty()
 {
-    m_decrement->Invalidate(0);
-    m_increment->Invalidate(0);
+    m_decrement->Invalidate(false);
+    m_increment->Invalidate(false);
     m_dirty = 1;
 }
 
@@ -178,14 +178,14 @@ void W8CharacterPageEntry::UpdateButtons()
         bool enabled = *m_second > 0;
         if (m_decrement->m_enabled != enabled) {
             m_decrement->SetEnabled(enabled);
-            m_decrement->Invalidate(0);
+            m_decrement->Invalidate(false);
         }
         enabled = m_increment_allowed && *m_second < *m_third;
         if (m_increment->m_enabled != enabled) {
             m_increment->SetEnabled(enabled);
-            m_increment->Invalidate(0);
+            m_increment->Invalidate(false);
         }
-        m_help->SetEnabled(1);
+        m_help->SetEnabled(true);
     }
 }
 

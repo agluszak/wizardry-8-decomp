@@ -46,7 +46,7 @@ bool CosmicCircleTriggerPlane1Hedra(Trigger* pTrigger)
     if (pNPC == 0) {
         srAssertFail("pNPC", COSMIC_CIRCLE_CPP, 0x19, "Cannot find VOC_SAVANT_CC1");
     } else {
-        QueueNpcScriptNotice(pNPC, 0, -1, 0, 0);
+        QueueNpcScriptNotice(pNPC, 0, -1, false, 0);
     }
     UpdateCameraPathStateByName(GetWorld(), "CameraPath1", 1);
     return true;
@@ -74,32 +74,32 @@ void CosmicCircleSetup(void)
 
     if (!g_status.world_suspended && !g_status.cc_arena_spawned) {
         if (FindEntityByName("NP_ALTHEIDESARENA", &positionAltheides, 0, 0)) {
-            group = SpawnMonsters(0x1b3, 1, &positionAltheides, 0, 1, 0, 0);
+            group = SpawnMonsters(0x1b3, 1, &positionAltheides, 0, true, false, false);
             uiMonsterID = IListGetAt(group->monsters, 0);
             if (uiMonsterID == 0) {
                 srAssertFail("uiMonsterID", COSMIC_CIRCLE_CPP, 0x41,
                              "Invalid Monster ID for CC end");
             } else {
-                index = MonsterGetIndexByLocationID(0x45, COSMIC_CIRCLE_CPP, uiMonsterID, 1);
+                index = MonsterGetIndexByLocationID(0x45, COSMIC_CIRCLE_CPP, uiMonsterID, true);
                 pMonsterInfoAltheides = MonsterGetScriptPartByLocationIndex(index);
             }
         }
         if (FindEntityByName("NP_DSARENA", &positionDs, 0, 0)) {
-            group = SpawnMonsters(0x1b6, 1, &positionDs, 0, 1, 0, 0);
+            group = SpawnMonsters(0x1b6, 1, &positionDs, 0, true, false, false);
             uiMonsterID = IListGetAt(group->monsters, 0);
             if (uiMonsterID == 0) {
                 srAssertFail("uiMonsterID", COSMIC_CIRCLE_CPP, 0x53,
                              "Invalid Monster ID for CC end");
             } else {
-                index = MonsterGetIndexByLocationID(0x57, COSMIC_CIRCLE_CPP, uiMonsterID, 1);
+                index = MonsterGetIndexByLocationID(0x57, COSMIC_CIRCLE_CPP, uiMonsterID, true);
                 pMonsterInfoDs = MonsterGetScriptPartByLocationIndex(index);
             }
         }
         if (FindEntityByName("NP_BELASTART", &positionBela, 0, 0)) {
-            SpawnMonsters(0x1b4, 1, &positionBela, 2, 1, 0, 0);
+            SpawnMonsters(0x1b4, 1, &positionBela, 2, true, false, false);
         }
         if (FindEntityByName("NP_PHOONZANG1", &positionPhoonzang, 0, 0)) {
-            SpawnMonsters(0x197, 1, &positionPhoonzang, 2, 1, 0, 0);
+            SpawnMonsters(0x197, 1, &positionPhoonzang, 2, true, false, false);
         }
         g_status.cc_arena_spawned = true;
         pMonsterInfoDs->p3D->AimAtPosition(&positionAltheides);

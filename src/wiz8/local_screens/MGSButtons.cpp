@@ -129,7 +129,7 @@ void RefreshSubMenuPanel(bool invalidate)
 
 static void ChooseSubMenuAction(W8ActionKind action)
 {
-    ChooseAction(g_status.selected_character, action, -1, 0, 0, 1);
+    ChooseAction(g_status.selected_character, action, -1, 0, false, 1);
     DrawSubMenuCharacterAction();
     DestroySubMenuControls();
 }
@@ -270,12 +270,11 @@ unsigned char CreateSubMenuScrollButtons(void)
             return 0;
         }
     }
-    g_submenu_scroll_buttons[0]->Configure("Data\\Main Interface\\main_scroll_arrows.sti", 3,
-                                                  0, 1, 2, 2, SubMenuScrollArrowUp, 0, 0, 0x7f,
-                                                  0x4b, 0, 0);
-    g_submenu_scroll_buttons[1]->Configure("Data\\Main Interface\\main_scroll_arrows.sti", 7,
-                                                  4, 5, 6, 6, SubMenuScrollArrowDown, 0, 0, 0x7f,
-                                                  0x4c, 0, 0);
+    g_submenu_scroll_buttons[0]->Configure("Data\\Main Interface\\main_scroll_arrows.sti", 3, 0, 1,
+                                           2, 2, SubMenuScrollArrowUp, 0, false, 0x7f, 0x4b, 0, 0);
+    g_submenu_scroll_buttons[1]->Configure("Data\\Main Interface\\main_scroll_arrows.sti", 7, 4, 5,
+                                           6, 6, SubMenuScrollArrowDown, 0, false, 0x7f, 0x4c, 0,
+                                           0);
     for (i = 0; i < 2; ++i) {
         g_submenu_scroll_buttons[i]->SetPosition(g_scroll_button_positions[i].x,
                                                  g_scroll_button_positions[i].y);
@@ -318,10 +317,9 @@ unsigned char CreateSubMenuPanelButtons(void)
         }
     }
     g_submenu_panel_buttons[0]->Configure(g_submenu_icons_path, 0x21, 0x1e, 0x1f, 0x20, 0x22,
-                                                 SubMenuPanelCloseButton, 0, 0, 0x7f, 0x4d, 0, 0);
+                                          SubMenuPanelCloseButton, 0, false, 0x7f, 0x4d, 0, 0);
     g_submenu_panel_buttons[1]->Configure(g_submenu_icons_path, 0x26, 0x23, 0x24, 0x25, 0x27,
-                                                 SubMenuPanelFormationButton, 0, 1, 0x7f, 0x4e, 0,
-                                                 0);
+                                          SubMenuPanelFormationButton, 0, true, 0x7f, 0x4e, 0, 0);
     for (index = 0; index < 2; ++index) {
         g_submenu_panel_buttons[index]->SetPosition(g_submenu_panel_button_positions[index].x,
                                                     g_submenu_panel_button_positions[index].y);
@@ -346,8 +344,8 @@ unsigned char CreateOptionsDiskButton(void)
     if (g_options_disk_button == 0) {
         return 0;
     }
-    g_options_disk_button->Configure(g_options_disk_path, 3, 0, 1, 2, 2,
-                                            MainGameOptionsDiskButton, 0, 0, 0x7f, 0x41, 0, 0);
+    g_options_disk_button->Configure(g_options_disk_path, 3, 0, 1, 2, 2, MainGameOptionsDiskButton,
+                                     0, false, 0x7f, 0x41, 0, 0);
     g_options_disk_button->SetPosition(g_options_disk_position.x, g_options_disk_position.y);
     g_options_disk_button->m_owner = 0;
     return 1;
@@ -385,7 +383,7 @@ void UpdateCombatStanceButtons(void)
     if (!gXStatus.fCombatMode) {
         for (button = g_combat_stance_buttons; button < &g_combat_stance_buttons[5];
              ++button) {
-            (*button)->SetVisible(0);
+            (*button)->SetVisible(false);
         }
         return;
     }
@@ -469,20 +467,20 @@ unsigned char CreateCombatStanceButtons(void)
         }
     }
     g_combat_stance_buttons[0]->Configure(g_attack_confirm_path, 3, 0, 1, 2, 2,
-                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x4f,
-                                                 MainGameCombatStanceSecondary, 0);
+                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x4f,
+                                          MainGameCombatStanceSecondary, 0);
     g_combat_stance_buttons[1]->Configure(g_combat_stop_path, 3, 0, 1, 2, 2,
-                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x50,
-                                                 MainGameCombatStanceSecondary, 0);
+                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x50,
+                                          MainGameCombatStanceSecondary, 0);
     g_combat_stance_buttons[2]->Configure(g_cont_start_path, 3, 0, 1, 2, 2,
-                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x4f,
-                                                 MainGameCombatStanceSecondary, 0);
+                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x4f,
+                                          MainGameCombatStanceSecondary, 0);
     g_combat_stance_buttons[3]->Configure(g_cont_toggle_path, 3, 0, 1, 2, 2,
-                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x51,
-                                                 MainGameCombatStanceSecondary, 0);
+                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x51,
+                                          MainGameCombatStanceSecondary, 0);
     g_combat_stance_buttons[4]->Configure(g_cont_pending_path, 3, 0, 1, 2, 2,
-                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x50,
-                                                 MainGameCombatStanceSecondary, 0);
+                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x50,
+                                          MainGameCombatStanceSecondary, 0);
     for (index = 0; index < 5; ++index) {
         g_combat_stance_buttons[index]->SetPosition(g_combat_stance_positions[index].x,
                                                     g_combat_stance_positions[index].y);
@@ -494,21 +492,21 @@ unsigned char CreateCombatStanceButtons(void)
 // FUNCTION: WIZ8 0x00598270
 static void MainGameRoofButton0(W8DialogButton* button)
 {
-    ApplyMainGameModeFlag(W8_MAIN_UI_MODE_PORTRAITS, 1);
+    ApplyMainGameModeFlag(W8_MAIN_UI_MODE_PORTRAITS, true);
     RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x00598290
 static void MainGameRoofButton1(W8DialogButton* button)
 {
-    ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
+    ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, true);
     RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x005982B0
 static void MainGameRoofButton2(W8DialogButton* button)
 {
-    ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
+    ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, true);
     RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_LAYOUT);
 }
 
@@ -529,18 +527,18 @@ unsigned char CreateRoofButtons(void)
             return 0;
         }
     }
-    g_roof_buttons[0]->Configure(g_roof_buttons_path, 9, 0, 6, 3, 6, MainGameRoofButton0, 0,
-                                        1, 0x7f, 0x38, 0, 0);
-    g_roof_buttons[1]->Configure(g_roof_buttons_path, 10, 1, 7, 4, 7, MainGameRoofButton1, 0,
-                                        1, 0x7f, 0x39, 0, 0);
-    g_roof_buttons[2]->Configure(g_roof_buttons_path, 0xb, 2, 8, 5, 8, MainGameRoofButton2,
-                                        0, 1, 0x7f, 0x3a, 0, 0);
+    g_roof_buttons[0]->Configure(g_roof_buttons_path, 9, 0, 6, 3, 6, MainGameRoofButton0, 0, true,
+                                 0x7f, 0x38, 0, 0);
+    g_roof_buttons[1]->Configure(g_roof_buttons_path, 10, 1, 7, 4, 7, MainGameRoofButton1, 0, true,
+                                 0x7f, 0x39, 0, 0);
+    g_roof_buttons[2]->Configure(g_roof_buttons_path, 0xb, 2, 8, 5, 8, MainGameRoofButton2, 0, true,
+                                 0x7f, 0x3a, 0, 0);
     if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-        g_roof_buttons[0]->SetPressed(1);
+        g_roof_buttons[0]->SetPressed(true);
     } else if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
-        g_roof_buttons[1]->SetPressed(1);
+        g_roof_buttons[1]->SetPressed(true);
     } else if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
-        g_roof_buttons[2]->SetPressed(1);
+        g_roof_buttons[2]->SetPressed(true);
     }
     for (index = 0; index < 3; ++index) {
         g_roof_buttons[index]->SetPosition(g_roof_button_positions[index].x,
@@ -581,10 +579,10 @@ void UpdateRoofButtons(void)
     }
     g_roof_buttons[2]->SetVisible(visible);
     if (!gXStatus.fNpcDialogueMode && !gXStatus.fCampMode) {
-        g_roof_buttons[0]->SetEnabled(1);
+        g_roof_buttons[0]->SetEnabled(true);
         enabled = 1;
     } else {
-        g_roof_buttons[0]->SetEnabled(0);
+        g_roof_buttons[0]->SetEnabled(false);
         enabled = 0;
     }
     g_roof_buttons[1]->SetEnabled(enabled);
@@ -601,33 +599,33 @@ void SyncRoofButtonPressedState(void)
 {
     if (g_settings.main_ui_mode == 0) {
         if (g_roof_buttons[0]->IsPressed() == 0) {
-            g_roof_buttons[0]->SetPressed(1);
+            g_roof_buttons[0]->SetPressed(true);
         }
         if (g_roof_buttons[1]->IsPressed() != 0) {
-            g_roof_buttons[1]->SetPressed(0);
+            g_roof_buttons[1]->SetPressed(false);
         }
         if (g_roof_buttons[2]->IsPressed() != 0) {
-            g_roof_buttons[2]->SetPressed(0);
+            g_roof_buttons[2]->SetPressed(false);
         }
     } else if (g_settings.main_ui_mode == 1) {
         if (g_roof_buttons[1]->IsPressed() == 0) {
-            g_roof_buttons[1]->SetPressed(1);
+            g_roof_buttons[1]->SetPressed(true);
         }
         if (g_roof_buttons[0]->IsPressed() != 0) {
-            g_roof_buttons[0]->SetPressed(0);
+            g_roof_buttons[0]->SetPressed(false);
         }
         if (g_roof_buttons[2]->IsPressed() != 0) {
-            g_roof_buttons[2]->SetPressed(0);
+            g_roof_buttons[2]->SetPressed(false);
         }
     } else if (g_settings.main_ui_mode == 2) {
         if (g_roof_buttons[2]->IsPressed() == 0) {
-            g_roof_buttons[2]->SetPressed(1);
+            g_roof_buttons[2]->SetPressed(true);
         }
         if (g_roof_buttons[0]->IsPressed() != 0) {
-            g_roof_buttons[0]->SetPressed(0);
+            g_roof_buttons[0]->SetPressed(false);
         }
         if (g_roof_buttons[1]->IsPressed() != 0) {
-            g_roof_buttons[1]->SetPressed(0);
+            g_roof_buttons[1]->SetPressed(false);
         }
     }
 }
@@ -637,21 +635,21 @@ static void MainGameLayoutRadarButton(W8DialogButton* button)
 {
     if (g_level_block->radar_map_visible != 0) {
         if (!g_level_block->formation_board_visible && g_level_block->action_panel_visible == 0) {
-            ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
+            ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, true);
             return;
         }
         g_settings.formation_radar_map_preference = 0;
-        SetRadarMapVisible(0);
+        SetRadarMapVisible(false);
         return;
     }
     g_settings.formation_radar_map_preference = 1;
     if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
         g_settings.formation_action_panel_preference = 0;
         g_settings.formation_board_preference = 0;
-        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, true);
         return;
     }
-    SetRadarMapVisible(1);
+    SetRadarMapVisible(true);
 }
 
 // FUNCTION: WIZ8 0x005986E0
@@ -660,32 +658,32 @@ static void MainGameLayoutActionPanelButton(W8DialogButton* button)
     if (g_level_block->action_panel_visible != 0) {
         if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
             if (g_level_block->radar_map_visible == 0 && !g_level_block->formation_board_visible) {
-                ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
+                ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, true);
             }
             g_settings.formation_action_panel_preference = 0;
-            SetActionPanelVisible(0);
+            SetActionPanelVisible(false);
             return;
         }
         if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
             g_settings.portraits_action_panel_preference = 0;
         }
-        SetActionPanelVisible(0);
+        SetActionPanelVisible(false);
         return;
     }
     if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
         g_settings.formation_radar_map_preference = 0;
         g_settings.formation_action_panel_preference = 1;
         g_settings.formation_board_preference = 0;
-        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, true);
         return;
     }
     if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
         g_settings.portraits_action_panel_preference = 1;
-        SetActionPanelVisible(1);
+        SetActionPanelVisible(true);
         return;
     }
     g_settings.formation_action_panel_preference = 1;
-    SetActionPanelVisible(1);
+    SetActionPanelVisible(true);
 }
 
 // FUNCTION: WIZ8 0x005987A0
@@ -693,21 +691,21 @@ static void MainGameLayoutFormationButton(W8DialogButton* button)
 {
     if (g_level_block->formation_board_visible) {
         if (g_level_block->radar_map_visible == 0 && g_level_block->action_panel_visible == 0) {
-            ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
+            ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, true);
             return;
         }
         g_settings.formation_board_preference = 0;
-        SetFormationBoardVisible(0);
+        SetFormationBoardVisible(false);
         return;
     }
     g_settings.formation_board_preference = 1;
     if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
         g_settings.formation_radar_map_preference = 0;
         g_settings.formation_action_panel_preference = 0;
-        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, true);
         return;
     }
-    SetFormationBoardVisible(1);
+    SetFormationBoardVisible(true);
 }
 
 /* Draw the left layout-arrow strip, mark each arrow dirty, then raise/lower
@@ -729,49 +727,49 @@ void RedrawLayoutArrowButtons(void)
         gXStatus.fLockInteractMode || gXStatus.fTrapInteractMode) {
         for (button = g_layout_arrow_buttons; button < &g_layout_arrow_buttons[6];
              ++button) {
-            (*button)->SetVisible(0);
+            (*button)->SetVisible(false);
         }
         return;
     }
 
     enabled = g_settings.main_ui_mode != 0;
     if (enabled) {
-        g_layout_arrow_buttons[0]->SetEnabled(1);
+        g_layout_arrow_buttons[0]->SetEnabled(true);
     } else {
-        g_layout_arrow_buttons[0]->SetEnabled(0);
+        g_layout_arrow_buttons[0]->SetEnabled(false);
     }
     g_layout_arrow_buttons[2]->SetEnabled(enabled);
 
     if (g_level_block->radar_map_visible == 0) {
-        g_layout_arrow_buttons[3]->SetVisible(1);
-        g_layout_arrow_buttons[0]->SetVisible(0);
+        g_layout_arrow_buttons[3]->SetVisible(true);
+        g_layout_arrow_buttons[0]->SetVisible(false);
         draw_button = g_layout_arrow_buttons[3];
     } else {
-        g_layout_arrow_buttons[0]->SetVisible(1);
-        g_layout_arrow_buttons[3]->SetVisible(0);
+        g_layout_arrow_buttons[0]->SetVisible(true);
+        g_layout_arrow_buttons[3]->SetVisible(false);
         draw_button = g_layout_arrow_buttons[0];
     }
     draw_button->Draw();
 
     if (g_level_block->action_panel_visible == 0) {
-        g_layout_arrow_buttons[4]->SetVisible(1);
-        g_layout_arrow_buttons[1]->SetVisible(0);
+        g_layout_arrow_buttons[4]->SetVisible(true);
+        g_layout_arrow_buttons[1]->SetVisible(false);
         draw_button = g_layout_arrow_buttons[4];
     } else {
-        g_layout_arrow_buttons[1]->SetVisible(1);
-        g_layout_arrow_buttons[4]->SetVisible(0);
+        g_layout_arrow_buttons[1]->SetVisible(true);
+        g_layout_arrow_buttons[4]->SetVisible(false);
         draw_button = g_layout_arrow_buttons[1];
     }
     draw_button->Draw();
 
     if (g_level_block->formation_board_visible) {
-        g_layout_arrow_buttons[2]->SetVisible(1);
-        g_layout_arrow_buttons[5]->SetVisible(0);
+        g_layout_arrow_buttons[2]->SetVisible(true);
+        g_layout_arrow_buttons[5]->SetVisible(false);
         g_layout_arrow_buttons[2]->Draw();
         return;
     }
-    g_layout_arrow_buttons[5]->SetVisible(1);
-    g_layout_arrow_buttons[2]->SetVisible(0);
+    g_layout_arrow_buttons[5]->SetVisible(true);
+    g_layout_arrow_buttons[2]->SetVisible(false);
     g_layout_arrow_buttons[5]->Draw();
 }
 
@@ -793,21 +791,19 @@ unsigned char CreateLayoutArrowButtons(void)
         }
     }
     g_layout_arrow_buttons[0]->Configure(g_layout_arrows_path, 6, 0, 1, -1, 2,
-                                                MainGameLayoutRadarButton, 0, 0, 0x7f, 0x3e, 0, 0);
+                                         MainGameLayoutRadarButton, 0, false, 0x7f, 0x3e, 0, 0);
     g_layout_arrow_buttons[1]->Configure(g_layout_arrows_path, 0xe, 8, 9, -1, 10,
-                                                MainGameLayoutActionPanelButton, 0, 0, 0x7f, 0x3f,
-                                                0, 0);
+                                         MainGameLayoutActionPanelButton, 0, false, 0x7f, 0x3f, 0,
+                                         0);
     g_layout_arrow_buttons[2]->Configure(g_layout_arrows_path, 0x16, 0x10, 0x11, -1, 0x12,
-                                                MainGameLayoutFormationButton, 0, 0, 0x7f, 0x40, 0,
-                                                0);
+                                         MainGameLayoutFormationButton, 0, false, 0x7f, 0x40, 0, 0);
     g_layout_arrow_buttons[3]->Configure(g_layout_arrows_path, 7, 3, 4, -1, 5,
-                                                MainGameLayoutRadarButton, 0, 0, 0x7f, 0x3b, 0, 0);
+                                         MainGameLayoutRadarButton, 0, false, 0x7f, 0x3b, 0, 0);
     g_layout_arrow_buttons[4]->Configure(g_layout_arrows_path, 0xf, 0xb, 0xc, -1, 0xd,
-                                                MainGameLayoutActionPanelButton, 0, 0, 0x7f, 0x3c,
-                                                0, 0);
+                                         MainGameLayoutActionPanelButton, 0, false, 0x7f, 0x3c, 0,
+                                         0);
     g_layout_arrow_buttons[5]->Configure(g_layout_arrows_path, 0x17, 0x13, 0x14, -1, 0x15,
-                                                MainGameLayoutFormationButton, 0, 0, 0x7f, 0x3d, 0,
-                                                0);
+                                         MainGameLayoutFormationButton, 0, false, 0x7f, 0x3d, 0, 0);
     for (index = 0; index < 6; ++index) {
         g_layout_arrow_buttons[index]->SetPosition(g_layout_arrow_positions[index].x,
                                                    g_layout_arrow_positions[index].y);
@@ -985,14 +981,14 @@ unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region)
         }
         if (g_level_block->combat_end_notification == 3 &&
             g_submenu_entries[region->callback_id] == 2) {
-            SetRegionHelpForceEnabled(1);
+            SetRegionHelpForceEnabled(true);
             slot = g_status.selected_character;
             if (!CanPartySlotUseRecordedItem(slot)) {
                 SetRegionHelpText(gppStringList[0x5d]);
             } else {
                 party_row = &g_status.buffers.XChar[slot];
                 item = FindCharacterItemAt(slot, party_row->item_origin, party_row->item_slot);
-                name = FormatItemDisplayName(item, 0);
+                name = FormatItemDisplayName(item, false);
                 SetRegionHelpText(FormatWideString(g_format_s_colon_s, gppStringList[0x5d], name));
             }
         }
@@ -1092,7 +1088,7 @@ void DrawSubMenuCharacterAction(void)
                          g_status.buffers.Char[row->target_in_combat.iChar].name);
             } else if (row->target_in_combat.iType == W8_TARGET_KIND_MONSTER) {
                 monster_index = MonsterGetIndexByLocationID(0x7ed, MGSBUTTONS_CPP,
-                                                            row->target_in_combat.iMonsterID, 1);
+                                                            row->target_in_combat.iMonsterID, true);
                 monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                 name = GetMonsterName(monster_info, 0, 0);
                 swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids[5]],
@@ -1133,16 +1129,16 @@ void UpdateSubMenuPanelButtons(void)
     if (!gXStatus.fSurprisePossible && !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode &&
         !gXStatus.fNpcDialogueMode && !gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode &&
         g_level_block->combat_end_notification == -1 && AnyCharacterEngaged()) {
-        g_submenu_panel_buttons[1]->SetEnabled(1);
+        g_submenu_panel_buttons[1]->SetEnabled(true);
         if (!gXStatus.fReviewCharacterMode) {
             if (g_submenu_panel_buttons[1]->IsPressed() != 0) {
-                g_submenu_panel_buttons[1]->SetPressed(0);
+                g_submenu_panel_buttons[1]->SetPressed(false);
             }
         } else if (g_submenu_panel_buttons[1]->IsPressed() == 0) {
-            g_submenu_panel_buttons[1]->SetPressed(1);
+            g_submenu_panel_buttons[1]->SetPressed(true);
         }
     } else {
-        g_submenu_panel_buttons[1]->SetEnabled(0);
+        g_submenu_panel_buttons[1]->SetEnabled(false);
     }
 
     for (button = g_submenu_panel_buttons; button < &g_submenu_panel_buttons[2];
@@ -1159,12 +1155,12 @@ static void UpdateSubMenuScrollButtons()
         !gXStatus.fCampMode) {
         for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
              ++button) {
-            (*button)->SetEnabled(1);
+            (*button)->SetEnabled(true);
         }
     } else {
         for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
              ++button) {
-            (*button)->SetEnabled(0);
+            (*button)->SetEnabled(false);
         }
     }
     for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
@@ -1552,7 +1548,7 @@ unsigned char BuildSubMenuPanel(short notification)
         }
         AssignSubMenuCallback(g_submenu_rows[index], menu, entry);
         g_submenu_rows[index]->m_secondaryActivationCallback = DestroySubMenuControls;
-        SetRegionHelp(index + 0xc2, 1, g_submenu_entry_help_ids[menu * 5 + entry]);
+        SetRegionHelp(index + 0xc2, true, g_submenu_entry_help_ids[menu * 5 + entry]);
     }
     g_submenu_rows[built - 1] =
         new W8TextControl(gpSubMenuPanel, built + 0xc1, built * 19 - 14, 5, built * 19 - 2, 0x17,
@@ -1563,9 +1559,9 @@ unsigned char BuildSubMenuPanel(short notification)
     }
     g_submenu_rows[built - 1]->m_primaryActivationCallback = DestroySubMenuControls;
     g_submenu_rows[built - 1]->m_secondaryActivationCallback = DestroySubMenuControls;
-    SetRegionHelp(built + 0xc1, 1, 0x11);
+    SetRegionHelp(built + 0xc1, true, 0x11);
     RegionSetEnable(0x27);
-    gpSubMenuPanel->SetEnabled(1);
+    gpSubMenuPanel->SetEnabled(true);
     g_level_block->combat_end_notification = notification;
     g_submenu_menu = menu;
     g_submenu_entry_count = built;

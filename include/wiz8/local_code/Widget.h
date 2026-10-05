@@ -26,7 +26,7 @@ public:
 
     void SetPanel(Controls* panel);
     void SetRegion(unsigned int region);
-    void Invalidate(unsigned char immediate);
+    void Invalidate(bool immediate);
     void SetActive(bool active);
     void EnableRegionHelp(int help_text_id);
     void DisableRegionHelp();

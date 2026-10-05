@@ -139,7 +139,7 @@ W8CampStatsRange::W8CampStatsRange()
 {
     m_range = new W8RangeControl(0x264, 0xbe, 0x276, 0x1b5, &g_camp_stats_range_region_set);
     m_range->m_listener = this;
-    m_range->SetEnabled(1);
+    m_range->SetEnabled(true);
 }
 
 // FUNCTION: WIZ8 0x005c44c0
@@ -184,12 +184,12 @@ W8CampStatsControls::W8CampStatsControls()
     m_buttons[2]->m_listener = this;
     m_buttons[2]->EnableRegionHelp(0x956);
     if (g_camp_screen->effect_items_only) {
-        m_buttons[2]->EnableSecondaryState(0);
+        m_buttons[2]->EnableSecondaryState(false);
     }
     unsigned int region = AddRegionToSet(g_camp_stats_controls_region_set);
     SetRegionCallback(region, CampStatsMouseWheel, 0);
     SetRegionBounds(region, 0x15d, 0xbe, 0x260, 0x1b5);
-    Controls::SetEnabled(1);
+    Controls::SetEnabled(true);
 }
 
 // FUNCTION: WIZ8 0x005c47a0
@@ -204,7 +204,7 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
     if (control == m_buttons[0]) {
         if (static_cast<unsigned char>(m_buttons[0]->m_stateFlags &
                                        g_W8TextControlStateSecondary)) {
-            m_buttons[1]->DisableSecondaryState(0);
+            m_buttons[1]->DisableSecondaryState(false);
             g_camp_screen->effect_filter = 1;
         } else {
             g_camp_screen->effect_filter = 0;
@@ -212,7 +212,7 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
     } else if (control == m_buttons[1]) {
         if (static_cast<unsigned char>(m_buttons[1]->m_stateFlags &
                                        g_W8TextControlStateSecondary)) {
-            m_buttons[0]->DisableSecondaryState(0);
+            m_buttons[0]->DisableSecondaryState(false);
             g_camp_screen->effect_filter = 2;
         } else {
             g_camp_screen->effect_filter = 0;
@@ -550,9 +550,9 @@ void FilterCampEffectList(void)
     W8RangeControl* range = screen->stats_range->m_range;
     if (second < 1) {
         second = 0;
-        range->SetRangeEnabled(0);
+        range->SetRangeEnabled(false);
     } else {
-        range->SetRangeEnabled(1);
+        range->SetRangeEnabled(true);
         range->SetRange(0, second);
     }
     if (screen->effect_scroll > second) {
@@ -748,7 +748,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
 // FUNCTION: WIZ8 0x005c5c60
 static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (event->usEvent != 0x800) {
         return 0;
     }
@@ -776,7 +776,7 @@ void CreateCampSkillRegions(void)
             unsigned int region = AddRegionToSet(g_camp_skill_regions);
             SetRegionCallback(region, CampSkillListRegionHandler,
                               static_cast<unsigned short>(category));
-            SetRegionHelp(region, 1, -1);
+            SetRegionHelp(region, true, -1);
             int x = g_camp_skill_category_positions[category].x;
             int y = g_camp_skill_category_positions[category].y;
             if (category == 4) {
@@ -953,7 +953,7 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
             ++occurrence;
         }
     }
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (event->usEvent == RIGHT_BUTTON_DOWN) {
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
     } else if (event->usEvent != RIGHT_BUTTON_UP) {
@@ -963,7 +963,7 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0 || row != g_camp_skill_hover_row) {
             wchar_t* text = skill == -1 ? 0 : gppStringList[0x958];
             SetRegionHelpText(text);
-            ResetRegionHelp(1);
+            ResetRegionHelp(true);
             g_camp_skill_hover_row = row;
         }
         return 0;
@@ -1053,7 +1053,7 @@ void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
 // FUNCTION: WIZ8 0x005c6820
 void W8CharacterPersonalityPage::Activate()
 {
-    EnableRegionSet(1);
+    EnableRegionSet(true);
     m_prepared = 1;
     InitTextInputModeWithScheme(1);
     AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xab, 0x106, 0x10, 0x7f,
@@ -1071,7 +1071,7 @@ void W8CharacterPersonalityPage::Activate()
 // FUNCTION: WIZ8 0x005c68f0
 void W8CharacterPersonalityPage::Deactivate()
 {
-    EnableRegionSet(0);
+    EnableRegionSet(false);
     RemoveTextInputField(1);
     RemoveTextInputField(0);
     KillTextInputMode();
@@ -1184,25 +1184,25 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.right = m_bounds.left + 100;
         bounds.top = m_bounds.top + 0x19;
         bounds.bottom = m_bounds.top + 0x31;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xee], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.top = m_bounds.top + 0x67;
         bounds.bottom = m_bounds.top + 0x7f;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xf0], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.left = m_bounds.left + 0x160;
         bounds.right = m_bounds.left + 0x198;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xf1], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.top = m_bounds.top + 0x19;
         bounds.bottom = m_bounds.top + 0x31;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xef], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
@@ -1210,13 +1210,13 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.right = m_bounds.left + 0x92;
         bounds.top = m_bounds.top + 0xaa;
         bounds.bottom = m_bounds.top + 0xbc;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0x84], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.top = m_bounds.top + 0xc6;
         bounds.bottom = m_bounds.top + 0xd8;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0x85], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
@@ -1224,7 +1224,7 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.top = m_bounds.top + 0xee;
         bounds.right = m_bounds.left + 0x1a8;
         bounds.bottom = m_bounds.top + 0xfa;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0x86], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
@@ -1235,7 +1235,7 @@ void W8CharacterPersonalityPage::Redraw()
             bounds.right = bounds.left + 0x80;
             bounds.top = m_bounds.top + 0x106 + (index / 3) * 0xe;
             bounds.bottom = bounds.top + 0xe;
-            text.SetLayoutBounds(&bounds, 1, 1);
+            text.SetLayoutBounds(&bounds, true, true);
             text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft);
             text.SetText(gppStringList[*message_id], g_wiz_text_font_secondary);
             text.RenderToTarget(0, 1, -14);
@@ -1246,13 +1246,13 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.left = m_bounds.left + 0x29;
         bounds.right = m_bounds.left + 0x69;
         text.SetLayoutMode(g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop);
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0x8d], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
         bounds.top = m_bounds.top + 0x15c;
         bounds.bottom = m_bounds.top + 0x16a;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0x8e], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
@@ -1277,7 +1277,7 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.bottom = m_bounds.top + 0x16a;
         bounds.left = m_bounds.left + 0x70;
         bounds.right = m_bounds.left + 0x150;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(element.GetQuoteText(), g_wiz_text_font_secondary);
         text.FillBounds(0x8000);
         text.RenderToTarget(0, 1, -14);
@@ -1287,7 +1287,7 @@ void W8CharacterPersonalityPage::Redraw()
     if (m_prepared) {
         W8TextBuffer text;
         W8ControlsRect bounds = {9, 0xec, 0xbd, 0x184};
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xe9], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         m_prepared = 0;
@@ -1375,7 +1375,7 @@ void W8CharacterSkillsPage::SetCharacter(W8Character* character,
         int category = g_skill_attributes[skill].category;
         W8CharacterPageEntry* entry = new W8CharacterPageEntry(
             this, g_character_page2_category_geometry[category].x,
-            g_character_page2_category_geometry[category].y + category_count[category] * 0xe, 1);
+            g_character_page2_category_geometry[category].y + category_count[category] * 0xe, true);
         AddEntry(entry);
         entry->m_listener = this;
         ++category_count[category];
@@ -1386,7 +1386,7 @@ void W8CharacterSkillsPage::SetCharacter(W8Character* character,
 // FUNCTION: WIZ8 0x005c76a0
 void W8CharacterSkillsPage::Activate()
 {
-    EnableRegionSet(1);
+    EnableRegionSet(true);
     Refresh();
     m_dirty = 1;
     m_prepared = 1;
@@ -1394,7 +1394,7 @@ void W8CharacterSkillsPage::Activate()
 
 void W8CharacterSkillsPage::Deactivate()
 {
-    EnableRegionSet(0);
+    EnableRegionSet(false);
 }
 
 // FUNCTION: WIZ8 0x005c76c0
@@ -1467,18 +1467,18 @@ void W8CharacterSkillsPage::Redraw()
     if (m_prepared) {
         W8TextBuffer text;
         W8ControlsRect bounds = {4, 0xec, 0xc2, 0x162};
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xe8], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top = 0x162;
         bounds.right = 0x8f;
         bounds.bottom = 0x179;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xe3], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top = 0x184;
         bounds.bottom = 0x19b;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xe4], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.left = 0x8f;
@@ -1486,7 +1486,7 @@ void W8CharacterSkillsPage::Redraw()
         bounds.right = 0xbf;
         bounds.bottom = 0x179;
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x162, 2, 0);
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(FormatWideString(g_format_d, m_creation_state->skill_step_limit),
                      g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
@@ -1497,7 +1497,7 @@ void W8CharacterSkillsPage::Redraw()
         W8TextBuffer text;
         W8ControlsRect bounds = {0x8f, 0x184, 0xbf, 0x19b};
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x184, 2, 0);
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(FormatWideString(g_format_d_slash_d,
                                       m_creation_state->skill_points_remaining,
                                       m_creation_state->skill_points_total),
@@ -1512,7 +1512,7 @@ void W8CharacterSkillsPage::UpdateEntries()
 {
     int index;
     for (index = 0; index < 0x29; ++index) {
-        m_entries.data[index]->SetEnabled(0);
+        m_entries.data[index]->SetEnabled(false);
     }
 
     int category_count[5] = {0, 0, 0, 0, 0};

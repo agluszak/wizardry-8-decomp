@@ -99,7 +99,7 @@ int W8SpellInfoDialog::CreateControls()
     m_scroll_bar.m_owner = this;
 
     m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                           DialogCloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
+                       DialogCloseButtonCallback, 0, false, 0x7f, -1, 0, 0);
     m_button.SetPosition(m_x + 0x11a, m_y + 0x104);
     m_button.m_owner = this;
     return 0;
@@ -131,7 +131,7 @@ void W8SpellInfoDialog::Draw()
         DrawLabels();
     }
     m_text_area.Draw(0);
-    m_scroll_bar.Draw(0);
+    m_scroll_bar.Draw(false);
     m_button.Draw();
     steps = static_cast<int>(m_timer.GetProgress());
     if (steps > 0) {
@@ -189,7 +189,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
                              gppStringList[g_spell_usage_name_ids[record->usable_when]], 10, 0xf,
                              0);
 
-    target_type = GetSpellTargetType(m_spell, 0);
+    target_type = GetSpellTargetType(m_spell, false);
     m_text_area.AddEntry(
         gppStringList[0x11e],
         FormatWideString(g_format_s_space_s,

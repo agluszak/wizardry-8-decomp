@@ -56,7 +56,7 @@ void EnsureTrynnie1KilledVar(void)
                              0x12, 0);
             }
             vPos2 = vPos;
-            group = CreateGroup(0xcd, 1, &vPos2, 1, 0, 1);
+            group = CreateGroup(0xcd, 1, &vPos2, true, false, true);
             if (group == 0) {
                 srAssertFail("CreateGroup(205, 1, vPos2, TRUE, FALSE, TRUE)", TRYNNIE1_CPP, 0x18,
                              0);

@@ -11,6 +11,16 @@
 struct W8Character;
 struct W8CombatSlot;
 
+/* The UI orders Other before Accessory, and places the two non-group filters last. */
+enum W8CampItemFilterButton {
+    W8_CAMP_ITEM_FILTER_BUTTON_HAND = 0,
+    W8_CAMP_ITEM_FILTER_BUTTON_BODY = 1,
+    W8_CAMP_ITEM_FILTER_BUTTON_OTHER = 2,
+    W8_CAMP_ITEM_FILTER_BUTTON_ACCESSORY = 3,
+    W8_CAMP_ITEM_FILTER_BUTTON_USABLE = 4,
+    W8_CAMP_ITEM_FILTER_BUTTON_UNIDENTIFIED = 5
+};
+
 /* The caster slot the use-item-on-character path aims from. */
 extern int giCasterCharSlot;
 
@@ -59,7 +69,7 @@ void ToggleCampAccessoryItemFilter(void);
 void ToggleCampUsabilityFilter(void);
 void ToggleCampUnidentifiedItemFilter(void);
 void SortCampItemPool(void);
-void ToggleCampItemFilter(int tab);
+void ToggleCampItemFilter(W8CampItemFilterButton tab);
 unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region);
 unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region);
 unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region);

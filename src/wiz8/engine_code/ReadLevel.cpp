@@ -138,7 +138,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
             srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures;
             if (poly_textures != 0 && mesh.active_polygons == 0) {
                 long active_count;
-                unsigned long* active = model->GetActivePolygons(&active_count, -1, 0);
+                unsigned long* active = model->GetActivePolygons(&active_count, -1, false);
                 if (active != 0) {
                     mesh.active_polygons = active;
                     mesh.active_polygon_count = active_count;
@@ -421,9 +421,9 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
     pWorld->environment_range_blue = environment_range.z;
 
     if (fog_enabled == 0) {
-        SetFogEnabled(0);
+        SetFogEnabled(false);
     } else {
-        SetFogEnabled(1);
+        SetFogEnabled(true);
         UpdateEnvironmentLight();
     }
     return success;
@@ -608,7 +608,7 @@ unsigned char ReadWorldItems(W8ReadLevelInfo* pInfo, W8World* pWorld)
                 item_id = FindItemRecordByName(record.item_name);
             }
             if (item_id >= 0) {
-                world_item = SpawnItem(item_id, &record.position, 3, 1);
+                world_item = SpawnItem(item_id, &record.position, 3, true);
                 if (world_item != 0) {
                     success = 1;
                     ActivateItem(world_item);
@@ -674,12 +674,12 @@ unsigned char ReadMonsterPaths(W8ReadLevelInfo* pInfo, W8World* pWorld)
         }
 
         monster_id = atoi(monster_name);
-        group = CreateGroup(monster_id, 1, &origin, 1, 0, 1);
+        group = CreateGroup(monster_id, 1, &origin, true, false, true);
         if (group == 0) {
             continue;
         }
         location_id = IListGetAt(group->monsters, 0);
-        monster_index = MonsterGetIndexByLocationID(0x315, READ_LEVEL_CPP, location_id, 1);
+        monster_index = MonsterGetIndexByLocationID(0x315, READ_LEVEL_CPP, location_id, true);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         ActivateMonster(monster_info, 0);
         monster = monster_info->p3D;
@@ -1039,7 +1039,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char*
     GetTickCount();
 
     if (world->psrMeshes == 0 || world->octree == 0) {
-        if (!ReadSingleLevelMesh(&info, &level_mesh, 0, 0, 0, 1)) {
+        if (!ReadSingleLevelMesh(&info, &level_mesh, 0, 0, 0, true)) {
             return 0;
         }
         if (level_mesh == 0) {
@@ -1074,9 +1074,9 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char*
         success = 0;
     }
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after missiles.");
-    success = success && ReadWorldProps(&info, world, 0);
+    success = success && ReadWorldProps(&info, world, false);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after props.");
-    success = success && ReadWorldProps(&info, world, 1);
+    success = success && ReadWorldProps(&info, world, true);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after bitmaps.");
     success = success && ReadWorldCameras(&info, world);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after cameras.");
@@ -1162,7 +1162,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char*
 
                 for (; mesh != 0; mesh = mesh->next) {
                     if (!AnimationIsRunning(animation)) {
-                        mesh->GetVertexSunlight(1);
+                        mesh->GetVertexSunlight(true);
                         SetModelInstanceChainExclusionMask(instance, 5);
                     } else if (AnimationIsRunning(animation) == 1) {
                         SetModelInstanceChainExclusionMask(instance, 4);

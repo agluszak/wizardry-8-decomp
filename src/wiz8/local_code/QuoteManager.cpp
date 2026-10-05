@@ -602,7 +602,7 @@ void W8CharacterEvent::Complete()
             sound_end_handled = 1;
             SoundStop(slot->voice_sound_handle);
         }
-        SetPartyPortraitEventState(party_slot, 0, -1, 0, 1);
+        SetPartyPortraitEventState(party_slot, false, -1, 0, 1);
     }
     if (event_type == 23 || event_type == 24) {
         if ((flags & W8_EVENT_NPC_SCRIPT) == 0) {
@@ -782,7 +782,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
 void W8CharacterEventQueue::RecordDispatchedEvent(unsigned int event_type, unsigned int party_slot)
 {
     if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
-        SetEventCharacterMask(event_type, party_slot, 1);
+        SetEventCharacterMask(event_type, party_slot, true);
     }
     if (event_type != 10) {
         active_event_type = event_type;
@@ -866,14 +866,14 @@ unsigned char W8CharacterEvent::Dispatch()
         if (PlayEventSound() != 0) {
             gXStatus.character_event_queue->RecordDispatchedEvent(event_type, party_slot);
             if (event_type < 0x92) {
-                SetPartyPortraitEventState(party_slot, 1, event_type, g_character_text,
+                SetPartyPortraitEventState(party_slot, true, event_type, g_character_text,
                                            1 - ((flags & g_character_event_flags_mask) != 0));
                 slot->active_character_event = this;
                 row->pending_event_type = event_type;
                 slot->pending_event_type = event_type;
                 return 1;
             }
-            SetPartyPortraitEventState(party_slot, 1, event_type, 0, 1);
+            SetPartyPortraitEventState(party_slot, true, event_type, 0, 1);
             slot->pending_event_type = event_type;
             return 1;
         }
@@ -932,7 +932,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
             const wchar_t* character_name = g_status.buffers.Char[party_slot].name;
             swprintf(formatted, L"%s", character_name);
             int scroll_range = GetTextBoxScrollRange();
-            ShowNotice(1, formatted, 3, scroll_range, 0);
+            ShowNotice(1, formatted, 3, scroll_range, false);
             const wchar_t* suffix = GetPortraitQuoteText(quote->quote_handle);
             ShowNotice(0xf, suffix);
         } else {
@@ -1169,7 +1169,7 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
             }
         }
     }
-    if ((ShouldDeferCharacterEventForNpcScript(0) || IsNpcScriptSessionActive()) &&
+    if ((ShouldDeferCharacterEventForNpcScript(false) || IsNpcScriptSessionActive()) &&
         (entry->flags & W8_EVENT_NO_NPC_DEFER) == 0) {
         npc_deferred_events.Add(entry);
         return 1;
@@ -1269,7 +1269,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
         return;
     }
 
-    if (npc_deferred_events.count > 0 && !ShouldDeferCharacterEventForNpcScript(0) &&
+    if (npc_deferred_events.count > 0 && !ShouldDeferCharacterEventForNpcScript(false) &&
         !IsNpcScriptSessionActive()) {
         for (index = 0; index < npc_deferred_events.count; ++index) {
             QueueEntry(npc_deferred_events.data[index]);
@@ -1468,7 +1468,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
     }
     if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_character_event_no_flags,
                                             g_character_event_full_volume) != 0) {
-        gXStatus.character_event_queue->SetEventCharacterMask(effect, party_slot, 1);
+        gXStatus.character_event_queue->SetEventCharacterMask(effect, party_slot, true);
     }
 }
 
@@ -1564,7 +1564,7 @@ void QueueTurnReactionEvent(void)
     unsigned int index;
     unsigned int remaining;
 
-    remaining = GetRandomPartySlots(0, 0, -1, selected, 1, 0);
+    remaining = GetRandomPartySlots(0, 0, -1, selected, 1, false);
     for (index = 0; index < remaining; ++index) {
         QueueCharacterEvent(&g_status.buffers.Char[selected[index]], g_effect13, 0,
                             g_effect_argument0, g_character_event_full_volume);
@@ -1800,7 +1800,7 @@ int UpdateCharacterEventState(void)
             if (record->voice_sound_handle == SOUND_ERROR) {
                 if (record->voice_time_remaining_ms == 0) {
                     if (record->active_character_event == 0) {
-                        SetPartyPortraitEventState(party_slot, 0, -1, 0, 1);
+                        SetPartyPortraitEventState(party_slot, false, -1, 0, 1);
                     } else {
                         gXStatus.character_event_queue->CompleteActiveEvent(
                             record->active_character_event);
@@ -1938,7 +1938,7 @@ void RenderPartyPortrait(int portrait, int left, int top, int flags, unsigned ch
         return;
     }
     if (value != 0 && g_portrait_frame_flags[portrait] != 0) {
-        bool drawn = BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 1);
+        bool drawn = BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, true);
         value = !drawn;
     }
     if ((((gXStatus.fCombatMode && g_combat_state->characters[party_slot].dead) ||
@@ -2063,7 +2063,7 @@ unsigned char PartyPortraitEventRegionEvent(const InputAtom* event, W8Region* re
                     return 1;
                 }
             }
-            TryFinishNpcVoicePlayback(1);
+            TryFinishNpcVoicePlayback(true);
             return 1;
         }
         break;

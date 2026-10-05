@@ -672,7 +672,7 @@ bool Trigger::Load(int hFile, char version)
 
         FileRead(hFile, &has_world_item, sizeof(has_world_item), 0);
         if (has_world_item != 0) {
-            world_item_group = LoadItem(hFile, 0);
+            world_item_group = LoadItem(hFile, false);
         }
         FileRead(hFile, &items_generated, sizeof(items_generated), 0);
         FileRead(hFile, &item_group_seed, sizeof(item_group_seed), 0);
@@ -961,7 +961,7 @@ void W8TriggerShakeEvent::Update()
         if (intensity < g_float_one) {
             intensity = g_float_one;
         }
-        effect = CreateCameraShakeEffect(m_pCountdown->m_duration_seconds, 0, intensity, 0, 0);
+        effect = CreateCameraShakeEffect(m_pCountdown->m_duration_seconds, false, intensity, 0, 0);
         effect->flags &= ~2;
         if (reverse) {
             effect->flags |= 0x10;
@@ -1077,7 +1077,7 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
                 break;
             }
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x1246, "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", location_id, 1);
+                0x1246, "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", location_id, true);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             if (monster_info != 0 && monster_info->p3D != 0) {
                 srVector3T<float> monster_position = monster_info->p3D->GetPosition();
@@ -1124,7 +1124,7 @@ bool Trigger::PlayActionSound(const char* sound_name, int volume)
         sound_position.SetFromFloat(&position);
         sound->volume = volume;
         sound->setLocation(sound_position);
-        if (sound->Play(0, 1) != 0) {
+        if (sound->Play(false, true) != 0) {
             return 1;
         }
         sound->release();
@@ -1157,7 +1157,7 @@ void W8TriggerEvent::Update()
         }
     }
 
-    if (timer.GetProgress() <= 1.0f || trigger->HasActorWithinRadius(5000.0f, 1)) {
+    if (timer.GetProgress() <= 1.0f || trigger->HasActorWithinRadius(5000.0f, true)) {
         return;
     }
 
@@ -2518,7 +2518,7 @@ void Trigger::GenerateItemGroup()
     maximum_items = RollDice(&g_item_tables[table_id]->item_count_dice);
     GenerateItemsFromTable(&items, table_id, maximum_items);
     if (world_item_group == 0) {
-        world_item_group = SpawnItem(0x23c, &position, 0, 0);
+        world_item_group = SpawnItem(0x23c, &position, 0, false);
     }
     for (index = 0; index < items.GetCount(); ++index) {
         ItemInfoAddToGroup(world_item_group, *items.GetAt(index));
@@ -2536,7 +2536,7 @@ W8WorldItem* Trigger::GetOrCreateItemGroup(bool create)
     srVector3T<float> position;
 
     if (create && world_item_group == 0) {
-        world_item_group = SpawnItem(0x23c, &position, 0, 0);
+        world_item_group = SpawnItem(0x23c, &position, 0, false);
     }
     return world_item_group;
 }
@@ -2550,10 +2550,10 @@ void Trigger::PrintNothingHappenedOrSpecialItemRequired()
         return;
     }
     if (required_item_id != -1) {
-        ShowNotice(0xf, gppStringList[0x96b], -1, -1, 0);
+        ShowNotice(0xf, gppStringList[0x96b], -1, -1, false);
         return;
     }
-    ShowNotice(0xf, gppStringList[0x964], -1, -1, 0);
+    ShowNotice(0xf, gppStringList[0x964], -1, -1, false);
 }
 
 /* Execute the selected Trigger action. The original keeps the three trigger
@@ -3003,12 +3003,12 @@ void Trigger::Run(int source)
             if (g_status.item_in_cursor) {
                 srVector3T<float> item_position;
                 W8WorldItem* item =
-                    CreateWorldItem(&g_status.item_in_hand, &item_position, 3, 0);
+                    CreateWorldItem(&g_status.item_in_hand, &item_position, 3, false);
 
                 if (item != 0) {
                     if (world_item_group == 0) {
                         srVector3T<float> group_position;
-                        world_item_group = SpawnItem(0x23c, &group_position, 0, 0);
+                        world_item_group = SpawnItem(0x23c, &group_position, 0, false);
                     }
                     ItemInfoAddToGroup(world_item_group, item);
                 }
@@ -3045,7 +3045,7 @@ void Trigger::Run(int source)
                 }
 
                 if (gold != 0) {
-                    AddPartyGold(gold, 1);
+                    AddPartyGold(gold, true);
                     gold = 0;
                 }
 
@@ -3057,7 +3057,7 @@ void Trigger::Run(int source)
                     }
                 } else if (item_count == 2 && !g_status.item_in_cursor) {
                     item = world_item_group->next;
-                    CopyItemInstance(&g_status.item_in_hand, &item->item, 0, 1);
+                    CopyItemInstance(&g_status.item_in_hand, &item->item, 0, true);
                     ItemInfoRemoveFromGroup(world_item_group, item);
                     if (m_pProp->Rep()->subcycle != 0) {
                         goto toggle_item_prop;
@@ -3177,7 +3177,7 @@ void Trigger::Run(int source)
             if (group->monster_id == monster_id) {
                 int location_id = IListGetAt(group->monsters, 0);
                 unsigned int monster_index = MonsterGetIndexByLocationID(
-                    0x7aa, "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", location_id, 1);
+                    0x7aa, "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", location_id, true);
 
                 monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                 break;
@@ -3726,7 +3726,7 @@ bool Trigger::SelectAction()
         if (required_item_id >= 0) {
             if (GetItemInHand() == required_item_id) {
                 if ((flags & W8_TRIGGER_CONSUME_ITEM) != 0) {
-                    RemovePartyItemByID(required_item_id, 0);
+                    RemovePartyItemByID(required_item_id, false);
                     required_item_id = -1;
                 }
             } else {

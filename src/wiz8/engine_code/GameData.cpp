@@ -788,7 +788,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
             return hit;
         }
         monster_list_index = MonsterGetIndexByLocationID(
-            0x3a6, "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", objects[index], 1);
+            0x3a6, "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", objects[index], true);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (monster_info != 0 && monster_info->p3D != 0 && monster_info->p3D->active) {
             monster = monster_info->p3D;
@@ -1133,7 +1133,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
             g_environ->ground_latch = g_environ_ground_latch;
 
             if (m_iNumTriggers != 0) {
-                index = pending_trigger_bits->NextSetBit(1);
+                index = pending_trigger_bits->NextSetBit(true);
                 while (index != 0) {
                     unsigned int trigger_index = static_cast<unsigned int>(index - 1);
                     if (!active_trigger_bits->Test(trigger_index)) {
@@ -1142,7 +1142,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                         }
                         pending_trigger_bits->Clear(trigger_index);
                     }
-                    index = pending_trigger_bits->NextSetBit(0);
+                    index = pending_trigger_bits->NextSetBit(false);
                 }
             }
             return g_environment_motion_active;
@@ -1793,7 +1793,7 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
     for (short edge = 0; edge < 3; ++edge) {
         srVector3T<float> probe = *point;
         float dist = PointToSegmentDistance(&probe, vertices + vertex_indices[edge],
-                                            vertices + vertex_indices[(edge + 1) % 3], 0, 0);
+                                            vertices + vertex_indices[(edge + 1) % 3], false, 0);
         if (dist < nearest_dist) {
             nearest_edge = edge;
             nearest_dist = dist;
@@ -1808,7 +1808,7 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
                   plane.normal.z * offset + point->z);
     float edge_dist =
         PointToSegmentDistance(&projected, vertices + vertex_indices[nearest_edge],
-                               vertices + vertex_indices[(nearest_edge + 1) % 3], 0, 0);
+                               vertices + vertex_indices[(nearest_edge + 1) % 3], false, 0);
     if ((flags & 4) != 0) {
         float threshold = *limit * g_float_005ebc7c;
         if (threshold < offset) {
@@ -2510,7 +2510,7 @@ float GetCameraPitchRadians()
 // FUNCTION: WIZ8 0x00420E00
 void BeginManualCameraControl()
 {
-    g_gd_camera->SetManualControlActive(1);
+    g_gd_camera->SetManualControlActive(true);
 }
 
 /* 0x00420F40: camera yaw in whole degrees, plus an optional copy of the
@@ -2536,7 +2536,7 @@ void LevelCamera()
 // FUNCTION: WIZ8 0x00420F90
 void CameraLookAt(const srVector3T<float>* position)
 {
-    g_gd_camera->LookAt(position, 0);
+    g_gd_camera->LookAt(position, false);
 }
 
 // FUNCTION: WIZ8 0x00420FB0
@@ -2549,7 +2549,7 @@ void CameraSnapToTarget(const srVector3T<float>* target)
 void TurnCameraToDegrees(float degrees)
 {
     double scale = g_double_005ebc18 * g_float_005ebcf8;
-    g_gd_camera->BeginOrientationTransition(0.0f, static_cast<float>(scale * degrees), 0);
+    g_gd_camera->BeginOrientationTransition(0.0f, static_cast<float>(scale * degrees), false);
 }
 
 // FUNCTION: WIZ8 0x00421000
@@ -2647,7 +2647,7 @@ bool HasCameraLineOfSight(const srVector3T<float>* position)
     srVector3T<float> from;
     GetCameraPosition(&from);
     if (g_world->octree != 0) {
-        return g_world->octree->HasLineOfSight(&from, &to, 1);
+        return g_world->octree->HasLineOfSight(&from, &to, true);
     }
     return true;
 }

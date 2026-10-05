@@ -493,7 +493,7 @@ void GrantStartingSpells(W8Character* character, const W8Wiz7Character*)
     }
     i = 0;
     do {
-        LearnSpell(character, g_profession_starting_spells[character->iProfession][i], 0);
+        LearnSpell(character, g_profession_starting_spells[character->iProfession][i], false);
         --count;
         if (count == 0) {
             break;
@@ -556,12 +556,12 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                             continue;
                         }
                     }
-                    ReplaceOrCreateItem(&item, item_index, 1, 1, 1);
+                    ReplaceOrCreateItem(&item, item_index, true, true, true);
                     if (g_item_records[item_index].binds_on_equip == 0) {
                         StoreItemWithCharacterOrParty(character, &item, 0, 0,
                                                       static_cast<unsigned int>(slot == 0));
                     } else {
-                        AddItemToCharacter(character, &item, 0, 0, 0);
+                        AddItemToCharacter(character, &item, 0, 0, false);
                     }
                 }
             }
@@ -596,11 +596,11 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
             }
             if (best_index != -1) {
                 item_index = FindItemByLegacyNumber(candidates[slot][best_index].item_number);
-                ReplaceOrCreateItem(&item, item_index, 1, 1, 1);
+                ReplaceOrCreateItem(&item, item_index, true, true, true);
                 if (g_item_records[item_index].binds_on_equip == 0) {
                     StoreItemWithCharacterOrParty(character, &item, 0, 0, 1);
                 } else {
-                    AddItemToCharacter(character, &item, 0, 0, 0);
+                    AddItemToCharacter(character, &item, 0, 0, false);
                 }
                 --maximum[slot];
                 candidates[slot][best_index] = empty_item;
@@ -615,12 +615,12 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
     for (slot = 6; slot != 0; --slot) {
         item_id = *starting++;
         if (item_id != -1) {
-            ReplaceOrCreateItem(&item, item_id, 1, 1, 1);
+            ReplaceOrCreateItem(&item, item_id, true, true, true);
             equip_slot = GetItemDefaultEquipSlot(item_id);
             if (equip_slot == W8_EQUIP_SLOT_NONE) {
                 if (FindCharacterItemByDatabaseKind(
                         character, g_item_records[item_id].unidentified_name_index, 0, 2) == 0) {
-                    AddItemToCharacter(character, &item, 1, 0, 0);
+                    AddItemToCharacter(character, &item, 1, 0, false);
                 }
             } else {
                 if (equip_slot == W8_EQUIP_SLOT_PRIMARY_WEAPON &&
@@ -628,7 +628,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                     equip_slot = W8_EQUIP_SLOT_SECONDARY_WEAPON;
                 }
                 if (character->EquippedItem[equip_slot].iItemNo == -1) {
-                    AddItemToCharacter(character, &item, 1, 0, 0);
+                    AddItemToCharacter(character, &item, 1, 0, false);
                 }
             }
         }
@@ -650,8 +650,8 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
             }
         }
         if (give != -1) {
-            ReplaceOrCreateItem(&item, give, 1, 1, 1);
-            AddItemToCharacter(character, &item, 1, 0, 0);
+            ReplaceOrCreateItem(&item, give, true, true, true);
+            AddItemToCharacter(character, &item, 1, 0, false);
         }
     }
     RebuildEquipmentAndDerivedStats(character);

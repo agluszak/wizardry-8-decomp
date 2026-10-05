@@ -12,13 +12,15 @@ struct W8MonsterInfo;
 struct W8MonsterManagerEntry;
 
 /* NPC database record indices used as name-style ids at runtime. */
-enum {
+enum W8NpcId {
+    W8_NPC_MYLES = 7,
     W8_NPC_ZANT = 0x0f,
     W8_NPC_DRAZIC = 0x10,
     W8_NPC_RODAN = 0x11,
     W8_NPC_VI_DOMINA = 0x18,
     W8_NPC_RFS81_A = 0x20,
     W8_NPC_GLUMPH = 0x2b,
+    W8_NPC_SPARKLE = 0x38,
     W8_NPC_AL_ADRYIAN = 0x3b,
     W8_NPC_MADRAS = 0x4a,
     W8_NPC_SEXUS = 0x4f,
@@ -110,7 +112,7 @@ W8NpcState* GetNpcStateByKind(int kind);
    NPC whose member already carries more than one declines. */
 bool NpcWantsItem(W8NpcState* npc, W8ItemInstance* item);
 bool NpcHasTopic(W8NpcState* npc, int topic); /* 0x0050C190 */
-bool NpcLeadHasNameStyle(unsigned int kind);
+bool NpcLeadHasNameStyle(W8NpcId kind);
 /* 0x00509EA0: clear one NPC binding's monster link and hand the handle to the
    owned item-list teardown. */
 void ReleaseNpcBinding(int value);

@@ -153,7 +153,7 @@ def test_source_enum_cast_result_propagates_without_widening_packed_input(scalar
 @pytest.mark.parametrize(
     "extra",
     [
-        "K\tfirst\t0",
+        "K\tfirst\t0\tsrc/wiz8/test.cpp\t1\t1",
         "F\tfirst\tpacked\tassignment\tsrc/wiz8/test.cpp\t3\t1",
         "V\tfirst\tpacked\tunsigned char\tint",  # ambiguous conversion destinations
         "U\tfirst\t++\tsrc/wiz8/test.cpp\t3\t1",
@@ -201,7 +201,7 @@ def test_source_enum_cast_preserves_destination_storage(scalar, tmp_path, kind, 
 @pytest.mark.parametrize(
     "extra",
     [
-        "K\tfirst\t0",  # mixed enum/numeric producers
+        "K\tfirst\t0\tsrc/wiz8/test.cpp\t1\t1",  # mixed enum/numeric producers
         "U\tfirst\t++\tsrc/wiz8/test.cpp\t2\t1",
         "A\tfirst\taddress taken\tsrc/wiz8/test.cpp\t2\t1",
         "F\tfirst\tunknown\tassignment\tsrc/wiz8/test.cpp\t2\t1",
@@ -1810,3 +1810,95 @@ def test_boolean_patch_ignores_unresolved_operand_identity(scalar, tmp_path):
     patch = tmp_path / "recovery.patch"
     scalar.write_recovery_patch(facts, [], tmp_path, patch, boolean_expressions=True)
     assert patch.read_text() == ""
+
+
+@pytest.mark.parametrize("kind", ["parameter", "variable", "field", "function"])
+def test_boolean_literal_patch_uses_destination_identity(scalar, tmp_path, kind):
+    text = "SetEnabled(1); ByteEnabled(1); SetEnabled(0 + 1);\n"
+    facts = boolean_expression_facts(scalar, tmp_path, text, [])
+    facts.declarations["enabled"] = scalar.DeclarationFact(
+        "enabled", "owner.h", 1, 1, kind, "enabled", False, False, 8, "unsigned", "bool", "bool"
+    )
+    facts.declarations["byte"] = scalar.DeclarationFact(
+        "byte",
+        "owner.h",
+        2,
+        1,
+        kind,
+        "enabled",
+        False,
+        False,
+        8,
+        "unsigned",
+        "integer",
+        "unsigned char",
+    )
+    for key, spelling in [
+        ("enabled", "SetEnabled(1"),
+        ("byte", "ByteEnabled(1"),
+        ("enabled", "SetEnabled(0"),
+    ]:
+        offset = text.index(spelling) + len(spelling) - 1
+        facts.constant_locations.add((key, 1, "src/wiz8/test.cpp", 1, offset + 1))
+    report = scalar.write_recovery_patch(
+        facts, [], tmp_path, tmp_path / "recovery.patch", boolean_expressions=True
+    )
+    patch = (tmp_path / "recovery.patch").read_text()
+    assert "+SetEnabled(true); ByteEnabled(1); SetEnabled(0 + 1);" in patch
+    assert len(report["changed_expressions"]) == 1
+
+
+def test_scalar_reader_retains_constant_producer_locations(scalar, tmp_path):
+    facts = read(
+        scalar, tmp_path, declaration("enabled"), "K\tenabled\t1\tsrc/wiz8/test.cpp\t12\t9"
+    )
+    assert facts.constant_locations == {("enabled", 1, "src/wiz8/test.cpp", 12, 9)}
+
+
+@pytest.mark.parametrize("expression,value", [("0", 0), ("1u", 1), ("1 + 0", 1), ("1.0", 1)])
+def test_boolean_literal_patch_requires_complete_literal(scalar, tmp_path, expression, value):
+    text = "SetEnabled(" + expression + ");\n"
+    facts = boolean_expression_facts(scalar, tmp_path, text, [])
+    facts.declarations["enabled"] = scalar.DeclarationFact(
+        "enabled",
+        "owner.h",
+        1,
+        1,
+        "parameter",
+        "enabled",
+        False,
+        False,
+        8,
+        "unsigned",
+        "bool",
+        "bool",
+    )
+    facts.constant_locations.add(("enabled", value, "src/wiz8/test.cpp", 1, 12))
+    report = scalar.write_recovery_patch(
+        facts, [], tmp_path, tmp_path / "recovery.patch", boolean_expressions=True
+    )
+    assert len(report["changed_expressions"]) == int(expression in {"0", "1u"})
+
+
+def test_boolean_literal_patch_blocks_shared_nonbool_owner(scalar, tmp_path):
+    facts = boolean_expression_facts(scalar, tmp_path, "SetEnabled(1);\n", [])
+    for key, domain in [("boolean", "bool"), ("integer", "integer")]:
+        facts.declarations[key] = scalar.DeclarationFact(
+            key,
+            "owner.h",
+            1,
+            1,
+            "parameter",
+            "enabled",
+            False,
+            False,
+            8,
+            "unsigned",
+            domain,
+            domain,
+        )
+        facts.constant_locations.add((key, 1, "src/wiz8/test.cpp", 1, 12))
+    report = scalar.write_recovery_patch(
+        facts, [], tmp_path, tmp_path / "recovery.patch", boolean_expressions=True
+    )
+    assert report["changed_expressions"] == []

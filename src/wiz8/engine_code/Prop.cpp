@@ -1299,10 +1299,10 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
                                Rep()->footstep_surface, Rep()->footstep_material);
     } else {
         if ((flags & 0x20) != 0) {
-            m_gd_prop->Initialize(instance, 1, static_cast<unsigned short>(Rep()->subcycle),
+            m_gd_prop->Initialize(instance, true, static_cast<unsigned short>(Rep()->subcycle),
                                   Rep()->footstep_surface, Rep()->footstep_material);
         } else {
-            m_gd_prop->Initialize(instance, 0, 0, Rep()->footstep_surface,
+            m_gd_prop->Initialize(instance, false, 0, Rep()->footstep_surface,
                                   Rep()->footstep_material);
         }
         if (Rep()->animation_behaviour == 1) {
@@ -1610,7 +1610,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
             mesh_model = static_cast<stMeshModel*>(instance->getModel());
             for (; mesh_model != 0; mesh_model = mesh_model->next) {
                 if (AnimationIsRunning(animation) == 0) {
-                    mesh_model->GetVertexSunlight(1);
+                    mesh_model->GetVertexSunlight(true);
                 }
             }
             if (option_byte != 0) {

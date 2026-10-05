@@ -24,7 +24,7 @@ W8NotificationDialog::W8NotificationDialog(int message_index, int caption_id, in
     SetExtent(0xa0, 100);
     SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
     SetClientExtent(0xfa, 200);
-    SetMessage(gppStringList[message_index], 1, 0x32, 1, caption_id, 1, 1, 0, 0x15e);
+    SetMessage(gppStringList[message_index], 1, 0x32, 1, caption_id, true, true, 0, 0x15e);
     ActivateDialogRegion(0x138);
 }
 

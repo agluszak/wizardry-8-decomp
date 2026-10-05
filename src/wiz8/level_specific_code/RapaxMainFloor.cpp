@@ -41,7 +41,7 @@ bool RapaxMainFloorAltarBox(Trigger* pTrigger)
             CreateLocationVar("LezboDemonAppeared", 1);
         }
         if (FindEntityByName("NP_Al-Sedexus", &position, 0, 0)) {
-            SpawnMonsters(0x124, 1, &position, 0, 1, 0, 0);
+            SpawnMonsters(0x124, 1, &position, 0, true, false, false);
         }
         pTrigger->required_item_id = 0x1fc;
     }
@@ -60,21 +60,21 @@ bool RapaxMainFloorPlatform(Trigger* pTrigger)
 
     if (FindEntityByName("NP_CRobe", &entity_position, 0, 0)) {
         position = entity_position;
-        world_item = SpawnItem(0x1fd, &position, 3, 1);
+        world_item = SpawnItem(0x1fd, &position, 3, true);
         if (world_item != 0) {
             ActivateItem(world_item);
         }
     }
     if (FindEntityByName("NP_CHelm", &entity_position, 0, 0)) {
         position = entity_position;
-        world_item = SpawnItem(0x1fe, &position, 3, 1);
+        world_item = SpawnItem(0x1fe, &position, 3, true);
         if (world_item != 0) {
             ActivateItem(world_item);
         }
     }
     if (FindEntityByName("NP_CDagger", &entity_position, 0, 0)) {
         position = entity_position;
-        world_item = SpawnItem(0x1ff, &position, 3, 1);
+        world_item = SpawnItem(0x1ff, &position, 3, true);
         if (world_item != 0) {
             ActivateItem(world_item);
         }

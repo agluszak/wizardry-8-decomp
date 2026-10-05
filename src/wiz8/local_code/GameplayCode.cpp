@@ -788,8 +788,8 @@ void CalcArmorClasses(W8Character* character)
     int location_slot = 0;
     if (gXStatus.fCombatMode) {
         unsigned int slot = CharacterPointerToPartySlot(character);
-        defensive_action = TryCharacterAction(slot, W8_ACTION_DEFEND, 0) ||
-                           TryCharacterAction(slot, W8_ACTION_PROTECT, 0);
+        defensive_action = TryCharacterAction(slot, W8_ACTION_DEFEND, false) ||
+                           TryCharacterAction(slot, W8_ACTION_PROTECT, false);
     }
 
     unsigned int index;
@@ -1095,7 +1095,7 @@ unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
     if (save_character_data) {
         RebuildCharacterModifierBlock(character);
         RecalculateCharacterDerivedStats(character);
-        if (SaveCharacter(character, g_status.buffers.XChar[party_slot].npc_index, 1, 0) == 0) {
+        if (SaveCharacter(character, g_status.buffers.XChar[party_slot].npc_index, true, 0) == 0) {
             character->fInParty = true;
             RebuildCharacterModifierBlock(character);
             RecalculateCharacterDerivedStats(character);
@@ -1105,10 +1105,11 @@ unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
     g_status.buffers.XChar[party_slot].fOccupied = 0;
     character->highest_condition = W8_CONDITION_NONE;
     character->enchantment_top = W8_ENCHANTMENT_NONE;
-    SetFormationPosition(&g_status.formation, party_slot, -1, -1, 0, 1, 1);
+    SetFormationPosition(&g_status.formation, party_slot, -1, -1, false, true, true);
     if (gXStatus.fCombatMode) {
-        SetFormationPosition(&gXStatus.edited_formation, party_slot, -1, -1, 0, 1, 1);
-        SetFormationPosition(&g_combat_state->saved_formation, party_slot, -1, -1, 0, 1, 1);
+        SetFormationPosition(&gXStatus.edited_formation, party_slot, -1, -1, false, true, true);
+        SetFormationPosition(&g_combat_state->saved_formation, party_slot, -1, -1, false, true,
+                             true);
     }
     if (g_status.game_started) {
         PostCharacterNotice(party_slot, gppStringList[0x251]);
@@ -1144,15 +1145,15 @@ unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* rec
 
     for (index = 0; index < 12; ++index) {
         if (character->EquippedItem[index].iItemNo != -1) {
-            AddItemToParty(&character->EquippedItem[index], 0, 0);
+            AddItemToParty(&character->EquippedItem[index], 0, false);
         }
     }
     for (index = 0; index < 8; ++index) {
         if (character->backpack[index].iItemNo != -1) {
-            AddItemToParty(&character->backpack[index], 0, 0);
+            AddItemToParty(&character->backpack[index], 0, false);
         }
     }
-    RemoveCharacterFromParty(slot, 0);
+    RemoveCharacterFromParty(slot, false);
     memcpy(character, record, sizeof(W8Character));
     character->fInParty = true;
     ResetPartySlotRow(slot);

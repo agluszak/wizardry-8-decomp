@@ -655,7 +655,7 @@ void stParticle::Update()
 
             if (los_check_enabled == 1 &&
                 (g_world->octree == 0 ||
-                 !g_world->octree->HasLineOfSight(&particle_positions[index], &candidate, 1))) {
+                 !g_world->octree->HasLineOfSight(&particle_positions[index], &candidate, true))) {
                 particle_active[index] = 0;
                 update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
                 --active_particle_count;

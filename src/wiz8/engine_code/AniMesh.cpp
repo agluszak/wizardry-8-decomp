@@ -172,7 +172,7 @@ unsigned char LoadAniMeshFromInfo(W8ReadLevelInfo* info, W8AniMesh* mesh, unsign
         mesh->flags |= W8_ANI_MESH_FRAME_COUNT_LOADED | W8_ANI_MESH_KEEP_LOADED;
         return result;
     }
-    return LoadAniMesh(info->hFile, mesh, 1);
+    return LoadAniMesh(info->hFile, mesh, true);
 }
 
 // FUNCTION: WIZ8 0x004b5c10
@@ -244,7 +244,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
     }
 
     if (!FileRead(handle, &frame_index, sizeof(frame_index), 0) ||
-        !ReadSingleLevelMesh(&info, &loaded_instance, 0, 0, instance_name, 1)) {
+        !ReadSingleLevelMesh(&info, &loaded_instance, 0, 0, instance_name, true)) {
         srAssertFail("fSuccess", ANI_MESH_CPP, 0x1c5, 0);
         delete[] instance_name;
         FileClose(handle);
@@ -355,7 +355,7 @@ unsigned char GetAniMeshBounds(W8AniMesh* mesh, srVector3T<float>* minimum,
         return 0;
     }
     if ((mesh->flags & 4) == 0) {
-        if (LoadAniMesh(0, mesh, 1) == 0) {
+        if (LoadAniMesh(0, mesh, true) == 0) {
             srAssertFail("0", ANI_MESH_CPP, 0x31f, 0);
             return 0;
         }
@@ -373,7 +373,7 @@ void DestroyAniMesh(W8AniMesh* mesh)
         srAssertFail("pAniMesh", ANI_MESH_CPP, 0x91, 0);
     }
     if ((mesh->flags & W8_ANI_MESH_LOADED) != 0) {
-        UnloadAniMesh(mesh, 1);
+        UnloadAniMesh(mesh, true);
     }
     free(mesh->bitmap_directory);
     free(mesh->filename);
@@ -437,7 +437,7 @@ unsigned char UnloadAniMesh(W8AniMesh* mesh, bool force)
         mesh->meshes[0]->release();
     } else {
         if ((mesh->flags & W8_ANI_MESH_FRAME_COUNT_LOADED) == 0) {
-            if (LoadAniMesh(0, mesh, 1) == 0) {
+            if (LoadAniMesh(0, mesh, true) == 0) {
                 srAssertFail("0", ANI_MESH_CPP, 0x2c6, 0);
                 frame_count = 0xff;
             } else {
@@ -473,7 +473,7 @@ stModelInstance* GetAniMeshFrame(W8AniMesh* mesh, unsigned char frame)
         srAssertFail("0", ANI_MESH_CPP, 0x2e6, message);
         return 0;
     }
-    if ((mesh->flags & W8_ANI_MESH_LOADED) == 0 && LoadAniMesh(0, mesh, 1) == 0) {
+    if ((mesh->flags & W8_ANI_MESH_LOADED) == 0 && LoadAniMesh(0, mesh, true) == 0) {
         srAssertFail("0", ANI_MESH_CPP, 0x2ee, 0);
         return 0;
     }
@@ -496,7 +496,7 @@ unsigned char AniMeshValue(W8AniMesh* mesh)
         return 0xff;
     }
     if ((mesh->flags & W8_ANI_MESH_FRAME_COUNT_LOADED) == 0) {
-        if (LoadAniMesh(0, mesh, 1) == 0) {
+        if (LoadAniMesh(0, mesh, true) == 0) {
             srAssertFail("0", ANI_MESH_CPP, 0x2c6, 0);
             return 0xff;
         }
@@ -512,7 +512,7 @@ bool AniMeshRadius(W8AniMesh* mesh, float* radius)
     }
     if (mesh != 0 && radius != 0) {
         if ((mesh->flags & W8_ANI_MESH_RADIUS_LOADED) == 0) {
-            if (LoadAniMesh(0, mesh, 1) == 0) {
+            if (LoadAniMesh(0, mesh, true) == 0) {
                 srAssertFail("0", ANI_MESH_CPP, 0x350, 0);
                 return 0;
             }
@@ -562,7 +562,7 @@ void EnforceAniMeshMemoryLimit(W8AniMesh* current)
             }
         }
         if (oldest != current) {
-            UnloadAniMesh(oldest, 0);
+            UnloadAniMesh(oldest, false);
             PLRemoveAt(&g_animesh_cache_list, oldest_index);
         } else if (oldest_index == -1) {
             srAssertFail("0", ANI_MESH_CPP, 0x39d,

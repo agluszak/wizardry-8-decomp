@@ -121,7 +121,7 @@ W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* posi
     position_copy = *position;
     group = CreateGroup(monster_id, count, &position_copy, a, b, settle);
     if (group != 0) {
-        SetMonsterGroupHostility(group, hostility, 0);
+        SetMonsterGroupHostility(group, hostility, false);
         GetMonsterGroupCentre(group, 0);
         RefreshOutwardSightForAllMonsters();
     }
@@ -148,7 +148,7 @@ stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, 
         sound->setLocation(sound_position);
         sound->volume = static_cast<int>(volume * g_sound_node_full_volume);
         sound->falloff = scale * g_world_scale;
-        sound->Play(play_flag, 1);
+        sound->Play(play_flag, true);
     }
     return sound;
 }
@@ -448,10 +448,10 @@ static unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* n
                                                      g_character_event_no_flags);
                     CreateLocationVar("AP_SeenBodies", 1);
                     if (GetFact(W8_FACT_QUEST_PEACE_GOTO_AP) != 0) {
-                        SetFact(W8_FACT_QUEST_PEACE_GOTO_AP, 0, 0);
+                        SetFact(W8_FACT_QUEST_PEACE_GOTO_AP, 0, false);
                     }
                     if (GetFact(W8_FACT_QUEST_PEACE_GOTO_AP) != 0) {
-                        SetFact(W8_FACT_QUEST_PEACE_GOTO_AP, 0, 0);
+                        SetFact(W8_FACT_QUEST_PEACE_GOTO_AP, 0, false);
                     }
                 }
             }
@@ -525,7 +525,7 @@ void LoadAwayCampChest(void)
     if (pTrigger == 0) {
         srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5a6, 0);
     }
-    pContainer = pTrigger->GetOrCreateItemGroup(1);
+    pContainer = pTrigger->GetOrCreateItemGroup(true);
     if (pContainer == 0) {
         srAssertFail("pContainer", MASTER_FUNCTION_CPP, 0x5a8, 0);
     }
@@ -1259,7 +1259,7 @@ void InitializeLevelMasterFunctions(int level)
     case 0x10:
         if (GetFact(W8_FACT_PARTY_AT_RAC) == 0) {
             LoadAwayCampChest();
-            SetFact(W8_FACT_PARTY_AT_RAC, 0, 0);
+            SetFact(W8_FACT_PARTY_AT_RAC, 0, false);
         }
         pTrigger = FindTriggerByName("prisondoor06");
         if (pTrigger == 0) {

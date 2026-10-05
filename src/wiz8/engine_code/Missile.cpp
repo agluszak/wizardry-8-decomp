@@ -428,7 +428,7 @@ void UpdateWorldMissiles(W8World* world)
             if (!missile->flight_done || missile->block_released == 0) {
                 missile->StartIfHostActive();
                 missile->UpdateRepresentation(world);
-                missile->UpdateNavigation(0, 0);
+                missile->UpdateNavigation(0, false);
             } else {
                 world->missiles->Remove(missile);
                 missile->DestroyMissile();
@@ -626,7 +626,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                                         break;
                                     }
                                 }
-                                effect = new W8CameraShakeEffect(duration, 1, intensity,
+                                effect = new W8CameraShakeEffect(duration, true, intensity,
                                                                  seconds * g_world_scale, 0);
                                 if (effect != 0) {
                                     effect->cycle = cycle;
@@ -744,7 +744,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         if (octree != 0) {
             end.Set(direction.x * duration, direction.y * duration, direction.z * duration);
             end = end + *source;
-            if (octree->TraceLineOfSight(source, &end, 0, -3, -3, 1, 0) != 0) {
+            if (octree->TraceLineOfSight(source, &end, false, -3, -3, true, 0) != 0) {
                 end -= *source;
                 limit = end.Length();
                 if (limit < g_float_one) {
@@ -1303,7 +1303,7 @@ void W8Missile::DetonateMissileSpell()
     ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_PLACE;
     target.point = position;
-    CastSpellFromSource(0x83, &source, &target, 1, 0, 0, 0, 0, 0, 0, 0);
+    CastSpellFromSource(0x83, &source, &target, 1, 0, 0, false, 0, 0, 0, 0);
 }
 
 /* Post "<source> hits <target>" to the notice box and colour the target's
@@ -1324,7 +1324,7 @@ void W8Missile::AnnounceCollisionTarget()
     target_start = wcslen(text);
     if (combat_slot.iType == W8_TARGET_KIND_MONSTER) {
         unsigned int monster_list_index =
-            MonsterGetIndexByLocationID(0x701, MISSILE_CPP, combat_slot.iMonsterID, 1);
+            MonsterGetIndexByLocationID(0x701, MISSILE_CPP, combat_slot.iMonsterID, true);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         wcscat(text, GetMonsterName(monster_info, 0, 0));
     } else {
@@ -1335,7 +1335,7 @@ void W8Missile::AnnounceCollisionTarget()
     target_color = GetTargetNoticeColor(&m_Source, &combat_slot);
     wcscat(text, L" ");
     wcscat(text, gppStringList[0x1c0]);
-    ShowNotice(source_color, text, -1, -1, 0);
+    ShowNotice(source_color, text, -1, -1, false);
     if (target_color != source_color) {
         HighlightTextBoxRange(target_color, target_start, target_stop, -1);
     }
@@ -1399,7 +1399,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         W8Monster* monster = static_cast<W8Monster*>(other);
         int location_id = monster->location_id;
         unsigned int monster_list_index =
-            MonsterGetIndexByLocationID(0x636, MISSILE_CPP, location_id, 1);
+            MonsterGetIndexByLocationID(0x636, MISSILE_CPP, location_id, true);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (TargetSourceIsMonster(&m_Source, 0) && m_Source.iMonsterID == location_id) {
             goto miss;
@@ -1431,7 +1431,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
                 g_status.buffers.Char[combat_slot.iChar].bonus.missile_deflect_chance;
         } else {
             W8MonsterInfo* monster_info =
-                MonsterInfoFromID(0x676, MISSILE_CPP, combat_slot.iMonsterID, 1);
+                MonsterInfoFromID(0x676, MISSILE_CPP, combat_slot.iMonsterID, true);
             deflect_chance = monster_info->modifiers.missile_deflect_chance;
         }
         if (deflect_chance > 0 && Random(100) + 1 <= deflect_chance) {

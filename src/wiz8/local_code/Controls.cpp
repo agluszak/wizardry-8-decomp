@@ -119,7 +119,7 @@ const float g_float_005ebc7c = 0.5f;
 const float g_float_005ebcd8 = 0.35f;
 
 // FUNCTION: WIZ8 0x004f30f0
-void Controls::EnableRegionSet(unsigned char enable)
+void Controls::EnableRegionSet(bool enable)
 {
     if (m_uiRegionSetId == REGSET_NULL) {
         srAssertFail("m_uiRegionSetId != REGSET_NULL",
@@ -733,7 +733,7 @@ unsigned int W8TextBuffer::GetLineHeight()
 
 /* The text-control declaration is shared in Controls.h so every consumer sees
    the same 20-slot hierarchy and its embedded W8TextBuffer at +0x60. */
-void W8TextControl::InvalidateCore(unsigned char immediate)
+void W8TextControl::InvalidateCore(bool immediate)
 {
     if (m_pPanel != 0) {
         m_dirty = true;
@@ -1041,7 +1041,7 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
 }
 
 // FUNCTION: WIZ8 0x004f4650
-void W8TextControl::Invalidate(unsigned char immediate)
+void W8TextControl::Invalidate(bool immediate)
 {
     InvalidateCore(immediate);
 }
@@ -1080,7 +1080,7 @@ void W8TextControl::RemoveLayoutFlags(unsigned int flags)
 }
 
 // FUNCTION: WIZ8 0x004f4c40
-void W8TextControl::EnableSecondaryState(unsigned char immediate)
+void W8TextControl::EnableSecondaryState(bool immediate)
 {
     if ((m_flags & g_W8TextControlLayoutToggle) != 0 &&
         (m_stateFlags & g_W8TextControlStateSecondary) == 0) {
@@ -1091,7 +1091,7 @@ void W8TextControl::EnableSecondaryState(unsigned char immediate)
 }
 
 // FUNCTION: WIZ8 0x004f4cb0
-void W8TextControl::DisableSecondaryState(unsigned char immediate)
+void W8TextControl::DisableSecondaryState(bool immediate)
 {
     if ((m_flags & g_W8TextControlLayoutToggle) != 0 &&
         (m_stateFlags & g_W8TextControlStateSecondary) != 0) {
@@ -1108,12 +1108,12 @@ void W8TextControl::OnMouseEnter(int event)
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         SetAlternateTextEnabled(1);
         return;
     }
     if ((m_flags & 0x60) != 0) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
 
     if ((m_stateFlags & g_W8TextControlStatePressed) == 0) {
@@ -1135,7 +1135,7 @@ void W8TextControl::OnMouseLeave(int event)
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         if ((m_flags & g_W8TextControlLayoutToggle) == 0) {
             m_stateFlags &= ~g_W8TextControlStatePressed;
         }
@@ -1143,10 +1143,10 @@ void W8TextControl::OnMouseLeave(int event)
         return;
     }
     if ((m_flags & 0x60) != 0) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
     if ((m_flags & 0x100) != 0 && (m_stateFlags & 4) != 0) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         m_stateFlags &= ~4u;
     }
 
@@ -1198,15 +1198,15 @@ void W8TextControl::OnLeftButtonDown(int event)
         if (m_enabled) {
             return;
         }
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         return;
     }
     if ((m_flags & 0x20) != 0) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
 
     if ((m_flags & g_W8TextControlLayoutToggle) == 0) {
@@ -1232,7 +1232,7 @@ void W8TextControl::OnRightButtonDown(int)
 {
     if ((m_active && m_enabled)) {
         if ((m_flags & 0x20) != 0) {
-            PushButtonSoundScheme(0, 1);
+            PushButtonSoundScheme(0, true);
         }
         if (m_rightButtonDownCallback != 0) {
             m_rightButtonDownCallback();
@@ -1242,7 +1242,7 @@ void W8TextControl::OnRightButtonDown(int)
     if (!m_active && m_enabled) {
         return;
     }
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
 }
 
 // FUNCTION: WIZ8 0x004f50c0
@@ -1252,7 +1252,7 @@ void W8TextControl::OnLeftButtonUp(int event)
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         if ((m_flags & g_W8TextControlLayoutToggle) == 0) {
             m_stateFlags &= ~g_W8TextControlStatePressed;
         }
@@ -1262,7 +1262,7 @@ void W8TextControl::OnLeftButtonUp(int event)
         return;
     }
     if ((m_flags & 0x20) != 0) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
 
     if ((m_flags & g_W8TextControlLayoutToggle) == 0) {
@@ -1283,7 +1283,7 @@ void W8TextControl::OnLeftButtonUp(int event)
     m_textBuffer.SetGeometryDirty();
     if ((m_flags & 0x100) != 0 && (m_stateFlags & 4) != 0) {
         m_stateFlags &= ~4u;
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         return;
     }
     NotifyPrimaryActivation();
@@ -1296,19 +1296,19 @@ void W8TextControl::OnRightButtonUp(int)
         if (m_enabled) {
             return;
         }
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         return;
     }
     if (!m_enabled) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         return;
     }
     if ((m_flags & 0x20) != 0) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
     if ((m_flags & 0x100) != 0 && (m_stateFlags & 4) != 0) {
         m_stateFlags &= ~4u;
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         return;
     }
     NotifySecondaryActivation();
@@ -1332,7 +1332,7 @@ void W8TextControl::OnLeftButtonDoubleClick(int)
 {
     if (m_active && m_enabled) {
         if ((m_flags & 0x20) != 0) {
-            PushButtonSoundScheme(0, 1);
+            PushButtonSoundScheme(0, true);
         }
         if ((m_flags & g_W8TextControlLayoutToggle) != 0 &&
             (m_stateFlags & g_W8TextControlStateSecondary) == 0) {
@@ -1346,7 +1346,7 @@ void W8TextControl::OnLeftButtonDoubleClick(int)
     if (!m_active && m_enabled) {
         return;
     }
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
 }
 
 // FUNCTION: WIZ8 0x004f5360
@@ -1366,7 +1366,7 @@ void W8TextControl::UpdateTextBounds(int left, int top, int right, int bottom)
 {
     W8ControlsRect absolute = {m_pPanel->m_bounds.left + left, m_pPanel->m_bounds.top + top,
                                m_pPanel->m_bounds.left + right, m_pPanel->m_bounds.top + bottom};
-    m_textBuffer.SetLayoutBounds(&absolute, 1, 0);
+    m_textBuffer.SetLayoutBounds(&absolute, true, false);
     if (m_textBuffer.HasBuffer()) {
         m_textBuffer.UpdateLayout();
     }
@@ -1632,7 +1632,7 @@ W8VerticalRangeThumb::W8VerticalRangeThumb(W8RangeControl* range, int left, int 
 // FUNCTION: WIZ8 0x004f5c00
 void W8VerticalRangeThumb::OnLeftButtonDown(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (m_enabled) {
         POINT cursor;
         SGPMouseGetPos(&cursor);
@@ -1654,7 +1654,7 @@ void W8VerticalRangeThumb::OnLeftButtonDown(int event)
 // FUNCTION: WIZ8 0x004f5d30
 void W8VerticalRangeThumb::OnLeftButtonUp(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (m_enabled && m_dragging) {
         m_dragging = false;
         ClearActiveRegionIfMatches(m_region);
@@ -1795,7 +1795,7 @@ void W8HelpTextControl::SetRegionHelp(const wchar_t* text)
 // FUNCTION: WIZ8 0x004f66b0
 void W8HelpTextControl::OnMouseEnter(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     W8TextControl::OnMouseEnter(event);
     if (wcslen(m_regionHelp) > 1 && m_region != -1) {
         ::SetRegionHelpText(m_regionHelp);
@@ -1810,7 +1810,7 @@ void W8HelpTextControl::OnMouseEnter(int event)
 // FUNCTION: WIZ8 0x005b7cb0
 void W8HelpTextControl::OnLeftButtonDown(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     W8TextControl::OnLeftButtonDown(event);
 }
 
@@ -1818,7 +1818,7 @@ void W8HelpTextControl::OnLeftButtonDown(int event)
 void W8HelpTextControl::OnRightButtonDown(int event)
 {
     if (m_secondaryActivationCallback == 0) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
     W8TextControl::OnRightButtonDown(event);
 }
@@ -1826,7 +1826,7 @@ void W8HelpTextControl::OnRightButtonDown(int event)
 // FUNCTION: WIZ8 0x005b7cd0
 void W8HelpTextControl::OnLeftButtonUp(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     W8TextControl::OnLeftButtonUp(event);
 }
 
@@ -1834,15 +1834,15 @@ void W8HelpTextControl::OnLeftButtonUp(int event)
 void W8HelpTextControl::OnRightButtonUp(int)
 {
     if (m_secondaryActivationCallback == 0) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
     if (m_active && m_enabled) {
         if ((m_flags & 0x20) != 0) {
-            PushButtonSoundScheme(0, 1);
+            PushButtonSoundScheme(0, true);
         }
         if ((m_flags & 0x100) != 0 && (m_stateFlags & 4) != 0) {
             m_stateFlags &= ~4u;
-            PushButtonSoundScheme(0, 1);
+            PushButtonSoundScheme(0, true);
             return;
         }
         NotifySecondaryActivation();
@@ -1851,13 +1851,13 @@ void W8HelpTextControl::OnRightButtonUp(int)
     if (!m_active && m_enabled) {
         return;
     }
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
 }
 
 // FUNCTION: WIZ8 0x004f6810
 void W8HelpTextControl::OnLeftButtonDoubleClick(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     W8TextControl::OnLeftButtonDoubleClick(event);
 }
 
@@ -1930,7 +1930,7 @@ void W8HorizontalRangeThumb::UpdatePixelPosition()
 // FUNCTION: WIZ8 0x004f5780
 void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (m_enabled) {
         POINT cursor;
         SGPMouseGetPos(&cursor);
@@ -1954,7 +1954,7 @@ void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
 // FUNCTION: WIZ8 0x004f5880
 void W8HorizontalRangeThumb::OnLeftButtonUp(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (m_enabled && m_dragging) {
         m_dragging = false;
         ClearActiveRegionIfMatches(m_region);
@@ -1967,19 +1967,19 @@ void W8HorizontalRangeThumb::OnLeftButtonUp(int event)
 // FUNCTION: WIZ8 0x004f58c0
 void W8HorizontalRangeThumb::OnMouseEnter(int)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
 }
 
 /* Retail ICF-folds these two hover hooks onto the horizontal thumb methods
    at 0x004f58c0 / 0x004f58d0. */
 void W8VerticalRangeThumb::OnMouseEnter(int)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
 }
 
 void W8VerticalRangeThumb::OnMouseLeave(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (m_hovered && !m_dragging) {
         m_hovered = false;
         if (m_pPanel != 0) {
@@ -1998,7 +1998,7 @@ void W8VerticalRangeThumb::OnMouseLeave(int event)
 // FUNCTION: WIZ8 0x004f58d0
 void W8HorizontalRangeThumb::OnMouseLeave(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (m_hovered && !m_dragging) {
         m_hovered = false;
         if (m_pPanel != 0) {
@@ -2238,7 +2238,7 @@ void Controls::AcquireRegionSet(unsigned int* shared_region_set)
 void W8Widget::EnableRegionHelp(int help_text_id)
 {
     if (m_region != -1) {
-        SetRegionHelp(m_region, 1, help_text_id);
+        SetRegionHelp(m_region, true, help_text_id);
     }
 }
 
@@ -2246,14 +2246,14 @@ void W8Widget::EnableRegionHelp(int help_text_id)
 void W8Widget::DisableRegionHelp()
 {
     if (m_region != -1) {
-        SetRegionHelp(m_region, 0, -1);
+        SetRegionHelp(m_region, false, -1);
     }
 }
 
 /* Marks the widget dirty and either asks its panel to invalidate immediately
    or raises the panel's deferred-layout flag. */
 // FUNCTION: WIZ8 0x004f40a0
-void W8Widget::Invalidate(unsigned char immediate)
+void W8Widget::Invalidate(bool immediate)
 {
     if (m_pPanel != 0) {
         m_dirty = true;
@@ -2345,12 +2345,12 @@ void W8ControlSelection::SetSelected(int iSelected)
     }
     if (previous != -1) {
         entry = m_lsButtons.GetAt(previous);
-        (*entry)->DisableSecondaryState(0);
+        (*entry)->DisableSecondaryState(false);
     }
     m_selectedIndex = iSelected;
     if (iSelected != -1) {
         entry = m_lsButtons.GetAt(iSelected);
-        (*entry)->EnableSecondaryState(0);
+        (*entry)->EnableSecondaryState(false);
     }
     if (m_selectionListener != 0) {
         m_selectionListener->OnSelectionChanged(this, m_selectedIndex);

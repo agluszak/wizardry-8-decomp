@@ -227,15 +227,15 @@ void ArnikaWarningSound(int command)
         }
         g_warning_gate = 0;
         if (command <= 0x1e) {
-            g_warning_gate = new W8IntervalGate(static_cast<float>(command), 0, 1);
+            g_warning_gate = new W8IntervalGate(static_cast<float>(command), false, true);
         } else {
             g_warning_oneshot = CreateAndPlaySoundNode(
                 "Data\\Sound\\VOCs\\VOC_HLLIntruder\\VOC_HLLIntruder_002.wav", position, 1.0f,
-                100.0f, 0);
+                100.0f, false);
         }
         g_warning_loop =
             CreateAndPlaySoundNode("Data\\Sound\\VOCs\\VOC_HLLIntruder\\VOC_HLLIntruder_003.wav",
-                                   position, 1.0f, 75.0f, 1);
+                                   position, 1.0f, 75.0f, true);
         if (g_warning_loop != 0 || g_warning_oneshot != 0) {
             g_master_functions->Add(ArnikaWarningSound);
         }
@@ -247,7 +247,7 @@ void ArnikaWarningSound(int command)
         g_warning_oneshot = 0;
     }
     if (g_warning_gate == 0) {
-        g_warning_gate = new W8IntervalGate(30.0f, 0, 1);
+        g_warning_gate = new W8IntervalGate(30.0f, false, true);
         return;
     }
     if (!g_warning_gate->IsFinished()) {
@@ -286,7 +286,7 @@ bool ArnikaMookholo(Trigger* pTrigger)
         return 0;
     }
     if (FindEntityByName("Mookholo", &position, 0, 0)) {
-        group = SpawnMonsters(0xb, 1, &position, 0, 1, 0, 0);
+        group = SpawnMonsters(0xb, 1, &position, 0, true, false, false);
         if (GetLocationVarIDByName("ScregActive") != -1) {
             SetTriggerVariableByName("ScregActive", 1);
         } else {
@@ -295,15 +295,15 @@ bool ArnikaMookholo(Trigger* pTrigger)
         location_id = IListGetAt(group->monsters, 0);
         if (location_id != 0) {
             info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x193, ARNIKA_CPP, location_id, 1));
+                MonsterGetIndexByLocationID(0x193, ARNIKA_CPP, location_id, true));
             if (info != 0) {
                 g_mookholo_monster = info->p3D;
                 g_npc_dialogue_closed = false;
                 g_master_functions->Add(ArnikaMookholoWatch);
             }
             QueueNpcScriptNotice(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
-                                     0x199, ARNIKA_CPP, location_id, 1)),
-                                 0, -1, 0, 0);
+                                     0x199, ARNIKA_CPP, location_id, true)),
+                                 0, -1, false, 0);
         }
     }
     return 1;
@@ -362,11 +362,11 @@ bool ArnikaYellowButton(Trigger* pTrigger)
 
     g_trigger_feedback = 1;
     if (FindEntityByName("Bguards", &position, 0, 0)) {
-        group = SpawnMonsters(0xc, 6, &position, 1, 1, 0, 0);
+        group = SpawnMonsters(0xc, 6, &position, 1, true, false, false);
         if (group != 0) {
             info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x215, ARNIKA_CPP, group->leader_location_id, 1));
-            info->p3D->SetScript("guard.msf", 1);
+                MonsterGetIndexByLocationID(0x215, ARNIKA_CPP, group->leader_location_id, true));
+            info->p3D->SetScript("guard.msf", true);
         }
     }
     return 1;
@@ -383,10 +383,10 @@ bool ArnikaVaultAlarmDoor(Trigger* pTrigger)
     SoundPlay("Data\\Sound\\Ambients\\VaultAlarm.wav", 0);
     group = FindNextExistingMonsterByID(0xc, 0);
     while (group != 0) {
-        SetMonsterGroupHostility(group, 1, 0);
+        SetMonsterGroupHostility(group, 1, false);
         group = FindNextExistingMonsterByID(0xc, group);
     }
-    SetFact(W8_FACT_ARNIKA_VAULT_ENTERED, 1, 0);
+    SetFact(W8_FACT_ARNIKA_VAULT_ENTERED, 1, false);
     return 1;
 }
 
@@ -410,8 +410,8 @@ bool ArnikaExitButton(Trigger* pTrigger)
         g_master_functions->Add(ArnikaTeleportWatch);
     }
     g_trigger_feedback = 1;
-    SetFact(W8_FACT_ARNIKA_VAULT_TELEPORT, 1, 0);
-    SetFact(W8_FACT_ARNIKA_VAULT_ENTERED, 1, 0);
+    SetFact(W8_FACT_ARNIKA_VAULT_TELEPORT, 1, false);
+    SetFact(W8_FACT_ARNIKA_VAULT_ENTERED, 1, false);
     return 1;
 }
 
@@ -441,7 +441,7 @@ bool ArnikaGenVaultDoor(Trigger* pTrigger)
             return 0;
         }
         CreateLocationVar("GolemSpawned", 1);
-        SpawnMonsters(0x31, 1, &position, 1, 1, 0, 0);
+        SpawnMonsters(0x31, 1, &position, 1, true, false, false);
         SoundPlay("Data\\Sound\\Ambients\\Temp Transporting.wav", 0);
     }
     return 1;
@@ -545,7 +545,7 @@ bool ArnikaRedButton(Trigger* pTrigger)
         return false;
     }
     g_red_button_armed = 0;
-    SetFact(W8_FACT_ARNIKA_SAFETY_DEPOSIT_OPEN, 1, 0);
+    SetFact(W8_FACT_ARNIKA_SAFETY_DEPOSIT_OPEN, 1, false);
     g_red_button_armed = 1;
     g_trigger_feedback = 1;
     if (gEl01.state != 3) {
@@ -937,7 +937,7 @@ bool ArnikaMaddmook(Trigger* pTrigger)
         GetFactionDisposition(W8_FACTION_MOOK) != W8_DISPOSITION_NEUTRAL) {
         W8NpcState* npc = GetNpcStateByKind(0x69);
         if (npc != 0) {
-            QueueNpcScriptNotice(npc, 0, 7, 0, 0);
+            QueueNpcScriptNotice(npc, 0, 7, false, 0);
             SetFactionDispositionBand(W8_FACTION_MOOK, W8_FACTION_HOSTILE);
         }
     }
@@ -1045,7 +1045,7 @@ int ArnikaPedestalItem(int* previous_item)
         CreateLocationVar("PedestalItem", -1);
         previous = 0x244;
         if (item == -1) {
-            ReplaceOrCreateItem(&g_status.item_in_hand, previous, 0, 0, 0);
+            ReplaceOrCreateItem(&g_status.item_in_hand, previous, false, false, false);
         }
     } else {
         previous = GetLocationVarValueByName("PedestalItem");
@@ -1054,7 +1054,7 @@ int ArnikaPedestalItem(int* previous_item)
                 return -2;
             }
         } else if (item == -1) {
-            ReplaceOrCreateItem(&g_status.item_in_hand, previous, 0, 0, 0);
+            ReplaceOrCreateItem(&g_status.item_in_hand, previous, false, false, false);
         }
     }
     SetItemCursor(0);
@@ -1064,9 +1064,9 @@ int ArnikaPedestalItem(int* previous_item)
         if (info != 0) {
             position = info->p3D->movement.position;
             position.y += info->p3D->movement.height_offset;
-            g_gd_camera->LookAt(&position, 0);
+            g_gd_camera->LookAt(&position, false);
         }
-        QueueNpcScriptNotice(npc, 0, 8, 0, 0);
+        QueueNpcScriptNotice(npc, 0, 8, false, 0);
     }
     if (GetLocationVarIDByName("WarnedAboutEntry") == -1) {
         CreateLocationVar("WarnedAboutEntry", 1);
@@ -1088,8 +1088,8 @@ bool ArnikaBallSlot(Trigger* pTrigger)
     if (GetLocationVarIDByName("BallInserted") == -1) {
         CreateLocationVar("BallInserted", 1);
         npc = GetNpcStateByKind(0x16);
-        ReplaceOrCreateItem(&item, 0x240, 1, 1, 0);
-        QueueNpcScriptNotice(npc, &item, -1, 0, 0);
+        ReplaceOrCreateItem(&item, 0x240, true, true, false);
+        QueueNpcScriptNotice(npc, &item, -1, false, 0);
     }
     g_trigger_feedback = 1;
     return true;
@@ -1113,6 +1113,6 @@ bool ArnikaFlightRecorder(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     return false;
 }

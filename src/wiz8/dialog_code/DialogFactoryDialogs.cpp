@@ -749,17 +749,17 @@ unsigned char W8SplitAmountDialog::CreateButtons()
         }
     }
     m_buttons[0]->Configure("Data\\Dialogs\\popup_splititem.sti", 0xc, 9, 10, 0xd, 0xb,
-                                SplitDecrementOne, 0, 0, 0x7f, -1, SplitDecrementFive, 0);
-    m_buttons[1]->Configure("Data\\Dialogs\\popup_splititem.sti", 7, 4, 5, 8, 6,
-                                SplitIncrementOne, 0, 0, 0x7f, -1, SplitIncrementFive, 0);
-    m_buttons[2]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0,
-                                -1, 0, 0);
+                            SplitDecrementOne, 0, false, 0x7f, -1, SplitDecrementFive, 0);
+    m_buttons[1]->Configure("Data\\Dialogs\\popup_splititem.sti", 7, 4, 5, 8, 6, SplitIncrementOne,
+                            0, false, 0x7f, -1, SplitIncrementFive, 0);
+    m_buttons[2]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false, 0,
+                            -1, 0, 0);
     m_buttons[3]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1,
-                                SplitActivateField, 0, 0, 0x7f, -1, 0, 0);
+                            SplitActivateField, 0, false, 0x7f, -1, 0, 0);
     m_buttons[4]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                                SplitAccept, 0, 0, 0x7f, -1, 0, 0);
+                            SplitAccept, 0, false, 0x7f, -1, 0, 0);
     m_buttons[5]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7,
-                                SplitCancel, 0, 0, 0x7f, -1, 0, 0);
+                            SplitCancel, 0, false, 0x7f, -1, 0, 0);
     m_buttons[0]->m_fires_on_press = 1;
     m_buttons[1]->m_fires_on_press = 1;
     for (index = 0; index < 6; ++index) {
@@ -856,7 +856,7 @@ void W8SplitAmountDialog::Draw()
         }
     }
     if (m_split_input != 0) {
-        m_split_input->Draw(0);
+        m_split_input->Draw(false);
     }
 }
 
@@ -884,25 +884,25 @@ void W8SplitAmountDialog::UpdateTextBuffers()
 void W8SplitAmountDialog::UpdateButtonStates()
 {
     if (m_taken == 0) {
-        m_buttons[0]->SetEnabled(0);
+        m_buttons[0]->SetEnabled(false);
         m_buttons[0]->m_dirty = true;
     } else if (m_buttons[0]->IsEnabled() == 0) {
-        m_buttons[0]->SetEnabled(1);
+        m_buttons[0]->SetEnabled(true);
         m_buttons[0]->m_dirty = true;
     }
     if (m_remaining == 0) {
-        m_buttons[1]->SetEnabled(0);
+        m_buttons[1]->SetEnabled(false);
         m_buttons[1]->m_dirty = true;
     } else if (m_buttons[1]->IsEnabled() == 0) {
-        m_buttons[1]->SetEnabled(1);
+        m_buttons[1]->SetEnabled(true);
         m_buttons[1]->m_dirty = true;
     }
     if (m_remaining < 0) {
-        m_buttons[4]->SetEnabled(0);
+        m_buttons[4]->SetEnabled(false);
         m_buttons[4]->m_dirty = true;
         return;
     }
-    m_buttons[4]->SetEnabled(1);
+    m_buttons[4]->SetEnabled(true);
     m_buttons[4]->m_dirty = true;
 }
 
@@ -972,7 +972,7 @@ unsigned char W8SplitAmountDialog::ProcessInput()
             break;
         case LEFT_BUTTON_UP:
             if (m_active_field != 0) {
-                m_active_field->SetActive(0);
+                m_active_field->SetActive(false);
             }
             MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
                                         gfRightButtonState);
@@ -1106,7 +1106,7 @@ void W8SplitAmountDialog::SplitActivateField(W8DialogButton* button)
             }
             point.x -= g_split_amount_field_bounds.left;
             point.y -= g_split_amount_field_bounds.top;
-            dialog->m_split_input->SetActive(1, &point);
+            dialog->m_split_input->SetActive(true, &point);
             dialog->m_active_field = dialog->m_split_input;
         }
     }
@@ -1169,31 +1169,31 @@ unsigned char W8TriggerItemPickerDialog::CreateButtons()
         m_buttons[index]->m_owner = this;
     }
     m_buttons[0]->Configure("Data\\Dialogs\\popup_chest_selectionbuttons.sti", 3, 0, 1, 2, 2,
-                               ToggleAllItems, 0, 0, 0x7f, 0x15, 0, 0);
-    m_buttons[1]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 0xd, 10, 0xb, 0xc,
-                               0xc, TakeSelectedToParty, 0, 0, 0x7f, 0x13, 0, 0);
+                            ToggleAllItems, 0, false, 0x7f, 0x15, 0, 0);
+    m_buttons[1]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 0xd, 10, 0xb, 0xc, 0xc,
+                            TakeSelectedToParty, 0, false, 0x7f, 0x13, 0, 0);
     m_buttons[2]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 3, 0, 1, 2, 2,
-                               TakeSelectedToCharacter, 0, 0, 0x7f, 0x14, 0, 0);
+                            TakeSelectedToCharacter, 0, false, 0x7f, 0x14, 0, 0);
     m_buttons[3]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 8, 5, 6, 7, 7,
-                               CloseOwningDialog, 0, 0, 0x7f, 0x16, 0, 0);
-    m_buttons[4]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 0, -1, -1, -1, 0, 0, 0, 0, -1,
-                               0, 0);
-    m_buttons[5]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1,
-                               ToggleVisibleItem0, 0, 1, 0x7e, -1, ShowVisibleItemInfo0, 0);
-    m_buttons[6]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1,
-                               ToggleVisibleItem1, 0, 1, 0x7e, -1, ShowVisibleItemInfo1, 0);
-    m_buttons[7]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1,
-                               ToggleVisibleItem2, 0, 1, 0x7e, -1, ShowVisibleItemInfo2, 0);
-    m_buttons[8]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1,
-                               ToggleVisibleItem3, 0, 1, 0x7e, -1, ShowVisibleItemInfo3, 0);
-    m_buttons[9]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 3, 0, 1, 2, 2,
-                               ScrollItemsUp, 0, 0, 0x7f, -1, 0, 0);
+                            CloseOwningDialog, 0, false, 0x7f, 0x16, 0, 0);
+    m_buttons[4]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 0, -1, -1, -1, 0, 0, false, 0,
+                            -1, 0, 0);
+    m_buttons[5]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, ToggleVisibleItem0,
+                            0, true, 0x7e, -1, ShowVisibleItemInfo0, 0);
+    m_buttons[6]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, ToggleVisibleItem1,
+                            0, true, 0x7e, -1, ShowVisibleItemInfo1, 0);
+    m_buttons[7]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, ToggleVisibleItem2,
+                            0, true, 0x7e, -1, ShowVisibleItemInfo2, 0);
+    m_buttons[8]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, ToggleVisibleItem3,
+                            0, true, 0x7e, -1, ShowVisibleItemInfo3, 0);
+    m_buttons[9]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 3, 0, 1, 2, 2, ScrollItemsUp,
+                            0, false, 0x7f, -1, 0, 0);
     m_buttons[10]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 0xb, 8, 9, 10, 10,
-                                ScrollItemsDown, 0, 0, 0x7f, -1, 0, 0);
-    m_buttons[11]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 7, 4, 5, 6, 6, 0, 0, 0,
-                                0, -1, 0, 0);
+                             ScrollItemsDown, 0, false, 0x7f, -1, 0, 0);
+    m_buttons[11]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 7, 4, 5, 6, 6, 0, 0, false,
+                             0, -1, 0, 0);
     m_buttons[12]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 3, 3, 3, 3, 0,
-                                ScrollItemsToMouse, 0, 0x7e, -1, 0, 0);
+                             ScrollItemsToMouse, false, 0x7e, -1, 0, 0);
     m_buttons[5]->m_right_toggles = 1;
     m_buttons[6]->m_right_toggles = 1;
     m_buttons[7]->m_right_toggles = 1;
@@ -1237,8 +1237,8 @@ void W8TriggerItemPickerDialog::RefreshScrollButtons()
         if (item < items.GetCount()) {
             (*button)->SetPressed(IsItemSelected(item));
         } else if ((*button)->IsPressed() != 0) {
-            (*button)->SetPressed(0);
-            (*button)->SetVisible(0);
+            (*button)->SetPressed(false);
+            (*button)->SetVisible(false);
         }
         ++button;
     }
@@ -1280,7 +1280,7 @@ void W8TriggerItemPickerDialog::ToggleItem(int index, W8DialogButton* button)
 {
     bool selected = !IsItemSelected(index);
     if (index < 0 || index >= items.GetCount()) {
-        button->SetPressed(0);
+        button->SetPressed(false);
     } else {
         SetItemSelected(index, selected);
     }
@@ -1304,9 +1304,10 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
             W8ItemInstance* instance = CopyWorldItemInstance(*items.GetAt(index));
             bool added;
             if (destination == -1) {
-                added = AddItemToParty(instance, 1, 0);
+                added = AddItemToParty(instance, 1, false);
             } else {
-                added = AddItemToCharacter(&g_status.buffers.Char[destination], instance, 0, 1, 0);
+                added =
+                    AddItemToCharacter(&g_status.buffers.Char[destination], instance, 0, 1, false);
             }
             if (added) {
                 items.RemoveAt(index);
@@ -1756,7 +1757,7 @@ void W8TriggerItemPickerDialog::Draw()
         CreateControls();
     }
     if (gXStatus.fCombatMode) {
-        m_buttons[2]->SetEnabled(0);
+        m_buttons[2]->SetEnabled(false);
     }
     if ((m_dirty_flags & 1) != 0) {
         for (int index = 0; index < 13; ++index) {
@@ -1768,10 +1769,10 @@ void W8TriggerItemPickerDialog::Draw()
     }
 
     if (count > 4) {
-        m_buttons[12]->SetVisible(1);
-        m_buttons[9]->SetVisible(1);
-        m_buttons[10]->SetVisible(1);
-        m_buttons[11]->SetVisible(1);
+        m_buttons[12]->SetVisible(true);
+        m_buttons[9]->SetVisible(true);
+        m_buttons[10]->SetVisible(true);
+        m_buttons[11]->SetVisible(true);
         if (m_buttons[12]->m_dirty) {
             m_buttons[9]->m_dirty = true;
             m_buttons[10]->m_dirty = true;
@@ -1801,10 +1802,10 @@ void W8TriggerItemPickerDialog::Draw()
                                           travel * progress / items.GetCount() + 1);
         m_buttons[11]->Draw();
     } else {
-        m_buttons[12]->SetVisible(0);
-        m_buttons[9]->SetVisible(0);
-        m_buttons[10]->SetVisible(0);
-        m_buttons[11]->SetVisible(0);
+        m_buttons[12]->SetVisible(false);
+        m_buttons[9]->SetVisible(false);
+        m_buttons[10]->SetVisible(false);
+        m_buttons[11]->SetVisible(false);
     }
 
     m_buttons[4]->SetPosition(m_x + 7, m_y + m_height - m_buttons[4]->GetHeight() - 5);
@@ -1827,7 +1828,7 @@ void W8TriggerItemPickerDialog::Draw()
     for (int row = 0; row < visible_rows; ++row) {
         W8DialogButton* button = m_buttons[5 + row];
 
-        button->SetVisible(1);
+        button->SetVisible(true);
         button->SetPosition(m_x + 7, m_y + button->GetHeight() * row + 7);
         if (!button->m_dirty) {
             continue;

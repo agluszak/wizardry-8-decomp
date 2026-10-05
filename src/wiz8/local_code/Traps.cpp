@@ -288,10 +288,10 @@ static void DischargeTrapSpell(srVector3T<float> point, int spell_id, unsigned i
     ResetTargetSource(&source);
     source.iType = W8_TARGET_SOURCE_INDIRECT;
     source.point = point;
-    if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_POINT) {
+    if (GetSpellTargetType(spell_id, false) == W8_TARGET_TYPE_POINT) {
         target.iType = W8_TARGET_KIND_PLACE;
         target.point = g_startup_world->GetPosition();
-        CastSpellFromSource(spell_id, &source, &target, power_level, 0, 0, 0, 0, 0, 0, 0);
+        CastSpellFromSource(spell_id, &source, &target, power_level, 0, 0, false, 0, 0, 0, 0);
     } else {
         ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_PARTY;
@@ -314,7 +314,8 @@ static void DischargeTrapSpell(srVector3T<float> point, int spell_id, unsigned i
                 targets.RemoveAt(index);
             }
         }
-        CastSpellFromSource(spell_id, &source, &target, power_level, 0, 0, 0, 0, 0, &targets, 0);
+        CastSpellFromSource(spell_id, &source, &target, power_level, 0, 0, false, 0, 0, &targets,
+                            0);
     }
 }
 
@@ -363,6 +364,6 @@ void ResolveSprungTrap(Trigger* trigger)
                   (minimum.z + maximum.z) * g_double_005ebe80);
     }
     GetCameraPosition(&camera);
-    g_octree->TraceLineOfSight(&camera, &point, 1, -3, -3, 1, 0);
+    g_octree->TraceLineOfSight(&camera, &point, true, -3, -3, true, 0);
     DischargeTrapSpell(point, g_table2[type + 11], power, count);
 }

@@ -92,7 +92,7 @@ int W8ProfRaceInfoDialogBase::CreateControls()
     m_scroll_bar.m_owner = this;
 
     m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                           DialogCloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
+                       DialogCloseButtonCallback, 0, false, 0x7f, -1, 0, 0);
     m_button.SetPosition(m_x + 0x14f, m_y + 0xe8);
     m_button.m_owner = this;
     return 0;
@@ -140,7 +140,7 @@ void W8ProfRaceInfoDialogBase::Draw()
         }
     }
     m_text_area.Draw(0);
-    m_scroll_bar.Draw(0);
+    m_scroll_bar.Draw(false);
     m_button.Draw();
 }
 
@@ -155,7 +155,7 @@ void W8ProfRaceInfoDialogBase::DrawTextLine(unsigned int layout_mode, int left, 
     bounds.right = bounds.left + width;
     bounds.top = m_y + top;
     bounds.bottom = bounds.top + height;
-    buffer.SetLayoutBounds(&bounds, 1, 1);
+    buffer.SetLayoutBounds(&bounds, true, true);
     buffer.SetText(text, font);
     buffer.RenderToTarget(0, 0, -0xe);
 }

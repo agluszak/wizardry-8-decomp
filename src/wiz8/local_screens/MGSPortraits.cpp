@@ -598,7 +598,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled)
             bounds.top = menu_y + 0x3e;
             bounds.bottom = menu_y + 0x46;
             text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-            text.SetLayoutBounds(&bounds, 1, 1);
+            text.SetLayoutBounds(&bounds, true, true);
             SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
             text.SetText(FormatWideString(g_format_d, character->hp_current), g_smfnt_font);
             InvalidateRegion(bounds.left, bounds.top + 1, bounds.right, bounds.bottom, 0);
@@ -686,7 +686,7 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
                 (g_portrait_descriptors[portrait].render_mode == 2 && (party_slot & 1) != 0)) {
                 flags = 0x1002;
             }
-            if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 0) &&
+            if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, false) &&
                 ((gXStatus.fCombatMode && g_combat_state->characters[party_slot].dead) ||
                  gXStatus.fSurprisePossible ||
                  character->highest_condition == W8_CONDITION_MISSING)) {
@@ -881,7 +881,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
             if (gXStatus.fCombatMode) {
                 entry->combat_portrait_dirty = 1;
             }
-            g_condition_buttons[party_slot]->Invalidate(0);
+            g_condition_buttons[party_slot]->Invalidate(false);
         }
 
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
@@ -1017,7 +1017,7 @@ portrait_fx:
     }
 
     if (!gXStatus.fCombatMode && party_slot < 8 && party_row->fOccupied) {
-        g_portrait_controls[party_slot]->Invalidate(0);
+        g_portrait_controls[party_slot]->Invalidate(false);
     }
 
     if (g_level_block->portrait_overlay_party_slot == static_cast<int>(party_slot)) {
@@ -1110,7 +1110,7 @@ void DisablePortraitControls(void)
     RegionSetDisable(5);
     W8TextControl** control = g_portrait_controls;
     do {
-        (*control)->SetActive(0);
+        (*control)->SetActive(false);
         ++control;
     } while (control < g_portrait_controls + 8);
 }
@@ -1169,7 +1169,7 @@ void EnablePortraitAdvanceRegions(void)
 void InvalidatePortraitControl(unsigned int party_slot)
 {
     if (party_slot < 8 && g_status.buffers.XChar[party_slot].fOccupied) {
-        g_portrait_controls[party_slot]->Invalidate(0);
+        g_portrait_controls[party_slot]->Invalidate(false);
     }
 }
 
@@ -1417,28 +1417,28 @@ void UpdateConditionButtons(void)
                 if (image != 0) {
                     if (button->m_image_object != image) {
                         button->m_image_object = image;
-                        button->Invalidate(0);
+                        button->Invalidate(false);
                     }
                     if (button->m_condition != 1) {
                         button->m_condition = 1;
-                        button->Invalidate(0);
+                        button->Invalidate(false);
                     }
                 }
             } else {
                 if (button->m_image_object != image) {
                     button->m_image_object = image;
-                    button->Invalidate(0);
+                    button->Invalidate(false);
                 }
                 if (button->m_condition != 0) {
                     button->m_condition = 0;
-                    button->Invalidate(0);
+                    button->Invalidate(false);
                 }
             }
         }
         if (image == 0) {
             if (button->m_active) {
                 button->SetActive(false);
-                button->Invalidate(0);
+                button->Invalidate(false);
                 if (g_level_block->portrait_refresh_pending[slot] == 0 &&
                     !entry->keyboard_menu_open) {
                     ClearSurfaceRect(button->m_left + g_condition_buttons_panel->m_bounds.left,
@@ -1455,7 +1455,7 @@ void UpdateConditionButtons(void)
             }
         } else if (!button->m_active) {
             button->SetActive(true);
-            button->Invalidate(0);
+            button->Invalidate(false);
         }
     }
     g_condition_buttons_panel->Redraw();

@@ -200,10 +200,10 @@ static W8WorldItem* CreateTableItem(int item_id, const srVector3T<float>* positi
     if (item_id == -1) {
         item_pointer = 0;
     } else {
-        ReplaceOrCreateItem(&item, item_id, 0, 0, 0);
+        ReplaceOrCreateItem(&item, item_id, false, false, false);
         item_pointer = &item;
     }
-    result = CreateWorldItem(item_pointer, position, 3, 0);
+    result = CreateWorldItem(item_pointer, position, 3, false);
     if (result == 0) {
         srAssertFail("pItemInfo", "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp", 0x18e,
                      0);
@@ -686,7 +686,7 @@ void ActivateItem(W8WorldItem* item)
         }
     }
 
-    if (!LoadItemFromFile(&info, zItemName, &item->p3D, 0)) {
+    if (!LoadItemFromFile(&info, zItemName, &item->p3D, false)) {
         srAssertFail("fSuccess", ITEM_MANAGER_CPP, 0x1f2,
                      FormatString("ActivateItem: ERROR - ItemRead %s failed", zItemName));
     }
@@ -712,7 +712,7 @@ void ActivateItem(W8WorldItem* item)
         sun_position = sun->getLocation();
         mesh = static_cast<stModelInstance*>(item->p3D->GetMesh());
         if (mesh != 0) {
-            if (g_octree->HasLineOfSight(&position, &sun_position, 1)) {
+            if (g_octree->HasLineOfSight(&position, &sun_position, true)) {
                 mesh->light_scale = 1.0f;
             } else {
                 mesh->light_scale = 0.0f;
@@ -887,7 +887,7 @@ void DropHeldItem(int arg_1)
     srVector3T<float> camera;
     GetCameraPosition(&camera);
     direction += camera;
-    g_octree->TraceLineOfSight(&camera, &direction, 1, -3, -3, 1, 0);
+    g_octree->TraceLineOfSight(&camera, &direction, true, -3, -3, true, 0);
 
     srVector3T<float> delta = direction - camera;
     float distance_squared = delta.LengthSquared();
@@ -902,8 +902,8 @@ void DropHeldItem(int arg_1)
 
     srVector3T<float> position = camera + delta;
     position.y = g_octree->SettleToGround(&position, 0, 1, 250.0f) + g_float_005ec3f8;
-    if (FindNearbyFreePosition(250.0f, &position, 1, 1) != 0) {
-        W8WorldItem* item = CreateWorldItem(&g_status.item_in_hand, &position, 3, 1);
+    if (FindNearbyFreePosition(250.0f, &position, true, true) != 0) {
+        W8WorldItem* item = CreateWorldItem(&g_status.item_in_hand, &position, 3, true);
         if (item == 0) {
             // Retail passes the NULL item pointer as the assert message.
             // reinterpret-ok: pointer-valued assert message argument.
@@ -984,7 +984,7 @@ unsigned char InteractWithWorldItem(int runtime_id)
         }
     }
     if ((static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & 4) == 0) {
-        CopyItemInstance(&g_status.item_in_hand, &item->item, 0, 1);
+        CopyItemInstance(&g_status.item_in_hand, &item->item, 0, true);
     }
     index = ItemIndex(runtime_id);
     item = ItemInfo(index);
@@ -1240,7 +1240,7 @@ void RebuildAllWorldItemInstances(void)
 
     for (index = 0; index < PLLength(gXStatus.plsItemList); ++index) {
         item = ItemInfo(index);
-        ReplaceOrCreateItem(&item->item, item->item.iItemNo, 0, 0, 0);
+        ReplaceOrCreateItem(&item->item, item->item.iItemNo, false, false, false);
     }
 }
 
@@ -1255,7 +1255,7 @@ W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* posi
     }
 
     memset(result, 0, sizeof(W8WorldItem));
-    EmptyItemRecord(&result->item, 0, 1);
+    EmptyItemRecord(&result->item, 0, true);
     result->runtime_id = g_status.next_world_item_id++;
     result->fActive = 0;
     result->p3D = 0;
@@ -1265,7 +1265,7 @@ W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* posi
     result->entity_flags = entity_flags;
 
     if (item != 0) {
-        CopyItemInstance(&result->item, item, 0, 1);
+        CopyItemInstance(&result->item, item, 0, true);
     }
     if (add_to_world && PLAdoptAppend(gXStatus.plsItemList, result) == -1) {
         return 0;
@@ -1284,7 +1284,7 @@ W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int entit
     if (item_id == -1) {
         item = 0;
     } else {
-        ReplaceOrCreateItem(&local_item, item_id, 0, 0, 0);
+        ReplaceOrCreateItem(&local_item, item_id, false, false, false);
         item = &local_item;
     }
 
@@ -1329,7 +1329,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                     int rolls = RollDice(&entry->dice);
                     for (roll = 0; roll < rolls; ++roll) {
                         if (entry->type == 0) {
-                            item = SpawnItem(entry->item_id, &position, 3, 0);
+                            item = SpawnItem(entry->item_id, &position, 3, false);
                             if (item != 0) {
                                 items.Add(item);
                             }
@@ -1341,14 +1341,14 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
             }
             gold = RollDice(&record->treasure.gold_dice);
         } else {
-            W8NpcState* npc = GetNpcStateForMonsterInfo(monster_info, 1);
+            W8NpcState* npc = GetNpcStateForMonsterInfo(monster_info, true);
             if (npc == 0) {
                 srAssertFail("pNPC", ITEM_MANAGER_CPP, 1459,
                              FormatString("Monster %S marked as NPC with no NPC data", record));
             }
             for (index = 0; index < 40; ++index) {
                 if (npc->item_ids[index] != -1 && npc->item_weights[index] == 0) {
-                    item = SpawnItem(npc->item_ids[index], &position, 3, 0);
+                    item = SpawnItem(npc->item_ids[index], &position, 3, false);
                     if (item != 0) {
                         items.Add(item);
                     }
@@ -1379,7 +1379,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                         static_cast<short>(Random(total_weight)) <=
                             static_cast<short>(
                                 static_cast<signed char>(npc->item_weights[pick]))) {
-                        item = SpawnItem(npc->item_ids[pick], &position, 3, 0);
+                        item = SpawnItem(npc->item_ids[pick], &position, 3, false);
                         if (item != 0) {
                             items.Add(item);
                         }
@@ -1391,7 +1391,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
             gold = npc->gold;
         }
         if (gold != 0) {
-            AddPartyGold(gold, 1);
+            AddPartyGold(gold, true);
         }
         if (items.GetCount() <= 1) {
             item = *items.GetAt(0);
@@ -1401,9 +1401,9 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
             W8WorldItem* container;
             int item_index;
             if (value == -1) {
-                container = SpawnItem(0x23c, &position, 2, 1);
+                container = SpawnItem(0x23c, &position, 2, true);
             } else {
-                container = SpawnItem(value, &position, 3, 1);
+                container = SpawnItem(value, &position, 3, true);
             }
             for (item_index = 0; item_index < items.GetCount(); ++item_index) {
                 ItemInfoAddToGroup(container, *items.GetAt(item_index));

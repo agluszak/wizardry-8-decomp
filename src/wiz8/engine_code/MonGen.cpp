@@ -414,7 +414,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
                      FormatString("Error in Monster DB: zero group size (%S)", record->name0));
     }
 
-    group = CreateGroup(species, count, &spawn_position, 0, 0, 1);
+    group = CreateGroup(species, count, &spawn_position, false, false, true);
     group->encounter_registered = 1;
     SetMonsterGroupFormation(group, &this->spawn_position);
     if (group != 0 && group->encounter_registered && g_active_groups.IndexOf(group) == -1) {
@@ -423,7 +423,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
 
     W8Monster* monster = GetMonsterByLocationID(group->leader_location_id);
     if (monster != 0) {
-        monster->SetScript(script != 0 && script[0] != '\0' ? script : "Default.MSF", 1);
+        monster->SetScript(script != 0 && script[0] != '\0' ? script : "Default.MSF", true);
     }
 
     for (index = 0; index < 2; ++index) {
@@ -450,8 +450,8 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
 
         int companion_group_count = RollDice(&companion_record->group_size_dice);
         companion_count += companion_group_count;
-        W8MonsterGroup* companion_group =
-            CreateGroup(companion_species, companion_group_count, &spawn_position, 0, 0, 1);
+        W8MonsterGroup* companion_group = CreateGroup(companion_species, companion_group_count,
+                                                      &spawn_position, false, false, true);
         companion_group->encounter_registered = 1;
         SetMonsterGroupFormation(companion_group, &this->spawn_position);
         LinkMonsterGroupToLeader(group, companion_group);
@@ -492,7 +492,7 @@ unsigned char MonGen::CanGenerateEncounter(bool force)
         if (distance > 200000.0f || distance < 35000.0f) {
             return 0;
         }
-        if (g_octree != 0 && g_octree->HasLineOfSight(&camera, &spawn_position, 1)) {
+        if (g_octree != 0 && g_octree->HasLineOfSight(&camera, &spawn_position, true)) {
             return 0;
         }
     }
@@ -818,7 +818,7 @@ void RunMonsterGenerators(void)
     for (index = 0; index < count; ++index) {
         generator = *g_world->monster_generators->GetAt(index);
         if (generator->m_pTimer != 0 && generator->m_pTimer->PollElapsedIntervals() != 0) {
-            if (generator->CanGenerateEncounter(0) != 0) {
+            if (generator->CanGenerateEncounter(false) != 0) {
                 generator->GenerateEncounter(&generator->spawn_position);
             }
             generator->Reset();
@@ -1102,7 +1102,7 @@ void RollRandomEncounters(void)
 
     for (int index = 0; index < count; ++index) {
         MonGen* generator = *generators.GetAt(index);
-        if (generator->CanGenerateEncounter(1) != 0) {
+        if (generator->CanGenerateEncounter(true) != 0) {
             generator->GenerateEncounter(&generator->spawn_position);
         }
     }

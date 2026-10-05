@@ -398,7 +398,7 @@ static void UpdateFormationCells(void)
             g_formation_cell_slots[cell] = slot;
             if (slot == g_status.selected_character &&
                 (primary->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
-                primary->EnableSecondaryState(0);
+                primary->EnableSecondaryState(false);
             }
         }
     }
@@ -417,10 +417,10 @@ static void SelectFormationCell(void)
             W8TextControl* control = g_formation_cell_controls[index];
 
             if (index == g_formation_active_cell) {
-                control->EnableSecondaryState(0);
+                control->EnableSecondaryState(false);
             } else if ((control->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-                control->DisableSecondaryState(0);
-                g_formation_cell_overlays[index]->Invalidate(0);
+                control->DisableSecondaryState(false);
+                g_formation_cell_overlays[index]->Invalidate(false);
             }
         }
         SelectPartyCharacter(g_formation_cell_slots[g_formation_active_cell]);
@@ -439,14 +439,14 @@ static void AcceptFormationChanges(void)
         if (g_status.buffers.XChar[slot].fOccupied && CanHoldFormationPlace(slot) &&
             gXStatus.edited_formation.positions[slot].bQuadrant !=
                 g_status.formation.positions[slot].bQuadrant) {
-            StartBreathCycle(slot, 0);
+            StartBreathCycle(slot, false);
         }
     }
     if (!gXStatus.fCombatMode) {
         ReconcilePartyFormation(&gXStatus.edited_formation, &g_status.formation);
     } else if (memcmp(&g_status.formation, &gXStatus.edited_formation,
                       sizeof(W8PartyFormationState)) != 0) {
-        ShowNotice(8, gppStringList[0x7d9], -1, -1, 0);
+        ShowNotice(8, gppStringList[0x7d9], -1, -1, false);
     }
     RefreshFormationBoard();
     RefreshRadarMap();
@@ -475,7 +475,7 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
         return 0;
     }
     if (g_formation_cell_slots[region->callback_id] == -1) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         if (event->usEvent != LEFT_BUTTON_UP) {
             return 1;
         }
@@ -493,13 +493,13 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
                     return 1;
                 }
                 BeginFormationDrag(event);
-                g_formation_cell_overlays[region->callback_id]->Invalidate(0);
+                g_formation_cell_overlays[region->callback_id]->Invalidate(false);
                 return 1;
             }
         } else {
             if (event->usEvent == LEFT_BUTTON_DOWN) {
                 g_formation_cell_controls[region->callback_id]->OnLeftButtonDown(0);
-                g_formation_cell_overlays[region->callback_id]->Invalidate(0);
+                g_formation_cell_overlays[region->callback_id]->Invalidate(false);
                 region->flags |= W8_REGION_LEFT_BUTTON_HELD;
                 g_formation_drag_clock = SetCountdownClock(0xfa);
                 return 1;
@@ -510,7 +510,7 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
             if (g_formation_cell_slots[region->callback_id] != -1) {
                 g_formation_active_cell = region->callback_id;
                 g_formation_cell_controls[region->callback_id]->OnLeftButtonUp(0);
-                g_formation_cell_overlays[region->callback_id]->Invalidate(0);
+                g_formation_cell_overlays[region->callback_id]->Invalidate(false);
             }
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
@@ -527,12 +527,12 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             g_formation_cell_controls[region->callback_id]->OnMouseLeave(0);
             g_formation_cell_overlays[region->callback_id]->OnMouseLeave(0);
-            g_formation_cell_overlays[region->callback_id]->Invalidate(0);
+            g_formation_cell_overlays[region->callback_id]->Invalidate(false);
             if (gfLeftButtonState != 0 && g_formation_drag_cell == -1 &&
                 CanHoldFormationPlace(g_formation_cell_slots[region->callback_id])) {
                 g_formation_active_cell = region->callback_id;
                 BeginFormationDrag(event);
-                g_formation_cell_overlays[region->callback_id]->Invalidate(0);
+                g_formation_cell_overlays[region->callback_id]->Invalidate(false);
             }
             g_formation_active_cell = -1;
             SetTooltipSubject(7, -1);
@@ -543,7 +543,7 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
         }
         g_formation_cell_controls[region->callback_id]->OnMouseEnter(0);
         g_formation_cell_overlays[region->callback_id]->OnMouseEnter(0);
-        g_formation_cell_overlays[region->callback_id]->Invalidate(0);
+        g_formation_cell_overlays[region->callback_id]->Invalidate(false);
         g_formation_active_cell = region->callback_id;
         SetTooltipSubject(7, g_formation_cell_slots[region->callback_id]);
     }
@@ -589,7 +589,7 @@ unsigned char FormationBackgroundRegionEvent(const InputAtom* event, W8Region*)
     if (!gXStatus.fReviewCharacterMode) {
         return 0;
     }
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     SGPMouseGetPos(&point);
     switch (event->usEvent) {
     case LEFT_BUTTON_UP:
@@ -618,7 +618,7 @@ static void BeginFormationDrag(const InputAtom*)
     int sprite;
 
     SelectFormationCell();
-    g_formation_cell_controls[g_formation_active_cell]->DisableSecondaryState(0);
+    g_formation_cell_controls[g_formation_active_cell]->DisableSecondaryState(false);
     g_formation_drag_slot = g_formation_cell_slots[g_formation_active_cell];
     g_formation_drag_cell = g_formation_active_cell;
     g_formation_cell_slots[g_formation_active_cell] = -1;
@@ -645,8 +645,8 @@ static void DropFormationSlot(int cell)
 {
     if (cell != -1 && cell != g_formation_drag_cell) {
         if (g_formation_cell_slots[cell] == -1) {
-            SetFormationPosition(&gXStatus.edited_formation, g_formation_drag_slot, -1, -1, 0, 1,
-                                 1);
+            SetFormationPosition(&gXStatus.edited_formation, g_formation_drag_slot, -1, -1, false,
+                                 true, true);
             SeatFormationSlotInRow(&gXStatus.edited_formation, g_formation_drag_slot, cell / 3);
         } else if (!CanHoldFormationPlace(g_formation_cell_slots[cell])) {
             cell = -1;
@@ -676,13 +676,13 @@ void ResetFormationCellControls(int cell)
     g_formation_cell_controls[cell]->m_pressedSprite = -1;
     g_formation_cell_controls[cell]->m_alternatePressedSprite = -1;
     g_formation_cell_controls[cell]->m_disabledSprite = -1;
-    g_formation_cell_controls[cell]->Invalidate(1);
+    g_formation_cell_controls[cell]->Invalidate(true);
     g_formation_cell_overlays[cell]->m_normalSprite = -1;
     g_formation_cell_overlays[cell]->m_alternateNormalSprite = -1;
     g_formation_cell_overlays[cell]->m_pressedSprite = -1;
     g_formation_cell_overlays[cell]->m_alternatePressedSprite = -1;
     g_formation_cell_overlays[cell]->m_disabledSprite = -1;
-    g_formation_cell_overlays[cell]->Invalidate(1);
+    g_formation_cell_overlays[cell]->Invalidate(true);
 }
 
 /* Highlight the cell holding one party slot and un-highlight the rest. */
@@ -695,11 +695,11 @@ void SelectFormationSlotCell(int party_slot)
         W8TextControl* control = g_formation_cell_controls[index];
 
         if (g_formation_cell_slots[index] == party_slot) {
-            control->EnableSecondaryState(0);
-            g_formation_cell_overlays[index]->Invalidate(0);
+            control->EnableSecondaryState(false);
+            g_formation_cell_overlays[index]->Invalidate(false);
         } else if ((control->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-            control->DisableSecondaryState(0);
-            g_formation_cell_overlays[index]->Invalidate(0);
+            control->DisableSecondaryState(false);
+            g_formation_cell_overlays[index]->Invalidate(false);
         }
     }
 }

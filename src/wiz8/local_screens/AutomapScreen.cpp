@@ -438,7 +438,7 @@ void CreateAutomapButtons(void)
                 W8DialogButtonCallback callback = reinterpret_cast<W8DialogButtonCallback>(
                     g_automap_button_callbacks[index]); // reinterpret-ok: void() vs button*
                 if (g_automap_buttons[index]->ConfigureVObjButton(object, base_frame, callback,
-                                                                  0) != 0) {
+                                                                  false) != 0) {
                     g_automap_buttons[index]->SetPosition(g_automap_button_positions[index].x,
                                                           g_automap_button_positions[index].y);
                     g_automap_buttons[index]->SetTooltipIndex(g_automap_button_tooltips[index]);
@@ -479,8 +479,8 @@ void AutomapZoomOutButton(void)
             if (g_automap_position.y <= height) {
                 g_automap_position.y = height;
                 if (g_automap_buttons != 0) {
-                    g_automap_buttons[0]->SetEnabled(1);
-                    g_automap_buttons[1]->SetEnabled(1);
+                    g_automap_buttons[0]->SetEnabled(true);
+                    g_automap_buttons[1]->SetEnabled(true);
                     g_automap_buttons[0]->m_dirty = true;
                     g_automap_buttons[0]->Draw();
                     g_automap_buttons[1]->m_dirty = true;
@@ -661,7 +661,7 @@ unsigned char AutomapScreenEnter(void)
         if (monster->p3D)
             monster->p3D->DetachRepresentation(g_world);
     }
-    for (W8WorldItem* item = GetNextWorldItem(1); item; item = GetNextWorldItem(0)) {
+    for (W8WorldItem* item = GetNextWorldItem(true); item; item = GetNextWorldItem(false)) {
         if (item->p3D)
             item->p3D->DetachMesh(g_world);
     }
@@ -686,7 +686,7 @@ unsigned char AutomapScreenEnter(void)
     }
     g_automap_redraw = true;
     g_automap_overlay_redraw = true;
-    SetPrimarySurfaceTextureHint2Enabled(0);
+    SetPrimarySurfaceTextureHint2Enabled(false);
     ClearSurfaceRect(0, 0, 640, 480);
     DisableCursorScene();
     DrawCatalogImageAndInvalidate(-14, 0x14a, 0, 0, 0, 0, 2, 0);
@@ -1116,14 +1116,14 @@ void SetAutomapButtonMode(int update)
         return;
     }
     if (update == 0) {
-        g_automap_buttons[0]->SetEnabled(1);
-        g_automap_buttons[1]->SetEnabled(0);
+        g_automap_buttons[0]->SetEnabled(true);
+        g_automap_buttons[1]->SetEnabled(false);
     } else if (update == 1) {
-        g_automap_buttons[0]->SetEnabled(1);
-        g_automap_buttons[1]->SetEnabled(1);
+        g_automap_buttons[0]->SetEnabled(true);
+        g_automap_buttons[1]->SetEnabled(true);
     } else if (update == 2) {
-        g_automap_buttons[0]->SetEnabled(0);
-        g_automap_buttons[1]->SetEnabled(1);
+        g_automap_buttons[0]->SetEnabled(false);
+        g_automap_buttons[1]->SetEnabled(true);
     }
     g_automap_buttons[0]->m_dirty = true;
     g_automap_buttons[0]->Draw();
@@ -1282,7 +1282,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
     to.z = position.z;
 
     float ground;
-    if (g_octree_game_data->octree->TraceLineOfSight(&from, &to, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree_game_data->octree->TraceLineOfSight(&from, &to, true, -3, -3, true, 0) == 0) {
         ground = g_automap_grid_min.y;
         if (g_automap_layers.count != 0 && 1 < g_automap_layers.count &&
             *g_automap_layers.GetAt(1) != 0) {
@@ -1475,7 +1475,7 @@ void LightAutomapCell(const srVector3T<float>* position)
     srArray<srVector3T<float> > vertices;
     float range = g_automap_range;
 
-    if (g_world->octree->CollectModelsNearPoint(&instances, position, range, 0, 0) != 0) {
+    if (g_world->octree->CollectModelsNearPoint(&instances, position, range, 0, false) != 0) {
         for (int index = 0; index < instances.GetCount(); ++index) {
             stModelInstance* instance = *instances.GetAt(index);
             if (instance == 0) {
@@ -1492,7 +1492,7 @@ void LightAutomapCell(const srVector3T<float>* position)
             bool inside =
                 (minimum - *position).Length() <= range && (maximum - *position).Length() <= range;
             while (model != 0) {
-                srVector3T<float>* lights = model->GetVertexLights(1, -1);
+                srVector3T<float>* lights = model->GetVertexLights(true, -1);
                 srVector3T<float>* source = model->getVertexLoc();
                 int count = model->vertex_location_count;
                 if (inside) {
@@ -1581,7 +1581,7 @@ void RenderAutomapFrame(void)
                 view.top = static_cast<double>(half);
                 g_world->camera->setViewPlane(view, static_cast<double>(g_automap_near_clip));
                 g_world->camera->setClipRange(g_automap_near_clip, 1500000.0);
-                RenderWorldToSurface(g_automap_surface, &g_automap_viewport, 0);
+                RenderWorldToSurface(g_automap_surface, &g_automap_viewport, false);
                 g_automap_overlay_redraw = false;
                 SetResidentTexturePolicy(0);
             }
@@ -1595,9 +1595,9 @@ void RenderAutomapFrame(void)
             UnlockPrimarySurface();
             RenderAutomapMarkers();
             InvalidateRegion(0xc, 0x20, 0x1d3, 0x1d3, 0);
-            SetRendererAutoFlipEnabled(0);
+            SetRendererAutoFlipEnabled(false);
             RenderFrame();
-            SetRendererAutoFlipEnabled(1);
+            SetRendererAutoFlipEnabled(true);
         }
         g_automap_redraw = false;
     }
@@ -1890,12 +1890,12 @@ void CreateAutomapMarkerSprites(void)
         if (surface != 0) {
             g_automap_party_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
-                                        surface->getHeight() * g_viewport_x_scale, 1, 1);
+                                        surface->getHeight() * g_viewport_x_scale, true, true);
             g_automap_party_marker->setParent(g_scene_square, 1);
             static_cast<srMeshModel*>(g_automap_party_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
-            g_automap_party_marker->SetGlowEnabled(1);
+            g_automap_party_marker->SetGlowEnabled(true);
             srVector4T<float> first;
             srVector4T<float> second;
             first.Set(0.0f, 0.25f, 0.0f, 1.0f);
@@ -1911,7 +1911,7 @@ void CreateAutomapMarkerSprites(void)
         if (surface != 0) {
             g_automap_friendly_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
-                                        surface->getHeight() * g_viewport_y_scale, 1, 0);
+                                        surface->getHeight() * g_viewport_y_scale, true, false);
             static_cast<srMeshModel*>(g_automap_friendly_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
@@ -1924,7 +1924,7 @@ void CreateAutomapMarkerSprites(void)
         if (surface != 0) {
             g_automap_neutral_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
-                                        surface->getHeight() * g_viewport_y_scale, 1, 0);
+                                        surface->getHeight() * g_viewport_y_scale, true, false);
             static_cast<srMeshModel*>(g_automap_neutral_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
@@ -1937,7 +1937,7 @@ void CreateAutomapMarkerSprites(void)
         if (surface != 0) {
             g_automap_hostile_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
-                                        surface->getHeight() * g_viewport_y_scale, 1, 0);
+                                        surface->getHeight() * g_viewport_y_scale, true, false);
             static_cast<srMeshModel*>(g_automap_hostile_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
@@ -1949,7 +1949,7 @@ void CreateAutomapMarkerSprites(void)
         if (surface != 0) {
             g_automap_text_marker =
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
-                                        surface->getHeight() * g_viewport_y_scale, 1, 0);
+                                        surface->getHeight() * g_viewport_y_scale, true, false);
             static_cast<srMeshModel*>(g_automap_text_marker->getModel())
                 ->enable(srMeshModel::CONTROL_STARTUP);
             surface->setFilter(&srBSplineFilter);
@@ -1989,7 +1989,7 @@ void RenderAutomapMarkers(void)
         }
         unsigned short width = g_automap_party_marker->GetScaledWidth();
         unsigned short height = g_automap_party_marker->GetScaledHeight();
-        PositionToolTipNode(g_automap_party_marker, x - (width >> 1), y - (height >> 1), 0);
+        PositionToolTipNode(g_automap_party_marker, x - (width >> 1), y - (height >> 1), false);
         g_automap_party_marker->setRotation(0.0, 0.0, -static_cast<double>(GetCameraYawRadians()));
         g_automap_party_marker->clearFlag(srNode::FLAG_DISABLE);
         g_automap_party_marker->setParent(0, 1);
@@ -2039,8 +2039,8 @@ void RenderAutomapMarkers(void)
             Position2DNodeUnsnapped(marker, x, y);
         }
     }
-    for (W8WorldItem* world_item = GetNextWorldItem(1); world_item != 0;
-         world_item = GetNextWorldItem(0)) {
+    for (W8WorldItem* world_item = GetNextWorldItem(true); world_item != 0;
+         world_item = GetNextWorldItem(false)) {
         W8Item* item = world_item->p3D;
         if (item == 0) {
             continue;
@@ -2071,7 +2071,7 @@ void RenderAutomapMarkers(void)
             if (marker != 0) {
                 unsigned short width = marker->GetScaledWidth();
                 unsigned short height = marker->GetScaledHeight();
-                PositionToolTipNode(marker, x - (width >> 1), y - (height >> 1), 0);
+                PositionToolTipNode(marker, x - (width >> 1), y - (height >> 1), false);
                 marker->setParent(g_scene_fullscreen, 1);
             }
         }
@@ -2167,7 +2167,7 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
     }
     static_cast<srMeshModel*>(marker->getModel())->enable(srMeshModel::CONTROL_STARTUP);
     g_automap_markers->Add(marker);
-    marker->SetGlowEnabled(1);
+    marker->SetGlowEnabled(true);
     srVector4T<float> first;
     srVector4T<float> second;
     second.Set(0.0f, 0.0f, 1.0f, 1.0f);
@@ -2223,7 +2223,7 @@ stModelInstance2D* CreateAutomapMonsterMarker(int type)
     }
     }
     g_automap_markers->Add(marker);
-    marker->SetGlowEnabled(1);
+    marker->SetGlowEnabled(true);
     marker->setRenderDepth(2000);
     /* Retail scales by 0.85 as a step of its own; written as one product, VC6
        folds 0.44 * 0.85 into a single constant. */
@@ -2258,7 +2258,7 @@ stModelInstance2D* CreateAutomapTextMarker(void)
     } else {
         marker->setScale(srVector3T<double>(factor, factor, factor));
     }
-    marker->SetGlowEnabled(1);
+    marker->SetGlowEnabled(true);
     srVector4T<float> first;
     srVector4T<float> second;
     second.Set(1.0f, 0.4f, 0.0f, 1.0f);

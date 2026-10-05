@@ -297,7 +297,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     CloseMainGameOverlays();
     mode = g_settings.main_ui_mode;
     if (mode == W8_MAIN_UI_MODE_RADAR) {
-        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 0);
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, false);
     } else {
         SetViewportMode(GetMainGameViewportMode());
     }
@@ -348,7 +348,7 @@ void CloseSpellCastingView(void)
         ReleaseSpellCastingViewControls();
         SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
         gXStatus.fSpellCastMode = false;
-        ApplyMainGameModeFlag(gpSCSV->saved_game_mode, 1);
+        ApplyMainGameModeFlag(gpSCSV->saved_game_mode, true);
         RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
         RequestRedrawCombatBar();
         RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
@@ -367,7 +367,7 @@ void CloseSpellCastingView(void)
             OpenTrapInteraction(0);
         }
         if (interact_id != -1 && !IsScreenTransitionPending()) {
-            monster_index = MonsterGetIndexByLocationID(0x1cf, SPELLCASTING_CPP, location_id, 1);
+            monster_index = MonsterGetIndexByLocationID(0x1cf, SPELLCASTING_CPP, location_id, true);
             npc = FindNpcBindingForMonster(monster_index);
             BeginNpcDialogue(npc, 0, -1, 0, 1);
             SwitchNpcDialogueLayout(interact_id);
@@ -441,7 +441,7 @@ void SelectSpellCastingCharacter(int party_slot)
     }
     if (gpSCSV->caster->sp_max[realm] == 0) {
         gpSCSV->realm_icons[realm]->m_normalSprite = g_spell_realm_animations[realm].initial_frame;
-        gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
+        gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(false);
         gpSCSV->iSpellRealm = W8_SPELL_REALM_NONE;
         ResetEditorStatusLine(-1);
         return;
@@ -480,7 +480,7 @@ static void RefreshAvailableSpellPowerPips()
     }
     if (gpSCSV->uiPowerLevels < 7) {
         for (pip = gpSCSV->uiPowerLevels; pip < 7; ++pip) {
-            gpSCSV->power_controls[pip]->SetEnabled(0);
+            gpSCSV->power_controls[pip]->SetEnabled(false);
         }
     }
 }
@@ -493,25 +493,25 @@ static void UpdateSpellPowerPips(void)
 
     if (gpSCSV->uiPowerLevels == 0 || gpSCSV->iSpellPowerClass == 3) {
         for (pip = 0; pip < W8_SPELL_POWER_PIP_COUNT; ++pip) {
-            gpSCSV->power_controls[pip]->SetEnabled(0);
+            gpSCSV->power_controls[pip]->SetEnabled(false);
         }
     } else {
         RefreshSpellPowerPip(7);
         RefreshSpellPowerPip(8);
         if (gpSCSV->iSpellPowerClass == 0) {
             RefreshAvailableSpellPowerPips();
-            gpSCSV->power_controls[7]->SetActive(0);
-            gpSCSV->power_controls[8]->SetActive(0);
+            gpSCSV->power_controls[7]->SetActive(false);
+            gpSCSV->power_controls[8]->SetActive(false);
         } else if (gpSCSV->iSpellPowerClass == 1) {
             gpSCSV->power_controls[7]->SetActive(!gXStatus.fCombatMode);
             RefreshAvailableSpellPowerPips();
-            gpSCSV->power_controls[8]->SetActive(0);
+            gpSCSV->power_controls[8]->SetActive(false);
         } else if (gpSCSV->iSpellPowerClass == 2) {
             for (pip = 0; pip < 7; ++pip) {
-                gpSCSV->power_controls[pip]->SetEnabled(0);
+                gpSCSV->power_controls[pip]->SetEnabled(false);
             }
-            gpSCSV->power_controls[8]->SetActive(1);
-            gpSCSV->power_controls[7]->SetActive(0);
+            gpSCSV->power_controls[8]->SetActive(true);
+            gpSCSV->power_controls[7]->SetActive(false);
         }
     }
     if (gpSCSV->iSpellPowerClass == 2) {
@@ -520,7 +520,7 @@ static void UpdateSpellPowerPips(void)
                 if (gpSCSV->uiSpellToCast == 0) {
                     srAssertFail("gpSCSV->uiSpellToCast != SPELL_NONE", SPELLCASTING_CPP, 0x338, 0);
                 }
-                gpSCSV->power_controls[pip]->SetEnabled(0);
+                gpSCSV->power_controls[pip]->SetEnabled(false);
                 rating = GetSpellCastRating(gpSCSV->caster, gpSCSV->uiSpellToCast, pip + 1);
                 gpSCSV->power_controls[pip]->m_disabledSprite = (pip + rating * 9) * 6;
             }
@@ -556,7 +556,7 @@ static void RefreshSpellPowerPip(int pip)
     } else {
         level = pip + 1;
     }
-    gpSCSV->power_controls[pip]->SetEnabled(1);
+    gpSCSV->power_controls[pip]->SetEnabled(true);
     rating = GetSpellCastRating(gpSCSV->caster, gpSCSV->uiSpellToCast, level);
     frame = (pip + rating * 9) * 6;
     control = gpSCSV->power_controls[pip];
@@ -606,23 +606,24 @@ static void RebuildSpellCastingList(int spell_id)
                 gpSCSV->override_spell = id;
                 spell = &g_spell_records[id];
                 if (spell->spell_point_cost <= gpSCSV->caster->iSPLeft[realm] &&
-                    SpellUsableNow(id, 0) &&
-                    SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), id, 0) &&
+                    SpellUsableNow(id, false) &&
+                    SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), id,
+                                           false) &&
                     !IsTeleportCastMissingAnchor(gpSCSV->caster, id)) {
                     if (IsSpellBlockedForCharacter(gpSCSV->caster, id)) {
                         if (pass == 1 &&
                             ((!gXStatus.fCampMode && !gXStatus.fLockInteract &&
                               !gXStatus.fTrapInteract) ||
-                             SpellUsableNow(id, 0)) &&
+                             SpellUsableNow(id, false)) &&
                             gpSCSV->uiSpellsInList + 1 <= 0x15e) {
                             ++gpSCSV->uiSpellsInList;
                             gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
                             gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 4;
                             wchar_t line[120];
                             swprintf(line, g_format_s_space_s,
-                                     g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
+                                     g_spell_target_parentheticals[GetSpellTargetType(id, false)],
                                      spell->display_name);
-                            ShowNotice(0xf, line, 2, -1, 0);
+                            ShowNotice(0xf, line, 2, -1, false);
                             AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
                                               2);
                             SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 4);
@@ -634,9 +635,9 @@ static void RebuildSpellCastingList(int spell_id)
                             gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 0xf;
                             wchar_t line[120];
                             swprintf(line, g_format_s_space_s,
-                                     g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
+                                     g_spell_target_parentheticals[GetSpellTargetType(id, false)],
                                      spell->display_name);
-                            ShowNotice(0xf, line, 2, -1, 0);
+                            ShowNotice(0xf, line, 2, -1, false);
                             AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
                                               2);
                         }
@@ -647,16 +648,16 @@ static void RebuildSpellCastingList(int spell_id)
                 } else if (pass == 1 &&
                            ((!gXStatus.fCampMode && !gXStatus.fLockInteract &&
                              !gXStatus.fTrapInteract) ||
-                            SpellUsableNow(id, 0)) &&
+                            SpellUsableNow(id, false)) &&
                            gpSCSV->uiSpellsInList + 1 <= 0x15e) {
                     ++gpSCSV->uiSpellsInList;
                     gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
                     gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 0;
                     wchar_t line[120];
                     swprintf(line, g_format_s_space_s,
-                             g_spell_target_parentheticals[GetSpellTargetType(id, 0)],
+                             g_spell_target_parentheticals[GetSpellTargetType(id, false)],
                              spell->display_name);
-                    ShowNotice(0xf, line, 2, -1, 0);
+                    ShowNotice(0xf, line, 2, -1, false);
                     AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost), 2);
                     SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 0);
                 }
@@ -748,7 +749,7 @@ void BeginSpellCast(int spell_id, int location_id, int interact_id)
             EndLockInteractMode(0);
         }
     } else {
-        EndNpcDialogueSession(0);
+        EndNpcDialogueSession(false);
     }
     if (!gXStatus.fSpellCastMode) {
         OpenSpellCastingView(g_status.selected_character);
@@ -879,20 +880,20 @@ static void SelectSpellCastingRealm(W8SpellRealm realm)
         if (previous != W8_SPELL_REALM_NONE) {
             gpSCSV->realm_icons[previous]->m_normalSprite =
                 g_spell_realm_animations[previous].initial_frame;
-            gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
-            gpSCSV->realm_buttons[gpSCSV->iSpellRealm]->DisableSecondaryState(0);
-            gpSCSV->realm_buttons[gpSCSV->iSpellRealm]->Invalidate(0);
+            gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(false);
+            gpSCSV->realm_buttons[gpSCSV->iSpellRealm]->DisableSecondaryState(false);
+            gpSCSV->realm_buttons[gpSCSV->iSpellRealm]->Invalidate(false);
         }
         gpSCSV->iSpellRealm = realm;
         gpSCSV->realm_anim_frame = g_spell_realm_animations[gpSCSV->iSpellRealm].initial_frame;
-        gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
+        gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(false);
         gpSCSV->realm_anim_timer = SetCountdownClock(0x32);
         RebuildSpellCastingList(0);
         ClearSpellCastingChoice();
     }
     if (realm != W8_SPELL_REALM_NONE) {
-        gpSCSV->realm_buttons[realm]->EnableSecondaryState(0);
-        gpSCSV->realm_buttons[realm]->Invalidate(0);
+        gpSCSV->realm_buttons[realm]->EnableSecondaryState(false);
+        gpSCSV->realm_buttons[realm]->Invalidate(false);
     }
 }
 
@@ -951,21 +952,21 @@ static void SelectSpellPowerPip7(void)
         for (pip = 0; pip < 7; ++pip) {
             W8TextControl* control = gpSCSV->power_controls[pip];
             if (control->m_enabled) {
-                control->DisableSecondaryState(0);
+                control->DisableSecondaryState(false);
             }
         }
         gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
         gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetText(
             L"?", g_wiz_text_font_secondary);
         gpSCSV->iSpellPower = 7;
-        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(true);
         return;
     }
     gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
     gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetText(&g_empty_wide_string,
                                                                         g_wiz_text_font_secondary);
     gpSCSV->iSpellPower = -1;
-    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
+    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(true);
 }
 
 /* The max-power pip: while its secondary state is lit it prices the name
@@ -979,11 +980,11 @@ static void SelectSpellPowerPip8(void)
         gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetText(
             L"?", g_wiz_text_font_secondary);
         gpSCSV->iSpellPower = 7;
-        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
+        gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(true);
         return;
     }
-    gpSCSV->power_controls[8]->EnableSecondaryState(0);
-    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
+    gpSCSV->power_controls[8]->EnableSecondaryState(false);
+    gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(true);
 }
 
 /* Records the chosen power level: pips through the level light, pips above it
@@ -1000,21 +1001,21 @@ void SelectSpellPowerLevel(int power_level)
                                     g_W8TextControlStateSecondary) == 0 &&
          gpSCSV->iSpellPower == power_level)) {
         for (pip = 0; pip < 7; ++pip) {
-            gpSCSV->power_controls[pip]->DisableSecondaryState(0);
+            gpSCSV->power_controls[pip]->DisableSecondaryState(false);
         }
         gpSCSV->iSpellPower = -1;
         if (gpSCSV->iSpellPowerClass == 2) {
-            gpSCSV->power_controls[8]->EnableSecondaryState(0);
+            gpSCSV->power_controls[8]->EnableSecondaryState(false);
             if (static_cast<unsigned char>(gpSCSV->power_controls[8]->m_stateFlags &
                                            g_W8TextControlStateSecondary) == 0) {
-                gpSCSV->power_controls[8]->EnableSecondaryState(0);
+                gpSCSV->power_controls[8]->EnableSecondaryState(false);
             } else {
                 gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
                 gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetText(
                     L"?", g_wiz_text_font_secondary);
                 gpSCSV->iSpellPower = 7;
             }
-            gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(1);
+            gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->Invalidate(true);
             return;
         }
         gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
@@ -1028,12 +1029,12 @@ void SelectSpellPowerLevel(int power_level)
         gpSCSV->iSpellPower = power_level;
         if (power_level >= 0) {
             for (pip = 0; pip <= power_level; ++pip) {
-                gpSCSV->power_controls[pip]->EnableSecondaryState(0);
+                gpSCSV->power_controls[pip]->EnableSecondaryState(false);
             }
         }
         if (power_level + 1 < 8) {
             for (pip = power_level + 1; pip < 8; ++pip) {
-                gpSCSV->power_controls[pip]->DisableSecondaryState(0);
+                gpSCSV->power_controls[pip]->DisableSecondaryState(false);
             }
         }
         gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
@@ -1065,7 +1066,7 @@ static void PreviewSpellPowerPipHover(int power_level)
                 -0xe, spell_name->m_left + panel->m_bounds.left,
                 spell_name->m_top + panel->m_bounds.top, spell_name->m_right + panel->m_bounds.left,
                 spell_name->m_bottom + panel->m_bounds.top, Get16BPPColor(0x10101));
-            spell_name->Invalidate(0);
+            spell_name->Invalidate(false);
             if (power_level != -1) {
                 spell_name->m_textBuffer.SetRenderMode(6);
                 text = FormatWideString(
@@ -1128,7 +1129,7 @@ void CommitSpellCastingSelection(void)
                 gpSCSV->realm_anim_frame = 0;
             }
             gpSCSV->realm_icons[gpSCSV->iSpellRealm]->m_normalSprite = gpSCSV->realm_anim_frame;
-            gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
+            gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(false);
             gpSCSV->realm_anim_timer = SetCountdownClock(0x32);
             RequestRedraw(W8_MAIN_REDRAW_FRAME);
         }
@@ -1147,13 +1148,13 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
     if (us_event <= LEFT_BUTTON_REPEAT) {
         if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
             gpSCSV->realm_buttons[region->callback_id]->OnLeftButtonDown(0);
-            gpSCSV->realm_icons[region->callback_id]->Invalidate(0);
+            gpSCSV->realm_icons[region->callback_id]->Invalidate(false);
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             return 1;
         }
         if (us_event == LEFT_BUTTON_UP) {
             gpSCSV->realm_buttons[region->callback_id]->OnLeftButtonUp(0);
-            gpSCSV->realm_icons[region->callback_id]->Invalidate(0);
+            gpSCSV->realm_icons[region->callback_id]->Invalidate(false);
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
             }
@@ -1162,7 +1163,7 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
     } else if (us_event == MOUSE_POS) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             gpSCSV->realm_buttons[region->callback_id]->OnMouseLeave(0);
-            gpSCSV->realm_icons[region->callback_id]->Invalidate(0);
+            gpSCSV->realm_icons[region->callback_id]->Invalidate(false);
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
@@ -1178,7 +1179,7 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
                         .skills[W8_SKILL_FIRE_MAGIC + realm]
                         .level));
             }
-            gpSCSV->realm_icons[realm]->Invalidate(0);
+            gpSCSV->realm_icons[realm]->Invalidate(false);
             return 1;
         }
     }
@@ -1356,8 +1357,8 @@ static void SelectSpellCastingListRow(int index)
     gpSCSV->iSpellPowerClass = power_class;
     gpSCSV->uiPowerLevels = levels;
     gpSCSV->uiSpellToCast = spell_id;
-    needed = GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
-    target_type = GetSpellTargetType(spell_id, 0);
+    needed = GetTargetNeededForSpellFriendly(spell_id, false, W8_TARGETING_CONTEXT_CURRENT);
+    target_type = GetSpellTargetType(spell_id, false);
     ConfigureSpellTargetFilter(target_type, needed);
     SelectSpellPowerLevel(-1);
     UpdateSpellPowerPips();
@@ -1414,7 +1415,7 @@ void TryCommitSpellCast(void)
             CloseSpellCastingView();
             return;
         }
-        OpenCharacterScreenForPartySlot(CharacterPointerToPartySlot(gpSCSV->caster), 1);
+        OpenCharacterScreenForPartySlot(CharacterPointerToPartySlot(gpSCSV->caster), true);
     }
 }
 
@@ -1424,12 +1425,13 @@ void TryCommitSpellCast(void)
 void ShowSpellCastingError(int spell_id)
 {
     gpSCSV->override_spell = spell_id;
-    if (!SpellUsableNow(spell_id, 0)) {
+    if (!SpellUsableNow(spell_id, false)) {
         ShowMainGameNoticeLine(gppStringList[0x79e], SpellCastingNoticeClosed, 1, 0);
     } else if (GetCharacterRealmSpellPoints(gpSCSV->caster, gpSCSV->iSpellRealm) <
                g_spell_records[spell_id].spell_point_cost) {
         ShowMainGameNoticeLine(gppStringList[0x7a0], SpellCastingNoticeClosed, 1, 0);
-    } else if (!SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), spell_id, 0)) {
+    } else if (!SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), spell_id,
+                                       false)) {
         ShowMainGameNoticeLine(gppStringList[0x7a1], SpellCastingNoticeClosed, 1, 0);
     } else if (IsTeleportCastMissingAnchor(gpSCSV->caster, spell_id)) {
         ShowMainGameNoticeLine(gppStringList[0x7a2], SpellCastingNoticeClosed, 1, 0);

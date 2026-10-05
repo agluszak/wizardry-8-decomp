@@ -84,7 +84,7 @@ void MtGigas2Setup(void)
         if (pTrigger != 0) {
             pTrigger->Run(-1);
         }
-        SetFact(W8_FACT_UMISSION_MOVE_RUBBLE_COVERT, 0, 0);
+        SetFact(W8_FACT_UMISSION_MOVE_RUBBLE_COVERT, 0, false);
         npc = GetNpcStateByKind(0x29);
         if (npc != 0) {
             info = GetNpcMonsterInfo(npc);
@@ -116,7 +116,7 @@ bool MtGigas2Train(Trigger* pTrigger)
         item = &g_status.item_in_hand;
         item_id = GetItemInHand();
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     g_trigger_feedback = 1;
     value = GetLocationVarValueByName("WirePanel");
     if (value == 3) {
@@ -185,7 +185,7 @@ bool MtGigas2YellowWire(Trigger* pTrigger)
         MtGigas2WireShock();
         return false;
     }
-    SetFact(W8_FACT_UMISSION_TRAIN_MACHINE_FIXED, 1, 0);
+    SetFact(W8_FACT_UMISSION_TRAIN_MACHINE_FIXED, 1, false);
     SetTriggerVariableByName("WirePanel", 3);
     pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     wire = FindTriggerByName("redwire");
@@ -251,7 +251,7 @@ bool MtGigas2Lift3(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     g_trigger_feedback = 1;
     return false;
 }
@@ -270,7 +270,7 @@ bool MtGigas2TopDoor1(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     g_trigger_feedback = 1;
     return false;
 }
@@ -304,7 +304,7 @@ bool MtGigas2Officer1(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     g_trigger_feedback = 1;
     return false;
 }
@@ -338,7 +338,7 @@ bool MtGigas2Officer2(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     g_trigger_feedback = 1;
     return false;
 }
@@ -392,10 +392,10 @@ static void MtGigas2UmpaniAlarm(int command)
             command = 0x1e;
         }
         g_mt_gigas_alarm_gate =
-            new W8IntervalGate(static_cast<float>(static_cast<unsigned int>(command)), 0, 1);
+            new W8IntervalGate(static_cast<float>(static_cast<unsigned int>(command)), false, true);
         g_mt_gigas_alarm_sound =
             CreateAndPlaySoundNode("Data\\Sound\\VOCs\\VOC_HLLIntruder\\VOC_HLLIntruder_003.wav",
-                                   position, 1.0f, 75.0f, 1);
+                                   position, 1.0f, 75.0f, true);
         if (g_mt_gigas_alarm_sound != 0 && g_mt_gigas_alarm_gate != 0) {
             g_master_functions->Add(MtGigas2UmpaniAlarm);
         }

@@ -69,420 +69,420 @@ static unsigned char ConsumeRegionInput(const InputAtom*, W8Region*)
 // GLOBAL: WIZ8 0x00620048
 W8Region g_regions[1500] = {
 
-    {0x00000001, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0},
-    {0x00000001, 174, 138, 467, 182, MainMenuIntroduction, 0, 0, 0, -1, 0},
-    {0x00000001, 140, 187, 501, 231, MainMenuNewGame, 0, 0, 0, -1, 0},
-
-    {0x00000001, 204, 235, 436, 279, MainMenuLoadGame, 0, 0, 0, -1, 0},
-    {0x00000001, 239, 284, 403, 328, MainMenuCredits, 0, 0, 0, -1, 0},
-    {0x00000001, 234, 335, 408, 379, MainMenuOptions, 0, 0, 0, -1, 0},
-
-    {0x00000001, 279, 423, 364, 467, MainMenuExit, 0, 0, 0, -1, 0},
-    {0x00000001, 286, 382, 351, 402, IntroScreenRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 639, 479, CreditsBackgroundRegionEvent, 0, 0, 0, 0, 0},
-
-    {0x00000001, 0, 0, 0, 0, DialogueTranscriptRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 24, 68, 42, 85, PartyCombatActionRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 595, 68, 613, 85, PartyCombatActionRegionEvent, 1, 0, 0, -1, 0},
-
-    {0x00000001, 24, 153, 42, 170, PartyCombatActionRegionEvent, 2, 0, 0, -1, 0},
-    {0x00000001, 595, 153, 613, 170, PartyCombatActionRegionEvent, 3, 0, 0, -1, 0},
-    {0x00000001, 24, 238, 42, 255, PartyCombatActionRegionEvent, 4, 0, 0, -1, 0},
-
-    {0x00000001, 595, 238, 613, 255, PartyCombatActionRegionEvent, 5, 0, 0, -1, 0},
-    {0x00000001, 24, 323, 42, 340, PartyCombatActionRegionEvent, 6, 0, 0, -1, 0},
-    {0x00000001, 595, 323, 613, 340, PartyCombatActionRegionEvent, 7, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 0, 1, 0, 1984, 0},
-    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 1, 1, 0, 1984, 0},
-    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 2, 1, 0, 1984, 0},
-
-    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 3, 1, 0, 1984, 0},
-    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 4, 1, 0, 1984, 0},
-    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 5, 1, 0, 1984, 0},
-
-    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 6, 1, 0, 1984, 0},
-    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 7, 1, 0, 1984, 0},
-    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 0, 1, 0, 1985, 0},
-
-    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 1, 1, 0, 1985, 0},
-    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 2, 1, 0, 1985, 0},
-    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 3, 1, 0, 1985, 0},
-
-    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 4, 1, 0, 1985, 0},
-    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 5, 1, 0, 1985, 0},
-    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 6, 1, 0, 1985, 0},
-
-    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 7, 1, 0, 1985, 0},
-    {0x00000002, 32, 27, 8, 0, PortraitConditionOrbRegionEvent, 0, 1, 0, 25, 0},
-    {0x00000002, 95, 27, 8, 0, PortraitEnchantmentOrbRegionEvent, 0, 1, 0, 26, 0},
-
-    {0x00000001, 23, 18, 104, 89, PortraitSelectRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 21, 91, 105, 101, TextBoxMuteRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 4, 42, 19, 90, PortraitAssaySidebarRegionEvent, 0, 1, 0, 28, 0},
-
-    {0x00000001, 109, 42, 123, 90, PortraitOverlayHoverRegionEvent, 0, 1, 0, 24, 0},
-    {0x00000002, 608, 27, 8, 0, PortraitConditionOrbRegionEvent, 1, 1, 0, 25, 0},
-    {0x00000002, 544, 27, 8, 0, PortraitEnchantmentOrbRegionEvent, 1, 1, 0, 26, 0},
-
-    {0x00000001, 535, 18, 616, 89, PortraitSelectRegionEvent, 1, 0, 0, -1, 0},
-    {0x00000001, 539, 91, 612, 101, TextBoxMuteRegionEvent, 1, 0, 0, -1, 0},
-    {0x00000001, 621, 42, 635, 90, PortraitAssaySidebarRegionEvent, 1, 1, 0, 28, 0},
-
-    {0x00000001, 517, 42, 531, 90, PortraitOverlayHoverRegionEvent, 1, 1, 0, 24, 0},
-    {0x00000002, 32, 112, 8, 0, PortraitConditionOrbRegionEvent, 2, 1, 0, 25, 0},
-    {0x00000002, 95, 112, 8, 0, PortraitEnchantmentOrbRegionEvent, 2, 1, 0, 26, 0},
-
-    {0x00000001, 23, 103, 104, 174, PortraitSelectRegionEvent, 2, 0, 0, -1, 0},
-    {0x00000001, 21, 176, 105, 186, TextBoxMuteRegionEvent, 2, 0, 0, -1, 0},
-    {0x00000001, 4, 125, 19, 173, PortraitAssaySidebarRegionEvent, 2, 1, 0, 28, 0},
-
-    {0x00000001, 109, 125, 123, 173, PortraitOverlayHoverRegionEvent, 2, 1, 0, 24, 0},
-    {0x00000002, 608, 112, 8, 0, PortraitConditionOrbRegionEvent, 3, 1, 0, 25, 0},
-    {0x00000002, 544, 112, 8, 0, PortraitEnchantmentOrbRegionEvent, 3, 1, 0, 26, 0},
-
-    {0x00000001, 535, 103, 616, 174, PortraitSelectRegionEvent, 3, 0, 0, -1, 0},
-    {0x00000001, 539, 176, 612, 186, TextBoxMuteRegionEvent, 3, 0, 0, -1, 0},
-    {0x00000001, 621, 125, 635, 173, PortraitAssaySidebarRegionEvent, 3, 1, 0, 28, 0},
-
-    {0x00000001, 517, 125, 531, 173, PortraitOverlayHoverRegionEvent, 3, 1, 0, 24, 0},
-    {0x00000002, 32, 198, 8, 0, PortraitConditionOrbRegionEvent, 4, 1, 0, 25, 0},
-    {0x00000002, 95, 198, 8, 0, PortraitEnchantmentOrbRegionEvent, 4, 1, 0, 26, 0},
-
-    {0x00000001, 23, 189, 104, 255, PortraitSelectRegionEvent, 4, 0, 0, -1, 0},
-    {0x00000001, 21, 261, 105, 271, TextBoxMuteRegionEvent, 4, 0, 0, -1, 0},
-    {0x00000001, 4, 210, 19, 258, PortraitAssaySidebarRegionEvent, 4, 1, 0, 28, 0},
-
-    {0x00000001, 109, 210, 123, 258, PortraitOverlayHoverRegionEvent, 4, 1, 0, 24, 0},
-    {0x00000002, 608, 198, 8, 0, PortraitConditionOrbRegionEvent, 5, 1, 0, 25, 0},
-    {0x00000002, 544, 198, 8, 0, PortraitEnchantmentOrbRegionEvent, 5, 1, 0, 26, 0},
-
-    {0x00000001, 535, 189, 616, 255, PortraitSelectRegionEvent, 5, 0, 0, -1, 0},
-    {0x00000001, 539, 261, 612, 271, TextBoxMuteRegionEvent, 5, 0, 0, -1, 0},
-    {0x00000001, 621, 210, 635, 258, PortraitAssaySidebarRegionEvent, 5, 1, 0, 28, 0},
-
-    {0x00000001, 517, 210, 531, 258, PortraitOverlayHoverRegionEvent, 5, 1, 0, 24, 0},
-    {0x00000002, 32, 283, 8, 0, PortraitConditionOrbRegionEvent, 6, 1, 0, 25, 0},
-    {0x00000002, 95, 283, 8, 0, PortraitEnchantmentOrbRegionEvent, 6, 1, 0, 26, 0},
-
-    {0x00000001, 23, 274, 104, 344, PortraitSelectRegionEvent, 6, 0, 0, -1, 0},
-    {0x00000001, 21, 346, 105, 356, TextBoxMuteRegionEvent, 6, 0, 0, -1, 0},
-    {0x00000001, 4, 295, 19, 343, PortraitAssaySidebarRegionEvent, 6, 1, 0, 28, 0},
-
-    {0x00000001, 109, 295, 123, 343, PortraitOverlayHoverRegionEvent, 6, 1, 0, 24, 0},
-    {0x00000002, 608, 283, 8, 0, PortraitConditionOrbRegionEvent, 7, 1, 0, 25, 0},
-    {0x00000002, 544, 283, 8, 0, PortraitEnchantmentOrbRegionEvent, 7, 1, 0, 26, 0},
-
-    {0x00000001, 535, 274, 616, 344, PortraitSelectRegionEvent, 7, 0, 0, -1, 0},
-    {0x00000001, 539, 346, 612, 356, TextBoxMuteRegionEvent, 7, 0, 0, -1, 0},
-    {0x00000001, 621, 295, 635, 343, PortraitAssaySidebarRegionEvent, 7, 1, 0, 28, 0},
-
-    {0x00000001, 517, 295, 531, 343, PortraitOverlayHoverRegionEvent, 7, 1, 0, 24, 0},
-    {0x00000001, 457, 363, 472, 378, TextBoxScrollUpRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 457, 429, 472, 444, TextBoxScrollDownRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 461, 379, 468, 428, TextBoxScrollThumbRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 166, 362, 456, 445, TextBoxBodyRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 140, 362, 163, 377, TextBoxChannelTabRegionEvent, 0, 1, 0, 33, 0},
-    {0x00000001, 140, 383, 163, 398, TextBoxChannelTabRegionEvent, 1, 1, 0, 34, 0},
-    {0x00000001, 140, 404, 163, 419, TextBoxChannelTabRegionEvent, 3, 1, 0, 35, 0},
-    {0x00000001, 128, 358, 511, 450, TextBoxMuteRegionEvent, 0, 0, 0, -1, 0},
-
-    {0x00000001, 0, 18, 21, 102, PortraitSelectRegionEvent, 0, 1, 0, -1, 0},
-    {0x00000001, 617, 18, 639, 102, PortraitSelectRegionEvent, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 103, 21, 187, PortraitSelectRegionEvent, 2, 1, 0, -1, 0},
-
-    {0x00000001, 617, 103, 639, 187, PortraitSelectRegionEvent, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 188, 21, 272, PortraitSelectRegionEvent, 4, 1, 0, -1, 0},
-    {0x00000001, 617, 188, 639, 272, PortraitSelectRegionEvent, 5, 1, 0, -1, 0},
-
-    {0x00000001, 0, 273, 21, 357, PortraitSelectRegionEvent, 6, 1, 0, -1, 0},
-    {0x00000001, 617, 273, 639, 357, PortraitSelectRegionEvent, 7, 1, 0, -1, 0},
-    {0x00000002, 75, 402, 46, 0, RadarMapButtonRegionEvent, 0, 1, 0, 31, 0},
-
-    {0x00000002, 564, 402, 40, 0, FormationBoardRegionEvent, 0, 1, 0, 32, 0},
-    {0x00000001, 512, 358, 617, 450, TextBoxMuteRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 9, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 10, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 11, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 12, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 13, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 14, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 15, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 16, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 17, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 18, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 19, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 20, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 21, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 22, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 23, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 24, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 25, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 26, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 27, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 28, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 29, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 30, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 31, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 32, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 33, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 34, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 35, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 36, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 37, 0, 0, 0, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 2, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 3, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 5, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 6, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 7, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 8, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 39, 0, 0, 0, 0},
-    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 1, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 4, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 5, 1, 0, -1, 0},
-    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 0, 1, 0, 46, 0},
-    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 1, 1, 0, 47, 0},
-
-    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 2, 1, 0, 48, 0},
-    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 3, 1, 0, 49, 0},
-    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 4, 1, 0, 50, 0},
-
-    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 5, 1, 0, 51, 0},
-    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 6, 1, 0, 52, 0},
-    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 7, 1, 0, 53, 0},
-
-    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 8, 1, 0, 54, 0},
-    {0x00000001, 0, 0, 0, 0, IgnoreSpellCastingInput, 0, 1, 0, 55, 0},
-    {0x00000001, 0, 0, 0, 0, SpellPowerPipRegionEvent, 10, 1, 0, 17, 0},
-
-    {0x00000001, 0, 0, 0, 0, UseItemSelectScrollRegionEvent, 0, 1, 0, 96, 0},
-    {0x00000001, 0, 0, 0, 0, UseItemSelectScrollRegionEvent, 1, 1, 0, 97, 0},
-    {0x00000001, 0, 0, 0, 0, UseItemSelectControlRegionEvent, 0, 1, 0, 98, 0},
-
-    {0x00000001, 0, 0, 0, 0, UseItemSelectControlRegionEvent, 3, 1, 0, 99, 0},
-    {0x00000001, 0, 0, 0, 0, UseItemSelectControlRegionEvent, 8, 1, 0, 17, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 0, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 3, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 5, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 6, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 7, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 8, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 9, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 10, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 11, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 12, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 13, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 14, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 0, 1, 0, 1981, 0},
-
-    {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 1, 1, 0, 1982, 0},
-    {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 2, 1, 0, 1983, 0},
-    {0x00000001, 214, 60, 427, 303, FormationBackgroundRegionEvent, 0, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 2, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 5, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 8, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 9, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 10, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 11, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 12, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, KeyboardMenuBackgroundRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 0, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 3, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SubMenuBackgroundRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, FreeTurnButtonRegionEvent, 0, 1, 0, 37, 0},
-
-    {0x00000001, 0, 0, 0, 0, FreeTurnButtonRegionEvent, 1, 1, 0, 38, 0},
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 11, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 10, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 9, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 8, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 7, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 4, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 1, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 1, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 4, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 7, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 8, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 4, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 1, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, MonsterListRegionEvent, 0, 1, 0, 36, 0},
-    {0x00000001, 0, 0, 0, 0, WorldViewRegionEvent, 0, 0, 0, 23, 0},
-
-    {0x00000001, 0, 0, 0, 0, CampLevelUpButtonRegionEvent, 0, 1, 0, 1984, 0},
-    {0x00000001, 0, 0, 0, 0, CampDismissButtonRegionEvent, 0, 1, 0, 2387, 0},
-    {0x00000001, 164, 12, 254, 84, CampDismissPortraitRegionEvent, 0, 1, 0, 2368, 0},
-
-    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 2, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 3, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 5, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 6, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 7, 0, 0, -1, 0},
-    {0x00000001, 106, 96, 302, 109, CampOpenCharacterScreenRegionEvent, 0, 1, 0, 2362, 0},
-
-    {0x00000001, 106, 124, 302, 133, CampNameEditRegionEvent, 0, 1, 0, 2363, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 1, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 4, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 7, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 2, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 5, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 8, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 9, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 10, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 11, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 2, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 5, 1, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 0, 1, 0, 2378, 0},
-
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 1, 1, 0, 2379, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 2, 1, 0, 2380, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 3, 1, 0, 2381, 0},
-
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 4, 1, 0, 2382, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 5, 1, 0, 2383, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 6, 1, 0, 2384, 0},
-
-    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler, 0, 1, 0, 2385, 0},
-    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler, 1, 1, 0, 2386, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 0, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 3, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 5, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 0, 1, 0, 2364, 0},
-
-    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 1, 1, 0, 2367, 0},
-    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 2, 1, 0, 2366, 0},
-    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 3, 1, 0, 2365, 0},
-
-    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 4, 1, 0, 2368, 0},
-    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 0, 1, 0, 2369, 0},
-    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 1, 1, 0, 2370, 0},
-
-    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 2, 1, 0, 2371, 0},
-    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 3, 1, 0, 2372, 0},
-    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 4, 1, 0, 2373, 0},
-
-    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 5, 1, 0, 2374, 0},
-    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 6, 1, 0, 2375, 0},
-    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 7, 1, 0, 2376, 0},
-
-    {0x00000001, 0, 0, 639, 479, AutomapBackgroundRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 639, 479, IntroScreenRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 0, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 3, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 5, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 6, 0, 0, -1, 0},
-
-    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 7, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, NpcQuoteBubbleRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, CombatBarRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ConsumeRegionInput, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, 0, 0, false, 0, -1, 0},
+    {0x00000001, 174, 138, 467, 182, MainMenuIntroduction, 0, false, 0, -1, 0},
+    {0x00000001, 140, 187, 501, 231, MainMenuNewGame, 0, false, 0, -1, 0},
+
+    {0x00000001, 204, 235, 436, 279, MainMenuLoadGame, 0, false, 0, -1, 0},
+    {0x00000001, 239, 284, 403, 328, MainMenuCredits, 0, false, 0, -1, 0},
+    {0x00000001, 234, 335, 408, 379, MainMenuOptions, 0, false, 0, -1, 0},
+
+    {0x00000001, 279, 423, 364, 467, MainMenuExit, 0, false, 0, -1, 0},
+    {0x00000001, 286, 382, 351, 402, IntroScreenRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 0, 0, 639, 479, CreditsBackgroundRegionEvent, 0, false, 0, 0, 0},
+
+    {0x00000001, 0, 0, 0, 0, DialogueTranscriptRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 24, 68, 42, 85, PartyCombatActionRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 595, 68, 613, 85, PartyCombatActionRegionEvent, 1, false, 0, -1, 0},
+
+    {0x00000001, 24, 153, 42, 170, PartyCombatActionRegionEvent, 2, false, 0, -1, 0},
+    {0x00000001, 595, 153, 613, 170, PartyCombatActionRegionEvent, 3, false, 0, -1, 0},
+    {0x00000001, 24, 238, 42, 255, PartyCombatActionRegionEvent, 4, false, 0, -1, 0},
+
+    {0x00000001, 595, 238, 613, 255, PartyCombatActionRegionEvent, 5, false, 0, -1, 0},
+    {0x00000001, 24, 323, 42, 340, PartyCombatActionRegionEvent, 6, false, 0, -1, 0},
+    {0x00000001, 595, 323, 613, 340, PartyCombatActionRegionEvent, 7, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 0, true, 0, 1984, 0},
+    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 1, true, 0, 1984, 0},
+    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 2, true, 0, 1984, 0},
+
+    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 3, true, 0, 1984, 0},
+    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 4, true, 0, 1984, 0},
+    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 5, true, 0, 1984, 0},
+
+    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 6, true, 0, 1984, 0},
+    {0x00000001, 0, 0, 0, 0, PortraitControlRegionEvent, 7, true, 0, 1984, 0},
+    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 0, true, 0, 1985, 0},
+
+    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 1, true, 0, 1985, 0},
+    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 2, true, 0, 1985, 0},
+    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 3, true, 0, 1985, 0},
+
+    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 4, true, 0, 1985, 0},
+    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 5, true, 0, 1985, 0},
+    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 6, true, 0, 1985, 0},
+
+    {0x00000001, 0, 0, 0, 0, ConditionButtonRegionEvent, 7, true, 0, 1985, 0},
+    {0x00000002, 32, 27, 8, 0, PortraitConditionOrbRegionEvent, 0, true, 0, 25, 0},
+    {0x00000002, 95, 27, 8, 0, PortraitEnchantmentOrbRegionEvent, 0, true, 0, 26, 0},
+
+    {0x00000001, 23, 18, 104, 89, PortraitSelectRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 21, 91, 105, 101, TextBoxMuteRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 4, 42, 19, 90, PortraitAssaySidebarRegionEvent, 0, true, 0, 28, 0},
+
+    {0x00000001, 109, 42, 123, 90, PortraitOverlayHoverRegionEvent, 0, true, 0, 24, 0},
+    {0x00000002, 608, 27, 8, 0, PortraitConditionOrbRegionEvent, 1, true, 0, 25, 0},
+    {0x00000002, 544, 27, 8, 0, PortraitEnchantmentOrbRegionEvent, 1, true, 0, 26, 0},
+
+    {0x00000001, 535, 18, 616, 89, PortraitSelectRegionEvent, 1, false, 0, -1, 0},
+    {0x00000001, 539, 91, 612, 101, TextBoxMuteRegionEvent, 1, false, 0, -1, 0},
+    {0x00000001, 621, 42, 635, 90, PortraitAssaySidebarRegionEvent, 1, true, 0, 28, 0},
+
+    {0x00000001, 517, 42, 531, 90, PortraitOverlayHoverRegionEvent, 1, true, 0, 24, 0},
+    {0x00000002, 32, 112, 8, 0, PortraitConditionOrbRegionEvent, 2, true, 0, 25, 0},
+    {0x00000002, 95, 112, 8, 0, PortraitEnchantmentOrbRegionEvent, 2, true, 0, 26, 0},
+
+    {0x00000001, 23, 103, 104, 174, PortraitSelectRegionEvent, 2, false, 0, -1, 0},
+    {0x00000001, 21, 176, 105, 186, TextBoxMuteRegionEvent, 2, false, 0, -1, 0},
+    {0x00000001, 4, 125, 19, 173, PortraitAssaySidebarRegionEvent, 2, true, 0, 28, 0},
+
+    {0x00000001, 109, 125, 123, 173, PortraitOverlayHoverRegionEvent, 2, true, 0, 24, 0},
+    {0x00000002, 608, 112, 8, 0, PortraitConditionOrbRegionEvent, 3, true, 0, 25, 0},
+    {0x00000002, 544, 112, 8, 0, PortraitEnchantmentOrbRegionEvent, 3, true, 0, 26, 0},
+
+    {0x00000001, 535, 103, 616, 174, PortraitSelectRegionEvent, 3, false, 0, -1, 0},
+    {0x00000001, 539, 176, 612, 186, TextBoxMuteRegionEvent, 3, false, 0, -1, 0},
+    {0x00000001, 621, 125, 635, 173, PortraitAssaySidebarRegionEvent, 3, true, 0, 28, 0},
+
+    {0x00000001, 517, 125, 531, 173, PortraitOverlayHoverRegionEvent, 3, true, 0, 24, 0},
+    {0x00000002, 32, 198, 8, 0, PortraitConditionOrbRegionEvent, 4, true, 0, 25, 0},
+    {0x00000002, 95, 198, 8, 0, PortraitEnchantmentOrbRegionEvent, 4, true, 0, 26, 0},
+
+    {0x00000001, 23, 189, 104, 255, PortraitSelectRegionEvent, 4, false, 0, -1, 0},
+    {0x00000001, 21, 261, 105, 271, TextBoxMuteRegionEvent, 4, false, 0, -1, 0},
+    {0x00000001, 4, 210, 19, 258, PortraitAssaySidebarRegionEvent, 4, true, 0, 28, 0},
+
+    {0x00000001, 109, 210, 123, 258, PortraitOverlayHoverRegionEvent, 4, true, 0, 24, 0},
+    {0x00000002, 608, 198, 8, 0, PortraitConditionOrbRegionEvent, 5, true, 0, 25, 0},
+    {0x00000002, 544, 198, 8, 0, PortraitEnchantmentOrbRegionEvent, 5, true, 0, 26, 0},
+
+    {0x00000001, 535, 189, 616, 255, PortraitSelectRegionEvent, 5, false, 0, -1, 0},
+    {0x00000001, 539, 261, 612, 271, TextBoxMuteRegionEvent, 5, false, 0, -1, 0},
+    {0x00000001, 621, 210, 635, 258, PortraitAssaySidebarRegionEvent, 5, true, 0, 28, 0},
+
+    {0x00000001, 517, 210, 531, 258, PortraitOverlayHoverRegionEvent, 5, true, 0, 24, 0},
+    {0x00000002, 32, 283, 8, 0, PortraitConditionOrbRegionEvent, 6, true, 0, 25, 0},
+    {0x00000002, 95, 283, 8, 0, PortraitEnchantmentOrbRegionEvent, 6, true, 0, 26, 0},
+
+    {0x00000001, 23, 274, 104, 344, PortraitSelectRegionEvent, 6, false, 0, -1, 0},
+    {0x00000001, 21, 346, 105, 356, TextBoxMuteRegionEvent, 6, false, 0, -1, 0},
+    {0x00000001, 4, 295, 19, 343, PortraitAssaySidebarRegionEvent, 6, true, 0, 28, 0},
+
+    {0x00000001, 109, 295, 123, 343, PortraitOverlayHoverRegionEvent, 6, true, 0, 24, 0},
+    {0x00000002, 608, 283, 8, 0, PortraitConditionOrbRegionEvent, 7, true, 0, 25, 0},
+    {0x00000002, 544, 283, 8, 0, PortraitEnchantmentOrbRegionEvent, 7, true, 0, 26, 0},
+
+    {0x00000001, 535, 274, 616, 344, PortraitSelectRegionEvent, 7, false, 0, -1, 0},
+    {0x00000001, 539, 346, 612, 356, TextBoxMuteRegionEvent, 7, false, 0, -1, 0},
+    {0x00000001, 621, 295, 635, 343, PortraitAssaySidebarRegionEvent, 7, true, 0, 28, 0},
+
+    {0x00000001, 517, 295, 531, 343, PortraitOverlayHoverRegionEvent, 7, true, 0, 24, 0},
+    {0x00000001, 457, 363, 472, 378, TextBoxScrollUpRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 457, 429, 472, 444, TextBoxScrollDownRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 461, 379, 468, 428, TextBoxScrollThumbRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 166, 362, 456, 445, TextBoxBodyRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 140, 362, 163, 377, TextBoxChannelTabRegionEvent, 0, true, 0, 33, 0},
+    {0x00000001, 140, 383, 163, 398, TextBoxChannelTabRegionEvent, 1, true, 0, 34, 0},
+    {0x00000001, 140, 404, 163, 419, TextBoxChannelTabRegionEvent, 3, true, 0, 35, 0},
+    {0x00000001, 128, 358, 511, 450, TextBoxMuteRegionEvent, 0, false, 0, -1, 0},
+
+    {0x00000001, 0, 18, 21, 102, PortraitSelectRegionEvent, 0, true, 0, -1, 0},
+    {0x00000001, 617, 18, 639, 102, PortraitSelectRegionEvent, 1, true, 0, -1, 0},
+    {0x00000001, 0, 103, 21, 187, PortraitSelectRegionEvent, 2, true, 0, -1, 0},
+
+    {0x00000001, 617, 103, 639, 187, PortraitSelectRegionEvent, 3, true, 0, -1, 0},
+    {0x00000001, 0, 188, 21, 272, PortraitSelectRegionEvent, 4, true, 0, -1, 0},
+    {0x00000001, 617, 188, 639, 272, PortraitSelectRegionEvent, 5, true, 0, -1, 0},
+
+    {0x00000001, 0, 273, 21, 357, PortraitSelectRegionEvent, 6, true, 0, -1, 0},
+    {0x00000001, 617, 273, 639, 357, PortraitSelectRegionEvent, 7, true, 0, -1, 0},
+    {0x00000002, 75, 402, 46, 0, RadarMapButtonRegionEvent, 0, true, 0, 31, 0},
+
+    {0x00000002, 564, 402, 40, 0, FormationBoardRegionEvent, 0, true, 0, 32, 0},
+    {0x00000001, 512, 358, 617, 450, TextBoxMuteRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 9, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 10, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 11, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 12, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 13, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 14, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 15, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 16, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 17, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 18, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 19, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 20, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 21, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 22, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 23, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 24, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 25, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 26, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 27, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 28, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 29, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 30, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 31, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 32, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 33, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 34, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 35, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 36, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 37, false, 0, 0, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 1, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 2, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 3, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 4, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 5, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 6, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 7, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 8, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 39, false, 0, 0, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 0, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 1, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 2, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 3, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 4, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 5, true, 0, -1, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 0, true, 0, 46, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 1, true, 0, 47, 0},
+
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 2, true, 0, 48, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 3, true, 0, 49, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 4, true, 0, 50, 0},
+
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 5, true, 0, 51, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 6, true, 0, 52, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 7, true, 0, 53, 0},
+
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 8, true, 0, 54, 0},
+    {0x00000001, 0, 0, 0, 0, IgnoreSpellCastingInput, 0, true, 0, 55, 0},
+    {0x00000001, 0, 0, 0, 0, SpellPowerPipRegionEvent, 10, true, 0, 17, 0},
+
+    {0x00000001, 0, 0, 0, 0, UseItemSelectScrollRegionEvent, 0, true, 0, 96, 0},
+    {0x00000001, 0, 0, 0, 0, UseItemSelectScrollRegionEvent, 1, true, 0, 97, 0},
+    {0x00000001, 0, 0, 0, 0, UseItemSelectControlRegionEvent, 0, true, 0, 98, 0},
+
+    {0x00000001, 0, 0, 0, 0, UseItemSelectControlRegionEvent, 3, true, 0, 99, 0},
+    {0x00000001, 0, 0, 0, 0, UseItemSelectControlRegionEvent, 8, true, 0, 17, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 0, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 1, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 2, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 3, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 4, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 5, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 6, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 7, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 8, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 9, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 10, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 11, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 12, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 13, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 14, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 0, true, 0, 1981, 0},
+
+    {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 1, true, 0, 1982, 0},
+    {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 2, true, 0, 1983, 0},
+    {0x00000001, 214, 60, 427, 303, FormationBackgroundRegionEvent, 0, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 0, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 1, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 2, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 3, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 4, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 5, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 6, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 7, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 8, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 9, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 10, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 11, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 12, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuBackgroundRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 0, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 1, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 2, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 3, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 4, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuBackgroundRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FreeTurnButtonRegionEvent, 0, true, 0, 37, 0},
+
+    {0x00000001, 0, 0, 0, 0, FreeTurnButtonRegionEvent, 1, true, 0, 38, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 11, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 10, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 9, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 8, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 7, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 6, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 5, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 4, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 3, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 2, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 1, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 0, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 0, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 1, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 2, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 3, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 4, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 5, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 6, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 7, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 8, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 5, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 4, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 3, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 2, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 1, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 0, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, MonsterListRegionEvent, 0, true, 0, 36, 0},
+    {0x00000001, 0, 0, 0, 0, WorldViewRegionEvent, 0, false, 0, 23, 0},
+
+    {0x00000001, 0, 0, 0, 0, CampLevelUpButtonRegionEvent, 0, true, 0, 1984, 0},
+    {0x00000001, 0, 0, 0, 0, CampDismissButtonRegionEvent, 0, true, 0, 2387, 0},
+    {0x00000001, 164, 12, 254, 84, CampDismissPortraitRegionEvent, 0, true, 0, 2368, 0},
+
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 1, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 2, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 3, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 4, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 5, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 6, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 7, false, 0, -1, 0},
+    {0x00000001, 106, 96, 302, 109, CampOpenCharacterScreenRegionEvent, 0, true, 0, 2362, 0},
+
+    {0x00000001, 106, 124, 302, 133, CampNameEditRegionEvent, 0, true, 0, 2363, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 0, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 1, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 2, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 3, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 4, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 5, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 6, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 7, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 0, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 1, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 2, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 3, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 4, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 5, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 6, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 7, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 8, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 9, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 10, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 11, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 0, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 1, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 2, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 3, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 4, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 5, true, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 6, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 7, true, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 0, true, 0, 2378, 0},
+
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 1, true, 0, 2379, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 2, true, 0, 2380, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 3, true, 0, 2381, 0},
+
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 4, true, 0, 2382, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 5, true, 0, 2383, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 6, true, 0, 2384, 0},
+
+    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler, 0, true, 0, 2385, 0},
+    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler, 1, true, 0, 2386, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 0, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 1, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 2, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 3, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 4, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 5, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 0, true, 0, 2364, 0},
+
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 1, true, 0, 2367, 0},
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 2, true, 0, 2366, 0},
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 3, true, 0, 2365, 0},
+
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 4, true, 0, 2368, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 0, true, 0, 2369, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 1, true, 0, 2370, 0},
+
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 2, true, 0, 2371, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 3, true, 0, 2372, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 4, true, 0, 2373, 0},
+
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 5, true, 0, 2374, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 6, true, 0, 2375, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 7, true, 0, 2376, 0},
+
+    {0x00000001, 0, 0, 639, 479, AutomapBackgroundRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 0, 0, 639, 479, IntroScreenRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 0, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 1, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 2, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 3, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 4, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 5, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 6, false, 0, -1, 0},
+
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 7, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, NpcQuoteBubbleRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatBarRegionEvent, 0, false, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ConsumeRegionInput, 0, false, 0, -1, 0},
 };
 // GLOBAL: WIZ8 0x00689B3C
 unsigned int g_current_region_index;
@@ -589,7 +589,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
             PlayButtonSound(1);
             g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
             previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-            SetRegionHelpForceEnabled(0);
+            SetRegionHelpForceEnabled(false);
         }
         if (previous_index != region_index) {
             region->flags |= W8_REGION_MOUSE_ENTER;
@@ -620,7 +620,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
         }
         PlayButtonSound(1);
         g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
-        SetRegionHelpForceEnabled(0);
+        SetRegionHelpForceEnabled(false);
         previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
     }
     g_hover_region_index = g_current_region_index;
@@ -656,7 +656,7 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
             }
             g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
             previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-            SetRegionHelpForceEnabled(0);
+            SetRegionHelpForceEnabled(false);
             g_hover_region_index = 0;
             g_current_region_index = 0;
         }
@@ -838,7 +838,7 @@ void ActivateDialogRegion(unsigned int region_index)
         }
         g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
         g_regions[g_hover_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
-        SetRegionHelpForceEnabled(0);
+        SetRegionHelpForceEnabled(false);
         g_hover_region_index = 0;
     }
     g_regions[g_captured_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
@@ -1159,7 +1159,7 @@ void ClearHotRegion(void)
                 g_regions[region_index].flags &= ~W8_REGION_HELP_SHOWN;
             }
             g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
-            SetRegionHelpForceEnabled(0);
+            SetRegionHelpForceEnabled(false);
             g_regions[g_current_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
             g_current_region_index = 0;
         }
@@ -1238,6 +1238,6 @@ void ResetRegions(void)
     g_current_region_index = 0;
     g_hover_region_index = 0;
     g_captured_region_index = 0;
-    SetRegionHelpForceEnabled(0);
+    SetRegionHelpForceEnabled(false);
     g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
 }

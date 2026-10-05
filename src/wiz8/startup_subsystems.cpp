@@ -217,6 +217,6 @@ unsigned char InitializeMenuFonts(void)
     g_wiz_text_font_secondary_palette = GetFontObjectPalette16BPP(g_wiz_text_font_secondary);
     g_font_palette_wiz_text_bold = GetFontObjectPalette16BPP(g_wiz_text_bold_font);
     g_font_palette_options_detail = GetFontObjectPalette16BPP(g_options_detail_font);
-    ConfigureDialogFont(g_wiz_dialog_font, 1, 0xff, 0);
+    ConfigureDialogFont(g_wiz_dialog_font, 1, 0xff, false);
     return 1;
 }

@@ -156,7 +156,7 @@ static void CreateUseItemSelectControls(void)
     g_use_item_select_controls[8]->m_primaryActivationCallback = CloseUseItemSelection;
     for (panel_iter = g_use_item_select_panels; panel_iter < g_use_item_select_panels + 3;
          panel_iter++) {
-        (*panel_iter)->SetEnabled(1);
+        (*panel_iter)->SetEnabled(true);
     }
 }
 
@@ -176,7 +176,7 @@ unsigned char OpenUseItemSelectView(int slot)
     CloseMainGameOverlays();
     mode = g_settings.main_ui_mode;
     if (mode == W8_MAIN_UI_MODE_RADAR) {
-        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 0);
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, false);
     } else {
         SetViewportMode(GetMainGameViewportMode());
     }
@@ -197,10 +197,10 @@ unsigned char OpenUseItemSelectView(int slot)
     g_use_item_detail_item = 0;
     for (control = g_use_item_select_controls + 1; control <= g_use_item_select_controls + 6;
          control++) {
-        (*control)->SetEnabled(0);
+        (*control)->SetEnabled(false);
     }
     memset(g_use_item_list, 0, sizeof(g_use_item_list));
-    g_use_item_select_controls[7]->SetEnabled(0);
+    g_use_item_select_controls[7]->SetEnabled(false);
     RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     RequestRedrawCombatBar();
     RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
@@ -247,7 +247,7 @@ void CloseUseItemSelectView(void)
             }
         }
         gXStatus.fItemSelectMode = false;
-        ApplyMainGameModeFlag(g_use_item_select_return_mode, 1);
+        ApplyMainGameModeFlag(g_use_item_select_return_mode, true);
         RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
         RequestRedrawCombatBar();
         RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
@@ -291,18 +291,18 @@ void RefreshUseItemSelectionForSlot(int party_slot)
                 if (gXStatus.fCombatMode) {
                     srAssertFail("!gXStatus.fCombatMode", MGSUSEITEMSELECT_CPP, 0x1f0, 0);
                 }
-                g_use_item_select_scroll_buttons[1]->EnableSecondaryState(0);
-                g_use_item_select_scroll_buttons[0]->DisableSecondaryState(0);
+                g_use_item_select_scroll_buttons[1]->EnableSecondaryState(false);
+                g_use_item_select_scroll_buttons[0]->DisableSecondaryState(false);
                 mode = 1;
             } else {
-                g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
-                g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
+                g_use_item_select_scroll_buttons[1]->DisableSecondaryState(false);
+                g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
                 mode = 0;
             }
             RebuildUseItemSelectList(mode, gXStatus.dragged_item);
         } else {
             ResetEditorStatusLine(2);
-            g_use_item_select_controls[3]->SetEnabled(1);
+            g_use_item_select_controls[3]->SetEnabled(true);
             UseItemSelectFilterToggle();
             g_use_item_list_count = 0;
             g_selected_use_item_line = -1;
@@ -325,12 +325,12 @@ void RefreshUseItemSelectionForSlot(int party_slot)
                 if (gXStatus.fCombatMode) {
                     srAssertFail("!gXStatus.fCombatMode", MGSUSEITEMSELECT_CPP, 0x216, 0);
                 }
-                g_use_item_select_scroll_buttons[1]->EnableSecondaryState(0);
-                g_use_item_select_scroll_buttons[0]->DisableSecondaryState(0);
+                g_use_item_select_scroll_buttons[1]->EnableSecondaryState(false);
+                g_use_item_select_scroll_buttons[0]->DisableSecondaryState(false);
                 mode = 1;
             } else {
-                g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
-                g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
+                g_use_item_select_scroll_buttons[1]->DisableSecondaryState(false);
+                g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
                 mode = 0;
             }
             RebuildUseItemSelectList(mode, item);
@@ -348,7 +348,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
         RebuildUseItemSelectList(g_use_item_select_mode, 0);
         return;
     }
-    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
+    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
     UseItemSelectScrollUp();
 }
 
@@ -400,40 +400,40 @@ void UpdateUseItemSelect(bool active)
 void UpdateUseItemScrollButtons(void)
 {
     if (g_use_item_select_mode == -1 && g_use_item_list_count == 1) {
-        g_use_item_select_scroll_buttons[0]->SetEnabled(0);
-        g_use_item_select_scroll_buttons[1]->SetEnabled(0);
+        g_use_item_select_scroll_buttons[0]->SetEnabled(false);
+        g_use_item_select_scroll_buttons[1]->SetEnabled(false);
         return;
     }
     if (gXStatus.fCombatMode) {
         if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
                                        g_W8TextControlStateSecondary) == 0) {
-            g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
-            g_use_item_select_scroll_buttons[0]->Invalidate(0);
+            g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
+            g_use_item_select_scroll_buttons[0]->Invalidate(false);
             if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
                                            g_W8TextControlStateSecondary) != 0) {
                 if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
                                                g_W8TextControlStateSecondary) != 0) {
-                    g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
-                    g_use_item_select_scroll_buttons[1]->Invalidate(0);
+                    g_use_item_select_scroll_buttons[1]->DisableSecondaryState(false);
+                    g_use_item_select_scroll_buttons[1]->Invalidate(false);
                 }
                 RebuildUseItemSelectList(0, 0);
             } else {
-                g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
+                g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
             }
         }
         if (g_use_item_select_scroll_buttons[1]->m_enabled) {
-            g_use_item_select_scroll_buttons[1]->SetEnabled(0);
-            g_use_item_select_scroll_buttons[1]->Invalidate(0);
+            g_use_item_select_scroll_buttons[1]->SetEnabled(false);
+            g_use_item_select_scroll_buttons[1]->Invalidate(false);
         }
         return;
     }
     if (!g_use_item_select_scroll_buttons[1]->m_enabled) {
-        g_use_item_select_scroll_buttons[1]->SetEnabled(1);
-        g_use_item_select_scroll_buttons[1]->Invalidate(0);
+        g_use_item_select_scroll_buttons[1]->SetEnabled(true);
+        g_use_item_select_scroll_buttons[1]->Invalidate(false);
     }
     if (!g_use_item_select_scroll_buttons[0]->m_enabled) {
-        g_use_item_select_scroll_buttons[0]->SetEnabled(1);
-        g_use_item_select_scroll_buttons[0]->Invalidate(0);
+        g_use_item_select_scroll_buttons[0]->SetEnabled(true);
+        g_use_item_select_scroll_buttons[0]->Invalidate(false);
     }
 }
 
@@ -444,13 +444,13 @@ static void UseItemSelectScrollUp(void)
                                    g_W8TextControlStateSecondary) != 0) {
         if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
                                        g_W8TextControlStateSecondary) != 0) {
-            g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
-            g_use_item_select_scroll_buttons[1]->Invalidate(0);
+            g_use_item_select_scroll_buttons[1]->DisableSecondaryState(false);
+            g_use_item_select_scroll_buttons[1]->Invalidate(false);
         }
         RebuildUseItemSelectList(0, 0);
         return;
     }
-    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
+    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
 }
 
 // FUNCTION: WIZ8 0x0059D7E0
@@ -460,13 +460,13 @@ static void UseItemSelectScrollDown(void)
                                    g_W8TextControlStateSecondary) != 0) {
         if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
                                        g_W8TextControlStateSecondary) != 0) {
-            g_use_item_select_scroll_buttons[0]->DisableSecondaryState(0);
-            g_use_item_select_scroll_buttons[0]->Invalidate(0);
+            g_use_item_select_scroll_buttons[0]->DisableSecondaryState(false);
+            g_use_item_select_scroll_buttons[0]->Invalidate(false);
         }
         RebuildUseItemSelectList(1, 0);
         return;
     }
-    g_use_item_select_scroll_buttons[1]->EnableSecondaryState(0);
+    g_use_item_select_scroll_buttons[1]->EnableSecondaryState(false);
 }
 
 // FUNCTION: WIZ8 0x0059D830
@@ -474,8 +474,8 @@ static void UseItemSelectFilterToggle(void)
 {
     if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
                                    g_W8TextControlStateSecondary) == 0) {
-        g_use_item_select_controls[3]->EnableSecondaryState(1);
-        g_use_item_select_controls[3]->Invalidate(0);
+        g_use_item_select_controls[3]->EnableSecondaryState(true);
+        g_use_item_select_controls[3]->Invalidate(false);
     }
     g_use_item_select_flags |= 1;
 }
@@ -535,16 +535,16 @@ static void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
     g_use_item_detail_item = 0;
     g_use_item_select_controls[0]->ClearImage();
     g_use_item_select_controls[0]->m_textBuffer.SetText(g_dialogue_empty_text, 0);
-    g_use_item_select_controls[0]->Invalidate(1);
+    g_use_item_select_controls[0]->Invalidate(true);
     SelectSpellCastingPartySlot(g_status.selected_character);
     g_use_item_select_mode = mode;
     if (mode == -1) {
         for (i = 1; i <= 6; i++) {
-            g_use_item_select_controls[i]->SetEnabled(0);
+            g_use_item_select_controls[i]->SetEnabled(false);
         }
         return;
     }
-    g_use_item_select_controls[3]->SetEnabled(1);
+    g_use_item_select_controls[3]->SetEnabled(true);
     UseItemSelectFilterToggle();
     g_use_item_list_count = 0;
     g_selected_use_item_line = -1;
@@ -629,7 +629,7 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
         } else {
             color = 4;
         }
-        ShowNotice(color, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
+        ShowNotice(color, FormatItemDisplayName(item, true), 2, 0xffffffff, false);
         ++g_use_item_list_count;
         return true;
     }
@@ -649,9 +649,10 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
     case W8_ITEM_QUANTITY_CHARGES:
     case W8_ITEM_QUANTITY_USES:
         if (!item->identified) {
-            ShowNotice(0xf,
-                       FormatWideString(g_format_s_paren_question, FormatItemDisplayName(item, 0)),
-                       2, 0xffffffff, false);
+            ShowNotice(
+                0xf,
+                FormatWideString(g_format_s_paren_question, FormatItemDisplayName(item, false)), 2,
+                0xffffffff, false);
             ++g_use_item_list_count;
             return true;
         }
@@ -663,16 +664,16 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
         count = item->uses_or_charges;
         break;
     default:
-        ShowNotice(0xf, FormatItemDisplayName(item, 0), 2, 0xffffffff, false);
+        ShowNotice(0xf, FormatItemDisplayName(item, false), 2, 0xffffffff, false);
         ++g_use_item_list_count;
         return true;
     }
     if (count == -1) {
-        text = FormatWideString(g_format_s_paren_question, FormatItemDisplayName(item, 0));
+        text = FormatWideString(g_format_s_paren_question, FormatItemDisplayName(item, false));
     } else if (count > 1 || charged) {
-        text = FormatWideString(g_format_s_paren_d, FormatItemDisplayName(item, 0), count);
+        text = FormatWideString(g_format_s_paren_d, FormatItemDisplayName(item, false), count);
     } else {
-        text = FormatItemDisplayName(item, 0);
+        text = FormatItemDisplayName(item, false);
     }
     ShowNotice(0xf, text, 2, 0xffffffff, false);
     ++g_use_item_list_count;
@@ -1024,7 +1025,7 @@ void UpdateUseItemDetailPanel(W8ItemInstance* item)
         value = g_dialogue_empty_text;
     }
     g_use_item_select_controls[0]->m_textBuffer.SetText(value, g_wiz_text_font_secondary);
-    g_use_item_select_controls[0]->Invalidate(1);
+    g_use_item_select_controls[0]->Invalidate(true);
     g_use_item_detail_item = item;
 }
 
@@ -1055,25 +1056,25 @@ void TakeUseItemIntoHand(void)
     unsigned int old_count;
 
     if (!g_status.item_in_cursor) {
-        CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, 1);
+        CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, true);
         return;
     }
     if (g_use_item_owner_index == -1) {
         srAssertFail("giUseItemChar != BAD_INDEX", MGSUSEITEMSELECT_CPP, 0x6c1, 0);
     }
     old_count = g_status.party_item_count;
-    GiveItemToCharacterOrParty(g_use_item_owner_index, &g_status.item_in_hand, 1);
+    GiveItemToCharacterOrParty(g_use_item_owner_index, &g_status.item_in_hand, true);
     if (g_use_item_select_mode == 1 && old_count != g_status.party_item_count &&
         g_status.party_item_count != 0) {
         for (i = 0; i < g_status.party_item_count; i++) {
             if (g_use_item_selected == &g_status.party_item_pool[i]) {
                 g_use_item_selected = &g_status.party_item_pool[i + 1];
-                CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, 1);
+                CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, true);
                 return;
             }
         }
     }
-    CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, 1);
+    CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, true);
 }
 
 // FUNCTION: WIZ8 0x0059E1E0

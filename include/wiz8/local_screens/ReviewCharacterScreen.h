@@ -21,6 +21,17 @@ struct W8CombatSlot;
 struct W8ItemInstance;
 struct W8Region;
 
+/* Stored item-filter order; the four group indices match GetItemEquipSlotGroup. */
+enum W8CampItemFilter {
+    W8_CAMP_ITEM_FILTER_USABLE = 0,
+    W8_CAMP_ITEM_FILTER_UNIDENTIFIED = 1,
+    W8_CAMP_ITEM_FILTER_HAND = 2,
+    W8_CAMP_ITEM_FILTER_BODY = 3,
+    W8_CAMP_ITEM_FILTER_ACCESSORY = 4,
+    W8_CAMP_ITEM_FILTER_OTHER = 5,
+    W8_CAMP_ITEM_FILTER_COUNT = 6
+};
+
 /* The three listeners own different range controls. Their callbacks update
    the item, spell-realm and stats effect-list scroll positions respectively.
    W8CampStatsRange and W8CampStatsControls are authored in RCSStatsPage.cpp
@@ -105,7 +116,7 @@ struct W8CampScreenState {
     unsigned int redraw_flags;
     unsigned int item_redraw_flags;
     W8LearnedSpellState learned_spells; /* 0x100 */
-    unsigned char item_filters[6];      /* 0x4dc */
+    unsigned char item_filters[W8_CAMP_ITEM_FILTER_COUNT]; /* 0x4dc */
     unsigned char padding_4e2[2];
     unsigned int item_scroll;
     /* 0x4e8: the displayed item-pool indices - the count and the list of pool
@@ -217,7 +228,7 @@ extern int g_load_category_palettes[5];
 extern int g_race_portrait_images[0x30];
 
 void SwitchCampPage(int page);
-void ClearOtherCampItemGroupFilters(unsigned int filter);
+void ClearOtherCampItemGroupFilters(W8CampItemFilter filter);
 void RebuildCampItemList(void);
 void SetCampInputMode(int mode);
 void DisplayCampDialog(W8DialogBase* dialog);

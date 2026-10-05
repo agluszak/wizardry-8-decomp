@@ -76,8 +76,8 @@ unsigned char CreatePartyMovementPanel(void)
         g_party_movement_buttons[0]->m_primaryActivationCallback = BeginFreeTurnPhase;
         g_party_movement_buttons[1]->m_primaryActivationCallback = CancelPartyMovement;
         RegionSetEnable(0x1c);
-        g_party_movement_panel->SetEnabled(1);
-        g_party_movement_buttons[0]->SetActive(0);
+        g_party_movement_panel->SetEnabled(true);
+        g_party_movement_buttons[0]->SetActive(false);
         gXStatus.fPartyMovementUi = true;
         g_level_block->move_percent = 100;
         g_level_block->move_percent_shown = 100;
@@ -120,12 +120,12 @@ void UpdatePartyMovementPanel(void)
 {
     RegionSetEnable(0x1c);
     if (CanPartyMove()) {
-        g_party_movement_buttons[1]->SetActive(1);
-        g_party_movement_buttons[0]->SetActive(0);
+        g_party_movement_buttons[1]->SetActive(true);
+        g_party_movement_buttons[0]->SetActive(false);
         return;
     }
-    g_party_movement_buttons[0]->SetActive(1);
-    g_party_movement_buttons[1]->SetActive(0);
+    g_party_movement_buttons[0]->SetActive(true);
+    g_party_movement_buttons[1]->SetActive(false);
 }
 
 // FUNCTION: WIZ8 0x005A19B0
@@ -153,24 +153,24 @@ void DrawPartyMovementPanel(void)
                  (g_party_movement_panel->m_fDirty || g_party_movement_panel->m_fLayoutDirty);
     if (!CanPartyMove()) {
         if (!g_party_movement_buttons[0]->m_active) {
-            g_party_movement_buttons[0]->SetActive(1);
-            g_party_movement_buttons[0]->Invalidate(0);
+            g_party_movement_buttons[0]->SetActive(true);
+            g_party_movement_buttons[0]->Invalidate(false);
         }
         if (g_party_movement_buttons[1]->m_active) {
-            g_party_movement_buttons[1]->SetActive(0);
+            g_party_movement_buttons[1]->SetActive(false);
         }
     } else {
         if (!g_party_movement_buttons[1]->m_active) {
-            g_party_movement_buttons[1]->SetActive(1);
-            g_party_movement_buttons[1]->Invalidate(0);
+            g_party_movement_buttons[1]->SetActive(true);
+            g_party_movement_buttons[1]->Invalidate(false);
         }
         if (g_party_movement_buttons[0]->m_active) {
-            g_party_movement_buttons[0]->SetActive(0);
+            g_party_movement_buttons[0]->SetActive(false);
         }
         if (!g_combat_state->round_active) {
-            g_party_movement_buttons[1]->SetEnabled(0);
+            g_party_movement_buttons[1]->SetEnabled(false);
         } else {
-            g_party_movement_buttons[1]->SetEnabled(1);
+            g_party_movement_buttons[1]->SetEnabled(true);
         }
     }
     g_party_movement_panel->Redraw();
@@ -321,13 +321,13 @@ unsigned char FreeTurnButtonRegionEvent(const InputAtom* event, W8Region* region
 // FUNCTION: WIZ8 0x005A1E90
 void DisableFreeTurnButton(void)
 {
-    g_party_movement_buttons[0]->SetEnabled(0);
+    g_party_movement_buttons[0]->SetEnabled(false);
 }
 
 // FUNCTION: WIZ8 0x005A1EA0
 void EnableFreeTurnButton(void)
 {
-    g_party_movement_buttons[0]->SetEnabled(1);
+    g_party_movement_buttons[0]->SetEnabled(true);
 }
 
 /* Per-frame movement/fatigue processing: each occupied party slot with stamina
@@ -385,7 +385,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;
         if (row->movement_fatigue > g_position_height_epsilon) {
             ticks = static_cast<unsigned int>(row->movement_fatigue * g_movement_fatigue_tick_scale);
-            FatigueCharacter(party_slot, ticks, 0, 0);
+            FatigueCharacter(party_slot, ticks, false, 0);
             row->movement_fatigue = row->movement_fatigue - (ticks * 0x9c4);
         }
     }

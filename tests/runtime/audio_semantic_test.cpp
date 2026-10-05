@@ -142,9 +142,9 @@ static unsigned char CheckAmbientSerializeRoundtrip()
     /* Radius one with a far emitter keeps UpdatePosition on the out-of-range
        path, so the load applies names and stopped flags without touching SGP. */
     AddAmbientSound(g_world, "cavewind", &config, &far_position, &zero, &zero, 0x40, 0x7f, 5000,
-                    20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero, &zero, 0);
+                    20000, 0x40, 0x40, 1.0f, true, 0, &zero, 0.0f, &zero, &zero, 0);
     AddAmbientSound(g_world, "sewerdrip", &config, &far_position, &zero, &zero, 0x40, 0x7f, 5000,
-                    20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero, &zero, 0);
+                    20000, 0x40, 0x40, 1.0f, true, 0, &zero, 0.0f, &zero, &zero, 0);
 
     W8AmbientSound* wind = static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, 0));
     W8AmbientSound* drip = static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, 1));

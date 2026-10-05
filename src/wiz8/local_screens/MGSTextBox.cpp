@@ -431,7 +431,7 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
         g_text_box_mode = 0;
     } else if (force_dialog) {
         W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetMessage(text, 1, 50, 1, 0, 1, 0, 0, 0);
+        dialog->SetMessage(text, 1, 50, 1, 0, true, false, 0, 0);
         SetDialogDestroyCallback(dialog, NoticeDialogDestroyed);
         OpenModal(dialog);
         DrawDialog(g_modal_owner);
@@ -604,7 +604,7 @@ void FormatNotice(int channel, short text_box, const wchar_t* format, ...)
     va_end(arguments);
 
     text_box = ResolveNoticeTextBox(text_box);
-    ShowNotice(channel, text, text_box, -1, 0);
+    ShowNotice(channel, text, text_box, -1, false);
 }
 
 // FUNCTION: WIZ8 0x0058aad0
@@ -782,7 +782,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         return;
     }
     if (g_text_box_mode == 0) {
-        ShowNotice(g_text_box_value, text, text_box, -1, 0);
+        ShowNotice(g_text_box_value, text, text_box, -1, false);
         return;
     }
     text_box = ResolveNoticeTextBox(text_box);
@@ -815,7 +815,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         --g_status.text_box_lines_shown[text_box];
     }
     --*lines_used;
-    ShowNotice(channel, merged, text_box, -1, 0);
+    ShowNotice(channel, merged, text_box, -1, false);
     if (color != 0xff) {
         HighlightTextBoxRange(color, start, stop, text_box);
     }
@@ -1477,7 +1477,7 @@ void DeleteDialogueTextCharacter(unsigned int key)
 // FUNCTION: WIZ8 0x0058E9F0
 unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Region* region)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (input_event->usEvent != MOUSE_POS) {
         return 0;
     }
@@ -1527,7 +1527,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
 {
     short text_box = g_status.text_line_cursor;
     if (g_level_block->text_lines[text_box] == 0) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
 
     unsigned short us_event = event->usEvent;
@@ -1612,7 +1612,7 @@ unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* reg
     unsigned int visible = GetTextBoxVisibleLineCount();
     unsigned int count = GetTextBoxLineCount(text_box);
     if (g_level_block->text_lines[text_box] + visible >= count) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
 
     unsigned short us_event = event->usEvent;
@@ -1658,7 +1658,7 @@ unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* reg
 // FUNCTION: WIZ8 0x0058ED90
 unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     if (event->usEvent == MOUSE_WHEEL) {
         short delta = GetMouseWheelDeltaValue(event->usParam);
         if (delta < 0) {
@@ -1688,12 +1688,13 @@ unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
         if (!gXStatus.fNpcDialogueMode) {
             if (gXStatus.fItemSelectMode) {
                 UseItemSelectTextBoxWheelAt(static_cast<short>(event->uiParam),
-                                            static_cast<unsigned short>(event->uiParam >> 16), 1);
+                                            static_cast<unsigned short>(event->uiParam >> 16),
+                                            true);
             }
             return 1;
         }
         NpcDialogueTextBoxWheelAt(static_cast<short>(event->uiParam),
-                                  static_cast<unsigned short>(event->uiParam >> 16), 1);
+                                  static_cast<unsigned short>(event->uiParam >> 16), true);
         return 1;
     }
     if (gXStatus.fNpcDialogueMode) {
@@ -1713,7 +1714,7 @@ unsigned char TextBoxChannelTabRegionEvent(const InputAtom* event, W8Region* reg
 {
     POINT mouse_pos;
 
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     SGPMouseGetPos(&mouse_pos);
     if (event->usEvent != LEFT_BUTTON_UP) {
         return 0;
@@ -1756,7 +1757,7 @@ unsigned char TextBoxChannelTabRegionEvent(const InputAtom* event, W8Region* reg
 // FUNCTION: WIZ8 0x0058F240
 unsigned char TextBoxMuteRegionEvent(const InputAtom*, W8Region*)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     return 0;
 }
 
@@ -1786,7 +1787,8 @@ unsigned char HandleDialogueTextInput(const InputAtom* input_event)
         g_level_block->dialogue_text_input_open = 0;
         g_level_block->text_lines[input->text_box] = input->saved_scroll_line;
         if (input->text[0] != 0) {
-            ShowNotice(input->notice_channel, input->text, input->text_box, input->wrap_width, 0);
+            ShowNotice(input->notice_channel, input->text, input->text_box, input->wrap_width,
+                       false);
         }
         ReleaseDialogueTextInput();
         RedrawTextBox();
@@ -2156,7 +2158,7 @@ void RedrawTextBoxScrollChrome(void)
 
     InvalidateRegion(g_level_block->text_box_right + 5, 0x16b, g_level_block->text_box_right + 0x1e,
                      0x1c1, 0);
-    RedrawTextBoxBody(0);
+    RedrawTextBoxBody(false);
     if (g_level_block->dialogue_text_input_open && g_level_block->dialogue_text_input != 0) {
         g_level_block->dialogue_text_input->dirty = 1;
     }
@@ -2237,9 +2239,9 @@ void AttemptTrapDisarm(int level, int /*flag*/, char backfire)
     } else {
         screen->m_disarm_state = 8;
     }
-    screen->m_text_panel->EnableRegionSet(0);
-    screen->m_text_panel->m_key_handler->m_range.EnableRegionSet(0);
-    screen->m_action_panel->EnableRegionSet(0);
+    screen->m_text_panel->EnableRegionSet(false);
+    screen->m_text_panel->m_key_handler->m_range.EnableRegionSet(false);
+    screen->m_action_panel->EnableRegionSet(false);
     screen->m_timer.SetDuration(1.5f);
     screen->m_timer.Restart();
 }
@@ -2250,7 +2252,7 @@ void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
     W8MainGameScreen* screen = g_main_game_screen;
 
     if (!gXStatus.fTrapInteractMode) {
-        ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
+        ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, false);
         return;
     }
     screen->m_target_difficulty = target;
@@ -2393,7 +2395,7 @@ static void ClearNoticeWordState(int text_box, bool selected, bool redraw)
         }
     }
     if (redraw) {
-        RedrawTextBoxBody(1);
+        RedrawTextBoxBody(true);
     }
 }
 
@@ -2449,7 +2451,7 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
                 }
             }
         }
-        RedrawTextBoxBody(1);
+        RedrawTextBoxBody(true);
     }
 }
 

@@ -52,7 +52,7 @@ static float ThresholdFacingTarget(float distance)
 
     observer.Set(0.0f, 0.0f, 0.0f);
     target.Set(0.0f, 0.0f, distance);
-    return ComputeSightThreshold(observer, target, 0.0f, 50, 0, 0, 0, 0, 0, 0, 0, distance);
+    return ComputeSightThreshold(observer, target, 0.0f, 50, 0, false, false, 0, 0, 0, 0, distance);
 }
 
 static float ThresholdFacingAway(float distance)
@@ -62,7 +62,8 @@ static float ThresholdFacingAway(float distance)
 
     observer.Set(0.0f, 0.0f, 0.0f);
     target.Set(0.0f, 0.0f, distance);
-    return ComputeSightThreshold(observer, target, 3.1415927f, 50, 0, 0, 0, 0, 0, 0, 0, distance);
+    return ComputeSightThreshold(observer, target, 3.1415927f, 50, 0, false, false, 0, 0, 0, 0,
+                                 distance);
 }
 
 /* Full sight percent on a facing target: the threshold should scale with the
@@ -75,7 +76,8 @@ static float ThresholdFullSight(float distance)
 
     observer.Set(0.0f, 0.0f, 0.0f);
     target.Set(0.0f, 0.0f, distance);
-    return ComputeSightThreshold(observer, target, 0.0f, 100, 0, 0, 0, 0, 0, 0, 0, distance);
+    return ComputeSightThreshold(observer, target, 0.0f, 100, 0, false, false, 0, 0, 0, 0,
+                                 distance);
 }
 
 /* Leaves the scope via an early return, the same way a failed check exits —
@@ -106,7 +108,8 @@ bool RunSightSemanticTests(SightSemanticResult* result)
 
         observer.Set(0.0f, 0.0f, 0.0f);
         target.Set(100.0f, 0.0f, 100.0f);
-        blind = ComputeSightThreshold(observer, target, 0.0f, 50, 0, 1, 0, 0, 0, 0, 0, 500.0f);
+        blind =
+            ComputeSightThreshold(observer, target, 0.0f, 50, 0, true, false, 0, 0, 0, 0, 500.0f);
         result->blind_is_zero = blind == g_float_zero;
 
         facing = ThresholdFacingTarget(1000.0f);
@@ -115,26 +118,26 @@ bool RunSightSemanticTests(SightSemanticResult* result)
 
         observer.Set(0.0f, 0.0f, 0.0f);
         target.Set(0.0f, 0.0f, 9000.0f);
-        skip_fov =
-            ComputeSightThreshold(observer, target, 3.1415927f, 50, 0, 0, 0, 0, 0, 1, 0, 9000.0f);
+        skip_fov = ComputeSightThreshold(observer, target, 3.1415927f, 50, 0, false, false, 0, 0, 1,
+                                         0, 9000.0f);
         result->skip_fov_restores_range = fabs(skip_fov - facing) < 1.0f;
 
-        penalized =
-            ComputeSightThreshold(observer, target, 3.1415927f, 50, 0, 0, 0, 5, 0, 0, 0, 9000.0f);
+        penalized = ComputeSightThreshold(observer, target, 3.1415927f, 50, 0, false, false, 5, 0,
+                                          0, 0, 9000.0f);
         result->penalty_source_reduces_range = penalized < away;
 
-        attributed =
-            ComputeSightThreshold(observer, target, 3.1415927f, 25, 0, 0, 0, 0, 0, 0, 0, 9000.0f);
+        attributed = ComputeSightThreshold(observer, target, 3.1415927f, 25, 0, false, false, 0, 0,
+                                           0, 0, 9000.0f);
         result->attribute_scales_range = attributed < away;
 
         observer.Set(0.0f, 0.0f, 0.0f);
         target.Set(100.0f, 0.0f, 0.0f);
         monster_to_player =
-            ComputeSightThreshold(observer, target, 0.0f, 50, 0, 0, 0, 10, 3, 0, 0, 500.0f);
+            ComputeSightThreshold(observer, target, 0.0f, 50, 0, false, false, 10, 3, 0, 0, 500.0f);
         observer.Set(100.0f, 0.0f, 0.0f);
         target.Set(0.0f, 0.0f, 0.0f);
-        player_to_monster =
-            ComputeSightThreshold(observer, target, 0.0f, 50, 15, 0, 0, 20, 1, 1, 4, 500.0f);
+        player_to_monster = ComputeSightThreshold(observer, target, 0.0f, 50, 15, false, false, 20,
+                                                  1, 1, 4, 500.0f);
         result->same_primitive_party_and_monster =
             monster_to_player > g_float_zero && player_to_monster > g_float_zero;
     }

@@ -468,7 +468,7 @@ bool IsFogEnabled(void)
 // FUNCTION: WIZ8 0x00482EA0
 void EnableSky(void)
 {
-    SetSkyEnabled(1);
+    SetSkyEnabled(true);
     g_sky_enabled = 1;
     UpdateEnvironmentLight();
 }
@@ -666,7 +666,7 @@ void UpdateEnvironmentLighting(void)
 // FUNCTION: WIZ8 0x00482F60
 void DisableSky(void)
 {
-    SetSkyEnabled(0);
+    SetSkyEnabled(false);
     g_sky_enabled = 0;
 }
 

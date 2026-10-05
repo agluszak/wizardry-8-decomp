@@ -37,11 +37,12 @@ bool Rift1Sexspawn(Trigger* pTrigger)
             monster_info = FindMonsterInfoBySpecies(0xd9);
             if (monster_info != 0) {
                 RemoveMonster(
-                    MonsterGetIndexByLocationID(0x42, RIFT1_CPP, monster_info->location_id, 1), 1);
+                    MonsterGetIndexByLocationID(0x42, RIFT1_CPP, monster_info->location_id, true),
+                    true);
             }
             monster_info = FindMonsterInfoBySpecies(0x22b);
             if (monster_info == 0 && FindEntityByName("Sexspawn", &position, 0, 0)) {
-                SpawnMonsters(0x22b, 1, &position, 0, 1, 0, 0);
+                SpawnMonsters(0x22b, 1, &position, 0, true, false, false);
             }
             return true;
         }
@@ -61,10 +62,10 @@ bool Rift1Hotstuff(Trigger* pTrigger)
 
     if (GetFact(W8_FACT_LAVALORD_DIE) == 0) {
         if (FindEntityByName("Hotstuff", &position, 0, 0)) {
-            group = SpawnMonsters(0x175, 1, &position, 0, 1, 0, 0);
+            group = SpawnMonsters(0x175, 1, &position, 0, true, false, false);
             if (group != 0) {
                 monster = GetMonsterByLocationID(IListGetAt(group->monsters, 0));
-                if (monster != 0 && monster->SetScript("MoveLavalord.MSF", 1) != 0) {
+                if (monster != 0 && monster->SetScript("MoveLavalord.MSF", true) != 0) {
                     BeginScriptedWorldAction();
                 }
             }
@@ -81,7 +82,7 @@ bool Rift1Fireantspawn(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("Fireantspawn", &position, 0, 0)) {
-        SpawnMonsters(0x12b, 6, &position, 1, 0, 0, 0);
+        SpawnMonsters(0x12b, 6, &position, 1, false, false, false);
     }
     return true;
 }
@@ -90,7 +91,7 @@ bool Rift1Fireantspawn(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DB160
 bool Rift1Gate(Trigger* pTrigger)
 {
-    SetFact(W8_FACT_RIFT_RAFE_CAGE_OPEN, 1, 0);
+    SetFact(W8_FACT_RIFT_RAFE_CAGE_OPEN, 1, false);
     return true;
 }
 
@@ -101,7 +102,7 @@ bool Rift1AshLock(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_Hotstuff3", &position, 0, 0)) {
-        SpawnMonsters(0x222, 1, &position, 1, 1, 0, 0);
+        SpawnMonsters(0x222, 1, &position, 1, true, false, false);
     }
     return true;
 }

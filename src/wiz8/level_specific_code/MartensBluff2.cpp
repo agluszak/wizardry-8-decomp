@@ -110,13 +110,13 @@ void MartensBluff2Setup(void)
             FindTriggerByName("DummyLever")->flags &= ~W8_TRIGGER_ENABLED;
             if (quest_state == 2) {
                 if (FindEntityByName("Ravenz", &position, 0, 0)) {
-                    group = SpawnMonsters(0x183, 1, &position, 0, 1, 0, 0);
+                    group = SpawnMonsters(0x183, 1, &position, 0, true, false, false);
                     location_id = IListGetAt(group->monsters, 0);
                     if (location_id != 0) {
-                        info = MonsterGetScriptPartByLocationIndex(
-                            MonsterGetIndexByLocationID(0x1d2, MARTENSBLUFF2_CPP, location_id, 1));
+                        info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                            0x1d2, MARTENSBLUFF2_CPP, location_id, true));
                         if (info != 0 && info->p3D != 0) {
-                            info->p3D->SetScript("MB_MoveRapax.msf", 1);
+                            info->p3D->SetScript("MB_MoveRapax.msf", true);
                             SetTriggerVariableByName("RavenQuest", 3);
                         }
                     }
@@ -164,7 +164,7 @@ static void FireTrapLauncher(const char* name, W8SpellEffectDefinition* effect)
         missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
-                               15000.0f, 0);
+                               15000.0f, false);
     }
 }
 
@@ -196,7 +196,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
         missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(&effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
-                               15000.0f, 0);
+                               15000.0f, false);
     }
     return true;
 }
@@ -248,7 +248,7 @@ void MartensBluff2Spikeball(int command)
             g_spikeball_count = command;
         }
         if (g_spikeball_gate == 0) {
-            g_spikeball_gate = new W8IntervalGate(2.0f, 0, 1);
+            g_spikeball_gate = new W8IntervalGate(2.0f, false, true);
             g_master_functions->Add(MartensBluff2Spikeball);
         }
     }
@@ -275,7 +275,7 @@ void MartensBluff2Spikeball(int command)
                 missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
                 missile->SetEffectDefinition(&effect);
                 CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
-                                       1.0f, 15000.0f, 0);
+                                       1.0f, 15000.0f, false);
             }
         }
         return;
@@ -353,13 +353,13 @@ bool MartensBluff2PerfumeBox(Trigger* pTrigger)
     pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     quest_state = 2;
     if (FindEntityByName("Ravenz", &position, 0, 0)) {
-        group = SpawnMonsters(0x183, 1, &position, 0, 1, 0, 0);
+        group = SpawnMonsters(0x183, 1, &position, 0, true, false, false);
         location_id = IListGetAt(group->monsters, 0);
         if (location_id != 0) {
             info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x1d2, MARTENSBLUFF2_CPP, location_id, 1));
+                MonsterGetIndexByLocationID(0x1d2, MARTENSBLUFF2_CPP, location_id, true));
             if (info != 0 && info->p3D != 0) {
-                info->p3D->SetScript("MB_MoveRapax.msf", 1);
+                info->p3D->SetScript("MB_MoveRapax.msf", true);
                 quest_state = 3;
             }
         }
@@ -474,8 +474,9 @@ void MartensBluff2MonsterCrusher(int command)
                        (crusher_lower.y + crusher_upper.y) * g_double_005ebe80,
                        (crusher_lower.z + crusher_upper.z) * g_double_005ebe80);
             if (command != 2) {
-                g_crusher_sound = CreateAndPlaySoundNode(
-                    "Data\\Sound\\Ambients\\Hydraulics Squisher Loop.wav", centre, 0.7f, 30.0f, 1);
+                g_crusher_sound =
+                    CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Hydraulics Squisher Loop.wav",
+                                           centre, 0.7f, 30.0f, true);
             }
             g_crusher_active = true;
             g_crusher_state = 1;
@@ -540,7 +541,7 @@ void MartensBluff2MonsterCrusher(int command)
         return;
     }
     for (i = 0; i < count; i++) {
-        index = MonsterGetIndexByLocationID(0x28d, MARTENSBLUFF2_CPP, location_ids[i], 1);
+        index = MonsterGetIndexByLocationID(0x28d, MARTENSBLUFF2_CPP, location_ids[i], true);
         info = MonsterGetScriptPartByLocationIndex(index);
         if (info != 0 && info->p3D != 0 &&
             (!g_crusher_excluded_flag || info->p3D != g_crusher_excluded) &&
@@ -576,7 +577,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         return false;
     }
-    ReplaceOrCreateItem(&g_status.item_in_hand, 0x291, 0, 0, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand, 0x291, false, false, false);
     SetItemCursor(0);
     ShowString(gppStringList[0x71d]);
     particle = FindRegisteredParticle("IdolGas");
@@ -588,7 +589,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
     g_master_functions->Add(MartensBluff2IdolGas);
     pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     g_running_trigger_from_script = true;
-    SetFact(W8_FACT_QUEST_MARTEN_IDOL, 1, 0);
+    SetFact(W8_FACT_QUEST_MARTEN_IDOL, 1, false);
     return true;
 }
 
@@ -601,7 +602,7 @@ bool MartensBluff2BlueFlowers(Trigger* pTrigger)
         if (g_status.item_in_cursor) {
             return false;
         }
-        ReplaceOrCreateItem(&g_status.item_in_hand, 0x2eb, 0, 0, 0);
+        ReplaceOrCreateItem(&g_status.item_in_hand, 0x2eb, false, false, false);
         SetItemCursor(0);
     }
     g_running_trigger_from_script = false;
@@ -625,7 +626,7 @@ void MartensBluff2IdolGas(int command)
             g_idol_gas_gate->Arm();
             return;
         }
-        g_idol_gas_gate = new W8IntervalGate(4.0f, 0, 1);
+        g_idol_gas_gate = new W8IntervalGate(4.0f, false, true);
         return;
     }
     g_remove_current_master_function = false;
@@ -729,7 +730,7 @@ void MartensBluff2IdolGasVictim(void)
         }
         g_status.party_slot = slot;
         SetCharacterCondition(slot, W8_CONDITION_MISSING, W8_CONDITION_INDEFINITE, 0, 0, 1);
-        SetFact(W8_FACT_CROCK_KIDNAPPED_PLAYER, 1, 0);
+        SetFact(W8_FACT_CROCK_KIDNAPPED_PLAYER, 1, false);
     }
 }
 

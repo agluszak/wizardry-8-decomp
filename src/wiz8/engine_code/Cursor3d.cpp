@@ -155,7 +155,7 @@ void InitializeWorldCursor(void)
                 material->setDiffuse(colour);
                 gp3DCursor->particle->SetRetainedObject(material);
                 gp3DCursor->particle->SetTexture(
-                    LoadTextureFromFolder("Data\\Monsters\\Bitmaps\\", "particle.tga", 1));
+                    LoadTextureFromFolder("Data\\Monsters\\Bitmaps\\", "particle.tga", true));
                 shader.value = 0x100c433;
                 gp3DCursor->particle->SetRenderFlags(shader);
                 gp3DCursor->particle->rotateX(-1.5707963);
@@ -469,7 +469,7 @@ void BindCursorMonsterToGroup(void)
         } else {
             position = gp3DCursor->position;
         }
-        index = GetMonsterGroupIndexByID(0x237, CURSOR3D_CPP, gp3DCursor->monster_group_id, 0);
+        index = GetMonsterGroupIndexByID(0x237, CURSOR3D_CPP, gp3DCursor->monster_group_id, false);
         if (index == 0xffffffff) {
             index = PLLength(gXStatus.plsMonsterGroupList);
             if (index == 0) {
@@ -482,15 +482,15 @@ void BindCursorMonsterToGroup(void)
         if (monster_group != 0) {
             if (monster_group->leader_group_id != 0) {
                 index = GetMonsterGroupIndexByID(0x245, CURSOR3D_CPP,
-                                                 monster_group->leader_group_id, 1);
+                                                 monster_group->leader_group_id, true);
                 monster_group = GetMonsterGroupByListIndex(index);
             }
             index = MonsterGetIndexByLocationID(0x247, CURSOR3D_CPP,
-                                                monster_group->leader_location_id, 1);
+                                                monster_group->leader_location_id, true);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info != 0 && monster_info->p3D != 0 &&
-                monster_info->p3D->SetScript("Test.msf", 1) == 0) {
-                ApplyToMonsterGroupLeader(monster_group, &position, 1);
+                monster_info->p3D->SetScript("Test.msf", true) == 0) {
+                ApplyToMonsterGroupLeader(monster_group, &position, true);
             }
         }
     }
@@ -612,7 +612,7 @@ void UpdateWorldCursor(void)
         if (gp3DCursor->left_held && gXStatus.iTargetingMode == W8_TARGET_NEED_PLACE) {
             GetCameraPosition(&camera);
             if (ResolveWorldCursorTarget(&resolved) != 0 &&
-                g_octree->TraceLineOfSight(&camera, &resolved, 1, -3, -3, 1, 0) == 0) {
+                g_octree->TraceLineOfSight(&camera, &resolved, true, -3, -3, true, 0) == 0) {
                 box_min = resolved + gp3DCursor->extent_min;
                 box_max = resolved + gp3DCursor->extent_max;
                 if (!gp3DCursor->footprint_mode ||
@@ -633,7 +633,7 @@ void UpdateWorldCursor(void)
     if (!(old_position == position)) {
         if (gp3DCursor->detached) {
             position.y += g_float_005ecb08;
-            PointCameraAtTarget(&position, 1, 0);
+            PointCameraAtTarget(&position, true, false);
         }
         if (gXStatus.iTargetingMode == W8_TARGET_NEED_PLACE) {
             RefreshTargetMarker();
@@ -716,7 +716,7 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
             trace_from = end_pos + gp3DCursor->probe_center;
             for (i = 0; i < 8; i++) {
                 probe = end_pos + gp3DCursor->probe_offsets[i];
-                if (g_octree->TraceLineOfSight(&trace_from, &probe, 1, -3, -3, 1, 0) != 0) {
+                if (g_octree->TraceLineOfSight(&trace_from, &probe, true, -3, -3, true, 0) != 0) {
                     *target = last_valid;
                     return 1;
                 }
@@ -774,7 +774,7 @@ void UpdateWorldCursorPlacement(void)
             cursor->cam_rel_offset -= camera;
         }
         target.y += g_float_005ecb08;
-        PointCameraAtTarget(&target, 1, 0);
+        PointCameraAtTarget(&target, true, false);
     } else {
         cursor->position = target;
     }

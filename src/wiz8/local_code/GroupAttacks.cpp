@@ -145,7 +145,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
     } else if (pSource->iType == W8_TARGET_SOURCE_MONSTER) {
         unsigned int value;
 
-        monster_info = MonsterInfoFromID(0xb0, GROUP_ATTACKS_CPP, pSource->iMonsterID, 1);
+        monster_info = MonsterInfoFromID(0xb0, GROUP_ATTACKS_CPP, pSource->iMonsterID, true);
         record = GetMonsterDataForInfo(monster_info);
         if (record->effective_level < 0x10) {
             value = record->effective_level;
@@ -240,7 +240,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                         for (drain = 6; drain != 0; --drain) {
                             DrainCharacterRealmSpellPoints(
                                 iChar, g_special_attack_realm_table[special_attack_kind], uiDamage,
-                                1);
+                                true);
                         }
                         if (announce == 0) {
                             uiTotals[i] += uiDamage;
@@ -257,7 +257,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
-                        FatigueCharacter(iChar, uiDamage, 0, 0);
+                        FatigueCharacter(iChar, uiDamage, false, 0);
                         if (announce == 0) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
@@ -275,7 +275,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
-                        ApplyDamageToCharacter(iChar, uiDamage, 0, announce, 0, 0, 0);
+                        ApplyDamageToCharacter(iChar, uiDamage, false, announce, false, 0, false);
                         if (announce == 0) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
@@ -293,7 +293,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
             ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_MONSTER;
             target.iMonsterID = iMonsterID;
-            monster_info = MonsterInfoFromID(0x170, GROUP_ATTACKS_CPP, iMonsterID, 1);
+            monster_info = MonsterInfoFromID(0x170, GROUP_ATTACKS_CPP, iMonsterID, true);
             for (i = 0; i < 2; ++i) {
                 if (i == 0) {
                     if (Random(100) <= 9) {
@@ -330,7 +330,8 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
-                        ApplyDamageToMonster(monster_info, uiDamage, pSource, 0, 1, 0, 0, 0);
+                        ApplyDamageToMonster(monster_info, uiDamage, pSource, false, 1, 0, 0,
+                                             false);
                         if (announce == 0) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
@@ -381,7 +382,8 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
-                        ApplyDamageToMonster(monster_info, uiDamage, pSource, 0, announce, 0, 0, 0);
+                        ApplyDamageToMonster(monster_info, uiDamage, pSource, false, announce, 0, 0,
+                                             false);
                         if (announce == 0) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
@@ -488,36 +490,36 @@ void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
     record = MonsterDBFromSpecies(special_attack_kind);
     count = RollDice(&record->group_size_dice);
     position = &pAttackerSlot->point;
-    group = CreateGroup(special_attack_kind, count, position, 0, 0, 1);
+    group = CreateGroup(special_attack_kind, count, position, false, false, true);
     if (group == 0) {
         srAssertFail("pGroup", GROUP_ATTACKS_CPP, 600, 0);
     }
-    MonsterInfoFromID(0x25a, GROUP_ATTACKS_CPP, group->leader_location_id, 1);
-    monster_info = MonsterInfoFromID(0x25b, GROUP_ATTACKS_CPP, pAttackerSlot->iMonsterID, 1);
+    MonsterInfoFromID(0x25a, GROUP_ATTACKS_CPP, group->leader_location_id, true);
+    monster_info = MonsterInfoFromID(0x25b, GROUP_ATTACKS_CPP, pAttackerSlot->iMonsterID, true);
     if (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY) {
         disposition = 2;
     } else {
         disposition = 1;
     }
-    SetMonsterGroupHostility(group, disposition, 0);
+    SetMonsterGroupHostility(group, disposition, false);
     if (monster_info->player_visibility.sight_state == W8_SIGHT_SEEN) {
-        placed = PositionMonsterGroupNearCamera(group, 0.0f, 0.0f, 1);
+        placed = PositionMonsterGroupNearCamera(group, 0.0f, 0.0f, true);
         if (!placed) {
-            placed = PositionMonsterGroupNearCamera(group, 1500.0f, 0.0f, 1);
+            placed = PositionMonsterGroupNearCamera(group, 1500.0f, 0.0f, true);
         }
         if (!placed) {
-            placed = PositionMonsterGroupNearCamera(group, 3000.0f, 0.0f, 1);
+            placed = PositionMonsterGroupNearCamera(group, 3000.0f, 0.0f, true);
         }
     } else {
         yaw = GetCameraFacingYaw(position);
-        placed = MoveMonsterGroupToPosition(group, position, yaw, 1, 0, 0, 0);
+        placed = MoveMonsterGroupToPosition(group, position, yaw, true, false, false, false);
     }
     if (!placed) {
         RemoveAllGroupMembers(group);
-        ShowNotice(9, gppStringList[0x26a], -1, -1, 0);
+        ShowNotice(9, gppStringList[0x26a], -1, -1, false);
         return;
     }
     RefreshAllSight();
-    SetMonsterGroupNavigatorDirty(group, 0);
+    SetMonsterGroupNavigatorDirty(group, false);
     MonsterGroupEnterCombat(group);
 }

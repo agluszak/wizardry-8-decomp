@@ -156,13 +156,13 @@ static stModelInstance2D* AcquireRadarBlip(int sector, bool lit)
         icon->setParent(g_scene_square, 1);
         icon->overlay_scene_flag |= 1;
         if (!lit) {
-            icon->SetGlowEnabled(0);
+            icon->SetGlowEnabled(false);
         } else {
             srVector4T<float> first;
             srVector4T<float> second;
             int group = sector - sector % 3;
 
-            icon->SetGlowEnabled(1);
+            icon->SetGlowEnabled(true);
             second.w = 1.0f;
             first.w = 1.0f;
             second.x = g_radar_blip_colors[group + 2][0];
@@ -306,7 +306,7 @@ void RefreshRadarMap(void)
         color.y = g_radar_blip_colors[sector][1];
         color.z = g_radar_blip_colors[sector][2];
         color.w = 1.0f;
-        icon = CreateColoredPolygonSprite(2, 2, &color, 0);
+        icon = CreateColoredPolygonSprite(2, 2, &color, false);
         g_radar_icon_pools[sector].Add(icon);
         icon->overlay_scene_flag |= 1;
     }
@@ -339,7 +339,7 @@ void UpdateRadarBlips(void)
     GetCameraPosition(&camera);
     detect_all = PartyHasCondition(0x40);
 
-    W8WorldItem* world_item = GetNextWorldItem(1);
+    W8WorldItem* world_item = GetNextWorldItem(true);
     while (world_item != 0) {
         W8Item* item = world_item->p3D;
 
@@ -363,10 +363,10 @@ void UpdateRadarBlips(void)
                 }
             }
         }
-        world_item = GetNextWorldItem(0);
+        world_item = GetNextWorldItem(false);
     }
 
-    W8MonsterInfo* info = GetNextMonsterInfo(1);
+    W8MonsterInfo* info = GetNextMonsterInfo(true);
     while (info != 0) {
         W8Monster* monster = info->p3D;
 
@@ -380,7 +380,7 @@ void UpdateRadarBlips(void)
                  MonsterGetHighlightMask(monster)) != 0) {
                 hostile = 1;
             }
-            if (monster->IsRenderable(1) == 0 && !detect_all) {
+            if (monster->IsRenderable(true) == 0 && !detect_all) {
                 if (info->party_threat.sight_state == W8_SIGHT_RECENT) {
                     monster->GetAnimationBounds(&bounds_min, &bounds_max);
                     center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
@@ -434,10 +434,10 @@ void UpdateRadarBlips(void)
                 }
             }
         }
-        info = GetNextMonsterInfo(0);
+        info = GetNextMonsterInfo(false);
     }
 
-    W8Missile* missile = NextMissile(1);
+    W8Missile* missile = NextMissile(true);
     while (missile != 0) {
         if (!missile->impacting) {
             missile->GetAnimationBounds(&bounds_min, &bounds_max);
@@ -449,10 +449,10 @@ void UpdateRadarBlips(void)
             party = g_startup_world->GetPosition();
             delta = position - party;
             if (delta.Length() < g_radar_outer_radius) {
-                PlaceRadarBlip(&delta, 5, 0);
+                PlaceRadarBlip(&delta, 5, false);
             }
         }
-        missile = NextMissile(0);
+        missile = NextMissile(false);
     }
     SetRendererModePair();
 }

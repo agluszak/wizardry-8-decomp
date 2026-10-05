@@ -141,8 +141,8 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     QueueNpcMessageLine(W8_NPC_MSG_SPACER, 0);
     QueueNpcMessageLine(W8_NPC_MSG_CLOSE_DIALOGUE, 0);
     QueueNpcMessageLine(W8_NPC_MSG_DISPATCH_PENDING_NOTICE, 0);
-    QueueNpcScriptLine(MARKED_QUOTE, 1, 0, 1);
-    QueueNpcScriptLine(FIRST_QUOTE, 1, 1, 1);
+    QueueNpcScriptLine(MARKED_QUOTE, true, false, true);
+    QueueNpcScriptLine(FIRST_QUOTE, true, true, true);
 
     ProcessMessageBoxQueue(); /* the prepended quote */
     result->prepended_quote_ran_first =
