@@ -141,7 +141,7 @@ void SyncPartyPortraitVitalsBars(void)
                 (g_settings.numeric_hit_points != 0 &&
                  static_cast<int>(character->hp_current) != entry->cached_hp)) {
                 entry->portrait_stats_dirty = 1;
-                RequestRedraw(0x80000000);
+                RequestRedraw(W8_MAIN_REDRAW_FRAME);
             }
         }
 
@@ -1125,8 +1125,8 @@ void DisableConditionButtons(void)
     if (g_level_block->condition_highlight_party_slot != -1) {
         g_level_block->condition_highlight_party_slot = -1;
         DismissHighlightOverlay();
-        RequestRedraw(0x8000);
-        RequestRedraw(0xff);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
     }
 }
 
@@ -1302,8 +1302,8 @@ void W8ConditionButton::OnMouseLeave(int event)
     if (g_level_block->condition_highlight_party_slot != -1) {
         g_level_block->condition_highlight_party_slot = -1;
         DismissHighlightOverlay();
-        RequestRedraw(0x8000);
-        RequestRedraw(0xff);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
     }
 }
 
@@ -1312,7 +1312,7 @@ void W8ConditionButton::OnLeftButtonDown(int event)
 {
     W8TextControl::OnLeftButtonDown(event);
     g_level_block->condition_highlight_party_slot = m_ui_slot;
-    RequestRedraw(0x8000);
+    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
 }
 
 // FUNCTION: WIZ8 0x00599360
@@ -1321,8 +1321,8 @@ void W8ConditionButton::OnLeftButtonUp(int event)
     W8TextControl::OnLeftButtonUp(event);
     g_level_block->condition_highlight_party_slot = -1;
     DismissHighlightOverlay();
-    RequestRedraw(0x8000);
-    RequestRedraw(0xff);
+    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
+    RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
 }
 
 // FUNCTION: WIZ8 0x0059BDB0
@@ -1451,8 +1451,8 @@ void UpdateConditionButtons(void)
                 if (g_level_block->condition_highlight_party_slot == slot) {
                     g_level_block->condition_highlight_party_slot = -1;
                     DismissHighlightOverlay();
-                    RequestRedraw(0x8000);
-                    RequestRedraw(0xff);
+                    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
+                    RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
                 }
             }
         } else if (!button->m_active) {

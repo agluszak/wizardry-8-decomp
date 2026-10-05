@@ -582,56 +582,37 @@ void ShowMonsterGeneratorEditor(void)
     ShowNoticef(0xf, L"8) to toggle chance default");
 }
 
+template <class Entry> static void ShowMipeNamedTableRows(W8PList* list)
+{
+    if (list != 0) {
+        for (int row = 0; row < 6; ++row) {
+            Entry* entry = static_cast<Entry*>(PLGet(list, g_mipe_table_base + row));
+            if (entry == 0) {
+                ShowNoticef(0xf, &g_empty_wide_string);
+            } else {
+                unsigned int palette = row == g_mipe_table_row ? 3 : 0xf;
+                ShowNoticef(palette, L"    %S", entry->name);
+            }
+        }
+    }
+}
+
 /* Mode-0x17 menu: current encounter-table category plus its six rows. */
 // FUNCTION: WIZ8 0x005783c0
 void ShowMipeEncounterCategory(void)
 {
-    W8EncounterTableRuntime* entry;
-    int row;
-    unsigned int palette;
-
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Category: %S", *g_encounter_names.GetAt(g_mipe_category & 0xff));
-    if (g_mipe_category_list != 0) {
-        row = 0;
-        do {
-            entry = static_cast<W8EncounterTableRuntime*>(
-                PLGet(g_mipe_category_list, g_mipe_table_base + row));
-            if (entry == 0) {
-                ShowNoticef(0xf, &g_empty_wide_string);
-            } else {
-                palette = row == g_mipe_table_row ? 3 : 0xf;
-                ShowNoticef(palette, L"    %S", entry->name);
-            }
-            ++row;
-        } while (row < 6);
-    }
+    ShowMipeNamedTableRows<W8EncounterTableRuntime>(g_mipe_category_list);
 }
 
 /* Mode-0x1d menu: current item-table category plus its six rows. */
 // FUNCTION: WIZ8 0x00578470
 void ShowMipeItemTableCategory(void)
 {
-    W8ItemTableRecord* entry;
-    int row;
-    unsigned int palette;
-
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Category: %S", g_item_table_category_names[g_mipe_category & 0xff]);
-    if (g_mipe_category_list != 0) {
-        row = 0;
-        do {
-            entry = static_cast<W8ItemTableRecord*>(
-                PLGet(g_mipe_category_list, g_mipe_table_base + row));
-            if (entry == 0) {
-                ShowNoticef(0xf, &g_empty_wide_string);
-            } else {
-                palette = row == g_mipe_table_row ? 3 : 0xf;
-                ShowNoticef(palette, L"    %S", entry->name);
-            }
-            ++row;
-        } while (row < 6);
-    }
+    ShowMipeNamedTableRows<W8ItemTableRecord>(g_mipe_category_list);
 }
 
 /* Mode-1 key handler: digit keys build the spawn count, Enter creates the

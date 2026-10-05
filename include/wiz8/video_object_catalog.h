@@ -8,9 +8,11 @@ struct W8VideoObjectSlot {
     short y_offset;
 };
 
+enum W8VideoStorageKind { W8_VIDEO_STORAGE_OBJECT = 0, W8_VIDEO_STORAGE_SURFACE = 1 };
+
 struct W8VideoFrame {
     char path[0x30];
-    int mode;
+    W8VideoStorageKind storage_kind;
     bool loaded;
     unsigned int handle;
 };
@@ -24,8 +26,8 @@ short GetCatalogVideoObjectYOffset(int object);
    receives the slot y_offset used as ConfigureVObjButton's base frame. */
 HVOBJECT GetCatalogVideoObject(int object, int frame, int* y_offset_out);
 void GetCatalogImageSize(int object, int frame, int image, short* width, short* height);
-/* 0x00549700: the image's own offset inside its frame, read from the locked
-   surface rather than the ETRLE subregion table. */
+/* 0x00549700: the image's own offset inside its frame, read from the video object's
+   ETRLE subregion table. */
 void GetCatalogImagePosition(int object, int frame, int image, short* x, short* y);
 void DrawCatalogImage(int target, int object, int frame, short image, int left, int top, int mode,
                       int flags);

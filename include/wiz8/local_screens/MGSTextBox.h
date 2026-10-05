@@ -75,15 +75,14 @@ unsigned char SaveTextBoxState(unsigned int file);
    translation-unit local; MGSTextBox.cpp declares them static. */
 unsigned char HandleDialogueTextInput(const InputAtom* input); /* 0x0058F250 */
 char TextBoxHandleKey(const InputAtom* event);                 /* 0x0058A8F0 */
-int GetTextSlot1E8(int index);                                 /* 0x0058FA60 */
-void ClearTextSlot1E8(int index);                              /* 0x0058FA30 */
-/* The 0x1d8/0x1e8 slot tables in W8LevelRuntimeBlock track one selected
-   wrapped-line start per box; the Set variants snap a wrapped index back to
-   its line start before storing. */
-int GetTextSlot1D8(int index);             /* 0x0058F990 */
-void ClearTextSlot1D8(int index);          /* 0x0058F960 */
-void SelectTextSlot1D8(int line, int box); /* 0x0058F8E0 */
-void SelectTextSlot1E8(int line, int box); /* 0x0058F9B0 */
+int GetSelectedTextLine(int index);                            /* 0x0058FA60 */
+void ClearSelectedTextLine(int index);                         /* 0x0058FA30 */
+/* Hover and selection track one wrapped-line start per box. Set operations
+   snap a visible wrapped index back to its entry's first line. */
+int GetHoveredTextLine(int index);           /* 0x0058F990 */
+void ClearHoveredTextLine(int index);        /* 0x0058F960 */
+void SetHoveredTextLine(int line, int box);  /* 0x0058F8E0 */
+void SetSelectedTextLine(int line, int box); /* 0x0058F9B0 */
 /* 0x00590150/0x005901D0: walk every notice-word list of a box, clearing the
    flag_08 mark and raising flag_09; the first touches only selected (2)
    words, the second everything else. Nonzero redraw repaints the body

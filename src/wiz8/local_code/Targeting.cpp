@@ -3032,7 +3032,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
             RequestPartySlotRedraw(actor);
             if (actor == g_status.selected_character) {
                 RequestRedrawParty();
-                RequestRedraw(0x200000);
+                RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
             }
             g_level_block->pick_changed = 0;
         }

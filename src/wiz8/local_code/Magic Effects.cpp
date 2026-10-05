@@ -379,7 +379,7 @@ void ResetCombatEffects(void)
             g_combat_state->effect_slots[i].duration = 0;
             RebuildPartyEffectBlock();
             InvalidateMainGameEffectHud();
-            RequestRedraw(0x800100);
+            RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_COMBAT_EFFECTS);
         }
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             monster_info = MonsterGetScriptPartByLocationIndex(index);
@@ -407,7 +407,7 @@ void ResetCombatEffects(void)
             g_combat_state->effect_slots0[i].duration = 0;
             RebuildPartyEffectBlock();
             InvalidateMainGameEffectHud();
-            RequestRedraw(0x800100);
+            RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_COMBAT_EFFECTS);
         }
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             monster_info = MonsterGetScriptPartByLocationIndex(index);
@@ -439,7 +439,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
     slot->duration = 0;
     RebuildPartyEffectBlock();
     InvalidateMainGameEffectHud();
-    RequestRedraw(0x800100);
+    RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_COMBAT_EFFECTS);
 }
 
 /* 0x006172A0: how much harder each condition is to shrug off, added to the
@@ -2050,7 +2050,7 @@ void ApplyBeingEffectSlot(W8SpellEffectEntry* effect)
         slot->amount = effect->definition.duration_scale;
         slot->duration = duration;
         RebuildPartyEffectBlock();
-        RequestRedraw(0x800100);
+        RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_COMBAT_EFFECTS);
         effect->applied = true;
     }
     for (index = 0; index < effect->monster_ids.GetCount(); ++index) {
@@ -2179,7 +2179,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
             slot->amount = effect->definition.duration_scale;
             slot->duration = duration;
             RebuildPartyEffectBlock();
-            RequestRedraw(0x800100);
+            RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_COMBAT_EFFECTS);
             effect->applied = true;
             effect->result.count += CountActiveCharacters();
         }
@@ -2262,7 +2262,7 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
         slot->amount = effect->definition.duration_scale;
         slot->duration = duration;
         RebuildPartyEffectBlock();
-        RequestRedraw(0x800100);
+        RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_COMBAT_EFFECTS);
         effect->applied = true;
     }
     for (index = 0; index < effect->monster_ids.GetCount(); ++index) {
@@ -2858,7 +2858,8 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
                         slot->duration = 0;
                         RebuildPartyEffectBlock();
                         InvalidateMainGameEffectHud();
-                        RequestRedraw(0x800100);
+                        RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS |
+                                      W8_MAIN_REDRAW_COMBAT_EFFECTS);
                     }
                     effect->applied = true;
                 }
@@ -3740,7 +3741,8 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
                     slot->duration = 0;
                     RebuildPartyEffectBlock();
                     InvalidateMainGameEffectHud();
-                    RequestRedraw(0x800100);
+                    RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS |
+                                  W8_MAIN_REDRAW_COMBAT_EFFECTS);
                 }
                 ++slot;
             } while (slot < g_status.effect_slots + 12);

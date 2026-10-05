@@ -742,7 +742,7 @@ void W8TextControl::InvalidateCore(unsigned char immediate)
         } else {
             m_pPanel->InvalidateLayout();
         }
-        RequestRedraw(0x80000000);
+        RequestRedraw(W8_MAIN_REDRAW_FRAME);
     }
     m_textBuffer.SetGeometryDirty();
 }
@@ -1575,7 +1575,7 @@ void W8VerticalRangeThumb::ClampPositionAndInvalidate()
     if (m_pPanel != 0) {
         m_dirty = true;
         m_pPanel->InvalidateLayout();
-        RequestRedraw(0x80000000);
+        RequestRedraw(W8_MAIN_REDRAW_FRAME);
     }
 }
 
@@ -1692,7 +1692,7 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
     if (hovered != m_hovered && m_pPanel != 0) {
         m_dirty = true;
         m_pPanel->InvalidateLayout();
-        RequestRedraw(0x80000000);
+        RequestRedraw(W8_MAIN_REDRAW_FRAME);
     }
     m_hovered = hovered;
 }
@@ -1871,7 +1871,7 @@ void W8HorizontalRangeThumb::InvalidateThumb()
     if (m_pPanel != 0) {
         m_dirty = true;
         m_pPanel->InvalidateLayout();
-        RequestRedraw(0x80000000);
+        RequestRedraw(W8_MAIN_REDRAW_FRAME);
     }
 }
 
@@ -1986,11 +1986,11 @@ void W8VerticalRangeThumb::OnMouseLeave(int event)
             m_dirty = true;
             if (static_cast<unsigned char>(event) != 0) {
                 m_pPanel->Invalidate(0);
-                RequestRedraw(0x80000000);
+                RequestRedraw(W8_MAIN_REDRAW_FRAME);
                 return;
             }
             m_pPanel->InvalidateLayout();
-            RequestRedraw(0x80000000);
+            RequestRedraw(W8_MAIN_REDRAW_FRAME);
         }
     }
 }
@@ -2005,11 +2005,11 @@ void W8HorizontalRangeThumb::OnMouseLeave(int event)
             m_dirty = true;
             if (static_cast<unsigned char>(event) != 0) {
                 m_pPanel->Invalidate(0);
-                RequestRedraw(0x80000000);
+                RequestRedraw(W8_MAIN_REDRAW_FRAME);
                 return;
             }
             m_pPanel->InvalidateLayout();
-            RequestRedraw(0x80000000);
+            RequestRedraw(W8_MAIN_REDRAW_FRAME);
         }
     }
 }
@@ -2120,14 +2120,14 @@ void Controls::Invalidate(const W8ControlsRect* rect)
     m_fDirty = 1;
     if (rect == 0) {
         m_fWholeAreaDirty = 1;
-        RequestRedraw(0x80000000);
+        RequestRedraw(W8_MAIN_REDRAW_FRAME);
         return;
     }
     edge = m_dirtyRect.left;
     m_fWholeAreaDirty = 0;
     if (edge == -1) {
         m_dirtyRect = *rect;
-        RequestRedraw(0x80000000);
+        RequestRedraw(W8_MAIN_REDRAW_FRAME);
         return;
     }
     if (rect->left <= edge) {
@@ -2149,14 +2149,14 @@ void Controls::Invalidate(const W8ControlsRect* rect)
         edge = m_dirtyRect.bottom;
     }
     m_dirtyRect.bottom = edge;
-    RequestRedraw(0x80000000);
+    RequestRedraw(W8_MAIN_REDRAW_FRAME);
 }
 
 // FUNCTION: WIZ8 0x004f2f00
 void Controls::InvalidateLayout()
 {
     m_fLayoutDirty = 1;
-    RequestRedraw(0x80000000);
+    RequestRedraw(W8_MAIN_REDRAW_FRAME);
 }
 
 void Controls::RedrawControls(bool full_redraw)
@@ -2259,11 +2259,11 @@ void W8Widget::Invalidate(unsigned char immediate)
         m_dirty = true;
         if (immediate) {
             m_pPanel->Invalidate(0);
-            RequestRedraw(0x80000000);
+            RequestRedraw(W8_MAIN_REDRAW_FRAME);
             return;
         }
         m_pPanel->InvalidateLayout();
-        RequestRedraw(0x80000000);
+        RequestRedraw(W8_MAIN_REDRAW_FRAME);
     }
 }
 

@@ -771,7 +771,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
         }
     }
     RequestRedrawCombatBar();
-    RequestRedraw(0x1000);
+    RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
     if (g_mouselook_active != 0) {
         EnableCursorScene();
         g_mouselook_active = 0;
@@ -791,7 +791,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
         MonsterForwardReferencePosition(info->p3D, 0);
     }
     PauseMainGameWorld();
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     g_npc_interaction_state->text_box_collapsed = true;
     swprintf(space, L" ");
     ShowNotice(5, space, 3, -1, 0);
@@ -1203,7 +1203,7 @@ void EndNpcDialogueSession(bool param_1)
         delete control[i];
     }
     RequestRedrawCombatBar();
-    RequestRedraw(0x1000);
+    RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); index++) {
         ClearMonsterEffect2DE(MonsterGetScriptPartByLocationIndex(index));
     }
@@ -1479,9 +1479,9 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
    raises the right-held flag (retail bug). */
 static void HighlightNpcDialogueLine(int line)
 {
-    ClearTextSlot1D8(2);
+    ClearHoveredTextLine(2);
     if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
-        SelectTextSlot1D8(g_level_block->text_lines[2] + line, 2);
+        SetHoveredTextLine(g_level_block->text_lines[2] + line, 2);
     }
     RedrawTextBox();
 }
@@ -1525,7 +1525,7 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
     if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
         NoOp();
         ClearNoticeWordHover(3, 1);
-        ClearTextSlot1D8(2);
+        ClearHoveredTextLine(2);
         return 1;
     }
     if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
@@ -1631,7 +1631,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
         return;
     case W8_DIALOGUE_LAYOUT_SERVICES:
     case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
-        slot = GetTextSlot1D8(2);
+        slot = GetHoveredTextLine(2);
         if (slot == -1) {
             return;
         }
@@ -1657,7 +1657,7 @@ void NpcDialogueTextBoxRightUp(int x, int y)
 
     switch (g_npc_interaction_state->dialogue_layout) {
     case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
-        slot = GetTextSlot1D8(2);
+        slot = GetHoveredTextLine(2);
         if (slot == -1) {
             return;
         }
@@ -1726,7 +1726,7 @@ void NpcDialogueTextBoxDoubleClick(int x, int y)
         HighlightNpcDialogueLine(line);
         g_npc_interaction_state->hovered_text_line = line;
     }
-    slot = GetTextSlot1D8(2);
+    slot = GetHoveredTextLine(2);
     if (slot != -1) {
         g_npc_interaction_state->selected_trade_row = -1;
         UpdateNpcTradeSelection(slot, 0, 1);
@@ -1768,7 +1768,7 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
     wchar_t price_text[220];
     bool wants_item;
 
-    SelectTextSlot1E8(index, 2);
+    SetSelectedTextLine(index, 2);
     switch (g_npc_interaction_state->dialogue_layout) {
     case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
         break;
@@ -1852,7 +1852,7 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
 // FUNCTION: WIZ8 0x0056FED0
 void ResetNpcDialogueItemEditor(void)
 {
-    ClearTextSlot1E8(2);
+    ClearSelectedTextLine(2);
     g_npc_interaction_state->trade_item = 0;
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->SetEnabled(0);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
@@ -2025,7 +2025,7 @@ void ShowNpcDialogueTopicMenu(void)
     } else {
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])->SetEnabled(0);
     }
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     SelectTextBox(3);
 }
 
@@ -2221,7 +2221,7 @@ void OpenNpcDialogueTranscriptLayout(void)
     } else {
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SORT_BUTTON])->DisableSecondaryState(1);
     }
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     for (index = 0; index < 8; ++index) {
         if (g_status.buffers.XChar[index].fOccupied != 0) {
             RegionSetDisable(7 + index);
@@ -2584,7 +2584,7 @@ void OpenNpcDialogueOptionLayout(void)
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + index])->SetEnabled(0);
     }
     RebuildNpcTradeItemList(1);
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x00571F60
@@ -2732,7 +2732,7 @@ void OpenNpcItemAssay(void)
 // FUNCTION: WIZ8 0x00572670
 void OnNpcAssayDialogClosed(W8DialogBase*)
 {
-    RequestRedraw(-1);
+    RequestRedraw(W8_MAIN_REDRAW_ALL);
 }
 
 // FUNCTION: WIZ8 0x00572680
@@ -2769,7 +2769,7 @@ void ConfirmNpcTradeSlot(void)
     int slot;
 
     if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
-        slot = GetTextSlot1E8(2);
+        slot = GetSelectedTextLine(2);
         if (slot != -1) {
             UpdateNpcTradeSelection(slot, 0, 0);
             if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_GIVE && slot == 0) {
@@ -2859,6 +2859,29 @@ static void ShowSelectedNpcTradeItem(const W8ItemInstance* item)
         ->Invalidate(1);
 }
 
+static void UpdatePartyTradeQuantity(const W8ItemInstance* item, int row, bool decrement)
+{
+    if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
+        g_npc_interaction_state->trade_quantity = item->stack_count;
+    } else if (g_npc_interaction_state->selected_trade_row == row) {
+        if (!decrement) {
+            if (g_item_records[item->iItemNo].quantity_kind == W8_ITEM_QUANTITY_STACK) {
+                ++g_npc_interaction_state->trade_quantity;
+                if (item->stack_count < g_npc_interaction_state->trade_quantity) {
+                    g_npc_interaction_state->trade_quantity = item->stack_count;
+                }
+            }
+        } else {
+            --g_npc_interaction_state->trade_quantity;
+            if (g_npc_interaction_state->trade_quantity == 0) {
+                g_npc_interaction_state->trade_quantity = 1;
+            }
+        }
+    } else {
+        g_npc_interaction_state->trade_quantity = 1;
+    }
+}
+
 // FUNCTION: WIZ8 0x005729C0
 W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char commit)
 {
@@ -2900,30 +2923,8 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                                 return &g_status.party_item_pool[i];
                             }
                             if (commit != 0) {
-                                if (g_item_records[g_status.party_item_pool[i].iItemNo]
-                                        .equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-                                    g_npc_interaction_state->trade_quantity =
-                                        g_status.party_item_pool[i].stack_count;
-                                } else if (g_npc_interaction_state->selected_trade_row == hit) {
-                                    if (decrement == 0) {
-                                        if (g_item_records[g_status.party_item_pool[i].iItemNo]
-                                                .quantity_kind == W8_ITEM_QUANTITY_STACK) {
-                                            ++g_npc_interaction_state->trade_quantity;
-                                            if (g_status.party_item_pool[i].stack_count <
-                                                g_npc_interaction_state->trade_quantity) {
-                                                g_npc_interaction_state->trade_quantity =
-                                                    g_status.party_item_pool[i].stack_count;
-                                            }
-                                        }
-                                    } else {
-                                        --g_npc_interaction_state->trade_quantity;
-                                        if (g_npc_interaction_state->trade_quantity == 0) {
-                                            g_npc_interaction_state->trade_quantity = 1;
-                                        }
-                                    }
-                                } else {
-                                    g_npc_interaction_state->trade_quantity = 1;
-                                }
+                                UpdatePartyTradeQuantity(&g_status.party_item_pool[i], hit,
+                                                         decrement != 0);
                             }
                             g_npc_interaction_state->selected_trade_row = hit;
                             if (commit != 0) {
@@ -2951,30 +2952,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                             return &character->backpack[i];
                         }
                         if (commit != 0) {
-                            if (g_item_records[character->backpack[i].iItemNo].equip_class ==
-                                W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-                                g_npc_interaction_state->trade_quantity =
-                                    character->backpack[i].stack_count;
-                            } else if (g_npc_interaction_state->selected_trade_row == hit) {
-                                if (decrement == 0) {
-                                    if (g_item_records[character->backpack[i].iItemNo]
-                                            .quantity_kind == W8_ITEM_QUANTITY_STACK) {
-                                        ++g_npc_interaction_state->trade_quantity;
-                                        if (character->backpack[i].stack_count <
-                                            g_npc_interaction_state->trade_quantity) {
-                                            g_npc_interaction_state->trade_quantity =
-                                                character->backpack[i].stack_count;
-                                        }
-                                    }
-                                } else {
-                                    --g_npc_interaction_state->trade_quantity;
-                                    if (g_npc_interaction_state->trade_quantity == 0) {
-                                        g_npc_interaction_state->trade_quantity = 1;
-                                    }
-                                }
-                            } else {
-                                g_npc_interaction_state->trade_quantity = 1;
-                            }
+                            UpdatePartyTradeQuantity(&character->backpack[i], hit, decrement != 0);
                         }
                         g_npc_interaction_state->selected_trade_row = hit;
                         if (commit != 0) {
@@ -3134,7 +3112,7 @@ void OpenNpcDialogueMode5Layout(void)
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])->SetEnabled(0);
     }
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])->SetEnabled(1);
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     SelectTextBox(2);
     if (gXStatus.fCampMode == 0) {
         ResetEditorStatusLine(2);
@@ -3336,7 +3314,7 @@ void OpenNpcDialogueMode1Layout(void)
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])->SetEnabled(CharacterHasServiceItem(character));
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])->W8Widget::Invalidate(1);
     }
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     SelectTextBox(2);
     if (gXStatus.fCampMode == 0) {
         ResetEditorStatusLine(2);
@@ -4426,9 +4404,9 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
                 g_npc_interaction_state->quote_x + g_npc_interaction_state->quote_width,
                 g_npc_interaction_state->quote_y + g_npc_interaction_state->quote_height, 0);
         }
-        RequestRedraw(0x200);
-        RequestRedraw(0xff);
-        RequestRedraw(0x8000);
+        RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
     } else if (g_current_screen_state.id == W8_SCREEN_CAMP) {
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     }
@@ -4519,10 +4497,10 @@ void SetNpcDialogueHidden(char value)
         static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->ClearBackground();
         ClearSurfaceRect(0x1dc, 0x11b, 0x269, 0x1c2);
         InvalidateRegion(0x1dc, 0x11b, 0x269, 0x1c2, 0);
-        RequestRedraw(2);
-        RequestRedraw(8);
-        RequestRedraw(0x20);
-        RequestRedraw(0x80);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_1);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_3);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_5);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_7);
         SetInputFieldBlocksMouseCallback(0, 1);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])->SetEnabled(0);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])->SetEnabled(0);
@@ -4558,7 +4536,7 @@ void SetNpcDialogueHidden(char value)
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])->SetEnabled(1);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])->SetEnabled(1);
     }
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     g_npc_interaction_state->dialogue_hidden = value;
 }
 
@@ -4940,11 +4918,11 @@ unsigned char SetNpcDialoguePanelVisible(unsigned char value)
             controller->ClearBackground();
             ClearSurfaceRect(0x1dc, 0x11b, 0x269, 0x1c2);
             InvalidateRegion(0x1dc, 0x11b, 0x269, 0x1c2, 0);
-            RequestRedraw(2);
-            RequestRedraw(8);
-            RequestRedraw(0x20);
-            RequestRedraw(0x80);
-            RequestRedraw(0x200);
+            RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_1);
+            RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_3);
+            RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_5);
+            RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_7);
+            RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
             g_npc_interaction_state->dialogue_panel_hidden = 1;
             return 1;
         }
@@ -4955,7 +4933,7 @@ unsigned char SetNpcDialoguePanelVisible(unsigned char value)
         controller = static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2]);
         controller->Expand();
         SyncNpcDialogueTranscriptScrollButtons();
-        RequestRedraw(0x200);
+        RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
         g_npc_interaction_state->dialogue_panel_hidden = 0;
         return 1;
     }

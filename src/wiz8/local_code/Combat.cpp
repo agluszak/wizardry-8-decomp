@@ -219,7 +219,11 @@ unsigned char StartCombat(int surprise)
     DisablePortraitControls();
     EnableMainRegionSet();
     g_level_block->pick_changed = 0;
-    RequestRedraw(0x810ff);
+    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_0 | W8_MAIN_REDRAW_PORTRAIT_1 |
+                  W8_MAIN_REDRAW_PORTRAIT_2 | W8_MAIN_REDRAW_PORTRAIT_3 |
+                  W8_MAIN_REDRAW_PORTRAIT_4 | W8_MAIN_REDRAW_PORTRAIT_5 |
+                  W8_MAIN_REDRAW_PORTRAIT_6 | W8_MAIN_REDRAW_PORTRAIT_7 |
+                  W8_MAIN_REDRAW_SUBMENU_BUTTONS | W8_MAIN_REDRAW_COMBAT_STANCE);
     CheckMonsterGroupsEnterCombat();
     ShowNotice(0xc, gppStringList[0x224], 1, 0xffffffff, 0);
     RollCombatSurprise(static_cast<char>(surprise));
@@ -249,7 +253,7 @@ unsigned char StartCombat(int surprise)
             monster_info->pCombat->phase = 0;
             monster_info->pCombat->active = 1;
             monster_info->pCombat->settle_ticks = 0;
-            RequestRedraw(0x100000);
+            RequestRedraw(W8_MAIN_REDRAW_COMBAT_PROGRESS);
             if (monster_info->hp_current > 0 &&
                 monster_info->highest_condition < W8_CONDITION_WEBBED &&
                 monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
@@ -612,8 +616,11 @@ void BeginCombatExecution(void)
     ++g_combat_state->combat_update_count;
     UpdateAllMonsterAI();
     AssignCombatPhases();
-    RequestRedraw(0x1000ff);
-    RequestRedraw(0x80000);
+    RequestRedraw(
+        W8_MAIN_REDRAW_PORTRAIT_0 | W8_MAIN_REDRAW_PORTRAIT_1 | W8_MAIN_REDRAW_PORTRAIT_2 |
+        W8_MAIN_REDRAW_PORTRAIT_3 | W8_MAIN_REDRAW_PORTRAIT_4 | W8_MAIN_REDRAW_PORTRAIT_5 |
+        W8_MAIN_REDRAW_PORTRAIT_6 | W8_MAIN_REDRAW_PORTRAIT_7 | W8_MAIN_REDRAW_COMBAT_PROGRESS);
+    RequestRedraw(W8_MAIN_REDRAW_COMBAT_STANCE);
 
     if (g_settings.verbose_combat_messages != 0 &&
         g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_NONE) {
@@ -926,7 +933,7 @@ void EndMonsterTurn(W8MonsterInfo* monster_info)
     monster_info->pCombat->phase = 0;
     monster_info->pCombat->active = 1;
     monster_info->pCombat->settle_ticks = 0;
-    RequestRedraw(0x100000);
+    RequestRedraw(W8_MAIN_REDRAW_COMBAT_PROGRESS);
 
     if (monster_info->hp_current != 0 && monster_info->highest_condition < W8_CONDITION_WEBBED &&
         monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
@@ -1064,7 +1071,7 @@ void SwitchCharacterTo(int party_slot, W8ActionKind action)
         row->target_out_of_combat = row->target_in_combat;
     }
     g_combat_state->characters[party_slot].dead = 1;
-    RequestRedraw(1 << party_slot | 0x100000);
+    RequestRedraw(1 << party_slot | W8_MAIN_REDRAW_COMBAT_PROGRESS);
     if (action == W8_ACTION_DEFEND && row->action != action) {
         g_combat_state->characters[party_slot].defend_switched = 1;
     }
@@ -1138,7 +1145,11 @@ void EndCombat(unsigned char mode)
         g_level_block->review_transition_active == 0) {
         ClearSurfaceRect(0x17, 0x34, 0x2d, 0x159);
         ClearSurfaceRect(0x253, 0x34, 0x269, 0x159);
-        RequestRedraw(0x810ff);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_0 | W8_MAIN_REDRAW_PORTRAIT_1 |
+                      W8_MAIN_REDRAW_PORTRAIT_2 | W8_MAIN_REDRAW_PORTRAIT_3 |
+                      W8_MAIN_REDRAW_PORTRAIT_4 | W8_MAIN_REDRAW_PORTRAIT_5 |
+                      W8_MAIN_REDRAW_PORTRAIT_6 | W8_MAIN_REDRAW_PORTRAIT_7 |
+                      W8_MAIN_REDRAW_SUBMENU_BUTTONS | W8_MAIN_REDRAW_COMBAT_STANCE);
     }
     if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fSpellCastMode == 0 &&
         gXStatus.fItemSelectMode == 0) {
@@ -1939,7 +1950,10 @@ void AdvanceCombatRound(void)
         }
         ++index;
     }
-    RequestRedraw(0x1000ff);
+    RequestRedraw(
+        W8_MAIN_REDRAW_PORTRAIT_0 | W8_MAIN_REDRAW_PORTRAIT_1 | W8_MAIN_REDRAW_PORTRAIT_2 |
+        W8_MAIN_REDRAW_PORTRAIT_3 | W8_MAIN_REDRAW_PORTRAIT_4 | W8_MAIN_REDRAW_PORTRAIT_5 |
+        W8_MAIN_REDRAW_PORTRAIT_6 | W8_MAIN_REDRAW_PORTRAIT_7 | W8_MAIN_REDRAW_COMBAT_PROGRESS);
     CheckMonsterGroupsLeaveCombat();
     UpdateMonsterGroupEngagement();
     CheckMonsterGroupsEnterCombat();
@@ -2163,7 +2177,7 @@ void ExecuteCharacterAction(int party_slot)
     if (gXStatus.fCombatMode != 0) {
         if (action != W8_ACTION_DEFEND && action != W8_ACTION_PROTECT) {
             g_combat_state->characters[party_slot].dead = 1;
-            RequestRedraw((1 << party_slot) | 0x100000);
+            RequestRedraw((1 << party_slot) | W8_MAIN_REDRAW_COMBAT_PROGRESS);
         }
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0, 0) == 0) {
             slot->pending_action = W8_ACTION_NONE;
@@ -2636,7 +2650,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         monster_info->pCombat->settle_ticks = 0;
     }
     monster_info->pCombat->active = 1;
-    RequestRedraw(0x100000);
+    RequestRedraw(W8_MAIN_REDRAW_COMBAT_PROGRESS);
     g_combat_state->eCombatActionStatus = 2;
 }
 
@@ -3340,7 +3354,7 @@ void ScheduleCombatActor(void)
                 combat_row->phase = 0;
                 if (combat_row->dead == 0) {
                     combat_row->dead = 1;
-                    RequestRedraw((1 << slot) | 0x100000);
+                    RequestRedraw((1 << slot) | W8_MAIN_REDRAW_COMBAT_PROGRESS);
                 }
             }
         }
@@ -3366,7 +3380,7 @@ void ScheduleCombatActor(void)
                 combat->phase = 0;
                 if (combat->active == 0) {
                     combat->active = 1;
-                    RequestRedraw(0x100000);
+                    RequestRedraw(W8_MAIN_REDRAW_COMBAT_PROGRESS);
                 }
             }
         }

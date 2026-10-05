@@ -1259,15 +1259,7 @@ void ResetAutomapZoom(void)
                                   static_cast<short>(g_automap_cursor_offsets[tool].y));
     gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
     RefreshMouseCursorTexture();
-    if (g_automap_buttons != 0) {
-        g_automap_buttons[0]->SetEnabled(1);
-        g_automap_buttons[1]->SetEnabled(0);
-        g_automap_buttons[0]->m_dirty = true;
-        g_automap_buttons[0]->Draw();
-        g_automap_buttons[1]->m_dirty = true;
-        g_automap_buttons[1]->Draw();
-    }
-    g_automap_zoom_mode = 0;
+    SetAutomapButtonMode(0);
 }
 
 /* Left-click zoom: drop a sight line onto the clicked point, halve the
@@ -1303,26 +1295,10 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
     float height = (g_automap_top_y - ground) * g_float_005ebc7c;
     float minimum = ground + g_float_005ec360;
     if (g_automap_zoom_mode != 0 || g_automap_top_y <= minimum || height < minimum) {
-        if (g_automap_buttons != 0) {
-            g_automap_buttons[0]->SetEnabled(0);
-            g_automap_buttons[1]->SetEnabled(1);
-            g_automap_buttons[0]->m_dirty = true;
-            g_automap_buttons[0]->Draw();
-            g_automap_buttons[1]->m_dirty = true;
-            g_automap_buttons[1]->Draw();
-        }
-        g_automap_zoom_mode = 2;
+        SetAutomapButtonMode(2);
         height = minimum;
     } else {
-        if (g_automap_buttons != 0) {
-            g_automap_buttons[0]->SetEnabled(1);
-            g_automap_buttons[1]->SetEnabled(1);
-            g_automap_buttons[0]->m_dirty = true;
-            g_automap_buttons[0]->Draw();
-            g_automap_buttons[1]->m_dirty = true;
-            g_automap_buttons[1]->Draw();
-        }
-        g_automap_zoom_mode = 1;
+        SetAutomapButtonMode(1);
     }
     g_automap_zoom = height - ground;
     position.y = height;

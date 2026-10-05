@@ -313,9 +313,9 @@ unsigned char OpenSpellCastingView(int party_slot)
     SelectSpellCastingPartySlot(party_slot);
     gpSCSV->selected_spell_index = -1;
     SelectSpellCastingCharacter(party_slot);
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     RequestRedrawCombatBar();
-    RequestRedraw(0x1000);
+    RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
     PauseMainGameWorld();
     gpSCSV->override_spell = 0;
     return 1;
@@ -349,9 +349,9 @@ void CloseSpellCastingView(void)
         SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
         gXStatus.fSpellCastMode = false;
         ApplyMainGameModeFlag(gpSCSV->saved_game_mode, 1);
-        RequestRedraw(0x200);
+        RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
         RequestRedrawCombatBar();
-        RequestRedraw(0x1000);
+        RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
         location_id = gpSCSV->location_id;
         interact_id = gpSCSV->interact_id;
         free(gpSCSV);
@@ -404,7 +404,7 @@ static void ClearSpellCastingChoice()
     gpSCSV->dialog_confirmed = false;
     UpdateSpellPowerPips();
     SelectSpellCastingPartySlot(g_status.selected_character);
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
 }
 
 /* Points the view at a new caster: rebuilds the learned-spell buckets and the
@@ -673,7 +673,7 @@ static void RebuildSpellCastingList(int spell_id)
         SelectSpellCastingListRow(selected);
         ScrollTextBoxTo(selected);
     }
-    RequestRedraw(0x800);
+    RequestRedraw(W8_MAIN_REDRAW_TEXT_BOX);
 }
 
 /* Recolours one spell-list line; -1 keeps the row's own color, or the
@@ -715,7 +715,7 @@ static void SelectSpellCastingRow(int index)
         if (gpSCSV->selected_spell_index != -1) {
             SetSpellListLineColor(gpSCSV->selected_spell_index, -1);
             gpSCSV->selected_spell_index = -1;
-            RequestRedraw(0x800);
+            RequestRedraw(W8_MAIN_REDRAW_TEXT_BOX);
             return;
         }
     } else {
@@ -733,7 +733,7 @@ static void SelectSpellCastingRow(int index)
         SetSpellListLineColor(index, 5);
         gpSCSV->selected_spell_index = index;
     }
-    RequestRedraw(0x800);
+    RequestRedraw(W8_MAIN_REDRAW_TEXT_BOX);
 }
 
 /* Opens the spell-casting view when needed and selects the given spell's
@@ -822,7 +822,7 @@ void SetSpellCastingPanelsActive(bool active)
 // FUNCTION: WIZ8 0x005A02F0
 void SpellCastingNoticeClosed(W8DialogBase* dialog)
 {
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x005A0300
@@ -1131,7 +1131,7 @@ void CommitSpellCastingSelection(void)
             gpSCSV->realm_icons[gpSCSV->iSpellRealm]->m_normalSprite = gpSCSV->realm_anim_frame;
             gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
             gpSCSV->realm_anim_timer = SetCountdownClock(0x32);
-            RequestRedraw(0x80000000);
+            RequestRedraw(W8_MAIN_REDRAW_FRAME);
         }
     }
     TryCommitSpellCast();
@@ -1362,7 +1362,7 @@ static void SelectSpellCastingListRow(int index)
     ConfigureSpellTargetFilter(target_type, needed);
     SelectSpellPowerLevel(-1);
     UpdateSpellPowerPips();
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x005A1330

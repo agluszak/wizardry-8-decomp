@@ -201,9 +201,9 @@ unsigned char OpenUseItemSelectView(int slot)
     }
     memset(g_use_item_list, 0, sizeof(g_use_item_list));
     g_use_item_select_controls[7]->SetEnabled(0);
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     RequestRedrawCombatBar();
-    RequestRedraw(0x1000);
+    RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
     g_use_item_owner_index = -1;
     RefreshUseItemSelectionForSlot(slot);
     SelectSpellCastingPartySlot(slot);
@@ -248,9 +248,9 @@ void CloseUseItemSelectView(void)
         }
         gXStatus.fItemSelectMode = false;
         ApplyMainGameModeFlag(g_use_item_select_return_mode, 1);
-        RequestRedraw(0x200);
+        RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
         RequestRedrawCombatBar();
-        RequestRedraw(0x1000);
+        RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
         ResumeMainGameWorld();
         gXStatus.item_drag_active = 0;
         gXStatus.dragged_item = 0;
@@ -338,7 +338,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
                 srAssertFail("giReuseItemLineNumber != -1", MGSUSEITEMSELECT_CPP, 0x221, 0);
             }
             ScrollTextBoxTo(g_selected_use_item_line);
-            SelectTextSlot1D8(g_selected_use_item_line, 2);
+            SetHoveredTextLine(g_selected_use_item_line, 2);
             RedrawTextBox();
             return;
         }
@@ -530,7 +530,7 @@ static void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
 
     slot = g_status.selected_character;
     ResetEditorStatusLine(2);
-    ClearTextSlot1E8(2);
+    ClearSelectedTextLine(2);
     g_use_item_selected = 0;
     g_use_item_detail_item = 0;
     g_use_item_select_controls[0]->ClearImage();
@@ -718,7 +718,7 @@ void RefreshUseItemSelection(void)
 {
     if (g_use_item_select_mode != -1) {
         RebuildUseItemSelectList(g_use_item_select_mode, 0);
-        RequestRedraw(0x200);
+        RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     }
 }
 
@@ -744,7 +744,7 @@ void OpenUseItemAssayDialog(W8ItemInstance* item)
 void RestoreTargetCursor(W8DialogBase*)
 {
     SetTargetCursor(g_saved_target_cursor);
-    RequestRedraw(-1);
+    RequestRedraw(W8_MAIN_REDRAW_ALL);
 }
 
 // FUNCTION: WIZ8 0x0059D950
@@ -852,7 +852,7 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
             return 1;
         }
         region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-        slot = GetTextSlot1D8(2);
+        slot = GetHoveredTextLine(2);
         if (slot == -1) {
             return 1;
         }
@@ -866,7 +866,7 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
         return 1;
     case MOUSE_POS:
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            ClearTextSlot1D8(2);
+            ClearHoveredTextLine(2);
             g_use_item_hover_row = -1;
             return 1;
         }
@@ -885,9 +885,9 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
         if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
             row = (y - g_level_block->text_box_top) / 0xb;
             if (row != g_use_item_hover_row) {
-                ClearTextSlot1D8(2);
+                ClearHoveredTextLine(2);
                 if (row < static_cast<int>(g_status.text_box_lines_shown[2])) {
-                    SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
+                    SetHoveredTextLine(g_level_block->text_lines[2] + row, 2);
                 }
                 RedrawTextBox();
             }
@@ -925,9 +925,9 @@ void UseItemSelectTextBoxWheelAt(short x, unsigned short y, bool flag)
     }
     row = (y - g_level_block->text_box_top) / 0xb;
     if (row != g_use_item_hover_row || flag != 0) {
-        ClearTextSlot1D8(2);
+        ClearHoveredTextLine(2);
         if (row < static_cast<int>(g_status.text_box_lines_shown[2])) {
-            SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
+            SetHoveredTextLine(g_level_block->text_lines[2] + row, 2);
         }
         RedrawTextBox();
     }
@@ -974,8 +974,8 @@ void SelectUseItemLine(int iTextLine)
         CloseUseItemSelectView();
         return;
     }
-    SelectTextSlot1E8(iTextLine, 2);
-    ClearTextSlot1D8(2);
+    SetSelectedTextLine(iTextLine, 2);
+    ClearHoveredTextLine(2);
     RedrawTextBox();
     target_type =
         GetSpellTargetType(GetItemSpell(g_use_item_selected),

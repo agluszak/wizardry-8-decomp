@@ -55,9 +55,6 @@ W8MainGameScreen* g_main_game_screen;
 
 #define MGS_TEXT_BOX_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSTextBox.cpp"
 
-/* The redraw the text box asks for whenever anything it shows changes. */
-enum { W8_REDRAW_TEXT_BOX = 0x800 };
-
 /* The TEXT chunk's 0x24-byte form is separate from the live message record:
    its first word is a wide-character count, and its entries word preserves
    the original 32-bit list-pointer bits. */
@@ -201,8 +198,8 @@ void ResetEditorStatusLine(short line)
         g_level_block->text_lines[line] = 0;
     }
     g_level_block->text_lines[4 + line] = -1;
-    g_level_block->text_slots0[line] = -1;
-    g_level_block->text_slots1[line] = -1;
+    g_level_block->hovered_text_lines[line] = -1;
+    g_level_block->selected_text_lines[line] = -1;
     g_level_block->text_content_region = 0x56;
     g_level_block->dialogue_content_region = 0x59;
     g_level_block->dialogue_text_input_open = 0;
@@ -568,28 +565,25 @@ unsigned char LoadMessageStorage(int file)
     return 1;
 }
 
-/* One entry of text_slots1. Index 2 is the secondary NPC-dialogue item
-   editor slot; other indices remain positional. */
+/* The selected wrapped-line start for one text box. NPC trade uses box 2. */
 // FUNCTION: WIZ8 0x0058fa60
-int GetTextSlot1E8(int index)
+int GetSelectedTextLine(int index)
 {
-    return g_level_block->text_slots1[index];
+    return g_level_block->selected_text_lines[index];
 }
 
-/* Empty one entry of either slot table and ask for a redraw. The two bodies
-   differ only in which table they clear, which is what pairs them. The 0x1d8
-   table still has no agreeing producer beyond init/clear. */
+/* Clear one box's hover or selection highlight and request a repaint. */
 // FUNCTION: WIZ8 0x0058f960
-void ClearTextSlot1D8(int index)
+void ClearHoveredTextLine(int index)
 {
-    g_level_block->text_slots0[index] = -1;
+    g_level_block->hovered_text_lines[index] = -1;
     RedrawTextBox();
 }
 
 // FUNCTION: WIZ8 0x0058fa30
-void ClearTextSlot1E8(int index)
+void ClearSelectedTextLine(int index)
 {
-    g_level_block->text_slots1[index] = -1;
+    g_level_block->selected_text_lines[index] = -1;
     RedrawTextBox();
 }
 
@@ -597,7 +591,7 @@ void ClearTextSlot1E8(int index)
 // FUNCTION: WIZ8 0x0058aa00
 void RedrawTextBox(void)
 {
-    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    RequestRedraw(W8_MAIN_REDRAW_TEXT_BOX);
 }
 
 // FUNCTION: WIZ8 0x0058ab60
@@ -1306,7 +1300,7 @@ void ReleaseDialogueTextInput(void)
 void InvalidateDialogueTextCursor(void)
 {
     g_level_block->dialogue_text_input->dirty = 1;
-    RequestRedraw(0x80000000);
+    RequestRedraw(W8_MAIN_REDRAW_FRAME);
 
     W8ControlsRect bounds;
     bounds.left = g_level_block->text_box_left;
@@ -1878,13 +1872,13 @@ static void DrawMessageLineText(const W8MessageStorageRecord* line, int x, int y
     }
 }
 
-/* Paint one message-storage line at (x, y). slot_1d8_match / slot_1e8_match
+/* Paint one message-storage line at (x, y). hovered_line / selected_line
    select alternate palettes for the editor slot highlights; skip_invalidate
    is forwarded from RedrawTextBoxBody and skips the word-overlay pass when
    set. Retail reuses the leading bytes of the level block as a wchar scratch. */
 // FUNCTION: WIZ8 0x0058D2C0
-static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slot_1d8_match,
-                            bool slot_1e8_match, bool skip_invalidate)
+static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool hovered_line,
+                            bool selected_line, bool skip_invalidate)
 {
     unsigned short* palette;
     int draw_x;
@@ -1901,8 +1895,8 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
     }
 
     palette = g_font_state_palettes[3];
-    if (slot_1e8_match == 0) {
-        if (slot_1d8_match != 0) {
+    if (selected_line == 0) {
+        if (hovered_line != 0) {
             palette = g_font_state_palettes[0];
             if (static_cast<char>(line->font_palette) != 5) {
                 palette = g_font_state_palettes[5];
@@ -2081,8 +2075,8 @@ void RedrawTextBoxBody(bool skip_invalidate)
                 }
                 DrawTextBoxLine(
                     line, x, g_level_block->text_box_top + y_offset,
-                    line_index - line->link == g_level_block->text_slots0[text_box],
-                    line_index - line->link == g_level_block->text_slots1[text_box],
+                    line_index - line->link == g_level_block->hovered_text_lines[text_box],
+                    line_index - line->link == g_level_block->selected_text_lines[text_box],
                     skip_invalidate);
             }
         }
@@ -2307,25 +2301,27 @@ void SelectTextBox(short text_box)
     }
 }
 
-// FUNCTION: WIZ8 0x0058F8E0
-void SelectTextSlot1D8(int line, int index)
+static void SelectWrappedTextLine(int line, int box, int (&selection)[4])
 {
-    W8MessageStorageRecord* record;
-    unsigned int first;
-
     if (line < 0x15e) {
-        first = g_level_block->text_lines[g_status.text_line_cursor];
+        unsigned int first = g_level_block->text_lines[g_status.text_line_cursor];
         if (first <= static_cast<unsigned int>(line) &&
             static_cast<unsigned int>(line) < first + 7) {
-            record = &g_message_storage[index][line];
+            W8MessageStorageRecord* record = &g_message_storage[box][line];
             while (record->link != 0 && line != 0) {
                 --line;
                 --record;
             }
-            g_level_block->text_slots0[index] = line;
+            selection[box] = line;
             RedrawTextBox();
         }
     }
+}
+
+// FUNCTION: WIZ8 0x0058F8E0
+void SetHoveredTextLine(int line, int index)
+{
+    SelectWrappedTextLine(line, index, g_level_block->hovered_text_lines);
 }
 
 // FUNCTION: WIZ8 0x00590D90
@@ -2335,30 +2331,15 @@ void ClearTextLineEntry(int index)
 }
 
 // FUNCTION: WIZ8 0x0058F990
-int GetTextSlot1D8(int index)
+int GetHoveredTextLine(int index)
 {
-    return g_level_block->text_slots0[index];
+    return g_level_block->hovered_text_lines[index];
 }
 
 // FUNCTION: WIZ8 0x0058F9B0
-void SelectTextSlot1E8(int line, int index)
+void SetSelectedTextLine(int line, int index)
 {
-    W8MessageStorageRecord* record;
-    unsigned int first;
-
-    if (line < 0x15e) {
-        first = g_level_block->text_lines[g_status.text_line_cursor];
-        if (first <= static_cast<unsigned int>(line) &&
-            static_cast<unsigned int>(line) < first + 7) {
-            record = &g_message_storage[index][line];
-            while (record->link != 0 && line != 0) {
-                --line;
-                --record;
-            }
-            g_level_block->text_slots1[index] = line;
-            RedrawTextBox();
-        }
-    }
+    SelectWrappedTextLine(line, index, g_level_block->selected_text_lines);
 }
 
 // FUNCTION: WIZ8 0x0058FFC0

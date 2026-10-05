@@ -322,7 +322,7 @@ static void SubMenuButtonPendingScreen(W8DialogButton* button)
 static void SubMenuButtonSurprise(W8DialogButton* button)
 {
     RequestCamp();
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     DrawSubMenuCharacterAction();
 }
 
@@ -331,7 +331,7 @@ static void SubMenuButtonToggleFlag(W8DialogButton* button)
 {
     ToggleSearchMode();
     button->SetPressed(g_status.search_mode ? 1 : 0);
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     DrawSubMenuCharacterAction();
 }
 
@@ -378,7 +378,7 @@ static void SubMenuButtonOpenMenu1(W8DialogButton* button)
 static void SubMenuButtonToggleCombat(W8DialogButton* button)
 {
     ToggleCombatMode();
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     DrawSubMenuCharacterAction();
 }
 
@@ -409,7 +409,7 @@ void DestroySubMenuControls(void)
     RegionSetDisable(0x27);
     DisableRegionSetInput(0x27);
     DestroySubMenuPanel();
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x00595600

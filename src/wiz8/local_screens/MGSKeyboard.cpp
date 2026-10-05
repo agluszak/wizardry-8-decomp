@@ -649,7 +649,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         break;
     case W8_MGS_COMMAND_DEBUG_TOGGLE_FLAG_271:
         g_level_block->text_box_visible ^= 1;
-        RequestRedraw(0x800);
+        RequestRedraw(W8_MAIN_REDRAW_TEXT_BOX);
         break;
     case W8_MGS_COMMAND_DEBUG_MONSTER_SCRIPT:
         if (g_level_block->highlighted_item != -1) {
@@ -974,7 +974,7 @@ void RedrawKeyboardMenuPanel(bool invalidate)
 static void ChooseKeyboardMenuAction(W8ActionKind action)
 {
     ChooseAction(g_selected_party_slot, action, -1, 0, 0, 1);
-    RequestRedraw(0x200000);
+    RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
     CloseKeyboardMenu();
 }
 
@@ -1044,7 +1044,7 @@ static void KeyboardMenuCastRecordedSpell(void)
     CloseKeyboardMenu();
     if (CanPartySlotCastRecordedSpell(g_selected_party_slot) != 0) {
         StartCharacterSpellCast(g_selected_party_slot, 0);
-        RequestRedraw(0x200000);
+        RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
     }
 }
 
@@ -1071,7 +1071,7 @@ static void KeyboardMenuUseRecordedItem(void)
 
     CloseKeyboardMenu();
     StartCharacterItemUse(g_selected_party_slot);
-    RequestRedraw(0x200000);
+    RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
 }
 
 // FUNCTION: WIZ8 0x00594760

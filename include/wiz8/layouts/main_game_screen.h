@@ -34,6 +34,42 @@ enum W8MainUiMode {
     W8_MAIN_UI_MODE_RADAR = 2
 };
 
+/* RequestRedraw and the two main-game paint passes share this mask. The low
+   eight bits select party portraits; combinations remain unsigned mask words. */
+enum W8MainGameRedrawFlag {
+    W8_MAIN_REDRAW_PORTRAIT_0 = 0x1,
+    W8_MAIN_REDRAW_PORTRAIT_1 = 0x2,
+    W8_MAIN_REDRAW_PORTRAIT_2 = 0x4,
+    W8_MAIN_REDRAW_PORTRAIT_3 = 0x8,
+    W8_MAIN_REDRAW_PORTRAIT_4 = 0x10,
+    W8_MAIN_REDRAW_PORTRAIT_5 = 0x20,
+    W8_MAIN_REDRAW_PORTRAIT_6 = 0x40,
+    W8_MAIN_REDRAW_PORTRAIT_7 = 0x80,
+    W8_MAIN_REDRAW_PORTRAITS = 0xff,
+    W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS = 0x100,
+    W8_MAIN_REDRAW_LAYOUT = 0x200,
+    W8_MAIN_REDRAW_RADAR = 0x400,
+    W8_MAIN_REDRAW_TEXT_BOX = 0x800,
+    W8_MAIN_REDRAW_SUBMENU_BUTTONS = 0x1000,
+    W8_MAIN_REDRAW_SUBMENU_PANEL = 0x2000,
+    W8_MAIN_REDRAW_FORMATION = 0x4000,
+    W8_MAIN_REDRAW_PORTRAIT_PANEL = 0x8000,
+    W8_MAIN_REDRAW_MONSTER_LIST = 0x20000,
+    W8_MAIN_REDRAW_OPTIONS_BUTTON = 0x40000,
+    W8_MAIN_REDRAW_COMBAT_STANCE = 0x80000,
+    W8_MAIN_REDRAW_COMBAT_PROGRESS = 0x100000,
+    W8_MAIN_REDRAW_CHARACTER_ACTION = 0x200000,
+    W8_MAIN_REDRAW_COMBAT_EFFECTS = 0x800000,
+    W8_MAIN_REDRAW_CHROME = W8_MAIN_REDRAW_RADAR | W8_MAIN_REDRAW_TEXT_BOX |
+                            W8_MAIN_REDRAW_SUBMENU_BUTTONS | W8_MAIN_REDRAW_SUBMENU_PANEL |
+                            W8_MAIN_REDRAW_FORMATION | W8_MAIN_REDRAW_OPTIONS_BUTTON |
+                            W8_MAIN_REDRAW_COMBAT_STANCE | W8_MAIN_REDRAW_CHARACTER_ACTION
+};
+
+/* These masks include the high bit and remain unsigned on the VC6 ABI. */
+static const unsigned int W8_MAIN_REDRAW_FRAME = 0x80000000U;
+static const unsigned int W8_MAIN_REDRAW_ALL = 0xffffffffU;
+
 #pragma pack(push, 1)
 /* The dormant typed-dialogue input state hung off the level block: a plain
    heap object, not an srClass derivative. */
@@ -109,13 +145,10 @@ struct W8LevelRuntimeBlock {
     int text_content_region;
     int dialogue_content_region;
     unsigned int text_lines[12]; /* 0x1a8 */
-    /* 0x1d8/0x1e8: paired four-entry slot tables cleared to -1 on level-block
-       init. Entry [2] of text_slots1 is the secondary NPC-dialogue item
-       editor slot (ResetNpcDialogueItemEditor / ConfirmNpcTradeSlot);
-       the other indices and the whole 0x1d8 table still lack agreeing
-       producers beyond ClearTextSlot*. */
-    int text_slots0[4];
-    int text_slots1[4];
+    /* 0x1d8/0x1e8: wrapped-line starts for hover and selection highlighting.
+       NPC dialogue uses box 2 for the hovered row and selected trade item. */
+    int hovered_text_lines[4];
+    int selected_text_lines[4];
     bool dialogue_text_input_open;
     unsigned char padding_1f9[3];
     /* GOG retail retains the complete editor consumer path, but has no writer
