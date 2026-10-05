@@ -28,7 +28,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        revision=acc74ac07b331f54a42fafe1b51c708f6741b5e1
+        revision=81a8bd9f18a085d6fca661e09e8a5a39e9f3e86c
         installer="$RUNNER_TEMP/buildPatchedDecompiler.sh"
         curl --fail --location --retry 3 --output "$installer" \
           "https://raw.githubusercontent.com/agluszak/ghidra/$revision/support/buildPatchedDecompiler.sh"

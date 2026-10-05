@@ -183,5 +183,43 @@ CI container. Updated pins require a fresh CI result.
 
 Do not normalize counted-versus-pointer loops, raw boolean values, signed
 ordering, arbitrary pointer/integer casts or floating-point reassociation into
-equality. Repeated branching-callee replay and suspicious inferred template
-parameter types still need owner-level investigation.
+equality. Remaining representation and inferred aggregate/template differences
+need case-specific retail evidence and owner-level investigation.
+
+## Repeated expansion and prototype follow-up
+
+Ghidra's hard-inline flow now resolves cloned branch, fall-through, return and
+switch edges by operation sequence identity. Original instruction addresses
+remain provenance. Its recursion set tracks the active expansion path, rather
+than permanently excluding an already-expanded function. Same-instruction
+continuations are valid; synthetic CALL_RETURN returns and real terminal halts
+remain distinct. Cloned call specifications do not generate duplicate no-return
+halts, and operation-id allocation cannot move backwards.
+
+reccmp removes the repeated-nonleaf exclusion instead of retaining an obsolete
+workaround or adding a mode. Existing cycle and body-coverage checks remain.
+Recomp primitive parameters may be constrained by that binary's own decorated
+symbols when arity, convention and width agree. Reviewed signatures, ambiguous
+shared addresses, pointers, references, enums and aggregates are excluded.
+The correction is recorded as recomp symbol evidence and never projected into
+retail. This fixes a count inferred as a pointer after argument-slot reuse in
+srArray<srModeler::Triangle>::setCapacity.
+
+Native inline warnings identify their callee and reason. reccmp retains the raw
+warning and groups selected-pass warnings in summary.json by image, callee and
+reason, listing affected caller identities. The diagnostic identity clause is
+metadata, excluded from body text; warning text and literal strings survive.
+No new report command, normalization mode or equivalence engine is introduced.
+
+Focused replay of six saved #877 functions makes srModeler::flipTriangle and
+srModeler::setTriangleCount clean. The selected Wizardry callers lose rejected
+inline warnings. srConfig::append's similarity decreases after more complete
+expansion; its remaining difference stays visible. These are focused archived
+product results, not current-main whole-image statistics.
+
+Validation: 762 native Ghidra assertions pass; the reccmp suite passes 1,010
+tests (154 skipped and 6 expected failures). After the final native changes,
+all 19 focused inline/prototype integration tests pass against released 12.1.4
+using the published installer. Formatting runs on Python 3.15; changed Python
+owners pass lint and typing checks. CI pins the Ghidra installer at `81a8bd9f`
+and reccmp at `00bf5625`. Whole-image current-main results remain CI validation.
