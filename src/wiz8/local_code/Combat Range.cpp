@@ -1072,11 +1072,11 @@ void InitializeMonsterRangeCapabilities(W8MonsterInfo* monster_info, const W8Mon
 
     srVector3T<float> position;
     monster_info->has_projectile_origin =
-        best_range > W8_RANGE_SHORT && monster_info->p3D->GetProjectilePosition(&position) == 1;
+        best_range > W8_RANGE_SHORT && monster_info->p3D->GetProjectilePosition(&position);
 
     monster_info->has_spell_origin = record->spell_chance != 0 &&
                                      MonsterIsCycleSupported(monster_info->p3D, 0x19) &&
-                                     monster_info->p3D->GetSpellPosition(&position) == 1;
+                                     monster_info->p3D->GetSpellPosition(&position);
 }
 
 // FUNCTION: WIZ8 0x0051b3f0
@@ -1210,7 +1210,7 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
 {
     out->Set(0.0f, monster->movement.height_offset, 0.0f);
     if (kind == 1) {
-        if (monster->GetProjectilePosition(out) != 0) {
+        if (monster->GetProjectilePosition(out)) {
             srVector3T<float> position = monster->GetPosition();
             *out -= position;
             return;
@@ -1219,7 +1219,7 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
         if (kind != 3) {
             return;
         }
-        if (monster->GetSpellPosition(out) != 0) {
+        if (monster->GetSpellPosition(out)) {
             srVector3T<float> position = monster->GetPosition();
             *out -= position;
             return;

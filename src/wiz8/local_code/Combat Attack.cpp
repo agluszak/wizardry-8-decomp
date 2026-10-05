@@ -265,7 +265,7 @@ unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, W8MonsterRecord
     unsigned char rating;
     unsigned int attack;
 
-    if (monster_info->fMotionless != 0) {
+    if (monster_info->fMotionless) {
         return 1;
     }
     best = 0;
@@ -1822,7 +1822,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 }
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
                     static_cast<char>(target_info->p3D->IsFacingMonster(monster_info->p3D)) != 0 &&
-                    target_info->fMotionless == 0) {
+                    !target_info->fMotionless) {
                     StartMonsterCycle(target_info, 0x13, 1);
                 }
             }
@@ -4098,7 +4098,7 @@ int ResolveCharacterAttack(int party_slot)
                     }
                     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
                         static_cast<char>(monster_info->p3D->IsFacingPlayer()) != 0 &&
-                        monster_info->fMotionless == 0) {
+                        !monster_info->fMotionless) {
                         StartMonsterCycle(monster_info, 0x13, 1);
                     }
                 }

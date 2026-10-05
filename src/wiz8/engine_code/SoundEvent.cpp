@@ -165,7 +165,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
             track_sound = true;
             if (location_id != 0) {
                 monster = GetMonsterByLocationID(location_id);
-                if (gXStatus.fCombatMode || monster->nearest_to_party != 0) {
+                if (gXStatus.fCombatMode || monster->nearest_to_party) {
                     base_volume = footstep_combat_volume;
                 }
             }

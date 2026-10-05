@@ -830,8 +830,8 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             if (member == 0) {
                 srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0xfdc, 0);
             }
-            if (member->summoned == 0) {
-                member->summoned = 1;
+            if (member->summoned == W8_MONSTER_SUMMON_NONE) {
+                member->summoned = W8_MONSTER_SUMMON_FRIENDLY;
                 SetMonsterSpellIcon(member->p3D, SPELL_ICON_SUMMONED, true);
             }
         }
@@ -842,8 +842,8 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             if (member == 0) {
                 srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0xfdc, 0);
             }
-            if (member->summoned == 0) {
-                member->summoned = 2;
+            if (member->summoned == W8_MONSTER_SUMMON_NONE) {
+                member->summoned = W8_MONSTER_SUMMON_HOSTILE;
                 SetMonsterSpellIcon(member->p3D, SPELL_ICON_SUMMONED, true);
             }
         }

@@ -410,7 +410,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
         }
     }
     if (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE ||
-        monster_info->p3D->script_wait != 1 || decision != W8_RT_AI_IDLE) {
+        monster_info->p3D->script_wait != MONSCR_WALKTO || decision != W8_RT_AI_IDLE) {
         if (decision != monster_info->ai_mode || update != 0) {
             if (!engage && decision == W8_RT_AI_CHARGE_PARTY) {
                 srAssertFail("ubAIDecision != RT_AI_MODE_CHARGE_PARTY", MONSTER_AI_CPP, 0x1c9, 0);
@@ -705,7 +705,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         decision = W8_RT_AI_IDLE;
         break;
     case W8_RT_AI_MOVE_TO_PATROL_POINT:
-        if (monster->GetPatrolPoint(&patrol_point) == 0) {
+        if (!monster->GetPatrolPoint(&patrol_point)) {
             decision = W8_RT_AI_IDLE;
             break;
         }
@@ -964,7 +964,7 @@ members:
         member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x4a7, MONSTER_AI_CPP, IListGetAt(monster_group->monsters, index), true));
         record = GetMonsterDataForInfo(member);
-        if (!member->fActive || member->fMotionless != 0 || member->p3D->IsDying() ||
+        if (!member->fActive || member->fMotionless || member->p3D->IsDying() ||
             member->hp_current == 0 || member->highest_condition >= W8_CONDITION_BLIND) {
             continue;
         }
@@ -1709,7 +1709,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
             return false;
         }
         if (record->kind != 0x14 && record->kind != 0x15 && record->kind != 0x1c &&
-            target->summoned == 0) {
+            target->summoned == W8_MONSTER_SUMMON_NONE) {
             return false;
         }
         break;

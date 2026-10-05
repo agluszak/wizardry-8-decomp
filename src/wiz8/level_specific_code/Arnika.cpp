@@ -326,7 +326,7 @@ void ArnikaMookholoWatch(int command)
     if (g_npc_dialogue_closed) {
         g_remove_current_master_function = true;
         if (g_mookholo_monster != 0) {
-            g_mookholo_monster->BeginFadeOutAndRemove(3);
+            g_mookholo_monster->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_CLEAR_SCREG_ACTIVE);
             g_mookholo_monster = 0;
         }
     }

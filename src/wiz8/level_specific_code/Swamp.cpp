@@ -170,7 +170,7 @@ static void SwampGasFireItemDrop(int command)
             item = SpawnItem(0x264, &drop_position, 3, true);
             item->item.identified = false;
             ActivateItem(item);
-            g_swamp_spawned_monster->BeginFadeOutAndRemove(0);
+            g_swamp_spawned_monster->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
         }
     }
 }

@@ -806,7 +806,7 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
 {
     char script_name[0x40] = {0};
     memcpy(script_name, &g_empty_ambient_name, sizeof(g_empty_ambient_name));
-    int script_wait = -1;
+    W8MonsterScriptCommand script_wait = MONSCR_NONE;
     int script_line = -1;
     unsigned char has_script = 0;
     unsigned int record_version = 7;
@@ -850,8 +850,8 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
         queue_count = info->p3D->script_conditions.GetCount();
         chunks->Write(&queue_count, 4, 0);
         for (i = 0; i < queue_count; ++i) {
-            value = *info->p3D->script_conditions.GetAt(i);
-            chunks->Write(&value, 1, 0);
+            script_flag = *info->p3D->script_conditions.GetAt(i);
+            chunks->Write(&script_flag, 1, 0);
         }
     }
     unborn = PListIndexOf(gXStatus.plsUnbornMonsterList, info) != -1;
@@ -1171,14 +1171,14 @@ unsigned char LoadMonster(W8Chunk* chunk)
     W8MonsterGroup* monster_group;
     W8Monster* monster;
     W8PList* plist;
-    W8GrowableVector<unsigned char> script_conditions;
+    W8GrowableVector<bool> script_conditions;
     srVector3T<float> read_point;
     srVector3T<float> point;
     char script_name[0x40];
     unsigned int record_version;
     unsigned int record_size;
     unsigned int transferred;
-    int script_wait;
+    W8MonsterScriptCommand script_wait;
     int script_line;
     int queue_count;
     int point_count;
@@ -1210,8 +1210,8 @@ unsigned char LoadMonster(W8Chunk* chunk)
         chunk->Read(&script_line, 4, &transferred);
         chunk->Read(&queue_count, 4, 0);
         for (index = 0; index < queue_count; ++index) {
-            chunk->Read(&value, 1, 0);
-            script_conditions.Add(value);
+            chunk->Read(&script_flag, 1, 0);
+            script_conditions.Add(script_flag);
         }
     }
     monster_info->fActive = false;
@@ -1281,7 +1281,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     if (monster_info->charm_strength > 0) {
         SetMonsterSpellIcon(monster, SPELL_ICON_CHARMED, true);
     }
-    if (monster_info->summoned != 0) {
+    if (monster_info->summoned != W8_MONSTER_SUMMON_NONE) {
         SetMonsterSpellIcon(monster, SPELL_ICON_SUMMONED, true);
     }
     if (record_version >= 2) {

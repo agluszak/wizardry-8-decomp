@@ -1057,7 +1057,7 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                 case W8_NPC_ENTRY_MONSTER_SCRIPT_LABEL:
                     monster = GetNpcMonster(g_npc_scripting.npc);
                     if (monster != 0 && entry->operand2 != 4 &&
-                        monster->SetScriptLabel(entry->sub_entries->text) == 0) {
+                        !monster->SetScriptLabel(entry->sub_entries->text)) {
                         wchar_t script_error[100];
                         swprintf(script_error,
                                  L"Failed to load script (or failed to find %S in script)",
@@ -1831,7 +1831,7 @@ void ProcessMessageBoxQueue(void)
                 0x983, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_location_id, true);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->p3D->BeginFadeOutAndRemove(0);
+            monster_info->p3D->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
         }
         group = FindFirstMonsterByID(0x15d);
         if (group != 0) {
@@ -1847,7 +1847,7 @@ void ProcessMessageBoxQueue(void)
                 0x9a0, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_location_id, true);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->p3D->BeginFadeOutAndRemove(0);
+            monster_info->p3D->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
         }
         break;
     }
@@ -1855,7 +1855,7 @@ void ProcessMessageBoxQueue(void)
         EndNpcDialogueSession(false);
         W8Monster* monster = GetNpcMonster(g_npc_scripting.npc);
         if (monster != 0) {
-            monster->BeginFadeOutAndRemove(0);
+            monster->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
         }
         break;
     }
@@ -1867,7 +1867,7 @@ void ProcessMessageBoxQueue(void)
         npc = GetNpcStateByKind(0x3f);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
-            monster_info->p3D->BeginFadeOutAndRemove(0);
+            monster_info->p3D->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
         }
         break;
     }
@@ -1879,7 +1879,7 @@ void ProcessMessageBoxQueue(void)
         npc = GetNpcStateByKind(0x3e);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
-            monster_info->p3D->BeginFadeOutAndRemove(0);
+            monster_info->p3D->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
         }
         break;
     }
@@ -1891,7 +1891,7 @@ void ProcessMessageBoxQueue(void)
         npc = GetNpcStateByKind(0x3d);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
-            monster_info->p3D->BeginFadeOutAndRemove(0);
+            monster_info->p3D->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
         }
         break;
     }
@@ -2107,7 +2107,7 @@ void ProcessMessageBoxQueue(void)
                     monster_info->location_id, true);
                 RemoveMonster(monster_index, true);
             } else {
-                monster_info->p3D->BeginFadeOutAndRemove(0);
+                monster_info->p3D->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
             }
         }
         break;
@@ -2135,7 +2135,7 @@ void ProcessMessageBoxQueue(void)
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
             if (monster_info->fActive) {
-                monster_info->p3D->BeginFadeOutAndRemove(0);
+                monster_info->p3D->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
             } else {
                 unsigned int monster_index = MonsterGetIndexByLocationID(
                     0xbd8, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
@@ -2151,7 +2151,7 @@ void ProcessMessageBoxQueue(void)
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
             if (monster_info->fActive) {
-                monster_info->p3D->BeginFadeOutAndRemove(0);
+                monster_info->p3D->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
             } else {
                 unsigned int monster_index = MonsterGetIndexByLocationID(
                     0xbef, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
@@ -2172,7 +2172,7 @@ void ProcessMessageBoxQueue(void)
                     monster_info->location_id, true);
                 RemoveMonster(monster_index, true);
             } else if (monster_info->p3D != 0) {
-                monster_info->p3D->BeginFadeOutAndRemove(0);
+                monster_info->p3D->BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
             }
         }
         break;

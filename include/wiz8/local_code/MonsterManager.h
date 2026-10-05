@@ -310,13 +310,13 @@ struct W8PartyThreatRecord {
     bool los_flags[2];
     /* 0x28d: the party-detection result after the per-observer threshold and
        camouflage checks run. */
-    unsigned char party_detected;
+    bool party_detected;
     int last_seen_clock;               /* 0x28e: cleared by the per-turn reset */
     srVector3T<float> camera_position; /* 0x292 */
     srVector3T<float> own_position;    /* 0x29e */
     /* 0x2aa: the use-bounds mode the last UpdateMonsterSight pass handed to
        IsVisibleToPlayer. */
-    unsigned char use_bounds;
+    bool use_bounds;
     /* 0x2ab: the immediate IsVisibleToPlayer result; gates notices, camera
        and path behavior. */
     bool visible_to_player;
@@ -410,8 +410,8 @@ struct W8MonsterInfo {
     unsigned char pathing_cooldown;
     unsigned char attributes[W8_MONSTER_ATTR_COUNT]; /* 0x247: values clamped to 1..125 */
     unsigned char condition_binding_mask;
-    unsigned char within_viewing_distance; /* 0x24d: cycle-2 eligibility gate */
-    unsigned char fMotionless;             /* 0x24e: fMotionless in the demo diagnostic */
+    bool within_viewing_distance;      /* 0x24d: cycle-2 eligibility gate */
+    bool fMotionless;                  /* 0x24e: fMotionless in the demo diagnostic */
     float scale;                       /* 0x24f: HP-dependent live Monster scale */
     /* 0x253: set once the non-forced death path has run MonsterDies; gates
        the death notice and skips repeat processing. */
@@ -438,7 +438,7 @@ struct W8MonsterInfo {
     W8CombatSlot Target;
     /* 0x2da: summon marker - 0 ordinary, 1 friendly summon, 2 hostile summon;
        nonzero raises the summoned spell icon and feeds the slain cleanup. */
-    int summoned;
+    W8MonsterSummonKind summoned;
     /* 0x2de: signed charm strength; clearing it posts a notice and drops the
        charmed icon. The NPC price-check
        dispatch reads it signed (MOVSX) as a percentage discount on the quoted
