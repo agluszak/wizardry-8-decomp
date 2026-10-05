@@ -218,7 +218,7 @@ void W8CharacterScreen::UpdateDialog()
             unsigned char accepted;
             if (m_capture_dialog_result) {
                 accepted = static_cast<W8MessageDialogBase*>(m_dialog)->close_result;
-                m_capture_dialog_result = 0;
+                m_capture_dialog_result = false;
             }
             delete m_dialog;
             m_dialog = 0;
@@ -328,7 +328,7 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
         AdvancePage(false);
     } else if (control == m_reset) {
         memset(m_page_enabled, 1, sizeof(m_page_enabled));
-        m_force_transition = 1;
+        m_force_transition = true;
         InitializeCharacterCreation(&m_character, &m_creation_state);
         m_mode = 0;
         m_pages[3]->m_mode = 0;
@@ -394,8 +394,8 @@ void W8CharacterScreen::AdvancePage(bool forward)
             }
             m_page_enabled[1] = m_creation_state.spell_points_total > 0;
         }
-        m_block_advance = 0;
-        m_confirm_profession = 0;
+        m_block_advance = false;
+        m_confirm_profession = false;
         do {
             ++index;
         } while (index < 4 && !m_page_enabled[index]);
@@ -631,7 +631,7 @@ void W8CharacterScreen::ShowMessage(wchar_t* text, int confirmation, int respons
         static_cast<W8MessageDialogBase*>(m_dialog)->SetMessage(text, 1, 0x32, 1, confirmation,
                                                                 true, true, 0, 0x15e);
         ActivateDialogRegion(0x138);
-        m_capture_dialog_result = 1;
+        m_capture_dialog_result = true;
     }
 }
 
@@ -644,11 +644,11 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             RequestScreenTransition();
             break;
         case 3:
-            m_block_advance = 1;
+            m_block_advance = true;
             AdvancePage(false);
             break;
         case 4:
-            m_confirm_profession = 1;
+            m_confirm_profession = true;
             AdvancePage(false);
             break;
         case 5: {

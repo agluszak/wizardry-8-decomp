@@ -83,7 +83,7 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     m_color_second = other.m_color_second;
     m_start_time = other.m_start_time;
     m_cycle_color = other.m_cycle_color;
-    m_fade_out = 0;
+    m_fade_out = false;
 
     setParent(other.getParent(), 1);
     intensity = 1.0f;
@@ -141,6 +141,6 @@ void MonsterLight::Update(const srVector3T<float>* position)
 // FUNCTION: WIZ8 0x0049DAF0
 void MonsterLight::StartFadeOut()
 {
-    m_fade_out = 1;
+    m_fade_out = true;
     m_start_time = g_game_time_accumulator->GetElapsed();
 }

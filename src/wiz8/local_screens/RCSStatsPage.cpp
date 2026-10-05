@@ -205,17 +205,17 @@ void W8CampStatsControls::OnPrimary(W8TextControl* control)
         if (static_cast<unsigned char>(m_buttons[0]->m_stateFlags &
                                        g_W8TextControlStateSecondary)) {
             m_buttons[1]->DisableSecondaryState(false);
-            g_camp_screen->effect_filter = 1;
+            g_camp_screen->effect_filter = W8_CAMP_EFFECT_FILTER_BENEFICIAL;
         } else {
-            g_camp_screen->effect_filter = 0;
+            g_camp_screen->effect_filter = W8_CAMP_EFFECT_FILTER_ALL;
         }
     } else if (control == m_buttons[1]) {
         if (static_cast<unsigned char>(m_buttons[1]->m_stateFlags &
                                        g_W8TextControlStateSecondary)) {
             m_buttons[0]->DisableSecondaryState(false);
-            g_camp_screen->effect_filter = 2;
+            g_camp_screen->effect_filter = W8_CAMP_EFFECT_FILTER_DETRIMENTAL;
         } else {
-            g_camp_screen->effect_filter = 0;
+            g_camp_screen->effect_filter = W8_CAMP_EFFECT_FILTER_ALL;
         }
     } else {
         g_camp_screen->effect_items_only =
@@ -285,24 +285,24 @@ void DrawCampStatsPage(void)
                 DrawCatalogImageAndInvalidate(-0xe, 0x143, 0, 2, 0x88, row_y, 2, 0);
             }
             SetClippingRect(&saved_clip);
-            swprintf(g_camp_screen->caption, g_format_d, effective);
-            gprintf(
-                g_camp_stats_origin_x + 0x108 +
-                    ((0x21 - StringPixLength(g_camp_screen->caption, g_wiz_text_font_secondary)) >>
-                     1),
-                row_y - 0xa6 + g_camp_stats_origin_y, Wiz8ToSgpWideText(g_format_s),
-                g_camp_screen->caption);
+            swprintf(g_camp_screen->text_buffer, g_format_d, effective);
+            gprintf(g_camp_stats_origin_x + 0x108 +
+                        ((0x21 -
+                          StringPixLength(g_camp_screen->text_buffer, g_wiz_text_font_secondary)) >>
+                         1),
+                    row_y - 0xa6 + g_camp_stats_origin_y, Wiz8ToSgpWideText(g_format_s),
+                    g_camp_screen->text_buffer);
             row_y += 0xe;
         }
         text = gppStringList[0x938];
         gprintf(g_camp_stats_origin_x + 10 +
                     ((0x11f - StringPixLength(text, g_wiz_text_font_secondary)) >> 1),
                 g_camp_stats_origin_y + 0x8d, Wiz8ToSgpWideText(g_format_s), text);
-        swprintf(g_camp_screen->caption, g_format_s_space_s,
+        swprintf(g_camp_screen->text_buffer, g_format_s_space_s,
                  gppStringList[g_character_skill_name_ids
                                    [g_profession_bonus_skills[g_review_character->iProfession]]],
                  gppStringList[0x8c5]);
-        gprintf(0x10, 0x142, Wiz8ToSgpWideText(g_format_s), g_camp_screen->caption);
+        gprintf(0x10, 0x142, Wiz8ToSgpWideText(g_format_s), g_camp_screen->text_buffer);
         int trait_count = 0;
         char traits[0x20];
         for (index = 0; index < 0x20; ++index) {
@@ -529,11 +529,13 @@ void FilterCampEffectList(void)
         if (PeekList(screen->effect_list, &entry, pos) == 0) {
             return;
         }
-        entry.visible = 0;
+        entry.visible = false;
         if (entry.items == screen->effect_items_only &&
-            (screen->effect_filter == 0 || (screen->effect_filter == 1 && entry.beneficial != 0) ||
-             (screen->effect_filter == 2 && entry.detrimental != 0))) {
-            entry.visible = 1;
+            (screen->effect_filter == W8_CAMP_EFFECT_FILTER_ALL ||
+             (screen->effect_filter == W8_CAMP_EFFECT_FILTER_BENEFICIAL && entry.beneficial != 0) ||
+             (screen->effect_filter == W8_CAMP_EFFECT_FILTER_DETRIMENTAL &&
+              entry.detrimental != 0))) {
+            entry.visible = true;
             if (!any_visible) {
                 screen->effect_first_visible = pos;
                 any_visible = true;
@@ -648,19 +650,19 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         wchar_t value_text[12];
         for (index = 0; index < 0x10; ++index) {
             if (record->missile_values[index] != 0) {
-                wcscpy(g_camp_screen->caption, &g_empty_wide_string);
-                wcscat(g_camp_screen->caption, gppStringList[g_attack_effect_name_ids[index]]);
-                wcscat(g_camp_screen->caption, L" ");
+                wcscpy(g_camp_screen->text_buffer, &g_empty_wide_string);
+                wcscat(g_camp_screen->text_buffer, gppStringList[g_attack_effect_name_ids[index]]);
+                wcscat(g_camp_screen->text_buffer, L" ");
                 swprintf(value_text, g_format_d_percent, record->missile_values[index]);
-                wcscat(g_camp_screen->caption, value_text);
+                wcscat(g_camp_screen->text_buffer, value_text);
                 if (index == 2) {
-                    wcscat(g_camp_screen->caption, L" (");
-                    wcscat(g_camp_screen->caption, gppStringList[0x8d5]);
+                    wcscat(g_camp_screen->text_buffer, L" (");
+                    wcscat(g_camp_screen->text_buffer, gppStringList[0x8d5]);
                     swprintf(value_text, L" %d)", record->missile_magnitude);
-                    wcscat(g_camp_screen->caption, value_text);
+                    wcscat(g_camp_screen->text_buffer, value_text);
                 }
                 gprintf(0x15e, line * 0xe + 0xbf, Wiz8ToSgpWideText(g_format_s_colon_s),
-                        gppStringList[0x8d6], g_camp_screen->caption);
+                        gppStringList[0x8d6], g_camp_screen->text_buffer);
                 ++line;
             }
         }
@@ -969,14 +971,14 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
         return 0;
     }
     if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && skill != -1) {
-        bool best = 0;
+        bool best = false;
         if (g_status.game_started && g_review_character->skills[skill].level != 0) {
-            best = 1;
+            best = true;
             for (int slot = 0; slot < 8; ++slot) {
                 if (g_status.buffers.XChar[slot].fOccupied &&
                     g_review_character->skills[skill].level <
                         g_status.buffers.Char[slot].skills[skill].level) {
-                    best = 0;
+                    best = false;
                     break;
                 }
             }
@@ -1054,7 +1056,7 @@ void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
 void W8CharacterPersonalityPage::Activate()
 {
     EnableRegionSet(true);
-    m_prepared = 1;
+    m_prepared = true;
     InitTextInputModeWithScheme(1);
     AddTextInputField(m_bounds.left + 0x97, m_bounds.top + 0xab, 0x106, 0x10, 0x7f,
                       m_character->name_part_2, 0x27, 0xf, 1);
@@ -1290,7 +1292,7 @@ void W8CharacterPersonalityPage::Redraw()
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xe9], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
-        m_prepared = 0;
+        m_prepared = false;
     }
 }
 
@@ -1388,8 +1390,8 @@ void W8CharacterSkillsPage::Activate()
 {
     EnableRegionSet(true);
     Refresh();
-    m_dirty = 1;
-    m_prepared = 1;
+    m_dirty = true;
+    m_prepared = true;
 }
 
 void W8CharacterSkillsPage::Deactivate()
@@ -1402,7 +1404,7 @@ void W8CharacterSkillsPage::Accept()
 {
     RefundAllSkillPoints(m_character, m_creation_state);
     Invalidate(0);
-    m_dirty = 1;
+    m_dirty = true;
     m_screen->UpdateNavigation(this);
     for (int index = 0; index < m_entries.count; ++index) {
         m_entries.data[index]->UpdateButtons();
@@ -1427,7 +1429,7 @@ void W8CharacterSkillsPage::GetNavigationState(bool* next_enabled, bool* exit_en
 void W8CharacterSkillsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 {
     entry->MarkDirty();
-    m_dirty = 1;
+    m_dirty = true;
     InitializeLevelUpAttributePool(m_character, m_creation_state, entry->m_id, delta);
     m_screen->UpdateNavigation(this);
 }
@@ -1445,7 +1447,7 @@ void W8CharacterSkillsPage::Redraw()
     if (m_force_redraw) {
         UpdateEntries();
         Invalidate(0);
-        redraw = 1;
+        redraw = true;
         m_force_redraw = false;
     }
     W8CharacterPage::Redraw();
@@ -1490,7 +1492,7 @@ void W8CharacterSkillsPage::Redraw()
         text.SetText(FormatWideString(g_format_d, m_creation_state->skill_step_limit),
                      g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
-        m_prepared = 0;
+        m_prepared = false;
     }
 
     if (m_dirty) {
@@ -1503,7 +1505,7 @@ void W8CharacterSkillsPage::Redraw()
                                       m_creation_state->skill_points_total),
                      g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
-        m_dirty = 0;
+        m_dirty = false;
     }
 }
 
@@ -1516,7 +1518,7 @@ void W8CharacterSkillsPage::UpdateEntries()
     }
 
     int category_count[5] = {0, 0, 0, 0, 0};
-    m_show_fifth_category = 0;
+    m_show_fifth_category = false;
     for (int skill = 0; skill < 0x29; ++skill) {
         W8CharacterSkill* value = &m_character->skills[skill];
         if (value->active || value->points != 0) {
@@ -1532,7 +1534,7 @@ void W8CharacterSkillsPage::UpdateEntries()
             W8CharacterPageEntry* entry = m_entries.data[entry_index];
             ++category_count[category];
             if (category == 4)
-                m_show_fifth_category = 1;
+                m_show_fifth_category = true;
             entry->SetContent(skill, gppStringList[g_character_skill_name_ids[skill]],
                               &value->points, &m_creation_state->skill_points_spent[skill],
                               &m_creation_state->skill_limits[skill], 0x101);

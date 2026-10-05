@@ -83,7 +83,7 @@ static stModelInstance2D* g_radar_map = 0;
 // GLOBAL: WIZ8 0x0069c0e0
 static float g_radar_map_scale;
 // GLOBAL: WIZ8 0x0069c0e4
-static bool g_radar_map_enabled = 0;
+static bool g_radar_map_enabled = false;
 
 // GLOBAL: WIZ8 0x005eecd8
 const double g_double_005eecd8 = 3.141592653589793;
@@ -378,7 +378,7 @@ void UpdateRadarBlips(void)
                 g_status.buffers.XChar[g_status.selected_character].fOccupied != 0 &&
                 (static_cast<unsigned char>(1 << g_status.selected_character) &
                  MonsterGetHighlightMask(monster)) != 0) {
-                hostile = 1;
+                hostile = true;
             }
             if (monster->IsRenderable(true) == 0 && !detect_all) {
                 if (info->party_threat.sight_state == W8_SIGHT_RECENT) {

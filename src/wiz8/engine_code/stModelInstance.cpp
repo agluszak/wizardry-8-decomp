@@ -136,7 +136,7 @@ unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* 
                                                          srTextureIFace* replacement)
 {
     stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
-    bool replaced = 0;
+    bool replaced = false;
 
     if (replacement != 0) {
         if (replacement->getClassID() == stTextureAnim::CLASS_ID) {
@@ -160,7 +160,7 @@ unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* 
             }
 
             if (_stricmp(texture->getName(), old_name) == 0) {
-                replaced = 1;
+                replaced = true;
                 while (polygon < mesh->polygon_count && textures[polygon].get() == texture) {
                     textures[polygon] = replacement;
                     ++polygon;
@@ -189,7 +189,7 @@ stModelInstance2D::stModelInstance2D(srNode* parent)
     render_state.position_x = 0;
     render_state.position_y = 0;
     overlay_scene_flag = 0;
-    render_state.glow_enabled = 0;
+    render_state.glow_enabled = false;
     render_state.render_depth = 2000;
     glow_color_base = 0;
     glow_color_peak = 0;
@@ -437,9 +437,9 @@ stModelInstance::stModelInstance(srNode* parent)
     damage_stage = -1;
     retained = 0;
     light_scale = 1.0f;
-    diffuse_scale_enabled = 0;
+    diffuse_scale_enabled = false;
     diffuse_scale = 0.0f;
-    emissive_override_enabled = 0;
+    emissive_override_enabled = false;
     emissive_override = 0.0f;
     frame_interpolation = 0.0f;
 }
@@ -459,7 +459,7 @@ stModelInstance& stModelInstance::operator=(const stModelInstance& other)
     retained = 0;
     light_scale = other.light_scale;
     diffuse_scale = 0.0f;
-    diffuse_scale_enabled = 0;
+    diffuse_scale_enabled = false;
     emissive_override_enabled = other.emissive_override_enabled;
     emissive_override = other.emissive_override;
     frame_interpolation = 0.0f;
@@ -576,7 +576,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         retained->setEmissive(highlight_colour);
     }
 
-    bool first_pass = 1;
+    bool first_pass = true;
     srNode* child = this;
     while (model != 0) {
         model->SetAmbientColor(ambient_color);
@@ -630,11 +630,11 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                 g_material_diffuse_scale = diffuse_scale;
                 mesh.shaders[0].value = (mesh.shaders[0].value & 0xffffd7bf) | 0x44a0;
                 mesh.control_flags |= 0x40;
-                g_material_diffuse_scale_enabled = 1;
+                g_material_diffuse_scale_enabled = true;
             }
             if (emissive_override_enabled) {
                 g_material_emissive_override = emissive_override;
-                g_material_emissive_override_enabled = 1;
+                g_material_emissive_override_enabled = true;
             }
         } else {
             mesh.vertex_materials[0][0] = 0;
@@ -650,7 +650,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             model->RenderTriMeshWithEquations(renderer, mesh, poly_normals);
         }
 
-        first_pass = 0;
+        first_pass = false;
         srNode* previous = child;
         if (child == 0 || child->testFlag(FLAG_TERMINATE) == 0) {
             model = model->next;
@@ -661,10 +661,10 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             model = 0;
         }
         if (diffuse_scale_enabled) {
-            g_material_diffuse_scale_enabled = 0;
+            g_material_diffuse_scale_enabled = false;
         }
         if (emissive_override_enabled) {
-            g_material_emissive_override_enabled = 0;
+            g_material_emissive_override_enabled = false;
         }
     }
 

@@ -92,7 +92,8 @@ int W8ProfRaceInfoDialogBase::CreateControls()
     m_scroll_bar.m_owner = this;
 
     m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                       DialogCloseButtonCallback, 0, false, 0x7f, -1, 0, 0);
+                       DialogCloseButtonCallback, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
+                       W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     m_button.SetPosition(m_x + 0x14f, m_y + 0xe8);
     m_button.m_owner = this;
     return 0;
@@ -320,7 +321,7 @@ unsigned char W8RaceInfoDialog::PopulateText()
     m_text_area.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
     m_text_area.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
     m_text_area.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
-    bool listed = 0;
+    bool listed = false;
     for (unsigned int index = 0; index < 5; ++index) {
         W8Trait ability = g_race_abilities[m_uiIndex].ability_ids[index];
         if (ability == W8_TRAIT_NONE) {
@@ -330,7 +331,7 @@ unsigned char W8RaceInfoDialog::PopulateText()
             return 1;
         }
         m_text_area.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
-        listed = 1;
+        listed = true;
     }
     return 1;
 }

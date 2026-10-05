@@ -1056,7 +1056,7 @@ W8GameData::W8GameData(int handle, bool secondary)
     m_ppNames = 0;
     m_iNumEnvirons = 0;
     m_ppEnvirons = 0;
-    trace_flag4_gate = 0;
+    trace_flag4_gate = false;
     minimum = 1.0e8f;
     maximum = -1.0e8f;
     if (!secondary) {
@@ -1415,7 +1415,7 @@ void W8GameData::CompileGameData()
                         redundant);
                 ReportStartupMessage(message);
             }
-            vertex->m_visited = 0;
+            vertex->m_visited = false;
             ++vertex;
             ++source;
             announce = false;
@@ -1537,7 +1537,7 @@ bool ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>
         ++first_index;
     }
     if (last_first < 0) {
-        return 0;
+        return false;
     }
     if ((last_first < first_slot && last_first - first_slot < 2) ||
         (first_slot < last_first && 1 < last_first - first_slot)) {
@@ -1549,7 +1549,7 @@ bool ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>
     }
     first->edge_link[first_slot] = second->index;
     second->edge_link[second_slot] = first->index;
-    return 1;
+    return true;
 }
 
 /* Registers one triangle edge in the edge hash under its undirected vertex

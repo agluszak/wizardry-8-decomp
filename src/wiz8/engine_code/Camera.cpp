@@ -71,8 +71,8 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
     float pitch;
 
     if (!path->active && active != 0) {
-        g_camera_path_active = 1;
-        path->active = 1;
+        g_camera_path_active = true;
+        path->active = true;
         PathAISetValue(path->path, 0.0f);
         PathAIResetTick(path->path);
         path->path->distance_travelled = 0.0f;
@@ -83,12 +83,12 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
     if (!path->active || active != 0) {
         return;
     }
-    g_camera_path_active = 0;
+    g_camera_path_active = false;
     rotation.SetIdentity();
     target.Set(0.0f, 0.0f, 1.0f);
     world->camera->getRotation(rotation);
     ApplyCameraRotation(&rotation);
-    path->active = 0;
+    path->active = false;
     SetEnvironmentLoadFlag(g_saved_environment_flag);
     if (g_status.current_level == 1) {
         if (_stricmp(path->name0, "Camera01") == 0) {
@@ -173,7 +173,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
     if (g_settings.camera_rotation_mode == 0 &&
         monster_info->Target.iType == W8_TARGET_KIND_CHARACTER &&
         monster_info->Target.iChar == g_status.selected_character) {
-        track = 1;
+        track = true;
     } else {
         track = force;
         if (!track && g_settings.camera_rotation_mode != 1) {

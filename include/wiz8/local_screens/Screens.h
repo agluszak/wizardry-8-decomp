@@ -7,7 +7,7 @@ void InitializeMainGameLevelBlock(void);               /* 0x0055F2C0 */
 void SetTargetCursor(int cursor);                      /* 0x0055EE70 */
 void ApplyCurrentCursor(void);                         /* 0x0055F080 */
 void RequestPartySlotRedraw(int bit);                  /* 0x0055EE30 */
-unsigned char GetTable647CCCEntry(signed char index);  /* 0x0055F2B0 */
+unsigned char GetPartyOrderTextColor(signed char party_order); /* 0x0055F2B0 */
 unsigned char ScreenLifecycleSuccess(void); // bool-byte-ok: screen-table unsigned char (*)() slot
 void NoOp(void);
 W8ScreenId GetPendingScreenState(void);

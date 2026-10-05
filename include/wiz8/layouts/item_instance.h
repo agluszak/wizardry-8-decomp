@@ -1,6 +1,16 @@
 #ifndef WIZ8_LAYOUTS_ITEM_INSTANCE_H
 #define WIZ8_LAYOUTS_ITEM_INSTANCE_H
 
+/* GetOriginOfCharacterItem writes this domain to byte storage; mixed item
+   click APIs pass it in one full stack argument. */
+enum W8ItemOrigin {
+    W8_ITEM_ORIGIN_BACKPACK = 0,
+    W8_ITEM_ORIGIN_EQUIPPED = 1,
+    W8_ITEM_ORIGIN_PARTY_POOL = 2,
+    W8_ITEM_ORIGIN_COUNT = 3,
+    W8_ITEM_ORIGIN_NONE = 0xff
+};
+
 #pragma pack(push, 1)
 
 /* One live item stack carried by a character, party pool, or world item. */

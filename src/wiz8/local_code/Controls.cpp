@@ -69,15 +69,15 @@ Controls::Controls()
     m_renderTarget = -1;
     m_renderArg0 = -1;
     m_renderArg1 = -1;
-    m_fEnabled = 0;
-    m_fDirty = 0;
-    m_fLayoutDirty = 0;
+    m_fEnabled = false;
+    m_fDirty = false;
+    m_fLayoutDirty = false;
     m_bounds.left = 0;
     m_bounds.top = 0;
     m_bounds.right = 0;
     m_bounds.bottom = 0;
     m_dirtyRect.left = -1;
-    m_fWholeAreaDirty = 1;
+    m_fWholeAreaDirty = true;
     m_uiRegionSetId = 0;
 }
 
@@ -87,16 +87,16 @@ Controls::Controls(int left, int top, int right_bound, int bottom_bound, int ren
 {
     m_bounds.left = left;
     m_bounds.right = right_bound;
-    m_fEnabled = 0;
-    m_fDirty = 0;
-    m_fLayoutDirty = 0;
+    m_fEnabled = false;
+    m_fDirty = false;
+    m_fLayoutDirty = false;
     m_renderTarget = render_target;
     m_renderArg0 = render_arg_1c;
     m_renderArg1 = render_arg_20;
     m_bounds.top = top;
     m_bounds.bottom = bottom_bound;
     m_dirtyRect.left = -1;
-    m_fWholeAreaDirty = 1;
+    m_fWholeAreaDirty = true;
     m_uiRegionSetId = 0;
 }
 
@@ -135,7 +135,7 @@ void Controls::EnableRegionSet(bool enable)
 // FUNCTION: WIZ8 0x004f3f10
 W8Widget::~W8Widget()
 {
-    m_active = 0;
+    m_active = false;
     if (m_region != -1) {
         DisableRegionInput(m_region);
     }
@@ -200,8 +200,8 @@ W8Widget::W8Widget(Controls* owner, unsigned int region, int left, int top, int 
 
     m_right = right;
     m_pPanel = owner;
-    m_enabled = 1;
-    m_active = 0;
+    m_enabled = true;
+    m_active = false;
     m_dirty = false;
     m_region = region;
     m_primaryActivationCallback = 0;
@@ -374,7 +374,7 @@ W8TextBuffer::W8TextBuffer()
     m_buffer = 0;
     m_font = 0;
     m_lineCount = 0;
-    m_geometryDirty = 0;
+    m_geometryDirty = false;
     m_layoutMode = 10;
     m_maxLineWidth = 0;
     m_lineHeight = 0;
@@ -400,7 +400,7 @@ W8TextBuffer::W8TextBuffer(const W8ControlsRect* bounds, const wchar_t* text, in
     m_font = 0;
     m_lineCount = 0;
     m_maxLineWidth = 0;
-    m_geometryDirty = 0;
+    m_geometryDirty = false;
     m_lineHeight = 0;
     m_alternateRenderer = 0;
     SetLayoutMode(layout_mode);
@@ -415,11 +415,11 @@ W8TextBuffer::W8TextBuffer(const W8ControlsRect* bounds, const wchar_t* text, in
         m_buffer = new wchar_t[wcslen(text) + 1];
         wcscpy(m_buffer, text);
         UpdateLayout();
-        m_geometryDirty = 1;
+        m_geometryDirty = true;
         return;
     }
     m_buffer = 0;
-    m_geometryDirty = 1;
+    m_geometryDirty = true;
 }
 
 // FUNCTION: WIZ8 0x004f34a0
@@ -444,11 +444,11 @@ void W8TextBuffer::SetText(const wchar_t* text, int font)
         m_buffer = new wchar_t[wcslen(text) + 1];
         wcscpy(m_buffer, text);
         UpdateLayout();
-        m_geometryDirty = 1;
+        m_geometryDirty = true;
         return;
     }
     m_buffer = 0;
-    m_geometryDirty = 1;
+    m_geometryDirty = true;
 }
 
 // FUNCTION: WIZ8 0x004f3540
@@ -462,7 +462,7 @@ void W8TextBuffer::SetLayoutBounds(const W8ControlsRect* bounds, bool copy_pendi
     if (update_layout && m_buffer != 0) {
         UpdateLayout();
     }
-    m_geometryDirty = 1;
+    m_geometryDirty = true;
 }
 
 // FUNCTION: WIZ8 0x004f35b0
@@ -653,7 +653,7 @@ void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_o
 done:
     SetFontObjectPalette16BPP(m_font, previous_state);
     RestoreFontSettings();
-    m_geometryDirty = 0;
+    m_geometryDirty = false;
 }
 
 /* The state-5 option and summary panels use the simpler surface renderer. It
@@ -708,7 +708,7 @@ done:
     InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top, m_layoutBounds.right,
                      m_layoutBounds.bottom, 0);
     SetFontDestBuffer(-14, 0, 0, 640, 480, 0);
-    m_geometryDirty = 0;
+    m_geometryDirty = false;
 }
 
 /* Copies the owned text into caller storage. The caller supplies the capacity;
@@ -1481,7 +1481,7 @@ W8RangeControl::W8RangeControl(int left, int top, int right, int bottom,
     m_increment = new W8RangeButton(this, 0xffffffff, 0, height - 0x10, 0x10, height, 0x86, 0, 8,
                                     10, 9, 10, 0xb, 1, this);
     m_thumb = new W8VerticalRangeThumb(this, 0, 0x10, 0x10, height - 0x10, 0x86, 4, 5, -1);
-    m_enabled = 0;
+    m_enabled = false;
 }
 #pragma clang diagnostic pop
 
@@ -2117,14 +2117,14 @@ void Controls::Invalidate(const W8ControlsRect* rect)
 {
     int edge;
 
-    m_fDirty = 1;
+    m_fDirty = true;
     if (rect == 0) {
-        m_fWholeAreaDirty = 1;
+        m_fWholeAreaDirty = true;
         RequestRedraw(W8_MAIN_REDRAW_FRAME);
         return;
     }
     edge = m_dirtyRect.left;
-    m_fWholeAreaDirty = 0;
+    m_fWholeAreaDirty = false;
     if (edge == -1) {
         m_dirtyRect = *rect;
         RequestRedraw(W8_MAIN_REDRAW_FRAME);
@@ -2155,7 +2155,7 @@ void Controls::Invalidate(const W8ControlsRect* rect)
 // FUNCTION: WIZ8 0x004f2f00
 void Controls::InvalidateLayout()
 {
-    m_fLayoutDirty = 1;
+    m_fLayoutDirty = true;
     RequestRedraw(W8_MAIN_REDRAW_FRAME);
 }
 
@@ -2171,7 +2171,7 @@ void Controls::RedrawControls(bool full_redraw)
             InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
                              m_dirtyRect.bottom, 2);
         }
-        m_fDirty = 0;
+        m_fDirty = false;
         m_dirtyRect.left = -1;
     }
     for (int index = 0; index < m_controls.count; ++index) {
@@ -2179,7 +2179,7 @@ void Controls::RedrawControls(bool full_redraw)
             ControlAt(index)->Redraw(full_redraw);
         }
     }
-    m_fLayoutDirty = 0;
+    m_fLayoutDirty = false;
 }
 
 /* Flushes pending panel drawing, then asks each enabled child to redraw. A

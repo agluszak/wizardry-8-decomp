@@ -543,7 +543,7 @@ void DispatchMGSCommand(W8MGSCommand command)
             ClearPortraitRefreshSlot(slot);
         } else {
             RefreshSelectedPartyPortrait(slot);
-            gXStatus.monster_manager_entries[slot].portrait_refresh_pinned = 1;
+            gXStatus.monster_manager_entries[slot].portrait_refresh_pinned = true;
         }
         break;
     }
@@ -692,14 +692,14 @@ void OpenKeyboardMenuForSlot(int slot)
     memset(g_keyboard_menu_rows, 0, sizeof(g_keyboard_menu_rows));
     g_selected_party_slot = slot;
     g_keyboard_menu_panel = 0;
-    g_level_block->keyboard_menu_open = 1;
+    g_level_block->keyboard_menu_open = true;
     SelectPartyCharacter(g_selected_party_slot);
     if (BuildKeyboardMenu() == 0) {
         CloseKeyboardMenu();
         return;
     }
     UpdateScreenOverlays(0);
-    gXStatus.monster_manager_entries[slot].keyboard_menu_open = 1;
+    gXStatus.monster_manager_entries[slot].keyboard_menu_open = true;
     RegionSetDisable(slot + 7);
     DisableRegionSetInput(slot + 7);
     DisableRegionInput(slot + 0x5a);
@@ -713,8 +713,8 @@ void CloseKeyboardMenu(void)
 {
     int index;
 
-    gXStatus.monster_manager_entries[g_selected_party_slot].keyboard_menu_open = 0;
-    g_level_block->keyboard_menu_open = 0;
+    gXStatus.monster_manager_entries[g_selected_party_slot].keyboard_menu_open = false;
+    g_level_block->keyboard_menu_open = false;
     g_level_block->combat_slot = -1;
     g_level_block->hover_combat_slot = g_selected_party_slot;
     g_level_block->cursor_grace = 0;

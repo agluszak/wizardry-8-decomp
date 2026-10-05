@@ -240,7 +240,7 @@ void RefreshLevelUpReadyNotices(void)
         return;
     }
 
-    gXStatus.level_up_notice = 0;
+    gXStatus.level_up_notice = false;
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         bool* ready_flag = &gXStatus.monster_manager_entries[party_slot].level_up_ready;
@@ -265,7 +265,7 @@ void RefreshLevelUpReadyNotices(void)
                     row->portrait_advance = 0;
                 }
             } else {
-                gXStatus.level_up_notice = 1;
+                gXStatus.level_up_notice = true;
                 if (*ready_flag == 0) {
                     if (row->portrait_advance == 0) {
                         wchar_t* text;
@@ -276,8 +276,8 @@ void RefreshLevelUpReadyNotices(void)
                         text = static_cast<wchar_t*>(operator new(0x400));
                         text[0] = L' ';
                         text[1] = 0xb4;
-                        text[2] =
-                            GetTable647CCCEntry(static_cast<signed char>(row->party_order_index));
+                        text[2] = GetPartyOrderTextColor(
+                            static_cast<signed char>(row->party_order_index));
                         text[3] = L' ';
                         swprintf(text + 4, g_format_s, character->name);
                         length = wcslen(text);
@@ -526,7 +526,7 @@ void CalcAttacks(W8Character* character)
 
     for (hand = 0; hand < 2; ++hand) {
         W8HandAttack* attack = attacks[hand];
-        attack->in_play = 1;
+        attack->in_play = true;
         switch (attack->weapon_skill) {
         case 0:
         case 1:
@@ -546,29 +546,29 @@ void CalcAttacks(W8Character* character)
                 (equipment[hand == 0]->iItemNo == -1 ||
                  !CompatiblePartnerItems(equipment[hand]->iItemNo,
                                          equipment[hand == 0]->iItemNo))) {
-                attack->in_play = 0;
+                attack->in_play = false;
             }
             if (ItemUsesShots(equipment[hand]->iItemNo) && equipment[hand]->uses_or_charges == 0) {
-                attack->in_play = 0;
+                attack->in_play = false;
             }
             break;
         default:
             attack->combat_skill = W8_SKILL_NONE;
-            attack->in_play = 0;
+            attack->in_play = false;
         }
 
         if (hand == 1) {
             if (attacks[0]->combat_skill != attacks[1]->combat_skill) {
-                attacks[1]->in_play = 0;
+                attacks[1]->in_play = false;
             }
             if (attacks[1]->uiHolds == 2 || attacks[1]->uiHolds == 3) {
-                attacks[1]->in_play = 0;
+                attacks[1]->in_play = false;
             }
             if (records[0] != 0 && records[0]->unidentified_name_index == 0x83) {
-                attacks[1]->in_play = 0;
+                attacks[1]->in_play = false;
             }
             if (attacks[1]->uiHolds == HOLDS_NOTHING && attacks[0]->uiHolds != HOLDS_NOTHING) {
-                attacks[1]->in_play = 0;
+                attacks[1]->in_play = false;
             }
         }
     }
@@ -1102,7 +1102,7 @@ unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
             return 0;
         }
     }
-    g_status.buffers.XChar[party_slot].fOccupied = 0;
+    g_status.buffers.XChar[party_slot].fOccupied = false;
     character->highest_condition = W8_CONDITION_NONE;
     character->enchantment_top = W8_ENCHANTMENT_NONE;
     SetFormationPosition(&g_status.formation, party_slot, -1, -1, false, true, true);
@@ -1208,7 +1208,7 @@ void AwardPartyExperience(int amount, int alternate_message)
                     gained = total;
                 }
             }
-            gXStatus.level_up_notice = 1;
+            gXStatus.level_up_notice = true;
         }
     }
     wchar_t* text = new wchar_t[0x200];

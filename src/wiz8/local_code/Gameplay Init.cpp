@@ -345,7 +345,7 @@ void ResetForNewGame(void)
 // FUNCTION: WIZ8 0x0054b250
 void RunNewGameOpeningSequence(bool notify, const wchar_t* target)
 {
-    g_status.game_started = 1;
+    g_status.game_started = true;
     if (target) {
         g_status.iron_man = 1;
         SetLastSaveName(target);
@@ -390,11 +390,11 @@ void ResetGameplaySlot(unsigned int slot)
     int tier;
 
     memset(record, 0, sizeof(W8MonsterManagerEntry));
-    record->portrait_event_active = 0;
+    record->portrait_event_active = false;
     record->voice_sound_handle = SOUND_ERROR;
     record->previous_portrait_frame = -1;
     record->portrait_frame = 6;
-    record->portrait_pose_animation_active = 0;
+    record->portrait_pose_animation_active = false;
     tier = 1;
     if (g_status.buffers.Char[slot].highest_condition >= W8_CONDITION_ASLEEP) {
         tier = 2;
@@ -402,36 +402,36 @@ void ResetGameplaySlot(unsigned int slot)
     record->portrait_pose = tier;
     record->target_portrait_pose = tier;
     record->previous_portrait_pose = -1;
-    record->portrait_pose_dirty = 0;
-    record->portrait_frame_dirty = 0;
+    record->portrait_pose_dirty = false;
+    record->portrait_frame_dirty = false;
     record->portrait_frame_clock = SetCountdownClock(0);
     record->voice_time_remaining_ms = 0;
     record->portrait_pose_clock = SetCountdownClock(0);
     record->portrait_idle_clock = SetCountdownClock(Random(5000) + 5000);
     record->portrait_fx_clock = SetCountdownClock(0);
-    record->damage_splat_active = 0;
-    record->damage_splat_death_variant = 0;
-    record->dead_portrait_revealed = 0;
+    record->damage_splat_active = false;
+    record->damage_splat_death_variant = false;
+    record->dead_portrait_revealed = false;
     record->damage_splat_amount = 0;
     record->damage_splat_frame = -1;
     record->damage_splat_end_frame = 0;
     record->damage_splat_catalog = 0x90;
-    record->effect_icon_active = 0;
+    record->effect_icon_active = false;
     record->effect_icon_catalog = -1;
     record->effect_icon_frame = -1;
     record->effect_icon_end_frame = 0;
     record->active_character_event = 0;
-    record->portrait_stats_dirty = 0;
+    record->portrait_stats_dirty = false;
     record->cached_hp_bar = 0;
     record->cached_stamina_bar = 0;
     record->cached_hp = 0;
     record->cached_spell_bar = 0;
-    record->portrait_refresh_pinned = 0;
-    record->auto_portrait_refresh = 0;
-    record->keyboard_menu_open = 0;
-    record->combat_portrait_dirty = 0;
+    record->portrait_refresh_pinned = false;
+    record->auto_portrait_refresh = false;
+    record->keyboard_menu_open = false;
+    record->combat_portrait_dirty = false;
     record->acting_portrait_pulse = 0;
-    record->level_up_ready = 0;
+    record->level_up_ready = false;
     record->acting_portrait_pulse_clock = SetCountdownClock(0);
 }
 
@@ -447,7 +447,7 @@ void ResetPartySlotRow(int slot)
     W8PartySlotRow* row = &g_status.buffers.XChar[slot];
 
     memset(row, 0, sizeof(W8PartySlotRow));
-    row->fOccupied = 1;
+    row->fOccupied = true;
     row->spell_id = 0;
     row->queued_action = 0xff;
     SetSlotAction(slot, W8_ACTION_ATTACK, -1);

@@ -96,7 +96,7 @@ static W8WorldCursorNode* g_mipe_cube;
 /* 0x0064A1CC: 'C' toggles between single-monster ("Choosing: One") and
    whole-group ("Choosing: Group") selection in UpdateMipeSelection. */
 // GLOBAL: WIZ8 0x0064a1cc
-static bool g_mipe_choose_group = 1;
+static bool g_mipe_choose_group = true;
 
 int FindCategoryItemTable(unsigned int category, int ordinal);
 
@@ -107,16 +107,16 @@ int FindCategoryItemTable(unsigned int category, int ordinal);
 void ToggleMipePanel(void)
 {
     if (g_mipe_active) {
-        g_level_block->text_box_visible = 1;
-        g_level_block->mipe_editing = 0;
+        g_level_block->text_box_visible = true;
+        g_level_block->mipe_editing = false;
         ResetEditorStatusLine(-1);
         if (gXStatus.fCombatMode) {
             SelectTextBox(1);
         }
         ReleaseWorldCursor();
-        g_mipe_active = 0;
-        g_mipe_menu_active = 1;
-        g_debug_monster_cycle = 0;
+        g_mipe_active = false;
+        g_mipe_menu_active = true;
+        g_debug_monster_cycle = false;
         if (g_mipe_cube != 0) {
             SetWorldCursorNodeColorComponents(g_mipe_cube, 0.0f, 0.0f, 0.5f);
         }
@@ -142,11 +142,11 @@ void ToggleMipePanel(void)
         return;
     }
 
-    g_level_block->text_box_visible = 0;
-    g_level_block->mipe_editing = 1;
+    g_level_block->text_box_visible = false;
+    g_level_block->mipe_editing = true;
     SelectTextBox(0);
     ResetEditorStatusLine(-1);
-    g_mipe_active = 1;
+    g_mipe_active = true;
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"What would you like to do?", 0);
     ShowNoticef(15, L"1) Create a monster.", 0);
@@ -157,8 +157,8 @@ void ToggleMipePanel(void)
     ShowNoticef(15, L"6) Handle triggers.", 0);
     g_mipe_mode = 0;
     InitializeWorldCursor();
-    g_mipe_active = 1;
-    g_mipe_menu_active = 0;
+    g_mipe_active = true;
+    g_mipe_menu_active = false;
     g_mipe_cube = 0;
     g_mipe_monster_entries = PLCreate();
 
@@ -1443,7 +1443,7 @@ void HandleMipePropEditKey(unsigned short key)
                     g_mipe_table_base = (index / 6) * 6;
                     g_mipe_table_row = index % 6;
                 }
-                g_mipe_menu_active = 0;
+                g_mipe_menu_active = false;
                 g_mipe_mode = 0x1d;
                 ShowMipeItemTableCategory();
                 return;
@@ -1505,7 +1505,7 @@ int HandleCubeMenuKey(unsigned int key)
     case 0x33:
         if (g_mipe_cube != 0) {
             g_mipe_mode = 0x10;
-            g_mipe_menu_active = 0;
+            g_mipe_menu_active = false;
             ShowCubeParameters();
         }
         return 1;
@@ -1522,13 +1522,13 @@ int HandleCubeMenuKey(unsigned int key)
             ShowNoticef(0xf, L"Move trigger. Hold down SHIFT to");
             ShowNoticef(0xf, L"change elevation.");
         }
-        g_mipe_menu_active = 0;
+        g_mipe_menu_active = false;
         ShowWorldCursor();
         WarpSystemCursor(0x140, 0xf0);
         GetWorldCursorAnchor(&anchor);
         MoveWorldCursorNode(g_mipe_cube, &anchor);
         g_mipe_state->dragging = true;
-        g_mipe_menu_active = 0;
+        g_mipe_menu_active = false;
         return 1;
     case 0x35:
         if (g_mipe_cube == 0) {
@@ -1544,7 +1544,7 @@ int HandleCubeMenuKey(unsigned int key)
             ShowNoticef(0xf, L"Scaling in the %c plane. ",
                         static_cast<int>(scale_planes[g_mipe_scale_plane]));
             ShowNoticef(0xf, L"Press X/Y/Z to change plane.");
-            g_mipe_menu_active = 0;
+            g_mipe_menu_active = false;
             return 1;
         }
         prompt = L"Click on trigger to scale.";
@@ -1561,7 +1561,7 @@ int HandleCubeMenuKey(unsigned int key)
         break;
     }
     ShowNoticef(0xf, prompt);
-    g_mipe_menu_active = 0;
+    g_mipe_menu_active = false;
     return 1;
 }
 
@@ -2158,9 +2158,9 @@ void HandleMipeLockTrapKey(unsigned short key)
             }
         } else {
             if (lock_state->lock_type == 0 || trigger->lock_state.device_state.completed != 0) {
-                pending = 0;
+                pending = false;
             } else {
-                pending = 1;
+                pending = true;
             }
             static_cast<W8DoorTriggerActionData*>(action)->door_flags =
                 (pending << 2) |
@@ -2235,9 +2235,9 @@ void EditTriggerKeyID(unsigned int key)
         }
     } else {
         if (trigger->lock_state.lock_type == 0 || trigger->lock_state.device_state.completed != 0) {
-            pending = 0;
+            pending = false;
         } else {
-            pending = 1;
+            pending = true;
         }
         static_cast<W8DoorTriggerActionData*>(action)->door_flags =
             (pending << 2) |
@@ -2400,7 +2400,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
     wchar_t name[100];
     int shown;
 
-    handled = 0;
+    handled = false;
     if (g_mipe_state->dragging) {
         return 1;
     }
@@ -2427,7 +2427,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                     if (g_mipe_mode == 8) {
                         g_mipe_mode = 5;
                         ShowMipeEditMenu();
-                        g_debug_monster_cycle = 0;
+                        g_debug_monster_cycle = false;
                         return 1;
                     }
                     if (g_mipe_mode == 0xd) {
@@ -2509,7 +2509,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                     ShowMipeTriggerMenu();
                                     SetWorldCursorNodesVisible(g_mipe_trigger_display);
                                     g_mipe_mode = 0xc;
-                                    g_mipe_menu_active = 0;
+                                    g_mipe_menu_active = false;
                                 } else {
                                     ShowWorldCursor();
                                     g_mipe_state->selecting = 0;
@@ -2522,7 +2522,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                         g_mipe_state->selecting = 0;
                                         HideWorldCursor();
                                         g_mipe_state->dragging = false;
-                                        g_mipe_menu_active = 1;
+                                        g_mipe_menu_active = true;
                                         ShowMipeCubeMenu();
                                         return 1;
                                     }
@@ -2552,7 +2552,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                         if (g_mipe_mode == 0x1d) {
                                             g_mipe_mode = 0xd;
                                             ShowMipePropMenu();
-                                            g_mipe_menu_active = 1;
+                                            g_mipe_menu_active = true;
                                             if (g_mipe_category_list != 0) {
                                                 PLDestroy(g_mipe_category_list);
                                                 g_mipe_category_list = 0;
@@ -2569,7 +2569,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                 } else {
                                     g_mipe_mode = 0xf;
                                     ShowMipeCubeMenu();
-                                    g_mipe_menu_active = 1;
+                                    g_mipe_menu_active = true;
                                 }
                             }
                         } else {
@@ -2580,7 +2580,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                     }
                 }
             }
-            handled = 1;
+            handled = true;
         }
     }
     event_type = event->usEvent;
@@ -2649,7 +2649,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
         if (key == 0x56) {
             HideWorldCursor();
             g_mipe_mode = 0xf;
-            g_mipe_menu_active = 1;
+            g_mipe_menu_active = true;
             ShowMipeCubeMenu();
             SetWorldCursorNodesVisible(true);
             return handled;
@@ -2730,7 +2730,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ShowNoticef(0xf, L"4) Assign Path");
             ShowNoticef(0xf, L"5) Next Cycle");
             ShowNoticef(0xf, L"6) Direction");
-            g_debug_monster_cycle = 1;
+            g_debug_monster_cycle = true;
             return handled;
         }
         if (key == 0x32) {
@@ -2824,7 +2824,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             g_mipe_mode = 0xf;
             HideWorldCursor();
             ShowMipeCubeMenu();
-            g_mipe_menu_active = 1;
+            g_mipe_menu_active = true;
             SetWorldCursorNodesVisible(true);
             return handled;
         }
@@ -3129,14 +3129,14 @@ bool MipeWorldViewEvent(int event, const POINT* point)
 {
     bool result;
 
-    result = 0;
+    result = false;
     if (g_mipe_state == 0) {
-        return 0;
+        return false;
     }
     switch (event & 0xffff) {
     case LEFT_BUTTON_DOWN:
         if (g_mipe_mode == 4) {
-            result = 1;
+            result = true;
             g_mipe_state->dragging = true;
             ShowWorldCursor();
             GetWorldCursorPosition(&g_mipe_state->drag_anchor);
@@ -3164,7 +3164,7 @@ bool MipeWorldViewEvent(int event, const POINT* point)
     case LEFT_BUTTON_UP:
         if (g_mipe_mode == 4) {
             DragSelectionWithCursor();
-            result = 1;
+            result = true;
             g_mipe_state->dragging = false;
             HideWorldCursor();
             if (g_mipe_state->trigger != 0) {
@@ -3187,7 +3187,7 @@ bool MipeWorldViewEvent(int event, const POINT* point)
             g_mipe_state->selecting = 0;
             HideWorldCursor();
             g_mipe_state->dragging = false;
-            g_mipe_menu_active = 1;
+            g_mipe_menu_active = true;
             ShowMipeCubeMenu();
         }
         break;
@@ -3195,9 +3195,9 @@ bool MipeWorldViewEvent(int event, const POINT* point)
         if (g_mipe_state->dragging) {
             if (g_mipe_mode == 4) {
                 DragSelectionWithCursor();
-                result = 1;
+                result = true;
             } else if (g_mipe_mode == 0x11) {
-                result = 1;
+                result = true;
                 if (g_mipe_cube != 0) {
                     srVector3T<float> position;
 
@@ -3205,7 +3205,7 @@ bool MipeWorldViewEvent(int event, const POINT* point)
                     MoveWorldCursorNode(g_mipe_cube, &position);
                 }
             } else if (g_mipe_mode == 0x12) {
-                result = 1;
+                result = true;
             }
         }
         break;
@@ -3230,7 +3230,7 @@ bool AnyMonsterGeneratorMarkerWithinReach(void)
     W8Item* marker;
 
     if (g_world == 0 || g_world->camera == 0) {
-        return 0;
+        return false;
     }
     GetCameraPosition(&camera);
     count = GetMonsterGeneratorCount();
@@ -3242,7 +3242,7 @@ bool AnyMonsterGeneratorMarkerWithinReach(void)
             marker = generator->marker_item;
         }
         if (marker != 0 && IsWorldItemWithinReach(marker, &camera, 250000.0f)) {
-            return 1;
+            return true;
         }
     }
     for (index = 0; index < count; ++index) {
@@ -3254,8 +3254,8 @@ bool AnyMonsterGeneratorMarkerWithinReach(void)
         }
         if (marker != 0 && IsWorldItemWithinReach(marker, &camera, 250000.0f)) {
             g_last_reachable_mongen_marker = index;
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }

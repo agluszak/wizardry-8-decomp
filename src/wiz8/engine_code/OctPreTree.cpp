@@ -244,7 +244,7 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
                 vertices[1] = polygon->vertices[1]->position;
                 vertices[2] = polygon->vertices[2]->position;
                 if (PointInsideTriangle(vertices, polygon->flags & 3, &contact)) {
-                    blocked = 1;
+                    blocked = true;
                 }
             }
         }
@@ -1621,7 +1621,7 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
             }
         }
     }
-    bool differ = 0;
+    bool differ = false;
     if (count > 0) {
         W8LevelFileTransform* t = anim->pTransforms;
         for (int i = count; i != 0; --i, ++t) {
@@ -1632,7 +1632,7 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
                 if (g_camera_snap_epsilon < fabsf(a.scale.x - b.scale.x) ||
                     g_camera_snap_epsilon < fabsf(a.scale.y - b.scale.y) ||
                     g_camera_snap_epsilon < fabsf(a.scale.z - b.scale.z)) {
-                    differ = 1;
+                    differ = true;
                 }
             } else {
                 a.path = t->pathAI.pPaths[first];
@@ -1641,7 +1641,7 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
             if (g_float_005ebc7c < fabsf(a.path.position.x - b.path.position.x) ||
                 g_float_005ebc7c < fabsf(a.path.position.y - b.path.position.y) ||
                 g_float_005ebc7c < fabsf(a.path.position.z - b.path.position.z)) {
-                differ = 1;
+                differ = true;
             }
             if (g_camera_snap_epsilon < fabsf(a.path.angle - b.path.angle) ||
                 g_camera_snap_epsilon < fabsf(a.path.axis.x - b.path.axis.x) ||
@@ -1651,7 +1651,7 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
                       fabsf(b.path.axis.x + a.path.axis.x) <= g_camera_snap_epsilon &&
                       fabsf(b.path.axis.y + a.path.axis.y) <= g_camera_snap_epsilon &&
                       fabsf(b.path.axis.z + a.path.axis.z) <= g_camera_snap_epsilon)) {
-                    differ = 1;
+                    differ = true;
                 }
             }
         }
@@ -1769,7 +1769,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
         return 0;
     }
 
-    bool near_axis = 0;
+    bool near_axis = false;
     srVector3T<float> plane_point;
     for (short axis = 0; axis < 3; ++axis) {
         if ((&vertices[0].x)[axis] < (&minimum.x)[axis] &&
@@ -1785,7 +1785,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
         if (g_float_005ec414 < static_cast<float>(fabs((&plane_normal->x)[axis])) &&
             (&minimum.x)[axis] <= (&vertices[0].x)[axis] &&
             (&vertices[0].x)[axis] <= (&maximum.x)[axis]) {
-            near_axis = 1;
+            near_axis = true;
         }
         (&plane_point.x)[axis] =
             ((&vertices[0].x)[axis] + (&vertices[1].x)[axis] + (&vertices[2].x)[axis]) *
@@ -1793,8 +1793,8 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
     }
 
     if (!near_axis) {
-        bool negative = 0;
-        bool positive = 0;
+        bool negative = false;
+        bool positive = false;
         for (int x = 0; x != 2; ++x) {
             for (int y = 0; y != 2; ++y) {
                 for (int z = 0; z != 2; ++z) {
@@ -1803,10 +1803,10 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
                         ((y == 0 ? minimum.y : maximum.y) - plane_point.y) * plane_normal->y +
                         ((z == 0 ? minimum.z : maximum.z) - plane_point.z) * plane_normal->z;
                     if (distance <= g_float_zero) {
-                        negative = 1;
+                        negative = true;
                     }
                     if (g_float_zero <= distance) {
-                        positive = 1;
+                        positive = true;
                     }
                 }
             }

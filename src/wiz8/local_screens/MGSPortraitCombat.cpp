@@ -144,23 +144,38 @@ unsigned char CreateSubMenuButtons(void)
         }
     }
     g_submenu_buttons[0]->Configure(g_submenu_icons_path, 0x2b, 0x28, 0x29, 0x2a, 0x2c,
-                                    SubMenuButtonPendingScreen, 0, false, 0x7f, 0x42, 0, 0);
-    g_submenu_buttons[1]->Configure(g_submenu_icons_path, 0x3, 0x0, 0x1, 0x2, 0x4,
-                                    SubMenuButtonSurprise, 0, false, 0x7f, 0x43, 0, 0);
-    g_submenu_buttons[2]->Configure(g_submenu_icons_path, 0x8, 0x5, 0x6, 0x7, 0x9,
-                                    SubMenuButtonToggleFlag, 0, true, 0x7f, 0x44, 0, 0);
+                                    SubMenuButtonPendingScreen, BUTTON_NO_CALLBACK, false,
+                                    MSYS_PRIORITY_HIGHEST, 0x42, BUTTON_NO_CALLBACK,
+                                    BUTTON_NO_CALLBACK);
+    g_submenu_buttons[1]->Configure(
+        g_submenu_icons_path, 0x3, 0x0, 0x1, 0x2, 0x4, SubMenuButtonSurprise, BUTTON_NO_CALLBACK,
+        false, MSYS_PRIORITY_HIGHEST, 0x43, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    g_submenu_buttons[2]->Configure(
+        g_submenu_icons_path, 0x8, 0x5, 0x6, 0x7, 0x9, SubMenuButtonToggleFlag, BUTTON_NO_CALLBACK,
+        true, MSYS_PRIORITY_HIGHEST, 0x44, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     g_submenu_buttons[3]->Configure(g_submenu_icons_path, 0x17, 0x14, 0x15, 0x16, 0x18,
-                                    SubMenuButtonUseItem, 0, true, 0x7f, 0x45, 0, 0);
+                                    SubMenuButtonUseItem, BUTTON_NO_CALLBACK, true,
+                                    MSYS_PRIORITY_HIGHEST, 0x45, BUTTON_NO_CALLBACK,
+                                    BUTTON_NO_CALLBACK);
     g_submenu_buttons[4]->Configure(g_submenu_icons_path, 0x1c, 0x19, 0x1a, 0x1b, 0x1d,
-                                    SubMenuButtonSpellView, 0, true, 0x7f, 0x46, 0, 0);
+                                    SubMenuButtonSpellView, BUTTON_NO_CALLBACK, true,
+                                    MSYS_PRIORITY_HIGHEST, 0x46, BUTTON_NO_CALLBACK,
+                                    BUTTON_NO_CALLBACK);
     g_submenu_buttons[5]->Configure(g_submenu_icons_path, 0x12, 0xf, 0x10, 0x11, 0x13,
-                                    SubMenuButtonOpenMenu1, 0, false, 0x7f, 0x4a, 0, 0);
-    g_submenu_buttons[6]->Configure(g_submenu_icons_path, 0xd, 0xa, 0xb, 0xc, 0xe,
-                                    SubMenuButtonOpenMenu0, 0, false, 0x7f, 0x49, 0, 0);
+                                    SubMenuButtonOpenMenu1, BUTTON_NO_CALLBACK, false,
+                                    MSYS_PRIORITY_HIGHEST, 0x4a, BUTTON_NO_CALLBACK,
+                                    BUTTON_NO_CALLBACK);
+    g_submenu_buttons[6]->Configure(
+        g_submenu_icons_path, 0xd, 0xa, 0xb, 0xc, 0xe, SubMenuButtonOpenMenu0, BUTTON_NO_CALLBACK,
+        false, MSYS_PRIORITY_HIGHEST, 0x49, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     g_submenu_buttons[7]->Configure(g_submenu_combat_icons_path, 0x3, 0x0, 0x1, 0x2, 0x2,
-                                    SubMenuButtonToggleCombat, 0, false, 0x7f, 0x47, 0, 0);
+                                    SubMenuButtonToggleCombat, BUTTON_NO_CALLBACK, false,
+                                    MSYS_PRIORITY_HIGHEST, 0x47, BUTTON_NO_CALLBACK,
+                                    BUTTON_NO_CALLBACK);
     g_submenu_buttons[8]->Configure(g_submenu_combat_icons_path, 0x7, 0x4, 0x5, 0x6, 0x6,
-                                    SubMenuButtonToggleCombat, 0, false, 0x7f, 0x48, 0, 0);
+                                    SubMenuButtonToggleCombat, BUTTON_NO_CALLBACK, false,
+                                    MSYS_PRIORITY_HIGHEST, 0x48, BUTTON_NO_CALLBACK,
+                                    BUTTON_NO_CALLBACK);
     for (index = 0; index < 9; ++index) {
         g_submenu_buttons[index]->SetPosition(g_submenu_button_positions[index].x,
                                               g_submenu_button_positions[index].y);

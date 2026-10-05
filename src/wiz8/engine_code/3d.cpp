@@ -137,7 +137,7 @@ void FinalizeStaticScene(srScene* scene)
 unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* lights, bool walk_chain)
 {
     srVector3T<float>* directions = 0;
-    bool locations_allocated = 0;
+    bool locations_allocated = false;
     stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
     srVector3T<float> location;
     location = instance->getWorldSpaceLocation();
@@ -181,7 +181,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
             rotation.vectors[1].z != g_float_zero || rotation.vectors[2].x != g_float_zero ||
             rotation.vectors[2].y != g_float_zero || location.x != g_float_zero ||
             location.y != g_float_zero || location.z != g_float_zero) {
-            locations_allocated = 1;
+            locations_allocated = true;
             world_vertices =
                 static_cast<srVector3T<float>*>(malloc(count * sizeof(srVector3T<float>)));
             if (world_vertices == 0) {
@@ -1087,7 +1087,7 @@ bool SphereInsideFrustum(const srVector3T<float>* point, float radius, const W8P
 
     for (short plane = 0; plane < 6 && inside; ++plane) {
         if (DotProduct(*point, planes[plane].normal) + planes[plane].w < -radius) {
-            inside = 0;
+            inside = false;
         }
     }
     return inside;
@@ -1109,7 +1109,7 @@ bool BoundsInsideFrustum(const W8OctRegionVolume* volume, const W8BoundingBox* b
                         break;
                     }
                     if (++plane > 5) {
-                        return 1;
+                        return true;
                     }
                 }
             }
@@ -1120,10 +1120,10 @@ bool BoundsInsideFrustum(const W8OctRegionVolume* volume, const W8BoundingBox* b
         if (bounds->minimum.x <= point->x && point->x < bounds->maximum.x &&
             bounds->minimum.y <= point->y && point->y < bounds->maximum.y &&
             bounds->minimum.z <= point->z && point->z < bounds->maximum.z) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Scalar-delete array teardown shared by the Sampler symbol array and other

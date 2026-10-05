@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/layouts/item_instance.h"
 
 #include "timer.h"
 #include "wiz8/local_code/RangeControl.h"
@@ -20,6 +21,38 @@ struct W8Character;
 struct W8CombatSlot;
 struct W8ItemInstance;
 struct W8Region;
+
+enum W8CampPage {
+    W8_CAMP_PAGE_ITEMS = 0,
+    W8_CAMP_PAGE_STATS = 1,
+    W8_CAMP_PAGE_SKILLS = 2,
+    W8_CAMP_PAGE_SPELLS = 3,
+    W8_CAMP_PAGE_REGENERATION = 4
+};
+
+/* Stored at +0xd3f as a byte; the action setter also retains its byte ABI. */
+enum W8CampItemAction {
+    W8_CAMP_ITEM_ACTION_NONE = 0,
+    W8_CAMP_ITEM_ACTION_MOVE = 1,
+    W8_CAMP_ITEM_ACTION_IDENTIFY_SPELL = 2,
+    W8_CAMP_ITEM_ACTION_IDENTIFY = 3,
+    W8_CAMP_ITEM_ACTION_SPLIT_STACK = 4,
+    W8_CAMP_ITEM_ACTION_USE = 5,
+    W8_CAMP_ITEM_ACTION_DROP = 6,
+    W8_CAMP_ITEM_ACTION_CAST_SPELL = 7,
+    W8_CAMP_ITEM_ACTION_USE_ON_ITEM = 8,
+    W8_CAMP_ITEM_ACTION_USE_ON_CHARACTER = 9
+};
+
+enum W8CampInfoPage { W8_CAMP_INFO_PAGE_ITEMS = 0, W8_CAMP_INFO_PAGE_CHARACTER = 1 };
+
+enum W8CampHeaderMode { W8_CAMP_HEADER_SUMMARY = 0, W8_CAMP_HEADER_PROFESSION_HISTORY = 1 };
+
+enum W8CampEffectFilter {
+    W8_CAMP_EFFECT_FILTER_ALL = 0,
+    W8_CAMP_EFFECT_FILTER_BENEFICIAL = 1,
+    W8_CAMP_EFFECT_FILTER_DETRIMENTAL = 2
+};
 
 /* Stored item-filter order; the four group indices match GetItemEquipSlotGroup. */
 enum W8CampItemFilter {
@@ -110,8 +143,8 @@ enum W8CampItemRedrawFlag {
 /* malloc(0xd54) in Camp entry owns the record. Suspension destroys this UI;
    the screen-state stack retains the arguments needed to recreate it. */
 struct W8CampScreenState {
-    wchar_t caption[120];
-    int page; /* 0x0f0 */
+    wchar_t text_buffer[120];
+    W8CampPage page; /* 0x0f0 */
     unsigned int hover_region;
     unsigned int redraw_flags;
     unsigned int item_redraw_flags;
@@ -134,13 +167,13 @@ struct W8CampScreenState {
     unsigned char padding_ce6[2];
     TIMER animation_timer;
     unsigned int animation_frames[6];
-    int input_mode; /* 0xd04 */
+    W8CampHeaderMode header_mode; /* 0xd04 */
     /* 0xd08..0xd30: the stats page's condition/equipment effect list, rebuilt
        by RebuildCampEffectList and refiltered by
        FilterCampEffectList. */
     unsigned char effect_items_only; /* 0xd08: 1 lists equipped items, 0 conditions/enchantments */
     unsigned char padding_d09[3];
-    int effect_filter; /* 0xd0c: 0 all, 1 beneficial only, 2 detrimental only */
+    W8CampEffectFilter effect_filter; /* 0xd0c: 0 all, 1 beneficial only, 2 detrimental only */
     int effect_beneficial_count;
     int effect_detrimental_count;
     int effect_selection; /* 0xd18: cleared when the reviewed character changes */
@@ -152,12 +185,12 @@ struct W8CampScreenState {
     HLIST effect_list;      /* 0xd30: W8CampEffectEntry rows */
     int selected_spell_row; /* 0xd34 */
     unsigned char unknown_d38[7];
-    unsigned char entry_mode;
+    unsigned char item_action;
     /* 0xd40[0]: mouse is over the reviewed portrait; drives the highlight
        frame and a redraw. */
     unsigned char portrait_hovered[4];
     W8DialogBase* dialog;
-    unsigned char item_mode;
+    unsigned char info_page;
     unsigned char padding_d49[3];
     W8CampCharacterInfo* character_info;
     /* 0xd50: the camp item icons were drawn while the monster/combat
@@ -179,7 +212,7 @@ static_assert(offsetof(W8CampScreenState, learned_spells) +
 extern W8CampScreenState* g_camp_screen;
 extern int giReviewCharSlot;
 extern W8Character* g_review_character;
-extern W8Character* g_camp_entry_parameter; /* gpIdentifyingPC */
+extern W8Character* g_camp_identifying_character; /* gpIdentifyingPC */
 extern W8Character* g_camp_character;
 extern bool g_camp_character_pending;
 extern unsigned int g_camp_item_region_set;
@@ -227,10 +260,10 @@ extern int g_load_category_palettes[5];
    party strip. */
 extern int g_race_portrait_images[0x30];
 
-void SwitchCampPage(int page);
+void SwitchCampPage(W8CampPage page);
 void ClearOtherCampItemGroupFilters(W8CampItemFilter filter);
 void RebuildCampItemList(void);
-void SetCampInputMode(int mode);
+void SetCampHeaderMode(W8CampHeaderMode mode);
 void DisplayCampDialog(W8DialogBase* dialog);
 void DismissSelectedPartyCharacter(void);
 
@@ -247,7 +280,7 @@ int CommitPartySlotItemUse(int party_slot, W8ItemInstance* item, W8CombatSlot* t
 
 /* 0x005A5DA0: move a single unit between the clicked stack and the item in
    hand - split one off into the hand, or add one onto the held stack. */
-void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, unsigned int origin);
+void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, W8ItemOrigin origin);
 
 void CampScreenInitializeRegions(void);
 void LayoutCampSecondaryRegions(void);
@@ -285,4 +318,4 @@ void BeginEndgameSequence(void);
 /* Camp and main-game notice dialogs ShowNoticeLine forwards into. */
 void ShowCampNoticeLine(const wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
                         int cancel); /* 0x005A4C00 */
-void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned int origin);
+void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOrigin origin);

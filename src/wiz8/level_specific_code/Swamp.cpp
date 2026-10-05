@@ -44,9 +44,9 @@ bool SwampOilPool(Trigger* pTrigger)
         ClearHeldItemDisplay();
         ReplaceOrCreateItem(&g_status.item_in_hand, 0x15e, false, true, false);
         SetItemCursor(0);
-        g_trigger_feedback = 1;
+        g_trigger_feedback = true;
     }
-    return 0;
+    return false;
 }
 
 static bool SwampGasFireSpawn(Trigger* pTrigger); /* 0x004DAA70 */
@@ -62,11 +62,11 @@ bool SwampGasPlane(Trigger* pTrigger)
 
     if (GetFact(W8_FACT_SAVANT_PARTY_SWAMP_MEET) == 0) {
         SwampGasFireSpawn(pTrigger);
-        return 0;
+        return false;
     }
     position = GetWorld()->camera->getLocation();
     PointCastSpell(position, 0x2a, 4);
-    return 1;
+    return true;
 }
 
 /* "fire_trig_plane01-07": same fact gate as the gas planes, but casts spell
@@ -78,11 +78,11 @@ bool SwampFirePlane(Trigger* pTrigger)
 
     if (GetFact(W8_FACT_SAVANT_PARTY_SWAMP_MEET) == 0) {
         SwampGasFireSpawn(pTrigger);
-        return 0;
+        return false;
     }
     position = GetWorld()->camera->getLocation();
     PointCastSpell(position, 0x24, 4);
-    return 1;
+    return true;
 }
 
 /* The one-shot behind the gas and fire trigger planes, armed while fact 0x16d
@@ -105,7 +105,7 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
     int index;
 
     if (GetFact(W8_FACT_SAVANT_PARTY_SWAMP_MEET) != 0) {
-        return 0;
+        return false;
     }
     SetFact(W8_FACT_SAVANT_PARTY_SWAMP_MEET, 1, false);
     ResetInactiveLevelDataVectors();
@@ -128,7 +128,7 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
         if (monster_info != 0) {
             g_swamp_spawned_monster = monster_info->p3D;
             monster_info->p3D->m_pRep->instance_scale = 1.0f;
-            monster_info->p3D->m_pRep->apply_instance_scale = 1;
+            monster_info->p3D->m_pRep->apply_instance_scale = true;
             g_swamp_spawned_monster->BeginFadeIn(2.0f);
             g_swamp_spawned_monster->GetMappedPosition(&mapped);
             look_target = monster_info->p3D->movement.position;
@@ -140,7 +140,7 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
     }
     npc = FindNpcBindingForMonster(MonsterGetIndexByLocationID(0xa3, SWAMP_CPP, index, true));
     QueueNpcScriptNotice(npc, 0, -1, false, 0);
-    return 1;
+    return true;
 }
 
 /* The master function the spawn arms. 0xEFFFFFFF re-registers it and clears
@@ -184,5 +184,5 @@ bool SwampOnelid(Trigger* pTrigger)
         SetFact(W8_FACT_CROCK_PLAYER_RETURNED_TO_PARTY, 1, false);
         SetFact(W8_FACT_CROCK_KIDNAPPED_PLAYER, 0, false);
     }
-    return 1;
+    return true;
 }

@@ -311,7 +311,7 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
             }
             light->setGroupMask(2);
         } else if (record.version < 2 || record.visible) {
-            record.visible = 1;
+            record.visible = true;
             if (record.version < 2) {
                 strcpy(name, "Static Point Light");
             }
@@ -663,8 +663,8 @@ unsigned char ReadMonsterPaths(W8ReadLevelInfo* pInfo, W8World* pWorld)
 
     origin.SetZero();
     for (index = 0; index < count; ++index) {
-        update_representation = 1;
-        active = 1;
+        update_representation = true;
+        active = true;
         success = success && FileRead(pInfo->hFile, monster_name, sizeof(monster_name), 0);
         separator = strchr(monster_name, ':');
         if (separator != 0) {
@@ -698,10 +698,10 @@ unsigned char ReadMonsterPaths(W8ReadLevelInfo* pInfo, W8World* pWorld)
            a speculative null guard. */
         if (has_options) {
             if (options[0] == '0' || options[0] == '\0') {
-                update_representation = 0;
+                update_representation = false;
             }
             if (options[1] == '0' || options[1] == '\0') {
-                active = 0;
+                active = false;
             }
             if (options[2] == '1') {
                 PathAISetAnimated(path, 1);
@@ -710,7 +710,7 @@ unsigned char ReadMonsterPaths(W8ReadLevelInfo* pInfo, W8World* pWorld)
                 PathAISetLooping(path, 1);
             }
             if (!active) {
-                group->members_active = 0;
+                group->members_active = false;
                 monster->m_pRep->active = 0;
             }
             if (!update_representation) {
@@ -831,7 +831,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         particle->rotateX(1.5707963);
 
         if (record.bounds_origin.x != 0.0f) {
-            particle->replace_when_full = 1;
+            particle->replace_when_full = true;
             record.bounds_origin.x = 0.0f;
         }
         if (record.bounds_mode == W8_PARTICLE_BOUNDS_BOX) {

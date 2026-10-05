@@ -267,12 +267,12 @@ void RecomputeAttributeLimits(W8Character* character, W8CharacterCreationState* 
         for (index = 0; index < 7; ++index) {
             if (creation_state->attribute_values[index] <
                 creation_state->attribute_limits[index]) {
-                creation_state->attributes_complete = 0;
+                creation_state->attributes_complete = false;
                 return;
             }
         }
     }
-    creation_state->attributes_complete = 1;
+    creation_state->attributes_complete = true;
 }
 
 /* Clamp the allocated attribute values to their limits, then take points back
@@ -488,12 +488,12 @@ void AdjustAllocatedAttribute(W8Character* character, W8CharacterCreationState* 
         for (int index = 0; index < 7; ++index) {
             if (creation_state->attribute_values[index] <
                 creation_state->attribute_limits[index]) {
-                creation_state->attributes_complete = 0;
+                creation_state->attributes_complete = false;
                 goto complete;
             }
         }
     }
-    creation_state->attributes_complete = 1;
+    creation_state->attributes_complete = true;
 complete:
     RecalculateCharacterHitPoints(character);
     RecalculateCharacterStamina(character);
@@ -581,12 +581,12 @@ void ClampSkillsToBudget(W8Character* character, W8CharacterCreationState* creat
     if (creation_state->skill_points_remaining > 0) {
         for (index = 0; index < 0x29; ++index) {
             if (creation_state->skill_points_spent[index] < creation_state->skill_limits[index]) {
-                creation_state->skills_complete = 0;
+                creation_state->skills_complete = false;
                 return;
             }
         }
     }
-    creation_state->skills_complete = 1;
+    creation_state->skills_complete = true;
 }
 
 /* Finalize the spell-point pool the level-up flow presents: settle the realm
@@ -1100,12 +1100,12 @@ void InitializeLevelUpAttributePool(W8Character* character,
     if (creation_state->skill_points_remaining > 0) {
         for (int index = 0; index < 0x29; ++index) {
             if (creation_state->skill_points_spent[index] < creation_state->skill_limits[index]) {
-                creation_state->skills_complete = 0;
+                creation_state->skills_complete = false;
                 goto complete;
             }
         }
     }
-    creation_state->skills_complete = 1;
+    creation_state->skills_complete = true;
 complete:
     CountRemainingSpellPoints(character, creation_state);
     RefreshCharacterSkillAvailability(character);

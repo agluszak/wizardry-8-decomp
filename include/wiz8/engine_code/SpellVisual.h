@@ -90,7 +90,7 @@ W8_ASSERT_BASE_OFFSET(W8SpellVisual, W8Navigator, navigation_mode, 0x18);
 inline W8SpellVisual::W8SpellVisual(const W8SpellVisual& other) : W8GrCycle(other)
 {
     mode = other.mode;
-    finished = 0;
+    finished = false;
     flag = false;
     auto_release = other.auto_release;
     fixed_transform = other.fixed_transform;

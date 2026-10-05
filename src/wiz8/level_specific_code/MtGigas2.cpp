@@ -117,7 +117,7 @@ bool MtGigas2Train(Trigger* pTrigger)
         item_id = GetItemInHand();
     }
     QueueNpcScriptNotice(npc, item, -1, false, 0);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     value = GetLocationVarValueByName("WirePanel");
     if (value == 3) {
         return false;
@@ -142,7 +142,7 @@ bool MtGigas2RedWire(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     if (value != 0) {
         MtGigas2WireShock();
         return false;
@@ -160,7 +160,7 @@ bool MtGigas2BlueWire(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     if (value != 1) {
         MtGigas2WireShock();
         return false;
@@ -180,7 +180,7 @@ bool MtGigas2YellowWire(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     if (value != 2) {
         MtGigas2WireShock();
         return false;
@@ -252,7 +252,7 @@ bool MtGigas2Lift3(Trigger* pTrigger)
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, false, 0);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return false;
 }
 
@@ -271,7 +271,7 @@ bool MtGigas2TopDoor1(Trigger* pTrigger)
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, false, 0);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return false;
 }
 
@@ -305,7 +305,7 @@ bool MtGigas2Officer1(Trigger* pTrigger)
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, false, 0);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return false;
 }
 
@@ -339,7 +339,7 @@ bool MtGigas2Officer2(Trigger* pTrigger)
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, false, 0);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return false;
 }
 
@@ -349,7 +349,7 @@ bool MtGigas2Officer2(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DB810
 bool MtGigas2LaserAlarm(Trigger* pTrigger)
 {
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     if (GetFact(W8_FACT_LOCATION_GIGAS_MOTION_SENSORS_OFF) != 0) {
         return false;
     }

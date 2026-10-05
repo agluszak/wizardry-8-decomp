@@ -445,9 +445,9 @@ void ResetMainScreenStateBlock(void)
     memset(g_npc_interaction_state, 0, sizeof(W8NpcInteractionState));
     g_npc_interaction_state->dialogue_category_filter = unset;
     g_npc_interaction_state->transcript_sorted = 0;
-    g_npc_interaction_state->pending_trade_toggle = 0;
+    g_npc_interaction_state->pending_trade_toggle = false;
     g_npc_interaction_state->selected_trade_row = unset;
-    g_npc_interaction_state->trade_pc_items = 1;
+    g_npc_interaction_state->trade_pc_items = true;
     g_status.selected_party_member = 0xff;
     g_pending_notice_queued = false;
     ReloadKeywordLists();
@@ -487,7 +487,7 @@ void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, bool 
     flag = suppress;
     if ((npc->name_style == W8_NPC_DRAZIC || npc->name_style == W8_NPC_RODAN) &&
         GetFact(W8_FACT_PEACE_ACHIEVED) != 0) {
-        flag = 1;
+        flag = true;
         line = npc->name_style == W8_NPC_DRAZIC ? 0x23 : 0x1d;
     }
     if (g_pending_notice_queued) {
@@ -575,7 +575,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
             state = g_npc_interaction_state;
             state->pending_item = *item;
             if (g_status.item_in_cursor) {
-                state->held_item_pending = 1;
+                state->held_item_pending = true;
             }
             HandleNpcDialogueItem(&state->pending_item);
         } else if (quote == -1) {
@@ -598,7 +598,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
     }
     PauseMainGameWorld();
     state = g_npc_interaction_state;
-    state->scripted_dialogue = 1;
+    state->scripted_dialogue = true;
     gXStatus.fNpcDialogueMode = true;
     state->transcript_open_count = 0;
     info = GetNpcMonsterInfo(state->dialogue_npc);
@@ -661,26 +661,26 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
         state->previous_dialogue_layout = W8_DIALOGUE_LAYOUT_NONE;
         state->trade_mode = W8_NPC_TRADE_NONE;
     }
-    state->dialogue_panel_hidden = 0;
-    state->scripted_dialogue = 0;
+    state->dialogue_panel_hidden = false;
+    state->scripted_dialogue = false;
     state->trade_item = 0;
     state->last_mouse_x = -1;
     state->last_mouse_y = -1;
     state->hovered_text_line = -1;
     state->trade_filter = 0;
     state->value_000 = 0;
-    state->where_is_query = 0;
-    state->held_item_pending = 0;
+    state->where_is_query = false;
+    state->held_item_pending = false;
     state->script_busy = 0;
-    state->price_check_pending = 0;
-    state->price_check_skip_fact = 0;
+    state->price_check_pending = false;
+    state->price_check_skip_fact = false;
     state->dialogue_hidden = 0;
-    state->modal_dialog_open = 0;
+    state->modal_dialog_open = false;
     state->farewell_queued = false;
-    state->reopen_topics = 0;
+    state->reopen_topics = false;
     state->trade_gold = 0;
     state->pending_layout = 0;
-    state->suppress_parting_reaction = 1;
+    state->suppress_parting_reaction = true;
     state->selected_trade_row = -1;
     state->transcript_open_count = 0;
     if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS) {
@@ -693,7 +693,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
     }
     CreateNpcDialogueControls();
     SetRegionBounds(0x8a, 0x17, 0x166, 0x269, 0x1c2);
-    g_level_block->text_box_visible = 0;
+    g_level_block->text_box_visible = false;
     RegionSetEnable(0x15);
     EnableRegionInput(0x52);
     EnableRegionInput(0x53);
@@ -706,13 +706,13 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
         state = g_npc_interaction_state;
         state->pending_item = *item;
         if (g_status.item_in_cursor) {
-            state->held_item_pending = 1;
+            state->held_item_pending = true;
             ClearHeldItemDisplay();
         }
         if (npc->record->merchant != 0) {
             if (HandleNpcDialogueItem(&state->pending_item) == 0) {
                 OpenNpcDialogueTranscriptLayout();
-                greet = 1;
+                greet = true;
             }
         } else if (HandleNpcDialogueItem(&state->pending_item) == 0) {
             switch (g_npc_interaction_state->dialogue_layout) {
@@ -751,7 +751,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
             } else {
                 ShowNpcDialogueTopicMenu();
             }
-            greet = 1;
+            greet = true;
         }
     }
     if (greet) {
@@ -778,12 +778,12 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
     RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
     if (g_mouselook_active) {
         EnableCursorScene();
-        g_mouselook_active = 0;
+        g_mouselook_active = false;
         gfTrackMousePos = 0;
     }
     info = GetNpcMonsterInfo(npc);
     if (info != 0) {
-        g_npc_interaction_state->camera_redirected = 1;
+        g_npc_interaction_state->camera_redirected = true;
         g_npc_interaction_state->saved_camera_pitch = g_gd_camera->m_pitch;
         g_npc_interaction_state->saved_camera_yaw = g_gd_camera->m_yaw;
         dialogue_info = GetNpcMonsterInfo(g_npc_interaction_state->dialogue_npc);
@@ -829,7 +829,7 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
     }
     state->dialogue_npc = npc;
     state->dialogue_npc->flag = false;
-    state->dialogue_npc->flag0 = 0;
+    state->dialogue_npc->flag0 = false;
     if (state->dialogue_npc->greeting_pending) {
         state->dialogue_npc->suspicion = 0;
     }
@@ -842,7 +842,7 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
         static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
             ->Invalidate(true);
     }
-    state->camera_redirected = 0;
+    state->camera_redirected = false;
     for (slot = 0; slot < 8; ++slot) {
         if (g_status.buffers.XChar[slot].fOccupied) {
             if (speaker == -1) {
@@ -1069,7 +1069,7 @@ void ServiceNpcDialogue(void)
     }
     Get16BitStringFromField(0, field_text);
     if (g_npc_interaction_state->pending_layout != 0) {
-        g_level_block->text_box_visible = 0;
+        g_level_block->text_box_visible = false;
         RegionSetEnable(0x15);
         EnableRegionInput(0x52);
         EnableRegionInput(0x53);
@@ -1199,7 +1199,7 @@ void EndNpcDialogueSession(bool param_1)
         return;
     }
     if (gXStatus.fCampMode) {
-        param_1 = 1;
+        param_1 = true;
     }
     if (g_npc_interaction_state->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
@@ -1221,7 +1221,7 @@ void EndNpcDialogueSession(bool param_1)
     CloseActiveNpcDialogueLayout();
     RegionSetDisable(0x18);
     SelectTextBox(0);
-    g_level_block->text_box_visible = 1;
+    g_level_block->text_box_visible = true;
     ApplyMainGameModeFlag(gXStatus.fCampMode ? g_settings.main_ui_mode
                                              : g_npc_interaction_state->saved_main_ui_mode,
                           true);
@@ -1251,7 +1251,7 @@ void EndNpcDialogueSession(bool param_1)
         } else {
             g_status.item_in_hand = g_npc_interaction_state->pending_item;
             SetItemCursor(0);
-            g_npc_interaction_state->held_item_pending = 0;
+            g_npc_interaction_state->held_item_pending = false;
         }
         W8NpcState* npc = g_npc_interaction_state->dialogue_npc;
         if (!g_npc_interaction_state->suppress_parting_reaction && npc->record->merchant == 0 &&
@@ -1276,7 +1276,7 @@ void EndNpcDialogueSession(bool param_1)
     if (g_npc_interaction_state->dialogue_npc->name_style == 0xf &&
         GetFact(W8_FACT_ALIGNMENT_UMPANI) != 0) {
         g_status.trang_check_clock = g_status.world_clock;
-        g_status.trang_check_pending = 1;
+        g_status.trang_check_pending = true;
     }
 }
 
@@ -1343,11 +1343,11 @@ bool HasNpcDialogueDirtyPanels(void)
         Controls** panel = g_npc_interaction_state->dialogue_panels;
         for (int i = 0; i < 7; i++) {
             if (panel[i]->m_fEnabled && (panel[i]->m_fDirty || panel[i]->m_fLayoutDirty)) {
-                return 1;
+                return true;
             }
         }
     }
-    return 0;
+    return false;
 }
 
 /* Retire the current dialogue layout mode into previous_dialogue_layout and, when nonzero,
@@ -1453,18 +1453,18 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
     case LEFT_BUTTON_DOWN:
     case LEFT_BUTTON_REPEAT:
         if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
-            arg = 1;
+            arg = true;
         } else {
-            arg = 0;
+            arg = false;
         }
         control->OnLeftButtonDown(arg);
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         return 1;
     case LEFT_BUTTON_UP:
         if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
-            arg = 1;
+            arg = true;
         } else {
-            arg = 0;
+            arg = false;
         }
         control->OnLeftButtonUp(arg);
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
@@ -1475,18 +1475,18 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
     case RIGHT_BUTTON_DOWN:
     case RIGHT_BUTTON_REPEAT:
         if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
-            arg = 1;
+            arg = true;
         } else {
-            arg = 0;
+            arg = false;
         }
         control->OnRightButtonDown(arg);
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
         return 1;
     case RIGHT_BUTTON_UP:
         if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
-            arg = 1;
+            arg = true;
         } else {
-            arg = 0;
+            arg = false;
         }
         control->OnRightButtonUp(arg);
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
@@ -1497,9 +1497,9 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 ||
                 callback_id == 0x17) {
-                arg = 1;
+                arg = true;
             } else {
-                arg = 0;
+                arg = false;
             }
             control->OnMouseLeave(arg);
             return 1;
@@ -1990,7 +1990,7 @@ void LeaveNpcDialogueLayout(void)
 {
     if (!g_npc_interaction_state->modal_dialog_open) {
         if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0) {
-            g_npc_interaction_state->suppress_parting_reaction = 0;
+            g_npc_interaction_state->suppress_parting_reaction = false;
             g_npc_interaction_state->farewell_queued = true;
             QueueNpcScriptLine(0x5c, false, false, false);
             return;
@@ -2171,7 +2171,7 @@ void SelectNpcDialogueExit(void)
 {
     CloseNpcDialogueLayout();
     g_npc_interaction_state->trade_mode = W8_NPC_TRADE_GIVE;
-    g_npc_interaction_state->reopen_topics = 1;
+    g_npc_interaction_state->reopen_topics = true;
     OpenNpcDialogueOptionLayout();
 }
 
@@ -2667,7 +2667,7 @@ void OpenNpcDialogueOptionLayout(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])->AddLayoutFlags(g_W8TextControlLayoutToggle);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])->AddLayoutFlags(g_W8TextControlLayoutToggle);
     UpdateNpcDialogueSubMode();
-    g_npc_interaction_state->pending_trade_toggle = 1;
+    g_npc_interaction_state->pending_trade_toggle = true;
     if (g_npc_interaction_state->reopen_topics) {
         static_cast<W8TextControl*>(
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
@@ -2845,7 +2845,7 @@ void UpdateNpcDialogueSubMode(void)
             static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])->m_textBuffer.SetFontStateIndex(3);
             static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])->m_textBuffer.SetGeometryDirty();
         }
-        g_npc_interaction_state->pending_trade_toggle = 0;
+        g_npc_interaction_state->pending_trade_toggle = false;
     }
     RebuildNpcTradeItemList(true);
 }
@@ -2906,7 +2906,7 @@ void CloseNpcDialogueOptionLayout(void)
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[5]->SetEnabled(false);
     SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
-    g_npc_interaction_state->reopen_topics = 0;
+    g_npc_interaction_state->reopen_topics = false;
     SelectTextBox(3);
     ScrollDialogueTextBoxToLine();
 }
@@ -2947,7 +2947,7 @@ void SelectNpcPartyItems(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])->m_textBuffer.SetFontStateIndex(3);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])->m_textBuffer.SetGeometryDirty();
     RebuildNpcTradeItemList(true);
-    g_npc_interaction_state->trade_pc_items = 1;
+    g_npc_interaction_state->trade_pc_items = true;
 }
 
 // FUNCTION: WIZ8 0x00572700
@@ -2963,7 +2963,7 @@ void SelectNpcStockItems(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])->m_textBuffer.SetFontStateIndex(3);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])->m_textBuffer.SetGeometryDirty();
     RebuildNpcTradeItemList(true);
-    g_npc_interaction_state->trade_pc_items = 0;
+    g_npc_interaction_state->trade_pc_items = false;
 }
 
 // FUNCTION: WIZ8 0x00572960
@@ -3716,7 +3716,7 @@ void HandleNpcDialogueReply(wchar_t* text, bool echo)
                 if (static_cast<unsigned int>(g_npc_interaction_state->pending_price) >
                     g_status.party_gold) {
                     RunNpcScriptLine(0x14, false);
-                    g_npc_interaction_state->price_check_pending = 0;
+                    g_npc_interaction_state->price_check_pending = false;
                 } else {
                     SpendPartyGold(g_npc_interaction_state->pending_price);
                     if (!g_npc_interaction_state->price_check_skip_fact) {
@@ -3724,11 +3724,11 @@ void HandleNpcDialogueReply(wchar_t* text, bool echo)
                                     g_npc_interaction_state->pending_fact);
                     }
                     RunNpcScriptLine(g_npc_interaction_state->pending_fact, false);
-                    g_npc_interaction_state->price_check_pending = 0;
+                    g_npc_interaction_state->price_check_pending = false;
                 }
             } else {
                 RunNpcQuoteDeclineActions(g_npc_interaction_state->pending_fact);
-                g_npc_interaction_state->price_check_pending = 0;
+                g_npc_interaction_state->price_check_pending = false;
             }
         }
         if (echo) {
@@ -4023,7 +4023,7 @@ void HandleNpcDialogueKeyEvent(const InputAtom* event)
         }
         switch (g_npc_interaction_state->dialogue_layout) {
         case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-            g_npc_interaction_state->suppress_parting_reaction = 0;
+            g_npc_interaction_state->suppress_parting_reaction = false;
             g_npc_interaction_state->farewell_queued = true;
             QueueNpcScriptLine(0x5c, false, false, false);
             return;
@@ -4110,10 +4110,10 @@ bool IsDialoguePlaceKeyword(const wchar_t* name)
     for (int index = 0; index < g_dialogue_place_keyword_count; ++index) {
         if (CompareWideTextIgnoreAsciiCase(
                 name, gppStringList[g_dialogue_place_keyword_ids[index]]) == 0) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00575070
@@ -4331,7 +4331,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
     unsigned char flag;
     int fact_result;
 
-    result = 1;
+    result = true;
     if (g_npc_interaction_state->trade_gold != 0 && item == 0) {
         if (g_npc_interaction_state->trade_gold != static_cast<int>(g_status.party_gold)) {
             ConfirmNpcTradePurchase();
@@ -4365,14 +4365,14 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
                 QueueNpcScriptLine(0x11, false, false, false);
             } else {
                 QueueNpcScriptLine(fact_result, false, false, false);
-                result = 0;
+                result = false;
                 if (flag != 0) {
                     RemoveNpcScriptItem(item, 0, -1);
                     return result;
                 }
                 if (g_npc_interaction_state->held_item_pending &&
                     g_npc_interaction_state->pending_item.iItemNo == item->iItemNo) {
-                    g_npc_interaction_state->held_item_pending = 0;
+                    g_npc_interaction_state->held_item_pending = false;
                     AddItemToParty(&g_npc_interaction_state->pending_item, 1, false);
                     ClearHeldItemDisplay();
                     return 0;
@@ -4394,7 +4394,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
                     false, false, false);
             } else {
                 QueueNpcScriptLine(fact_result, false, false, false);
-                result = 0;
+                result = false;
             }
             RemoveNpcScriptItem(item, 0, -1);
             return result;
@@ -4417,16 +4417,16 @@ unsigned char AcceptNpcDialogueItem(W8NpcState*, W8ItemInstance*, int)
 // FUNCTION: WIZ8 0x00575B00
 void SubmitNpcWhereIsQuery(void)
 {
-    g_npc_interaction_state->where_is_query = 1;
+    g_npc_interaction_state->where_is_query = true;
     static_cast<W8NpcTypedDialoguePanel*>(g_npc_interaction_state->dialogue_panels[6])->Invalidate(0);
     HandleNpcDialogueInput();
-    g_npc_interaction_state->where_is_query = 0;
+    g_npc_interaction_state->where_is_query = false;
 }
 
 // FUNCTION: WIZ8 0x00575B40
 void SubmitNpcDialogueInput(void)
 {
-    g_npc_interaction_state->where_is_query = 0;
+    g_npc_interaction_state->where_is_query = false;
     static_cast<W8NpcTypedDialoguePanel*>(g_npc_interaction_state->dialogue_panels[6])->Invalidate(0);
     HandleNpcDialogueInput();
 }
@@ -4551,7 +4551,7 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
     g_npc_interaction_state->script_busy = 1;
     if (request->kind == 0x12 || request->kind == 0x1e) {
         g_npc_interaction_state->pending_fact = aux_data;
-        g_npc_interaction_state->price_check_pending = 1;
+        g_npc_interaction_state->price_check_pending = true;
         g_npc_interaction_state->pending_price = request->operand0;
         monster_info = GetNpcMonsterInfo(g_npc_interaction_state->dialogue_npc);
         if (monster_info != 0) {
@@ -4569,7 +4569,7 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
                 (g_npc_interaction_state->pending_price * 10 + 9) / 10;
         }
         if (request->kind == 0x1e) {
-            g_npc_interaction_state->price_check_skip_fact = 1;
+            g_npc_interaction_state->price_check_skip_fact = true;
         }
     }
     SetTargetCursor(W8_CURSOR_NONE);
@@ -4600,7 +4600,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
 
         if (g_mouselook_active) {
             EnableCursorScene();
-            g_mouselook_active = 0;
+            g_mouselook_active = false;
             gfTrackMousePos = 0;
         }
         memset(normalized, 0, sizeof(normalized));
@@ -5024,7 +5024,7 @@ void CloseNpcDialogueForCamp(void)
 void SyncDialogueNpcStateAndMarkPending(void)
 {
     SyncDialogueNpcState();
-    g_npc_interaction_state->pending_trade_toggle = 1;
+    g_npc_interaction_state->pending_trade_toggle = true;
 }
 
 // FUNCTION: WIZ8 0x00577260
@@ -5058,7 +5058,7 @@ void HandleNpcDialogueDeparture(unsigned char value)
             QueueNpcScriptLine(1, false, false, false);
         } else {
             QueueNpcScriptLine(0, false, false, false);
-            g_npc_interaction_state->dialogue_npc->greeting_pending = 0;
+            g_npc_interaction_state->dialogue_npc->greeting_pending = false;
             if (g_npc_interaction_state->dialogue_npc->record->monster_bound == 0 &&
                 g_npc_interaction_state->dialogue_npc->record->voice_script == 0 &&
                 g_npc_interaction_state->dialogue_npc->record->merchant == 0) {
@@ -5251,7 +5251,7 @@ unsigned char SetNpcDialoguePanelVisible(unsigned char value)
             RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_5);
             RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_7);
             RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
-            g_npc_interaction_state->dialogue_panel_hidden = 1;
+            g_npc_interaction_state->dialogue_panel_hidden = true;
             return 1;
         }
 
@@ -5262,7 +5262,7 @@ unsigned char SetNpcDialoguePanelVisible(unsigned char value)
         controller->Expand();
         SyncNpcDialogueTranscriptScrollButtons();
         RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
-        g_npc_interaction_state->dialogue_panel_hidden = 0;
+        g_npc_interaction_state->dialogue_panel_hidden = false;
         return 1;
     }
     return 0;
@@ -5282,13 +5282,13 @@ bool ProcessPendingEvent(void)
 {
     if (IsNpcScriptSessionActive()) {
         TryFinishNpcVoicePlayback(true);
-        return 1;
+        return true;
     }
     if (gXStatus.character_event_queue->HasActiveEvents()) {
         gXStatus.character_event_queue->CompleteFirstActiveEvent();
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // VTABLE: WIZ8 0x005ee9d0

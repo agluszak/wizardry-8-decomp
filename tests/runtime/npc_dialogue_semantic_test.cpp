@@ -120,18 +120,18 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     g_npc_scripting.npc = fake_npc;
     g_npc_interaction_state = fake_screen;
     g_current_screen_state.id = W8_SCREEN_MAIN_GAME;
-    gXStatus.fCampMode = 1;
-    gXStatus.fCombatMode = 1;
-    gXStatus.fNpcDialogueMode = 0;
-    gXStatus.fPartyMovementUi = 0;
-    g_npc_dialogue_closed = 0;
-    g_pending_notice_queued = 1;
-    g_message_queue_idle = 1;
+    gXStatus.fCampMode = true;
+    gXStatus.fCombatMode = true;
+    gXStatus.fNpcDialogueMode = false;
+    gXStatus.fPartyMovementUi = false;
+    g_npc_dialogue_closed = false;
+    g_pending_notice_queued = true;
+    g_message_queue_idle = true;
 
     g_pending_notice.npc = fake_npc;
     g_pending_notice.item.iItemNo = -1;
     g_pending_notice.line = NOTICE_QUOTE;
-    g_pending_notice.flag = 0;
+    g_pending_notice.flag = false;
     g_pending_notice.force = 0;
     g_pending_notice.unused[0] = 0;
     g_pending_notice.unused[1] = 0;

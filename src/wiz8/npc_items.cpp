@@ -613,145 +613,145 @@ bool NpcAcceptsTradeItemClass(W8NpcState* npc, W8ItemInstance* item)
     switch (g_item_records[item->iItemNo].equip_class) {
     case W8_ITEM_EQUIP_CLASS_SHORT_WEAPON:
         if ((npc->record->trade_item_class_mask & 0x1u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_EXTENDED_WEAPON:
         if ((npc->record->trade_item_class_mask & 0x2u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_THROWN_WEAPON:
         if ((npc->record->trade_item_class_mask & 0x4u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_RANGED_WEAPON:
         if ((npc->record->trade_item_class_mask & 0x8u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_AMMUNITION:
         if ((npc->record->trade_item_class_mask & 0x10u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_SHIELD:
         if ((npc->record->trade_item_class_mask & 0x20u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_TORSO:
         if ((npc->record->trade_item_class_mask & 0x40u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_LEGS:
         if ((npc->record->trade_item_class_mask & 0x80u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_HEAD:
         if ((npc->record->trade_item_class_mask & 0x100u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_HANDS:
         if ((npc->record->trade_item_class_mask & 0x200u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_FEET:
         if ((npc->record->trade_item_class_mask & 0x400u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_MISC:
         if ((npc->record->trade_item_class_mask & 0x800u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_CLOAK:
         if ((npc->record->trade_item_class_mask & 0x1000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_INSTRUMENT:
         if ((npc->record->trade_item_class_mask & 0x2000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_GADGET:
         if ((npc->record->trade_item_class_mask & 0x4000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_MISC_MAGIC:
         if ((npc->record->trade_item_class_mask & 0x8000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_POTION:
         if ((npc->record->trade_item_class_mask & 0x10000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_BOMB:
         if ((npc->record->trade_item_class_mask & 0x20000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_POWDER:
         if ((npc->record->trade_item_class_mask & 0x40000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_SPELLBOOK:
         if ((npc->record->trade_item_class_mask & 0x80000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_SCROLL:
         if ((npc->record->trade_item_class_mask & 0x100000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_FOOD:
         if ((npc->record->trade_item_class_mask & 0x200000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_DRINK:
         if ((npc->record->trade_item_class_mask & 0x400000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_KEY:
         if ((npc->record->trade_item_class_mask & 0x800000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_WRITING:
         if ((npc->record->trade_item_class_mask & 0x1000000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     case W8_ITEM_EQUIP_CLASS_OTHER:
         if ((npc->record->trade_item_class_mask & 0x2000000u) != 0) {
-            return 1;
+            return true;
         }
         break;
     default:
         break;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x0055b250
 bool NpcAcceptsTradeItem(W8NpcState* npc, W8ItemInstance* item)
 {
     if ((g_item_records[item->iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) != 0) {
-        return 0;
+        return false;
     }
     return NpcAcceptsTradeItemClass(npc, item);
 }
@@ -826,7 +826,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
     moved = 0;
     entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
     if (entry == 0) {
-        return 0;
+        return false;
     }
     available = entry->item.stack_count;
     for (;;) {
@@ -853,14 +853,14 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
         moved += unit;
         if (quantity <= moved) {
             if (moved == 0) {
-                return 0;
+                return false;
             }
             ReplaceOrCreateItem(&stack, entry->item.iItemNo, false, true, false);
             stack.stack_count = moved;
             price = CalculateTradeStackPrice(npc, &stack, 1);
             SoundPlay(g_sound_cash_transaction, 0);
             if (ConsumeNpcItemQuantity(npc, index, moved) == 0) {
-                return 0;
+                return false;
             }
             if (!no_payment) {
                 SpendPartyGold(price);
@@ -869,7 +869,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
                 *remaining_out = available - moved;
             }
             RemoveDepletedNpcStock(npc);
-            return 1;
+            return true;
         }
     }
 }

@@ -82,12 +82,12 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
         if (slot != -1) {
             SetCharacterCondition(slot, W8_CONDITION_HEXED, Random(5) + 10, 0, 0, 1);
             SoundPlay("Data\\Sound\\misc\\fountain_magic.wav", 0);
-            return 1;
+            return true;
         }
     } else if (roll < 50) {
         RestorePartySpellPoints(-1);
         SoundPlay("Data\\Sound\\misc\\fountain_magic.wav", 0);
-        return 1;
+        return true;
     } else if (roll < 75) {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
             if (g_status.buffers.XChar[i].fOccupied) {
@@ -95,7 +95,7 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
             }
         }
         SoundPlay("Data\\Sound\\misc\\fountain_magic.wav", 0);
-        return 1;
+        return true;
     } else {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
             if (g_status.buffers.XChar[i].fOccupied) {
@@ -104,7 +104,7 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
         }
     }
     SoundPlay("Data\\Sound\\misc\\fountain_magic.wav", 0);
-    return 1;
+    return true;
 }
 
 /* Replace every live faction-0xd (Trynnie) group with a dead-Trynnie (0x1be)

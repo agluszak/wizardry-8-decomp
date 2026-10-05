@@ -540,7 +540,7 @@ static void QueuePartySpellsOnGameThread(void* opaque)
             }
             gpSCSV->override_spell = query->spell_id;
             gpSCSV->caster = character;
-            gXStatus.fSpellCastMode = 1;
+            gXStatus.fSpellCastMode = true;
             AimAtTarget(slot, &target, W8_TARGETING_CONTEXT_SPELL);
             AimAtTarget(slot, &target, W8_TARGETING_CONTEXT_IN_COMBAT);
             AimAtTarget(slot, &target, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);

@@ -29,9 +29,9 @@ bool RunPartyMovementSemanticTest(PartyMovementSemanticResult* result)
     memset(&level, 0, sizeof(level));
     g_combat_state = &combat;
     g_level_block = &level;
-    gXStatus.fCombatMode = 1;
-    gXStatus.fPartyMovementMode = 1;
-    gXStatus.fPartyMovementUi = 0;
+    gXStatus.fCombatMode = true;
+    gXStatus.fPartyMovementMode = true;
+    gXStatus.fPartyMovementUi = false;
 
     combat.uiCurrentPartyAction = W8_PARTY_ACTION_WALK;
     combat.uiCurrentPartyActionStatus = W8_PARTY_ACTION_NOT_STARTED;

@@ -87,7 +87,7 @@ void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info)
                     record->level_acquired == g_status.current_level &&
                     record->source_monster == monster_info->location_id) {
                     cleared = true;
-                    record->active = 0;
+                    record->active = false;
                     record->level_acquired = 0;
                     record->source_monster = 0;
                     if (condition != 0 && character->fInParty) {
@@ -133,7 +133,7 @@ void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announ
         if (party_slot >= 0 && party_slot < 8 && row->fOccupied && character->hp_current != 0) {
             can_rest = character->highest_condition < W8_CONDITION_TURNCOAT;
         } else {
-            can_rest = 0;
+            can_rest = false;
         }
         if (condition == W8_CONDITION_HEXED) {
             if (character->uiCondition[W8_CONDITION_INFATUATED] != 0 &&
@@ -161,7 +161,7 @@ void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announ
         switch (condition) {
         case W8_CONDITION_HEXED:
         case W8_CONDITION_BLIND:
-            gXStatus.sight_refresh_pending = 1;
+            gXStatus.sight_refresh_pending = true;
             break;
         case W8_CONDITION_POISONED:
             character->condition_argument = 0;
@@ -391,7 +391,7 @@ void ApplyCharacterCondition(int party_slot, W8EnchantmentSlot slot, int argumen
             RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
         }
         if (slot == W8_ENCHANTMENT_SUPERMAN) {
-            gXStatus.sight_refresh_pending = 1;
+            gXStatus.sight_refresh_pending = true;
         }
     }
     RebuildConditionsAndDerivedStats(party_slot);
@@ -538,9 +538,9 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
             record = GetMonsterDataForInfo(monster_info);
             *hate += (record->effective_level * static_cast<unsigned int>(condition)) / 3;
         }
-        handled = 1;
+        handled = true;
     } else {
-        handled = 0;
+        handled = false;
     }
     if (TargetSourceIsCharacter(target, 0) || TargetSourceIsMonster(target, 0)) {
         if (!target->fBackfire && !target->fReflection && target->target_diverted == 0) {
@@ -549,7 +549,7 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
     }
     if (static_cast<unsigned int>(argument) > static_cast<unsigned int>(monster_info->condition_argument)) {
         monster_info->condition_argument = argument;
-        handled = 1;
+        handled = true;
     }
     RebuildMonsterDerivedStats(location_id);
     if (!handled) {
@@ -762,16 +762,16 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
     if (old_duration < static_cast<unsigned int>(duration)) {
         if (old_duration == 0) {
             if (condition == W8_CONDITION_HEXED || condition == W8_CONDITION_BLIND) {
-                gXStatus.sight_refresh_pending = 1;
+                gXStatus.sight_refresh_pending = true;
             } else if (condition == W8_CONDITION_TURNCOAT) {
                 SetTargetToCharacter(party_slot, true);
             }
         }
         character->uiCondition[condition] = duration;
         RecomputeCharacterHighestCondition(party_slot);
-        handled = 1;
+        handled = true;
     } else {
-        handled = 0;
+        handled = false;
     }
     if (static_cast<unsigned int>(character->condition_argument) < static_cast<unsigned int>(argument)) {
         character->condition_argument = argument;
@@ -880,7 +880,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, W8EnchantmentSlot slot)
     }
     RebuildConditionsAndDerivedStats(party_slot);
     if (slot == W8_ENCHANTMENT_SUPERMAN) {
-        gXStatus.sight_refresh_pending = 1;
+        gXStatus.sight_refresh_pending = true;
     }
 }
 
@@ -1041,7 +1041,7 @@ void RemoveAllEnchantments(void)
                 }
                 RebuildConditionsAndDerivedStats(party_slot);
                 if (enchantment == W8_ENCHANTMENT_SUPERMAN) {
-                    gXStatus.sight_refresh_pending = 1;
+                    gXStatus.sight_refresh_pending = true;
                 }
             }
         }
@@ -1121,6 +1121,6 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
         g_status.current_level;
     g_status.buffers.Char[party_slot].conditions[dependence_slot].source_monster =
         monster_id;
-    g_status.buffers.Char[party_slot].conditions[dependence_slot].active = 1;
+    g_status.buffers.Char[party_slot].conditions[dependence_slot].active = true;
     RebuildConditionsAndDerivedStats(party_slot);
 }

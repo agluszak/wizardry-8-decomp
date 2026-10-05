@@ -23,11 +23,11 @@ W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
     m_prefix_palette = prefix_palette;
     m_font = font;
     m_lineCount = 0;
-    m_geometryDirty = 1;
+    m_geometryDirty = true;
     m_text_palette = text_palette;
-    m_selected = 0;
-    m_entry_highlighted = 0;
-    m_marked = 0;
+    m_selected = false;
+    m_entry_highlighted = false;
+    m_marked = false;
     m_category = category;
     SetLayoutBounds(bounds, true, true);
     SetLayoutMode(layout_mode);
@@ -131,7 +131,7 @@ done:
     InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top, m_layoutBounds.right,
                      m_layoutBounds.bottom, 0);
     SetFontDestBuffer(-14, 0, 0, 640, 480, 0);
-    m_geometryDirty = 0;
+    m_geometryDirty = false;
     delete[] copy;
 }
 
@@ -140,6 +140,6 @@ void W8DialogTextEntry::SetSelected(bool selected)
 {
     if (m_selected != selected) {
         m_selected = selected;
-        m_geometryDirty = 1;
+        m_geometryDirty = true;
     }
 }

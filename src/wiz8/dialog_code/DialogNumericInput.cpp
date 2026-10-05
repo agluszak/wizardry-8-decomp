@@ -282,7 +282,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
         }
         break;
     case 0x1b:
-        m_active = 0;
+        m_active = false;
         m_caret = -1;
         m_dialog->m_field_4c = 0;
         m_dirty = true;

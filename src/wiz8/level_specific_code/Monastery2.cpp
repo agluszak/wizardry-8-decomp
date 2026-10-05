@@ -34,7 +34,7 @@ bool Monastery2BellButton(Trigger* pTrigger)
             SoundPlay("Data\\Sound\\Ambients\\Mon2Bell1.wav", 0);
         } else if (slot == 1) {
             SoundPlay("Data\\Sound\\Ambients\\Mon2Bell2.wav", 0);
-            return 1;
+            return true;
         } else if (slot == 2) {
             SoundPlay("Data\\Sound\\Ambients\\Mon2Bell3.wav", 0);
             pPropTrigger = FindTriggerByName("bellringswitch");
@@ -47,10 +47,10 @@ bool Monastery2BellButton(Trigger* pTrigger)
                 srAssertFail("pPropTrigger", MONASTERY2_CPP, 0x24, 0);
             }
             pPropTrigger->flags &= ~W8_TRIGGER_ON;
-            return 1;
+            return true;
         }
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x004dc880
@@ -64,5 +64,5 @@ bool Monastery2MicroDoor2(Trigger* pTrigger)
     if (item != 0) {
         ActivateItem(item);
     }
-    return 1;
+    return true;
 }

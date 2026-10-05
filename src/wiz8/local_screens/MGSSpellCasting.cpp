@@ -290,7 +290,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();
     }
-    gpSCSV->input_blocked = 0;
+    gpSCSV->input_blocked = false;
     gpSCSV->field_574 = 1;
     gpSCSV->location_id = -1;
     gpSCSV->interact_id = -1;
@@ -307,7 +307,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     RegionSetEnable(0x19);
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
-    g_level_block->text_box_visible = 0;
+    g_level_block->text_box_visible = false;
     SetTextBoxRegionBounds(0xea, 0x16e, 0x18c, 0x1ba);
     gpSCSV->iSpellRealm = W8_SPELL_REALM_NONE;
     SelectSpellCastingPartySlot(party_slot);
@@ -343,7 +343,7 @@ void CloseSpellCastingView(void)
         if (!gXStatus.fCampMode) {
             ResetEditorStatusLine(-1);
         }
-        g_level_block->text_box_visible = 1;
+        g_level_block->text_box_visible = true;
         SelectTextBox(gXStatus.fCombatMode);
         ReleaseSpellCastingViewControls();
         SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);

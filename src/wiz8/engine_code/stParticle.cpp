@@ -157,7 +157,7 @@ static void SetParticleQuadTriangles(srVector3i* triangles, unsigned int vertex)
 stParticle::stParticle(srNode* parent, int count)
     : srClassSupport<stParticle, srNode, 0, 0x10009>(static_cast<srNode*>(0))
 {
-    persisted = 0;
+    persisted = false;
     update_flags = 0;
     attachment_key = -1;
     start_frame = -1;
@@ -224,11 +224,11 @@ stParticle::stParticle(srNode* parent, int count)
     }
 
     emitting = 1;
-    traversal_enabled = 1;
+    traversal_enabled = true;
     retained = 0;
     emission_limit = 0;
     release_when_done = false;
-    replace_when_full = 0;
+    replace_when_full = false;
     emission_count = 0;
     active_triangles = new unsigned long[texture_frame_count];
     active_particle_count = 0;
@@ -366,7 +366,7 @@ stParticle::stParticle(const stParticle& other)
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     birth_ticks = new unsigned int[count];
     emitting = other.emitting;
-    traversal_enabled = 1;
+    traversal_enabled = true;
     bounds_mode = other.bounds_mode;
     has_acceleration = other.has_acceleration;
     expiry_mode = other.expiry_mode;

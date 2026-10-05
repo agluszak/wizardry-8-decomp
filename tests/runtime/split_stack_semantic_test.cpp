@@ -76,7 +76,7 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
     memset(&source, 0, sizeof(source));
     source.iItemNo = item_id;
     source.stack_count = 6;
-    g_status.item_in_cursor = 0;
+    g_status.item_in_cursor = false;
     g_status.item_in_hand.iItemNo = -1;
 
     /* The constructor picks the split count: half the stack for stacks whose

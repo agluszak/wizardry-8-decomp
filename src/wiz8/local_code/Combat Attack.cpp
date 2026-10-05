@@ -349,7 +349,7 @@ bool CanCharacterBerserk(int party_slot)
     unsigned int hand;
 
     if (!CharacterHasTrait(character, W8_TRAIT_BERSERK)) {
-        return 0;
+        return false;
     }
     for (hand = 0; hand < W8_HAND_COUNT; ++hand) {
         if (hand >= W8_HAND_COUNT) {
@@ -360,7 +360,7 @@ bool CanCharacterBerserk(int party_slot)
             return GetCharAttackRange(character, 0) <= W8_RANGE_SHORT;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Whether a character could attack what a combat slot names. A party member
@@ -375,31 +375,31 @@ bool CharacterHasAttackOn(int party_slot, W8CombatSlot* target)
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         target_slot = target->iChar;
         if (!CanPartySlotParticipate(target_slot)) {
-            return 0;
+            return false;
         }
         if (FrontRankScreens(party_slot, target_slot) > 0) {
-            return 0;
+            return false;
         }
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(5927, COMBAT_ATTACK_CPP, target->iMonsterID, true));
         if (!monster_info->fActive || monster_info->hp_current == 0 || !monster_info->fInCombat) {
-            return 0;
+            return false;
         }
         if (GetMonsterDataForInfo(monster_info)->untargetable != 0) {
-            return 0;
+            return false;
         }
         if (!CanPartyMemberAimAtMonster(party_slot, 0, monster_info,
                                         !g_combat_state->characters[party_slot].dead
                                             ? W8_TARGETING_CONTEXT_IN_COMBAT
                                             : W8_TARGETING_CONTEXT_OUT_OF_COMBAT,
                                         0)) {
-            return 0;
+            return false;
         }
     } else {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* Whether a friendly combatant qualifies for protection: within the
@@ -420,13 +420,13 @@ bool CanMonsterProtectCombatant(W8MonsterInfo* monster_info, W8CombatSlot* targe
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         target_slot = target->iChar;
         if (!CanPartySlotParticipate(target_slot)) {
-            return 0;
+            return false;
         }
         if (MonsterVsCharDisposition(target_slot, monster_info) != W8_DISPOSITION_FRIENDLY) {
-            return 0;
+            return false;
         }
         if (!MonsterAttackReachesCharacter(monster_info, record, 0, target_slot)) {
-            return 0;
+            return false;
         }
         character = &g_status.buffers.Char[target_slot];
         hp_percent = character->hp_current * 100 / character->uiHPMax;
@@ -436,27 +436,27 @@ bool CanMonsterProtectCombatant(W8MonsterInfo* monster_info, W8CombatSlot* targe
         target_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(5997, COMBAT_ATTACK_CPP, target->iMonsterID, true));
         if (!target_info->fActive || target_info->hp_current == 0 || !target_info->fInCombat) {
-            return 0;
+            return false;
         }
         if (GetMonsterDataForInfo(target_info)->untargetable != 0) {
-            return 0;
+            return false;
         }
         if (MonsterHostility(monster_info, target_info) != W8_DISPOSITION_FRIENDLY) {
-            return 0;
+            return false;
         }
         if (!MonsterAttackReachesMonster(monster_info, record, 0, target_info)) {
-            return 0;
+            return false;
         }
         target_level = GetMonsterDataForInfo(target_info)->effective_level;
         hp_percent = target_info->hp_current * 100 / target_info->uiHPMax;
         out_of_formation = monster_info->modifiers.out_of_formation;
     } else {
-        return 0;
+        return false;
     }
     if (target_level > record->effective_level && (hp_percent < 40 || out_of_formation != 0)) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Protection readiness for the selected target. The action-8 executor
@@ -1332,7 +1332,7 @@ bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_
             shield = character->armor_class_components[W8_AC_COMPONENT_SHIELD] * 5;
         }
         if (difference > shield) {
-            return 0;
+            return false;
         }
         if (character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo != -1) {
             material =
@@ -1347,22 +1347,22 @@ bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
         if ((record->flags & W8_MONSTER_FLAG_VULNERABLE_FROM_BEHIND) == 0) {
-            return 0;
+            return false;
         }
         if (difference > 10) {
-            return 0;
+            return false;
         }
         material = 2;
     } else {
         srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0xfa6,
                      "BlockedForSpecialReason: Unknown target type");
-        return 0;
+        return false;
     }
     if (g_settings.verbose_combat_messages != 0) {
         ShowNoticef(palette, gppStringList[0x213]);
     }
     PlayCombatSound(GetMaterialImpactSound(weapon_class, material), 1, true, -1);
-    return 1;
+    return true;
 }
 
 /* The most a single attack may take off the current target: a fifth of its
@@ -1663,11 +1663,11 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     wchar_t location_name[20];
     char verbose = g_settings.verbose_combat_messages;
     bool swing_missed = false;
-    bool deflected = 0;
-    bool guaranteed_hit = 0;
-    bool guaranteed_penetration = 0;
-    bool fumbled = 0;
-    bool repicked = 0;
+    bool deflected = false;
+    bool guaranteed_hit = false;
+    bool guaranteed_penetration = false;
+    bool fumbled = false;
+    bool repicked = false;
     unsigned int queued_fatigue = 1;
     unsigned int hit_location = 0;
     unsigned int damage = 0;
@@ -1707,8 +1707,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             }
             g_combat_state->TargetHit = ChooseCombatFumbleTarget(fumble_list);
             AnnounceAccidentalStrike(&source, &g_combat_state->TargetHit);
-            guaranteed_hit = 1;
-            guaranteed_penetration = 0;
+            guaranteed_hit = true;
+            guaranteed_penetration = false;
             swing_missed = false;
             roll = Random(100) + 1;
             g_combat_state->unaware = 0;
@@ -1728,18 +1728,18 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         }
         if (g_combat_state->missile_hit_result == 1) {
             swing_missed = false;
-            guaranteed_hit = 1;
-            guaranteed_penetration = 0;
+            guaranteed_hit = true;
+            guaranteed_penetration = false;
             roll = Random(100) + 1;
         } else if (g_combat_state->missile_hit_result == 2) {
             swing_missed = false;
-            deflected = 1;
+            deflected = true;
         } else {
             swing_missed = true;
         }
     }
     if (verbose == 0) {
-        report->deferred = 1;
+        report->deferred = true;
     }
     if (swing_missed) {
         if (g_settings.verbose_combat_messages != 0) {
@@ -1977,7 +1977,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 monster_info->action_kind != W8_MONSTER_ACTION_ATTACK) {
                 combat->uiSwingsRemaining = 0;
             } else {
-                repicked = 1;
+                repicked = true;
                 if (memcmp(&repick_target, &monster_info->Target, sizeof(W8CombatSlot)) != 0) {
                     ReportMonsterAttackResult(monster_info, report);
                     if (fumbled && g_combat_state->attack_report.deferred) {
@@ -2195,15 +2195,15 @@ bool CharacterNoticesAttacker(int party_slot)
         g_status.buffers.Char[party_slot].stamina == 0 ||
         g_status.buffers.Char[party_slot].highest_condition >= W8_CONDITION_WEBBED ||
         g_status.buffers.Char[party_slot].uiCondition[W8_CONDITION_BLIND] != 0) {
-        return 0;
+        return false;
     }
     if (TryCharacterAction(party_slot, W8_ACTION_DEFEND, true) == 0 &&
         TryCharacterAction(party_slot, W8_ACTION_PROTECT, true) == 0) {
-        return 0;
+        return false;
     }
     if (row->spot_attempts == 0) {
         row->spot_attempts = 1;
-        return 1;
+        return true;
     }
     int senses = g_status.buffers.Char[party_slot].attributes[W8_ATTRIBUTE_SENSES].effective -
                  row->spot_attempts * 0x19;
@@ -3368,7 +3368,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
                                      W8RangeCategory range_category, int accuracy)
 {
     unsigned int target_flag;
-    bool blind = 0;
+    bool blind = false;
     bool primary;
     bool secondary;
     unsigned char position_ok;
@@ -3903,12 +3903,12 @@ int ResolveCharacterAttack(int party_slot)
     W8SpellEffectDefinition effect;
     wchar_t location_name[20];
     char verbose = g_settings.verbose_combat_messages;
-    bool special_item = 0;
-    bool staged_miss = 0;
+    bool special_item = false;
+    bool staged_miss = false;
     bool swing_missed = false;
-    bool guaranteed_hit = 0;
-    bool guaranteed_penetration = 0;
-    bool fumbled = 0;
+    bool guaranteed_hit = false;
+    bool guaranteed_penetration = false;
+    bool fumbled = false;
     unsigned int outcome = 1;
     unsigned int queued_fatigue = 1;
     unsigned int hit_location = 0;
@@ -3922,7 +3922,7 @@ int ResolveCharacterAttack(int party_slot)
 
     SetTargetSourceToCharacter(party_slot, &source);
     if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == 0x272) {
-        special_item = 1;
+        special_item = true;
         if (g_combat_state->missile_hit_result == 2) {
             if (verbose == 0) {
                 report->missed = true;
@@ -3984,8 +3984,8 @@ int ResolveCharacterAttack(int party_slot)
                 }
                 g_combat_state->TargetHit = ChooseCombatFumbleTarget(fumble_list);
                 AnnounceAccidentalStrike(&source, &g_combat_state->TargetHit);
-                guaranteed_hit = 1;
-                guaranteed_penetration = 0;
+                guaranteed_hit = true;
+                guaranteed_penetration = false;
                 swing_missed = false;
                 roll = Random(100) + 1;
                 g_combat_state->unaware = 0;
@@ -3998,26 +3998,26 @@ int ResolveCharacterAttack(int party_slot)
             }
         } else if (g_combat_state->missile_hit_result == 1) {
             swing_missed = false;
-            guaranteed_hit = 1;
-            guaranteed_penetration = 0;
+            guaranteed_hit = true;
+            guaranteed_penetration = false;
             if (CharacterHasTrait(character, W8_TRAIT_THROWN_CRITICALS) &&
                 character->Hand[hand].combat_skill == W8_SKILL_RANGED_COMBAT &&
                 character->Hand[hand].weapon_skill == W8_SKILL_THROWING_SLING &&
                 g_item_records[character->EquippedItem[row->current_equip_slot].iItemNo]
                         .unidentified_name_index != 0xd) {
-                guaranteed_penetration = 1;
+                guaranteed_penetration = true;
             }
             roll = Random(100) + 1;
         } else {
             if (g_combat_state->missile_hit_result == 2) {
                 swing_missed = false;
-                staged_miss = 1;
+                staged_miss = true;
             } else {
                 swing_missed = true;
             }
         }
         if (verbose == 0) {
-            report->deferred = 1;
+            report->deferred = true;
         }
         if (swing_missed) {
             if (g_settings.verbose_combat_messages != 0) {

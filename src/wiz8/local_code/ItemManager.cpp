@@ -78,7 +78,7 @@ extern const double g_drop_item_vertical_scale = -2500.0;
 /* 0x0064A1CD: when set, skip activating world items that already carry flag
    bit 0. */
 // GLOBAL: WIZ8 0x0064a1cd
-bool g_hide_invisible_items = 1;
+bool g_hide_invisible_items = true;
 
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
@@ -699,7 +699,7 @@ void ActivateItem(W8WorldItem* item)
     static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags |= item->entity_flags;
     item->p3D->AttachMesh(GetWorld());
     AddItemToWorld(GetWorld(), item->p3D);
-    item->fActive = 1;
+    item->fActive = true;
     ++gXStatus.item_manager_pending;
 
     node = srCore.getRegistry()->getClassNode(0x1000);
@@ -752,7 +752,7 @@ void DeactivateWorldItem(W8WorldItem* item)
     RemoveItemFromWorld(GetWorld(), item->p3D);
     delete item->p3D;
     item->p3D = 0;
-    item->fActive = 0;
+    item->fActive = false;
     --gXStatus.item_manager_pending;
 }
 
@@ -1072,10 +1072,10 @@ bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from, float 
         lower += position;
         upper += position;
         if (ShowTargetMarker(&eye, &lower, &upper)) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* plsItemList index that last satisfied AnyWorldItemVisible. */
@@ -1112,14 +1112,14 @@ bool AnyWorldItemVisible(void)
     int index;
 
     if (g_world == 0 || g_world->camera == 0) {
-        return 0;
+        return false;
     }
     GetCameraPosition(&camera);
     count = PLLength(gXStatus.plsItemList);
     if (0 <= g_last_visible_world_item && g_last_visible_world_item < count) {
         W8WorldItem* item = GetWorldItemListEntry(g_last_visible_world_item);
         if (IsWorldItemMarkerVisible(item, camera)) {
-            return 1;
+            return true;
         }
     }
     for (index = 0; index < count; ++index) {
@@ -1127,10 +1127,10 @@ bool AnyWorldItemVisible(void)
 
         if (IsWorldItemMarkerVisible(item, camera)) {
             g_last_visible_world_item = index;
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Advance one falling world item (flag bit 1) toward the ground for this
@@ -1257,7 +1257,7 @@ W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* posi
     memset(result, 0, sizeof(W8WorldItem));
     EmptyItemRecord(&result->item, 0, true);
     result->runtime_id = g_status.next_world_item_id++;
-    result->fActive = 0;
+    result->fActive = false;
     result->p3D = 0;
     result->position = *position;
     result->sector_id = -1;

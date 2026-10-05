@@ -29,7 +29,7 @@ int g_music_playlist_track_count;
 // GLOBAL: WIZ8 0x0060AAE4
 static unsigned char g_music_fade = 1;
 // GLOBAL: WIZ8 0x0060AAE5
-static bool g_music_force_next = 1;
+static bool g_music_force_next = true;
 // GLOBAL: WIZ8 0x0060AAE8
 int g_music_pause_min_seconds = 20;
 // GLOBAL: WIZ8 0x0060AAEC
@@ -167,7 +167,7 @@ void ServiceMusicPlaylist(void)
         }
 
         if (selected < 0) {
-            g_music_force_next = 0;
+            g_music_force_next = false;
             return;
         }
 
@@ -182,7 +182,7 @@ void ServiceMusicPlaylist(void)
             ++failures;
         }
         if (failures > 4 || g_music_sample_handle != -1) {
-            g_music_force_next = 0;
+            g_music_force_next = false;
             return;
         }
     }
@@ -261,7 +261,7 @@ unsigned char StartMusicResource(const char* resource, int fade, unsigned char r
     if (g_music_playlist_track_count != 0) {
         g_music_playlist->setName(resource);
         g_music_playlist_active = true;
-        g_music_force_next = 1;
+        g_music_force_next = true;
     }
     return 1;
 }

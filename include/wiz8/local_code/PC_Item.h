@@ -168,13 +168,6 @@ bool AnyPartyMemberCanUseItem(int item_id);
 
 extern unsigned char g_byte;
 
-enum W8ItemOrigin {
-    W8_ITEM_ORIGIN_BACKPACK = 0,
-    W8_ITEM_ORIGIN_EQUIPPED = 1,
-    W8_ITEM_ORIGIN_PARTY_POOL = 2,
-    W8_ITEM_ORIGIN_COUNT = 3
-};
-
 void BindCharacterItems(int party_slot, int arg_2); /* 0x0051D2C0 */
 /* Whether an item is bound to whoever is wearing it, which is what stops it
    being taken off or swapped away. */

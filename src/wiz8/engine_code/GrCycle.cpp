@@ -290,11 +290,11 @@ bool LoadGrCycle(const W8GrCycleLoadContext* context, const char* mon_name, W8Gr
     info.hFile = handle;
     info.bitmap_folder = bitmap_path;
     info.mesh_filename = mon_path;
-    success = 1;
+    success = true;
 
     if (FileRead(handle, &version, 1, 0) == 0 || version != 1 ||
         ReadGrCycleData(&info, cycle, cycle_index, value, object_type) == 0) {
-        success = 0;
+        success = false;
     }
 
     FileClose(handle);
@@ -417,10 +417,10 @@ W8GrCycle::W8GrCycle()
     m_fDeleteLights = false;
     last_subcycle = 0;
     m_plsParticles = 0;
-    wrapped = 0;
+    wrapped = false;
     enabled = true;
     mirror_x = 0;
-    aim_set = 0;
+    aim_set = false;
     m_ground_shadow = 0;
     frame_fraction = 0;
     scale = 1.0f;
@@ -446,10 +446,10 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     m_fDeleteLights = other.m_fDeleteLights;
     last_subcycle = other.last_subcycle;
     m_plsParticles = 0;
-    wrapped = 0;
+    wrapped = false;
     enabled = true;
     mirror_x = other.mirror_x;
-    aim_set = 0;
+    aim_set = false;
     scale = other.scale;
     m_ground_shadow = 0;
     frame_fraction = 0;
@@ -614,7 +614,7 @@ void W8GrCycle::TickAnimation(float scale)
                 srVector3T<float> position;
 
                 representation->timer += static_cast<int>(frames * g_float_005ebc64 / rate);
-                wrapped = 0;
+                wrapped = false;
                 position = GetPosition();
                 do {
                     --frames;
@@ -804,7 +804,7 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
             representation->frame_direction = W8_ANIMATION_REVERSE;
         } else if (representation->frame_method == W8_ANIMATION_WRAP) {
             representation->subcycle = representation->first_frame;
-            wrapped = 1;
+            wrapped = true;
         }
     } else if (representation->frame_direction == W8_ANIMATION_REVERSE) {
         frame = representation->subcycle;
@@ -890,9 +890,9 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             psrMesh->highlight_colour = pRep->highlight_colour;
             if (pRep->apply_instance_scale) {
                 if (pRep->instance_scale == g_float_one) {
-                    psrMesh->diffuse_scale_enabled = 0;
+                    psrMesh->diffuse_scale_enabled = false;
                 } else {
-                    psrMesh->diffuse_scale_enabled = 1;
+                    psrMesh->diffuse_scale_enabled = true;
                     psrMesh->diffuse_scale = pRep->instance_scale;
                 }
             }
@@ -924,9 +924,9 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         psrMesh->highlight_colour = pRep->highlight_colour;
         if (pRep->apply_instance_scale) {
             if (pRep->instance_scale == g_float_one) {
-                psrMesh->diffuse_scale_enabled = 0;
+                psrMesh->diffuse_scale_enabled = false;
             } else {
-                psrMesh->diffuse_scale_enabled = 1;
+                psrMesh->diffuse_scale_enabled = true;
                 psrMesh->diffuse_scale = pRep->instance_scale;
             }
         }
@@ -1406,7 +1406,7 @@ bool W8GrCycle::IsSoleRegisteredCycleForName() const
             return cycles->GetCount() == 1;
         }
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x004a87a0

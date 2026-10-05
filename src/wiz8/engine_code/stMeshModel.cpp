@@ -723,7 +723,7 @@ void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* exclu
     }
     automap_polygon_count = 0;
     automap_polygons = new unsigned long[polygon_count];
-    automap_filter_active = 1;
+    automap_filter_active = true;
     srPtr<srTextureIFace>* texture = getPolyTexture(0, 0, 0);
     if (texture) {
         for (unsigned int polygon = 0; polygon < static_cast<unsigned int>(polygon_count);
@@ -803,7 +803,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
     unsigned long* fresh = new unsigned long[polygon_count];
     srPtr<srTextureIFace>* textures = 0;
     if (index < 0) {
-        automap_filter_active = 1;
+        automap_filter_active = true;
         textures = getPolyTexture(0, 0, 0);
     } else {
         skin_blanking_checked->SetAt(index, 1);
@@ -1425,7 +1425,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
     }
 
     srVector3T<float>* l = 0;
-    bool decompressed = 0;
+    bool decompressed = false;
     if (m_pVertexLoc != 0) {
         l = m_pVertexLoc[frame];
     }
@@ -1435,7 +1435,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
             srAssertFail("l", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x4ca, 0);
         }
         DecompressFrame(frame, W8_MESH_FRAME_LOCATIONS, l);
-        decompressed = 1;
+        decompressed = true;
     }
 
     for (int poly = 0; poly < polygon_count; ++poly) {
@@ -1512,7 +1512,7 @@ srVector3T<float>* stMeshModel::GetVertexLights(bool initialize, int table)
             lights.data[index] = zero;
         }
         if (vertex_sunlight.data != 0) {
-            vertex_lighting_ready = 1;
+            vertex_lighting_ready = true;
         }
     }
     return lights.data;
@@ -1526,7 +1526,7 @@ float* stMeshModel::GetVertexSunlight(bool initialize)
         for (unsigned int index = 0; index < vertex_sunlight.capacity; ++index) {
             vertex_sunlight.data[index] = 1.0f;
         }
-        vertex_lighting_ready = 1;
+        vertex_lighting_ready = true;
     }
     return vertex_sunlight.data;
 }

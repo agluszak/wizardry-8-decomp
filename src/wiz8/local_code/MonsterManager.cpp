@@ -106,7 +106,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->monster_species = group->monster_id;
     monster_info->ubDisposition = group->ubDisposition;
     monster_info->scale = -1.0f;
-    monster_info->fActive = 0;
+    monster_info->fActive = false;
     monster_info->p3D = 0;
     monster_info->fInCombat = false;
     monster_info->pCombat = 0;
@@ -190,7 +190,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
             }
             MonsterSetCycleSubCycle(monster_info->p3D, 0);
             MonsterSetAnimating(monster_info->p3D, false);
-            monster_info->p3D->active = 0;
+            monster_info->p3D->active = false;
             monster_info->p3D->inactive = 1;
         } else {
             MonsterSetCycle(monster_info->p3D, 1);
@@ -210,7 +210,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
             static_cast<unsigned int>(record->effective_level) * 0x10000U +
             monster_info->location_id;
         MonsterSetLocationId(monster_info->p3D, monster_info->location_id);
-        monster_info->p3D->pending_finalize = 0;
+        monster_info->p3D->pending_finalize = false;
 
         registry_after = GetUsedPageFileBytes();
         monster_info->p3D->registry_weight = registry_after - registry_before;
@@ -228,7 +228,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     UpdateCycleRepresentation(monster_info->p3D, GetWorld());
     g_octree->VisitPointCopy(static_cast<unsigned short>(monster_info->location_id),
                              &monster_info->position);
-    monster_info->fActive = 1;
+    monster_info->fActive = true;
     ++gXStatus.active_monster_count;
     if (monster_info->p3D != 0) {
         int damage_stage_count = monster_info->p3D->GetDamageStageCount();
@@ -708,7 +708,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
             }
             ReleaseMonsterConditionBindings(monster_info);
             if (forced_cleanup == 0) {
-                monster_info->death_processed = 1;
+                monster_info->death_processed = true;
                 MonsterStartsDying(monster_info, 1);
             }
         }
@@ -906,7 +906,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     }
     MonsterSetCycleSubCycle(monster_info->p3D, 0);
     MonsterSetAnimating(monster_info->p3D, true);
-    monster_info->p3D->active = 1;
+    monster_info->p3D->active = true;
     monster_info->p3D->inactive = 0;
 }
 
@@ -1193,7 +1193,7 @@ bool RemoveMonster(unsigned int monster_list_index, bool destroy_monster)
     if (destroy_monster) {
         DestroyMonsterListEntry(monster_list_index);
     }
-    return 1;
+    return true;
 }
 
 /* Retires one entry from the live world: it parks the entry at the sentinel
@@ -1218,13 +1218,13 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->highest_condition = W8_CONDITION_DEAD;
         monster_info->hp_current = 0;
         monster_info->stamina = 0;
-        monster_info->p3D->active = 0;
+        monster_info->p3D->active = false;
         monster_info->p3D->flags = 0x200000;
         ClearMonsterSpellIcons(monster_info->p3D);
         ReleaseMonToMonVisibilityList(monster_info);
         MonsterGetLocalLocation(monster_info->p3D, &position);
         monster_info->position = position;
-        monster_info->fActive = 0;
+        monster_info->fActive = false;
         --gXStatus.active_monster_count;
         if (gXStatus.fCombatMode) {
             RefreshAllSight();
@@ -1337,7 +1337,7 @@ void TogglePartyCombatStance(void)
         g_settings.continuous_combat = 0;
         if (gXStatus.fCombatMode) {
             g_combat_state->round_active = (g_combat_state->execution_active == 0);
-            g_combat_state->combat_ready = 1;
+            g_combat_state->combat_ready = true;
         }
         if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
             return;
@@ -1346,8 +1346,8 @@ void TogglePartyCombatStance(void)
     } else {
         g_settings.continuous_combat = 1;
         if (gXStatus.fCombatMode && g_combat_state->combat_ready) {
-            g_combat_state->round_active = 1;
-            g_combat_state->combat_ready = 0;
+            g_combat_state->round_active = true;
+            g_combat_state->combat_ready = false;
         }
         if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
             return;
@@ -1501,7 +1501,7 @@ void ProcessMonsterManagerFrame(void)
                 TryStartMonsterCycle2(monster_info, monster, query_state);
                 if (MonsterQuery(monster, 7) != 0) {
                     if (gXStatus.fCombatMode && query_state == 0x12) {
-                        monster_info->pCombat->special_ready = 1;
+                        monster_info->pCombat->special_ready = true;
                     }
                     switch (query_state) {
                     case 1:
@@ -1627,7 +1627,7 @@ unsigned int GetBestPartySkillLevel(W8Skill skill_index, int* party_slot)
 // FUNCTION: WIZ8 0x004e52c0
 void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
 {
-    bool suppress_exact_health = 0;
+    bool suppress_exact_health = false;
     unsigned int health_knowledge;
 
     if (monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
@@ -1638,7 +1638,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         if ((record->flags & W8_MONSTER_FLAG_NPC) != 0) {
             npc = GetNpcStateByKind(record->npc_kind);
             if (npc != 0 && npc->record->has_group != 0) {
-                suppress_exact_health = 1;
+                suppress_exact_health = true;
             }
         }
     }
@@ -1727,7 +1727,7 @@ void DetectMonsterGroups(void)
             }
             if (best_slot != -1) {
                 PostCharacterNotice(best_slot, gppStringList[0x1ca], GetMonsterGroupName(group));
-                group->alternate_name = 1;
+                group->alternate_name = true;
                 bool vowel;
                 switch (towupper(*GetMonsterGroupName(group))) {
                 case L'A':

@@ -166,7 +166,7 @@ unsigned char OpenUseItemSelectView(int slot)
     W8TextControl** control;
     W8MainUiMode mode;
 
-    g_use_item_commit_active = 0;
+    g_use_item_commit_active = false;
     UpdateScreenOverlays(0);
     gXStatus.fItemSelectMode = true;
     if (g_level_block->combat_end_notification != -1) {
@@ -185,7 +185,7 @@ unsigned char OpenUseItemSelectView(int slot)
     RegionSetEnable(0x1a);
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
-    g_level_block->text_box_visible = 0;
+    g_level_block->text_box_visible = false;
     CreateUseItemSelectControls();
     g_use_item_select_mode = -1;
     g_use_item_select_flags = 0;
@@ -227,7 +227,7 @@ void CloseUseItemSelectView(void)
         g_level_block->action_panel_visible = 0;
         SetTargetingMode(W8_TARGET_NEED_NONE);
         ResetEditorStatusLine(-1);
-        g_level_block->text_box_visible = 1;
+        g_level_block->text_box_visible = true;
         SelectTextBox(gXStatus.fCombatMode);
         for (control = g_use_item_select_scroll_buttons;
              control < g_use_item_select_scroll_buttons + 3; control++) {
@@ -252,9 +252,9 @@ void CloseUseItemSelectView(void)
         RequestRedrawCombatBar();
         RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
         ResumeMainGameWorld();
-        gXStatus.item_drag_active = 0;
+        gXStatus.item_drag_active = false;
         gXStatus.dragged_item = 0;
-        gXStatus.dragged_item_origin = 0xff;
+        gXStatus.dragged_item_origin = W8_ITEM_ORIGIN_NONE;
         gXStatus.dragged_character_slot = -1;
         if (gXStatus.fLockInteract && !IsScreenTransitionPending()) {
             OpenLockInteraction(0);
@@ -287,7 +287,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
     g_use_item_owner_index = party_slot;
     if (gXStatus.item_drag_active) {
         if (!g_status.item_in_cursor) {
-            if (gXStatus.dragged_item_origin == 2) {
+            if (gXStatus.dragged_item_origin == W8_ITEM_ORIGIN_PARTY_POOL) {
                 if (gXStatus.fCombatMode) {
                     srAssertFail("!gXStatus.fCombatMode", MGSUSEITEMSELECT_CPP, 0x1f0, 0);
                 }
@@ -313,7 +313,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
             srAssertFail("giReuseItemLineNumber != -1", MGSUSEITEMSELECT_CPP, 0x1fe, 0);
         }
         ScrollTextBoxTo(g_selected_use_item_line);
-        gXStatus.item_drag_active = 0;
+        gXStatus.item_drag_active = false;
         return;
     }
     if (CanPartySlotUseRecordedItem(party_slot)) {
@@ -321,7 +321,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
         item = FindCharacterItemAt(party_slot, g_status.buffers.XChar[party_slot].item_origin,
                                    g_status.buffers.XChar[party_slot].item_slot);
         if (CanUseItemForAction(g_use_item_owner_index, item)) {
-            if (g_status.buffers.XChar[party_slot].item_origin == 2) {
+            if (g_status.buffers.XChar[party_slot].item_origin == W8_ITEM_ORIGIN_PARTY_POOL) {
                 if (gXStatus.fCombatMode) {
                     srAssertFail("!gXStatus.fCombatMode", MGSUSEITEMSELECT_CPP, 0x216, 0);
                 }
@@ -501,9 +501,9 @@ void CommitSelectedItemUse(void)
         IsItemTargetOfNeededKind(g_status.selected_character, g_use_item_selected)) {
         character = &g_status.buffers.Char[g_status.selected_character];
         if (g_use_item_selected != 0) {
-            g_use_item_commit_active = 1;
+            g_use_item_commit_active = true;
             CommitSelectedSpellTarget();
-            g_use_item_commit_active = 0;
+            g_use_item_commit_active = false;
             AimItemUseAtCurrentTarget(character, g_use_item_selected);
             if (g_use_item_selected != 0 && g_use_item_selected->iItemNo != -1 &&
                 GetItemSpell(g_use_item_selected) == 0x17) {

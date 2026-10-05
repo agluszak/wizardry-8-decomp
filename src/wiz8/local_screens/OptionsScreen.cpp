@@ -2053,7 +2053,7 @@ unsigned char OptionsScreenEnter()
         selected = 0;
     }
     g_options_screen->SelectPanel(selected, true);
-    g_options_first_frame = 1;
+    g_options_first_frame = true;
     return 1;
 }
 
@@ -2116,7 +2116,7 @@ void OptionsScreenFrame()
         SetRendererAutoFlipEnabled(false);
         RenderFrame();
         SetRendererAutoFlipEnabled(true);
-        g_options_first_frame = 0;
+        g_options_first_frame = false;
     }
     RenderFrame();
 }

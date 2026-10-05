@@ -133,7 +133,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_realm = g_spell_records[spell_id].realm;
     saved_spell_point_cost = g_spell_records[spell_id].spell_point_cost;
 
-    gXStatus.fCombatMode = 1;
+    gXStatus.fCombatMode = true;
     g_selected_party_slot = 0;
     g_status.buffers.XChar[0].spell_id = spell_id;
     g_status.buffers.XChar[0].spell_detail.spell.power_level = 1;
@@ -209,8 +209,8 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_cursor_grace = g_level_block->cursor_grace;
     saved_pending0 = g_level_block->portrait_refresh_pending[0];
 
-    gXStatus.monster_manager_entries[0].keyboard_menu_open = 1;
-    g_level_block->keyboard_menu_open = 1;
+    gXStatus.monster_manager_entries[0].keyboard_menu_open = true;
+    g_level_block->keyboard_menu_open = true;
     g_level_block->combat_slot = 3;
     g_level_block->cursor_grace = 1;
     g_level_block->portrait_refresh_pending[0] = 1;
@@ -239,7 +239,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_pick_changed = g_level_block->pick_changed;
     saved_clock_214 = g_level_block->clock;
 
-    g_status.buffers.XChar[1].fOccupied = 1;
+    g_status.buffers.XChar[1].fOccupied = true;
     g_status.buffers.Char[1].highest_condition = W8_CONDITION_NONE;
     g_status.selected_character = 0;
     g_settings.camera_rotation_mode = 1;
@@ -249,7 +249,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_level_block->portrait_flash = 0;
     g_level_block->refresh_combat_panel = 0;
     g_level_block->refresh_party_panel = 0;
-    g_level_block->pick_changed = 0;
+    g_level_block->pick_changed = false;
 
     SelectPartyCharacter(1);
     result->select_moved_selection = g_status.selected_character == 1;
@@ -293,7 +293,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_trap_interact = gXStatus.fTrapInteract;
 
     g_status.buffers.Char[0].backpack[0].iItemNo = item_id;
-    g_status.buffers.Char[0].backpack[0].identified = 1;
+    g_status.buffers.Char[0].backpack[0].identified = true;
     g_status.buffers.Char[0].backpack[0].uses_or_charges = 1;
     g_status.buffers.Char[0].iProfession = static_cast<W8Profession>(0);
     g_status.buffers.Char[0].gender = static_cast<W8Gender>(0);
@@ -316,9 +316,9 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_item_records[item_id].spell_id = spell_id;
     g_item_records[item_id].quantity_kind = 1;
     g_spell_records[spell_id].target_type = W8_TARGET_TYPE_CASTER;
-    gXStatus.fCampMode = 0;
-    gXStatus.fLockInteract = 0;
-    gXStatus.fTrapInteract = 0;
+    gXStatus.fCampMode = false;
+    gXStatus.fLockInteract = false;
+    gXStatus.fTrapInteract = false;
 
     result->item_recorded_usable =
         GetSubMenuEntryState(W8_SUBMENU_ITEMS, 2, 0) == W8_SUBMENU_ENTRY_USABLE;

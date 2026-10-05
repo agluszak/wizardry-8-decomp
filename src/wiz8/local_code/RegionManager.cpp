@@ -391,7 +391,7 @@ W8Region g_regions[1500] = {
     {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 7, false, 0, -1, 0},
     {0x00000001, 106, 96, 302, 109, CampOpenCharacterScreenRegionEvent, 0, true, 0, 2362, 0},
 
-    {0x00000001, 106, 124, 302, 133, CampNameEditRegionEvent, 0, true, 0, 2363, 0},
+    {0x00000001, 106, 124, 302, 133, CampProfessionHistoryRegionEvent, 0, true, 0, 2363, 0},
     {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 0, true, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 1, true, 0, -1, 0},
 
@@ -516,13 +516,13 @@ void SetRegionHelpForceEnabled(bool enabled)
 // FUNCTION: WIZ8 0x004F27D0
 void EnableRegionHelpFlag(W8Region* region)
 {
-    region->help_enabled = 1;
+    region->help_enabled = true;
 }
 
 // FUNCTION: WIZ8 0x004F27E0
 void DisableRegionHelpFlag(W8Region* region)
 {
-    region->help_enabled = 0;
+    region->help_enabled = false;
 }
 
 // FUNCTION: WIZ8 0x004f1220
@@ -1173,7 +1173,7 @@ void EnableRegionHelp(unsigned int region_index)
         srAssertFail("uiRegionIndex <= guiRegionCount",
                      "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp", 0x558, 0);
     }
-    g_regions[region_index].help_enabled = 1;
+    g_regions[region_index].help_enabled = true;
 }
 
 // FUNCTION: WIZ8 0x004f2bf0
@@ -1183,7 +1183,7 @@ void DisableRegionHelp(unsigned int region_index)
         srAssertFail("uiRegionIndex <= guiRegionCount",
                      "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp", 0x55f, 0);
     }
-    g_regions[region_index].help_enabled = 0;
+    g_regions[region_index].help_enabled = false;
 }
 
 /* Drops every region back to its resting state. The three tracked regions are

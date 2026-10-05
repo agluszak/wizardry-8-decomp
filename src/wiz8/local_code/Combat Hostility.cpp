@@ -353,11 +353,11 @@ bool MonsterCanAimSpell(int spell_id)
     if (spell_id != 3 && spell_id != 0x29) {
         W8SpellTargetType target_type = GetSpellTargetType(spell_id, false);
         if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
-            return 1;
+            return true;
         }
-        return 0;
+        return false;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00547510
@@ -399,7 +399,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, boo
         return;
     }
     group->ubDisposition = static_cast<unsigned char>(hostility);
-    group->forced_neutral = 0;
+    group->forced_neutral = false;
     if (MonsterGroupHasVisibleThreat(group)) {
         ShowNoticef(
             9, L"%s %s %s!", GetMonsterGroupName(group),
@@ -487,17 +487,17 @@ bool CanPartySlotTurnUndead(int party_slot)
 {
     if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_TURN_UNDEAD) ||
         g_combat_state == 0 || g_combat_state->characters[party_slot].turn_undead_used) {
-        return 0;
+        return false;
     }
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->fActive && monster->fInCombat &&
             monster->ubDisposition == W8_DISPOSITION_HOSTILE && monster->hp_current != 0 &&
             GetMonsterDataForInfo(monster)->kind == 0x14) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00547cb0
@@ -555,16 +555,16 @@ bool CanPartySlotPray(int party_slot)
 {
     if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], W8_TRAIT_PRAY) ||
         g_combat_state == 0 || g_combat_state->characters[party_slot].pray_used) {
-        return 0;
+        return false;
     }
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->fActive && monster->fInCombat &&
             monster->ubDisposition == W8_DISPOSITION_HOSTILE && monster->hp_current != 0) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 // GLOBAL: WIZ8 0x0061DD38

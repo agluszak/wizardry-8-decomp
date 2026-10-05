@@ -76,9 +76,9 @@ bool MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind)
     case 0x1a:
     case 0x1c:
     case 0x1d:
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 static unsigned int RollSpecialAttackSum(unsigned int bound)

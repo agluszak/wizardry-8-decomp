@@ -185,7 +185,7 @@ void W8CharacterStatsValue::Redraw(unsigned char full_redraw)
 void W8CharacterStatsValue::OnRightButtonUp(int event)
 {
     bool enabled = m_enabled;
-    m_enabled = 1;
+    m_enabled = true;
     W8TextControl::OnRightButtonUp(event);
     m_enabled = enabled;
 }
@@ -262,7 +262,7 @@ void W8CharacterStatsRecordControl::OnMouseLeave(int event)
 void W8CharacterStatsRecordControl::OnRightButtonUp(int event)
 {
     bool enabled = m_enabled;
-    m_enabled = 1;
+    m_enabled = true;
     W8TextControl::OnRightButtonUp(event);
     m_enabled = enabled;
 }
@@ -500,8 +500,8 @@ void W8CharacterStatsPage::Activate()
         m_attribute_controls[index]->SetActive(true);
         m_attribute_controls[index]->SetEnabled(true);
     }
-    m_dirty = 1;
-    m_prepared = 1;
+    m_dirty = true;
+    m_prepared = true;
 }
 
 /* The skills page's Deactivate is the same one-call body; the linker folded
@@ -592,7 +592,7 @@ void W8CharacterStatsPage::Accept()
 {
     RefundAllocatedAttributes(m_character, m_creation_state);
     Invalidate(0);
-    m_dirty = 1;
+    m_dirty = true;
     m_screen->UpdateNavigation(this);
     for (int index = 0; index < m_entries.count; ++index) {
         m_entries.data[index]->UpdateButtons();
@@ -638,7 +638,7 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
 void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 {
     entry->MarkDirty();
-    m_dirty = 1;
+    m_dirty = true;
     AdjustAllocatedAttribute(m_character, m_creation_state, static_cast<W8Attribute>(entry->m_id),
                              delta);
     Invalidate(0);
@@ -672,7 +672,7 @@ void W8CharacterStatsPage::OnRowValueChanged(W8CharacterStatsRow* row, int value
     } else {
         SetCharacterGender(m_character, m_creation_state, static_cast<W8Gender>(value));
     }
-    m_dirty = 1;
+    m_dirty = true;
     m_screen->UpdateNavigation(this);
     Refresh();
 }
@@ -1165,7 +1165,7 @@ void W8CharacterStatsPage::Redraw()
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xe4], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
-        m_prepared = 0;
+        m_prepared = false;
     }
 
     if (m_dirty) {
@@ -1188,7 +1188,7 @@ void W8CharacterStatsPage::Redraw()
                          g_options_detail_font);
         }
         text.RenderToTarget(0, 1, -14);
-        m_dirty = 0;
+        m_dirty = false;
     }
 
     W8CharacterStatsRow* rows[3] = {

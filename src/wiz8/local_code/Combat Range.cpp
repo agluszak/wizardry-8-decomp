@@ -103,7 +103,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
                 for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
                     if (CanHandReachTarget(first, reach_hand) &&
                         CanPartyMemberAimAtMonster(first, reach_hand, monster_info, category, 0)) {
-                        return 1;
+                        return true;
                     }
                 }
             }
@@ -121,7 +121,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
                         continue;
                     }
                     if (static_cast<char>(first) == slot) {
-                        return 1;
+                        return true;
                     }
                     W8ActionKind kind;
                     int action;
@@ -144,11 +144,11 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
                         break;
                     case W8_ACTION_PROTECT:
                         if (!FrontRankScreens(first, slot)) {
-                            return 1;
+                            return true;
                         }
                         continue;
                     case W8_ACTION_BREATHE:
-                        return 1;
+                        return true;
                     default:
                         continue;
                     }
@@ -156,16 +156,16 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
                         continue;
                     }
                     if (range != W8_RANGE_TOUCH) {
-                        return 1;
+                        return true;
                     }
                     if (!FrontRankScreens(first, slot)) {
-                        return 1;
+                        return true;
                     }
                 }
             }
         }
     }
-    return 0;
+    return false;
 }
 
 /* Whether the slot's chosen action reaches the target it was aimed at:
@@ -275,12 +275,12 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     char rows;
 
     if (monster_info->party_threat.sight_state != W8_SIGHT_SEEN) {
-        return 0;
+        return false;
     }
     if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE && !gXStatus.fCombatMode &&
         !gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode) {
         range = W8_RANGE_TOUCH;
-        flag = 1;
+        flag = true;
     } else {
         W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -311,7 +311,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
             break;
         }
         if (range == W8_RANGE_NONE) {
-            return 0;
+            return false;
         }
         ChooseCombatAction(party_slot, context, &action, 0, 0, 0);
         flag = action == W8_ACTION_TURN_UNDEAD ||
@@ -332,7 +332,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
                 QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range, 0,
                                     g_character_event_no_flags, g_character_event_full_volume);
             }
-            return 0;
+            return false;
         }
     }
     if (!monster_info->party_threat.los_flags[flag]) {
@@ -340,7 +340,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_sight_blocked, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
-        return 0;
+        return false;
     }
     if (CalcRangeDistance(static_cast<W8RangeCategory>(range)) <
         monster_info->p3D->GetDistanceToPlayer()) {
@@ -348,9 +348,9 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* The slot-vs-slot reach check the target-list builders share: the slot's
@@ -361,7 +361,7 @@ bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot,
                                 W8TargetingContext context)
 {
     if (static_cast<char>(party_slot) == target_slot) {
-        return 1;
+        return true;
     }
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8ActionKind kind;
@@ -375,13 +375,13 @@ bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot,
         range = GetCharAttackRange(character, hand);
         break;
     case W8_ACTION_BREATHE:
-        return 1;
+        return true;
     case W8_ACTION_PROTECT:
         range = W8_RANGE_TOUCH;
         break;
     case W8_ACTION_CAST_SPELL:
         if (action == 0) {
-            return 0;
+            return false;
         }
         range = g_spell_records[action].range_category;
         break;
@@ -389,18 +389,18 @@ bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot,
         range = GetItemSpellRange(detail->item_use.item);
         break;
     default:
-        return 0;
+        return false;
     }
     if (range == W8_RANGE_NONE) {
-        return 0;
+        return false;
     }
     if (range != W8_RANGE_TOUCH) {
-        return 1;
+        return true;
     }
     if (FrontRankScreens(party_slot, target_slot)) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* Whether `party_slot`'s action can reach any member of `group_id` at all.
@@ -530,7 +530,7 @@ bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCatego
     if (range_category >= W8_RANGE_LONG && range_category <= W8_RANGE_EXTREME) {
         return MonsterHasProjectileOrigin(monster);
     }
-    return 0;
+    return false;
 }
 
 /* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
@@ -571,7 +571,7 @@ bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack
             continue;
         }
         if (MonsterAttackReachesCharacter(monster_info, record, attack, party_slot)) {
-            return 1;
+            return true;
         }
     }
 
@@ -583,11 +583,11 @@ bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack
             other->highest_condition < W8_CONDITION_DEAD &&
             MonsterHostility(monster_info, other) == disposition_needed &&
             MonsterAttackReachesMonster(monster_info, record, attack, other)) {
-            return 1;
+            return true;
         }
         count = PLLength(gXStatus.plsMonsterList);
     }
-    return 0;
+    return false;
 }
 
 static int GetMonsterActionSightIndex(W8MonsterInfo* monster_info, unsigned int attack)
@@ -640,14 +640,14 @@ bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord*
 {
     W8RangeCategory range = GetMonsterPartyTargetRange(monster_info, record, attack, party_slot);
     if (range == W8_RANGE_NONE) {
-        return 0;
+        return false;
     }
 
     float distance = CalcRangeDistance(range);
     if (monster_info->p3D->GetDistanceToPlayer() <= distance) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Whether the monster's attack `attack` reaches another monster. Untargetable
@@ -662,34 +662,34 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
     W8RangeCategory range;
 
     if (record->untargetable != 0) {
-        return 0;
+        return false;
     }
     if (target == monster_info) {
-        return 1;
+        return true;
     }
     visibility = FindMonToMonVisibility(monster_info, target);
     if (visibility == 0) {
-        return 0;
+        return false;
     }
     if (visibility->sight_state != W8_SIGHT_SEEN) {
-        return 0;
+        return false;
     }
 
     sight_index = GetMonsterActionSightIndex(monster_info, attack);
     if (!visibility->los_flags[sight_index]) {
-        return 0;
+        return false;
     }
 
     range = GetMonsterActionRangeCategory(monster_info, record, attack);
     if (range == W8_RANGE_NONE) {
-        return 0;
+        return false;
     }
 
     float distance = CalcRangeDistance(range);
     if (monster_info->p3D->GetDistanceToMonster(target->p3D) <= distance) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* The furthest range category among a monster's three attacks. Asking for the
@@ -1145,10 +1145,10 @@ bool MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* re
         int party_slot = target->iChar;
         range = GetMonsterPartyTargetRange(monster_info, record, attack, party_slot);
         if (range == W8_RANGE_NONE) {
-            return 0;
+            return false;
         }
         if (CalcRangeDistance(range) < monster_info->p3D->GetDistanceToPlayer()) {
-            return 0;
+            return false;
         }
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
         unsigned int index =
@@ -1159,10 +1159,10 @@ bool MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* re
         int party_slot = GetRandomCharacter(1, 1, -1, -1);
         range = GetMonsterPartyTargetRange(monster_info, record, attack, party_slot);
         if (range == W8_RANGE_NONE) {
-            return 0;
+            return false;
         }
         if (CalcRangeDistance(range) < monster_info->p3D->GetDistanceToPlayer()) {
-            return 0;
+            return false;
         }
     } else if (target->iType == W8_TARGET_KIND_GROUP) {
         W8TargetSource source;
@@ -1172,7 +1172,7 @@ bool MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* re
         W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
         return IsTargetSourceInRangeOfGroup(&source, group, W8_TARGETING_CONTEXT_CURRENT);
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x0051ad60
@@ -1240,5 +1240,5 @@ bool SourceActionReachesTarget(W8TargetSource* source, W8CombatSlot* target)
         W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
         return MonsterActionReachesTarget(monster_info, record, 0, target);
     }
-    return 1;
+    return true;
 }

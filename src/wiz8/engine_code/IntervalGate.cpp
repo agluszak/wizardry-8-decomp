@@ -31,7 +31,7 @@ W8IntervalGate::W8IntervalGate(float duration, bool raw_time, bool one_shot)
 // FUNCTION: WIZ8 0x0043A530
 void W8IntervalGate::Arm()
 {
-    m_finished = 0;
+    m_finished = false;
     m_start = ReadClock();
     m_end = m_duration + m_start;
 }
@@ -46,7 +46,7 @@ unsigned int W8IntervalGate::PollElapsedIntervals()
                              static_cast<unsigned int>(m_end - m_start);
     if (static_cast<int>(intervals) > 0) {
         if ((m_flags & 2) != 0) {
-            m_finished = 1;
+            m_finished = true;
             return intervals;
         }
         m_start = (intervals - 1) * m_duration + m_end;

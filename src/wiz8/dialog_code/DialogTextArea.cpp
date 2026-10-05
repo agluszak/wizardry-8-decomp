@@ -32,7 +32,7 @@ void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
         (static_cast<unsigned int>(m_first_visible_entry) != index || m_first_visible_line != 0)) {
         m_first_visible_entry = index;
         m_first_visible_line = 0;
-        m_relayout_needed = 1;
+        m_relayout_needed = true;
         m_dirty = true;
     }
 }
@@ -42,7 +42,7 @@ void W8DialogTextArea::Configure(const W8ControlsRect* bounds, int font, unsigne
 {
     m_bounds = *bounds;
     m_layout_initialized = true;
-    m_relayout_needed = 1;
+    m_relayout_needed = true;
     m_behavior_flags = flags;
     m_font = font;
     for (int index = 0; index < m_all_lines.count; ++index) {
@@ -72,9 +72,9 @@ void W8DialogTextArea::Draw(unsigned char force)
             }
             (*m_visible_lines.GetAt(index))->Draw(force || m_dirty);
         }
-        m_relayout_needed = 0;
+        m_relayout_needed = false;
         m_dirty = false;
-        selection_dirty = 0;
+        selection_dirty = false;
     }
 }
 
@@ -95,7 +95,7 @@ void W8DialogTextArea::SetFirstVisibleLine(int requested_line)
                     return;
                 m_first_visible_entry = index;
                 m_first_visible_line = line;
-                m_relayout_needed = 1;
+                m_relayout_needed = true;
                 m_dirty = true;
                 return;
             }
@@ -133,7 +133,7 @@ void W8DialogTextArea::SetEntrySpacing(int lines)
 {
     if (m_layout_initialized) {
         unsigned int font_height = GetFontHeight(m_font);
-        m_relayout_needed = 1;
+        m_relayout_needed = true;
         m_entry_spacing = font_height * lines;
     }
 }
@@ -142,7 +142,7 @@ void W8DialogTextArea::SetEntrySpacing(int lines)
 void W8DialogTextArea::SetLineHeight(unsigned int height)
 {
     m_line_height_override = height;
-    m_relayout_needed = 1;
+    m_relayout_needed = true;
     /* Retail uses the visible count with the owning list, not visible entries. */
     for (int index = 0; index < m_visible_lines.count; ++index) {
         (*m_all_lines.GetAt(index))->SetLineHeight(m_line_height_override);
@@ -155,7 +155,7 @@ unsigned char W8DialogTextArea::SelectEntry(int index)
     if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_selected) {
         (*m_visible_lines.GetAt(index))->SetSelected(true);
         m_selected_visible_entry = index;
-        selection_dirty = 1;
+        selection_dirty = true;
         return 1;
     }
     return 0;
@@ -168,7 +168,7 @@ unsigned char W8DialogTextArea::ClearSelection()
         m_selected_visible_entry = -1;
     } else if (m_selected_visible_entry != -1) {
         (*m_visible_lines.GetAt(m_selected_visible_entry))->SetSelected(false);
-        selection_dirty = 1;
+        selection_dirty = true;
         m_selected_visible_entry = -1;
         return 1;
     }
@@ -248,11 +248,11 @@ unsigned char W8DialogTextArea::HighlightVisibleEntry(int index)
     if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_entry_highlighted) {
         W8DialogTextEntry* entry = *m_visible_lines.GetAt(index);
         if (!entry->m_entry_highlighted) {
-            entry->m_entry_highlighted = 1;
+            entry->m_entry_highlighted = true;
             entry->SetGeometryDirty();
         }
         m_highlighted_entry = index;
-        selection_dirty = 1;
+        selection_dirty = true;
         return 1;
     }
     return 0;
@@ -266,10 +266,10 @@ unsigned char W8DialogTextArea::ClearEntryHighlight()
     } else if (m_highlighted_entry != -1) {
         W8DialogTextEntry* entry = *m_visible_lines.GetAt(m_highlighted_entry);
         if (entry->m_entry_highlighted) {
-            entry->m_entry_highlighted = 0;
+            entry->m_entry_highlighted = false;
             entry->SetGeometryDirty();
         }
-        selection_dirty = 1;
+        selection_dirty = true;
         m_highlighted_entry = -1;
         return 1;
     }
@@ -303,7 +303,7 @@ void W8DialogTextArea::SetEntryMarked(int index, bool state)
         entry->m_marked = state;
         entry->SetGeometryDirty();
     }
-    selection_dirty = 1;
+    selection_dirty = true;
 }
 
 // FUNCTION: WIZ8 0x005d16c0
@@ -325,7 +325,7 @@ int W8DialogTextArea::AddEntry(const wchar_t* prefix, const wchar_t* text,
     if (m_line_height_override != -1)
         entry->SetLineHeight(m_line_height_override);
     int index = m_all_lines.Add(entry);
-    m_relayout_needed = 1;
+    m_relayout_needed = true;
     RebuildVisibleEntries();
     return index;
 }
@@ -345,7 +345,7 @@ void W8DialogTextArea::RemoveEntry(unsigned int index)
             m_all_lines.count != 0) {
             SetFirstVisibleEntry(m_all_lines.count - 1);
         }
-        m_relayout_needed = 1;
+        m_relayout_needed = true;
         m_dirty = true;
         RebuildVisibleEntries();
     }
@@ -389,8 +389,8 @@ void W8DialogTextArea::RebuildVisibleEntries()
 void W8DialogTextArea::SetCategoryFilter(signed char category)
 {
     m_category_filter = category;
-    selection_dirty = 1;
-    m_relayout_needed = 1;
+    selection_dirty = true;
+    m_relayout_needed = true;
     RebuildVisibleEntries();
 }
 
@@ -398,8 +398,8 @@ void W8DialogTextArea::SetCategoryFilter(signed char category)
 void W8DialogTextArea::SetSorted(unsigned char sorted)
 {
     m_sorted = sorted;
-    selection_dirty = 1;
-    m_relayout_needed = 1;
+    selection_dirty = true;
+    m_relayout_needed = true;
     RebuildVisibleEntries();
 }
 
@@ -439,7 +439,7 @@ unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
                 }
                 if (!check_only) {
                     m_dirty = true;
-                    m_relayout_needed = 1;
+                    m_relayout_needed = true;
                 }
                 return 1;
             }
@@ -466,7 +466,7 @@ unsigned char W8DialogTextArea::ScrollUp(unsigned char check_only)
             }
         }
         m_dirty = true;
-        m_relayout_needed = 1;
+        m_relayout_needed = true;
     }
     return 1;
 }
@@ -486,10 +486,10 @@ W8DialogTextArea::W8DialogTextArea()
     m_font = 0;
     m_layout_initialized = false;
     m_dirty = false;
-    selection_dirty = 0;
+    selection_dirty = false;
     m_entry_spacing = 0;
     m_behavior_flags = 0;
-    m_relayout_needed = 0;
+    m_relayout_needed = false;
     m_sorted = 0;
 }
 

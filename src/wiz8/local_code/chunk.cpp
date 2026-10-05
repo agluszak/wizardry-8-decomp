@@ -58,7 +58,7 @@ unsigned char W8Chunk::OpenExistingRiff(char* path, unsigned int flags)
     if (m_hFile == 0) {
         return 0;
     }
-    m_fWriting = 0;
+    m_fWriting = false;
     OpenChunk(0, 0);
     W8ChunkHead* head = m_heads.data[m_heads.count - 1];
     if (head == 0) {
@@ -87,7 +87,7 @@ unsigned char W8Chunk::OpenWrite(char* path)
     if (m_hFile == 0) {
         return 0;
     }
-    m_fWriting = 1;
+    m_fWriting = true;
     OpenChunk(W8_RIFF_CHUNK_ID, 0);
     OpenGroup();
     return 1;
@@ -127,7 +127,7 @@ unsigned char W8Chunk::OpenAppend(char* path)
         } while (remaining != 0);
     }
     m_group_progress.Add(child_count);
-    m_fWriting = 1;
+    m_fWriting = true;
     return 1;
 }
 
@@ -160,7 +160,7 @@ void W8Chunk::Close()
             FileClose(m_hFile);
             m_hFile = 0;
         }
-        m_fWriting = 0;
+        m_fWriting = false;
     }
 }
 

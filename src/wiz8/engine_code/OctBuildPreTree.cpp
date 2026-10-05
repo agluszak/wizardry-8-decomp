@@ -233,8 +233,8 @@ OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
                                  unsigned long path_capacity, short extent_mode)
     : W8OctBuildTree(leaf_size, minimum, maximum, item_limit, extent_mode)
 {
-    mesh_linking = 1;
-    use_owned_nodes = 1;
+    mesh_linking = true;
+    use_owned_nodes = true;
     game_data = 0;
     unknown_138 = 0;
     unknown_13c = 0;
@@ -410,7 +410,7 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive(W8OctSpatialState* working
                                                       unsigned long mode)
 {
     W8OctSpatialState child(working);
-    bool inserted = 0;
+    bool inserted = false;
 
     if (working->m_depth < 0x10) {
         if (working->m_depth < spatial.m_depth) {
@@ -437,7 +437,7 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive(W8OctSpatialState* working
                             }
                             child.m_root = parent->children[octant];
                             if (InsertSurfaceRecursive(&child, polygon, mode) != 0) {
-                                inserted = 1;
+                                inserted = true;
                             }
                         }
                     }
@@ -460,7 +460,7 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive(W8OctSpatialState* working
                 ++gd_surface_count;
             }
             AppendLink(node, polygon, static_cast<short>(mode));
-            inserted = 1;
+            inserted = true;
         }
     }
     return inserted;
@@ -542,10 +542,10 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* arg_spat
                                 overlap_region_map->Remove(&region, &value);
                                 overlap_region_map->Insert(&region, &value);
                             }
-                            changed = 1;
+                            changed = true;
                         }
                         if (UpdateRegionMap(&child, geometry, value, mode) != 0) {
-                            changed = 1;
+                            changed = true;
                         }
                     }
                 }
@@ -562,7 +562,7 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* arg_spat
                 overlap_region_map->Remove(&region, &value);
                 overlap_region_map->Insert(&region, &value);
             }
-            changed = 1;
+            changed = true;
         }
     }
     return changed;
@@ -818,7 +818,7 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
         }
         for (polygon = 1; polygon < geometry->m_polygon_count; ++polygon) {
             AssignPolygonRegion(&geometry->m_polygons[polygon]);
-            geometry->m_polygons[polygon].visited = 0;
+            geometry->m_polygons[polygon].visited = false;
         }
         for (polygon = 1; polygon < geometry->m_polygon_count; ++polygon) {
             W8OctRegionPolygon* poly = &geometry->m_polygons[polygon];
@@ -952,7 +952,7 @@ unsigned short OctBuildPreTree::SplitSharedPolygon(W8OctPreTreeGeometry* geometr
     for (int corner = 0; corner != 3; ++corner) {
         W8OctPreTreeVertex* vertex = polygon->vertices[corner];
         if (!vertex->m_visited) {
-            vertex->m_visited = 1;
+            vertex->m_visited = true;
             int* face = vertex->face_indices;
             for (unsigned int n = vertex->face_count; n != 0; --n) {
                 if (geometry->m_polygons[*face].visited == 0) {
@@ -978,7 +978,7 @@ unsigned short OctBuildPreTree::SplitSharedPolygon(W8OctPreTreeGeometry* geometr
                 }
                 ++face;
             }
-            vertex->m_visited = 0;
+            vertex->m_visited = false;
         }
     }
     for (unsigned short pass = 0; pass < found; ++pass) {

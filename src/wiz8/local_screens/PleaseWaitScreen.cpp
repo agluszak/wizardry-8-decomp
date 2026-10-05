@@ -181,11 +181,11 @@ static bool PleaseWaitScreenEnsureLevelArchive(int level)
                 FormatWideString(L"%s%d", gppStringList[0x6ee], GetLevelCdNumber(level));
             SetDialogPrompt(g_swap_disc_dialog, message, 0, 0);
             EnableCursorScene();
-            return 0;
+            return false;
         }
         ReopenCDLibraries();
     }
-    return 1;
+    return true;
 }
 
 /* Draw the loading screen's backdrop, progress frame and caption. Retail
@@ -232,9 +232,9 @@ void PleaseWaitScreenFrame(void)
             if (!IsLevelCdMissing(g_load_descriptor->parameter)) {
                 g_load_descriptor->waiting = false;
                 ReopenCDLibraries();
-                g_swap_disc_dialog->is_open = 0;
+                g_swap_disc_dialog->is_open = false;
             } else if (!g_swap_disc_dialog->is_open && ++g_swap_disc_dialog_poll_count > 4) {
-                g_swap_disc_dialog->is_open = 1;
+                g_swap_disc_dialog->is_open = true;
                 g_swap_disc_dialog_poll_count = 0;
             }
             g_load_descriptor->entered_tick = GetTickCount();

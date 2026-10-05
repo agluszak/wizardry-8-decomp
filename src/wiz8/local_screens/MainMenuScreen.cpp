@@ -153,7 +153,7 @@ unsigned char MainMenuScreenEnter(void)
 
     ResetVideoFrameState();
     MSYS_Init();
-    g_status.game_started = 0;
+    g_status.game_started = false;
     g_main_menu_has_save_games = SaveGameExists();
     g_main_menu_redraw = true;
     ClearPrimarySurface();

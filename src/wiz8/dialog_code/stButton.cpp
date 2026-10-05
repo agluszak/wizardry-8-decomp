@@ -20,12 +20,12 @@
 // FUNCTION: WIZ8 0x005db4e0
 void W8DialogButton::Draw()
 {
-    if (m_dirty && m_button != -1) {
-        int left = GetButtonX(m_button);
-        int top = GetButtonY(m_button);
-        DrawButton(m_button);
-        InvalidateRegion(left, top, left + GetButtonWidth(m_button),
-                         top + GetButtonHeight(m_button), 0);
+    if (m_dirty && m_button_handle != -1) {
+        int left = GetButtonX(m_button_handle);
+        int top = GetButtonY(m_button_handle);
+        DrawButton(m_button_handle);
+        InvalidateRegion(left, top, left + GetButtonWidth(m_button_handle),
+                         top + GetButtonHeight(m_button_handle), 0);
         m_dirty = false;
     }
 }
@@ -33,8 +33,9 @@ void W8DialogButton::Draw()
 // FUNCTION: WIZ8 0x005db550
 void W8DialogButton::SetPosition(int x, int y)
 {
-    if (m_button != -1 && (x != GetButtonX(m_button) || y != GetButtonY(m_button))) {
-        SetButtonPosition(m_button, static_cast<short>(x), static_cast<short>(y));
+    if (m_button_handle != -1 &&
+        (x != GetButtonX(m_button_handle) || y != GetButtonY(m_button_handle))) {
+        SetButtonPosition(m_button_handle, static_cast<short>(x), static_cast<short>(y));
         m_dirty = true;
     }
 }
@@ -42,31 +43,31 @@ void W8DialogButton::SetPosition(int x, int y)
 // FUNCTION: WIZ8 0x005db5a0
 int W8DialogButton::GetWidth()
 {
-    return m_button != -1 ? GetButtonWidth(m_button) : 0;
+    return m_button_handle != -1 ? GetButtonWidth(m_button_handle) : 0;
 }
 
 // FUNCTION: WIZ8 0x005db5c0
 int W8DialogButton::GetHeight()
 {
-    return m_button != -1 ? GetButtonHeight(m_button) : 0;
+    return m_button_handle != -1 ? GetButtonHeight(m_button_handle) : 0;
 }
 
 // FUNCTION: WIZ8 0x005db5e0
 int W8DialogButton::GetX()
 {
-    return m_button != -1 ? GetButtonX(m_button) : 0;
+    return m_button_handle != -1 ? GetButtonX(m_button_handle) : 0;
 }
 
 // FUNCTION: WIZ8 0x005db600
 int W8DialogButton::GetY()
 {
-    return m_button != -1 ? GetButtonY(m_button) : 0;
+    return m_button_handle != -1 ? GetButtonY(m_button_handle) : 0;
 }
 
 // FUNCTION: WIZ8 0x005db8d0
 void W8DialogButton::SetEnabled(bool enabled)
 {
-    GUI_BUTTON* button = GetButtonPtr(m_button);
+    GUI_BUTTON* button = GetButtonPtr(m_button_handle);
     m_enabled = enabled;
     if (button) {
         if (enabled) {
@@ -84,14 +85,14 @@ void W8DialogButton::SetEnabled(bool enabled)
 // FUNCTION: WIZ8 0x005db920
 bool W8DialogButton::IsEnabled()
 {
-    GUI_BUTTON* button = GetButtonPtr(m_button);
+    GUI_BUTTON* button = GetButtonPtr(m_button_handle);
     return button ? (button->uiFlags & BUTTON_ENABLED) != 0 : false;
 }
 
 // FUNCTION: WIZ8 0x005db950
 void W8DialogButton::SetPressed(bool pressed)
 {
-    GUI_BUTTON* button = GetButtonPtr(m_button);
+    GUI_BUTTON* button = GetButtonPtr(m_button_handle);
     if (button) {
         if (pressed) {
             if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
@@ -108,44 +109,44 @@ void W8DialogButton::SetPressed(bool pressed)
 // FUNCTION: WIZ8 0x005db9a0
 unsigned char W8DialogButton::IsPressed()
 {
-    return static_cast<unsigned char>(GetButtonPtr(m_button)->uiFlags & BUTTON_CLICKED_ON);
+    return static_cast<unsigned char>(GetButtonPtr(m_button_handle)->uiFlags & BUTTON_CLICKED_ON);
 }
 
 // FUNCTION: WIZ8 0x005db9d0
 void W8DialogButton::SetVisible(bool visible)
 {
     if (visible) {
-        if (!(GetButtonPtr(m_button)->Area.uiFlags & MSYS_REGION_ENABLED)) {
-            ShowButton(m_button);
+        if (!(GetButtonPtr(m_button_handle)->Area.uiFlags & MSYS_REGION_ENABLED)) {
+            ShowButton(m_button_handle);
             MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, 0, 0, gfLeftButtonState, gfRightButtonState);
         }
-    } else if (GetButtonPtr(m_button)->Area.uiFlags & MSYS_REGION_ENABLED) {
-        HideButton(m_button);
+    } else if (GetButtonPtr(m_button_handle)->Area.uiFlags & MSYS_REGION_ENABLED) {
+        HideButton(m_button_handle);
         MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, 0, 0, gfLeftButtonState, gfRightButtonState);
     }
 }
 
 // FUNCTION: WIZ8 0x005dba70
-void W8DialogButton::SetTooltipEnabled(unsigned char enabled)
+void W8DialogButton::SetTooltipEnabled(bool enabled)
 {
     if (enabled) {
-        if (m_tooltip_index != -1 && g_settings.tooltips_enabled) {
-            SetButtonFastHelpText(m_button,
+        if (m_tooltip_index != W8_DIALOG_BUTTON_NO_TOOLTIP && g_settings.tooltips_enabled) {
+            SetButtonFastHelpText(m_button_handle,
 
                                   gppStringList[m_tooltip_index]);
         }
     } else {
-        SetButtonFastHelpText(m_button, 0);
+        SetButtonFastHelpText(m_button_handle, 0);
     }
 }
 
 // FUNCTION: WIZ8 0x005dbac0
 void W8DialogButton::SetTooltipIndex(int tooltip_index)
 {
-    if (m_button != -1) {
+    if (m_button_handle != -1) {
         m_tooltip_index = tooltip_index;
         if (g_settings.tooltips_enabled) {
-            SetButtonFastHelpText(m_button,
+            SetButtonFastHelpText(m_button_handle,
 
                                   gppStringList[tooltip_index]);
         }
@@ -155,27 +156,27 @@ void W8DialogButton::SetTooltipIndex(int tooltip_index)
 // FUNCTION: WIZ8 0x005dbaf0
 int W8DialogButton::GetUserData()
 {
-    return ButtonList[m_button]->UserData[1];
+    return ButtonList[m_button_handle]->UserData[1];
 }
 
 // FUNCTION: WIZ8 0x005db1b0
 W8DialogButton::W8DialogButton()
 {
-    m_image = -1;
-    m_button = -1;
+    m_image_handle = -1;
+    m_button_handle = -1;
     m_left_callback = 0;
     m_right_callback = 0;
     m_move_callback = 0;
     m_double_click_callback = 0;
-    m_clicked = 0;
-    m_enabled = 1;
-    m_left_toggles = 0;
-    m_right_toggles = 0;
-    m_tooltip_index = -1;
+    m_latched_press_bits = 0;
+    m_enabled = true;
+    m_left_toggles = false;
+    m_right_toggles = false;
+    m_tooltip_index = W8_DIALOG_BUTTON_NO_TOOLTIP;
     m_dirty = true;
     silent = false;
     hover_silent = false;
-    m_fires_on_press = 0;
+    m_fires_on_press = false;
     press_armed = false;
     m_owner = 0;
     m_gray_frame = -1;
@@ -189,115 +190,112 @@ W8DialogButton::W8DialogButton()
 // FUNCTION: WIZ8 0x005db260
 W8DialogButton::~W8DialogButton()
 {
-    if (m_image != -1) {
-        UnloadButtonImage(m_image);
-        m_image = -1;
+    if (m_image_handle != -1) {
+        UnloadButtonImage(m_image_handle);
+        m_image_handle = -1;
     }
-    if (m_button != -1) {
-        RemoveButton(m_button);
-        m_button = -1;
+    if (m_button_handle != -1) {
+        RemoveButton(m_button_handle);
+        m_button_handle = -1;
     }
 }
 
 #define STBUTTON_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\stButton.cpp"
 
 // FUNCTION: WIZ8 0x005db2a0
-unsigned char W8DialogButton::ConfigureVObjButton(HVOBJECT object, int base_frame,
-                                                  W8DialogButtonCallback left_callback,
-                                                  bool left_toggles)
+bool W8DialogButton::ConfigureVObjButton(HVOBJECT object, int base_frame,
+                                         W8DialogButtonCallback left_callback, bool left_toggles)
 {
     int on_frame = base_frame + 2;
 
-    m_image = UseVObjAsButtonImage(object, base_frame + 3, base_frame, base_frame + 1, on_frame,
-                                       on_frame);
+    m_image_handle = UseVObjAsButtonImage(object, base_frame + 3, base_frame, base_frame + 1,
+                                          on_frame, on_frame);
     m_gray_frame = base_frame + 3;
     m_off_normal_frame = base_frame;
     m_off_hover_frame = base_frame + 1;
     m_on_normal_frame = on_frame;
     m_on_hover_frame = on_frame;
-    if (m_image != -1) {
-        m_button = QuickCreateButton(m_image, 0, 0, BUTTON_NO_TOGGLE, 0x7f,
-                                         DialogButtonCallback, DialogButtonCallback);
+    if (m_image_handle != -1) {
+        m_button_handle =
+            QuickCreateButton(m_image_handle, 0, 0, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGHEST,
+                              DialogButtonCallback, DialogButtonCallback);
     }
-    if (m_button != -1) {
-        SetButtonUserDataPointer(m_button, this);
+    if (m_button_handle != -1) {
+        SetButtonUserDataPointer(m_button_handle, this);
         m_left_callback = left_callback;
         m_left_toggles = left_toggles;
         m_dirty = true;
-        return 1;
+        return true;
     }
-    if (m_image != -1) {
-        UnloadButtonImage(m_image);
-        m_image = -1;
+    if (m_image_handle != -1) {
+        UnloadButtonImage(m_image_handle);
+        m_image_handle = -1;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005DB350
-unsigned char W8DialogButton::ConfigureTextButton(const wchar_t* text, unsigned int font,
-                                                  short fore_color, short shadow_color, short x,
-                                                  short y, short width, short height,
-                                                  W8DialogButtonCallback left_callback,
-                                                  int user_data)
+bool W8DialogButton::ConfigureTextButton(const wchar_t* text, unsigned int font, short fore_color,
+                                         short shadow_color, short x, short y, short width,
+                                         short height, W8DialogButtonCallback left_callback,
+                                         int user_data)
 {
     INT32 handle = CreateTextButton(const_cast<wchar_t*>(text), font, fore_color, shadow_color, -1,
-                                    x, y, width, height, BUTTON_NO_TOGGLE, 0x7f,
+                                    x, y, width, height, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGHEST,
                                     DialogButtonCallback, DialogButtonCallback);
-    m_button = handle;
+    m_button_handle = handle;
     if (handle != -1) {
         SetButtonUserDataPointer(handle, this);
-        MSYS_SetBtnUserData(m_button, 1, user_data);
+        MSYS_SetBtnUserData(m_button_handle, 1, user_data);
         m_left_callback = left_callback;
-        m_left_toggles = 0;
+        m_left_toggles = false;
         m_dirty = true;
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005db3e0
-unsigned char W8DialogButton::Configure(const char* image_path, int gray_frame,
-                                        int off_normal_frame, int off_hover_frame,
-                                        int on_normal_frame, int on_hover_frame,
-                                        W8DialogButtonCallback left_callback,
-                                        W8DialogButtonCallback move_callback,
-                                        bool left_toggles, short priority,
-                                        int tooltip_index, W8DialogButtonCallback right_callback,
-                                        W8DialogButtonCallback double_click_callback)
+bool W8DialogButton::Configure(const char* image_path, int gray_frame, int off_normal_frame,
+                               int off_hover_frame, int on_normal_frame, int on_hover_frame,
+                               W8DialogButtonCallback left_callback,
+                               W8DialogButtonCallback move_callback, bool left_toggles,
+                               short priority, int tooltip_index,
+                               W8DialogButtonCallback right_callback,
+                               W8DialogButtonCallback double_click_callback)
 {
-    m_image = LoadButtonImage(
-        Wiz8ToSgpText(image_path),
-        gray_frame, off_normal_frame, off_hover_frame, on_normal_frame, on_hover_frame);
-    if (m_image != -1) {
-        m_button = QuickCreateButton(m_image, 0, 0, BUTTON_NO_TOGGLE, priority,
-                                         DialogButtonCallback, DialogButtonCallback);
+    m_image_handle = LoadButtonImage(Wiz8ToSgpText(image_path), gray_frame, off_normal_frame,
+                                     off_hover_frame, on_normal_frame, on_hover_frame);
+    if (m_image_handle != -1) {
+        m_button_handle = QuickCreateButton(m_image_handle, 0, 0, BUTTON_NO_TOGGLE, priority,
+                                            DialogButtonCallback, DialogButtonCallback);
     }
     m_off_normal_frame = off_normal_frame;
     m_gray_frame = gray_frame;
     m_off_hover_frame = off_hover_frame;
     m_on_normal_frame = on_normal_frame;
     m_on_hover_frame = on_hover_frame;
-    if (m_button != -1) {
-        SetButtonUserDataPointer(m_button, this);
+    if (m_button_handle != -1) {
+        SetButtonUserDataPointer(m_button_handle, this);
         m_move_callback = move_callback;
         m_left_callback = left_callback;
         m_right_callback = right_callback;
         m_double_click_callback = double_click_callback;
         m_left_toggles = left_toggles;
         m_tooltip_index = tooltip_index;
-        if (tooltip_index != -1 && g_settings.tooltips_enabled) {
-            SetButtonFastHelpText(m_button,
+        if (tooltip_index != W8_DIALOG_BUTTON_NO_TOOLTIP && g_settings.tooltips_enabled) {
+            SetButtonFastHelpText(m_button_handle,
 
                                   gppStringList[tooltip_index]);
         }
         m_dirty = true;
-        return 1;
+        return true;
     }
-    if (m_image != -1) {
-        UnloadButtonImage(m_image);
-        m_image = -1;
+    if (m_image_handle != -1) {
+        UnloadButtonImage(m_image_handle);
+        m_image_handle = -1;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005db620
@@ -324,7 +322,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
     }
     if ((reason & MSYS_CALLBACK_REASON_LBUTTON_DOUBLECLICK) != 0 &&
         self->m_double_click_callback != 0) {
-        if (self->m_left_toggles != 0 && (button->uiFlags & BUTTON_CLICKED_ON) == 0) {
+        if (self->m_left_toggles && (button->uiFlags & BUTTON_CLICKED_ON) == 0) {
             return;
         }
         self->m_double_click_callback(self);
@@ -352,9 +350,8 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                                 button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
                                 self->press_armed = false;
                                 self->m_dirty = true;
-                                handle = self->m_button;
-                                if (self->m_left_toggles == 0 && handle >= 0 &&
-                                    handle < MAX_BUTTONS) {
+                                handle = self->m_button_handle;
+                                if (!self->m_left_toggles && handle >= 0 && handle < MAX_BUTTONS) {
                                     owned = ButtonList[handle];
                                     if (owned != 0 && (owned->uiFlags & BUTTON_CLICKED_ON) != 0) {
                                         owned->uiFlags &= ~BUTTON_CLICKED_ON;
@@ -379,10 +376,10 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                             move_callback(self);
                             return;
                         }
-                        if (self->m_fires_on_press == 0) {
+                        if (!self->m_fires_on_press) {
                             return;
                         }
-                        if (self->m_right_toggles != 0) {
+                        if (self->m_right_toggles) {
                             return;
                         }
                         if ((button->uiFlags & BUTTON_CLICKED_ON) == 0) {
@@ -390,7 +387,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                         }
                         self->press_armed = true;
                     } else {
-                        if (self->m_right_toggles != 0) {
+                        if (self->m_right_toggles) {
                             return;
                         }
                         if ((button->uiFlags & BUTTON_CLICKED_ON) == 0) {
@@ -398,28 +395,28 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                         }
                         button->uiFlags &= ~BUTTON_CLICKED_ON;
                         self->m_dirty = true;
-                        if (self->m_fires_on_press != 0 && self->press_armed) {
+                        if (self->m_fires_on_press && self->press_armed) {
                             self->press_armed = false;
                             return;
                         }
                     }
                 } else {
-                    if (self->m_right_toggles == 0) {
+                    if (!self->m_right_toggles) {
                         goto press_down;
                     }
                     button->uiFlags ^= BUTTON_CLICKED_ON;
                     self->m_dirty = true;
-                    self->m_clicked =
+                    self->m_latched_press_bits =
                         static_cast<unsigned char>(button->uiFlags & BUTTON_CLICKED_ON);
                 }
                 if (right_callback != 0) {
                     right_callback(self);
                 }
             } else {
-                if (self->m_fires_on_press == 0) {
+                if (!self->m_fires_on_press) {
                     return;
                 }
-                if (self->m_left_toggles != 0) {
+                if (self->m_left_toggles) {
                     return;
                 }
                 if ((button->uiFlags & BUTTON_CLICKED_ON) == 0) {
@@ -432,7 +429,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
             }
             goto play_click;
         }
-        if (self->m_left_toggles != 0) {
+        if (self->m_left_toggles) {
             return;
         }
         if ((button->uiFlags & BUTTON_CLICKED_ON) == 0) {
@@ -440,12 +437,12 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
         button->uiFlags &= ~BUTTON_CLICKED_ON;
         self->m_dirty = true;
-        if (self->m_fires_on_press != 0 && self->press_armed) {
+        if (self->m_fires_on_press && self->press_armed) {
             self->press_armed = false;
             return;
         }
     } else {
-        if (self->m_left_toggles == 0) {
+        if (!self->m_left_toggles) {
         press_down:
             if ((button->uiFlags & BUTTON_CLICKED_ON) != 0) {
                 return;
@@ -460,7 +457,8 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
         button->uiFlags ^= BUTTON_CLICKED_ON;
         self->m_dirty = true;
-        self->m_clicked = static_cast<unsigned char>(button->uiFlags & BUTTON_CLICKED_ON);
+        self->m_latched_press_bits =
+            static_cast<unsigned char>(button->uiFlags & BUTTON_CLICKED_ON);
     }
     if (left_callback != 0) {
         left_callback(self);

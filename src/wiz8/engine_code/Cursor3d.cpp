@@ -110,19 +110,19 @@ void InitializeWorldCursor(void)
             memset(gp3DCursor, 0, sizeof(*gp3DCursor));
             gp3DCursor->monster = 0;
             gp3DCursor->unknown_08 = 1;
-            gp3DCursor->group_bind_pending = 0;
+            gp3DCursor->group_bind_pending = false;
             gp3DCursor->input_delta.x = 0;
             gp3DCursor->input_delta.y = 0;
             gp3DCursor->input_delta.z = 0;
             gp3DCursor->light = 0;
-            gp3DCursor->enabled = 1;
-            gp3DCursor->track_ground = 1;
+            gp3DCursor->enabled = true;
+            gp3DCursor->track_ground = true;
             gp3DCursor->range = 50000.0f;
-            gp3DCursor->left_held = 0;
+            gp3DCursor->left_held = false;
             gp3DCursor->monster_group_id = g_cursor_saved_group_id;
-            gp3DCursor->detached = 0;
-            gp3DCursor->march_enabled = 1;
-            gp3DCursor->footprint_mode = 0;
+            gp3DCursor->detached = false;
+            gp3DCursor->march_enabled = true;
+            gp3DCursor->footprint_mode = false;
             gp3DCursor->dragged_info = 0;
             context.directory = "Data\\Monsters";
             context.world = g_world;
@@ -183,7 +183,7 @@ void InitializeWorldCursor(void)
                 if (!gp3DCursor->detached) {
                     gp3DCursor->cam_rel_offset += camera_position;
                 }
-                gp3DCursor->detached = 1;
+                gp3DCursor->detached = true;
             }
             ClearCombatSelection();
             gp3DCursor->monster->GetAnimationBounds(&minimum, &maximum);
@@ -242,7 +242,7 @@ void ReleaseWorldCursor(void)
         WorldRemoveLight(g_world, cursor->light);
         cursor->light = 0;
     }
-    cursor->group_bind_pending = 0;
+    cursor->group_bind_pending = false;
     g_cursor_saved_group_id = cursor->monster_group_id;
     EnableCursorScene();
     RequestRefreshPartyState();
@@ -272,7 +272,7 @@ void ShowWorldCursor(void)
         UpdateMonster(gp3DCursor->monster);
         UpdateCycleRepresentation(gp3DCursor->monster, g_world);
         PLAdoptAppend(g_world->plsMonsters, gp3DCursor->monster);
-        gp3DCursor->enabled = 1;
+        gp3DCursor->enabled = true;
         if (gp3DCursor->particle != 0) {
             gp3DCursor->particle->SetActive(1);
         }
@@ -298,7 +298,7 @@ void HideWorldCursor(void)
     world = g_world;
     PListRemove(world->plsMonsters, monster);
     DetachMonsterRepresentation(monster, world);
-    cursor->enabled = 0;
+    cursor->enabled = false;
     if (cursor->particle != 0) {
         cursor->particle->SetActive(0);
     }
@@ -457,7 +457,7 @@ void BindCursorMonsterToGroup(void)
     unsigned int index;
 
     if (gp3DCursor->group_bind_pending && gp3DCursor->light != 0) {
-        gp3DCursor->group_bind_pending = 0;
+        gp3DCursor->group_bind_pending = false;
         ++gp3DCursor->input_delta.z;
         if (gp3DCursor->particle != 0) {
             gp3DCursor->particle->speed_min = 1000.0f;
@@ -581,7 +581,7 @@ void UpdateWorldCursor(void)
     SGPMouseGetPos(&cursor_point);
     if (gfRightButtonState != 0) {
         if (!gp3DCursor->group_bind_pending && gp3DCursor->light != 0) {
-            gp3DCursor->group_bind_pending = 1;
+            gp3DCursor->group_bind_pending = true;
             ++gp3DCursor->input_delta.z;
             if (gp3DCursor->particle != 0) {
                 gp3DCursor->particle->speed_min = 3000.0f;
@@ -594,7 +594,7 @@ void UpdateWorldCursor(void)
     }
     if (gfRightButtonState != 0) {
         if (gp3DCursor->detached) {
-            gp3DCursor->track_ground = 0;
+            gp3DCursor->track_ground = false;
         }
         gp3DCursor->input_delta.y += 0xf0 - cursor_point.y;
     } else {
@@ -626,9 +626,9 @@ void UpdateWorldCursor(void)
             // documented historical ABI boundary.
             SoundPlay((STR) "Data\\Sound\\Misc\\ErrorBeep.wav", 0);
         }
-        gp3DCursor->left_held = 0;
+        gp3DCursor->left_held = false;
     } else {
-        gp3DCursor->left_held = 1;
+        gp3DCursor->left_held = true;
     }
     if (!(old_position == position)) {
         if (gp3DCursor->detached) {
@@ -726,7 +726,7 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
     }
     *target = last_valid;
     if (target->y - lower_best < g_float_005ecb0c) {
-        gp3DCursor->track_ground = 1;
+        gp3DCursor->track_ground = true;
     }
     return 0;
 }
@@ -766,7 +766,7 @@ void UpdateWorldCursorPlacement(void)
     forward.Set(0.0, 0.0, g_float_60ab48);
     target = camera + rotation.Transform(forward);
     cursor->position = camera;
-    cursor->track_ground = 1;
+    cursor->track_ground = true;
     if (MarchWorldCursorTarget(&target) == 0) {
         cursor->position = target;
         cursor->cam_rel_offset = cursor->position;
@@ -788,7 +788,7 @@ void SetWorldCursorExtents(const srVector3T<float>* minimum, const srVector3T<fl
     if (gp3DCursor == 0) {
         return;
     }
-    gp3DCursor->footprint_mode = 1;
+    gp3DCursor->footprint_mode = true;
     gp3DCursor->extent_min = *minimum;
     gp3DCursor->extent_max = *maximum;
 }

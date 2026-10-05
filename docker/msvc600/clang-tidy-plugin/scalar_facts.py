@@ -2373,6 +2373,20 @@ def boolean_expression_edits(facts: ScalarFacts, source):
         ):
             continue
         start = sum(map(len, lines[: line - 1])) + column - 1
+        producer = original[start:]
+        # The collector records each producer's ExprLoc/statement location:
+        # arguments point at the expression, assignments at '=', returns at
+        # 'return', and local initializers at the declaration's identifier.
+        prefix = None
+        if declaration.kind == "function":
+            prefix = re.match(rb"return\b\s*", producer)
+        elif producer.startswith(b"=") and not producer.startswith(b"=="):
+            prefix = re.match(rb"=\s*", producer)
+        elif declaration.kind == "variable":
+            name = declaration.name.rsplit("::", 1)[-1].encode()
+            prefix = re.match(re.escape(name) + rb"\b\s*=\s*", producer)
+        if prefix is not None:
+            start += prefix.end()
         literal = re.match(rb"[01][uUlL]*\b", original[start:])
         if literal is None or int(literal[0].rstrip(b"uUlL")) != value:
             continue

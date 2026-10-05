@@ -132,7 +132,7 @@ bool RunMonGenSemanticTest(void)
 
     W8MonsterGroup group;
     memset(&group, 0, sizeof(group));
-    group.encounter_registered = 1;
+    group.encounter_registered = true;
     group.spawn_time = g_status.world_clock;
     int before = g_active_groups.GetCount();
     RegisterActiveEncounterGroup(&group);

@@ -100,7 +100,7 @@ W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x, float mi
             cells[column].polygon_indices = 0;
             cells[column].objects = 0;
             cells[column].dirty_stamp = 0;
-            cells[column].occupied = 0;
+            cells[column].occupied = false;
         }
         quad->rows[row].cells = cells;
         quad->rows[row].count = column_count;
@@ -113,7 +113,7 @@ W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x, float mi
         W8QuadCell* cell = GetPolygonQuadCell(quad, instance, polygon, &polygon_row,
                                               &polygon_column, minimum_x, minimum_z);
 
-        cell->occupied = 1;
+        cell->occupied = true;
         if (cell->polygon_indices == 0) {
             cell->polygon_indices = ILCreate();
         }

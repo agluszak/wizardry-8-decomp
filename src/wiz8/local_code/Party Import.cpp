@@ -311,7 +311,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     ConvertAttribute(character, imported);
     GrantStartingSpells(character, imported);
     for (skill_id = 0; skill_id < 0x29; ++skill_id) {
-        character->skills[skill_id].active = 0;
+        character->skills[skill_id].active = false;
         character->skills[skill_id].points =
             ConvertSkill(static_cast<W8Skill>(skill_id), character, imported);
     }
@@ -666,7 +666,7 @@ unsigned int ConvertSkill(W8Skill skill_id, W8Character* character, const W8Wiz7
     unsigned int unlocks;
     unsigned int roll;
     unsigned int base_value;
-    bool routed = 0;
+    bool routed = false;
     int i;
 
     if (g_skill_attributes[skill_id].import_policy == W8_SKILL_IMPORT_PROFESSION) {
@@ -753,7 +753,7 @@ unsigned int ConvertSkill(W8Skill skill_id, W8Character* character, const W8Wiz7
     case W8_SKILL_EARTH_MAGIC:
     case W8_SKILL_MENTAL_MAGIC:
     case W8_SKILL_DIVINE_MAGIC:
-        routed = 1;
+        routed = true;
         switch (skill_id) {
         case W8_SKILL_THROWING_SLING:
             base_value = imported->skills[5];

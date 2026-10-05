@@ -97,7 +97,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
     max_leaf_regions = 0;
     unknown_ae = 0;
     region_assignments = 0;
-    use_owned_nodes = 0;
+    use_owned_nodes = false;
     unknown_b5[0] = 0;
     unknown_b5[1] = 0;
     unknown_b5[2] = 0;
@@ -257,7 +257,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
                                                      unsigned long mode)
 {
     W8OctSpatialState child(working);
-    bool inserted = 0;
+    bool inserted = false;
 
     if (spatial.m_depth < working->m_depth) {
         spatial.m_depth = working->m_depth;
@@ -266,7 +266,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
     if (working->m_extent <= working->m_cell_size) {
         W8OctBuildNode* node = working->m_root;
         AppendLink(node, surface, static_cast<short>(mode));
-        inserted = 1;
+        inserted = true;
     } else {
         float half_extent = working->m_extent * g_float_005ebc7c;
         child.m_cell_size = working->m_cell_size;
@@ -296,7 +296,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
                         child.m_root = node->children[octant];
                         child.m_triangle_vertices = working->m_triangle_vertices;
                         if (InsertSurfaceRecursive(&child, surface, plane_point, mode) != 0) {
-                            inserted = 1;
+                            inserted = true;
                         }
                     }
                 }
@@ -398,9 +398,9 @@ int W8OctBuildTree::CollectRecursive(W8OctSpatialState* state, const srVector3T<
     bool leaf;
     srVector3T<float> box[2];
 
-    leaf = 0;
+    leaf = false;
     if (state->m_depth == spatial.m_depth) {
-        leaf = 1;
+        leaf = true;
     }
     box[0] = state->m_minimum;
     box[1] = state->m_maximum;
@@ -572,7 +572,7 @@ int W8OctBuildTree::ClassifyBoxBounds(const srVector3T<float>* box, const srVect
                 float corner_z = box[z].z;
                 if (corner_x < bounds[0].x || corner_x >= bounds[1].x || corner_y < bounds[0].y ||
                     corner_y >= bounds[1].y || corner_z < bounds[0].z || corner_z >= bounds[1].z) {
-                    all_inside = 0;
+                    all_inside = false;
                     if (inside != 0) {
                         x = y = z = 2;
                     }
@@ -613,7 +613,7 @@ int W8OctBuildTree::ClassifyBoxBounds(const srVector3T<float>* box, const srVect
 // FUNCTION: WIZ8 0x004474c0
 char CollectSurfacePredicate(W8GDSurface* surface, short kind)
 {
-    bool result = 0;
+    bool result = false;
     if (kind != 3) {
         if (g_oct_build_count != 0) {
             for (unsigned long index = 0; index < g_oct_build_count; ++index) {
@@ -623,11 +623,11 @@ char CollectSurfacePredicate(W8GDSurface* surface, short kind)
             }
             return 1;
         }
-        result = 1;
+        result = true;
     } else {
         if ((surface->flags & 0x2000) == 0) {
             surface->flags |= 0x2000;
-            result = 1;
+            result = true;
         }
     }
     return result;
