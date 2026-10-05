@@ -1869,7 +1869,7 @@ void DisplayCampDialog(W8DialogBase* dialog)
 }
 
 // FUNCTION: WIZ8 0x005a4c00
-void ShowCampNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
+void ShowCampNoticeLine(const wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
                         int cancel)
 {
     W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
