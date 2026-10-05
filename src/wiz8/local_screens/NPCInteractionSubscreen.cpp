@@ -1614,7 +1614,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
         }
-        word->keyword = 2;
+        word->keyword = W8_NOTICE_WORD_SELECTED;
         CopyNoticeWordText(word, word_text, 0xc8, 3, line);
         Get16BitStringFromField(0, field_text);
         StripNpcKeywordPunctuation(field_text);
@@ -1712,7 +1712,7 @@ void NpcDialogueTextBoxDoubleClick(int x, int y)
             SetInputFieldStringWith16BitString(0, word_text);
         }
         if (word->keyword != 2) {
-            word->keyword = 2;
+            word->keyword = W8_NOTICE_WORD_SELECTED;
             CopyNoticeWordText(word, word_text, 0xc8, 3, line);
             Get16BitStringFromField(0, field_text);
             StripNpcKeywordPunctuation(field_text);
@@ -2853,17 +2853,33 @@ static void HighlightNpcTradeQuantity()
    selected character's backpack or the shared party item pool, and modes 4/5
    go through the NPC's own inventory. pick/commit drive quantity stepping,
    the click chime and the highlight tick. */
+static void ShowSelectedNpcTradeItem(const W8ItemInstance* item)
+{
+    wchar_t count_text[32];
+    const wchar_t* text;
+    int image = g_item_video_objects.GetOrCreateVideoObject(item->iItemNo);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+        ->SetImage(image);
+    if (item->stack_count < 2) {
+        text = g_dialogue_empty_text;
+    } else {
+        swprintf(count_text, L"%d", g_npc_interaction_state->trade_quantity);
+        text = count_text;
+    }
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+        ->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+        ->Invalidate(1);
+}
+
 // FUNCTION: WIZ8 0x005729C0
 W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char commit)
 {
-    wchar_t count_text[32];
-    wchar_t* text;
     W8ItemInstance* pool;
     W8NpcItemEntry* entry;
     int selected;
     int hit;
     int i;
-    int image;
 
     selected = g_status.selected_character;
     hit = 0;
@@ -2926,21 +2942,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                             if (commit != 0) {
                                 SoundPlay(g_button_click_1, 0);
                             }
-                            image = g_item_video_objects.GetOrCreateVideoObject(
-                                g_status.party_item_pool[i].iItemNo);
-                            static_cast<W8TextControl*>(
-                                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
-                                ->SetImage(image);
-                            if (g_status.party_item_pool[i].stack_count < 2) {
-                                text = g_dialogue_empty_text;
-                            } else {
-                                swprintf(count_text, L"%d",
-                                         g_npc_interaction_state->trade_quantity);
-                                text = count_text;
-                            }
-                            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetText(
-                                text, g_wiz_text_font_secondary);
-                            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(1);
+                            ShowSelectedNpcTradeItem(&g_status.party_item_pool[i]);
                             return &g_status.party_item_pool[i];
                         }
                         ++hit;
@@ -2991,20 +2993,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                         if (commit != 0) {
                             SoundPlay(g_button_click_1, 0);
                         }
-                        image = g_item_video_objects.GetOrCreateVideoObject(
-                            character->backpack[i].iItemNo);
-                        static_cast<W8TextControl*>(
-                            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
-                            ->SetImage(image);
-                        if (character->backpack[i].stack_count < 2) {
-                            text = g_dialogue_empty_text;
-                        } else {
-                            swprintf(count_text, L"%d", g_npc_interaction_state->trade_quantity);
-                            text = count_text;
-                        }
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetText(
-                            text, g_wiz_text_font_secondary);
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(1);
+                        ShowSelectedNpcTradeItem(&character->backpack[i]);
                         return &character->backpack[i];
                     }
                     ++hit;
@@ -3052,19 +3041,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
         if (commit != 0) {
             SoundPlay(g_button_click_1, 0);
         }
-        image = g_item_video_objects.GetOrCreateVideoObject(entry->item.iItemNo);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
-            ->SetImage(image);
-        if (entry->item.stack_count < 2) {
-            text = g_dialogue_empty_text;
-        } else {
-            swprintf(count_text, L"%d", g_npc_interaction_state->trade_quantity);
-            text = count_text;
-        }
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetText(text,
-                                                                         g_wiz_text_font_secondary);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(1);
+        ShowSelectedNpcTradeItem(&entry->item);
     }
     return &entry->item;
 }

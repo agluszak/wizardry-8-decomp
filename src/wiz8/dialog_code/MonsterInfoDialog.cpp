@@ -466,15 +466,7 @@ void W8MonsterInfoDialog::OnRightButtonUp()
 // FUNCTION: WIZ8 0x005d6e70
 void W8MonsterInfoDialog::OnMouseWheel(int delta)
 {
-    if (delta > 0) {
-        for (int step = 0; step < delta; ++step) {
-            m_scroll_bar.ScrollUp();
-        }
-    } else if (delta < 0) {
-        for (int step = 0; step < -delta; ++step) {
-            m_scroll_bar.ScrollDown();
-        }
-    }
+    m_scroll_bar.ScrollBy(delta);
 }
 
 // FUNCTION: WIZ8 0x005d6ec0

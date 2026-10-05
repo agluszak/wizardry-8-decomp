@@ -660,15 +660,7 @@ void W8AssayDialog::OnRightButtonUp()
 // FUNCTION: WIZ8 0x005d9720
 void W8AssayDialog::OnMouseWheel(int delta)
 {
-    if (delta > 0) {
-        for (int step = 0; step < delta; ++step) {
-            m_scroll_bar.ScrollUp();
-        }
-    } else if (delta < 0) {
-        for (int step = 0; step < -delta; ++step) {
-            m_scroll_bar.ScrollDown();
-        }
-    }
+    m_scroll_bar.ScrollBy(delta);
 }
 
 // FUNCTION: WIZ8 0x005d9620

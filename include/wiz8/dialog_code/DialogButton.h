@@ -1,6 +1,31 @@
 #pragma once
 
 #include "Button System.h"
+#include "mousesystem_macros.h"
+
+/* Update the non-toggle dialog arrow's pressed/hover state. The caller
+   retains its action and invalidates only when this operation reports a change. */
+inline bool UpdateDialogArrowState(GUI_BUTTON* button, INT32 reason)
+{
+    if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
+        if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
+            button->uiFlags |= BUTTON_CLICKED_ON;
+            return true;
+        }
+    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+        if (button->uiFlags & BUTTON_CLICKED_ON) {
+            button->uiFlags &= ~BUTTON_CLICKED_ON;
+            return true;
+        }
+    } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
+        button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
+        return true;
+    } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
+        button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+        return true;
+    }
+    return false;
+}
 
 class W8DialogBase;
 class W8DialogButton;

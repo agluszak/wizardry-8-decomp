@@ -547,7 +547,6 @@ void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled)
     int spell_catalog;
     unsigned int numeric_hp_mode;
     UINT32 pitch;
-    unsigned short fill_color;
 
     if (character->hp_current != 0) {
         GetPartySlotMenuAnchor(party_slot, &menu_x, &menu_y, &band_menu_edge, &band_portrait_edge,
@@ -573,73 +572,19 @@ void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled)
 
         DrawCatalogImage(-14, hp_catalog, 0, 0, band_portrait_edge + hp_bar_x, bar_y + menu_y, 2,
                          0);
-        {
-            int fill_height = 0x2d - entry->cached_hp_bar;
-            if (fill_height != 0) {
-                int draw_y = (bar_y - numeric_hp_mode) + menu_y;
-                int draw_x = hp_bar_x + band_portrait_edge;
-                int line_count = (numeric_hp_mode != 0 ? 5 : 3);
-                char* screen = static_cast<char*>(LockPrimarySurface(&pitch));
-
-                if (line_count != 0) {
-                    int end_y = draw_y + fill_height;
-                    fill_color = Get16BPPColor(0x10101);
-                    do {
-                        LineDraw(1, draw_x, draw_y, draw_x, end_y, fill_color, screen);
-                        ++draw_x;
-                        --line_count;
-                    } while (line_count != 0);
-                }
-                UnlockPrimarySurface();
-            }
-        }
+        ShadeStatusBarGap(0x2d - entry->cached_hp_bar, hp_bar_x + band_portrait_edge,
+                          bar_y - numeric_hp_mode + menu_y);
 
         DrawCatalogImage(-14, stamina_catalog, 0, 0, band_portrait_edge + stamina_bar_x,
                          bar_y + menu_y, 2, 0);
-        {
-            int fill_height = 0x2d - entry->cached_stamina_bar;
-            if (fill_height != 0) {
-                int draw_y = (bar_y - numeric_hp_mode) + menu_y;
-                int draw_x = stamina_bar_x + band_portrait_edge;
-                int line_count = (numeric_hp_mode != 0 ? 5 : 3);
-                char* screen = static_cast<char*>(LockPrimarySurface(&pitch));
-
-                if (line_count != 0) {
-                    int end_y = draw_y + fill_height;
-                    fill_color = Get16BPPColor(0x10101);
-                    do {
-                        LineDraw(1, draw_x, draw_y, draw_x, end_y, fill_color, screen);
-                        ++draw_x;
-                        --line_count;
-                    } while (line_count != 0);
-                }
-                UnlockPrimarySurface();
-            }
-        }
+        ShadeStatusBarGap(0x2d - entry->cached_stamina_bar, stamina_bar_x + band_portrait_edge,
+                          bar_y - numeric_hp_mode + menu_y);
 
         if (SumCharacterSpellPoints(character) != 0) {
             DrawCatalogImage(-14, spell_catalog, 0, 0, band_portrait_edge + spell_bar_x,
                              bar_y + menu_y, 2, 0);
-            {
-                int fill_height = 0x2d - entry->cached_spell_bar;
-                if (fill_height != 0) {
-                    int draw_y = (bar_y - numeric_hp_mode) + menu_y;
-                    int draw_x = spell_bar_x + band_portrait_edge;
-                    int line_count = (numeric_hp_mode != 0 ? 5 : 3);
-                    char* screen = static_cast<char*>(LockPrimarySurface(&pitch));
-
-                    if (line_count != 0) {
-                        int end_y = draw_y + fill_height;
-                        fill_color = Get16BPPColor(0x10101);
-                        do {
-                            LineDraw(1, draw_x, draw_y, draw_x, end_y, fill_color, screen);
-                            ++draw_x;
-                            --line_count;
-                        } while (line_count != 0);
-                    }
-                    UnlockPrimarySurface();
-                }
-            }
+            ShadeStatusBarGap(0x2d - entry->cached_spell_bar, spell_bar_x + band_portrait_edge,
+                              bar_y - numeric_hp_mode + menu_y);
         }
 
         InvalidateRegion(band_portrait_edge, bar_y + menu_y, band_portrait_edge + 0x18,

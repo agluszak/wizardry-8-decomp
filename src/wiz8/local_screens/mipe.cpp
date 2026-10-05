@@ -637,6 +637,28 @@ void ShowMipeItemTableCategory(void)
 /* Mode-1 key handler: digit keys build the spawn count, Enter creates the
    selected monster group at the world cursor, 'C' jumps to the monster
    category picker and 'O' cycles the creation method. */
+static unsigned int FindMipeVisibleMonster(int visible)
+{
+    int index;
+    unsigned int monster_index;
+    W8MipeMonsterEntry* entry;
+    index = 0;
+    monster_index = 0;
+    if (0 < static_cast<int>(gXStatus.uiMonstersInDatabase)) {
+        do {
+            entry = static_cast<W8MipeMonsterEntry*>(PLGet(g_mipe_monster_entries, monster_index));
+            if (entry->kind == g_mipe_category && entry->selectable != 0) {
+                if (index == visible) {
+                    break;
+                }
+                ++index;
+            }
+            ++monster_index;
+        } while (static_cast<int>(monster_index) < static_cast<int>(gXStatus.uiMonstersInDatabase));
+    }
+    return monster_index;
+}
+
 // FUNCTION: WIZ8 0x00578500
 unsigned char HandleMipeMonsterCreateKey(unsigned short key)
 {
@@ -707,22 +729,7 @@ unsigned char HandleMipeMonsterCreateKey(unsigned short key)
     }
     if (g_mipe_count != 0) {
         visible = g_mipe_table_row + g_mipe_table_base;
-        index = 0;
-        monster_index = 0;
-        if (0 < static_cast<int>(gXStatus.uiMonstersInDatabase)) {
-            do {
-                entry =
-                    static_cast<W8MipeMonsterEntry*>(PLGet(g_mipe_monster_entries, monster_index));
-                if (entry->kind == g_mipe_category && entry->selectable != 0) {
-                    if (index == visible) {
-                        break;
-                    }
-                    ++index;
-                }
-                ++monster_index;
-            } while (static_cast<int>(monster_index) <
-                     static_cast<int>(gXStatus.uiMonstersInDatabase));
-        }
+        monster_index = FindMipeVisibleMonster(visible);
         if (monster_index == gXStatus.uiMonstersInDatabase) {
             record.record_id = 0;
         } else {
@@ -1000,7 +1007,6 @@ void HandleMipeMonsterCategoryKey(unsigned short key)
     W8PList* list;
     W8MipeMonsterEntry* entry;
     int index;
-    int found;
     int wraps;
     unsigned int monster_index;
     W8MonsterRecord record;
@@ -1011,22 +1017,7 @@ void HandleMipeMonsterCategoryKey(unsigned short key)
     case 0xd:
         PLGet(g_mipe_category_list, g_mipe_table_base + g_mipe_table_row);
         index = g_mipe_table_base + g_mipe_table_row;
-        found = 0;
-        monster_index = 0;
-        if (0 < static_cast<int>(gXStatus.uiMonstersInDatabase)) {
-            do {
-                entry =
-                    static_cast<W8MipeMonsterEntry*>(PLGet(g_mipe_monster_entries, monster_index));
-                if (entry->kind == g_mipe_category && entry->selectable != 0) {
-                    if (found == index) {
-                        break;
-                    }
-                    ++found;
-                }
-                ++monster_index;
-            } while (static_cast<int>(monster_index) <
-                     static_cast<int>(gXStatus.uiMonstersInDatabase));
-        }
+        monster_index = FindMipeVisibleMonster(index);
         if (monster_index == gXStatus.uiMonstersInDatabase) {
             record.record_id = 0;
         } else {
@@ -1830,6 +1821,22 @@ static int HandleMonsterGeneratorKey(unsigned short key)
 /* The edit-menu keys for the selected monster generator: name entry, table
    picker, active toggle, per-generator or shared chance and interval, and the
    shared-interval flag. */
+static void RebuildMipeEncounterCategory(W8PList* list)
+{
+    PListClear(list);
+    int count = g_encounter_tables.count;
+    int index = 0;
+    if (0 < g_encounter_tables.count) {
+        do {
+            W8EncounterTableRuntime* entry = GetEncounterTable(index);
+            if (entry->category == static_cast<unsigned int>(g_mipe_category)) {
+                PLAdoptAppend(list, entry);
+            }
+            ++index;
+        } while (index < count);
+    }
+}
+
 // FUNCTION: WIZ8 0x0057ad10
 int HandleMonsterGeneratorEditKey(unsigned short key)
 {
@@ -1838,8 +1845,6 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
     W8EncounterTableRuntime* entry;
     MonGen* generator;
     int current_index;
-    int count;
-    int index;
     int found;
     int slot;
 
@@ -1847,18 +1852,7 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
         list = PLCreate();
         g_mipe_category_list = list;
         if (list != 0) {
-            PListClear(list);
-            count = g_encounter_tables.count;
-            index = 0;
-            if (0 < g_encounter_tables.count) {
-                do {
-                    table = GetEncounterTable(index);
-                    if (table->category == static_cast<unsigned int>(g_mipe_category)) {
-                        PLAdoptAppend(list, table);
-                    }
-                    ++index;
-                } while (index < count);
-            }
+            RebuildMipeEncounterCategory(list);
         }
     }
     switch (key) {
@@ -1883,18 +1877,7 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
             list = g_mipe_category_list;
             g_mipe_category = static_cast<unsigned char>(table->category);
             if (g_mipe_category_list != 0) {
-                PListClear(g_mipe_category_list);
-                count = g_encounter_tables.count;
-                index = 0;
-                if (0 < g_encounter_tables.count) {
-                    do {
-                        table = GetEncounterTable(index);
-                        if (table->category == static_cast<unsigned int>(g_mipe_category)) {
-                            PLAdoptAppend(list, table);
-                        }
-                        ++index;
-                    } while (index < count);
-                }
+                RebuildMipeEncounterCategory(list);
             }
             for (found = 0; found < static_cast<int>(PLLength(g_mipe_category_list)); ++found) {
                 table = static_cast<W8EncounterTableRuntime*>(PLGet(g_mipe_category_list, found));
@@ -2124,18 +2107,7 @@ void HandleMipeGeneratorTableKey(unsigned short key)
                 g_mipe_category = 0;
             }
             if (g_mipe_category_list != 0) {
-                PListClear(g_mipe_category_list);
-                count = g_encounter_tables.count;
-                index = 0;
-                if (0 < g_encounter_tables.count) {
-                    do {
-                        entry = GetEncounterTable(index);
-                        if (entry->category == static_cast<unsigned int>(g_mipe_category)) {
-                            PLAdoptAppend(list, entry);
-                        }
-                        ++index;
-                    } while (index < count);
-                }
+                RebuildMipeEncounterCategory(list);
             }
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
         ShowMipeEncounterCategory();

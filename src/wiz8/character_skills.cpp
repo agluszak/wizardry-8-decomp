@@ -514,12 +514,7 @@ void ResetCharacterAttributes(W8Character* character)
         character->attributes[index].effective = value;
         UnequipUnusableItems(character);
     }
-    for (index = 0; index < 0x29; ++index) {
-        W8Attribute first = g_skill_attributes[index].attribute_1;
-        W8Attribute second = g_skill_attributes[index].attribute_2;
-        character->skills[index].base_level =
-            (character->attributes[first].value + character->attributes[second].value) >> 1;
-    }
+    InitializeSkillBaseLevels(character);
 }
 
 /* Rebuild every skill level from the value already spent on it, the

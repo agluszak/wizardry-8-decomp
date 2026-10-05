@@ -472,6 +472,19 @@ void UpdateSpellRealmPointDisplays(void)
 /* Enables and frames the power-level pips for the chosen spell's power class:
    class zero shows one pip per affordable level, class one keeps the
    seventh pip live out of combat and class two shows the max pip alone. */
+static void RefreshAvailableSpellPowerPips()
+{
+    unsigned int pip;
+    for (pip = 0; pip < gpSCSV->uiPowerLevels; ++pip) {
+        RefreshSpellPowerPip(pip);
+    }
+    if (gpSCSV->uiPowerLevels < 7) {
+        for (pip = gpSCSV->uiPowerLevels; pip < 7; ++pip) {
+            gpSCSV->power_controls[pip]->SetEnabled(0);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0059F710
 static void UpdateSpellPowerPips(void)
 {
@@ -486,26 +499,12 @@ static void UpdateSpellPowerPips(void)
         RefreshSpellPowerPip(7);
         RefreshSpellPowerPip(8);
         if (gpSCSV->iSpellPowerClass == 0) {
-            for (pip = 0; pip < gpSCSV->uiPowerLevels; ++pip) {
-                RefreshSpellPowerPip(pip);
-            }
-            if (gpSCSV->uiPowerLevels < 7) {
-                for (pip = gpSCSV->uiPowerLevels; pip < 7; ++pip) {
-                    gpSCSV->power_controls[pip]->SetEnabled(0);
-                }
-            }
+            RefreshAvailableSpellPowerPips();
             gpSCSV->power_controls[7]->SetActive(0);
             gpSCSV->power_controls[8]->SetActive(0);
         } else if (gpSCSV->iSpellPowerClass == 1) {
             gpSCSV->power_controls[7]->SetActive(gXStatus.fCombatMode == 0);
-            for (pip = 0; pip < gpSCSV->uiPowerLevels; ++pip) {
-                RefreshSpellPowerPip(pip);
-            }
-            if (gpSCSV->uiPowerLevels < 7) {
-                for (pip = gpSCSV->uiPowerLevels; pip < 7; ++pip) {
-                    gpSCSV->power_controls[pip]->SetEnabled(0);
-                }
-            }
+            RefreshAvailableSpellPowerPips();
             gpSCSV->power_controls[8]->SetActive(0);
         } else if (gpSCSV->iSpellPowerClass == 2) {
             for (pip = 0; pip < 7; ++pip) {

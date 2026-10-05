@@ -1,3 +1,4 @@
+#include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/dialog_code/ButtonUserData.h"
 #include "wiz8/dialog_code/DialogInterface.h"
@@ -52,20 +53,8 @@ void W8ListBoxDialog::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
     }
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         dialog->SetCurrentLine(dialog->m_selected_line - 1);
-        if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
-            button->uiFlags |= BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= 1;
-        }
-    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
-        if (button->uiFlags & BUTTON_CLICKED_ON) {
-            button->uiFlags &= ~BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= 1;
-        }
-    } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-        button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= 1;
-    } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-        button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+    }
+    if (UpdateDialogArrowState(button, reason)) {
         dialog->m_dirty_flags |= 1;
     }
 }
@@ -79,20 +68,8 @@ void W8ListBoxDialog::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
     }
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         dialog->SetCurrentLine(dialog->m_selected_line + 1);
-        if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
-            button->uiFlags |= BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= 1;
-        }
-    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
-        if (button->uiFlags & BUTTON_CLICKED_ON) {
-            button->uiFlags &= ~BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= 1;
-        }
-    } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-        button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= 1;
-    } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-        button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+    }
+    if (UpdateDialogArrowState(button, reason)) {
         dialog->m_dirty_flags |= 1;
     }
 }

@@ -1396,6 +1396,41 @@ void EnableSubMenuRegions(void)
     }
 }
 
+int GetAttackMenuWeaponOffset(W8Skill skill)
+{
+    int base;
+    switch (skill) {
+    case W8_SKILL_MACE_FLAIL:
+        base = 3;
+        break;
+    case W8_SKILL_AXE:
+        base = 4;
+        break;
+    case W8_SKILL_POLEARM:
+        base = 7;
+        break;
+    case W8_SKILL_STAFF_WAND:
+        base = 6;
+        break;
+    case W8_SKILL_BOW:
+        base = 1;
+        break;
+    case W8_SKILL_THROWING_SLING:
+        base = 2;
+        break;
+    case W8_SKILL_MODERN_WEAPONS:
+        base = 8;
+        break;
+    case W8_SKILL_MARTIAL_ARTS:
+        base = 5;
+        break;
+    default:
+        base = 0;
+        break;
+    }
+    return base;
+}
+
 // FUNCTION: WIZ8 0x00595850
 unsigned char BuildSubMenuPanel(short notification)
 {
@@ -1495,35 +1530,8 @@ unsigned char BuildSubMenuPanel(short notification)
                            .realm *
                        7;
         } else if (menu == W8_SUBMENU_ATTACK && entry == 0) {
-            switch (g_status.buffers.Char[g_status.selected_character].Hand[0].weapon_skill) {
-            case 3:
-                base = 3;
-                break;
-            case 1:
-                base = 4;
-                break;
-            case 2:
-                base = 7;
-                break;
-            case 5:
-                base = 6;
-                break;
-            case 8:
-                base = 1;
-                break;
-            case 9:
-                base = 2;
-                break;
-            case 7:
-                base = 8;
-                break;
-            case 14:
-                base = 5;
-                break;
-            default:
-                base = 0;
-                break;
-            }
+            base = GetAttackMenuWeaponOffset(
+                g_status.buffers.Char[g_status.selected_character].Hand[0].weapon_skill);
             message += base * 7;
         }
         switch (state) {
