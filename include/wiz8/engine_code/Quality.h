@@ -3,7 +3,7 @@
 /* Engine Code\Quality.cpp. The startup constructor at 0x0047B500 asserts this
    unit (Quality.cpp:159) where it allocates the shared render-options record. */
 
-/* Public graphics-option ids. The UI mapping plus recovered consumers establish
+/* Engine option ids. The UI mapping plus recovered consumers establish
    all nine user-visible entries: mip mapping calls the SR mipmap setter,
    missile lights gate spell/missile lights, mesh sky gates the separate sky
    world, high texture cache selects 16/32 MiB, video sync sets swap interval,
@@ -18,6 +18,8 @@ enum W8RenderOption {
     W8_RENDER_OPTION_HIGH_TEXTURE_CACHE = 12,
     W8_RENDER_OPTION_VIDEO_SYNC = 13,
     W8_RENDER_OPTION_ADDITIONAL_ANIMATIONS = 14,
+    /* PlayFootstep (0x0047a440) and the audio panel mute button agree on 15. */
+    W8_RENDER_OPTION_FOOTSTEP_SOUND = 15,
     W8_RENDER_OPTION_CORRECT_BLURRED_TEXT = 16,
     W8_RENDER_OPTION_COUNT = 17
 };

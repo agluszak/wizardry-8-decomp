@@ -339,7 +339,7 @@ void CloseSpellCastingView(void)
         DisableRegionInput(0x54);
         DisableRegionInput(0x55);
         g_level_block->action_panel_visible = 0;
-        SetTargetingMode(0);
+        SetTargetingMode(W8_TARGET_NEED_NONE);
         if (gXStatus.fCampMode == 0) {
             ResetEditorStatusLine(-1);
         }
@@ -1316,7 +1316,7 @@ static void SelectSpellCastingListRow(int index)
     int spell_id;
     W8SpellTargetType target_type;
     unsigned int levels;
-    unsigned char needed;
+    W8TargetNeed needed;
 
     previous = gpSCSV->uiSpellIndex;
     if (index == -1) {
@@ -1333,7 +1333,7 @@ static void SelectSpellCastingListRow(int index)
     color = gpSCSV->alt_colors[index];
     if (color == 0 || color == 4) {
         gpSCSV->uiSpellIndex = -1;
-        ConfigureSpellTargetFilter(W8_TARGET_TYPE_NONE, 0);
+        ConfigureSpellTargetFilter(W8_TARGET_TYPE_NONE, W8_TARGET_NEED_NONE);
         ShowSpellCastingError(spell_id);
         QueueCharacterEvent(&g_status.buffers.Char[g_status.selected_character],
                             g_character_event_kind2, 0,

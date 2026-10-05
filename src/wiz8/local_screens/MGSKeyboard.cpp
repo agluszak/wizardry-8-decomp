@@ -263,8 +263,8 @@ void DispatchMGSCommand(W8MGSCommand command)
             EndLockInteractMode(0);
         } else if (gXStatus.fItemSelectMode != 0) {
             CloseUseItemSelection();
-        } else if (gXStatus.iTargetingMode != 0) {
-            SetTargetingMode(0);
+        } else if (gXStatus.iTargetingMode != W8_TARGET_NEED_NONE) {
+            SetTargetingMode(W8_TARGET_NEED_NONE);
         } else if (gXStatus.fReviewCharacterMode != 0) {
             CloseFormationPanel();
         } else if (IsNpcScriptSessionActive() != 0) {

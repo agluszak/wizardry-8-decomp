@@ -1058,18 +1058,18 @@ void DrawSubMenuCharacterAction(void)
     } else {
         action = row->action;
         switch (action) {
-        case 7:
+        case W8_ACTION_CAST_SPELL:
             swprintf(text, L"%s - %s (%d)", gppStringList[g_action_kind_message_ids[7]],
                      g_spell_records[row->action_detail0].display_name,
                      row->action_detail1.spell.power_level);
             break;
-        case 8:
+        case W8_ACTION_USE_ITEM:
             swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids[8]],
                      g_spell_records[g_item_records[row->action_detail1.item_use.item->iItemNo]
                                          .spell_id]
                          .display_name);
             break;
-        case 0:
+        case W8_ACTION_ATTACK:
             swprintf(text, L"%s - ", gppStringList[g_action_kind_message_ids[0]]);
             if (character->Hand[0].in_play != 0) {
                 if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == -1) {
@@ -1105,7 +1105,7 @@ void DrawSubMenuCharacterAction(void)
                 }
             }
             break;
-        case 5:
+        case W8_ACTION_PROTECT:
             if (row->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
                 swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids[5]],
                          g_status.buffers.Char[row->target_in_combat.iChar].name);
@@ -1120,7 +1120,7 @@ void DrawSubMenuCharacterAction(void)
                 swprintf(text, L"%s ", gppStringList[g_action_kind_message_ids[5]]);
             }
             break;
-        case -1:
+        case W8_ACTION_NONE:
             wcscpy(text, gppStringList[0x7e1]);
             break;
         default:
@@ -1743,7 +1743,7 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
         }
         break;
     }
-    g_level_block->selection_kind = -1;
+    g_level_block->selection_kind = W8_ACTION_NONE;
     g_level_block->pending_action = -1;
     g_level_block->selection_settled = 0;
     return state;
@@ -1752,10 +1752,10 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
 // FUNCTION: WIZ8 0x00596240
 void MapSubMenuSelection(short menu, short item)
 {
-    int action;
+    W8ActionKind action;
     bool settled;
 
-    action = -1;
+    action = W8_ACTION_NONE;
     settled = false;
     switch (menu) {
     case W8_SUBMENU_ATTACK:

@@ -666,7 +666,7 @@ static void BeginFormationDrag(const InputAtom*)
                      0, 0, 2, 0);
     WarpSystemCursor(point.x - 0x10, point.y - 0x10);
     RefreshMouseCursorTexture();
-    gXStatus.iCurrentCursor = 7;
+    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
     ResetFormationCellControls(g_formation_drag_cell);
 }
 

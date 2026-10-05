@@ -519,7 +519,7 @@ void RefreshTrackedPortraitOverlay(void); /* 0x00563890 */
 /* Which party portrait the pointer is over, if any. */
 unsigned char HitTestPartyPortrait(const InputAtom* event);
 void ClearCombatSelection(void);                                       /* 0x0056A5A0 */
-void UpdateWorldViewCursor(const InputAtom* event, int target_needed); /* 0x0056A5D0 */
+void UpdateWorldViewCursor(const InputAtom* event, W8TargetNeed target_needed); /* 0x0056A5D0 */
 void RequestRefreshPartyState(void);
 void RefreshFlaggedMainGameState(void);
 bool IsScreenIdle(void);

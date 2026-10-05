@@ -1311,7 +1311,7 @@ unsigned char CampScreenEnter(void)
         g_camp_entry_parameter = g_current_screen_state.parameter_4;
         entry_mode = 2;
         SoundPlay(s_general_magic_sound, 0);
-        SetTargetingMode(6);
+        SetTargetingMode(W8_TARGET_NEED_ITEM);
     }
     gXStatus.item_drag_active = 0;
     gXStatus.dragged_item = 0;

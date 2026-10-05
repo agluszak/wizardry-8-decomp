@@ -124,7 +124,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
                     if (static_cast<char>(first) == slot) {
                         return 1;
                     }
-                    int kind;
+                    W8ActionKind kind;
                     int action;
                     W8ActionDetailBlock* detail;
                     ChooseCombatAction(first, category, &kind, &action, 0, &detail);
@@ -270,7 +270,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
 {
     W8ActionDetailBlock* detail_block;
     bool flag;
-    int action;
+    W8ActionKind action;
     int detail;
     int range;
     char rows;
@@ -278,8 +278,8 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     if (monster_info->party_threat.sight_state != W8_SIGHT_SEEN) {
         return 0;
     }
-    if (gXStatus.iTargetingMode == 0 && gXStatus.fCombatMode == 0 && gXStatus.fSpellCastMode == 0 &&
-        gXStatus.fItemSelectMode == 0) {
+    if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE && gXStatus.fCombatMode == 0 &&
+        gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
         range = W8_RANGE_TOUCH;
         flag = 1;
     } else {
@@ -298,7 +298,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
             range = W8_RANGE_TOUCH;
             break;
         case W8_ACTION_CAST_SPELL:
-            if (detail == 0) {
+            if (detail == W8_SPELL_NONE) {
                 range = W8_RANGE_NONE;
                 break;
             }
@@ -314,9 +314,9 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
         if (range == W8_RANGE_NONE) {
             return 0;
         }
-        ChooseCombatAction(party_slot, context, &detail, 0, 0, 0);
-        flag = detail == W8_ACTION_TURN_UNDEAD ||
-               (detail > W8_ACTION_PROTECT && detail < W8_ACTION_EQUIP);
+        ChooseCombatAction(party_slot, context, &action, 0, 0, 0);
+        flag = action == W8_ACTION_TURN_UNDEAD ||
+               (action > W8_ACTION_PROTECT && action < W8_ACTION_EQUIP);
         if (gXStatus.fCombatMode != 0 && range >= 0 && range < 2) {
             rows = CountRowsBetween(party_slot, monster_info);
             while (rows != 0) {
@@ -365,7 +365,7 @@ bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot,
         return 1;
     }
     W8Character* character = &g_status.buffers.Char[party_slot];
-    int kind;
+    W8ActionKind kind;
     int action;
     W8ActionDetailBlock* detail;
     ChooseCombatAction(party_slot, context, &kind, &action, 0, &detail);
@@ -441,25 +441,27 @@ W8RangeCategory GetCharActionRange(int party_slot, int hand, W8TargetingContext 
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8ActionDetailBlock* detail_block;
-    int action;
+    W8ActionKind action;
     int detail;
 
     ChooseCombatAction(party_slot, context, &action, &detail, 0, &detail_block);
     switch (action) {
-    case 0:
-    case 1:
+    case W8_ACTION_ATTACK:
+    case W8_ACTION_BERSERK:
         return GetCharAttackRange(character, hand);
-    case 7:
+    case W8_ACTION_CAST_SPELL:
         if (detail != 0) {
             return g_spell_records[detail].range_category;
         }
         break;
-    case 8:
+    case W8_ACTION_USE_ITEM:
         return GetItemSpellRange(detail_block->item_use.item);
-    case 5:
+    case W8_ACTION_PROTECT:
         return W8_RANGE_TOUCH;
-    case 2:
+    case W8_ACTION_BREATHE:
         return W8_RANGE_LONG;
+    default:
+        break;
     }
     return W8_RANGE_NONE;
 }

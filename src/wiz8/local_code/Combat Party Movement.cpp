@@ -121,7 +121,7 @@ void SetPendingMoveKind(W8ActionKind kind)
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 435, 0);
     }
-    g_combat_state->uiNextPartyAction = (kind != 10) + 1;
+    g_combat_state->uiNextPartyAction = (kind != W8_ACTION_WALK) + 1;
 }
 
 /* Drop a queued party move and rebuild every other switchable character's

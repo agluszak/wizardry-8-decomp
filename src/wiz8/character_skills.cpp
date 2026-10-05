@@ -417,7 +417,7 @@ bool IsCharacterSkillAvailable(W8Character* character, W8Skill skill_id,
     if (g_profession_skill_availability[skill_id][character->iProfession] == 0) {
         return false;
     }
-    if (CharacterHasTrait(character, static_cast<W8Trait>(0x1f))) {
+    if (CharacterHasTrait(character, W8_TRAIT_CANNOT_LEARN)) {
         if (static_cast<unsigned int>(skill_id) >= W8_SKILL_SPELLBOOK_WIZARDRY &&
             static_cast<unsigned int>(skill_id) <= W8_SKILL_SPELLBOOK_PSIONICS) {
             return false;

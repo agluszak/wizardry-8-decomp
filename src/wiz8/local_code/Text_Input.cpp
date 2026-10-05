@@ -1,3 +1,4 @@
+#include "wiz8/cursor.h"
 #include "Font.h"
 #include "input.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -896,7 +897,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
     if ((reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) != 0)
         SetTargetCursor(GetTextInputCursor());
     if ((reason & MSYS_CALLBACK_REASON_LOST_MOUSE) != 0)
-        SetTargetCursor(-1);
+        SetTargetCursor(W8_CURSOR_NONE);
 
     if (gfLeftButtonState == 0 || gpActive == 0 || (reason & MSYS_CALLBACK_REASON_MOVE) == 0) {
         return;

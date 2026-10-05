@@ -88,7 +88,7 @@ struct W8XStatus {
     int iCurrentCursor;        /* 0x923 */
     int current_cursor_frame;  /* 0x927 */
     TIMER current_cursor_time; /* 0x92b */
-    int iTargetingMode;        /* 0x92f: 0x00683FE7 */
+    W8TargetNeed iTargetingMode; /* 0x92f: 0x00683FE7 */
     /* 0x933: the formation screen's edit buffer - MGSFormation snapshots the
        live formation here on open, edits the copy, and either reconciles it
        back or diffs it against live on accept. */

@@ -78,7 +78,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     short saved_combat_notification;
     int saved_combat_slot;
     int saved_hover_slot;
-    int saved_selection_kind;
+    W8ActionKind saved_selection_kind;
     int saved_value;
     unsigned int saved_clock_214;
     W8ItemInstance saved_backpack_item;
