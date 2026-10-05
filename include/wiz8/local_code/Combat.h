@@ -77,7 +77,7 @@ int ExecuteCharacterSpecialAttack(int party_slot);
 void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail, const W8ActionDetailBlock* data,
                             int notify); /* 0x004E7EE0 */
 int IsPartyEngaged(void);                /* 0x004E7E70 */
-int GetEngagementCount(void);            /* 0x004ED2B0 */
+W8PartyAction GetEffectivePartyAction(void); /* 0x004ED2B0 */
 void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting

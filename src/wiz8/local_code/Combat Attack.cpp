@@ -1135,11 +1135,11 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, W8AttackMode attack_mode)
                     modifier -= component;
                 }
             }
-            if (GetEngagementCount() == 0 &&
+            if (GetEffectivePartyAction() == W8_PARTY_ACTION_NONE &&
                 TryCharacterAction(target->iChar, W8_ACTION_PRAY, 0) != 0) {
                 modifier -= 4;
             }
-            distracted = GetEngagementCount() == 2;
+            distracted = GetEffectivePartyAction() == W8_PARTY_ACTION_RUN;
         }
         out_of_formation = character->bonus.out_of_formation;
     } else {
@@ -1623,6 +1623,22 @@ static int RollBackstabExtraDice(int chance)
     return extra;
 }
 
+static void MarkDefenderSkillUse(int party_slot)
+{
+    W8Character* defender = &g_status.buffers.Char[party_slot];
+    if (defender->skills[W8_SKILL_STEALTH].active != 0) {
+        g_combat_state->characters[party_slot].skill_use_flags[W8_SKILL_STEALTH] = 1;
+    }
+    if (defender->skills[W8_SKILL_SHIELD].active != 0 && g_combat_state->unaware == 0 &&
+        g_combat_state->natural_attack == 0 &&
+        defender->armor_class_components[W8_AC_COMPONENT_SHIELD] > 0) {
+        g_combat_state->characters[party_slot].skill_use_flags[W8_SKILL_SHIELD] = 1;
+    }
+    if (defender->skills[W8_SKILL_REFLEXTION].active != 0) {
+        g_combat_state->characters[party_slot].skill_use_flags[W8_SKILL_REFLEXTION] = 1;
+    }
+}
+
 /* Resolve one queued swing of the monster's attack: rolls the hit chance and
    the fumble redirection, resolves guardian interception, picks the hit
    location, rolls penetration, applies damage and the struck target's
@@ -1668,18 +1684,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     SetTargetSourceToMonster(monster_info, &source);
     entry_target = monster_info->Target;
     if (entry_target.iType == W8_TARGET_KIND_CHARACTER) {
-        W8Character* defender = &g_status.buffers.Char[entry_target.iChar];
-        if (defender->skills[W8_SKILL_STEALTH].active != 0) {
-            g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_STEALTH] = 1;
-        }
-        if (defender->skills[W8_SKILL_SHIELD].active != 0 && g_combat_state->unaware == 0 &&
-            g_combat_state->natural_attack == 0 &&
-            defender->armor_class_components[W8_AC_COMPONENT_SHIELD] > 0) {
-            g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_SHIELD] = 1;
-        }
-        if (defender->skills[W8_SKILL_REFLEXTION].active != 0) {
-            g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_REFLEXTION] = 1;
-        }
+        MarkDefenderSkillUse(entry_target.iChar);
     }
     range = GetMonsterActionRangeCategory(monster_info, record, attack_index);
     if (range < W8_RANGE_LONG) {
@@ -2528,8 +2533,8 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
     W8MonsterRecord* record = NULL;
     W8Character* target = NULL;
     unsigned char out_of_formation;
-    bool target_exposed;
-    bool bVar10;
+    bool target_defending;
+    bool target_moving;
 
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
         if (g_combat_state->TargetHit.iMonsterID == -1) {
@@ -2542,18 +2547,18 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
         record = GetMonsterDataForInfo(monster_info);
         out_of_formation = monster_info->modifiers.out_of_formation;
         W8MonsterActionKind action_kind = monster_info->action_kind;
-        bVar10 = action_kind == W8_MONSTER_ACTION_ADVANCE;
-        target_exposed =
+        target_moving = action_kind == W8_MONSTER_ACTION_ADVANCE;
+        target_defending =
             action_kind == W8_MONSTER_ACTION_WAIT || action_kind == W8_MONSTER_ACTION_PROTECT;
     } else {
         if (g_combat_state->TargetHit.iChar == -1) {
             srAssertFail("gpCombat->TargetHit.iChar != BAD_INDEX", COMBAT_ATTACK_CPP, 0xbff, 0);
         }
         target = &g_status.buffers.Char[g_combat_state->TargetHit.iChar];
-        int engaged = GetEngagementCount();
+        W8PartyAction party_action = GetEffectivePartyAction();
         out_of_formation = target->bonus.out_of_formation;
-        bVar10 = engaged == 2;
-        target_exposed =
+        target_moving = party_action == W8_PARTY_ACTION_RUN;
+        target_defending =
             TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, 1) != 0 ||
             TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_PROTECT, 1) != 0;
     }
@@ -2561,7 +2566,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
     unsigned int dice_count = 1;
     if (attack_mode != W8_ATTACK_MODE_THROW &&
         (attack_mode < W8_ATTACK_MODE_LASH || attack_mode > W8_ATTACK_MODE_SHOOT)) {
-        if (bVar10 || out_of_formation != 0 || g_combat_state->unaware != 0) {
+        if (target_moving || out_of_formation != 0 || g_combat_state->unaware != 0) {
             dice_count = 2;
         }
         if (g_combat_state->natural_attack != 0) {
@@ -2573,7 +2578,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
     if (attack_mode == W8_ATTACK_MODE_BERSERK) {
         dice_count += 1;
     }
-    if (dice_count > 1 && target_exposed != 0 && g_combat_state->unaware == 0) {
+    if (dice_count > 1 && target_defending != 0 && g_combat_state->unaware == 0) {
         dice_count -= 1;
     }
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
@@ -2649,10 +2654,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
         }
     }
 
-    int rolled = 0;
-    for (unsigned int i = dice_count; i != 0; i = i - 1) {
-        rolled += RollDice(&dice);
-    }
+    int rolled = RollDice(&dice, dice_count);
     if (dice.count == 0) {
         *out_hit = 0;
     } else if (rolled < (g_float_one - dice.count * g_facing_tolerance0) *
@@ -2772,8 +2774,8 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
     W8MonsterRecord* record;
     W8Character* target;
     unsigned char out_of_formation;
-    bool target_exposed;
-    bool bVar10;
+    bool target_defending;
+    bool target_moving;
 
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
         if (g_combat_state->TargetHit.iChar == -1) {
@@ -2782,10 +2784,10 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         target = &g_status.buffers.Char[g_combat_state->TargetHit.iChar];
         target_info = NULL;
         record = NULL;
-        int engaged = GetEngagementCount();
+        W8PartyAction party_action = GetEffectivePartyAction();
         out_of_formation = target->bonus.out_of_formation;
-        bVar10 = engaged == 2;
-        target_exposed =
+        target_moving = party_action == W8_PARTY_ACTION_RUN;
+        target_defending =
             TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, 1) != 0 ||
             TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_PROTECT, 1) != 0;
     } else {
@@ -2801,8 +2803,8 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
             GetMonsterGroupIndexByID(0xd4c, COMBAT_ATTACK_CPP, target_info->monster_group_id, 1));
         W8MonsterActionKind action_kind = target_info->action_kind;
         out_of_formation = target_info->modifiers.out_of_formation;
-        bVar10 = action_kind == W8_MONSTER_ACTION_ADVANCE;
-        target_exposed =
+        target_moving = action_kind == W8_MONSTER_ACTION_ADVANCE;
+        target_defending =
             action_kind == W8_MONSTER_ACTION_WAIT || action_kind == W8_MONSTER_ACTION_PROTECT;
         target = NULL;
     }
@@ -2810,7 +2812,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
     unsigned int dice_count = 1;
     if (attack_mode != W8_ATTACK_MODE_THROW &&
         (attack_mode < W8_ATTACK_MODE_LASH || attack_mode > W8_ATTACK_MODE_SHOOT)) {
-        if (bVar10 || out_of_formation != 0 || g_combat_state->unaware != 0) {
+        if (target_moving || out_of_formation != 0 || g_combat_state->unaware != 0) {
             dice_count = 2;
         }
         if (g_combat_state->natural_attack != 0) {
@@ -2822,14 +2824,11 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
     if (attack_mode == W8_ATTACK_MODE_BERSERK) {
         dice_count += 1;
     }
-    if (dice_count > 1 && target_exposed != 0 && g_combat_state->unaware == 0) {
+    if (dice_count > 1 && target_defending != 0 && g_combat_state->unaware == 0) {
         dice_count -= 1;
     }
 
-    int rolled = 0;
-    for (unsigned int i = dice_count; i != 0; i = i - 1) {
-        rolled += RollDice(&attack->damage_dice);
-    }
+    int rolled = RollDice(&attack->damage_dice, dice_count);
     if (rolled <= 0) {
         rolled = 1;
     }
@@ -3959,18 +3958,7 @@ int ResolveCharacterAttack(int party_slot)
         target = party_row->target_out_of_combat;
         range = GetCharAttackRange(character, hand);
         if (target.iType == W8_TARGET_KIND_CHARACTER) {
-            W8Character* defender = &g_status.buffers.Char[target.iChar];
-            if (defender->skills[W8_SKILL_STEALTH].active != 0) {
-                g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_STEALTH] = 1;
-            }
-            if (defender->skills[W8_SKILL_SHIELD].active != 0 && g_combat_state->unaware == 0 &&
-                g_combat_state->natural_attack == 0 &&
-                defender->armor_class_components[W8_AC_COMPONENT_SHIELD] > 0) {
-                g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_SHIELD] = 1;
-            }
-            if (defender->skills[W8_SKILL_REFLEXTION].active != 0) {
-                g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_REFLEXTION] = 1;
-            }
+            MarkDefenderSkillUse(target.iChar);
         }
         if (range < W8_RANGE_LONG) {
             to_hit = GetTargetAttackAttributes(party_slot, hand, attack_mode, 0);

@@ -1083,9 +1083,7 @@ int GetKnockKnockSpellPower(int slot)
         return -1;
     }
     book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
-    return (character->skills[book].level +
-            character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
-           5;
+    return GetSpellCastingSkillLevel(character, book, g_spell_records[0x27].realm);
 }
 
 // FUNCTION: WIZ8 0x00586AF0
@@ -1243,9 +1241,7 @@ void W8LockInteraction::AttemptForce()
                 m_spell_button->SetEnabled(0);
             } else {
                 book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
-                power = (character->skills[book].level +
-                         character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
-                        5;
+                power = GetSpellCastingSkillLevel(character, book, g_spell_records[0x27].realm);
                 if (power > -1) {
                     m_spell_button->SetEnabled(CanCharacterCastSpell(character, 0x27));
                 } else {
@@ -1914,9 +1910,7 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
     }
     if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x12] == 1) {
         W8Skill figure_skill = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7);
-        figure = (character->skills[figure_skill].level +
-                  character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
-                 5;
+        figure = GetSpellCastingSkillLevel(character, figure_skill, g_spell_records[0x12].realm);
         if (static_cast<int>(figure) >= 0) {
             m_text5->SetFontStateIndex(-1);
             m_text5->SetText(FormatWideString(g_format_d_percent, figure),
@@ -2377,6 +2371,24 @@ void W8MainGameScreen::ApplyInspectSuccess()
     }
 }
 
+static void BeginTrapTargetAction()
+{
+    W8MainGameScreen* screen;
+    W8MainGameTextPanel* panel;
+    screen = g_main_game_screen;
+    gXStatus.fTrapInteractMode = false;
+    panel = screen->m_text_panel;
+    panel->EnableRegionSet(0);
+    panel->m_key_handler->m_range.EnableRegionSet(0);
+    screen->m_action_panel->EnableRegionSet(0);
+    gXStatus.fTrapInteract = true;
+    SelectTextBox(0);
+    ApplyMainGameModeFlag(g_ui_mode_saved, 1);
+    RequestRedraw(0x200);
+    RequestRedrawCombatBar();
+    RequestRedraw(0x1000);
+}
+
 // FUNCTION: WIZ8 0x0058a200
 void W8MainGameScreen::CastTrapSpell()
 {
@@ -2385,15 +2397,11 @@ void W8MainGameScreen::CastTrapSpell()
     W8Skill book;
     unsigned int figure;
     int spell;
-    W8MainGameScreen* screen;
-    W8MainGameTextPanel* panel;
     bool ready = false;
 
     if (IsPartySlotEligible(slot) && character->spell_learned[0x27] == 1) {
         book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
-        figure = (character->skills[book].level +
-                  character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
-                 5;
+        figure = GetSpellCastingSkillLevel(character, book, g_spell_records[0x27].realm);
         if (static_cast<int>(figure) >= 0) {
             ready = 1;
         }
@@ -2404,9 +2412,7 @@ void W8MainGameScreen::CastTrapSpell()
             return;
         }
         book = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7);
-        figure = (character->skills[book].level +
-                  character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
-                 5;
+        figure = GetSpellCastingSkillLevel(character, book, g_spell_records[0x12].realm);
         if (static_cast<int>(figure) < 0) {
             return;
         }
@@ -2417,40 +2423,16 @@ void W8MainGameScreen::CastTrapSpell()
     }
     spell = CanCharacterCastSpell(&g_status.buffers.Char[slot], 0x12) != 0 ? 0x12 : 0x27;
     m_action_controls[1]->SetAlternateTextEnabled(0);
-    screen = g_main_game_screen;
-    gXStatus.fTrapInteractMode = false;
-    panel = screen->m_text_panel;
-    panel->EnableRegionSet(0);
-    panel->m_key_handler->m_range.EnableRegionSet(0);
-    screen->m_action_panel->EnableRegionSet(0);
-    gXStatus.fTrapInteract = true;
-    SelectTextBox(0);
-    ApplyMainGameModeFlag(g_ui_mode_saved, 1);
-    RequestRedraw(0x200);
-    RequestRedrawCombatBar();
-    RequestRedraw(0x1000);
+    BeginTrapTargetAction();
     BeginSpellCast(spell, -1, -1);
 }
 
 // FUNCTION: WIZ8 0x0058a3e0
 void W8MainGameScreen::UseTrapItem()
 {
-    W8MainGameScreen* screen;
-    W8MainGameTextPanel* panel;
 
     m_action_controls[3]->SetAlternateTextEnabled(0);
-    screen = g_main_game_screen;
-    gXStatus.fTrapInteractMode = false;
-    panel = screen->m_text_panel;
-    panel->EnableRegionSet(0);
-    panel->m_key_handler->m_range.EnableRegionSet(0);
-    screen->m_action_panel->EnableRegionSet(0);
-    gXStatus.fTrapInteract = true;
-    SelectTextBox(0);
-    ApplyMainGameModeFlag(g_ui_mode_saved, 1);
-    RequestRedraw(0x200);
-    RequestRedrawCombatBar();
-    RequestRedraw(0x1000);
+    BeginTrapTargetAction();
     OpenUseItemSelectView(g_status.selected_character);
 }
 

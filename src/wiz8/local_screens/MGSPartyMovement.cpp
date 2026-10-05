@@ -28,9 +28,6 @@
 
 #define PARTY_MOVEMENT_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPartyMovement.cpp"
 
-/* The assertion at 0x005A1A0E names this value ACTION_STATUS_FINISHED. */
-enum { W8_ACTION_STATUS_FINISHED = 3 };
-
 /* Retail callback IDs 0 and 1 index this base, and ReleasePartyMovement walks
    the two-pointer span. */
 // GLOBAL: WIZ8 0x0069BF40
@@ -144,9 +141,9 @@ void DrawPartyMovementPanel(void)
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", PARTY_MOVEMENT_CPP, 0xf6, 0);
     }
-    if ((g_combat_state->uiCurrentPartyAction == 0 ||
-         g_combat_state->uiCurrentPartyActionStatus == W8_ACTION_STATUS_FINISHED) &&
-        g_combat_state->uiNextPartyAction == 0) {
+    if ((g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_NONE ||
+         g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_FINISHED) &&
+        g_combat_state->uiNextPartyAction == W8_PARTY_ACTION_NONE) {
         srAssertFail("((gpCombat->uiCurrentPartyAction != PARTY_ACTION_NONE) && "
                      "(gpCombat->uiCurrentPartyActionStatus != ACTION_STATUS_FINISHED)) || "
                      "(gpCombat->uiNextPartyAction != PARTY_ACTION_NONE)",
@@ -190,9 +187,9 @@ void DrawPartyMovementPanel(void)
     } else {
         image = 0;
         if (g_combat_state->execution_active != 0 && IsPartyEngaged() == 0) {
-            caption = (g_combat_state->uiCurrentPartyAction != 2) + 0x77b;
+            caption = (g_combat_state->uiCurrentPartyAction != W8_PARTY_ACTION_RUN) + 0x77b;
         } else {
-            caption = (g_combat_state->uiNextPartyAction != 2) + 0x77b;
+            caption = (g_combat_state->uiNextPartyAction != W8_PARTY_ACTION_RUN) + 0x77b;
         }
     }
     if (panel_live != 0) {

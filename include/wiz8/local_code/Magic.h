@@ -72,6 +72,8 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
    spell_learned array. */
 void RecountLearnedSpellsByRealm(W8Character* character);
 bool CanCharacterCastSpell(W8Character* character, int spell_id);
+unsigned int GetSpellCastingSkillLevel(const W8Character* character, W8Skill spellbook_skill,
+                                       W8SpellRealm realm);
 W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool pricing,
                                       bool prefer_unlocked, unsigned int power_level);
 

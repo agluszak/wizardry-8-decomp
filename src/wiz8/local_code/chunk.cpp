@@ -49,21 +49,18 @@ unsigned char W8Chunk::Write(const void* buffer, unsigned int size, unsigned int
     return result;
 }
 
-// FUNCTION: WIZ8 0x0055c000
-unsigned char W8Chunk::OpenRead(char* path)
+unsigned char W8Chunk::OpenExistingRiff(char* path, unsigned int flags)
 {
-    W8ChunkHead* head;
-
     if (m_hFile != 0) {
         return 0;
     }
-    m_hFile = FileOpen(path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
+    m_hFile = FileOpen(path, flags, 0);
     if (m_hFile == 0) {
         return 0;
     }
     m_fWriting = 0;
     OpenChunk(0, 0);
-    head = m_heads.data[m_heads.count - 1];
+    W8ChunkHead* head = m_heads.data[m_heads.count - 1];
     if (head == 0) {
         srAssertFail("pHead", CHUNK_CPP, 0x1f0, 0);
     }
@@ -72,6 +69,12 @@ unsigned char W8Chunk::OpenRead(char* path)
     }
     OpenGroup();
     return 1;
+}
+
+// FUNCTION: WIZ8 0x0055c000
+unsigned char W8Chunk::OpenRead(char* path)
+{
+    return OpenExistingRiff(path, FILE_ACCESS_READ | FILE_OPEN_EXISTING);
 }
 
 // FUNCTION: WIZ8 0x0055be30
@@ -102,23 +105,9 @@ unsigned char W8Chunk::OpenAppend(char* path)
     int position;
     int distance;
 
-    if (m_hFile != 0) {
+    if (!OpenExistingRiff(path, FILE_ACCESS_READWRITE)) {
         return 0;
     }
-    m_hFile = FileOpen(path, FILE_ACCESS_READWRITE, 0);
-    if (m_hFile == 0) {
-        return 0;
-    }
-    m_fWriting = 0;
-    OpenChunk(0, 0);
-    head = m_heads.data[m_heads.count - 1];
-    if (head == 0) {
-        srAssertFail("pHead", CHUNK_CPP, 0x1f0, 0);
-    }
-    if (head->chunk_id != W8_RIFF_CHUNK_ID) {
-        return 0;
-    }
-    OpenGroup();
     child_count = m_group_counts.data[m_group_counts.count - 1];
     remaining = child_count;
     if (child_count > 0) {
@@ -145,26 +134,7 @@ unsigned char W8Chunk::OpenAppend(char* path)
 // FUNCTION: WIZ8 0x0055c080
 unsigned char W8Chunk::OpenReadWrite(char* path)
 {
-    W8ChunkHead* head;
-
-    if (m_hFile != 0) {
-        return 0;
-    }
-    m_hFile = FileOpen(path, FILE_ACCESS_READWRITE | FILE_OPEN_EXISTING, 0);
-    if (m_hFile == 0) {
-        return 0;
-    }
-    m_fWriting = 0;
-    OpenChunk(0, 0);
-    head = m_heads.data[m_heads.count - 1];
-    if (head == 0) {
-        srAssertFail("pHead", CHUNK_CPP, 0x1f0, 0);
-    }
-    if (head->chunk_id != W8_RIFF_CHUNK_ID) {
-        return 0;
-    }
-    OpenGroup();
-    return 1;
+    return OpenExistingRiff(path, FILE_ACCESS_READWRITE | FILE_OPEN_EXISTING);
 }
 
 /* Close the root chunk and then its file. In write mode the root's stored

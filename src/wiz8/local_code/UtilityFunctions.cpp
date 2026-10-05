@@ -84,6 +84,16 @@ int RollDice(const W8Dice* dice)
     return result;
 }
 
+int RollDice(const W8Dice* dice, unsigned int rolls)
+{
+    int result = 0;
+    while (rolls != 0) {
+        result += RollDice(dice);
+        --rolls;
+    }
+    return result;
+}
+
 // FUNCTION: WIZ8 0x005179b0
 int IntegerPower(int base, unsigned int exponent)
 {

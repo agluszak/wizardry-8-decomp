@@ -855,6 +855,29 @@ void AddChar(unsigned short character)
         gpActive->szString, &gsCursorX, &guiVisibleCount);
 }
 
+static unsigned char FindTextInputMousePosition(TEXTINPUTNODE* field, unsigned char position,
+                                                int mouse_offset)
+{
+    unsigned int start = position;
+    short width = StringPixLengthArg(pColors->usFont, 1, field->szString + start);
+    if ((width / 2) / 2 < mouse_offset) {
+        int count = 1;
+        int previous_width = width / 2;
+        do {
+            if (field->ubStrLen <= position)
+                break;
+            ++position;
+            ++count;
+            width = StringPixLengthArg(pColors->usFont, count, field->szString + start);
+            int midpoint = (width - previous_width) / 2 + previous_width;
+            previous_width = width;
+            if (mouse_offset <= midpoint)
+                break;
+        } while (true);
+    }
+    return position;
+}
+
 // FUNCTION: WIZ8 0x005D4CB0
 void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
 {
@@ -901,23 +924,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
 
     unsigned char position = gubParkingPos;
     int mouse_offset = gusMouseXPos - current_field->region.RegionTopLeftX;
-    unsigned int start = gubParkingPos;
-    short width = StringPixLengthArg(pColors->usFont, 1, current_field->szString + start);
-    if ((width / 2) / 2 < mouse_offset) {
-        int count = 1;
-        int previous_width = width / 2;
-        do {
-            if (current_field->ubStrLen <= position)
-                break;
-            ++position;
-            ++count;
-            width = StringPixLengthArg(pColors->usFont, count, current_field->szString + start);
-            int midpoint = (width - previous_width) / 2 + previous_width;
-            previous_width = width;
-            if (mouse_offset <= midpoint)
-                break;
-        } while (true);
-    }
+    position = FindTextInputMousePosition(current_field, position, mouse_offset);
 
     if (position == gubMouseDownPos) {
         gfHiliteMode = false;
@@ -1039,23 +1046,7 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
         } else {
             TEXTINPUTNODE* field = gpActive;
             int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
-            unsigned int start = gubParkingPos;
-            short width = StringPixLengthArg(pColors->usFont, 1, field->szString + start);
-            if ((width / 2) / 2 < mouse_offset) {
-                int count = 1;
-                int previous_width = width / 2;
-                do {
-                    if (field->ubStrLen <= position)
-                        break;
-                    position = static_cast<unsigned char>(position + 1);
-                    ++count;
-                    width = StringPixLengthArg(pColors->usFont, count, field->szString + start);
-                    int midpoint = (width - previous_width) / 2 + previous_width;
-                    previous_width = width;
-                    if (mouse_offset <= midpoint)
-                        break;
-                } while (true);
-            }
+            position = FindTextInputMousePosition(field, position, mouse_offset);
         }
         if (position == gubMouseDownPos)
             gfHiliteMode = false;
@@ -1338,23 +1329,7 @@ void SelectAllText(void)
         position = 0;
     } else {
         int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
-        unsigned int start = gubParkingPos;
-        short width = StringPixLengthArg(pColors->usFont, 1, field->szString + start);
-        if ((width / 2) / 2 < mouse_offset) {
-            int count = 1;
-            int previous_width = width / 2;
-            do {
-                if (field->ubStrLen <= position)
-                    break;
-                ++position;
-                ++count;
-                width = StringPixLengthArg(pColors->usFont, count, field->szString + start);
-                int midpoint = (width - previous_width) / 2 + previous_width;
-                previous_width = width;
-                if (mouse_offset <= midpoint)
-                    break;
-            } while (true);
-        }
+        position = FindTextInputMousePosition(field, position, mouse_offset);
     }
 
     if (field->szString[position] == L' ')

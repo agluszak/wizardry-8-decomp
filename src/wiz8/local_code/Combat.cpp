@@ -207,8 +207,8 @@ unsigned char StartCombat(int surprise)
     g_combat_state->pActionMonsterInfo = 0;
     g_combat_state->hit_sound_active = 0;
     g_combat_state->engaged_missile = 0;
-    g_combat_state->uiNextPartyAction = 0;
-    g_combat_state->uiCurrentPartyAction = 0;
+    g_combat_state->uiNextPartyAction = W8_PARTY_ACTION_NONE;
+    g_combat_state->uiCurrentPartyAction = W8_PARTY_ACTION_NONE;
     g_combat_state->unengaged_rounds = 0;
     g_combat_state->combat_update_count = 0;
     g_combat_state->notice_scroll_pending = 0;
@@ -515,7 +515,7 @@ void BeginCombatExecution(void)
     int slot;
     unsigned int index;
     if ((g_combat_state->round_count == 0 && g_combat_state->enemies_engaged != 0) ||
-        g_combat_state->uiCurrentPartyActionStatus == 3) {
+        g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_FINISHED) {
         AlertWorldNoise();
     }
     if (g_level_block->combat_end_notification != -1) {
@@ -533,9 +533,9 @@ void BeginCombatExecution(void)
     g_combat_state->passive_round = 1;
     g_level_block->pick_changed = false;
     g_combat_state->uiCurrentPartyAction = g_combat_state->uiNextPartyAction;
-    g_combat_state->uiCurrentPartyActionStatus = 0;
+    g_combat_state->uiCurrentPartyActionStatus = W8_PARTY_ACTION_NOT_STARTED;
     UpdatePartyMovementControl();
-    if (g_combat_state->uiNextPartyAction != 0) {
+    if (g_combat_state->uiNextPartyAction != W8_PARTY_ACTION_NONE) {
         ClearPendingPartyMovement(-1);
     }
     if (g_settings.continuous_combat == 0) {
@@ -545,10 +545,11 @@ void BeginCombatExecution(void)
     }
     ++g_combat_state->round_count;
     ++g_combat_round_counter;
-    if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
+    if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_WALK ||
+        g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_RUN) {
         gXStatus.flPartyMoveDistLimit = GetPartyMovementSpeed();
         ResetLevelMovement(gXStatus.flPartyMoveDistLimit, 0,
-                           g_combat_state->uiCurrentPartyAction == 2);
+                           g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_RUN);
     } else {
         gXStatus.flPartyMoveDistLimit = 0.0f;
         ResetLevelMovement(gXStatus.flPartyMoveDistLimit, 1, 0);
@@ -614,7 +615,8 @@ void BeginCombatExecution(void)
     RequestRedraw(0x1000ff);
     RequestRedraw(0x80000);
 
-    if (g_settings.verbose_combat_messages != 0 && g_combat_state->uiCurrentPartyAction == 0) {
+    if (g_settings.verbose_combat_messages != 0 &&
+        g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_NONE) {
         for (slot = 0; slot < 8; ++slot) {
             W8PartySlotRow* party = &g_status.buffers.XChar[slot];
             if (!IsPartySlotEligible(slot) ||
@@ -668,12 +670,12 @@ void BeginCombatExecution(void)
     g_combat_state->pacing_latch = true;
 }
 
-/* Which of the two engagement counts to report - the forced one when combat
-   says so, the derived one otherwise. */
+/* The queued party action after the active movement phase has started,
+   otherwise the current party action. */
 // FUNCTION: WIZ8 0x004ed2b0
-int GetEngagementCount(void)
+W8PartyAction GetEffectivePartyAction(void)
 {
-    if (g_combat_state->uiCurrentPartyActionStatus != 0) {
+    if (g_combat_state->uiCurrentPartyActionStatus != W8_PARTY_ACTION_NOT_STARTED) {
         return g_combat_state->uiNextPartyAction;
     }
     return g_combat_state->uiCurrentPartyAction;
@@ -687,10 +689,10 @@ int IsPartyEngaged(void)
 {
     unsigned int party_slot;
 
-    if (g_combat_state->uiCurrentPartyActionStatus != 0) {
+    if (g_combat_state->uiCurrentPartyActionStatus != W8_PARTY_ACTION_NOT_STARTED) {
         return 1;
     }
-    if (g_combat_state->uiCurrentPartyAction == 0) {
+    if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_NONE) {
         for (party_slot = 0; party_slot < 8; ++party_slot) {
             if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
                 g_status.buffers.Char[party_slot].hp_current != 0 &&
@@ -1119,7 +1121,7 @@ void EndCombat(unsigned char mode)
         }
     }
     gXStatus.combat_countdown = SetCountdownClock(120000);
-    if (g_combat_state->uiNextPartyAction != 0) {
+    if (g_combat_state->uiNextPartyAction != W8_PARTY_ACTION_NONE) {
         ClearPendingPartyMovement(-1);
     }
     UpdateScreenOverlays(0);
@@ -1238,12 +1240,12 @@ void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail,
         return;
     }
     if (g_combat_state->execution_active == 0 ||
-        g_combat_state->uiCurrentPartyActionStatus != 0) {
+        g_combat_state->uiCurrentPartyActionStatus != W8_PARTY_ACTION_NOT_STARTED) {
         SetPendingMoveKind(action);
     } else {
         bool deferred = false;
 
-        if (g_combat_state->uiCurrentPartyAction == 0) {
+        if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_NONE) {
             for (party_slot_index = 0; party_slot_index < 8; ++party_slot_index) {
                 character = &g_status.buffers.Char[party_slot_index];
                 row = &g_combat_state->characters[party_slot_index];
@@ -1262,7 +1264,8 @@ void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail,
                 g_combat_state->eCombatActionStatus = 0;
                 g_combat_state->iActionChar = -1;
             }
-            StartPartyMovementAction((action != W8_ACTION_WALK) + 1);
+            StartPartyMovementAction(action == W8_ACTION_WALK ? W8_PARTY_ACTION_WALK
+                                                              : W8_PARTY_ACTION_RUN);
         }
     }
     if (gXStatus.fPartyMovementUi == 0) {
@@ -1753,7 +1756,7 @@ void AssignCombatPhases(void)
             }
         }
     }
-    if (g_combat_state->uiCurrentPartyAction != 0) {
+    if (g_combat_state->uiCurrentPartyAction != W8_PARTY_ACTION_NONE) {
         InitializePartyMovementPhase();
     }
     unsigned int monster_count = PLLength(gXStatus.plsMonsterList);
@@ -1841,7 +1844,8 @@ void AdvanceCombatRound(void)
     if (gXStatus.fPartyMovementMode != 0) {
         BeginFreeTurnPhase();
     }
-    if (g_settings.continuous_combat == 0 && g_combat_state->uiNextPartyAction != 0) {
+    if (g_settings.continuous_combat == 0 &&
+        g_combat_state->uiNextPartyAction != W8_PARTY_ACTION_NONE) {
         ClearPendingPartyMovement(-1);
     }
     ReconcilePartyFormation(&gXStatus.edited_formation, &g_status.formation);
@@ -2414,7 +2418,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         srAssertFail("gXStatus.fCombatMode", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
                      0xe04, 0);
     }
-    if (g_combat_state->uiCurrentPartyActionStatus == 1) {
+    if (g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_IN_PROGRESS) {
         EndPartyMovementPhase();
     }
     PointCameraAtMonster(monster_info, 0, 1);
@@ -3117,9 +3121,9 @@ void UpdateCombat(void)
         g_combat_state->engaged_missile->block_released = 1;
         g_combat_state->engaged_missile = 0;
     }
-    if (g_combat_state->uiCurrentPartyActionStatus == 1) {
-        if (g_combat_state->uiCurrentPartyAction == 1 ||
-            g_combat_state->uiCurrentPartyAction == 2) {
+    if (g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_IN_PROGRESS) {
+        if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_WALK ||
+            g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_RUN) {
             UpdateActivePartyMovement();
         }
     } else {
@@ -3314,8 +3318,8 @@ void ScheduleCombatActor(void)
     }
     bool free_turn = false;
     for (;;) {
-        if (g_combat_state->uiCurrentPartyAction == 0 ||
-            g_combat_state->uiCurrentPartyActionStatus == 3) {
+        if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_NONE ||
+            g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_FINISHED) {
             for (int slot = 0; slot < 8; ++slot) {
                 W8PartySlotRow* row = &g_status.buffers.XChar[slot];
                 if (row->fOccupied == 0) {
@@ -3366,8 +3370,9 @@ void ScheduleCombatActor(void)
                 }
             }
         }
-        if (g_combat_state->eCombatActionStatus == 0 && g_combat_state->uiCurrentPartyAction != 0 &&
-            g_combat_state->uiCurrentPartyActionStatus == 0 &&
+        if (g_combat_state->eCombatActionStatus == 0 &&
+            g_combat_state->uiCurrentPartyAction != W8_PARTY_ACTION_NONE &&
+            g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_NOT_STARTED &&
             g_combat_state->uiPartyActionPhase == g_combat_state->round_counter) {
             int slot = 0;
             for (; slot < 8; ++slot) {
@@ -3435,7 +3440,7 @@ void ScheduleCombatActor(void)
             }
             g_combat_state->pacing_latch = false;
         } else {
-            if (g_combat_state->uiCurrentPartyActionStatus == 2) {
+            if (g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_PHASE_ENDED) {
                 int slot = 0;
                 for (; slot < 8; ++slot) {
                     if (IsPartySlotEligible(slot) != 0) {
@@ -3493,8 +3498,8 @@ short GetCombatActionProgress(int* out_total)
         srAssertFail("gXStatus.fCombatMode", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
                      0x1244, 0);
     }
-    if (g_combat_state->uiCurrentPartyAction == 0 ||
-        g_combat_state->uiCurrentPartyActionStatus == 3) {
+    if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_NONE ||
+        g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_FINISHED) {
         for (int party_slot = 0; party_slot < 8; ++party_slot) {
             W8Character* character = &g_status.buffers.Char[party_slot];
             if (g_status.buffers.XChar[party_slot].fOccupied != 0 && character->hp_current != 0 &&

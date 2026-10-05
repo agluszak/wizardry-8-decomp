@@ -28,6 +28,7 @@ struct W8Chunk {
     W8Chunk();
 
     unsigned char OpenRead(char* path);
+    unsigned char OpenExistingRiff(char* path, unsigned int flags);
     unsigned char OpenWrite(char* path);
     unsigned char OpenReadWrite(char* path);
     unsigned char OpenAppend(char* path);
