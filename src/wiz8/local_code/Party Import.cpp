@@ -622,7 +622,8 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                     AddItemToCharacter(character, &item, 1, 0, 0);
                 }
             } else {
-                if (equip_slot == 6 && (g_item_records[item_id].flags & 8) != 0) {
+                if (equip_slot == 6 &&
+                    (g_item_records[item_id].flags & W8_ITEM_FLAG_OFF_HAND_ALLOWED) != 0) {
                     equip_slot = 7;
                 }
                 if (character->EquippedItem[equip_slot].iItemNo == -1) {

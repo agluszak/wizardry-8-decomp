@@ -224,8 +224,9 @@ void NormalizeItemQuantityKind(W8ItemInstance* item)
     }
 
     quantity_kind = g_item_records[item->iItemNo].quantity_kind;
-    if (quantity_kind != 1) {
-        if (quantity_kind <= 1 || quantity_kind > 4 || item->stack_count <= 0) {
+    if (quantity_kind != W8_ITEM_QUANTITY_STACK) {
+        if (quantity_kind <= W8_ITEM_QUANTITY_STACK || quantity_kind > W8_ITEM_QUANTITY_SHOTS ||
+            item->stack_count <= 0) {
             return;
         }
         if (item->uses_or_charges > 0) {

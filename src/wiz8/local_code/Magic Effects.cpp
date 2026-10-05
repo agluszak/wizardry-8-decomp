@@ -2372,9 +2372,10 @@ void DestroyMissilesOnTargets(W8SpellEffectEntry* effect)
         character = &g_status.buffers.Char[party_slot];
         for (slot = 0; slot < 12; ++slot) {
             item = &character->EquippedItem[slot];
-            if (item->iItemNo != -1 && (g_item_records[item->iItemNo].equip_class == 0x10 ||
-                                        (g_item_records[item->iItemNo].equip_class > 0x12 &&
-                                         g_item_records[item->iItemNo].equip_class < 0x15))) {
+            if (item->iItemNo != -1 &&
+                (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION ||
+                 (g_item_records[item->iItemNo].equip_class > W8_ITEM_EQUIP_CLASS_POWDER &&
+                  g_item_records[item->iItemNo].equip_class < W8_ITEM_EQUIP_CLASS_FOOD))) {
                 destroyed = 0;
                 for (unit = 0; unit < item->stack_count; ++unit) {
                     if (Random(100) < chance) {
@@ -2388,20 +2389,23 @@ void DestroyMissilesOnTargets(W8SpellEffectEntry* effect)
                         item->stack_count -= static_cast<char>(destroyed);
                     }
                 }
-                if (g_item_records[item->iItemNo].equip_class == 0x10) {
+                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION) {
                     totals[0] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class == 0x13) {
+                } else if (g_item_records[item->iItemNo].equip_class ==
+                           W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
                     totals[2] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class == 0x14) {
+                } else if (g_item_records[item->iItemNo].equip_class ==
+                           W8_ITEM_EQUIP_CLASS_SCROLL) {
                     totals[1] += destroyed;
                 }
             }
         }
         for (slot = 0; slot < 8; ++slot) {
             item = &character->backpack[slot];
-            if (item->iItemNo != -1 && (g_item_records[item->iItemNo].equip_class == 0x10 ||
-                                        (g_item_records[item->iItemNo].equip_class > 0x12 &&
-                                         g_item_records[item->iItemNo].equip_class < 0x15))) {
+            if (item->iItemNo != -1 &&
+                (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION ||
+                 (g_item_records[item->iItemNo].equip_class > W8_ITEM_EQUIP_CLASS_POWDER &&
+                  g_item_records[item->iItemNo].equip_class < W8_ITEM_EQUIP_CLASS_FOOD))) {
                 destroyed = 0;
                 for (unit = 0; unit < item->stack_count; ++unit) {
                     if (Random(100) < chance) {
@@ -2415,11 +2419,13 @@ void DestroyMissilesOnTargets(W8SpellEffectEntry* effect)
                         item->stack_count -= static_cast<char>(destroyed);
                     }
                 }
-                if (g_item_records[item->iItemNo].equip_class == 0x10) {
+                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION) {
                     totals[0] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class == 0x13) {
+                } else if (g_item_records[item->iItemNo].equip_class ==
+                           W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
                     totals[2] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class == 0x14) {
+                } else if (g_item_records[item->iItemNo].equip_class ==
+                           W8_ITEM_EQUIP_CLASS_SCROLL) {
                     totals[1] += destroyed;
                 }
             }
@@ -2429,9 +2435,10 @@ void DestroyMissilesOnTargets(W8SpellEffectEntry* effect)
         for (index = 0; static_cast<unsigned int>(index) < g_status.party_item_count;
              ++index) {
             item = &g_status.party_item_pool[index];
-            if (item->iItemNo != -1 && (g_item_records[item->iItemNo].equip_class == 0x10 ||
-                                        (g_item_records[item->iItemNo].equip_class > 0x12 &&
-                                         g_item_records[item->iItemNo].equip_class < 0x15))) {
+            if (item->iItemNo != -1 &&
+                (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION ||
+                 (g_item_records[item->iItemNo].equip_class > W8_ITEM_EQUIP_CLASS_POWDER &&
+                  g_item_records[item->iItemNo].equip_class < W8_ITEM_EQUIP_CLASS_FOOD))) {
                 destroyed = 0;
                 for (unit = 0; unit < item->stack_count; ++unit) {
                     if (Random(100) < chance) {
@@ -2445,11 +2452,13 @@ void DestroyMissilesOnTargets(W8SpellEffectEntry* effect)
                         item->stack_count -= static_cast<char>(destroyed);
                     }
                 }
-                if (g_item_records[item->iItemNo].equip_class == 0x10) {
+                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION) {
                     totals[0] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class == 0x13) {
+                } else if (g_item_records[item->iItemNo].equip_class ==
+                           W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
                     totals[2] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class == 0x14) {
+                } else if (g_item_records[item->iItemNo].equip_class ==
+                           W8_ITEM_EQUIP_CLASS_SCROLL) {
                     totals[1] += destroyed;
                 }
             }
@@ -3376,7 +3385,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         ApplyIdentifyAttempt(effect->target.pPCItem, effect->definition.duration_scale,
                              effect->definition.percent);
         item = effect->target.pPCItem;
-        if (item->identified != 0 && item->bound != 0) {
+        if (item->identified && item->bound) {
             effect->applied = true;
         }
         break;

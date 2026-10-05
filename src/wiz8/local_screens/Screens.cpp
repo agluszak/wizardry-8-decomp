@@ -223,7 +223,7 @@ void UpdateHeldItemCursor(void)
          g_current_screen_state.id == W8_SCREEN_CAMP) &&
         g_status.item_in_cursor) {
         if (g_status.item_in_hand.iItemNo != -1) {
-            g_status.item_in_cursor = 1;
+            g_status.item_in_cursor = true;
             object =
                 g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand.iItemNo);
             SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
@@ -276,7 +276,7 @@ void ApplyCurrentCursor(void)
 void ClearHeldItemDisplay(void)
 {
     memset(&g_status.item_in_hand, 0, sizeof(g_status.item_in_hand));
-    g_status.item_in_cursor = 0;
+    g_status.item_in_cursor = false;
     g_status.item_in_hand.iItemNo = -1;
 
     if (gXStatus.iCurrentCursor != -1) {
@@ -311,7 +311,7 @@ void SetItemCursor(int item_id)
     unsigned int handle;
 
     if (g_status.item_in_hand.iItemNo != -1) {
-        g_status.item_in_cursor = 1;
+        g_status.item_in_cursor = true;
         object = g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand.iItemNo);
         y_offset = GetCatalogVideoObjectYOffset(object);
         handle = GetCatalogVideoObjectHandle(object, 0);

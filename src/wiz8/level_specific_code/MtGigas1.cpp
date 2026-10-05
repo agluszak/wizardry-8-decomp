@@ -71,7 +71,7 @@ bool MtGigas1Lift1(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5d);
     W8ItemInstance* item = 0;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
@@ -90,7 +90,7 @@ bool MtGigas1Lift2(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5e);
     W8ItemInstance* item = 0;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);

@@ -3771,7 +3771,8 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         wcscat(g_combat_state->attack_message, L" ");
     } else {
         if (hand == 1 && character->EquippedItem[6].iItemNo != -1 &&
-            g_item_records[character->EquippedItem[6].iItemNo].equip_class == 3) {
+            g_item_records[character->EquippedItem[6].iItemNo].equip_class ==
+                W8_ITEM_EQUIP_CLASS_RANGED_WEAPON) {
             verb = gppStringList[g_attack_flag_name_ids[8][1]];
         } else {
             verb = gppStringList[g_attack_flag_name_ids[mode][1]];
@@ -4419,9 +4420,9 @@ int ResolveCharacterAttack(int party_slot)
         W8ItemInstance* item = &character->EquippedItem[row->current_equip_slot];
         if (character->Hand[hand].combat_skill == W8_SKILL_RANGED_COMBAT &&
             g_item_records[item->iItemNo].spell_id == 0) {
-            if (g_item_records[item->iItemNo].equip_class == 2) {
-                if ((g_item_records[item->iItemNo].flags & 0x80) == 0) {
-                    if (g_item_records[item->iItemNo].quantity_kind == 1) {
+            if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_THROWN_WEAPON) {
+                if ((g_item_records[item->iItemNo].flags & W8_ITEM_FLAG_NEVER_DEPLETES) == 0) {
+                    if (g_item_records[item->iItemNo].quantity_kind == W8_ITEM_QUANTITY_STACK) {
                         --item->stack_count;
                         if (character->EquippedItem[row->current_equip_slot].stack_count == 0) {
                             EmptyItemRecord(&character->EquippedItem[row->current_equip_slot],

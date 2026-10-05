@@ -88,7 +88,7 @@ struct W8GlobalStatus {
     int next_monster_location_id;
     int next_world_item_id;
     int next_trigger_id;
-    unsigned char item_in_cursor;
+    bool item_in_cursor;
     W8ItemInstance item_in_hand;
     /* 0x2367: per-slot flags the character-load path consults at 0x006874D7. */
     unsigned char flags[0x20];

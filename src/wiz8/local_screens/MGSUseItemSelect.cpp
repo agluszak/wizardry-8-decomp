@@ -286,7 +286,7 @@ void RefreshUseItemSelectionForSlot(int party_slot)
     }
     g_use_item_owner_index = party_slot;
     if (gXStatus.item_drag_active) {
-        if (g_status.item_in_cursor == 0) {
+        if (!g_status.item_in_cursor) {
             if (gXStatus.dragged_item_origin == 2) {
                 if (gXStatus.fCombatMode) {
                     srAssertFail("!gXStatus.fCombatMode", MGSUSEITEMSELECT_CPP, 0x1f0, 0);
@@ -623,7 +623,7 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
             g_selected_use_item_line = g_use_item_list_count;
         }
         g_use_item_list[g_use_item_list_count] = item;
-        if (g_item_records[item->iItemNo].equip_class != 0xd ||
+        if (g_item_records[item->iItemNo].equip_class != W8_ITEM_EQUIP_CLASS_INSTRUMENT ||
             g_status.buffers.Char[g_use_item_owner_index].uiCondition[8] == 0) {
             color = 0;
         } else {
@@ -643,12 +643,12 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
     g_use_item_list[g_use_item_list_count] = item;
     charged = false;
     switch (g_item_records[item->iItemNo].quantity_kind) {
-    case 1:
+    case W8_ITEM_QUANTITY_STACK:
         count = item->stack_count;
         break;
-    case 2:
-    case 3:
-        if (item->identified == 0) {
+    case W8_ITEM_QUANTITY_CHARGES:
+    case W8_ITEM_QUANTITY_USES:
+        if (!item->identified) {
             ShowNotice(0xf,
                        FormatWideString(g_format_s_paren_question, FormatItemDisplayName(item, 0)),
                        2, 0xffffffff, false);
@@ -658,7 +658,7 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
         charged = true;
         count = item->uses_or_charges;
         break;
-    case 4:
+    case W8_ITEM_QUANTITY_SHOTS:
         charged = true;
         count = item->uses_or_charges;
         break;
@@ -998,19 +998,19 @@ void UpdateUseItemDetailPanel(W8ItemInstance* item)
         g_item_video_objects.GetOrCreateVideoObject(item->iItemNo));
     count = 0;
     switch (g_item_records[item->iItemNo].quantity_kind) {
-    case 1:
+    case W8_ITEM_QUANTITY_STACK:
         count = item->stack_count;
         break;
-    case 2:
-    case 3:
+    case W8_ITEM_QUANTITY_CHARGES:
+    case W8_ITEM_QUANTITY_USES:
         charges = true;
-        if (item->identified == 0) {
+        if (!item->identified) {
             count = -1;
         } else {
             count = item->uses_or_charges;
         }
         break;
-    case 4:
+    case W8_ITEM_QUANTITY_SHOTS:
         charges = true;
         count = item->uses_or_charges;
         break;
@@ -1054,7 +1054,7 @@ void TakeUseItemIntoHand(void)
     unsigned int i;
     unsigned int old_count;
 
-    if (g_status.item_in_cursor == 0) {
+    if (!g_status.item_in_cursor) {
         CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, 1);
         return;
     }

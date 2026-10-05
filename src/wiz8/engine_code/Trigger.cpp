@@ -3017,7 +3017,7 @@ void Trigger::Run(int source)
         was_active = m_pProp->Rep()->animation_playing;
 
         if (inline_action_data[0] != '\0') {
-            if (g_status.item_in_cursor != 0) {
+            if (g_status.item_in_cursor) {
                 srVector3T<float> item_position;
                 W8WorldItem* item =
                     CreateWorldItem(&g_status.item_in_hand, &item_position, 3, 0);
@@ -3052,7 +3052,7 @@ void Trigger::Run(int source)
                 item = world_item_group->next;
                 while (item != 0) {
                     ++contained_items;
-                    if (item->item.identified == 0) {
+                    if (!item->item.identified) {
                         PartyAttemptsToIdentifyItem(&item->item, 0);
                     }
                     item = item->next;
@@ -3072,7 +3072,7 @@ void Trigger::Run(int source)
                                                                         : g_container_event_alt,
                                                          -1, 0, g_character_event_no_flags);
                     }
-                } else if (item_count == 2 && g_status.item_in_cursor == 0) {
+                } else if (item_count == 2 && !g_status.item_in_cursor) {
                     item = world_item_group->next;
                     CopyItemInstance(&g_status.item_in_hand, &item->item, 0, 1);
                     ItemInfoRemoveFromGroup(world_item_group, item);

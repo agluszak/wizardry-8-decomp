@@ -368,7 +368,7 @@ unsigned int CountEquipItemBenefits(int slot)
         ++count;
     }
     if (record->armor_class_bonus > 0 && slot != 0 && slot != 4 && slot != 5 && slot != 10 &&
-        slot != 0xb && record->equip_class != 5) {
+        slot != 0xb && record->equip_class != W8_ITEM_EQUIP_CLASS_SHIELD) {
         ++count;
     }
     if (record->modifier_0b3_index != -1 && record->modifier_0b3_value > 0) {
@@ -494,7 +494,7 @@ void RebuildCampEffectList(void)
     }
     for (int slot = 0; slot < 12; ++slot) {
         W8ItemInstance* item = &g_review_character->EquippedItem[slot];
-        if (slot != 8 && slot != 9 && item->identified != 0 && item->iItemNo != -1) {
+        if (slot != 8 && slot != 9 && item->identified && item->iItemNo != -1) {
             int beneficial = CountEquipItemBenefits(slot);
             int detrimental = CountEquipItemPenalties(slot);
             if (beneficial != 0 || detrimental != 0) {
@@ -708,7 +708,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         if (record->armor_class_bonus != 0 &&
             (record->armor_class_bonus < 0 ||
              (entry->index != 0 && entry->index != 4 && entry->index != 5 && entry->index != 10 &&
-              entry->index != 0xb && record->equip_class != 5))) {
+              entry->index != 0xb && record->equip_class != W8_ITEM_EQUIP_CLASS_SHIELD))) {
             gprintf(0x15e, line * 0xe + 0xbf, L"%s %+d", gppStringList[0x8df],
                     record->armor_class_bonus);
             ++line;

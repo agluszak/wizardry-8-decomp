@@ -607,7 +607,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
         if (item != 0) {
             state = g_npc_interaction_state;
             state->pending_item = *item;
-            if (g_status.item_in_cursor != 0) {
+            if (g_status.item_in_cursor) {
                 state->held_item_pending = 1;
             }
             HandleNpcDialogueItem(&state->pending_item);
@@ -738,7 +738,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
     if (item != 0) {
         state = g_npc_interaction_state;
         state->pending_item = *item;
-        if (g_status.item_in_cursor != 0) {
+        if (g_status.item_in_cursor) {
             state->held_item_pending = 1;
             ClearHeldItemDisplay();
         }
@@ -1834,7 +1834,8 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->SetEnabled(1);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])->SetEnabled(
             1 < g_npc_interaction_state->trade_item->stack_count);
-        if (g_item_records[g_npc_interaction_state->trade_item->iItemNo].equip_class == 4) {
+        if (g_item_records[g_npc_interaction_state->trade_item->iItemNo].equip_class ==
+            W8_ITEM_EQUIP_CLASS_AMMUNITION) {
             static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])->SetEnabled(0);
         }
         ShortenTextToWidth(text, FormatItemDisplayName(g_npc_interaction_state->trade_item, 0),
@@ -2930,13 +2931,13 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                             }
                             if (commit != 0) {
                                 if (g_item_records[g_status.party_item_pool[i].iItemNo]
-                                        .equip_class == 4) {
+                                        .equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
                                     g_npc_interaction_state->trade_quantity =
                                         g_status.party_item_pool[i].stack_count;
                                 } else if (g_npc_interaction_state->selected_trade_row == hit) {
                                     if (decrement == 0) {
                                         if (g_item_records[g_status.party_item_pool[i].iItemNo]
-                                                .quantity_kind == 1) {
+                                                .quantity_kind == W8_ITEM_QUANTITY_STACK) {
                                             ++g_npc_interaction_state->trade_quantity;
                                             if (g_status.party_item_pool[i].stack_count <
                                                 g_npc_interaction_state->trade_quantity) {
@@ -2994,13 +2995,14 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                             return &character->backpack[i];
                         }
                         if (commit != 0) {
-                            if (g_item_records[character->backpack[i].iItemNo].equip_class == 4) {
+                            if (g_item_records[character->backpack[i].iItemNo].equip_class ==
+                                W8_ITEM_EQUIP_CLASS_AMMUNITION) {
                                 g_npc_interaction_state->trade_quantity =
                                     character->backpack[i].stack_count;
                             } else if (g_npc_interaction_state->selected_trade_row == hit) {
                                 if (decrement == 0) {
                                     if (g_item_records[character->backpack[i].iItemNo]
-                                            .quantity_kind == 1) {
+                                            .quantity_kind == W8_ITEM_QUANTITY_STACK) {
                                         ++g_npc_interaction_state->trade_quantity;
                                         if (character->backpack[i].stack_count <
                                             g_npc_interaction_state->trade_quantity) {
@@ -3054,11 +3056,11 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
         return 0;
     }
     if (commit != 0) {
-        if (g_item_records[entry->item.iItemNo].equip_class == 4) {
+        if (g_item_records[entry->item.iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
             g_npc_interaction_state->trade_quantity = entry->item.stack_count;
         } else if (g_npc_interaction_state->selected_trade_row == i) {
             if (decrement == 0) {
-                if (g_item_records[entry->item.iItemNo].quantity_kind == 1) {
+                if (g_item_records[entry->item.iItemNo].quantity_kind == W8_ITEM_QUANTITY_STACK) {
                     ++g_npc_interaction_state->trade_quantity;
                     if (entry->item.stack_count < g_npc_interaction_state->trade_quantity) {
                         g_npc_interaction_state->trade_quantity = entry->item.stack_count;
@@ -4181,7 +4183,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
                 if (g_npc_interaction_state->dialogue_npc->record->voice_script != 0) {
                     return 1;
                 }
-                if ((g_item_records[item->iItemNo].flags & 2) != 0) {
+                if ((g_item_records[item->iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) != 0) {
                     QueueNpcScriptLine(0x11, 0, 0, 0);
                     return 1;
                 }
@@ -4208,7 +4210,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
             }
         }
     } else if (item != 0) {
-        if ((g_item_records[item->iItemNo].flags & 2) == 0) {
+        if ((g_item_records[item->iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) == 0) {
             if (WillNpcTradeForItem(g_npc_interaction_state->dialogue_npc, item) == 0) {
                 QueueNpcScriptLine(7, 0, 0, 0);
                 return 1;

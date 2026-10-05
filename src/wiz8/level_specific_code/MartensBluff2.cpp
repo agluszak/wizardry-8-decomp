@@ -342,7 +342,7 @@ bool MartensBluff2PerfumeBox(Trigger* pTrigger)
 
     int quest_state;
 
-    if (g_status.item_in_cursor == 0) {
+    if (!g_status.item_in_cursor) {
         return false;
     }
     if (GetItemInHand() != 0x2ea) {
@@ -589,7 +589,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
 {
     stParticle* particle;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         return false;
     }
     ReplaceOrCreateItem(&g_status.item_in_hand, 0x291, 0, 0, 0);
@@ -614,7 +614,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
 bool MartensBluff2BlueFlowers(Trigger* pTrigger)
 {
     if (g_running_trigger_from_script == 0) {
-        if (g_status.item_in_cursor != 0) {
+        if (g_status.item_in_cursor) {
             return false;
         }
         ReplaceOrCreateItem(&g_status.item_in_hand, 0x2eb, 0, 0, 0);

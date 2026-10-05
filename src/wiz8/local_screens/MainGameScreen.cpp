@@ -5787,7 +5787,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                                                 g_character_event_no_flags,
                                                 g_character_event_full_volume);
                         }
-                    } else if (g_status.item_in_cursor == 0 || gXStatus.iCurrentCursor != 7 ||
+                    } else if (!g_status.item_in_cursor || gXStatus.iCurrentCursor != 7 ||
                                gXStatus.dragged_item == &g_status.item_in_hand) {
                         if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS) {
                             RefreshSelectedPartyPortrait(slot);
@@ -5857,7 +5857,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                 } else {
                     if (g_level_block->portrait_refresh_pending[slot] == 0) {
-                        if (g_status.item_in_cursor == 0 || gXStatus.iCurrentCursor != 7 ||
+                        if (!g_status.item_in_cursor || gXStatus.iCurrentCursor != 7 ||
                             gXStatus.dragged_item == &g_status.item_in_hand) {
                             help_text = gppStringList[0x1d];
                         } else {
@@ -5915,7 +5915,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && targeting == 0 &&
             IsNpcDialogueCursorActive() == 0 && gXStatus.scripted_scene == 0) {
             g_level_block->portrait_right_hold_armed = false;
-            if (g_status.item_in_cursor == 0 || gfKeyState[0x11]) {
+            if (!g_status.item_in_cursor || gfKeyState[0x11]) {
                 OpenCharacterScreenForPartySlot(slot, false);
                 return 1;
             }
@@ -6098,7 +6098,7 @@ unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event, W8Region* 
 
     character = &g_status.buffers.Char[slot];
     item_id = character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
-    if (item_id == -1 || (g_item_records[item_id].flags & 4) == 0) {
+    if (item_id == -1 || (g_item_records[item_id].flags & W8_ITEM_FLAG_TWO_HANDED) == 0) {
         if (GetAtomCursorY(event) - region->y1 < 0x19) {
             g_level_block->portrait_assay_hover_mode = 1;
         } else {
@@ -6489,7 +6489,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             OpenMonsterInfoDialog(g_level_block->highlighted_item);
             return 1;
         }
-        if (g_status.item_in_cursor == 0 && g_level_block->selected_item != -1 &&
+        if (!g_status.item_in_cursor && g_level_block->selected_item != -1 &&
             gXStatus.fSpellCastMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
             gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
             gXStatus.fTrapInteractMode == 0 &&
@@ -6577,9 +6577,8 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                (needed == 4 && (event->usKeyState & CTRL_DOWN) != 0)) {
         AimAtGroundTarget(g_status.selected_character);
     } else if (g_level_block->highlighted_item == -1) {
-        if (g_status.item_in_cursor != 0 &&
-            ForwardSelectedPropIndex(GetWorld(), GetAtomCursorX(event), GetAtomCursorY(event)) ==
-                -1) {
+        if (g_status.item_in_cursor && ForwardSelectedPropIndex(GetWorld(), GetAtomCursorX(event),
+                                                                GetAtomCursorY(event)) == -1) {
             if (gXStatus.world_update_blocked == 0) {
                 DropItemInHand(1);
             }
@@ -6602,7 +6601,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         if (gXStatus.fCombatMode == 0) {
             if (needed != 2 && needed != 1 && needed != 5) {
                 assign = 0;
-                if ((gXStatus.iCurrentCursor == 6 || g_status.item_in_cursor != 0) &&
+                if ((gXStatus.iCurrentCursor == 6 || g_status.item_in_cursor) &&
                     g_status.selected_character != -1 &&
                     CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info, 6,
                                                0) != 0) {
@@ -6610,7 +6609,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                         ShowNotice(0xc, gppStringList[0x7de], -1, -1, 0);
                     } else {
                         W8ItemInstance* item = 0;
-                        if (g_status.item_in_cursor != 0) {
+                        if (g_status.item_in_cursor) {
                             item = &g_status.item_in_hand;
                         }
                         if (monster_info->highest_condition < 0xf) {
@@ -6739,7 +6738,7 @@ void UpdateWorldViewCursor(const InputAtom* event, int target_needed)
                 W8Prop* prop = GetWorldProp(g_world, prop_index);
                 if (gXStatus.world_update_blocked == 0) {
                     if (prop != 0) {
-                        if (prop->TriggerRequiresItem() && g_status.item_in_cursor != 0) {
+                        if (prop->TriggerRequiresItem() && g_status.item_in_cursor) {
                             SetTargetCursor(0x10);
                             return;
                         }
@@ -8149,7 +8148,7 @@ void ShowNpcTradeItemNotice(W8ItemInstance* item)
     }
     if (mode == W8_NPC_TRADE_BUY || mode == W8_NPC_TRADE_SHOPLIFT || mode == W8_NPC_TRADE_SELL) {
         unsigned char stack_count;
-        if (g_item_records[item->iItemNo].equip_class == 4) {
+        if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
             stack_count = item->stack_count;
         } else {
             stack_count = 1;
@@ -8270,7 +8269,8 @@ void PopulateNpcTradeList(void)
                 }
                 if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
                     unsigned char stack_count;
-                    if (g_item_records[item->iItemNo].equip_class == 4) {
+                    if (g_item_records[item->iItemNo].equip_class ==
+                        W8_ITEM_EQUIP_CLASS_AMMUNITION) {
                         stack_count = item->stack_count;
                     } else {
                         stack_count = 1;
@@ -8319,7 +8319,7 @@ void PopulateNpcTradeList(void)
             }
             if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
                 unsigned char stack_count;
-                if (g_item_records[item->iItemNo].equip_class == 4) {
+                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
                     stack_count = item->stack_count;
                 } else {
                     stack_count = 1;

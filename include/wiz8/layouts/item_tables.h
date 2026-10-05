@@ -29,32 +29,75 @@ struct W8ItemRequirement {
     unsigned char minimum;
 }; /* 0x02 */
 
-/* Named subset of W8ItemDatabaseRecord::equip_class. Values 0..3 are weapon
-   classes whose finer distinction is not recovered here. Classes 4..12 are
-   fixed by GetItemEquipSlotMask: class 4 is the non-shield off-hand class
-   (ammunition), class 5 is the shield class used by the Shield AC component,
-   and classes 6..12 map directly to the manual's six worn armor/accessory
-   locations.
-
-   That slot-mask coverage does not bound the database field. The Assay display
-   table g_equip_class_name_ids has 32 entries, and recovered Assay /
-   item paths also use higher values (including 0x0d, 0x0e, 0x11, 0x12, and
-   0x13). Keep equip_class a byte: this enum names the proven subset and is not
-   a completeness claim. */
+/* Equipment classes indexed by the retail Assay name table. Labels
+   1087..1112 name classes 0..25; labels 1114..1119 name classes 26..31.
+   The serialized field remains a byte. */
 enum W8ItemEquipClass {
-    W8_ITEM_EQUIP_CLASS_WEAPON_0 = 0,
-    W8_ITEM_EQUIP_CLASS_WEAPON_1 = 1,
-    W8_ITEM_EQUIP_CLASS_WEAPON_2 = 2,
-    W8_ITEM_EQUIP_CLASS_WEAPON_3 = 3,
+    W8_ITEM_EQUIP_CLASS_SHORT_WEAPON = 0,
+    W8_ITEM_EQUIP_CLASS_EXTENDED_WEAPON = 1,
+    W8_ITEM_EQUIP_CLASS_THROWN_WEAPON = 2,
+    W8_ITEM_EQUIP_CLASS_RANGED_WEAPON = 3,
     W8_ITEM_EQUIP_CLASS_AMMUNITION = 4,
     W8_ITEM_EQUIP_CLASS_SHIELD = 5,
     W8_ITEM_EQUIP_CLASS_TORSO = 6,
     W8_ITEM_EQUIP_CLASS_LEGS = 7,
     W8_ITEM_EQUIP_CLASS_HEAD = 8,
-    W8_ITEM_EQUIP_CLASS_FEET = 9,
-    W8_ITEM_EQUIP_CLASS_HANDS = 10,
+    W8_ITEM_EQUIP_CLASS_HANDS = 9,
+    W8_ITEM_EQUIP_CLASS_FEET = 10,
     W8_ITEM_EQUIP_CLASS_MISC = 11,
     W8_ITEM_EQUIP_CLASS_CLOAK = 12,
+    W8_ITEM_EQUIP_CLASS_INSTRUMENT = 13,
+    W8_ITEM_EQUIP_CLASS_GADGET = 14,
+    W8_ITEM_EQUIP_CLASS_MISC_MAGIC = 15,
+    W8_ITEM_EQUIP_CLASS_POTION = 16,
+    W8_ITEM_EQUIP_CLASS_BOMB = 17,
+    W8_ITEM_EQUIP_CLASS_POWDER = 18,
+    W8_ITEM_EQUIP_CLASS_SPELLBOOK = 19,
+    W8_ITEM_EQUIP_CLASS_SCROLL = 20,
+    W8_ITEM_EQUIP_CLASS_FOOD = 21,
+    W8_ITEM_EQUIP_CLASS_DRINK = 22,
+    W8_ITEM_EQUIP_CLASS_KEY = 23,
+    W8_ITEM_EQUIP_CLASS_WRITING = 24,
+    W8_ITEM_EQUIP_CLASS_OTHER = 25,
+    W8_ITEM_EQUIP_CLASS_DAGGER = 26,
+    W8_ITEM_EQUIP_CLASS_LONG_SWORD = 27,
+    W8_ITEM_EQUIP_CLASS_BIPENNIS = 28,
+    W8_ITEM_EQUIP_CLASS_BATTLE_AXE = 29,
+    W8_ITEM_EQUIP_CLASS_FLAIL = 30,
+    W8_ITEM_EQUIP_CLASS_MACE = 31,
+};
+
+/* Item flag labels 1255..1262 in the retail string table name bits 0..7.
+   The serialized flags field remains a byte. */
+enum W8ItemFlag {
+    W8_ITEM_FLAG_AUTO_IDENTIFY = 0x01,
+    W8_ITEM_FLAG_NO_DISCARD = 0x02, /* Crucial Item */
+    W8_ITEM_FLAG_TWO_HANDED = 0x04,
+    W8_ITEM_FLAG_OFF_HAND_ALLOWED = 0x08, /* Secondary Weapon */
+    W8_ITEM_FLAG_MERCHANT_CANNOT_SELL = 0x10,
+    W8_ITEM_FLAG_CONTAINER = 0x20,
+    W8_ITEM_FLAG_MUST_EQUIP_TO_USE = 0x40,
+    W8_ITEM_FLAG_NEVER_DEPLETES = 0x80
+};
+
+/* Assay quantity labels 1264..1268. Value 5 has no label; the database
+   domain is kept open rather than assigning it an inferred meaning. */
+enum W8ItemQuantityKind {
+    W8_ITEM_QUANTITY_NONE = 0,
+    W8_ITEM_QUANTITY_STACK = 1,
+    W8_ITEM_QUANTITY_CHARGES = 2,
+    W8_ITEM_QUANTITY_USES = 3,
+    W8_ITEM_QUANTITY_SHOTS = 4
+};
+
+/* Item categories the usability rules distinguish. Three is the spell source
+   the magic code already names; six and eight both cast the record's spell but
+   read a different profession level to decide whether the caster is strong
+   enough for it. */
+enum W8ItemCategory {
+    W8_ITEM_CATEGORY_SPELL_SOURCE = 3,
+    W8_ITEM_CATEGORY_CASTER_ITEM_6 = 6,
+    W8_ITEM_CATEGORY_CASTER_ITEM_8 = 8
 };
 
 struct W8ItemDatabaseRecord {
@@ -62,11 +105,10 @@ struct W8ItemDatabaseRecord {
     /* 0x03c: the item number the Wizardry 7 import matches imported item ids
        against (Party Import.cpp). */
     short legacy_item_number;
-    unsigned char equip_class;              /* 0x03e: open byte domain; named W8ItemEquipClass
-                                  values are the proven subset, not the bound */
+    unsigned char equip_class;              /* 0x03e: W8ItemEquipClass */
     unsigned short unidentified_name_index; /* 0x03f */
-    unsigned char flags;                /* 0x041 */
-    unsigned char category;                 /* 0x042: three is a spell source */
+    unsigned char flags;                    /* 0x041: W8ItemFlag bits */
+    unsigned char category;                 /* 0x042: W8ItemCategory */
     unsigned char unknown_043[3];
     signed char weapon_skill; /* 0x046: -1 when the item grants none */
     /* 0x047: the W8RangeCategory band the weapon attacks at. GetCharAttackRange
@@ -94,7 +136,7 @@ struct W8ItemDatabaseRecord {
        use path consumes it as the casting power. */
     unsigned char spell_power;
     unsigned char unknown_065;
-    unsigned char quantity_kind; /* 0x066 */
+    unsigned char quantity_kind; /* 0x066: W8ItemQuantityKind */
     W8Dice initial_quantity;     /* 0x067 */
     /* The stack merge path clamps quantity-kind 1 items to this byte. */
     unsigned char maximum_quantity; /* 0x06b */

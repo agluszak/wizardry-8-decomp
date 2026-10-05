@@ -989,7 +989,7 @@ void ArnikaElevatorAdvance(int which)
 // FUNCTION: WIZ8 0x004E2340
 bool ArnikaChaosMolori(Trigger* pTrigger)
 {
-    if (g_running_trigger_from_script == 0 && g_status.item_in_cursor != 0) {
+    if (g_running_trigger_from_script == 0 && g_status.item_in_cursor) {
         return false;
     }
     return true;
@@ -1017,7 +1017,7 @@ bool ArnikaMaddmook(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004E23C0
 bool ArnikaAstralDominae(Trigger* pTrigger)
 {
-    if (g_running_trigger_from_script == 0 && g_status.item_in_cursor != 0) {
+    if (g_running_trigger_from_script == 0 && g_status.item_in_cursor) {
         return false;
     }
     pTrigger = FindTriggerByName("CMBox");
@@ -1081,7 +1081,7 @@ int ArnikaPedestalItem(int* previous_item)
     int item = -1;
     int previous;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = GetItemInHand();
         if (item != 0x244 && item != 0x242 && item != 0x264) {
             return -2;
@@ -1178,7 +1178,7 @@ bool ArnikaFlightRecorder(Trigger* pTrigger)
     g_trigger_feedback = 1;
     npc = GetNpcStateByKind(0x14);
     item = 0;
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);

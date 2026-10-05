@@ -126,7 +126,7 @@ bool MartensBluff1FHandlock(Trigger* pTrigger)
     if (pTrigger->running != 0) {
         return true;
     }
-    if (g_status.item_in_cursor != 0 && GetItemInHand() == 0x26f) {
+    if (g_status.item_in_cursor && GetItemInHand() == 0x26f) {
         return true;
     }
     SetDice(&dice, 2, 4, 1);

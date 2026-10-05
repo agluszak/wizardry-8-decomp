@@ -212,7 +212,7 @@ unsigned char W8AssayDialog::PopulateText()
     m_text_area.Configure(&bounds, g_wiz_text_font_secondary, 0);
     m_text_area.SetEntrySpacing(1);
     record = &g_item_records[m_item->iItemNo];
-    if (m_item->identified != 0 && record->damage_dice.count + record->damage_dice.base > 0) {
+    if (m_item->identified && record->damage_dice.count + record->damage_dice.base > 0) {
         if (!ItemHasSingledOutGenericName(m_item->iItemNo) || record->damage_dice.base == 0) {
             text = FormatWideString(
                 L"%d - %d", record->damage_dice.base + record->damage_dice.count,
@@ -222,12 +222,12 @@ unsigned char W8AssayDialog::PopulateText()
         }
         m_text_area.AddEntry(gppStringList[0x8e8], text, 10, 0xf, 0);
     }
-    if (record->attack_hit_bonus != 0 && m_item->identified != 0) {
+    if (record->attack_hit_bonus != 0 && m_item->identified) {
         m_text_area.AddEntry(gppStringList[0x8b7],
                              FormatWideString(g_format_plus_d, record->attack_hit_bonus), 10, 0xf,
                              0);
     }
-    if (record->attack_damage_bonus != 0 && m_item->identified != 0) {
+    if (record->attack_damage_bonus != 0 && m_item->identified) {
         m_text_area.AddEntry(gppStringList[0x8b1],
                              FormatWideString(g_format_plus_d, record->attack_damage_bonus), 10,
                              0xf, 0);
@@ -252,15 +252,15 @@ unsigned char W8AssayDialog::PopulateText()
         m_text_area.AddEntry(gppStringList[0x8e5], g_assay_entry_text, 10, 0xf, 0);
     }
     if (GetItemDefaultEquipSlot(m_item->iItemNo) != -1 &&
-        g_item_records[m_item->iItemNo].equip_class != 4) {
+        g_item_records[m_item->iItemNo].equip_class != W8_ITEM_EQUIP_CLASS_AMMUNITION) {
         unsigned int palette;
-        if (m_item->bound == 0) {
+        if (!m_item->bound) {
             text = gppStringList[0x8fc];
             palette = 0xf;
         } else if (record->binds_on_equip == 0) {
             text = gppStringList[0x8fb];
             palette = 0xf;
-        } else if (m_item->bind_announced == 0) {
+        } else if (!m_item->bind_announced) {
             text = gppStringList[0x8fa];
             palette = 0;
         } else {
@@ -273,7 +273,8 @@ unsigned char W8AssayDialog::PopulateText()
     bit = 0;
     label = g_item_flag_name_ids;
     do {
-        if ((1 << bit) == 4 && (record->flags & 4) != 0) {
+        if ((1 << bit) == W8_ITEM_FLAG_TWO_HANDED &&
+            (record->flags & W8_ITEM_FLAG_TWO_HANDED) != 0) {
             if (count == 0) {
                 wcscpy(g_assay_entry_text, &g_empty_wide_string);
             } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
@@ -291,7 +292,7 @@ unsigned char W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x913], g_assay_entry_text, 10, 0xf, 0);
     }
-    if (m_item->identified != 0) {
+    if (m_item->identified) {
         count = 0;
         for (index = 0; index < 0x10; ++index) {
             if (record->missile_values[index] != 0) {
@@ -335,7 +336,7 @@ unsigned char W8AssayDialog::PopulateText()
                                  gppStringList[g_special_category_name_ids[record->slays_kind]],
                                  10, 0xf, 0);
         }
-        if (record->equip_class == 5 && m_character != 0 &&
+        if (record->equip_class == W8_ITEM_EQUIP_CLASS_SHIELD && m_character != 0 &&
             IsItemWornByCharacter(m_character, m_item)) {
             m_text_area.AddEntry(
                 gppStringList[0x8df],
@@ -356,12 +357,12 @@ unsigned char W8AssayDialog::PopulateText()
                              10, 0xf, 0);
     }
     switch (record->equip_class) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 0x11:
-    case 0x12:
+    case W8_ITEM_EQUIP_CLASS_SHORT_WEAPON:
+    case W8_ITEM_EQUIP_CLASS_EXTENDED_WEAPON:
+    case W8_ITEM_EQUIP_CLASS_THROWN_WEAPON:
+    case W8_ITEM_EQUIP_CLASS_RANGED_WEAPON:
+    case W8_ITEM_EQUIP_CLASS_BOMB:
+    case W8_ITEM_EQUIP_CLASS_POWDER:
         m_text_area.AddEntry(gppStringList[0x8e7],
                              gppStringList[g_spell_range_name_ids[record->range_category]], 10, 0xf,
                              0);
@@ -405,28 +406,30 @@ unsigned char W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x8d7], g_assay_entry_text, 10, 0xf, 0);
     }
-    if ((m_item->identified != 0 || m_item->spell_hint != 0) && record->spell_id != 0) {
-        if (record->equip_class == 0xd || record->equip_class == 0xe ||
-            record->equip_class == 0x13) {
+    if ((m_item->identified || m_item->spell_hint) && record->spell_id != 0) {
+        if (record->equip_class == W8_ITEM_EQUIP_CLASS_INSTRUMENT ||
+            record->equip_class == W8_ITEM_EQUIP_CLASS_GADGET ||
+            record->equip_class == W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
             text = FormatWideString(g_format_s, g_spell_records[record->spell_id].display_name);
         } else {
             text = FormatWideString(L"%s (Pwr %d)", g_spell_records[record->spell_id].display_name,
                                     record->spell_power);
         }
         m_text_area.AddEntry(gppStringList[0x8ea], text, 10, 0xf, 0);
-        if (record->equip_class == 0x13) {
+        if (record->equip_class == W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
             m_text_area.AddEntry(
                 gppStringList[0x8eb],
                 FormatWideString(g_format_d, g_spell_records[record->spell_id].spell_level), 10,
                 0xf, 0);
         }
     }
-    if (m_item->identified != 0) {
-        if (record->quantity_kind == 2) {
+    if (m_item->identified) {
+        if (record->quantity_kind == W8_ITEM_QUANTITY_CHARGES) {
             m_text_area.AddEntry(gppStringList[g_quantity_kind_name_ids[record->quantity_kind]],
                                  FormatWideString(g_format_d, m_item->uses_or_charges), 10, 0xf, 0);
         }
-        if (record->quantity_kind == 3 || record->quantity_kind == 4) {
+        if (record->quantity_kind == W8_ITEM_QUANTITY_USES ||
+            record->quantity_kind == W8_ITEM_QUANTITY_SHOTS) {
             m_text_area.AddEntry(
                 gppStringList[g_quantity_kind_name_ids[record->quantity_kind]],
                 FormatWideString(g_format_d_slash_d, m_item->uses_or_charges,
@@ -559,7 +562,8 @@ unsigned char W8AssayDialog::PopulateText()
             ++count;
         }
     }
-    if (record->category == 6 || record->category == 8) {
+    if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6 ||
+        record->category == W8_ITEM_CATEGORY_CASTER_ITEM_8) {
         if (record->spell_id == 0) {
             srAssertFail("uiSpell != SPELL_NONE", ASSAY_DIALOG_CPP, 0x390, 0);
         }
@@ -568,7 +572,7 @@ unsigned char W8AssayDialog::PopulateText()
                 wcscat(g_assay_entry_text, g_comma_space);
             }
         }
-        if (record->category == 6) {
+        if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6) {
             text = gppStringList[0x8fe];
         } else {
             text = gppStringList[0x8ff];
@@ -584,8 +588,8 @@ unsigned char W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x8f4], g_assay_entry_text, 10, 0xf, 0);
     }
-    if (record->equip_class == 0x13 && (m_item->identified != 0 || m_item->spell_hint != 0) &&
-        m_character != 0) {
+    if (record->equip_class == W8_ITEM_EQUIP_CLASS_SPELLBOOK &&
+        (m_item->identified || m_item->spell_hint) && m_character != 0) {
         if (m_character->spell_learned[record->spell_id] == 1) {
             m_text_area.AddEntry(0, gppStringList[0x8ed], 10, 1, 0);
         } else if (CanCharacterLearnSpell(m_character, record->spell_id) == 0 &&
@@ -599,7 +603,7 @@ unsigned char W8AssayDialog::PopulateText()
     }
     strcpy(path, "Data\\Databases\\ItemDesc.dbs");
     GetStringFromStringDatabase(path, m_item->iItemNo, description, 0, 0);
-    if (wcslen(description) != 0 && m_item->identified != 0) {
+    if (wcslen(description) != 0 && m_item->identified) {
         m_text_area.AddEntry(gppStringList[0x90f], description, 10, 0xf, 0);
     }
     m_text_area.m_dirty = true;
@@ -635,7 +639,7 @@ void W8AssayDialog::Draw()
         DrawCatalogImageAndInvalidate(-0xe,
                                       g_item_video_objects.GetOrCreateVideoObject(m_item->iItemNo),
                                       0, 0, m_x + 0x45, m_y + 0xe, 2, 0);
-        if (m_item->identified == 0) {
+        if (!m_item->identified) {
             DrawCatalogImageAndInvalidate(-0xe, 0x11b, 0, 0, m_x + 0x45, m_y + 0xe, 2, 0);
         }
         m_item_portrait_dirty = false;
@@ -931,7 +935,8 @@ unsigned char W8AssayDialog::CreateTextBuffers()
     m_text_buffers[2]->SetText(gppStringList[g_equip_class_name_ids[equip_class]],
                                g_wiz_text_font_secondary);
     item = m_item;
-    if (g_item_records[item->iItemNo].quantity_kind == 1 && item->stack_count > 1) {
+    if (g_item_records[item->iItemNo].quantity_kind == W8_ITEM_QUANTITY_STACK &&
+        item->stack_count > 1) {
         unsigned int unit_weight = GetItemUnitWeight(item);
         text =
             FormatWideString(g_assay_format_1f_1f_s, GetItemStackWeight(m_item) * g_float_005ed8b8,

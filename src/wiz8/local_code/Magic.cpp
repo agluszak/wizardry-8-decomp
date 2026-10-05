@@ -110,10 +110,10 @@ int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus)
 // FUNCTION: WIZ8 0x00500010
 bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item)
 {
-    if (g_item_records[item->iItemNo].category != 3) {
+    if (g_item_records[item->iItemNo].category != W8_ITEM_CATEGORY_SPELL_SOURCE) {
         return false;
     }
-    if (item->identified == 0) {
+    if (!item->identified) {
         return false;
     }
     return CanCharacterUseItem(caster, item->iItemNo) != 0;
@@ -2628,7 +2628,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
         affected = CheckAndRestartSpellCooldown(spell_id);
         break;
     case 0x17:
-        if (aim->pPCItem->identified != 0) {
+        if (aim->pPCItem->identified) {
             return false;
         }
         break;
@@ -4177,8 +4177,8 @@ void TrackItemSpellSource(W8Character* character, int spell_id)
         int item_id = item->iItemNo;
         if (item_id != -1 && g_item_records[item_id].spell_id != 0 &&
             CanCharacterActivateItem(character, item) &&
-            ((g_item_records[item_id].quantity_kind != 4 &&
-              g_item_records[item_id].quantity_kind != 2) ||
+            ((g_item_records[item_id].quantity_kind != W8_ITEM_QUANTITY_SHOTS &&
+              g_item_records[item_id].quantity_kind != W8_ITEM_QUANTITY_CHARGES) ||
              item->uses_or_charges != 0)) {
             has_spell[g_item_records[item_id].spell_id - 1] = 1;
         }
@@ -4189,8 +4189,8 @@ void TrackItemSpellSource(W8Character* character, int spell_id)
         int item_id = item->iItemNo;
         if (item_id != -1 && g_item_records[item_id].spell_id != 0 &&
             CanCharacterActivateItem(character, item) &&
-            ((g_item_records[item_id].quantity_kind != 4 &&
-              g_item_records[item_id].quantity_kind != 2) ||
+            ((g_item_records[item_id].quantity_kind != W8_ITEM_QUANTITY_SHOTS &&
+              g_item_records[item_id].quantity_kind != W8_ITEM_QUANTITY_CHARGES) ||
              item->uses_or_charges != 0)) {
             has_spell[g_item_records[item_id].spell_id - 1] = 1;
         }

@@ -549,8 +549,7 @@ void CalcAttacks(W8Character* character)
                                          equipment[hand == 0]->iItemNo))) {
                 attack->in_play = 0;
             }
-            if (ItemHasQuantityKindFour(equipment[hand]->iItemNo) &&
-                equipment[hand]->uses_or_charges == 0) {
+            if (ItemUsesShots(equipment[hand]->iItemNo) && equipment[hand]->uses_or_charges == 0) {
                 attack->in_play = 0;
             }
             break;
@@ -799,7 +798,8 @@ void CalcArmorClasses(W8Character* character)
         int item_id = character->EquippedItem[index].iItemNo;
         if (index != 0 && index != 4 && index != 5 && index != 8 && index != 9 && index != 10 &&
             index != 11 && item_id != -1) {
-            int component = g_item_records[item_id].equip_class == 5 ? 3 : 4;
+            int component =
+                g_item_records[item_id].equip_class == W8_ITEM_EQUIP_CLASS_SHIELD ? 3 : 4;
             character->armor_class_components[component] +=
                 g_item_records[item_id].armor_class_bonus;
         }

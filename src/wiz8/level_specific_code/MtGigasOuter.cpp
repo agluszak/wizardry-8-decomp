@@ -77,7 +77,7 @@ bool OnCrankTriggerActivated(Trigger* trigger)
     W8Prop* prop;
     int value;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         return false;
     }
     if (GetLocationVarIDByName("FlagPosition") == -1) {
@@ -292,7 +292,7 @@ bool OnSentryTriggerActivated(Trigger* trigger)
     W8NpcState* npc = GetNpcStateByKind(0x59);
     W8ItemInstance* item = 0;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
@@ -305,7 +305,7 @@ bool OnSentryTriggerActivated(Trigger* trigger)
 // FUNCTION: WIZ8 0x004DC640
 bool OnEwaxxDoor03Activated(Trigger* trigger)
 {
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         int item_id = GetItemInHand();
         if (item_id >= 0x268 && item_id <= 0x26e) {
             return true;
