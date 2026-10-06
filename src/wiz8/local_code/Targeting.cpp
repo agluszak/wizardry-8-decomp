@@ -370,9 +370,7 @@ void AimAtMonsterLocation(int party_slot, int location_id, bool allow_single_tar
                                &detail_block);
             needed = GetTargetNeededForAction(action, detail, detail_block);
             if (needed == W8_TARGET_NEED_GROUP) {
-                memset(&target, 0, sizeof(target));
-                target.iMonsterID = BAD_INDEX;
-                target.iChar = BAD_INDEX;
+                ResetCombatSlot(&target);
                 target.iType = W8_TARGET_KIND_GROUP;
                 target.iGroupID =
                     MonsterGetScriptPartByLocationIndex(
@@ -383,9 +381,7 @@ void AimAtMonsterLocation(int party_slot, int location_id, bool allow_single_tar
                 return;
             }
         }
-        memset(&target, 0, sizeof(target));
-        target.iChar = BAD_INDEX;
-        target.iGroupID = BAD_INDEX;
+        ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_MONSTER;
         target.iMonsterID = location_id;
         AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
@@ -400,10 +396,7 @@ void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context)
 {
     W8CombatSlot target;
 
-    memset(&target, 0, sizeof(target));
-    target.iMonsterID = BAD_INDEX;
-    target.iChar = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iType = kind;
     AimAtTarget(actor, &target, context);
 }
@@ -413,9 +406,7 @@ void AimAtCharacter(int actor, int character_slot, W8TargetingContext context)
 {
     W8CombatSlot target;
 
-    memset(&target, 0, sizeof(target));
-    target.iMonsterID = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iChar = character_slot;
     target.iType = W8_TARGET_KIND_CHARACTER;
     AimAtTarget(actor, &target, context);
@@ -426,9 +417,7 @@ void AimAtCharacterIndirect(int actor, int character_slot, W8TargetingContext co
 {
     W8CombatSlot target;
 
-    memset(&target, 0, sizeof(target));
-    target.iMonsterID = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iChar = character_slot;
     target.iType = W8_TARGET_KIND_CHARACTER_INDIRECT;
     AimAtTarget(actor, &target, context);
@@ -442,10 +431,7 @@ void AimAtPlace(int actor)
     W8CombatSlot target;
     srVector3T<float> position;
 
-    memset(&target, 0, sizeof(target));
-    target.iMonsterID = BAD_INDEX;
-    target.iChar = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_PLACE;
     GetWorldCursorTargetPosition(&position);
     AimAtTarget(actor, &target, W8_TARGETING_CONTEXT_CURRENT);
@@ -460,10 +446,7 @@ void AimAtGroundTarget(int party_slot)
     W8CombatSlot target;
     srVector3T<float> position;
 
-    memset(&target, 0, sizeof(target));
-    target.iMonsterID = BAD_INDEX;
-    target.iChar = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_PLACE;
     GetCameraForwardPoint(GetGroundTargetRange(), &position);
     target.point = position;
@@ -478,9 +461,7 @@ void SetTargetToCharacter(int character_slot, bool in_combat)
 {
     W8CombatSlot target;
 
-    memset(&target, 0, sizeof(target));
-    target.iMonsterID = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_CHARACTER;
     target.iChar = character_slot;
     ApplyTarget(&target, in_combat);
@@ -491,9 +472,7 @@ void SetTargetToMonster(int monster_id, bool in_combat)
 {
     W8CombatSlot target;
 
-    memset(&target, 0, sizeof(target));
-    target.iChar = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_MONSTER;
     target.iMonsterID = monster_id;
     ApplyTarget(&target, in_combat);
@@ -504,9 +483,7 @@ void SetTargetToGroup(int group_id, bool in_combat)
 {
     W8CombatSlot target;
 
-    memset(&target, 0, sizeof(target));
-    target.iMonsterID = BAD_INDEX;
-    target.iChar = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_GROUP;
     target.iGroupID = group_id;
     ApplyTarget(&target, in_combat);
@@ -1955,10 +1932,7 @@ void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
     source.iChar = party_slot;
 
     W8CombatSlot target;
-    memset(&target, 0, sizeof(target));
-    target.iChar = BAD_INDEX;
-    target.iMonsterID = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_PLACE;
     target.point = *position;
 
@@ -2362,9 +2336,7 @@ bool SlotHasAnyValidTarget(int party_slot)
             if (other_slot == static_cast<unsigned int>(party_slot)) {
                 continue;
             }
-            memset(&target, 0, sizeof(target));
-            target.iMonsterID = BAD_INDEX;
-            target.iGroupID = BAD_INDEX;
+            ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_CHARACTER;
             target.iChar = other_slot;
             if (CharacterHasAttackOn(party_slot, &target)) {
@@ -2372,9 +2344,7 @@ bool SlotHasAnyValidTarget(int party_slot)
             }
         }
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
-            memset(&target, 0, sizeof(target));
-            target.iChar = BAD_INDEX;
-            target.iGroupID = BAD_INDEX;
+            ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_MONSTER;
             target.iMonsterID = MonsterGetScriptPartByLocationIndex(index)->location_id;
             if (CharacterHasAttackOn(party_slot, &target)) {
@@ -2572,9 +2542,7 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
         ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                            &detail_block);
         if (GetTargetNeededForAction(action, detail, detail_block) == W8_TARGET_NEED_GROUP) {
-            memset(&target, 0, sizeof(target));
-            target.iChar = BAD_INDEX;
-            target.iMonsterID = BAD_INDEX;
+            ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_GROUP;
             target.iGroupID = group->group_id;
             AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
@@ -2591,9 +2559,7 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
         return;
     }
 
-    memset(&target, 0, sizeof(target));
-    target.iChar = BAD_INDEX;
-    target.iGroupID = BAD_INDEX;
+    ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_MONSTER;
     target.iMonsterID = picked;
     AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
@@ -2708,9 +2674,7 @@ void CycleToNextTarget(int party_slot)
         if (pick == BAD_INDEX) {
             return;
         }
-        memset(&target, 0, sizeof(target));
-        target.iMonsterID = BAD_INDEX;
-        target.iChar = BAD_INDEX;
+        ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_GROUP;
         target.iGroupID = pick;
         AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
@@ -2720,9 +2684,7 @@ void CycleToNextTarget(int party_slot)
         if (pick == BAD_INDEX) {
             return;
         }
-        memset(&target, 0, sizeof(target));
-        target.iChar = BAD_INDEX;
-        target.iGroupID = BAD_INDEX;
+        ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_MONSTER;
         target.iMonsterID = pick;
         AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
@@ -2987,20 +2949,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
 
     if (memcmp(block, target, sizeof(W8CombatSlot)) != 0) {
         if (context != W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
-            W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[actor];
-            if (entry->highlighted_monsters.GetCount() < 1) {
-                if (block->iType == W8_TARGET_KIND_MONSTER && block->iMonsterID != -1) {
-                    SetMonsterHighlight(actor, block->iMonsterID, false);
-                }
-                if (block->iType == W8_TARGET_KIND_GROUP && block->iGroupID != -1) {
-                    SetGroupHighlight(actor, block->iGroupID, false);
-                }
-            } else {
-                for (int index = 0; index < entry->highlighted_monsters.GetCount(); ++index) {
-                    SetMonsterHighlight(actor, *entry->highlighted_monsters.GetAt(index), false);
-                }
-                entry->highlighted_monsters.Clear();
-            }
+            ClearTargetHighlights(actor, block);
         }
         *block = *target;
         if (context != W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
