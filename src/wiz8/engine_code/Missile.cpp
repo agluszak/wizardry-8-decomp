@@ -1181,7 +1181,6 @@ void W8Missile::SetCycle(signed char cycle)
 {
     W8GrowableVector<stLight*>* lights;
     W8AnimObj* animation;
-    int index;
 
     if (cycle < 0 || cycle >= 2) {
         srAssertFail("bCycle >= MISSILE_CYCLE_FIRST && bCycle <= MISSILE_CYCLE_LAST", MISSILE_CPP,
@@ -1212,15 +1211,10 @@ void W8Missile::SetCycle(signed char cycle)
     AttachCycleLights(lights);
 
     if (m_plsParticles != 0) {
-        for (index = 0; index < m_plsParticles->GetCount(); ++index) {
+        int count = m_plsParticles->GetCount();
+        for (int index = 0; index < count; ++index) {
             W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
-
-            if (event->cycle == cycle) {
-                event->m_pstParticles->SetActive(1);
-                event->m_pstParticles->emission_count = 0;
-            } else {
-                event->m_pstParticles->SetActive(0);
-            }
+            event->SelectCycle(cycle);
         }
     }
 }

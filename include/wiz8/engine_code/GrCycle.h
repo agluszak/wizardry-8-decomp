@@ -95,6 +95,8 @@ void UpdateShakeEffects();
    0x00498180, a vector at +0x0c, and the 0x24-byte tail wholesale. */
 class W8GrCycleParticleAttachment {
 public:
+    void SelectCycle(signed char selected_cycle);
+
     int cycle;
     signed char subcycle;
     unsigned char padding_05[3];

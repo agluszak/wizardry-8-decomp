@@ -1323,6 +1323,16 @@ void W8GrCycle::SetBehaviour(signed char bBehaviour)
     target->animation_behaviour = bBehaviour;
 }
 
+void W8GrCycleParticleAttachment::SelectCycle(signed char selected_cycle)
+{
+    if (cycle == selected_cycle) {
+        m_pstParticles->SetActive(1);
+        m_pstParticles->emission_count = 0;
+    } else {
+        m_pstParticles->SetActive(0);
+    }
+}
+
 void W8GrCycle::DetachCycleLights(W8GrowableVector<stLight*>* lights)
 {
     if (lights != 0) {

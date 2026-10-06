@@ -196,7 +196,6 @@ void W8SpellVisual::SetCycle(signed char cycle)
 {
     W8GrowableVector<stLight*>* lights;
     W8AnimObj* animation;
-    int index;
 
     if (cycle < SPELL_CYCLE_FIRST || cycle > SPELL_CYCLE_LAST) {
         srAssertFail("bCycle >= SPELL_CYCLE_FIRST && bCycle <= SPELL_CYCLE_LAST",
@@ -227,15 +226,9 @@ void W8SpellVisual::SetCycle(signed char cycle)
     AttachCycleLights(lights);
 
     if (m_plsParticles != 0) {
-        for (index = 0; index < m_plsParticles->GetCount(); ++index) {
+        for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
             W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
-
-            if (event->cycle == cycle) {
-                event->m_pstParticles->SetActive(1);
-                event->m_pstParticles->emission_count = 0;
-            } else {
-                event->m_pstParticles->SetActive(0);
-            }
+            event->SelectCycle(cycle);
         }
     }
 }

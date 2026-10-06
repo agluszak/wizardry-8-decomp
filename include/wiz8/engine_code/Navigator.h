@@ -353,8 +353,9 @@ public:
     /* Save the presence-gated movement state LoadMovementState
        consumes: the flag byte, then for an ungrouped navigator with flag
        0x20000000 set the height bounds, position and movement target. */
-    unsigned char LoadMovementState(unsigned int hFile);  /* 0x00454AD0 */
-    unsigned char SaveMovementState(unsigned int hFile);  /* 0x004549D0 */
+    unsigned char LoadMovementState(unsigned int hFile); /* 0x00454AD0 */
+    unsigned char SaveMovementState(unsigned int hFile); /* 0x004549D0 */
+    void CopyPathToGroup();
     void PropagateGroupPosition();                        /* 0x00454C80 */
     void UpdateAngles();                                  /* 0x00453990 */
     bool ConfigureMovement(float minimum, float maximum); /* 0x00453D20 */

@@ -11,6 +11,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/Configuration.h"
@@ -378,12 +379,10 @@ void RedrawCombatPortraits(void)
 
     for (slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* party_row = &g_status.buffers.XChar[slot];
-        W8Character* character = &g_status.buffers.Char[slot];
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
         W8CombatCharacterRow* combat_row = &g_combat_state->characters[slot];
 
-        if (!party_row->fOccupied || character->hp_current == 0 ||
-            character->highest_condition >= W8_CONDITION_DEAD || combat_row->portrait_image == -1 ||
+        if (!CanPartySlotParticipate(slot) || combat_row->portrait_image == -1 ||
             !entry->combat_portrait_dirty || slot == g_level_block->combat_slot) {
             continue;
         }

@@ -469,8 +469,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         }
         for (slot = 0; slot < 8; ++slot) {
             character = &g_status.buffers.Char[slot];
-            if (g_status.buffers.XChar[slot].fOccupied && character->hp_current != 0 &&
-                character->highest_condition < W8_CONDITION_DEAD) {
+            if (CanPartySlotParticipate(slot)) {
                 added = 100 - character->attributes[W8_ATTRIBUTE_INTELLIGENCE].base;
                 if (added > 5) {
                     added = 5;

@@ -167,6 +167,7 @@ struct W8LockState {
     /* Re-rolls the eight pin bytes of a pickable lock (lock_type == 1) and
        resets its difficulty-derived countdown and interaction state. */
     void Reset(); /* 0x00445730 */
+    void ReadRuntimeRecord(int handle, int version, int restoring);
     /* Spends one point of the lock countdown and reports whether one
        remained to spend. */
     bool ConsumeCountdown(); /* 0x004457A0 */

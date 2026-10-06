@@ -417,6 +417,8 @@ public:
     int QueryObjects(unsigned long** objects, const srVector3T<float>* lower,
                      const srVector3T<float>* upper, unsigned short kind,
                      int excluded); /* 0x0042F280 */
+    unsigned int QueryNearbyLocations(const srVector3T<float>* position, float spacing,
+                                      unsigned long** candidates);
     void AdjustPosition(srVector3T<float>* position, unsigned int mode);
     /* Refresh the pathing service's debug preview from the world cursor,
        falling back to the camera eye when the cursor is unset. */

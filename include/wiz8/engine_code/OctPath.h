@@ -346,6 +346,7 @@ public:
     unsigned short ResolveSearchNodeCollisions(W8NavigatorMovementState* movement,
                                                unsigned short node, float radius, float separation);
     srVector3T<float> GetSearchTraceOffset(float bearing);
+    short TraceSearchNodeToTarget(unsigned short node, W8NavigatorMovementState* movement);
     bool TestSearchPositionVisibility(const srVector3T<float>* position,
                                       W8NavigatorMovementState* movement);
     unsigned short ConfigureMovementSearch(W8NavigatorMovementState* movement, int target_location,
@@ -377,6 +378,7 @@ public:
     bool ProbeAttachmentPath(W8NavigatorAttachment* attachment);
     unsigned int FindPathCell(srVector3T<float>* position, srVector2T<unsigned int>* cell,
                               bool adjust);
+    void AppendScratchPath(W8NavigatorAttachment* attachment, unsigned int count);
     bool BuildAttachmentPath(W8NavigatorAttachment* attachment, unsigned int flags);
     bool PrepareLinkedNavigator(W8NavigatorMovementState* movement);
     bool LinkAttachmentTarget(W8NavigatorAttachment* attachment, unsigned int flags,

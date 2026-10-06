@@ -8,6 +8,7 @@
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/Magic.h"
@@ -129,9 +130,7 @@ int CountActiveCharacters(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied &&
-            g_status.buffers.Char[party_slot].hp_current != 0 &&
-            g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) {
+        if (CanPartySlotParticipate(party_slot)) {
             ++count;
         }
     }
@@ -1202,10 +1201,8 @@ unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* rec
 void AwardPartyExperience(int amount, int alternate_message)
 {
     for (int slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (row->fOccupied && character->hp_current > 0 &&
-            character->highest_condition < W8_CONDITION_DEAD && amount != 0) {
+        if (CanPartySlotParticipate(slot) && amount != 0) {
             unsigned int total = character->experience + static_cast<unsigned int>(amount);
             if (total > character->experience) {
                 character->experience = total;

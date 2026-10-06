@@ -93,6 +93,8 @@ struct W8SpellEffectResult {
 static_assert(sizeof(W8SpellEffectResult) == 0xa2, "W8SpellEffectResult_must_be_0xa2");
 
 struct W8SpellEffectEntry {
+    void AddVisual(W8SpellVisual* visual);
+
     /* Every construction site inlines this sequence: the member vectors are
        built first, then the working source, the target slot, the carried
        effect definition, the state flags and the whole result block are

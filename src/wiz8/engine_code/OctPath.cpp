@@ -1274,6 +1274,17 @@ unsigned short W8PathingService::FindPath(W8NavigatorAttachment* attachment, uns
     return usWayPt;
 }
 
+void W8PathingService::AppendScratchPath(W8NavigatorAttachment* attachment, unsigned int count)
+{
+    g_path_scratch[count] = 0;
+    while (count != 0) {
+        unsigned short surface_index = g_path_scratch[count - 1];
+        srVector3T<float>* position = &m_waypoints[surface_index].position;
+        attachment->AppendPathPosition(position, surface_index);
+        --count;
+    }
+}
+
 /* Build the attachment's stored route for the path found between its start
    and end positions. The parent chain left by FindPath is reversed through
    the shared scratch array into path_positions/path_values, the end position
@@ -1302,16 +1313,7 @@ bool W8PathingService::BuildAttachmentPath(W8NavigatorAttachment* attachment, un
                 node = m_waypoints[node].search_parent;
                 ++count;
             } while (node != 0);
-            unsigned int remaining = count;
-            g_path_scratch[remaining] = 0;
-            if (count != 0) {
-                do {
-                    unsigned short surface_index = g_path_scratch[remaining - 1];
-                    srVector3T<float>* position = &m_waypoints[surface_index].position;
-                    attachment->AppendPathPosition(position, surface_index);
-                    --remaining;
-                } while (remaining != 0);
-            }
+            AppendScratchPath(attachment, count);
             srVector3T<float>* destination = &attachment->path_destination;
             srVector3T<float>* slot = attachment->path_positions + attachment->path_position_index;
             *slot = *destination;
@@ -1391,15 +1393,7 @@ bool W8PathingService::LinkAttachmentTarget(W8NavigatorAttachment* attachment, u
         current = m_waypoints[current].search_parent;
         ++count;
     }
-    g_path_scratch[count] = 0;
-    if (count != 0) {
-        do {
-            unsigned short surface_index = g_path_scratch[count - 1];
-            srVector3T<float>* position = &m_waypoints[surface_index].position;
-            attachment->AppendPathPosition(position, surface_index);
-            --count;
-        } while (count != 0);
-    }
+    AppendScratchPath(attachment, count);
     attachment->TruncatePathAtRadius(target, separation);
     if (1 < attachment->path_position_index) {
         --attachment->path_position_index;
@@ -1570,16 +1564,7 @@ bool W8PathingService::BuildPatrolPath(W8NavigatorAttachment* attachment, unsign
         current = m_waypoints[current & 0xffff].search_parent;
         ++count;
     } while (previous != static_cast<unsigned short>(current));
-    unsigned int remaining = count;
-    g_path_scratch[remaining] = 0;
-    if (count != 0) {
-        do {
-            unsigned short surface_index = g_path_scratch[remaining - 1];
-            srVector3T<float>* position = &m_waypoints[surface_index].position;
-            attachment->AppendPathPosition(position, surface_index);
-            --remaining;
-        } while (remaining != 0);
-    }
+    AppendScratchPath(attachment, count);
     if (1 < attachment->path_position_index) {
         --attachment->path_position_index;
         attachment->path_destination = attachment->path_positions[attachment->path_position_index];
@@ -2092,10 +2077,6 @@ unsigned int W8PathingService::CollectPathProbes(W8NavigatorMovementState* movem
     return m_path_probe_count;
 }
 
-/* Build a bounded grid route from the navigator's current position to its
-   active attachment target. The open-chain index owns one search node per
-   cell, the fixed-capacity minimum heap chooses the next node to expand, and
-   the selected parent chain is collapsed into the attachment's route array. */
 srVector3T<float> W8PathingService::GetSearchTraceOffset(float bearing)
 {
     float target_yaw = NormalizeAngle(m_trace_target_yaw);
@@ -2108,6 +2089,21 @@ srVector3T<float> W8PathingService::GetSearchTraceOffset(float bearing)
     return rotation.Transform(trace_offset);
 }
 
+short W8PathingService::TraceSearchNodeToTarget(unsigned short node,
+                                                W8NavigatorMovementState* movement)
+{
+    srVector3T<float> trace_target = movement->target_position;
+    trace_target.y += trace_height_offset;
+    float bearing = NormalizeAngle(GetHeadingAngle(&m_search_nodes[node].position, &trace_target));
+    srVector3T<float> transformed = GetSearchTraceOffset(bearing);
+    srVector3T<float> trace_source = m_search_nodes[node].position + transformed;
+    return g_octree->TraceLineOfSight(&trace_source, &trace_target, true, -3, -3, true, 0);
+}
+
+/* Build a bounded grid route from the navigator's current position to its
+   active attachment target. The open-chain index owns one search node per
+   cell, the fixed-capacity minimum heap chooses the next node to expand, and
+   the selected parent chain is collapsed into the attachment's route array. */
 // FUNCTION: WIZ8 0x00463460
 unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement, float radius,
                                               float separation)
@@ -2367,15 +2363,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         unsigned short walk_parent = m_search_nodes[walk].parent_node;
         while (walk_parent != 0) {
             if (!explicit_target && direct_visibility_node == 0) {
-                srVector3T<float> trace_target = movement->target_position;
-                trace_target.y += trace_height_offset;
-                float bearing =
-                    NormalizeAngle(GetHeadingAngle(&m_search_nodes[walk].position, &trace_target));
-                srVector3T<float> transformed = GetSearchTraceOffset(bearing);
-                srVector3T<float> trace_source;
-                trace_source = m_search_nodes[walk].position + transformed;
-                short trace =
-                    g_octree->TraceLineOfSight(&trace_source, &trace_target, true, -3, -3, true, 0);
+                short trace = TraceSearchNodeToTarget(walk, movement);
                 if (trace != 0) {
                     m_search_nodes[walk].flags |= W8_PATH_SEARCH_EXPANDED;
                 } else {
@@ -2386,15 +2374,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             walk_parent = m_search_nodes[walk].parent_node;
         }
         if (!explicit_target && direct_visibility_node == 0) {
-            srVector3T<float> trace_target = movement->target_position;
-            trace_target.y += trace_height_offset;
-            float bearing =
-                NormalizeAngle(GetHeadingAngle(&m_search_nodes[walk].position, &trace_target));
-            srVector3T<float> transformed = GetSearchTraceOffset(bearing);
-            srVector3T<float> trace_source;
-            trace_source = m_search_nodes[walk].position + transformed;
-            short trace =
-                g_octree->TraceLineOfSight(&trace_source, &trace_target, true, -3, -3, true, 0);
+            short trace = TraceSearchNodeToTarget(walk, movement);
             if (trace == 0) {
                 direct_path = true;
             } else {

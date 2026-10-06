@@ -114,9 +114,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
     if (category == W8_TARGETING_CONTEXT_OUT_OF_COMBAT || category == W8_TARGETING_CONTEXT_ATTACK) {
         W8Character* character = &g_status.buffers.Char[first];
         for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-            W8Character* candidate = &g_status.buffers.Char[slot];
-            if (slot != first && g_status.buffers.XChar[slot].fOccupied &&
-                candidate->hp_current != 0 && candidate->highest_condition < W8_CONDITION_DEAD &&
+            if (slot != first && CanPartySlotParticipate(slot) &&
                 CharacterVsCharacterDisposition(first, slot) == side) {
                 for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
                     if (!CanHandReachTarget(first, reach_hand)) {
@@ -1015,9 +1013,7 @@ int PickReachableSlotByDisposition(int party_slot, W8Disposition relationship)
     int* next = candidates;
     int count = 0;
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-        if (slot == party_slot || !g_status.buffers.XChar[slot].fOccupied ||
-            g_status.buffers.Char[slot].hp_current == 0 ||
-            g_status.buffers.Char[slot].highest_condition >= W8_CONDITION_DEAD ||
+        if (slot == party_slot || !CanPartySlotParticipate(slot) ||
             CharacterVsCharacterDisposition(party_slot, slot) != relationship) {
             continue;
         }

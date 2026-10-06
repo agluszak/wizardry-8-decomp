@@ -534,8 +534,7 @@ void ApplyTarget(W8CombatSlot* target, bool in_combat)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         row = &g_status.buffers.XChar[party_slot];
         character = &g_status.buffers.Char[party_slot];
-        if (!row->fOccupied || character->hp_current == 0 ||
-            character->highest_condition >= W8_CONDITION_DEAD) {
+        if (!CanPartySlotParticipate(party_slot)) {
             continue;
         }
         if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -1117,9 +1116,7 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         if (target->iChar == BAD_INDEX) {
             srAssertFail("pTarget->iChar != BAD_INDEX", TARGETING_CPP, 0x6c, 0);
         }
-        if (g_status.buffers.XChar[target->iChar].fOccupied == 0 ||
-            g_status.buffers.Char[target->iChar].hp_current == 0 ||
-            g_status.buffers.Char[target->iChar].highest_condition >= W8_CONDITION_DEAD) {
+        if (!CanPartySlotParticipate(target->iChar)) {
             return false;
         }
         break;
@@ -2131,9 +2128,7 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
     unsigned int monster_index;
     int selected;
 
-    if (!g_status.buffers.XChar[party_slot].fOccupied ||
-        g_status.buffers.Char[party_slot].hp_current == 0 ||
-        g_status.buffers.Char[party_slot].highest_condition >= W8_CONDITION_DEAD) {
+    if (!CanPartySlotParticipate(party_slot)) {
         return false;
     }
 

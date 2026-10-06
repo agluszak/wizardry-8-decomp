@@ -289,6 +289,32 @@ void SaveTriggerRuntimeStates(W8World* world, int handle, bool restoring)
     }
 }
 
+void W8LockState::ReadRuntimeRecord(int handle, int version, int restoring)
+{
+    int record_version;
+
+    if (restoring == 0 && version > 1) {
+        FileRead(handle, &record_version, sizeof(record_version), 0);
+        FileRead(handle, &device_state.completed, sizeof(device_state.completed), 0);
+        FileRead(handle, device_state.pins, sizeof(device_state.pins), 0);
+        FileRead(handle, &lock_countdown, sizeof(lock_countdown), 0);
+        if (record_version > 1) {
+            FileRead(handle, &last_interaction_clock, sizeof(last_interaction_clock), 0);
+        }
+    } else {
+        FileRead(handle, &record_version, sizeof(record_version), 0);
+        FileRead(handle, &lock_type, sizeof(lock_type), 0);
+        FileRead(handle, &difficulty, sizeof(difficulty), 0);
+        FileRead(handle, &device_state.completed, sizeof(device_state.completed), 0);
+        FileRead(handle, device_state.pins, sizeof(device_state.pins), 0);
+        FileRead(handle, &device_id, sizeof(device_id), 0);
+        FileRead(handle, &key_id, sizeof(key_id), 0);
+        if (record_version > 1) {
+            FileRead(handle, &lock_countdown, sizeof(lock_countdown), 0);
+        }
+    }
+}
+
 /* Read the runtime-state records written by SaveTriggerRuntimeStates.
    Each record names its trigger; a record whose trigger no longer exists is
    still consumed through a scratch trigger so the stream stays aligned. When
@@ -316,93 +342,15 @@ bool LoadTriggerRuntimeStates(int handle)
         trigger = FindTriggerByName(name);
         if (trigger == 0) {
             Trigger* scratch = new Trigger;
-            int record_version;
 
-            if (restoring == 0 && version > 1) {
-                FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &scratch->lock_state.device_state.completed,
-                         sizeof(scratch->lock_state.device_state.completed), 0);
-                FileRead(handle, scratch->lock_state.device_state.pins,
-                         sizeof(scratch->lock_state.device_state.pins), 0);
-                FileRead(handle, &scratch->lock_state.lock_countdown,
-                         sizeof(scratch->lock_state.lock_countdown), 0);
-                if (record_version > 1) {
-                    FileRead(handle, &scratch->lock_state.last_interaction_clock,
-                             sizeof(scratch->lock_state.last_interaction_clock), 0);
-                }
-            } else {
-                FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &scratch->lock_state.lock_type,
-                         sizeof(scratch->lock_state.lock_type), 0);
-                FileRead(handle, &scratch->lock_state.difficulty,
-                         sizeof(scratch->lock_state.difficulty), 0);
-                FileRead(handle, &scratch->lock_state.device_state.completed,
-                         sizeof(scratch->lock_state.device_state.completed), 0);
-                FileRead(handle, scratch->lock_state.device_state.pins,
-                         sizeof(scratch->lock_state.device_state.pins), 0);
-                FileRead(handle, &scratch->lock_state.device_id,
-                         sizeof(scratch->lock_state.device_id), 0);
-                FileRead(handle, &scratch->lock_state.key_id, sizeof(scratch->lock_state.key_id),
-                         0);
-                if (record_version > 1) {
-                    FileRead(handle, &scratch->lock_state.lock_countdown,
-                             sizeof(scratch->lock_state.lock_countdown), 0);
-                }
-            }
+            scratch->lock_state.ReadRuntimeRecord(handle, version, restoring);
             delete scratch;
         } else {
-            int record_version;
             W8TriggerActionData* action_data;
 
-            if (restoring == 0 && version > 1) {
-                FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &trigger->lock_state.device_state.completed,
-                         sizeof(trigger->lock_state.device_state.completed), 0);
-                FileRead(handle, trigger->lock_state.device_state.pins,
-                         sizeof(trigger->lock_state.device_state.pins), 0);
-                FileRead(handle, &trigger->lock_state.lock_countdown,
-                         sizeof(trigger->lock_state.lock_countdown), 0);
-                if (record_version > 1) {
-                    FileRead(handle, &trigger->lock_state.last_interaction_clock,
-                             sizeof(trigger->lock_state.last_interaction_clock), 0);
-                }
-            } else {
-                FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &trigger->lock_state.lock_type,
-                         sizeof(trigger->lock_state.lock_type), 0);
-                FileRead(handle, &trigger->lock_state.difficulty,
-                         sizeof(trigger->lock_state.difficulty), 0);
-                FileRead(handle, &trigger->lock_state.device_state.completed,
-                         sizeof(trigger->lock_state.device_state.completed), 0);
-                FileRead(handle, trigger->lock_state.device_state.pins,
-                         sizeof(trigger->lock_state.device_state.pins), 0);
-                FileRead(handle, &trigger->lock_state.device_id,
-                         sizeof(trigger->lock_state.device_id), 0);
-                FileRead(handle, &trigger->lock_state.key_id, sizeof(trigger->lock_state.key_id),
-                         0);
-                if (record_version > 1) {
-                    FileRead(handle, &trigger->lock_state.lock_countdown,
-                             sizeof(trigger->lock_state.lock_countdown), 0);
-                }
-                if (restoring != 0) {
-                    if (trigger->lock_state.lock_type == 1) {
-                        int size;
-
-                        for (int byte_index = 0; byte_index < 8; ++byte_index) {
-                            trigger->lock_state.device_state.pins[byte_index] =
-                                static_cast<unsigned char>(Random(4));
-                        }
-                        size = trigger->lock_state.difficulty;
-                        if (size < 2) {
-                            size = 2;
-                        } else if (size > 7) {
-                            size = 8;
-                        }
-                        trigger->lock_state.lock_countdown = size * 3;
-                    }
-                    trigger->lock_state.last_interaction_clock = -1;
-                    trigger->lock_state.device_state.completed = 0;
-                }
+            trigger->lock_state.ReadRuntimeRecord(handle, version, restoring);
+            if (restoring != 0) {
+                trigger->lock_state.Reset();
             }
             action_data = trigger->m_pActionData;
             if (action_data != 0 && action_data->type == W8_TRIGGER_PAYLOAD_DOOR &&
@@ -1273,44 +1221,13 @@ void InitializeStateDrivenPropVariables(Trigger* trigger)
     for (slot = 0; slot < static_cast<signed char>(trigger->m_pProp->Rep()->slots.GetCount());
          ++slot) {
         char name[132];
-        int variable_id;
 
         if (trigger->m_bRepType != W8_TRIGGER_REP_PROP) {
             srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
                          0x3ed, 0);
         }
         sprintf(name, "%s%d", trigger->m_pacStateToMod, slot);
-        /* `name` is a stack array; the assertion still names pacName. The
-           source pointer is already rejected at the top of this function.
-           Do not collapse the recovered test until a body comparison says
-           retail omitted it. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-compare"
-        if (name == 0) {
-#pragma clang diagnostic pop
-            srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1094,
-                         0);
-        }
-
-        variable_id = 0;
-        while (variable_id < g_location_variable_names.GetCount()) {
-            if (_stricmp(*g_location_variable_names.GetAt(variable_id), name) == 0 &&
-                *g_location_variable_levels.GetAt(variable_id) == g_status.current_level) {
-                break;
-            }
-            ++variable_id;
-        }
-        if (variable_id == g_location_variable_names.GetCount()) {
-            char* variable_name = new char[strlen(name) + 1];
-            if (variable_name == 0) {
-                srAssertFail("pacVariableName",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x109c, 0);
-            }
-            strcpy(variable_name, name);
-            g_location_variable_names.Add(variable_name);
-            g_location_variable_values.Add(slot == 0);
-            g_location_variable_levels.Add(g_status.current_level);
-        }
+        CreateLocationVar(name, slot == 0);
     }
 }
 
@@ -1937,26 +1854,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 
         if (trigger->m_pacStateToMod != 0 &&
             (initial_location_value == 0 || initial_location_value == 1)) {
-            int variable_id = 0;
-            while (variable_id < g_location_variable_names.GetCount()) {
-                if (_stricmp(*g_location_variable_names.GetAt(variable_id),
-                             trigger->m_pacStateToMod) == 0 &&
-                    *g_location_variable_levels.GetAt(variable_id) == g_status.current_level) {
-                    break;
-                }
-                ++variable_id;
-            }
-            if (variable_id == g_location_variable_names.GetCount()) {
-                char* variable_name = new char[strlen(trigger->m_pacStateToMod) + 1];
-                if (variable_name == 0) {
-                    srAssertFail("pacVariableName",
-                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x109c, 0);
-                }
-                strcpy(variable_name, trigger->m_pacStateToMod);
-                g_location_variable_names.Add(variable_name);
-                g_location_variable_values.Add(initial_location_value);
-                g_location_variable_levels.Add(g_status.current_level);
-            }
+            CreateLocationVar(trigger->m_pacStateToMod, initial_location_value);
         }
 
         int unused_value;
@@ -3393,31 +3291,19 @@ void Trigger::Run(int source)
         }
         if (m_pacStateToMod != 0) {
             char state_name[132];
-            int state_id;
 
             sprintf(state_name, "%s%d", m_pacStateToMod,
                     static_cast<int>(static_cast<signed char>(state_index)));
-            state_id = GetLocationVarIDByName(state_name);
-            if (state_id == -1) {
-                srAssertFail("iVar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10c9, 0);
-            }
-            g_location_variable_values.SetAt(state_id, 0);
+            SetTriggerVariableByName(state_name, 0);
         }
         state_index = m_pProp->Rep()->AdvanceAnimationSegment();
         m_pProp->SetRepresentationActive(1, false);
         if (m_pacStateToMod != 0) {
             char state_name[132];
-            int state_id;
 
             sprintf(state_name, "%s%d", m_pacStateToMod,
                     static_cast<int>(static_cast<signed char>(state_index)));
-            state_id = GetLocationVarIDByName(state_name);
-            if (state_id == -1) {
-                srAssertFail("iVar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10c9, 0);
-            }
-            g_location_variable_values.SetAt(state_id, 1);
+            SetTriggerVariableByName(state_name, 1);
         }
         apply_state_changes = false;
         break;

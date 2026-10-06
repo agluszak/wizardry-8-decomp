@@ -673,8 +673,7 @@ int CharacterPrayAction(int party_slot)
             in_range = 0;
             for (index = 0; index < 8; ++index) {
                 W8Character* member = &g_status.buffers.Char[index];
-                if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                    member->highest_condition < W8_CONDITION_DEAD &&
+                if (CanPartySlotParticipate(index) &&
                     member->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].power == 0) {
                     ++in_range;
                     found = true;
@@ -684,8 +683,7 @@ int CharacterPrayAction(int party_slot)
                 pick = Random(in_range) + 1;
                 for (index = 0; index < 8; ++index) {
                     W8Character* member = &g_status.buffers.Char[index];
-                    if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                        member->highest_condition < W8_CONDITION_DEAD &&
+                    if (CanPartySlotParticipate(index) &&
                         member->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].power == 0 &&
                         --pick == 0) {
                         AppendToLastTextLine(
@@ -708,8 +706,7 @@ int CharacterPrayAction(int party_slot)
             in_range = 0;
             for (index = 0; index < 8; ++index) {
                 W8Character* member = &g_status.buffers.Char[index];
-                if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                    member->highest_condition < W8_CONDITION_DEAD &&
+                if (CanPartySlotParticipate(index) &&
                     (member->uiCondition[W8_CONDITION_INSANE] != 0 ||
                      member->uiCondition[W8_CONDITION_TURNCOAT] != 0)) {
                     ++in_range;
@@ -720,8 +717,7 @@ int CharacterPrayAction(int party_slot)
                 pick = Random(in_range) + 1;
                 for (index = 0; index < 8; ++index) {
                     W8Character* member = &g_status.buffers.Char[index];
-                    if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                        member->highest_condition < W8_CONDITION_DEAD &&
+                    if (CanPartySlotParticipate(index) &&
                         (member->uiCondition[W8_CONDITION_INSANE] != 0 ||
                          member->uiCondition[W8_CONDITION_TURNCOAT] != 0) &&
                         --pick == 0) {
@@ -758,8 +754,7 @@ int CharacterPrayAction(int party_slot)
             best = -1;
             for (index = 0; index < 8; ++index) {
                 W8Character* member = &g_status.buffers.Char[index];
-                if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                    member->highest_condition < W8_CONDITION_DEAD &&
+                if (CanPartySlotParticipate(index) &&
                     member->hp_current < static_cast<unsigned int>(member->uiHPMax) &&
                     (best == -1 || member->hp_current < g_status.buffers.Char[best].hp_current)) {
                     best = index;

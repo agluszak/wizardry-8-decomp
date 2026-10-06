@@ -419,12 +419,7 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive(W8OctSpatialState* working
             for (int x = 0; x != 2; ++x) {
                 for (int y = 0; y != 2; ++y) {
                     for (int z = 0; z != 2; ++z, ++octant) {
-                        child.m_minimum.x = x * child.m_extent + working->m_minimum.x;
-                        child.m_maximum.x = child.m_minimum.x + child.m_extent;
-                        child.m_minimum.y = y * child.m_extent + working->m_minimum.y;
-                        child.m_maximum.y = child.m_minimum.y + child.m_extent;
-                        child.m_minimum.z = z * child.m_extent + working->m_minimum.z;
-                        child.m_maximum.z = child.m_minimum.z + child.m_extent;
+                        child.SetChildBounds(working, x, y, z);
                         for (int corner = 0; corner != 3; ++corner) {
                             vertices[corner] = polygon->vertices[corner]->position;
                         }
@@ -514,12 +509,7 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* arg_spat
         for (int x = 0; x != 2; ++x) {
             for (int y = 0; y != 2; ++y) {
                 for (int z = 0; z != 2; ++z, ++child_index) {
-                    child.m_minimum.x = x * child.m_extent + arg_spatial->m_minimum.x;
-                    child.m_maximum.x = child.m_minimum.x + child.m_extent;
-                    child.m_minimum.y = y * child.m_extent + arg_spatial->m_minimum.y;
-                    child.m_maximum.y = child.m_minimum.y + child.m_extent;
-                    child.m_minimum.z = z * child.m_extent + arg_spatial->m_minimum.z;
-                    child.m_maximum.z = child.m_minimum.z + child.m_extent;
+                    child.SetChildBounds(arg_spatial, x, y, z);
 
                     /* Retail leaves this unset for modes outside 5/6. */
                     bool intersects;
@@ -1175,12 +1165,7 @@ void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* arg_spatial)
                 W8OctBuildNode* parent = arg_spatial->m_root;
                 W8OctBuildNode* node = parent->children[child_index];
                 if (node != 0) {
-                    child.m_minimum.x = x * child.m_extent + arg_spatial->m_minimum.x;
-                    child.m_maximum.x = child.m_minimum.x + child.m_extent;
-                    child.m_minimum.y = y * child.m_extent + arg_spatial->m_minimum.y;
-                    child.m_maximum.y = child.m_minimum.y + child.m_extent;
-                    child.m_minimum.z = z * child.m_extent + arg_spatial->m_minimum.z;
-                    child.m_maximum.z = child.m_minimum.z + child.m_extent;
+                    child.SetChildBounds(arg_spatial, x, y, z);
                     child.m_node_index =
                         ((high * 0x100 + x_base + x) * 0x100 + y_base + y) * 0x100 + z_base + z;
                     child.m_root = node;
@@ -1428,12 +1413,7 @@ void OctBuildPreTree::AssignRegionFromSurfaces(const W8OctSpatialState* arg_spat
                     W8OctBuildNode* parent = arg_spatial->m_root;
                     W8OctBuildNode* node = parent->children[child_index];
                     if (node != 0) {
-                        child.m_minimum.x = x * child.m_extent + arg_spatial->m_minimum.x;
-                        child.m_maximum.x = child.m_minimum.x + child.m_extent;
-                        child.m_minimum.y = y * child.m_extent + arg_spatial->m_minimum.y;
-                        child.m_maximum.y = child.m_minimum.y + child.m_extent;
-                        child.m_minimum.z = z * child.m_extent + arg_spatial->m_minimum.z;
-                        child.m_maximum.z = child.m_minimum.z + child.m_extent;
+                        child.SetChildBounds(arg_spatial, x, y, z);
                         child.m_root = node;
                         AssignRegionFromSurfaces(&child);
                     }

@@ -43,6 +43,16 @@ struct W8OctSpatialState {
     explicit W8OctSpatialState(const W8OctSpatialState* source = 0);
     ~W8OctSpatialState();
 
+    void SetChildBounds(const W8OctSpatialState* parent, int x, int y, int z)
+    {
+        m_minimum.x = x * m_extent + parent->m_minimum.x;
+        m_maximum.x = m_minimum.x + m_extent;
+        m_minimum.y = y * m_extent + parent->m_minimum.y;
+        m_maximum.y = m_minimum.y + m_extent;
+        m_minimum.z = z * m_extent + parent->m_minimum.z;
+        m_maximum.z = m_minimum.z + m_extent;
+    }
+
     void Reset();
     void GetClippedBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void GetWorkingBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);

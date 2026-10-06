@@ -1300,9 +1300,7 @@ void UpdateCampFatigue(int ticks)
     bool any_rolled = false;
     for (unsigned int slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
-        if (g_status.buffers.XChar[slot].fOccupied && character->hp_current != 0 &&
-            character->highest_condition < W8_CONDITION_DEAD &&
-            character->iRace != W8_RACE_ANDROID &&
+        if (CanPartySlotParticipate(slot) && character->iRace != W8_RACE_ANDROID &&
             !FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
                                  static_cast<W8ItemInstance*>(0))) {
             W8Dice dice;

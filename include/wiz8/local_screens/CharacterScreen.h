@@ -217,6 +217,7 @@ public:
 
 private:
     void UpdateRowValues(); /* 0x005ca200 */
+    void SetRowControlsActive(W8CharacterStatsRow* row, bool active);
 
 public:
     W8CharacterStatsRow* m_profession_row;
