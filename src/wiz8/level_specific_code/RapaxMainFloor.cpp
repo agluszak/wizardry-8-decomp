@@ -68,6 +68,7 @@ bool RapaxMainFloorPlatform(Trigger* pTrigger)
     srVector3T<float> entity_position;
     srVector3T<float> position;
     W8WorldItem* world_item;
+
     if (FindEntityByName("NP_CRobe", &entity_position, 0, 0)) {
         position = entity_position;
         world_item =
@@ -100,8 +101,6 @@ bool RapaxMainFloorPlatform(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DA590
 bool RapaxMainFloorPlatform01(Trigger* pTrigger)
 {
-    Trigger* ram_trigger;
-
     SetRamTriggerEnabled("RAM03", false);
     SetRamTriggerEnabled("RAM07", true);
     return true;
@@ -111,8 +110,6 @@ bool RapaxMainFloorPlatform01(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DA5D0
 bool RapaxMainFloorPlatform02(Trigger* pTrigger)
 {
-    Trigger* ram_trigger;
-
     SetRamTriggerEnabled("RAM07", false);
     SetRamTriggerEnabled("RAM11", true);
     return true;
