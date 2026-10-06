@@ -25,6 +25,14 @@
    AirBox and DoorDone triggers. The original file name is not anchored by an
    assertion path string. */
 
+static void RunTreasureDoor()
+{
+    Trigger* door = FindTriggerByName("TDoor1");
+    if (door != 0) {
+        door->Run(-1);
+    }
+}
+
 /* "AirBox": while the cursor holds an item, placing one of the four vault
    items (0x1cb/0x1cd/0x1cc/0x1ce) converts it to a treasure item, drops it at
    the NP_SlipItem entity and runs the TDoor1 trigger. When TdoorOpen is
@@ -36,7 +44,6 @@ bool RapaxUpperFloorAirBox(Trigger* pTrigger)
     srVector3T<float> entity_position;
     srVector3T<float> position;
     W8WorldItem* world_item;
-    Trigger* door;
     int item_id;
     int var_id;
 
@@ -63,17 +70,10 @@ bool RapaxUpperFloorAirBox(Trigger* pTrigger)
                         ActivateItem(world_item);
                     }
                 }
-                door = FindTriggerByName("TDoor1");
-                if (door == 0) {
-                    return true;
-                }
-                door->Run(-1);
+                RunTreasureDoor();
                 return true;
             }
-            door = FindTriggerByName("TDoor1");
-            if (door != 0) {
-                door->Run(-1);
-            }
+            RunTreasureDoor();
             var_id = GetLocationVarIDByName("TMakeTreasure");
             if (var_id == -1) {
                 CreateLocationVar("TMakeTreasure", 1);
@@ -103,7 +103,6 @@ bool RapaxUpperFloorDoorDone(Trigger* pTrigger)
     srVector3T<float> entity_position;
     srVector3T<float> position;
     W8WorldItem* world_item;
-    Trigger* door;
     int item_id;
 
     if (GetLocationVarIDByName("TMakeTreasure") != -1) {
@@ -119,10 +118,7 @@ bool RapaxUpperFloorDoorDone(Trigger* pTrigger)
                             ActivateItem(world_item);
                         }
                     }
-                    door = FindTriggerByName("TDoor1");
-                    if (door != 0) {
-                        door->Run(-1);
-                    }
+                    RunTreasureDoor();
                     return false;
                 }
             }
