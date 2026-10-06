@@ -184,14 +184,10 @@ const wchar_t* g_dialogue_person_keywords[] = {L"BALBRAK", L"BILDUBLU", L"EWAXX"
 
 static void DisableNpcTradeActions()
 {
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3]->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(false);
 }
 
 /* Enabling starts text-input scheme 1 and installs the typed-dialogue field;
@@ -245,24 +241,18 @@ void W8NpcDialogueOptionsPanel::SetEnabled(bool enable)
     m_fEnabled = enable;
     for (index = 0; index < m_controls.GetCount(); ++index) {
         if (enable &&
-            (ControlAt(index) == static_cast<W8TextControl*>(
-                                     g_npc_interaction_state
-                                         ->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0]) ||
-             ControlAt(index) == static_cast<W8TextControl*>(
-                                     g_npc_interaction_state
-                                         ->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1]) ||
-             ControlAt(index) == static_cast<W8TextControl*>(
-                                     g_npc_interaction_state
-                                         ->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2]) ||
-             ControlAt(index) == static_cast<W8TextControl*>(
-                                     g_npc_interaction_state
-                                         ->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3]) ||
-             ControlAt(index) == static_cast<W8TextControl*>(
-                                     g_npc_interaction_state
-                                         ->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4]) ||
-             ControlAt(index) == static_cast<W8TextControl*>(
-                                     g_npc_interaction_state
-                                         ->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5])) &&
+            (ControlAt(index) ==
+                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0] ||
+             ControlAt(index) ==
+                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1] ||
+             ControlAt(index) ==
+                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2] ||
+             ControlAt(index) ==
+                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3] ||
+             ControlAt(index) ==
+                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4] ||
+             ControlAt(index) ==
+                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5]) &&
             g_npc_interaction_state->dialogue_layout != W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
             continue;
         }
@@ -708,7 +698,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
     state->farewell_queued = false;
     state->reopen_topics = false;
     state->trade_gold = 0;
-    state->pending_layout = 0;
+    state->pending_layout = W8_DIALOGUE_LAYOUT_NONE;
     state->suppress_parting_reaction = true;
     state->selected_trade_row = -1;
     state->transcript_open_count = 0;
@@ -749,18 +739,8 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
                 CloseNpcDialogueMode1Layout();
                 break;
             case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
-                RegionSetDisable(0x18);
-                static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-                    ->SetEnabled(false);
-                g_npc_interaction_state->dialogue_panels[1]->SetEnabled(false);
-                g_npc_interaction_state->dialogue_panels[4]->SetEnabled(false);
-                static_cast<W8TextControl*>(
-                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
-                    ->SetActive(false);
-                static_cast<W8TextControl*>(
-                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
-                    ->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_bold_font);
-            /* fall through */
+                CloseNpcDialogueLayout();
+                break;
             case W8_DIALOGUE_LAYOUT_BARE:
                 SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
                 break;
@@ -954,42 +934,36 @@ void CreateNpcDialogueControls(void)
         panel, 0x79, 0x50, 0x46, 0x60, 0x56, 0x1ab, 0, 0x14, 0x15, 0x16, 0x18, 0x17);
     state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5] = new W8TextControl(
         panel, 0x7a, 0x62, 0x46, 0x72, 0x56, 0x1ab, 0, 0x19, 0x1a, 0x1b, 0x1d, 0x1c);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0])
-        ->EnableRegionHelp(0x7c2);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1])
-        ->EnableRegionHelp(0x7c3);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2])
-        ->EnableRegionHelp(0x7c4);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3])
-        ->EnableRegionHelp(0x7c5);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4])
-        ->EnableRegionHelp(0x7c6);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5])
-        ->EnableRegionHelp(0x7c7);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0])
-        ->m_primaryActivationCallback = ToggleNpcHandItemFilter;
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1])
-        ->m_primaryActivationCallback = ToggleNpcAccessoryItemFilter;
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2])
-        ->m_primaryActivationCallback = ToggleNpcCharacterUsabilityFilter;
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3])
-        ->m_primaryActivationCallback = ToggleNpcBodyItemFilter;
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4])
-        ->m_primaryActivationCallback = ToggleNpcOtherItemFilter;
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5])
-        ->m_primaryActivationCallback = ToggleNpcPartyUsabilityFilter;
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0]->EnableRegionHelp(0x7c2);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1]->EnableRegionHelp(0x7c3);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2]->EnableRegionHelp(0x7c4);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3]->EnableRegionHelp(0x7c5);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4]->EnableRegionHelp(0x7c6);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5]->EnableRegionHelp(0x7c7);
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0]->m_primaryActivationCallback =
+        ToggleNpcHandItemFilter;
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1]->m_primaryActivationCallback =
+        ToggleNpcAccessoryItemFilter;
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2]->m_primaryActivationCallback =
+        ToggleNpcCharacterUsabilityFilter;
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3]->m_primaryActivationCallback =
+        ToggleNpcBodyItemFilter;
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4]->m_primaryActivationCallback =
+        ToggleNpcOtherItemFilter;
+    state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5]->m_primaryActivationCallback =
+        ToggleNpcPartyUsabilityFilter;
 
     panel = state->dialogue_panels[1];
     state->dialogue_controls[W8_NPC_CONTROL_WIDGET] = new W8Widget(panel, 0x89, 2, 4, 0x136, 0x57);
@@ -1005,102 +979,117 @@ void CreateNpcDialogueControls(void)
     panel = static_cast<W8NpcTypedDialoguePanel*>(state->dialogue_panels[6]);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_12] =
         new W8TextControl(panel, 0x68, 0x11, 0x23, 0x22, 0x30, 0x1aa, 0, 5, 9, 6, 7, 8);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_12])
-        ->EnableRegionHelp(100);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->EnableRegionHelp(100);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_13] =
         new W8TextControl(panel, 0x69, 0x26, 0x23, 0x37, 0x30, 0x1aa, 0, 10, 0xe, 0xb, 0xc, 0xd);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_13])
-        ->EnableRegionHelp(0x65);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->EnableRegionHelp(0x65);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_23] =
         new W8TextControl(panel, 0x73, 9, 0x33, 0x84, 0x44, 0x1a9, 0, -1, -1, 0xe, 0xf, -1);
     static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_23])
         ->m_textBuffer.SetText(gppStringList[0x741], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_23])
-        ->m_primaryActivationCallback = SubmitNpcDialogueInput;
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_23])
-        ->EnableRegionHelp(0x66);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_23]->m_primaryActivationCallback =
+        SubmitNpcDialogueInput;
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_23]->EnableRegionHelp(0x66);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_22] =
         new W8TextControl(panel, 0x72, 9, 0x43, 0x84, 0x52, 0x1a9, 0, -1, -1, 0xe, 0xf, -1);
     static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_22])
         ->m_textBuffer.SetText(gppStringList[0x742], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_22])
-        ->m_primaryActivationCallback = SubmitNpcWhereIsQuery;
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_22])
-        ->EnableRegionHelp(0x67);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_22]->m_primaryActivationCallback =
+        SubmitNpcWhereIsQuery;
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_22]->EnableRegionHelp(0x67);
 
     panel = state->dialogue_panels[3];
     state->dialogue_controls[W8_NPC_CONTROL_SORT_BUTTON] =
         new W8TextControl(panel, 0x6b, 6, 2, 0x89, 0xe, 0x1a9, 0, 8, 9, -1, -1, -1);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_SORT_BUTTON])
-        ->AddLayoutFlags(g_W8TextControlLayoutImageLeft | g_W8TextControlLayoutTextBesideImage |
-                         g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_SORT_BUTTON]->AddLayoutFlags(
+        g_W8TextControlLayoutImageLeft | g_W8TextControlLayoutTextBesideImage |
+        g_W8TextControlLayoutToggle);
     state->dialogue_controls[W8_NPC_CONTROL_PEOPLE_BUTTON] =
         new W8TextControl(panel, 0x6d, 6, 0xf, 0x41, 0x1b, 0x1a9, 0, 8, 9, -1, -1, -1);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_PEOPLE_BUTTON])
-        ->AddLayoutFlags(g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
-                         g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_PEOPLE_BUTTON]->AddLayoutFlags(
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_controls[W8_NPC_CONTROL_PLACES_BUTTON] =
         new W8TextControl(panel, 0x6e, 0x43, 0xf, 0x89, 0x1b, 0x1a9, 0, 8, 9, -1, -1, -1);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_PLACES_BUTTON])
-        ->AddLayoutFlags(g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
-                         g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_PLACES_BUTTON]->AddLayoutFlags(
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_controls[W8_NPC_CONTROL_ITEMS_BUTTON] =
         new W8TextControl(panel, 0x6f, 6, 0x1b, 0x41, 0x27, 0x1a9, 0, 8, 9, -1, -1, -1);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_ITEMS_BUTTON])
-        ->AddLayoutFlags(g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
-                         g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_ITEMS_BUTTON]->AddLayoutFlags(
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_controls[W8_NPC_CONTROL_MISC_BUTTON] =
         new W8TextControl(panel, 0x70, 0x43, 0x1b, 0x89, 0x27, 0x1a9, 0, 8, 9, -1, -1, -1);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_MISC_BUTTON])
-        ->AddLayoutFlags(g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
-                         g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_MISC_BUTTON]->AddLayoutFlags(
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
     state->dialogue_controls[W8_NPC_CONTROL_ALL_BUTTON] =
         new W8TextControl(panel, 0x71, 6, 0x27, 0x41, 0x33, 0x1a9, 0, 8, 9, -1, -1, -1);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_ALL_BUTTON])
-        ->AddLayoutFlags(g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
-                         g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
+    state->dialogue_controls[W8_NPC_CONTROL_ALL_BUTTON]->AddLayoutFlags(
+        g_W8TextControlLayoutStayLatched | g_W8TextControlLayoutImageLeft |
+        g_W8TextControlLayoutTextBesideImage | g_W8TextControlLayoutToggle);
 
     panel = state->dialogue_panels[5];
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_24] =
         new W8TextControl(panel, 0x74, 5, 0x14, 0x32, 0x49, -1, -1, -1, -1, -1, -1, -1);
     static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
         ->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignBottom | g_W8TextBufferAlignRight);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
-        ->AddLayoutFlags(g_W8TextControlLayoutImageAtOrigin);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_24]->AddLayoutFlags(
+        g_W8TextControlLayoutImageAtOrigin);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_31] = new W8TextControl(
         panel, 0x7b, 0x35, 0x36, 0x51, 0x46, 0x1aa, 0, 0x1e, 0x22, 0x1f, 0x20, 0x21);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
-        ->EnableRegionHelp(0x7c9);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]->EnableRegionHelp(0x7c9);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_33] =
         new W8TextControl(panel, 0x7d, 0x53, 0x4d, 0x86, 0x58, -1, -1, -1, -1, -1, -1, -1);
     static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_33])
         ->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_33])
-        ->SetEnabled(false);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_33]->SetEnabled(false);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_34] =
         new W8TextControl(panel, 0x7e, 5, 0x4d, 0x51, 0x58, -1, -1, -1, -1, -1, -1, -1);
     static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_34])
         ->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_34])
-        ->SetEnabled(false);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_34]->SetEnabled(false);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_35] =
         new W8TextControl(panel, 0x7f, 0x53, 0x3a, 0x86, 0x45, -1, -1, -1, -1, -1, -1, -1);
     static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])
         ->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])
-        ->SetEnabled(false);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_35]->SetEnabled(false);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_36] =
         new W8TextControl(panel, 0x80, 4, 4, 0x88, 0x11, -1, -1, -1, -1, -1, -1, -1);
     static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_36])
         ->m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_36])
-        ->SetEnabled(false);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_36]->SetEnabled(false);
     state->dialogue_controls[W8_NPC_CONTROL_TEXT_37] =
         new W8TextControl(panel, 0x81, 0x38, 0x22, 0x88, 0x34, -1, -1, -1, -1, -1, -1, -1);
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_7])
-        ->m_primaryActivationCallback = BackOutNpcDialogue;
-    static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_TEXT_7])
-        ->EnableRegionHelp(0x7c8);
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_7]->m_primaryActivationCallback =
+        BackOutNpcDialogue;
+    state->dialogue_controls[W8_NPC_CONTROL_TEXT_7]->EnableRegionHelp(0x7c8);
+}
+
+static void OpenNpcDialogueLayout(W8NpcDialogueLayout layout)
+{
+    switch (layout) {
+    case W8_DIALOGUE_LAYOUT_UNSET:
+    case W8_DIALOGUE_LAYOUT_NONE:
+    case W8_DIALOGUE_LAYOUT_BARE:
+        return;
+    case W8_DIALOGUE_LAYOUT_SERVICES:
+        OpenNpcDialogueMode1Layout();
+        return;
+    case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
+        ShowNpcDialogueTopicMenu();
+        return;
+    case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
+        OpenNpcDialogueTranscriptLayout();
+        return;
+    case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
+        OpenNpcDialogueOptionLayout();
+        return;
+    case W8_DIALOGUE_LAYOUT_TRADE:
+        OpenNpcDialogueMode5Layout();
+        return;
+    }
 }
 
 /* The NPC dialogue per-frame update: keeps the monster's navigator angles
@@ -1122,7 +1111,7 @@ void ServiceNpcDialogue(void)
         SetNpcDialogueHidden(0);
     }
     Get16BitStringFromField(0, field_text);
-    if (g_npc_interaction_state->pending_layout != 0) {
+    if (g_npc_interaction_state->pending_layout != W8_DIALOGUE_LAYOUT_NONE) {
         g_level_block->text_box_visible = false;
         RegionSetEnable(0x15);
         EnableRegionInput(0x52);
@@ -1130,71 +1119,41 @@ void ServiceNpcDialogue(void)
         EnableRegionInput(0x54);
         EnableRegionInput(0x55);
         g_level_block->action_panel_visible = 1;
-        int layout = g_npc_interaction_state->pending_layout;
+        W8NpcDialogueLayout layout = g_npc_interaction_state->pending_layout;
         SwitchNpcDialogueLayout(W8_DIALOGUE_LAYOUT_NONE);
-        switch (layout) {
-        case W8_DIALOGUE_LAYOUT_SERVICES:
-            OpenNpcDialogueMode1Layout();
-            break;
-        case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
-            ShowNpcDialogueTopicMenu();
-            break;
-        case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-            OpenNpcDialogueTranscriptLayout();
-            break;
-        case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
-            OpenNpcDialogueOptionLayout();
-            break;
-        case W8_DIALOGUE_LAYOUT_TRADE:
-            OpenNpcDialogueMode5Layout();
-            break;
-        }
-        g_npc_interaction_state->pending_layout = 0;
+        OpenNpcDialogueLayout(layout);
+        g_npc_interaction_state->pending_layout = W8_DIALOGUE_LAYOUT_NONE;
     }
     if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
         if (wcslen(field_text) == 0) {
-            if (static_cast<W8TextControl*>(
-                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12])
-                    ->m_enabled != 0) {
-                static_cast<W8TextControl*>(
-                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12])
-                    ->SetEnabled(false);
-                static_cast<W8TextControl*>(
-                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12])
+            if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->m_enabled !=
+                0) {
+                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->SetEnabled(
+                    false);
+                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]
                     ->W8Widget::Invalidate(true);
             }
-        } else if (static_cast<W8TextControl*>(
-                       g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12])
-                       ->m_enabled == 0) {
-            static_cast<W8TextControl*>(
-                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12])
-                ->SetEnabled(true);
-            static_cast<W8TextControl*>(
-                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12])
+        } else if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->m_enabled ==
+                   0) {
+            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->SetEnabled(true);
+            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]
                 ->W8Widget::Invalidate(true);
         }
         int selection =
             static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
                 ->GetSelectedTranscriptEntryIndex();
         if (selection == -1) {
-            if (static_cast<W8TextControl*>(
-                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13])
-                    ->m_enabled != 0) {
-                static_cast<W8TextControl*>(
-                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13])
-                    ->SetEnabled(false);
-                static_cast<W8TextControl*>(
-                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13])
+            if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->m_enabled !=
+                0) {
+                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->SetEnabled(
+                    false);
+                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]
                     ->W8Widget::Invalidate(true);
             }
-        } else if (static_cast<W8TextControl*>(
-                       g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13])
-                       ->m_enabled == 0) {
-            static_cast<W8TextControl*>(
-                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13])
-                ->SetEnabled(true);
-            static_cast<W8TextControl*>(
-                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13])
+        } else if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->m_enabled ==
+                   0) {
+            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->SetEnabled(true);
+            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]
                 ->W8Widget::Invalidate(true);
         }
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_UP_BUTTON]->SetEnabled(
@@ -1363,8 +1322,7 @@ void EndNpcDialogueSession(bool skip_exit_actions)
 bool IsPortraitObscuredByNpcDialogue(unsigned int party_slot)
 {
     if (gXStatus.fNpcDialogueMode && !g_npc_interaction_state->scripted_dialogue &&
-        static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
-                ->m_fEnabled != 0) {
+        g_npc_interaction_state->dialogue_panels[2]->m_fEnabled != 0) {
         return static_cast<W8NpcDialogueTextController*>(
                    g_npc_interaction_state->dialogue_panels[2])
             ->IsSlotPortraitTranscriptCovered(party_slot);
@@ -1446,18 +1404,15 @@ void SetNpcDialogueLayoutMode(W8NpcDialogueLayout value)
 
 static void RefreshNpcServiceAvailability(int party_slot)
 {
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->SetEnabled(CanCharacterCastSpell(&g_status.buffers.Char[party_slot], W8_SPELL_CHARM));
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->W8Widget::Invalidate(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->SetEnabled(CanCharacterCastSpell(&g_status.buffers.Char[party_slot], W8_SPELL_MINDREAD));
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->W8Widget::Invalidate(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->SetEnabled(CharacterHasServiceItem(&g_status.buffers.Char[party_slot]));
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->W8Widget::Invalidate(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(
+        CanCharacterCastSpell(&g_status.buffers.Char[party_slot], W8_SPELL_CHARM));
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->W8Widget::Invalidate(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(
+        CanCharacterCastSpell(&g_status.buffers.Char[party_slot], W8_SPELL_MINDREAD));
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->W8Widget::Invalidate(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->SetEnabled(
+        CharacterHasServiceItem(&g_status.buffers.Char[party_slot]));
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->W8Widget::Invalidate(true);
 }
 
 /* Whether the typed-text cursor of the active NPC dialogue is up; only the
@@ -1517,7 +1472,8 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
 {
     unsigned int callback_id = region->callback_id;
     W8Widget* control;
-    bool arg;
+    bool arg = (callback_id >= W8_NPC_CONTROL_TEXT_1 && callback_id <= W8_NPC_CONTROL_TEXT_6) ||
+               callback_id == W8_NPC_CONTROL_TEXT_22 || callback_id == W8_NPC_CONTROL_TEXT_23;
 
     if (callback_id == 0x27) {
         return 0;
@@ -1529,20 +1485,10 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
     switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
     case LEFT_BUTTON_REPEAT:
-        if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
-            arg = true;
-        } else {
-            arg = false;
-        }
         control->OnLeftButtonDown(arg);
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         return 1;
     case LEFT_BUTTON_UP:
-        if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
-            arg = true;
-        } else {
-            arg = false;
-        }
         control->OnLeftButtonUp(arg);
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
             return 1;
@@ -1551,20 +1497,10 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
         return 1;
     case RIGHT_BUTTON_DOWN:
     case RIGHT_BUTTON_REPEAT:
-        if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
-            arg = true;
-        } else {
-            arg = false;
-        }
         control->OnRightButtonDown(arg);
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
         return 1;
     case RIGHT_BUTTON_UP:
-        if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
-            arg = true;
-        } else {
-            arg = false;
-        }
         control->OnRightButtonUp(arg);
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_RIGHT_BUTTON_HELD;
@@ -1572,12 +1508,6 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
         return 1;
     case MOUSE_POS:
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 ||
-                callback_id == 0x17) {
-                arg = true;
-            } else {
-                arg = false;
-            }
             control->OnMouseLeave(arg);
             return 1;
         }
@@ -1595,15 +1525,6 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
    assay/keyword lookup helpers, and MOUSE_POS tracks the hovered line or
    notice word. Left release falls through into RIGHT_BUTTON_DOWN and also
    raises the right-held flag (retail bug). */
-static void HighlightNpcDialogueLine(int line)
-{
-    ClearHoveredTextLine(2);
-    if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
-        SetHoveredTextLine(g_level_block->text_lines[2] + line, 2);
-    }
-    RedrawTextBox();
-}
-
 // FUNCTION: WIZ8 0x0056F1D0
 unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* region)
 {
@@ -1654,7 +1575,7 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
             y = (event->uiParam >> 16) & 0xffff;
             if (y >= g_level_block->text_box_top && y <= g_level_block->text_box_bottom) {
                 line = (y - g_level_block->text_box_top) / 11;
-                HighlightNpcDialogueLine(line);
+                HighlightNoticeRow(line);
                 g_npc_interaction_state->hovered_text_line = line;
             }
         }
@@ -1676,7 +1597,7 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
         if (y >= g_level_block->text_box_top && y <= g_level_block->text_box_bottom) {
             line = (y - g_level_block->text_box_top) / 11;
             if (line != g_npc_interaction_state->hovered_text_line) {
-                HighlightNpcDialogueLine(line);
+                HighlightNoticeRow(line);
             }
             g_npc_interaction_state->hovered_text_line = line;
         }
@@ -1700,7 +1621,7 @@ void NpcDialogueTextBoxWheelAt(short x, unsigned short y, bool flag)
     }
     line = (static_cast<int>(y) - g_level_block->text_box_top) / 11;
     if (line != g_npc_interaction_state->hovered_text_line || flag) {
-        HighlightNpcDialogueLine(line);
+        HighlightNoticeRow(line);
     }
     g_npc_interaction_state->hovered_text_line = line;
 }
@@ -1841,7 +1762,7 @@ void NpcDialogueTextBoxDoubleClick(int x, int y)
     y &= 0xffff;
     if (y >= g_level_block->text_box_top && y <= g_level_block->text_box_bottom) {
         line = (y - g_level_block->text_box_top) / 11;
-        HighlightNpcDialogueLine(line);
+        HighlightNoticeRow(line);
         g_npc_interaction_state->hovered_text_line = line;
     }
     slot = GetHoveredTextLine(2);
@@ -1859,14 +1780,12 @@ static void ShowNpcTradeGold()
 {
     wchar_t text[0x20];
 
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37]->SetEnabled(true);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
         ->m_textBuffer.SetFontStateIndex(1);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
         ->m_textBuffer.SetGeometryDirty();
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]->SetEnabled(true);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_36])
         ->m_textBuffer.SetText(gppStringList[0x72d], g_wiz_text_font_secondary);
     swprintf(text, L"%dg", g_npc_interaction_state->trade_gold);
@@ -1894,9 +1813,7 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
         item = GetNpcTradeSlotItem(index);
         g_npc_interaction_state->trade_item = item;
         if (g_npc_interaction_state->trade_item != 0) {
-            static_cast<W8TextControl*>(
-                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-                ->SetEnabled(true);
+            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37]->SetEnabled(true);
         }
         return;
     default:
@@ -1905,17 +1822,12 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
     item = ResolveNpcTradeRow(index, true, increment, commit);
     g_npc_interaction_state->trade_item = item;
     if (g_npc_interaction_state->trade_item != 0) {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
-            ->SetEnabled(1 < g_npc_interaction_state->trade_item->stack_count);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]->SetEnabled(
+            1 < g_npc_interaction_state->trade_item->stack_count);
         if (g_item_records[g_npc_interaction_state->trade_item->iItemNo].equip_class ==
             W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-            static_cast<W8TextControl*>(
-                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
-                ->SetEnabled(false);
+            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]->SetEnabled(false);
         }
         ShortenTextToWidth(text, FormatItemDisplayName(g_npc_interaction_state->trade_item, false),
                            0x7d, g_wiz_text_font_secondary);
@@ -1995,8 +1907,7 @@ void ResetNpcDialogueItemEditor(void)
 {
     ClearSelectedTextLine(2);
     g_npc_interaction_state->trade_item = 0;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37]->SetEnabled(false);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
         ->ClearImage();
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
@@ -2007,8 +1918,7 @@ void ResetNpcDialogueItemEditor(void)
         ->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_font_secondary);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_36])
         ->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]->SetEnabled(false);
     g_npc_interaction_state->selected_trade_row = -1;
     g_npc_interaction_state->trade_quantity = 1;
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
@@ -2060,26 +1970,10 @@ void BackOutNpcDialogue(void)
 }
 
 // FUNCTION: WIZ8 0x00570120
-void SwitchNpcDialogueLayout(int interact_id)
+void SwitchNpcDialogueLayout(W8NpcDialogueLayout layout)
 {
     CloseActiveNpcDialogueLayout();
-    switch (interact_id) {
-    case W8_DIALOGUE_LAYOUT_SERVICES:
-        OpenNpcDialogueMode1Layout();
-        return;
-    case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
-        ShowNpcDialogueTopicMenu();
-        return;
-    case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-        OpenNpcDialogueTranscriptLayout();
-        return;
-    case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
-        OpenNpcDialogueOptionLayout();
-        return;
-    case W8_DIALOGUE_LAYOUT_TRADE:
-        OpenNpcDialogueMode5Layout();
-        return;
-    }
+    OpenNpcDialogueLayout(layout);
 }
 
 // FUNCTION: WIZ8 0x00570310
@@ -2125,6 +2019,15 @@ void EnterNpcServiceLayout(void)
     OpenNpcDialogueMode1Layout();
 }
 
+/* Reload the control after text allocation/layout, as the expanded callers do. */
+static void SetNpcDialogueAction(W8NpcDialogueControlSlot slot, int text_id,
+                                 W8ControlCallback callback)
+{
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[slot])
+        ->m_textBuffer.SetText(gppStringList[text_id], g_wiz_text_font_secondary);
+    g_npc_interaction_state->dialogue_controls[slot]->m_primaryActivationCallback = callback;
+}
+
 /* Bring up the mode-2 dialogue layout: the option panels come up, the caption
    takes the NPC's name, and the five topics get their strings and callbacks. */
 // FUNCTION: WIZ8 0x00570760
@@ -2134,13 +2037,11 @@ void ShowNpcDialogueTopicMenu(void)
     if (g_npc_interaction_state->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
     }
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[4]->SetEnabled(true);
     RegionSetEnable(0x18);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
-        ->SetActive(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38]->SetActive(true);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
         ->m_textBuffer.SetText(g_npc_interaction_state->dialogue_npc->record->source_name,
                                g_wiz_text_bold_font);
@@ -2148,42 +2049,19 @@ void ShowNpcDialogueTopicMenu(void)
         ->Invalidate(true);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
         ->m_textBuffer.SetText(gppStringList[0x726], g_wiz_text_bold_font);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->m_textBuffer.SetText(gppStringList[0x727], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->m_primaryActivationCallback = SelectNpcDialogueService;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->m_textBuffer.SetText(gppStringList[0x728], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->m_primaryActivationCallback = SelectNpcDialogueTalk;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->m_textBuffer.SetText(gppStringList[0x729], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->m_primaryActivationCallback = SelectNpcDialogueExit;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->m_textBuffer.SetText(gppStringList[0x723], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->m_primaryActivationCallback = PromptNpcDispositionChange;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->m_textBuffer.SetText(gppStringList[0x724], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->m_primaryActivationCallback = EnterNpcServiceLayout;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->m_textBuffer.SetText(gppStringList[0x725], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->m_primaryActivationCallback = LeaveNpcDialogueLayout;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_7])
-        ->SetActive(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->SetEnabled(!g_npc_interaction_state->dialogue_npc->talk_cooldown_active);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_1, 0x727, SelectNpcDialogueService);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_2, 0x728, SelectNpcDialogueTalk);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_3, 0x729, SelectNpcDialogueExit);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_4, 0x723, PromptNpcDispositionChange);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_5, 0x724, EnterNpcServiceLayout);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_6, 0x725, LeaveNpcDialogueLayout);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_7]->SetActive(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(
+        !g_npc_interaction_state->dialogue_npc->talk_cooldown_active);
     if (!g_npc_interaction_state->dialogue_npc->trade_cooldown_active) {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(true);
     } else {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(false);
     }
     RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     SelectTextBox(3);
@@ -2200,12 +2078,10 @@ void ShowNpcDialogueTopicMenu(void)
 void CloseNpcDialogueLayout(void)
 {
     RegionSetDisable(0x18);
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[4]->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
-        ->SetActive(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38]->SetActive(false);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
         ->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_bold_font);
     SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
@@ -2222,8 +2098,7 @@ void SelectNpcDialogueService(void)
 
     ApplyNpcInteraction(g_npc_interaction_state->dialogue_npc, 1,
                         g_npc_interaction_state->dialogue_speaker, 0, 0);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(false);
     band = GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc);
     if (band == W8_NPC_BAND_FRIENDLY) {
         QueueNpcScriptLine(4, false, false, false);
@@ -2249,8 +2124,7 @@ void SelectNpcDialogueTalk(void)
 
     ApplyNpcInteraction(g_npc_interaction_state->dialogue_npc, 0,
                         g_npc_interaction_state->dialogue_speaker, 0, 0);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(false);
     band = GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc);
     if (band == W8_NPC_BAND_FRIENDLY) {
         HandleNpcDialogueDeparture(0);
@@ -2302,16 +2176,12 @@ void OpenNpcDialogueTranscriptLayout(void)
     if (g_npc_interaction_state->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
     }
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(true);
-    static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_panels[2]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[3]->SetEnabled(true);
-    static_cast<W8NpcTypedDialoguePanel*>(g_npc_interaction_state->dialogue_panels[6])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
-        ->SetActive(false);
+    g_npc_interaction_state->dialogue_panels[6]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38]->SetActive(false);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
         ->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_bold_font);
     RegionSetEnable(0x18);
@@ -2328,83 +2198,31 @@ void OpenNpcDialogueTranscriptLayout(void)
             ->m_textBuffer.SetText(g_npc_interaction_state->dialogue_npc->record->source_name,
                                    g_wiz_text_bold_font);
     }
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->m_textBuffer.SetText(gppStringList[0x735], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->m_primaryActivationCallback = EnterNpcTradeOptions;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->m_textBuffer.SetText(gppStringList[0x738], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->m_primaryActivationCallback = ShowNpcDialogueNotice;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->m_textBuffer.SetText(gppStringList[0x724], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->m_primaryActivationCallback = EnterNpcServiceLayout;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->m_textBuffer.SetText(gppStringList[0x737], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->m_primaryActivationCallback = RequestNpcJoinParty;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->m_textBuffer.SetText(gppStringList[0x723], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->m_primaryActivationCallback = PromptNpcDispositionChange;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->m_textBuffer.SetText(gppStringList[0x725], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->m_primaryActivationCallback = LeaveNpcDialogueLayout;
-    static_cast<W8NpcDialogueScrollWidget*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL])
-        ->m_primaryActivationCallback = NoOp;
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_1, 0x735, EnterNpcTradeOptions);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_2, 0x738, ShowNpcDialogueNotice);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_3, 0x724, EnterNpcServiceLayout);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_4, 0x737, RequestNpcJoinParty);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_5, 0x723, PromptNpcDispositionChange);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_6, 0x725, LeaveNpcDialogueLayout);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL]->m_primaryActivationCallback =
+        NoOp;
     g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_UP_BUTTON]
         ->m_leftButtonDownCallback = ScrollNpcDialogueUp;
     g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_DOWN_BUTTON]
         ->m_leftButtonDownCallback = ScrollNpcDialogueDown;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12])
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]
         ->m_primaryActivationCallback = SubmitNpcDialogueKeyword;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13])
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]
         ->m_primaryActivationCallback = RefreshNpcDialogueTranscript;
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SORT_BUTTON])
-        ->m_textBuffer.SetText(gppStringList[0x740], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SORT_BUTTON])
-        ->m_primaryActivationCallback = SyncNpcDialogueListFilter;
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_PEOPLE_BUTTON])
-        ->m_textBuffer.SetText(gppStringList[0x743], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_PEOPLE_BUTTON])
-        ->m_primaryActivationCallback = SelectNpcPeopleTopics;
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_PLACES_BUTTON])
-        ->m_textBuffer.SetText(gppStringList[0x744], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_PLACES_BUTTON])
-        ->m_primaryActivationCallback = SelectNpcPlaceTopics;
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_ITEMS_BUTTON])
-        ->m_textBuffer.SetText(gppStringList[0x745], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_ITEMS_BUTTON])
-        ->m_primaryActivationCallback = SelectNpcItemTopics;
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_MISC_BUTTON])
-        ->m_textBuffer.SetText(gppStringList[0x746], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_MISC_BUTTON])
-        ->m_primaryActivationCallback = SelectNpcMiscTopics;
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_ALL_BUTTON])
-        ->m_textBuffer.SetText(gppStringList[0x747], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_ALL_BUTTON])
-        ->m_primaryActivationCallback = SelectNpcDialogueCategoryAll;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_7])
-        ->SetActive(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->SetEnabled(true);
+    SetNpcDialogueAction(W8_NPC_CONTROL_SORT_BUTTON, 0x740, SyncNpcDialogueListFilter);
+    SetNpcDialogueAction(W8_NPC_CONTROL_PEOPLE_BUTTON, 0x743, SelectNpcPeopleTopics);
+    SetNpcDialogueAction(W8_NPC_CONTROL_PLACES_BUTTON, 0x744, SelectNpcPlaceTopics);
+    SetNpcDialogueAction(W8_NPC_CONTROL_ITEMS_BUTTON, 0x745, SelectNpcItemTopics);
+    SetNpcDialogueAction(W8_NPC_CONTROL_MISC_BUTTON, 0x746, SelectNpcMiscTopics);
+    SetNpcDialogueAction(W8_NPC_CONTROL_ALL_BUTTON, 0x747, SelectNpcDialogueCategoryAll);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_7]->SetActive(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(true);
     static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
         ->RestoreTranscriptEntries();
     static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
@@ -2458,14 +2276,11 @@ void CloseNpcDialogueTranscriptLayout(void)
         ->ClearTranscriptEntries();
     RegionSetDisable(0x18);
     RegionSetDisable(0x16);
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(false);
-    static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_panels[2]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[3]->SetEnabled(false);
-    static_cast<W8NpcTypedDialoguePanel*>(g_npc_interaction_state->dialogue_panels[6])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_panels[6]->SetEnabled(false);
     SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
     static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
         ->ClearBackground();
@@ -2695,22 +2510,10 @@ void SelectNpcMiscTopics(void)
 
 static void ConfigureNpcTradeCommands()
 {
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->m_textBuffer.SetText(gppStringList[0x73d], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->m_primaryActivationCallback = SelectNpcBuyMode;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->m_textBuffer.SetText(gppStringList[0x73e], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->m_primaryActivationCallback = SelectNpcSellMode;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->m_textBuffer.SetText(gppStringList[0x73f], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->m_primaryActivationCallback = SelectNpcGiveMode;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->m_textBuffer.SetText(gppStringList[0x72e], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->m_primaryActivationCallback = SelectNpcShopliftMode;
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_1, 0x73d, SelectNpcBuyMode);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_2, 0x73e, SelectNpcSellMode);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_3, 0x73f, SelectNpcGiveMode);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_4, 0x72e, SelectNpcShopliftMode);
 }
 
 // FUNCTION: WIZ8 0x00571AA0
@@ -2723,12 +2526,10 @@ void OpenNpcDialogueOptionLayout(void)
     if (g_npc_interaction_state->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
     }
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
-        ->SetActive(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38]->SetActive(false);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
         ->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_bold_font);
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[5]->SetEnabled(true);
     RegionSetEnable(0x18);
@@ -2736,89 +2537,61 @@ void OpenNpcDialogueOptionLayout(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_34])
         ->m_textBuffer.SetText(gppStringList[0x72d], g_wiz_text_font_secondary);
     ConfigureNpcTradeCommands();
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->m_textBuffer.SetText(gppStringList[0x72b], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->m_primaryActivationCallback = SelectNpcPartyItems;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->m_textBuffer.SetText(gppStringList[0x72c], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->m_primaryActivationCallback = SelectNpcStockItems;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_5, 0x72b, SelectNpcPartyItems);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_6, 0x72c, SelectNpcStockItems);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24]
         ->m_primaryActivationCallback = OpenNpcItemAssay;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24]
         ->m_secondaryActivationCallback = OpenNpcItemAssay;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
-        ->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]
         ->m_primaryActivationCallback = ConfirmNpcTradeSlot;
     swprintf(buffer, L"%dg", g_status.party_gold);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_33])
         ->m_textBuffer.SetText(buffer, g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-        ->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37]->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37]
         ->m_primaryActivationCallback = ConfirmNpcTradeItem;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
         ->DisableSecondaryState(true);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
         ->DisableSecondaryState(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
     UpdateNpcDialogueSubMode();
     g_npc_interaction_state->pending_trade_toggle = true;
     if (g_npc_interaction_state->reopen_topics) {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->SetEnabled(false);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-            ->SetEnabled(false);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-            ->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->SetEnabled(false);
     } else {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-            ->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->SetEnabled(true);
     }
     if (g_npc_interaction_state->dialogue_npc->record->owns_stock == 0) {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->SetEnabled(false);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-            ->SetEnabled(false);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-            ->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->SetEnabled(false);
     }
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3]->SetEnabled(true);
     SelectTextBox(2);
     if (!gXStatus.fCampMode) {
         ResetEditorStatusLine(2);
     }
     g_npc_interaction_state->trade_filter = 0;
     for (index = 0; index < 6; ++index) {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + index])
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + index]
             ->SetEnabled(false);
     }
     RebuildNpcTradeItemList(true);
@@ -2865,12 +2638,8 @@ void UpdateNpcDialogueSubMode(void)
         static_cast<W8TextControl*>(
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
             ->m_textBuffer.SetText(gppStringList[0x73b], g_wiz_text_bold_font);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-            ->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(true);
         break;
     case W8_NPC_TRADE_SELL:
         static_cast<W8TextControl*>(
@@ -2885,12 +2654,8 @@ void UpdateNpcDialogueSubMode(void)
         static_cast<W8TextControl*>(
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
             ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-            ->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(true);
         static_cast<W8TextControl*>(
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
             ->m_textBuffer.SetText(gppStringList[0x73a], g_wiz_text_bold_font);
@@ -2917,12 +2682,8 @@ void UpdateNpcDialogueSubMode(void)
         static_cast<W8TextControl*>(
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
             ->m_textBuffer.SetText(gppStringList[0x73c], g_wiz_text_bold_font);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-            ->SetEnabled(false);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-            ->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(false);
         break;
     case W8_NPC_TRADE_SHOPLIFT:
         static_cast<W8TextControl*>(
@@ -2943,12 +2704,8 @@ void UpdateNpcDialogueSubMode(void)
         static_cast<W8TextControl*>(
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
             ->m_textBuffer.SetText(gppStringList[0x72e], g_wiz_text_bold_font);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-            ->SetEnabled(false);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-            ->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(false);
         break;
     default:
         break;
@@ -2979,8 +2736,7 @@ void CloseNpcDialogueOptionLayout(void)
     }
     RegionSetDisable(0x18);
     RegionSetDisable(0x17);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]->SetEnabled(true);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
         ->DisableSecondaryState(true);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
@@ -3013,20 +2769,13 @@ void CloseNpcDialogueOptionLayout(void)
         ->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
         ->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->SetEnabled(true);
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[5]->SetEnabled(false);
     SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
@@ -3115,8 +2864,7 @@ void OpenNpcGoldAmountDialog(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
         ->DisableSecondaryState(true);
     for (int index = 0; index < 6; ++index) {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + index])
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + index]
             ->SetEnabled(false);
     }
     g_npc_interaction_state->dialogue_panels[1]->Invalidate(0);
@@ -3398,8 +3146,7 @@ void OpenNpcDialogueMode5Layout(void)
     if (g_npc_interaction_state->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
     }
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[5]->SetEnabled(true);
     RegionSetEnable(0x18);
@@ -3407,37 +3154,27 @@ void OpenNpcDialogueMode5Layout(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
         ->m_textBuffer.SetText(gppStringList[0x739], g_wiz_text_bold_font);
     ConfigureNpcTradeCommands();
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
-        ->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]
         ->m_primaryActivationCallback = ConfirmNpcTradeSlot;
     swprintf(buffer, L"%dg", g_status.party_gold);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_33])
         ->m_textBuffer.SetText(buffer, g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-        ->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37]->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37]
         ->m_primaryActivationCallback = RestockNpcTradeStock;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->SetActive(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->SetActive(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetActive(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetActive(false);
     g_npc_interaction_state->trade_filter = 0;
     for (index = 0; index < 6; ++index) {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + index])
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + index]
             ->SetEnabled(false);
     }
     if (g_npc_interaction_state->dialogue_npc->record->owns_stock == 0) {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->SetEnabled(false);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-            ->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(false);
     }
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3]->SetEnabled(true);
     RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     SelectTextBox(2);
     if (!gXStatus.fCampMode) {
@@ -3451,16 +3188,12 @@ void CloseNpcDialogueMode5Layout(void)
 {
     RegionSetDisable(0x18);
     RegionSetDisable(0x17);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
-        ->SetEnabled(true);
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[5]->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(true);
     SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
 }
 
@@ -3470,8 +3203,7 @@ void CloseNpcDialogueMode5Layout(void)
 void EnableNpcTradeFilterButtons(void)
 {
     for (unsigned int index = 0; index <= 5; ++index) {
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + index])
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + index]
             ->SetEnabled(true);
     }
 }
@@ -3618,39 +3350,24 @@ void OpenNpcDialogueMode1Layout(void)
     if (g_npc_interaction_state->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
     }
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(true);
     g_npc_interaction_state->dialogue_panels[4]->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
-        ->SetActive(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38]->SetActive(false);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])
         ->m_textBuffer.SetText(&g_empty_wide_string, g_wiz_text_bold_font);
     RegionSetEnable(0x18);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
         ->m_textBuffer.SetText(gppStringList[0x72f], g_wiz_text_bold_font);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->m_textBuffer.SetText(gppStringList[0x730], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->m_primaryActivationCallback = RequestNpcSpellService3;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->m_textBuffer.SetText(gppStringList[0x732], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->m_primaryActivationCallback = RequestNpcSpellService41;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->m_textBuffer.SetText(gppStringList[0x733], g_wiz_text_font_secondary);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->m_primaryActivationCallback = RequestNpcCharacterService;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->EnableRegionHelp(0x7ca);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->SetActive(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-        ->SetActive(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-        ->SetActive(false);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_1, 0x730, RequestNpcSpellService3);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_2, 0x732, RequestNpcSpellService41);
+    SetNpcDialogueAction(W8_NPC_CONTROL_TEXT_4, 0x733, RequestNpcCharacterService);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->AddLayoutFlags(
+        g_W8TextControlLayoutToggle);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->EnableRegionHelp(0x7ca);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3]->SetActive(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetActive(false);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetActive(false);
     if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_SERVICES) {
         RefreshNpcServiceAvailability(g_status.selected_character);
     }
@@ -3670,20 +3387,14 @@ void CloseNpcDialogueMode1Layout(void)
     RegionSetDisable(0x17);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
         ->RemoveLayoutFlags(g_W8TextControlLayoutToggle);
-    static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])
-        ->SetEnabled(false);
+    g_npc_interaction_state->dialogue_panels[0]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(false);
     g_npc_interaction_state->dialogue_panels[4]->SetEnabled(false);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->DisableRegionHelp();
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-        ->SetEnabled(true);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-        ->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->DisableRegionHelp();
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3]->SetEnabled(true);
+    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->SetEnabled(true);
     if (!gXStatus.fCampMode) {
         SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
     }
@@ -4493,8 +4204,7 @@ unsigned char AcceptNpcDialogueItem(W8NpcState*, W8ItemInstance*, int)
 void SubmitNpcWhereIsQuery(void)
 {
     g_npc_interaction_state->where_is_query = true;
-    static_cast<W8NpcTypedDialoguePanel*>(g_npc_interaction_state->dialogue_panels[6])
-        ->Invalidate(0);
+    g_npc_interaction_state->dialogue_panels[6]->Invalidate(0);
     HandleNpcDialogueInput();
     g_npc_interaction_state->where_is_query = false;
 }
@@ -4503,8 +4213,7 @@ void SubmitNpcWhereIsQuery(void)
 void SubmitNpcDialogueInput(void)
 {
     g_npc_interaction_state->where_is_query = false;
-    static_cast<W8NpcTypedDialoguePanel*>(g_npc_interaction_state->dialogue_panels[6])
-        ->Invalidate(0);
+    g_npc_interaction_state->dialogue_panels[6]->Invalidate(0);
     HandleNpcDialogueInput();
 }
 
@@ -4867,8 +4576,7 @@ void SetNpcDialogueHidden(char value)
     if (value != 0) {
         g_npc_interaction_state->saved_mode = g_settings.main_ui_mode;
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_PORTRAITS, false);
-        static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
-            ->SetEnabled(false);
+        g_npc_interaction_state->dialogue_panels[2]->SetEnabled(false);
         static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
             ->Collapse();
         g_npc_interaction_state->dialogue_panels[3]->SetEnabled(false);
@@ -4888,13 +4596,9 @@ void SetNpcDialogueHidden(char value)
         RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_5);
         RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_7);
         SetInputFieldBlocksMouseCallback(0, true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(false);
         DisableNpcTradeActions();
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-            ->SetEnabled(false);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(false);
     } else {
         ApplyMainGameModeFlag(g_npc_interaction_state->saved_mode, false);
         for (index = 0; index < 8; ++index) {
@@ -4911,31 +4615,18 @@ void SetNpcDialogueHidden(char value)
         EnableRegionInput(0x54);
         EnableRegionInput(0x55);
         g_level_block->action_panel_visible = 1;
-        static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
-            ->SetEnabled(true);
+        g_npc_interaction_state->dialogue_panels[2]->SetEnabled(true);
         g_npc_interaction_state->dialogue_panels[3]->SetEnabled(true);
         static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
             ->Expand();
         SyncNpcDialogueTranscriptScrollButtons();
         SetInputFieldBlocksMouseCallback(0, false);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])
-            ->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])
-            ->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(true);
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(true);
     }
     RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     g_npc_interaction_state->dialogue_hidden = value;

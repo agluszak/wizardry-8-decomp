@@ -65,13 +65,17 @@ public:
 
     void AdjustValue(int steps)
     {
-        while (steps > 0) {
-            Decrement();
-            --steps;
-        }
-        while (steps < 0) {
-            Increment();
-            ++steps;
+        if (steps > 0) {
+            do {
+                Decrement();
+                --steps;
+            } while (steps != 0);
+        } else if (steps < 0) {
+            steps = -steps;
+            do {
+                Increment();
+                --steps;
+            } while (steps != 0);
         }
     }
 

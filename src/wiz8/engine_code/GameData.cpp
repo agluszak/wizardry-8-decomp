@@ -186,26 +186,7 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
 
     if (g_environ == 0) {
         environ_record = new W8EnvironRecord;
-        if (environ_record != 0) {
-            environ_record->value_00 = 0;
-            environ_record->ground_latch = false;
-            environ_record->value_08 = 0;
-            environ_record->gravity_y = -g_navigator_gravity;
-            environ_record->gravity_x = 0;
-            environ_record->gravity_z = 0;
-            environ_record->motion_factor = 1.0f;
-            environ_record->vector.SetZero();
-            environ_record->motion_step = 0.05f;
-            environ_record->world_height = g_default_world_height;
-            environ_record->value_40 = 1.0f;
-            environ_record->forward_scale =
-                g_camera_level_forward_scale * g_navigator_linked_radius_scale;
-            /* Retail stores g_default_motion_limit at +0x38 and g_default_momentum_scale at
-               +0x3c (RescaleToReference's pairing); GDFileIO's default-bank
-               init currently spells the reverse before FileRead overwrites. */
-            environ_record->momentum_scale = g_default_momentum_scale;
-            environ_record->motion_limit = g_default_motion_limit;
-        }
+
         g_environ = environ_record;
         if (g_environ == 0) {
             ShutdownWithErrorBox("TrackRotation: Could not allocate gpEnviron.\n");

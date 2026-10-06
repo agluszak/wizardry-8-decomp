@@ -203,10 +203,7 @@ void ReleaseRadarMap(void)
             }
         }
     }
-    if (g_radar_backdrop != 0) {
-        g_radar_backdrop->release();
-        g_radar_backdrop = 0;
-    }
+    ReleaseRendererObject(g_radar_backdrop);
 }
 
 // FUNCTION: WIZ8 0x005a24a0
@@ -240,10 +237,7 @@ void RefreshRadarMap(void)
             }
         }
     }
-    if (g_radar_backdrop != 0) {
-        g_radar_backdrop->release();
-        g_radar_backdrop = 0;
-    }
+    ReleaseRendererObject(g_radar_backdrop);
 
     unsigned int map_surface;
     unsigned int handle;

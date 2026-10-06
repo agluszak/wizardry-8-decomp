@@ -235,10 +235,7 @@ void ReleaseWorldCursor(void)
         cursor->particle->release();
     }
     cursor->particle = 0;
-    if (g_cursor_value != 0) {
-        g_cursor_value->release();
-        g_cursor_value = 0;
-    }
+    ReleaseRendererObject(g_cursor_value);
     if (cursor->light != 0) {
         WorldRemoveLight(g_world, cursor->light);
         cursor->light = 0;

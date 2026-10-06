@@ -420,10 +420,7 @@ done:
 // FUNCTION: WIZ8 0x00421dc0
 void ShutdownVideoManager(void)
 {
-    if (g_cursor_node) {
-        g_cursor_node->release();
-        g_cursor_node = 0;
-    }
+    ReleaseRendererObject(g_cursor_node);
     FreeMouseCursor();
     ShutdownVideoScenes();
     ShutdownStartupNavigation();
@@ -477,58 +474,19 @@ void ShutdownVideoScenes(void)
         delete g_modeler;
         g_modeler = 0;
     }
-    if (g_scene_permanent) {
-        g_scene_permanent->release();
-        g_scene_permanent = 0;
-    }
-    if (g_scene_user) {
-        g_scene_user->release();
-        g_scene_user = 0;
-    }
-    if (g_scene_fullscreen) {
-        g_scene_fullscreen->release();
-        g_scene_fullscreen = 0;
-    }
-    if (g_scene_overlay0) {
-        g_scene_overlay0->release();
-        g_scene_overlay0 = 0;
-    }
-    if (g_scene_overlay1) {
-        g_scene_overlay1->release();
-        g_scene_overlay1 = 0;
-    }
-    if (g_scene_square) {
-        g_scene_square->release();
-        g_scene_square = 0;
-    }
-    if (g_scene_prerender0) {
-        g_scene_prerender0->release();
-        g_scene_prerender0 = 0;
-    }
-    if (g_scene_prerender1) {
-        g_scene_prerender1->release();
-        g_scene_prerender1 = 0;
-    }
-    if (g_render_object0) {
-        g_render_object0->release();
-        g_render_object0 = 0;
-    }
-    if (g_render_object1) {
-        g_render_object1->release();
-        g_render_object1 = 0;
-    }
-    if (g_blit_material) {
-        g_blit_material->release();
-        g_blit_material = 0;
-    }
-    if (g_mouse_surface) {
-        g_mouse_surface->release();
-        g_mouse_surface = 0;
-    }
-    if (g_primary_color_surface) {
-        g_primary_color_surface->release();
-        g_primary_color_surface = 0;
-    }
+    ReleaseRendererObject(g_scene_permanent);
+    ReleaseRendererObject(g_scene_user);
+    ReleaseRendererObject(g_scene_fullscreen);
+    ReleaseRendererObject(g_scene_overlay0);
+    ReleaseRendererObject(g_scene_overlay1);
+    ReleaseRendererObject(g_scene_square);
+    ReleaseRendererObject(g_scene_prerender0);
+    ReleaseRendererObject(g_scene_prerender1);
+    ReleaseRendererObject(g_render_object0);
+    ReleaseRendererObject(g_render_object1);
+    ReleaseRendererObject(g_blit_material);
+    ReleaseRendererObject(g_mouse_surface);
+    ReleaseRendererObject(g_primary_color_surface);
 }
 
 /* Derives the 16-bit channel masks and their leading-bit positions from the

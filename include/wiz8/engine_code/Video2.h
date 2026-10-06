@@ -303,4 +303,14 @@ void SetDisplayGamma(float value);
 unsigned int GetTotalPhysicalMemory(void);
 int GetRendererFamily(void);
 
+/* Shared owned-slot teardown. Keep the slot live across release: callbacks
+   may change it, and clearing still follows the release exactly once. */
+template <class T> inline void ReleaseRendererObject(T*& object)
+{
+    if (object != 0) {
+        object->release();
+        object = 0;
+    }
+}
+
 #endif

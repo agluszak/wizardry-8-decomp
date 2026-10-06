@@ -1037,7 +1037,7 @@ void W8LockInteraction::Process()
             CanCharacterCastSpell(&g_status.buffers.Char[slot], W8_SPELL_KNOCK_KNOCK)) {
             m_spell_button->SetAlternateTextEnabled(false);
             EndLockInteractMode(1);
-            BeginSpellCast(W8_SPELL_KNOCK_KNOCK, -1, -1);
+            BeginSpellCast(W8_SPELL_KNOCK_KNOCK, -1, W8_DIALOGUE_LAYOUT_UNSET);
             return;
         }
         break;
@@ -2399,7 +2399,7 @@ void W8MainGameScreen::CastTrapSpell()
     spell = CanCharacterCastSpell(&g_status.buffers.Char[slot], W8_SPELL_DIVINE_TRAP) ? 0x12 : 0x27;
     m_action_controls[1]->SetAlternateTextEnabled(false);
     BeginTrapTargetAction();
-    BeginSpellCast(spell, -1, -1);
+    BeginSpellCast(spell, -1, W8_DIALOGUE_LAYOUT_UNSET);
 }
 
 // FUNCTION: WIZ8 0x0058a3e0
@@ -3551,10 +3551,7 @@ unsigned char MainGameScreenLeave(int leaving)
 
     if (static_cast<unsigned char>(leaving)) {
         for (index = 0; index < 17; ++index) {
-            if (g_main_game_resource_slots[index].object != 0) {
-                g_main_game_resource_slots[index].object->release();
-                g_main_game_resource_slots[index].object = 0;
-            }
+            ReleaseRendererObject(g_main_game_resource_slots[index].object);
         }
     }
 
@@ -5302,9 +5299,7 @@ apply_mode_tail:
         g_level_block->portrait_y_shift = 0;
         g_level_block->action_panel_layout_inset = 0;
     }
-    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-        g_level_block->redraw_flags = 0xffffffff;
-    }
+    RequestRedraw(W8_MAIN_REDRAW_ALL);
     ResetRegions();
     SyncMainGameModeRegions();
 }
@@ -7459,9 +7454,7 @@ void ToggleMainGamePause(void)
 // FUNCTION: WIZ8 0x005670a0
 static void InvalidateMainGameScreen(W8DialogBase* dialog)
 {
-    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
-        g_level_block->redraw_flags = 0xffffffff;
-    }
+    RequestRedraw(W8_MAIN_REDRAW_ALL);
 }
 
 /* Open the monster information dialog over the main game screen for the
@@ -8356,18 +8349,9 @@ void ReverseSurpriseFade(void)
 // FUNCTION: WIZ8 0x0056b690
 void DestroySurpriseFade(void)
 {
-    if (g_surprise_snapshot_overlay != 0) {
-        g_surprise_snapshot_overlay->release();
-        g_surprise_snapshot_overlay = 0;
-    }
-    if (g_surprise_snapshot_surface != 0) {
-        g_surprise_snapshot_surface->release();
-        g_surprise_snapshot_surface = 0;
-    }
-    if (g_surprise_fade_node != 0) {
-        g_surprise_fade_node->release();
-        g_surprise_fade_node = 0;
-    }
+    ReleaseRendererObject(g_surprise_snapshot_overlay);
+    ReleaseRendererObject(g_surprise_snapshot_surface);
+    ReleaseRendererObject(g_surprise_fade_node);
     SetFullscreenSceneLast(1);
     g_world_render_enabled = 1;
 }

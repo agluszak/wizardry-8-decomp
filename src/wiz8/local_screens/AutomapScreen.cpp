@@ -1019,10 +1019,7 @@ unsigned char AutomapScreenLeave(int)
         clipping_plane->release();
     }
     gfTrackMousePos = 0;
-    if (g_automap_surface) {
-        g_automap_surface->release();
-        g_automap_surface = 0;
-    }
+    ReleaseRendererObject(g_automap_surface);
     while (g_automap_markers->GetCount()) {
         srClass* object = *g_automap_markers->GetAt(0);
         object->release();
@@ -1080,22 +1077,10 @@ unsigned char AutomapScreenFinalize(void)
         delete record;
         g_automap_cell_index = 0;
     }
-    if (g_automap_party_marker) {
-        g_automap_party_marker->release();
-        g_automap_party_marker = 0;
-    }
-    if (g_automap_friendly_marker) {
-        g_automap_friendly_marker->release();
-        g_automap_friendly_marker = 0;
-    }
-    if (g_automap_neutral_marker) {
-        g_automap_neutral_marker->release();
-        g_automap_neutral_marker = 0;
-    }
-    if (g_automap_hostile_marker) {
-        g_automap_hostile_marker->release();
-        g_automap_hostile_marker = 0;
-    }
+    ReleaseRendererObject(g_automap_party_marker);
+    ReleaseRendererObject(g_automap_friendly_marker);
+    ReleaseRendererObject(g_automap_neutral_marker);
+    ReleaseRendererObject(g_automap_hostile_marker);
     if (g_automap_markers) {
         delete g_automap_markers;
         g_automap_markers = 0;

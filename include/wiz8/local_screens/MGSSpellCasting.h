@@ -5,6 +5,7 @@
 #include "wiz8/layouts/learned_spells.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/main_game_screen.h"
+#include "wiz8/layouts/npc_dialogue.h"
 
 class W8TextControl;
 struct Controls;
@@ -43,30 +44,31 @@ struct W8SpellCastingView {
     W8MainUiMode saved_game_mode; /* 0x56c */
     bool input_blocked;           /* 0x570 */
     unsigned char pad_571[3];
-    int field_574;                 /* 0x574 */
-    int interact_id;               /* 0x578 */
-    int location_id;               /* 0x57c */
-    unsigned int uiSpellsInList;   /* 0x580 */
-    int uiSpells[0x15e];           /* 0x584 */
-    signed char alt_colors[0x15e]; /* 0xafc */
-    bool closing;                  /* 0xc5a: close already in progress */
-    bool dialog_confirmed;         /* 0xc5b */
+    int field_574;                   /* 0x574 */
+    W8NpcDialogueLayout interact_id; /* 0x578 */
+    int location_id;                 /* 0x57c */
+    unsigned int uiSpellsInList;     /* 0x580 */
+    int uiSpells[0x15e];             /* 0x584 */
+    signed char alt_colors[0x15e];   /* 0xafc */
+    bool closing;                    /* 0xc5a: close already in progress */
+    bool dialog_confirmed;           /* 0xc5b */
 };
 
 static_assert(sizeof(W8SpellCastingView) == 0xc5c, "W8SpellCastingView_must_be_0xc5c");
 
-unsigned char OpenSpellCastingView(int party_slot);                  /* 0x0059F0E0 */
-void CloseSpellCastingView(void);                                    /* 0x0059F2B0 */
-void RestoreSpellCastingRegions(void);                               /* 0x0059F440 */
-void SelectSpellCastingCharacter(int party_slot);                    /* 0x0059F490 */
-void BeginSpellCast(int spell_id, int location_id, int interact_id); /* 0x005A0110 */
-void SetSpellCastingPanelsActive(bool active);                       /* 0x005A0270 */
-void InvalidateSpellCastingDescription(void);                        /* 0x005A0300 */
-void SelectSpellPowerLevel(int power_level);                         /* 0x005A06F0 */
-void ResetSpellCastingSelection(void);                               /* 0x005A0B90 */
-void CommitSpellCastingSelection(void);                              /* 0x005A0BC0 */
-void SetSpellCastingMode(W8MainUiMode value);                        /* 0x005A1330 */
-int GetSpellCastingSelection(void);                                  /* 0x005A1350 */
+unsigned char OpenSpellCastingView(int party_slot); /* 0x0059F0E0 */
+void CloseSpellCastingView(void);                   /* 0x0059F2B0 */
+void RestoreSpellCastingRegions(void);              /* 0x0059F440 */
+void SelectSpellCastingCharacter(int party_slot);   /* 0x0059F490 */
+void BeginSpellCast(int spell_id, int location_id,
+                    W8NpcDialogueLayout interact_id); /* 0x005A0110 */
+void SetSpellCastingPanelsActive(bool active);        /* 0x005A0270 */
+void InvalidateSpellCastingDescription(void);         /* 0x005A0300 */
+void SelectSpellPowerLevel(int power_level);          /* 0x005A06F0 */
+void ResetSpellCastingSelection(void);                /* 0x005A0B90 */
+void CommitSpellCastingSelection(void);               /* 0x005A0BC0 */
+void SetSpellCastingMode(W8MainUiMode value);         /* 0x005A1330 */
+int GetSpellCastingSelection(void);                   /* 0x005A1350 */
 
 struct W8Region;
 class W8DialogBase;

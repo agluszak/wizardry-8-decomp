@@ -2585,7 +2585,6 @@ void Trigger::Run(int source)
 
         case 0x0a: {
             int camera = -1;
-            int id;
             int switch0;
             int switch1;
             int switch2;
@@ -2594,48 +2593,13 @@ void Trigger::Run(int source)
             int switch5;
             int switch6;
 
-            id = GetLocationVarIDByName("Switch0");
-            if (id == -1) {
-                srAssertFail("iVar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
-            }
-            switch0 = *g_location_variable_values.GetAt(id);
-            id = GetLocationVarIDByName("Switch1");
-            if (id == -1) {
-                srAssertFail("iVar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
-            }
-            switch1 = *g_location_variable_values.GetAt(id);
-            id = GetLocationVarIDByName("Switch2");
-            if (id == -1) {
-                srAssertFail("iVar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
-            }
-            switch2 = *g_location_variable_values.GetAt(id);
-            id = GetLocationVarIDByName("Switch3");
-            if (id == -1) {
-                srAssertFail("iVar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
-            }
-            switch3 = *g_location_variable_values.GetAt(id);
-            id = GetLocationVarIDByName("Switch4");
-            if (id == -1) {
-                srAssertFail("iVar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
-            }
-            switch4 = *g_location_variable_values.GetAt(id);
-            id = GetLocationVarIDByName("Switch5");
-            if (id == -1) {
-                srAssertFail("iVar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
-            }
-            switch5 = *g_location_variable_values.GetAt(id);
-            id = GetLocationVarIDByName("Switch6");
-            if (id == -1) {
-                srAssertFail("iVar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
-            }
-            switch6 = *g_location_variable_values.GetAt(id);
+            switch0 = GetLocationVarValueByName("Switch0");
+            switch1 = GetLocationVarValueByName("Switch1");
+            switch2 = GetLocationVarValueByName("Switch2");
+            switch3 = GetLocationVarValueByName("Switch3");
+            switch4 = GetLocationVarValueByName("Switch4");
+            switch5 = GetLocationVarValueByName("Switch5");
+            switch6 = GetLocationVarValueByName("Switch6");
 
             if (switch0 == 1 && switch1 == 1) {
                 camera = 2;

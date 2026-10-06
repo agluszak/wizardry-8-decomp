@@ -826,11 +826,7 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
         if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
             row = (y - g_level_block->text_box_top) / 0xb;
             if (row != g_use_item_hover_row) {
-                ClearHoveredTextLine(2);
-                if (row < static_cast<int>(g_status.text_box_lines_shown[2])) {
-                    SetHoveredTextLine(g_level_block->text_lines[2] + row, 2);
-                }
-                RedrawTextBox();
+                HighlightNoticeRow(row);
             }
             g_use_item_hover_row = row;
         }
@@ -866,11 +862,7 @@ void UseItemSelectTextBoxWheelAt(short x, unsigned short y, bool flag)
     }
     row = (y - g_level_block->text_box_top) / 0xb;
     if (row != g_use_item_hover_row || flag) {
-        ClearHoveredTextLine(2);
-        if (row < static_cast<int>(g_status.text_box_lines_shown[2])) {
-            SetHoveredTextLine(g_level_block->text_lines[2] + row, 2);
-        }
-        RedrawTextBox();
+        HighlightNoticeRow(row);
     }
     g_use_item_hover_row = row;
 }

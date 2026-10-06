@@ -2501,3 +2501,13 @@ void RefreshTextBoxMode(unsigned short mode)
     }
     ShowNoticeLine(merged, 0, true, false);
 }
+
+/* Shared row hover for the NPC and use-item lists in text box two. */
+void HighlightNoticeRow(int line)
+{
+    ClearHoveredTextLine(2);
+    if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
+        SetHoveredTextLine(g_level_block->text_lines[2] + line, 2);
+    }
+    RedrawTextBox();
+}

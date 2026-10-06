@@ -6,6 +6,7 @@ void SyncNpcDialogueTranscriptScrollButtons();
 #include "wiz8/vector.h"
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/main_game_screen.h"
+#include "wiz8/layouts/npc_dialogue.h"
 #include "wiz8/message_box.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/xstatus.h"
@@ -98,21 +99,6 @@ struct W8PendingNotice {
 };
 extern W8PendingNotice g_pending_notice;
 extern wchar_t g_dialogue_empty_text[4];
-
-/* W8NpcInteractionState::dialogue_layout - which NPC dialogue layout is up. The
-   layout-1 caption is "MAGIC" (Charm/Mindread/Use Item services) and the
-   layout-5 caption "TRADE"; both spellings come from the StringData.DAT
-   captions each open routine loads. Layout 6 owns no panels: every close path
-   only parks it back on NONE, and no open path is recovered. */
-enum W8NpcDialogueLayout {
-    W8_DIALOGUE_LAYOUT_NONE = 0,
-    W8_DIALOGUE_LAYOUT_SERVICES = 1,
-    W8_DIALOGUE_LAYOUT_TOPIC_MENU = 2,
-    W8_DIALOGUE_LAYOUT_TRANSCRIPT = 3,
-    W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX = 4,
-    W8_DIALOGUE_LAYOUT_TRADE = 5,
-    W8_DIALOGUE_LAYOUT_BARE = 6
-};
 
 /* W8NpcInteractionState::trade_mode - the active tab of the option/trade
    layouts. The StringData.DAT captions the tabs and headers load are
@@ -304,7 +290,7 @@ struct W8NpcInteractionState {
     unsigned char unknown_235[3];
     /* 0x238: a layout staged for reopen; the frame update closes the current
        layout and opens this one, then clears it. */
-    int pending_layout;
+    W8NpcDialogueLayout pending_layout;
     /* 0x23c: cleared when the dialogue ends on a refusal/abrupt dismissal, in
        which case the close path queues a delayed party reaction event. */
     bool suppress_parting_reaction;
@@ -438,7 +424,7 @@ void SyncNpcServiceButtons(int party_slot); /* 0x0056EE20 */
    callback_id in dialogue_controls (id 0x27 is ignored). */
 unsigned char MainScreenControlRegionEvent(const InputAtom* event,
                                            struct W8Region* region); /* 0x0056F020 */
-void SwitchNpcDialogueLayout(int interact_id);                       /* 0x00570120 */
+void SwitchNpcDialogueLayout(W8NpcDialogueLayout layout);            /* 0x00570120 */
 void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,
                       unsigned char force); /* 0x0056CA60 */
 unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item,
