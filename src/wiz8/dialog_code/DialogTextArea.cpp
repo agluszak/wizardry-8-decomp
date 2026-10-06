@@ -184,10 +184,9 @@ bool W8DialogTextArea::CopyEntryText(unsigned int index, wchar_t* output)
 
 /* Hit testing and point selection traverse the same visible entry lines.
    Retail applies the first visible line to every entry, including spacing. */
-template <class Position>
-unsigned int W8DialogTextArea::FindVisibleEntryAtLine(Position target, unsigned int spacing)
+unsigned int W8DialogTextArea::FindVisibleEntryAtLine(unsigned int target, unsigned int spacing)
 {
-    Position position = 0;
+    unsigned int position = 0;
     for (unsigned int index = m_first_visible_entry;
          index < static_cast<unsigned int>(m_visible_lines.GetCount()); ++index) {
         for (unsigned int line = m_first_visible_line;
