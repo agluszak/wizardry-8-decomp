@@ -1615,18 +1615,7 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
 // FUNCTION: WIZ8 0x004f5ef0
 void W8VerticalRangeThumb::AdjustValue(int steps)
 {
-    if (steps > 0) {
-        do {
-            m_range->Decrement();
-            --steps;
-        } while (steps != 0);
-    } else if (steps < 0) {
-        steps = -steps;
-        do {
-            m_range->Increment();
-            --steps;
-        } while (steps != 0);
-    }
+    m_range->AdjustValue(steps);
 }
 
 // FUNCTION: WIZ8 0x004f5f60
@@ -1685,18 +1674,7 @@ void W8RangeButton::ActivatePrimary(int event)
 // FUNCTION: WIZ8 0x004f6180
 void W8RangeButton::AdjustValue(int steps)
 {
-    if (steps > 0) {
-        do {
-            m_range->Decrement();
-            --steps;
-        } while (steps != 0);
-    } else if (steps < 0) {
-        steps = -steps;
-        do {
-            m_range->Increment();
-            --steps;
-        } while (steps != 0);
-    }
+    m_range->AdjustValue(steps);
 }
 
 // FUNCTION: WIZ8 0x004f6680

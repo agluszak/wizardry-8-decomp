@@ -294,7 +294,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     gpSCSV->input_blocked = false;
     gpSCSV->field_574 = 1;
     gpSCSV->location_id = -1;
-    gpSCSV->interact_id = -1;
+    gpSCSV->interact_id = W8_DIALOGUE_LAYOUT_UNSET;
     CloseMainGameOverlays();
     mode = g_settings.main_ui_mode;
     if (mode == W8_MAIN_UI_MODE_RADAR) {
@@ -329,7 +329,7 @@ unsigned char OpenSpellCastingView(int party_slot)
 void CloseSpellCastingView(void)
 {
     int location_id;
-    int interact_id;
+    W8NpcDialogueLayout interact_id;
     unsigned int monster_index;
     W8NpcState* npc;
 
@@ -367,7 +367,7 @@ void CloseSpellCastingView(void)
         if (gXStatus.fTrapInteract && !IsScreenTransitionPending()) {
             OpenTrapInteraction(0);
         }
-        if (interact_id != -1 && !IsScreenTransitionPending()) {
+        if (interact_id != W8_DIALOGUE_LAYOUT_UNSET && !IsScreenTransitionPending()) {
             monster_index = MonsterGetIndexByLocationID(0x1cf, SPELLCASTING_CPP, location_id, true);
             npc = FindNpcBindingForMonster(monster_index);
             BeginNpcDialogue(npc, 0, -1, 0, 1);
@@ -727,7 +727,7 @@ static void SelectSpellCastingRow(int index)
    realm and list row. The interact and location ids ride along so a pending
    interaction can resume after the cast. */
 // FUNCTION: WIZ8 0x005A0110
-void BeginSpellCast(int spell_id, int location_id, int interact_id)
+void BeginSpellCast(int spell_id, int location_id, W8NpcDialogueLayout interact_id)
 {
     W8SpellRealm realm;
 

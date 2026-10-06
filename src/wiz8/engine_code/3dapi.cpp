@@ -591,10 +591,7 @@ void DestroyWorld(W8World* world)
         HideWorldCursor();
 
     g_worlds.Remove(world);
-    if (world->static_scene != 0) {
-        world->static_scene->release();
-        world->static_scene = 0;
-    }
+    ReleaseRendererObject(world->static_scene);
     free(world);
 }
 
@@ -757,9 +754,7 @@ void WorldGetCameraLocationOrZero(W8World* world, srVector3T<float>* location)
         srAssertFail("pWorld", THREE_D_API_CPP, 1014, 0);
     }
     if (world->camera != 0) {
-        location->x = static_cast<float>(world->camera->getLocationX());
-        location->y = static_cast<float>(world->camera->getLocationY());
-        location->z = static_cast<float>(world->camera->getLocationZ());
+        WorldGetCameraLocation(world, location);
         return;
     }
     location->SetZero();

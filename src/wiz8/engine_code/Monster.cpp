@@ -1269,17 +1269,11 @@ W8Monster::~W8Monster()
     }
     UnregisterGrCycle(this);
     delete m_pRep;
-    if (script != 0) {
-        script->release();
-        script = 0;
-    }
+    ReleaseRendererObject(script);
     runtime_flags &= ~W8_MONSTER_SCRIPT_WAIT;
     script_line = 0;
     script_wait = MONSCR_NONE;
-    if (sound != 0) {
-        sound->release();
-        sound = 0;
-    }
+    ReleaseRendererObject(sound);
 }
 
 /* Navigator is W8Monster's second base at +0x18. VC6 places this override in
@@ -1671,17 +1665,11 @@ bool W8Monster::SetScript(const char* script_name, bool reset_orders)
     srRegistry* registry;
     char path[256] = "Data\\Monsters\\Scripts\\";
 
-    if (script != 0) {
-        script->release();
-        script = 0;
-    }
+    ReleaseRendererObject(script);
     runtime_flags &= ~W8_MONSTER_SCRIPT_WAIT;
     script_line = 0;
     script_wait = MONSCR_NONE;
-    if (sound != 0) {
-        sound->release();
-        sound = 0;
-    }
+    ReleaseRendererObject(sound);
     if (reset_orders) {
         orders_finished = false;
     }
@@ -2433,10 +2421,7 @@ void W8Monster::ProcessScript()
         runtime_flags &= ~W8_MONSTER_SCRIPT_WAIT;
         script_line = 0;
         script_wait = MONSCR_NONE;
-        if (sound != 0) {
-            sound->release();
-            sound = 0;
-        }
+        ReleaseRendererObject(sound);
     }
 }
 

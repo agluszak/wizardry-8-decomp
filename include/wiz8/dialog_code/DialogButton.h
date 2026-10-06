@@ -77,6 +77,14 @@ public:
                    bool left_toggles, short priority, int tooltip_index,
                    W8DialogButtonCallback right_callback,
                    W8DialogButtonCallback double_click_callback);
+    bool ConfigureIcon(const char* image_path, int disabled_frame, int normal_frame, short priority,
+                       int tooltip_index)
+    {
+        return Configure(image_path, disabled_frame, normal_frame, BUTTON_NO_IMAGE, normal_frame,
+                         BUTTON_NO_IMAGE, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK, false, priority,
+                         tooltip_index, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    }
+
     /* 0x005DB350: create an SGP text button (BUTTON_NO_TOGGLE, priority 0x7f),
        store this in its user-data slot 0 and the payload in slot 1 (read back
        by GetUserData), then install the left-click callback. */

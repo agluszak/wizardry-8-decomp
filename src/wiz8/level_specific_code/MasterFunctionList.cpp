@@ -628,6 +628,30 @@ static bool BlockTriggerActivation(Trigger* trigger)
     return false;
 }
 
+/* Repeated level setup owns the find/assert/bind operation. Diagnostics keep
+   their original line and literal spelling, including the inconsistent names. */
+static void BindLevelTrigger(const char* name, Trigger::ActivationCallback callback, int line,
+                             const char* diagnostic)
+{
+    Trigger* trigger = FindTriggerByName(name);
+    if (trigger == 0) {
+        srAssertFail("pTrigger", MASTER_FUNCTION_CPP, line, diagnostic);
+    }
+    trigger->activation_callback = callback;
+}
+
+static void BindLevelTrigger(const char* name, Trigger::ActivationCallback callback, int line)
+{
+    Trigger* trigger = FindTriggerByName(name);
+    if (trigger == 0) {
+        srAssertFail("pTrigger", MASTER_FUNCTION_CPP, line,
+                     reinterpret_cast<const char*>(
+                         String(/* reinterpret-ok: SGP rotating debug buffer */
+                                "Missing trigger '%s'! It's not in the LVL file!", name)));
+    }
+    trigger->activation_callback = callback;
+}
+
 /* Install the level's trigger callbacks and master-function helpers. */
 // FUNCTION: WIZ8 0x004D6C50
 void InitializeLevelMasterFunctions(int level)
@@ -658,126 +682,46 @@ void InitializeLevelMasterFunctions(int level)
     g_sea_caves_slope_override_enabled = false;
     switch (level) {
     case 0:
-        pTrigger = FindTriggerByName("ChaosMolori");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x74,
+        BindLevelTrigger("ChaosMolori", ArnikaChaosMolori, 0x74,
                          "Missing trigger 'ChaosMolori'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaChaosMolori;
-        pTrigger = FindTriggerByName("Maddmook");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x78,
+        BindLevelTrigger("Maddmook", ArnikaMaddmook, 0x78,
                          "Missing trigger 'Maddmook'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaMaddmook;
-        pTrigger = FindTriggerByName("CMbox");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x7c,
+        BindLevelTrigger("CMbox", ArnikaCMbox, 0x7c,
                          "Missing trigger 'CMbox'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaCMbox;
-        pTrigger = FindTriggerByName("AstralDominae");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x80,
+        BindLevelTrigger("AstralDominae", ArnikaAstralDominae, 0x80,
                          "Missing trigger 'AstralDominae'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaAstralDominae;
-        pTrigger = FindTriggerByName("BallSlot");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x84,
+        BindLevelTrigger("BallSlot", ArnikaBallSlot, 0x84,
                          "Missing trigger 'BallSlot'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaBallSlot;
-        pTrigger = FindTriggerByName("Flightrecordertrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x88,
+        BindLevelTrigger("Flightrecordertrigger", ArnikaFlightRecorder, 0x88,
                          "Missing trigger 'Flightrecordertrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaFlightRecorder;
-        pTrigger = FindTriggerByName("ULLspawn");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x8c,
+        BindLevelTrigger("ULLspawn", AllowTriggerActivation, 0x8c,
                          "Missing trigger 'ULLspawn'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AllowTriggerActivation;
-        pTrigger = FindTriggerByName("Mookholo");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x90,
+        BindLevelTrigger("Mookholo", ArnikaMookholo, 0x90,
                          "Missing trigger 'Mookholo'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaMookholo;
-        pTrigger = FindTriggerByName("MookFrontDoor");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x9c,
+        BindLevelTrigger("MookFrontDoor", ArnikaMookFrontDoor, 0x9c,
                          "Missing trigger 'MookFrontDoor'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaMookFrontDoor;
-        pTrigger = FindTriggerByName("YellowButton");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xa0,
+        BindLevelTrigger("YellowButton", ArnikaYellowButton, 0xa0,
                          "Missing trigger 'YellowButton'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaYellowButton;
-        pTrigger = FindTriggerByName("Vaultalarmdoor");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xa4,
+        BindLevelTrigger("Vaultalarmdoor", ArnikaVaultAlarmDoor, 0xa4,
                          "Missing trigger 'Vaultalarmdoor'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaVaultAlarmDoor;
-        pTrigger = FindTriggerByName("Exitbutton");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xa8,
+        BindLevelTrigger("Exitbutton", ArnikaExitButton, 0xa8,
                          "Missing trigger 'Exitbutton'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaExitButton;
-        pTrigger = FindTriggerByName("GenVault-2-door");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xac,
+        BindLevelTrigger("GenVault-2-door", ArnikaGenVaultDoor, 0xac,
                          "Missing trigger 'GenVault-2-door'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaGenVaultDoor;
-        pTrigger = FindTriggerByName("ARN11");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xb8,
+        BindLevelTrigger("ARN11", CosmicCircleReturnFalse, 0xb8,
                          "Missing trigger 'ARN11'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = CosmicCircleReturnFalse;
-        pTrigger = FindTriggerByName("RedButton");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xbd,
+        BindLevelTrigger("RedButton", ArnikaRedButton, 0xbd,
                          "Missing trigger 'RedButton'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaRedButton;
-        pTrigger = FindTriggerByName("El1-TopButtons");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xc1,
+        BindLevelTrigger("El1-TopButtons", ArnikaEl1TopButtons, 0xc1,
                          "Missing trigger 'El1-TopButtons'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaEl1TopButtons;
-        pTrigger = FindTriggerByName("El1-BottomButtons");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xc5,
+        BindLevelTrigger("El1-BottomButtons", ArnikaEl1BottomButtons, 0xc5,
                          "Missing trigger 'El1-BottomButtons'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaEl1BottomButtons;
-        pTrigger = FindTriggerByName("GreenButton");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xca,
+        BindLevelTrigger("GreenButton", ArnikaGreenButton, 0xca,
                          "Missing trigger 'GreenButton'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaGreenButton;
-        pTrigger = FindTriggerByName("Elevator-02");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xce,
+        BindLevelTrigger("Elevator-02", ArnikaElevator02Trigger, 0xce,
                          "Missing trigger 'Elevator-02'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaElevator02Trigger;
-        pTrigger = FindTriggerByName("LazerScanner");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xd8,
+        BindLevelTrigger("LazerScanner", ArnikaLazerScanner, 0xd8,
                          "Missing trigger 'LazerScanner'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ArnikaLazerScanner;
         pTrigger = FindTriggerByName("ScannerDoor");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xdc,
@@ -788,87 +732,36 @@ void InitializeLevelMasterFunctions(int level)
         ArnikaLevelSetup();
         return;
     case 1:
-        pTrigger = FindTriggerByName("RampUp");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x116,
+        BindLevelTrigger("RampUp", AscensionRampUp, 0x116,
                          "Missing trigger 'RampUp'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AscensionRampUp;
-        pTrigger = FindTriggerByName("ChaosATrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x11a,
+        BindLevelTrigger("ChaosATrigger", AscensionChaosATrigger, 0x11a,
                          "Missing trigger 'ChaosATrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AscensionChaosATrigger;
-        pTrigger = FindTriggerByName("ChaosBTrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x11e,
+        BindLevelTrigger("ChaosBTrigger", AscensionChaosBTrigger, 0x11e,
                          "Missing trigger 'ChaosBTrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AscensionChaosBTrigger;
-        pTrigger = FindTriggerByName("LifeATrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x122,
+        BindLevelTrigger("LifeATrigger", AscensionLifeATrigger, 0x122,
                          "Missing trigger 'LifeATrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AscensionLifeATrigger;
-        pTrigger = FindTriggerByName("LifeBTrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x126,
+        BindLevelTrigger("LifeBTrigger", AscensionLifeBTrigger, 0x126,
                          "Missing trigger 'LifeBTrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AscensionLifeBTrigger;
-        pTrigger = FindTriggerByName("KnowATrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x12a,
+        BindLevelTrigger("KnowATrigger", AscensionKnowATrigger, 0x12a,
                          "Missing trigger 'KnowATrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AscensionKnowATrigger;
-        pTrigger = FindTriggerByName("KnowBTrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x12e,
+        BindLevelTrigger("KnowBTrigger", AscensionKnowBTrigger, 0x12e,
                          "Missing trigger 'KnowBTrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AscensionKnowBTrigger;
-        pTrigger = FindTriggerByName("RampUp");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x132,
+        BindLevelTrigger("RampUp", AscensionDarkSavantSpawn, 0x132,
                          "Missing trigger 'RampUp'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AscensionDarkSavantSpawn;
-        pTrigger = FindTriggerByName("Path1Camera");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x136,
+        BindLevelTrigger("Path1Camera", AscensionPath1Camera, 0x136,
                          "Missing trigger 'Path1Camera'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = AscensionPath1Camera;
-        pTrigger = FindTriggerByName("Shaker");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                         reinterpret_cast<const char*>(
-                             String(/* reinterpret-ok: SGP rotating debug buffer */
-                                    "Missing trigger '%s'! It's not in the LVL file!", "Shaker")));
-        }
-        pTrigger->activation_callback = AscensionShaker;
+        BindLevelTrigger("Shaker", AscensionShaker, 0x5ee);
         AscensionPeakInit();
         return;
     case 4:
         CosmicCircleSetup();
-        pTrigger = FindTriggerByName("CC_TRIGGERPLANE1HEDRA");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x33a,
+        BindLevelTrigger("CC_TRIGGERPLANE1HEDRA", CosmicCircleTriggerPlane1Hedra, 0x33a,
                          "Missing trigger 'CC_TRIGGERPLANE1HEDRA'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = CosmicCircleTriggerPlane1Hedra;
         break;
     case 5:
         MartensBluff1Setup();
-        pTrigger = FindTriggerByName("MR109");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x144,
+        BindLevelTrigger("MR109", MartensBluff1Teleporter, 0x144,
                          "Missing trigger 'MR109'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1Teleporter;
         pTrigger = FindTriggerByName("MR110");
         if (pTrigger != 0) {
             pTrigger->activation_callback = BlockTriggerActivation;
@@ -881,591 +774,216 @@ void InitializeLevelMasterFunctions(int level)
         if (pTrigger != 0) {
             pTrigger->activation_callback = BlockTriggerActivation;
         }
-        pTrigger = FindTriggerByName("F-Handlock");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x154,
+        BindLevelTrigger("F-Handlock", MartensBluff1FHandlock, 0x154,
                          "Missing trigger 'F-Handlock'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1FHandlock;
-        pTrigger = FindTriggerByName("ButtonGigas");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x158,
+        BindLevelTrigger("ButtonGigas", MartensBluff1ButtonGigas, 0x158,
                          "Missing trigger 'ButtonGigas'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1ButtonGigas;
-        pTrigger = FindTriggerByName("ButtonTrang");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x15c,
+        BindLevelTrigger("ButtonTrang", MartensBluff1ButtonTrang, 0x15c,
                          "Missing trigger 'ButtonTrang'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1ButtonTrang;
-        pTrigger = FindTriggerByName("ButtonRift");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x160,
+        BindLevelTrigger("ButtonRift", MartensBluff1ButtonRift, 0x160,
                          "Missing trigger 'ButtonRift'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1ButtonRift;
-        pTrigger = FindTriggerByName("ButtonMaten");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x164,
+        BindLevelTrigger("ButtonMaten", MartensBluff1ButtonMaten, 0x164,
                          "Missing trigger 'ButtonMaten'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1ButtonMaten;
-        pTrigger = FindTriggerByName("WireTrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x168,
+        BindLevelTrigger("WireTrigger", MartensBluff1WireTrigger, 0x168,
                          "Missing trigger 'WireTrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1WireTrigger;
-        pTrigger = FindTriggerByName("ButtonGigas");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x16c,
+        BindLevelTrigger("ButtonGigas", MartensBluff1ButtonGigas, 0x16c,
                          "Missing trigger 'ButtonGigas'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1ButtonGigas;
-        pTrigger = FindTriggerByName("Controller");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x170,
+        BindLevelTrigger("Controller", MartensBluff1Controller, 0x170,
                          "Missing trigger 'Controller'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1Controller;
-        pTrigger = FindTriggerByName("Dial-A");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x174,
+        BindLevelTrigger("Dial-A", MartensBluff1DialA, 0x174,
                          "Missing trigger 'Dial-A'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1DialA;
-        pTrigger = FindTriggerByName("Dial-B");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x178,
+        BindLevelTrigger("Dial-B", MartensBluff1DialB, 0x178,
                          "Missing trigger 'Dial-B'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1DialB;
-        pTrigger = FindTriggerByName("Dial-C");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x17c,
+        BindLevelTrigger("Dial-C", MartensBluff1DialC, 0x17c,
                          "Missing trigger 'Dial-C'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1DialC;
-        pTrigger = FindTriggerByName("Gas-Switch");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x180,
+        BindLevelTrigger("Gas-Switch", MartensBluff1GasSwitch, 0x180,
                          "Missing trigger 'Gas-Switch'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1GasSwitch;
-        pTrigger = FindTriggerByName("J-Doorcontroller");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x184,
+        BindLevelTrigger("J-Doorcontroller", MartensBluff1JDoorController, 0x184,
                          "Missing trigger 'J-Doorcontroller'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1JDoorController;
-        pTrigger = FindTriggerByName("MartenBook");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x188,
+        BindLevelTrigger("MartenBook", MartensBluff1MartenBook, 0x188,
                          "Missing trigger 'trigger16254'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff1MartenBook;
         return;
     case 6:
         MartensBluff2Setup();
-        pTrigger = FindTriggerByName("Arrowtraptrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x192,
+        BindLevelTrigger("Arrowtraptrigger", TriggerArrowTrap, 0x192,
                          "Missing trigger 'Arrowtraptrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = TriggerArrowTrap;
-        pTrigger = FindTriggerByName("Spikeballtrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x196,
+        BindLevelTrigger("Spikeballtrigger", MartensBluff2Spikeballtrigger, 0x196,
                          "Missing trigger 'Spikeballtrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff2Spikeballtrigger;
-        pTrigger = FindTriggerByName("DoorBolt");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x19a,
+        BindLevelTrigger("DoorBolt", MartensBluff2DoorBolt, 0x19a,
                          "Missing trigger 'DoorBolt'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff2DoorBolt;
-        pTrigger = FindTriggerByName("DummyLever");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x19e,
+        BindLevelTrigger("DummyLever", MartensBluff2DummyLever, 0x19e,
                          "Missing trigger 'DummyLever'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff2DummyLever;
-        pTrigger = FindTriggerByName("Dummy");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1a2,
+        BindLevelTrigger("Dummy", MartensBluff2Dummy, 0x1a2,
                          "Missing trigger 'Dummy'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff2Dummy;
-        pTrigger = FindTriggerByName("PerfumeBox");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1a6,
+        BindLevelTrigger("PerfumeBox", MartensBluff2PerfumeBox, 0x1a6,
                          "Missing trigger 'PerfumeBox'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff2PerfumeBox;
-        pTrigger = FindTriggerByName("StoneIdol");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1aa,
+        BindLevelTrigger("StoneIdol", MartensBluff2StoneIdol, 0x1aa,
                          "Missing trigger 'StoneIdol'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff2StoneIdol;
-        pTrigger = FindTriggerByName("BlueFlowers");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ae,
+        BindLevelTrigger("BlueFlowers", MartensBluff2BlueFlowers, 0x1ae,
                          "Missing trigger 'BlueFlowers'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff2BlueFlowers;
-        pTrigger = FindTriggerByName("SquisherControls");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1b2,
+        BindLevelTrigger("SquisherControls", MartensBluff2SquisherControls, 0x1b2,
                          "Missing trigger 'SquisherControls'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff2SquisherControls;
-        pTrigger = FindTriggerByName("DoorControls");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1b6,
+        BindLevelTrigger("DoorControls", MartensBluff2DoorControls, 0x1b6,
                          "Missing trigger 'DoorControls'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MartensBluff2DoorControls;
         return;
     case 8:
         ClearTextForBarTrigger();
-        pTrigger = FindTriggerByName("roach_trigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1c0,
+        BindLevelTrigger("roach_trigger", OnRoachTriggerActivated, 0x1c0,
                          "Missing trigger 'roach_trigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnRoachTriggerActivated;
-        pTrigger = FindTriggerByName("spider_trigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1c4,
+        BindLevelTrigger("spider_trigger", OnSpiderTriggerActivated, 0x1c4,
                          "Missing trigger 'spider_trigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnSpiderTriggerActivated;
-        pTrigger = FindTriggerByName("Bartrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1c8,
+        BindLevelTrigger("Bartrigger", OnBarTriggerActivated, 0x1c8,
                          "Missing trigger 'Bartrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnBarTriggerActivated;
-        pTrigger = FindTriggerByName("Coffinlide");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1cc,
+        BindLevelTrigger("Coffinlide", OnCoffinlideActivated, 0x1cc,
                          "Missing trigger 'Coffinlide'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnCoffinlideActivated;
-        pTrigger = FindTriggerByName("Coffinlidg");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1d0,
+        BindLevelTrigger("Coffinlidg", OnCoffinlidgActivated, 0x1d0,
                          "Missing trigger 'Coffinlidg'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnCoffinlidgActivated;
-        pTrigger = FindTriggerByName("wheel_star");
-        if (pTrigger == 0) {
-            srAssertFail(
-                "pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                reinterpret_cast<const char*>(
-                    String(/* reinterpret-ok: SGP rotating debug buffer */
-                           "Missing trigger '%s'! It's not in the LVL file!", "wheel_star")));
-        }
-        pTrigger->activation_callback = OnWheelStarActivated;
+        BindLevelTrigger("wheel_star", OnWheelStarActivated, 0x5ee);
         return;
     case 9:
-        pTrigger = FindTriggerByName("bell_button");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1d8,
+        BindLevelTrigger("bell_button", Monastery2BellButton, 0x1d8,
                          "Missing trigger 'bell_button'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Monastery2BellButton;
-        pTrigger = FindTriggerByName("micro_door2");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1dc,
+        BindLevelTrigger("micro_door2", Monastery2MicroDoor2, 0x1dc,
                          "Missing trigger 'micro_door2'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Monastery2MicroDoor2;
         return;
     case 0xc:
         MtGigas1Setup();
-        pTrigger = FindTriggerByName("_VOC_EWAXXLIFT1");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x219,
+        BindLevelTrigger("_VOC_EWAXXLIFT1", MtGigas1Lift1, 0x219,
                          "Missing trigger '_VOC_EWAXXLIFT1'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas1Lift1;
-        pTrigger = FindTriggerByName("_VOC_EWAXXLIFT2");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x21d,
+        BindLevelTrigger("_VOC_EWAXXLIFT2", MtGigas1Lift2, 0x21d,
                          "Missing trigger '_VOC_EWAXXLIFT2'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas1Lift2;
-        pTrigger = FindTriggerByName("PRESSUREPLATE");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x221,
+        BindLevelTrigger("PRESSUREPLATE", MtGigas1PressurePlate, 0x221,
                          "Missing trigger '_VOC_EWAXXLIFT2'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas1PressurePlate;
-        pTrigger = FindTriggerByName("mudWallTrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x225,
+        BindLevelTrigger("mudWallTrigger", MtGigas1MudWall, 0x225,
                          "Missing trigger 'mudWallTrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas1MudWall;
         return;
     case 0xd:
         MtGigas2Setup();
-        pTrigger = FindTriggerByName("_VOC_EWAXXTRAIN");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x22e,
+        BindLevelTrigger("_VOC_EWAXXTRAIN", MtGigas2Train, 0x22e,
                          "Missing trigger '_VOC_EWAXXTRAIN'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2Train;
-        pTrigger = FindTriggerByName("redwire");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x232,
+        BindLevelTrigger("redwire", MtGigas2RedWire, 0x232,
                          "Missing trigger 'redwire'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2RedWire;
-        pTrigger = FindTriggerByName("bluewire");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x236,
+        BindLevelTrigger("bluewire", MtGigas2BlueWire, 0x236,
                          "Missing trigger 'bluewire'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2BlueWire;
-        pTrigger = FindTriggerByName("yellowwire");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x23a,
+        BindLevelTrigger("yellowwire", MtGigas2YellowWire, 0x23a,
                          "Missing trigger 'yellowwire'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2YellowWire;
-        pTrigger = FindTriggerByName("_VOC_EWAXXLIFT3");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x23e,
+        BindLevelTrigger("_VOC_EWAXXLIFT3", MtGigas2Lift3, 0x23e,
                          "Missing trigger '_VOC_EWAXXLIFT3'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2Lift3;
-        pTrigger = FindTriggerByName("_VOC_EWAXXTOPDOOR1");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x242,
+        BindLevelTrigger("_VOC_EWAXXTOPDOOR1", MtGigas2TopDoor1, 0x242,
                          "Missing trigger '_VOC_EWAXXTOPDOOR1'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2TopDoor1;
-        pTrigger = FindTriggerByName("_VOC_EWAXXOFFICER1");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x246,
+        BindLevelTrigger("_VOC_EWAXXOFFICER1", MtGigas2Officer1, 0x246,
                          "Missing trigger '_VOC_EWAXXTOPDOOR1'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2Officer1;
-        pTrigger = FindTriggerByName("_VOC_EWAXXOFFICER2");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x24a,
+        BindLevelTrigger("_VOC_EWAXXOFFICER2", MtGigas2Officer2, 0x24a,
                          "Missing trigger '_VOC_EWAXXTOPDOOR1'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2Officer2;
-        pTrigger = FindTriggerByName("triggerPlaneLaserAlarm");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x24e,
+        BindLevelTrigger("triggerPlaneLaserAlarm", MtGigas2LaserAlarm, 0x24e,
                          "Missing trigger 'triggerPlaneLaserAlarm'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2LaserAlarm;
-        pTrigger = FindTriggerByName("triggerPlaneLaserAlarm01");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x252,
+        BindLevelTrigger("triggerPlaneLaserAlarm01", MtGigas2LaserAlarm, 0x252,
                          "Missing trigger 'triggerPlaneLaserAlarm01'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2LaserAlarm;
-        pTrigger = FindTriggerByName("accessHatch");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x256,
+        BindLevelTrigger("accessHatch", MtGigas2AccessHatch, 0x256,
                          "Missing trigger 'accessHatch'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2AccessHatch;
-        pTrigger = FindTriggerByName("wiringMalfunction");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x25a,
+        BindLevelTrigger("wiringMalfunction", MtGigas2WiringMalfunction, 0x25a,
                          "Missing trigger 'wiringMalfunction'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas2WiringMalfunction;
         return;
     case 0xe:
         ProcessFlagPosition();
-        pTrigger = FindTriggerByName("_VOC_EWAXXLIFT1");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ff,
+        BindLevelTrigger("_VOC_EWAXXLIFT1", MtGigas1Lift1, 0x1ff,
                          "Missing trigger '_VOC_EWAXXLIFT1'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = MtGigas1Lift1;
-        pTrigger = FindTriggerByName("crank");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x203,
+        BindLevelTrigger("crank", OnCrankTriggerActivated, 0x203,
                          "Missing trigger 'crank'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnCrankTriggerActivated;
-        pTrigger = FindTriggerByName("Security Button");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x207,
+        BindLevelTrigger("Security Button", OnSecurityButtonActivated, 0x207,
                          "Missing trigger 'Security Button'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnSecurityButtonActivated;
-        pTrigger = FindTriggerByName("VOC_EWAXXSENTRYtrig");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x20b,
+        BindLevelTrigger("VOC_EWAXXSENTRYtrig", OnSentryTriggerActivated, 0x20b,
                          "Missing trigger 'VOC_EWAXXSENTRYtrig'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnSentryTriggerActivated;
-        pTrigger = FindTriggerByName("ewaxxdoortrigger03");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x20f,
+        BindLevelTrigger("ewaxxdoortrigger03", OnEwaxxDoor03Activated, 0x20f,
                          "Missing trigger 'ewaxxdoortrigger03'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnEwaxxDoor03Activated;
-        pTrigger = FindTriggerByName("dummytrigger");
-        if (pTrigger == 0) {
-            srAssertFail(
-                "pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                reinterpret_cast<const char*>(
-                    String(/* reinterpret-ok: SGP rotating debug buffer */
-                           "Missing trigger '%s'! It's not in the LVL file!", "dummytrigger")));
-        }
-        pTrigger->activation_callback = OnDummyTriggerActivated;
+        BindLevelTrigger("dummytrigger", OnDummyTriggerActivated, 0x5ee);
         return;
     case 0xf:
-        pTrigger = FindTriggerByName("_VOC_EWAXXCANNON1");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1e2,
+        BindLevelTrigger("_VOC_EWAXXCANNON1", OnEwaxxCannon1Activated, 0x1e2,
                          "Missing trigger '_VOC_EWAXXCANNON1'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnEwaxxCannon1Activated;
-        pTrigger = FindTriggerByName("EwaxxLanding");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ea,
+        BindLevelTrigger("EwaxxLanding", OnEwaxxLandingActivated, 0x1ea,
                          "Missing trigger 'EwaxxLanding'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnEwaxxLandingActivated;
-        pTrigger = FindTriggerByName("catchCord");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ee,
+        BindLevelTrigger("catchCord", OnCatchCordActivated, 0x1ee,
                          "Missing trigger 'catchCord'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnCatchCordActivated;
-        pTrigger = FindTriggerByName("painActivatorTrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1f2,
+        BindLevelTrigger("painActivatorTrigger", OnPainActivatorActivated, 0x1f2,
                          "Missing trigger 'painActivatorTrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnPainActivatorActivated;
-        pTrigger = FindTriggerByName("_VOC_EWAXXTOPDOOR2");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1f6,
+        BindLevelTrigger("_VOC_EWAXXTOPDOOR2", OnEwaxxTopDoor2Activated, 0x1f6,
                          "Missing trigger '_VOC_EWAXXTOPDOOR2'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = OnEwaxxTopDoor2Activated;
         return;
     case 0x10:
         if (GetFact(W8_FACT_PARTY_AT_RAC) == 0) {
             LoadAwayCampChest();
             SetFact(W8_FACT_PARTY_AT_RAC, 0, false);
         }
-        pTrigger = FindTriggerByName("prisondoor06");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x308,
+        BindLevelTrigger("prisondoor06", CampPrisonDoor06, 0x308,
                          "Missing trigger 'prisondoor06'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = CampPrisonDoor06;
-        pTrigger = FindTriggerByName("prisondoor04");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x30c,
+        BindLevelTrigger("prisondoor04", CampPrisonDoor04, 0x30c,
                          "Missing trigger 'prisondoor04'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = CampPrisonDoor04;
-        pTrigger = FindTriggerByName("prisondoor03");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x310,
+        BindLevelTrigger("prisondoor03", CampPrisonDoor03, 0x310,
                          "Missing trigger 'prisondoor03'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = CampPrisonDoor03;
         return;
     case 0x12:
-        pTrigger = FindTriggerByName("AltarBox");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x29c,
+        BindLevelTrigger("AltarBox", RapaxMainFloorAltarBox, 0x29c,
                          "Missing trigger 'AltarBox'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = RapaxMainFloorAltarBox;
-        pTrigger = FindTriggerByName("platformtrigger");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2a0,
+        BindLevelTrigger("platformtrigger", RapaxMainFloorPlatform, 0x2a0,
                          "Missing trigger 'platformtrigger'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = RapaxMainFloorPlatform;
-        pTrigger = FindTriggerByName("platformtrigger01");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2a4,
+        BindLevelTrigger("platformtrigger01", RapaxMainFloorPlatform01, 0x2a4,
                          "Missing trigger 'platformtrigger01'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = RapaxMainFloorPlatform01;
-        pTrigger = FindTriggerByName("platformtrigger02");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2a8,
+        BindLevelTrigger("platformtrigger02", RapaxMainFloorPlatform02, 0x2a8,
                          "Missing trigger 'platformtrigger02'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = RapaxMainFloorPlatform02;
         return;
     case 0x13:
-        pTrigger = FindTriggerByName("AirBox");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x290,
+        BindLevelTrigger("AirBox", RapaxUpperFloorAirBox, 0x290,
                          "Missing trigger 'AirBox'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = RapaxUpperFloorAirBox;
-        pTrigger = FindTriggerByName("DoorDone");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x294,
+        BindLevelTrigger("DoorDone", RapaxUpperFloorDoorDone, 0x294,
                          "Missing trigger 'DoorDone'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = RapaxUpperFloorDoorDone;
         return;
     case 0x15:
-        pTrigger = FindTriggerByName("Fireantspawn");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x27a,
+        BindLevelTrigger("Fireantspawn", Rift1Fireantspawn, 0x27a,
                          "Missing trigger 'Fireantspawn'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Rift1Fireantspawn;
-        pTrigger = FindTriggerByName("Sexspawn");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x27e,
+        BindLevelTrigger("Sexspawn", Rift1Sexspawn, 0x27e,
                          "Missing trigger 'Sexspawn'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Rift1Sexspawn;
-        pTrigger = FindTriggerByName("Hotstuff");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x282,
+        BindLevelTrigger("Hotstuff", Rift1Hotstuff, 0x282,
                          "Missing trigger 'Hotstuff'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Rift1Hotstuff;
-        pTrigger = FindTriggerByName("Gate");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x286,
+        BindLevelTrigger("Gate", Rift1Gate, 0x286,
                          "Missing trigger 'Gate'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Rift1Gate;
-        pTrigger = FindTriggerByName("AshLock");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                         reinterpret_cast<const char*>(
-                             String(/* reinterpret-ok: SGP rotating debug buffer */
-                                    "Missing trigger '%s'! It's not in the LVL file!", "AshLock")));
-        }
-        pTrigger->activation_callback = Rift1AshLock;
-        pTrigger = FindTriggerByName("TimeDorado");
-        if (pTrigger == 0) {
-            srAssertFail(
-                "pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                reinterpret_cast<const char*>(
-                    String(/* reinterpret-ok: SGP rotating debug buffer */
-                           "Missing trigger '%s'! It's not in the LVL file!", "TimeDorado")));
-        }
-        pTrigger->activation_callback = Rift1TimeDorado;
+        BindLevelTrigger("AshLock", Rift1AshLock, 0x5ee);
+        BindLevelTrigger("TimeDorado", Rift1TimeDorado, 0x5ee);
         return;
     case 0x16:
         g_sea_caves_slope_override_enabled = true;
         g_party_has_slope_override_item = FindItemOnParty(0x254, 0, 0, 0, 0);
-        pTrigger = FindTriggerByName("HigardiChest01");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2b1,
+        BindLevelTrigger("HigardiChest01", SeaCavesHigardiChest01, 0x2b1,
                          "Missing trigger 'HigardiChest01'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SeaCavesHigardiChest01;
-        pTrigger = FindTriggerByName("HigardiChest02");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2b5,
+        BindLevelTrigger("HigardiChest02", SeaCavesHigardiChest02, 0x2b5,
                          "Missing trigger 'HigardiChest02'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SeaCavesHigardiChest02;
-        pTrigger = FindTriggerByName("HigardiChest03");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2b9,
+        BindLevelTrigger("HigardiChest03", SeaCavesHigardiChest03, 0x2b9,
                          "Missing trigger 'HigardiChest03'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SeaCavesHigardiChest03;
-        pTrigger = FindTriggerByName("HigardiChest04");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2bd,
+        BindLevelTrigger("HigardiChest04", SeaCavesHigardiChest04, 0x2bd,
                          "Missing trigger 'HigardiChest04'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SeaCavesHigardiChest04;
-        pTrigger = FindTriggerByName("HigardiChest05");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2c1,
+        BindLevelTrigger("HigardiChest05", SeaCavesHigardiChest05, 0x2c1,
                          "Missing trigger 'HigardiChest05'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SeaCavesHigardiChest05;
-        pTrigger = FindTriggerByName("doortomb");
-        if (pTrigger == 0) {
-            srAssertFail(
-                "pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                reinterpret_cast<const char*>(
-                    String(/* reinterpret-ok: SGP rotating debug buffer */
-                           "Missing trigger '%s'! It's not in the LVL file!", "doortomb")));
-        }
-        pTrigger->activation_callback = SeaCavesDoorTomb;
+        BindLevelTrigger("doortomb", SeaCavesDoorTomb, 0x5ee);
         return;
     case 0x18:
-        pTrigger = FindTriggerByName("gas_trig_plane01");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2ca,
+        BindLevelTrigger("gas_trig_plane01", SwampGasPlane, 0x2ca,
                          "Missing trigger 'gas_trig_plane01'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SwampGasPlane;
-        pTrigger = FindTriggerByName("gas_trig_plane02");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2ce,
+        BindLevelTrigger("gas_trig_plane02", SwampGasPlane, 0x2ce,
                          "Missing trigger 'gas_trig_plane02'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SwampGasPlane;
-        pTrigger = FindTriggerByName("gas_trig_plane03");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2d2,
+        BindLevelTrigger("gas_trig_plane03", SwampGasPlane, 0x2d2,
                          "Missing trigger 'gas_trig_plane03'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SwampGasPlane;
-        pTrigger = FindTriggerByName("gas_trig_plane04");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2d6,
+        BindLevelTrigger("gas_trig_plane04", SwampGasPlane, 0x2d6,
                          "Missing trigger 'gas_trig_plane04'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SwampGasPlane;
-        pTrigger = FindTriggerByName("gas_trig_plane05");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2da,
+        BindLevelTrigger("gas_trig_plane05", SwampGasPlane, 0x2da,
                          "Missing trigger 'gas_trig_plane05'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SwampGasPlane;
-        pTrigger = FindTriggerByName("gas_trig_plane06");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2de,
+        BindLevelTrigger("gas_trig_plane06", SwampGasPlane, 0x2de,
                          "Missing trigger 'gas_trig_plane06'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SwampGasPlane;
-        pTrigger = FindTriggerByName("gas_trig_plane07");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2e2,
+        BindLevelTrigger("gas_trig_plane07", SwampGasPlane, 0x2e2,
                          "Missing trigger 'gas_trig_plane07'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SwampGasPlane;
-        pTrigger = FindTriggerByName("oil_pool");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2e6,
+        BindLevelTrigger("oil_pool", SwampOilPool, 0x2e6,
                          "Missing trigger 'oil_pool'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SwampOilPool;
-        pTrigger = FindTriggerByName("onelid");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2ea,
+        BindLevelTrigger("onelid", SwampOnelid, 0x2ea,
                          "Missing trigger 'onelid'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SwampOnelid;
         pTrigger = FindTriggerByName("fire_trig_plane01");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -1531,123 +1049,43 @@ void InitializeLevelMasterFunctions(int level)
         pTrigger->activation_callback = SwampFirePlane;
         return;
     case 0x19:
-        pTrigger = FindTriggerByName("Fount_randomFX");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2fa,
+        BindLevelTrigger("Fount_randomFX", Trynnie1FountRandomFX, 0x2fa,
                          "Missing trigger 'Fount_randomFX'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Trynnie1FountRandomFX;
         EnsureTrynnie1KilledVar();
         return;
     case 0x1a:
-        pTrigger = FindTriggerByName("GoodaVine_A");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x31a,
+        BindLevelTrigger("GoodaVine_A", Trynnie2GoodaVineA, 0x31a,
                          "Missing trigger 'GoodaVine_A'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Trynnie2GoodaVineA;
-        pTrigger = FindTriggerByName("GoodaVine_B");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x31e,
+        BindLevelTrigger("GoodaVine_B", Trynnie2GoodaVineB, 0x31e,
                          "Missing trigger 'GoodaVine_B'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Trynnie2GoodaVineB;
-        pTrigger = FindTriggerByName("Meat_Maker");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x322,
+        BindLevelTrigger("Meat_Maker", Trynnie2MeatMaker, 0x322,
                          "Missing trigger 'Meat maker'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Trynnie2MeatMaker;
-        pTrigger = FindTriggerByName("Meat_Box");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x326,
+        BindLevelTrigger("Meat_Box", Trynnie2MeatBox, 0x326,
                          "Missing trigger 'Meat_Box! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Trynnie2MeatBox;
-        pTrigger = FindTriggerByName("Give_Zulu");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x32a,
+        BindLevelTrigger("Give_Zulu", Trynnie2GiveZulu, 0x32a,
                          "Missing trigger 'Give Zulu'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = Trynnie2GiveZulu;
-        pTrigger = FindTriggerByName("URN_Trigger_01");
-        if (pTrigger == 0) {
-            srAssertFail(
-                "pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                reinterpret_cast<const char*>(
-                    String(/* reinterpret-ok: SGP rotating debug buffer */
-                           "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_01")));
-        }
-        pTrigger->activation_callback = Trynnie2UrnTrigger;
-        pTrigger = FindTriggerByName("URN_Trigger_02");
-        if (pTrigger == 0) {
-            srAssertFail(
-                "pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                reinterpret_cast<const char*>(
-                    String(/* reinterpret-ok: SGP rotating debug buffer */
-                           "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_02")));
-        }
-        pTrigger->activation_callback = Trynnie2UrnTrigger;
-        pTrigger = FindTriggerByName("URN_Trigger_03");
-        if (pTrigger == 0) {
-            srAssertFail(
-                "pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                reinterpret_cast<const char*>(
-                    String(/* reinterpret-ok: SGP rotating debug buffer */
-                           "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_03")));
-        }
-        pTrigger->activation_callback = Trynnie2UrnTrigger;
-        pTrigger = FindTriggerByName("URN_Trigger_04");
-        if (pTrigger == 0) {
-            srAssertFail(
-                "pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
-                reinterpret_cast<const char*>(
-                    String(/* reinterpret-ok: SGP rotating debug buffer */
-                           "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_04")));
-        }
-        pTrigger->activation_callback = Trynnie2UrnTrigger;
+        BindLevelTrigger("URN_Trigger_01", Trynnie2UrnTrigger, 0x5ee);
+        BindLevelTrigger("URN_Trigger_02", Trynnie2UrnTrigger, 0x5ee);
+        BindLevelTrigger("URN_Trigger_03", Trynnie2UrnTrigger, 0x5ee);
+        BindLevelTrigger("URN_Trigger_04", Trynnie2UrnTrigger, 0x5ee);
         EnsureTrynnie2KilledVar();
         return;
     case 0x1b:
-        pTrigger = FindTriggerByName("Liche");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xe7,
+        BindLevelTrigger("Liche", ConnectiveTissueLiche, 0xe7,
                          "Missing trigger 'Liche'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = ConnectiveTissueLiche;
         return;
     case 0x24:
         SavantTowerSyncButtonBlocker();
-        pTrigger = FindTriggerByName("Triangle");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xf2,
+        BindLevelTrigger("Triangle", SavantTowerShape, 0xf2,
                          "Missing trigger 'Triangle'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SavantTowerShape;
-        pTrigger = FindTriggerByName("Circle");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xf6,
+        BindLevelTrigger("Circle", SavantTowerShape, 0xf6,
                          "Missing trigger 'Circle'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SavantTowerShape;
-        pTrigger = FindTriggerByName("Square");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xfa,
+        BindLevelTrigger("Square", SavantTowerShape, 0xfa,
                          "Missing trigger 'Square'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SavantTowerShape;
-        pTrigger = FindTriggerByName("Star");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xfe,
+        BindLevelTrigger("Star", SavantTowerShape, 0xfe,
                          "Missing trigger 'Star'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SavantTowerShape;
-        pTrigger = FindTriggerByName("ButtonBlocker");
-        if (pTrigger == 0) {
-            srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x102,
+        BindLevelTrigger("ButtonBlocker", SavantTowerButtonBlocker, 0x102,
                          "Missing trigger 'ButtonBlocker'! It's not in the LVL file!");
-        }
-        pTrigger->activation_callback = SavantTowerButtonBlocker;
         return;
     }
     return;

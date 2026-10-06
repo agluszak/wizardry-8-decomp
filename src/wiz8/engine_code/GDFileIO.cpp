@@ -790,25 +790,7 @@ void W8GameData::CreateGDEnviron(const W8GDSurface* surface, float scale)
         m_ppEnvirons = grown;
     }
     W8EnvironRecord* environ_record = new W8EnvironRecord();
-    if (environ_record == 0) {
-        environ_record = 0;
-    } else {
-        environ_record->ground_latch = false;
-        environ_record->value_00 = 0;
-        environ_record->value_08 = 0;
-        environ_record->gravity_x = 0;
-        environ_record->gravity_y = -g_navigator_gravity;
-        environ_record->gravity_z = 0;
-        environ_record->motion_factor = 1.0f;
-        environ_record->vector.SetZero();
-        environ_record->motion_step = 0.05f;
-        environ_record->world_height = g_default_world_height;
-        environ_record->forward_scale =
-            g_camera_level_forward_scale * g_navigator_linked_radius_scale;
-        environ_record->value_40 = 1.0f;
-        environ_record->momentum_scale = g_default_momentum_scale;
-        environ_record->motion_limit = g_default_motion_limit;
-    }
+
     m_ppEnvirons[m_iNumEnvirons] = environ_record;
     if (m_ppEnvirons[m_iNumEnvirons] == 0) {
         ReportBuildStatus(7, "CreateGDEnviron: Could not allocate GD_Environ.");
@@ -985,21 +967,6 @@ void W8GameData::ReadProcessedGameData(int handle)
                              "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4be,
                              "ReadProcessedGameData: Couldn't allocate environment.");
             }
-            environ_record->value_00 = 0;
-            environ_record->ground_latch = false;
-            environ_record->value_08 = 0;
-            environ_record->gravity_x = 0;
-            environ_record->gravity_y = -g_navigator_gravity;
-            environ_record->gravity_z = 0;
-            environ_record->motion_step = 0.05f;
-            environ_record->motion_factor = 1.0f;
-            environ_record->vector.SetZero();
-            environ_record->world_height = g_default_world_height;
-            environ_record->forward_scale =
-                g_camera_level_forward_scale * g_navigator_linked_radius_scale;
-            environ_record->motion_limit = g_default_momentum_scale;
-            environ_record->momentum_scale = g_default_motion_limit;
-            environ_record->value_40 = 1.0f;
             m_ppEnvirons[index] = environ_record;
             if (FileRead(handle, environ_record, sizeof(*environ_record), &bytes_read) == 0) {
                 srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
@@ -1018,8 +985,7 @@ void W8GameData::ReadProcessedGameData(int handle)
 
 /* Builds the processed game-data record in place: zeroed storage, bound
    extremes, the shared engine-time object on first use, a default
-   environment bank, and the previous level-data teardown. The zero stores
-   below follow the image order rather than field order. */
+   environment bank, and the previous level-data teardown. */
 /* 0x0044902E is the constructor's shared body entry: the SEH wrapper at
    0x00449010 zeroes EBX and falls through into the code below. */
 // FUNCTION: WIZ8 0x00449010
@@ -1079,25 +1045,7 @@ W8GameData::W8GameData(int handle, bool secondary)
             m_ppEnvirons[index] = 0;
         }
         W8EnvironRecord* environ_record = new W8EnvironRecord();
-        if (environ_record == 0) {
-            environ_record = 0;
-        } else {
-            environ_record->value_00 = 0;
-            environ_record->ground_latch = false;
-            environ_record->value_08 = 0;
-            environ_record->gravity_x = 0;
-            environ_record->gravity_y = -g_navigator_gravity;
-            environ_record->gravity_z = 0;
-            environ_record->motion_step = 0.05f;
-            environ_record->motion_factor = 1.0f;
-            environ_record->vector.SetZero();
-            environ_record->world_height = g_default_world_height;
-            environ_record->forward_scale =
-                g_camera_level_forward_scale * g_navigator_linked_radius_scale;
-            environ_record->motion_limit = g_default_momentum_scale;
-            environ_record->momentum_scale = g_default_motion_limit;
-            environ_record->value_40 = 1.0f;
-        }
+
         m_ppEnvirons[0] = environ_record;
     }
     W8LevelDataRecord* old_level = g_level_data;

@@ -168,3 +168,5 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text,
 /* 0x0058AAD0: vswprintf the format into a scratch buffer and ShowNotice it,
    choosing the text-box slot from the current dialogue/camp/combat mode. */
 void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...);
+
+void HighlightNoticeRow(int line);

@@ -51,6 +51,10 @@ public:
     virtual void OnRangeChanged(W8RangeControl* range) override;
     void SetEntryCount(int count);
 
+private:
+    int GetMouseEntry();
+
+public:
     W8RangeControl* m_range;                  /* 0x38 */
     W8CharacterSpellEntry* m_entries;         /* 0x3c */
     int m_first_entry;                        /* 0x40 */
@@ -156,12 +160,18 @@ void W8CharacterSpellList::OnMouseLeave(int event)
     Invalidate(static_cast<unsigned char>(event));
 }
 
-// FUNCTION: WIZ8 0x005c8120
-void W8CharacterSpellList::OnMouseMove(int)
+/* Shared hit test; the callers retain their distinct > and >= bounds. */
+int W8CharacterSpellList::GetMouseEntry()
 {
     POINT mouse;
     SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
+    return (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
+}
+
+// FUNCTION: WIZ8 0x005c8120
+void W8CharacterSpellList::OnMouseMove(int)
+{
+    int entry = GetMouseEntry();
     if (entry > m_first_entry + m_entry_count)
         entry = -1;
     if (entry != m_hovered_entry) {
@@ -173,9 +183,7 @@ void W8CharacterSpellList::OnMouseMove(int)
 // FUNCTION: WIZ8 0x005c8190
 void W8CharacterSpellList::OnLeftButtonDown(int)
 {
-    POINT mouse;
-    SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
+    int entry = GetMouseEntry();
     if (entry >= m_first_entry + m_entry_count) {
         PushButtonSoundScheme(0, true);
     }
@@ -184,9 +192,7 @@ void W8CharacterSpellList::OnLeftButtonDown(int)
 /* Folded with OnLeftButtonDown at 0x005C8190. */
 void W8CharacterSpellList::OnRightButtonDown(int)
 {
-    POINT mouse;
-    SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
+    int entry = GetMouseEntry();
     if (entry >= m_first_entry + m_entry_count) {
         PushButtonSoundScheme(0, true);
     }
@@ -195,9 +201,7 @@ void W8CharacterSpellList::OnRightButtonDown(int)
 // FUNCTION: WIZ8 0x005c81f0
 void W8CharacterSpellList::OnLeftButtonUp(int event)
 {
-    POINT mouse;
-    SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
+    int entry = GetMouseEntry();
     if (entry >= m_first_entry + m_entry_count) {
         PushButtonSoundScheme(0, true);
         return;
@@ -212,9 +216,7 @@ void W8CharacterSpellList::OnLeftButtonUp(int event)
 // FUNCTION: WIZ8 0x005c8280
 void W8CharacterSpellList::OnRightButtonUp(int)
 {
-    POINT mouse;
-    SGPMouseGetPos(&mouse);
-    int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
+    int entry = GetMouseEntry();
     if (entry >= m_first_entry + m_entry_count) {
         PushButtonSoundScheme(0, true);
         return;
@@ -226,11 +228,7 @@ void W8CharacterSpellList::OnRightButtonUp(int)
 // FUNCTION: WIZ8 0x005c82f0
 void W8CharacterSpellList::AdjustValue(int steps)
 {
-    int step;
-    for (step = 0; step < steps; ++step)
-        m_range->Decrement();
-    for (step = 0; step < -steps; ++step)
-        m_range->Increment();
+    m_range->AdjustValue(steps);
 }
 
 // FUNCTION: WIZ8 0x005c8330

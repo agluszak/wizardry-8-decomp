@@ -1381,6 +1381,18 @@ void NpcScriptEndgameScreen(void)
     SetPendingScreenState(W8_SCREEN_INTRO);
 }
 
+static void SetMonsterGroupScript(int species, const char* script, int caller_line)
+{
+    W8MonsterGroup* group = FindFirstMonsterByID(species);
+    if (group != 0) {
+        unsigned int index = MonsterGetIndexByLocationID(
+            caller_line, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
+            group->leader_location_id, true);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+        monster_info->p3D->SetScript(script, true);
+    }
+}
+
 // FUNCTION: WIZ8 0x00526E90
 void ProcessMessageBoxQueue(void)
 {
@@ -1560,14 +1572,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_MOVE_GARI: {
         EndNpcDialogueSession(false);
         BeginScriptedWorldAction();
-        W8MonsterGroup* group = FindFirstMonsterByID(0x162);
-        if (group != 0) {
-            unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x78d, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_location_id, true);
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->p3D->SetScript("MoveGari.msf", true);
-        }
+        SetMonsterGroupScript(0x162, "MoveGari.msf", 0x78d);
         break;
     }
     case W8_NPC_MSG_DISPATCH_PENDING_NOTICE:
@@ -1576,14 +1581,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_MOVE_RUBBLE: {
         EndNpcDialogueSession(false);
         BeginScriptedWorldAction();
-        W8MonsterGroup* group = FindFirstMonsterByID(0x83);
-        if (group != 0) {
-            unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x7a8, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_location_id, true);
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->p3D->SetScript("MoveRubble.msf", true);
-        }
+        SetMonsterGroupScript(0x83, "MoveRubble.msf", 0x7a8);
         break;
     }
     case W8_NPC_MSG_MILANO_RAT_DOOR: {
@@ -1594,14 +1592,7 @@ void ProcessMessageBoxQueue(void)
         }
         door->CompleteItemInteraction();
         EndNpcDialogueSession(false);
-        W8MonsterGroup* group = FindFirstMonsterByID(0xcf);
-        if (group != 0) {
-            unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x7c1, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_location_id, true);
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->p3D->SetScript("Milano.msf", true);
-        }
+        SetMonsterGroupScript(0xcf, "Milano.msf", 0x7c1);
         break;
     }
     case W8_NPC_MSG_CLOSE_DIALOGUE:
@@ -1765,14 +1756,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_MOVE_SAVANT: {
         EndNpcDialogueSession(false);
         ResetLevelDataVectors();
-        W8MonsterGroup* group = FindFirstMonsterByID(0xc2);
-        if (group != 0) {
-            unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x916, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_location_id, true);
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->p3D->SetScript("MoveSavant.msf", true);
-        }
+        SetMonsterGroupScript(0xc2, "MoveSavant.msf", 0x916);
         break;
     }
     case W8_NPC_MSG_ALETHEIDES_LEAVES:
@@ -1928,14 +1912,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_MOVE_TO_BOOK: {
         EndNpcDialogueSession(false);
-        W8MonsterGroup* group = FindFirstMonsterByID(0x1b4);
-        if (group != 0) {
-            unsigned int monster_index = MonsterGetIndexByLocationID(
-                0xa57, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_location_id, true);
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->p3D->SetScript("belapath1.msf", true);
-        }
+        SetMonsterGroupScript(0x1b4, "belapath1.msf", 0xa57);
         Trigger* trigger = FindTriggerByName("CC_TRIGGERPLANE3");
         if (trigger != 0) {
             trigger->flags &= ~W8_TRIGGER_ON;
@@ -2029,14 +2006,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_MOVE_GOLEM: {
         EndNpcDialogueSession(false);
         BeginScriptedWorldAction();
-        W8MonsterGroup* group = FindFirstMonsterByID(0x13e);
-        if (group != 0) {
-            unsigned int monster_index = MonsterGetIndexByLocationID(
-                0xb1b, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_location_id, true);
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->p3D->SetScript("MoveGolem.msf", true);
-        }
+        SetMonsterGroupScript(0x13e, "MoveGolem.msf", 0xb1b);
         break;
     }
     case W8_NPC_MSG_SAVANT_HACK: {
@@ -2064,14 +2034,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_MOVE_BELA: {
         EndNpcDialogueSession(false);
         ResetLevelDataVectors();
-        W8MonsterGroup* group = FindFirstMonsterByID(0x18c);
-        if (group != 0) {
-            unsigned int monster_index = MonsterGetIndexByLocationID(
-                0xb5e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_location_id, true);
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->p3D->SetScript("MoveBela.msf", true);
-        }
+        SetMonsterGroupScript(0x18c, "MoveBela.msf", 0xb5e);
         srVector3T<float> position;
         if (FindEntityByName("NP_DSExit", &position, 0, 0)) {
             PointCameraAtTarget(&position, false, true);

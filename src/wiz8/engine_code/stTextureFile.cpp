@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/ReadMesh.h"
 #include "wiz8/engine_code/stTextureFile.h"
 
@@ -251,10 +252,7 @@ srColorSurface* __stdcall LoadSurface(int handle, long*)
 // FUNCTION: WIZ8 0x0047BBD0
 void stTextureFile::releaseSurface()
 {
-    if (surface != 0) {
-        surface->release();
-        surface = 0;
-    }
+    ReleaseRendererObject(surface);
     texture_flags_ |= DEFAULTS_PENDING;
 }
 

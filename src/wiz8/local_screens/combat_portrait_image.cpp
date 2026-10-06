@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/MGSPortraits.h"
+#include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/layouts/character.h"
@@ -15,35 +16,7 @@ short GetCombatPortraitImage(W8ActionKind action, int detail, char status, short
 
     switch (action) {
     case W8_ACTION_ATTACK:
-        switch (g_status.buffers.Char[slot].Hand[0].weapon_skill) {
-        case W8_SKILL_MACE_FLAIL:
-            image = 0x2a;
-            break;
-        case W8_SKILL_AXE:
-            image = 0x38;
-            break;
-        case W8_SKILL_POLEARM:
-            image = 0x62;
-            break;
-        case W8_SKILL_STAFF_WAND:
-            image = 0x54;
-            break;
-        case W8_SKILL_BOW:
-            image = 0xe;
-            break;
-        case W8_SKILL_THROWING_SLING:
-            image = 0x1c;
-            break;
-        case W8_SKILL_MODERN_WEAPONS:
-            image = 0x70;
-            break;
-        case W8_SKILL_MARTIAL_ARTS:
-            image = 0x46;
-            break;
-        default:
-            image = 0;
-            break;
-        }
+        image = 14 * GetAttackMenuWeaponOffset(g_status.buffers.Char[slot].Hand[0].weapon_skill);
         break;
     case W8_ACTION_BERSERK:
         image = 0x7e;

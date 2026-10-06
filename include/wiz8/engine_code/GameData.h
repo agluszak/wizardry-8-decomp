@@ -1,6 +1,10 @@
 #pragma once
 
 #include "wiz8/camera_motion.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/Navigator.h"
 
 #include "Types.h"
 #include "wiz8/engine_code/IntervalGate.h"
@@ -119,6 +123,27 @@ class BitArray;
 
 /* One environment record: seventeen dwords mixing counters and factors. */
 struct W8EnvironRecord {
+    /* Inlined in CreateGDEnviron, ReadProcessedGameData, the GameData
+       constructor and ApplyCameraMotionFlags. Airborne, scale and padding
+       are deliberately left untouched. */
+    W8EnvironRecord()
+    {
+        value_00 = 0;
+        ground_latch = false;
+        value_08 = 0;
+        gravity_x = 0;
+        gravity_y = -g_navigator_gravity;
+        gravity_z = 0;
+        motion_step = 0.05f;
+        motion_factor = 1.0f;
+        vector.SetZero();
+        world_height = g_default_world_height;
+        forward_scale = g_camera_level_forward_scale * g_navigator_linked_radius_scale;
+        motion_limit = g_default_motion_limit;
+        momentum_scale = g_default_momentum_scale;
+        value_40 = 1.0f;
+    }
+
     int value_00;
     bool ground_latch;
     unsigned char airborne;
