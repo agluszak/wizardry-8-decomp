@@ -1,3 +1,4 @@
+#include "wiz8/conditions.h"
 #include "wiz8/sgp_text.h"
 #include "soundman.h"
 #include "wiz8/integer_constants.h"
@@ -221,7 +222,7 @@ void SetCampSpellRangesEnabled(bool enable)
     int realm;
     int second;
 
-    for (realm = 0; realm < 6; ++realm) {
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         spell_range = g_camp_screen->spell_ranges[realm];
         spell_range->m_range->EnableRegionSet(enable);
         if (enable) {
@@ -245,7 +246,7 @@ void RefreshCampSpellRanges(void)
     int realm;
     int second;
 
-    for (realm = 0; realm < 6; ++realm) {
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         spell_range = g_camp_screen->spell_ranges[realm];
         spell_range->m_range->EnableRegionSet(true);
         second = g_review_character->skill_unlocks[0x1c + spell_range->m_realm] - 8;
@@ -287,7 +288,7 @@ void DrawCampSpellPages(void)
         DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x140, 0, 2, 0, 0xa5, VO_BLT_SRCTRANSPARENCY,
                                       0);
     }
-    for (realm = 0; realm < 6; ++realm) {
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         if ((g_camp_screen->redraw_flags & (W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm)) == 0) {
             continue;
         }
@@ -304,7 +305,7 @@ void DrawCampSpellPages(void)
             width = StringPixLengthArg(g_wiz_text_font_secondary, wcslen(gppStringList[0x8c7]) + 2,
                                        Wiz8ToSgpWideText(g_format_s_colon), gppStringList[0x8c7]);
             gprintf(left + 0x1b + width, top + 8, Wiz8ToSgpWideText(g_format_d0),
-                    character->skills[0x1c + realm].level);
+                    character->skills[W8_SKILL_FIRE_MAGIC + realm].level);
             width = StringPixLengthArg(
                 g_wiz_text_font_secondary, 7, Wiz8ToSgpWideText(g_format_d_slash_d),
                 GetCharacterRealmSpellPoints(character, static_cast<W8SpellRealm>(realm)),
@@ -348,7 +349,7 @@ void DrawCampSpellPages(void)
         state->spell_ranges[realm]->m_range->Invalidate(0);
         state->spell_ranges[realm]->m_range->Redraw();
     }
-    for (realm = 0; realm < 6; ++realm) {
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         if (g_camp_screen->dialog != 0 && realm != 0 && realm != 3) {
             continue;
         }
@@ -657,7 +658,7 @@ void DrawCampCharacterInfo(void)
         top += 0xe;
     }
     top = 0xd;
-    for (realm = 0; realm < 6; ++realm) {
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         unsigned int frame;
         if (character->sp_max[realm] == 0) {
             frame = g_spell_realm_animations[realm].frame_count;
@@ -1494,7 +1495,7 @@ void CampScreenFrame(void)
     }
     if (g_camp_screen->page == W8_CAMP_PAGE_SPELLS &&
         !ClockIsTicking(g_camp_screen->animation_timer)) {
-        for (unsigned int realm = 0; realm < 6; ++realm) {
+        for (unsigned int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
             ++g_camp_screen->animation_frames[realm];
             if (g_camp_screen->animation_frames[realm] ==
                 g_spell_realm_animations[realm].frame_count) {
@@ -1535,7 +1536,7 @@ unsigned char CampScreenLeave(int)
         ClearActiveRegionIfMatches(0x138);
         delete g_camp_screen->dialog;
     }
-    for (int realm = 0; realm < 6; ++realm) {
+    for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         delete g_camp_screen->spell_ranges[realm];
     }
     delete g_camp_screen->stats_range;
@@ -2072,7 +2073,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
         StartBreathCycle(party_slot, false);
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         if (row->pending_action == W8_ACTION_USE_ITEM &&
-            g_item_records[row->pending_action_detail.item_use.item->iItemNo].spell_id == 0x17) {
+            g_item_records[row->pending_action_detail.item_use.item->iItemNo].spell_id ==
+                W8_SPELL_IDENTIFY_ITEM) {
             reidentify = true;
             result = CommitPartySlotItemUse(party_slot, row->pending_action_detail.item_use.item,
                                             &target);
@@ -2536,7 +2538,7 @@ int CommitPartySlotSpell(int party_slot, int spell_id, int power_level, W8Combat
         SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
         return result;
     }
-    if (spell_id == 0x17 && target->pPCItem->identified) {
+    if (spell_id == W8_SPELL_IDENTIFY_ITEM && target->pPCItem->identified) {
         SoundPlay("Data\\Sound\\Misc\\Spell Learned.wav", 0);
         return 1;
     }
@@ -2574,7 +2576,7 @@ int CommitPartySlotItemUse(int party_slot, W8ItemInstance* item, W8CombatSlot* t
     FatigueCharacter(party_slot, uses, true, 0);
     if (result == 1) {
         used = target->pPCItem;
-        if (g_item_records[used->iItemNo].spell_id == 0x17 && used->identified) {
+        if (g_item_records[used->iItemNo].spell_id == W8_SPELL_IDENTIFY_ITEM && used->identified) {
             SoundPlay("Data\\Sound\\Misc\\Spell Learned.wav", 0);
         } else {
             SoundPlay(s_general_magic_sound, 0);

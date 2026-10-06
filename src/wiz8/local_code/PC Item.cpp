@@ -1,3 +1,4 @@
+#include "wiz8/conditions.h"
 #include "wiz8/fonts.h"
 #include "soundman.h"
 #include "wiz8/integer_constants.h"
@@ -914,7 +915,7 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
 
     if (record->category == W8_ITEM_CATEGORY_SPELL_SOURCE) {
         spell_id = record->spell_id;
-        if (spell_id == 0) {
+        if (spell_id == W8_SPELL_NONE) {
             srAssertFail("uiSpell != SPELL_NONE", PC_ITEM_CPP, 1832, 0);
         }
         if (character->spell_learned[spell_id] == 1) {
@@ -923,7 +924,7 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
     } else if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6 ||
                record->category == W8_ITEM_CATEGORY_CASTER_ITEM_8) {
         spell_id = record->spell_id;
-        if (spell_id == 0) {
+        if (spell_id == W8_SPELL_NONE) {
             srAssertFail("uiSpell != SPELL_NONE", PC_ITEM_CPP, 1844, 0);
         }
         if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6) {
@@ -1006,7 +1007,7 @@ bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item
     if (record->category == W8_ITEM_CATEGORY_SPELL_SOURCE || record->category == 0) {
         return false;
     }
-    if (item->iItemNo != 0x29f && record->spell_id == 0) {
+    if (item->iItemNo != 0x29f && record->spell_id == W8_SPELL_NONE) {
         return false;
     }
     if (record->quantity_kind == W8_ITEM_QUANTITY_CHARGES && item->uses_or_charges == 0) {
@@ -1260,7 +1261,8 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
         }
         /* A spell-carrying item the world-cursor handler refuses cannot be used
            at all, and the attempt is over before anything is announced. */
-        if (record->spell_id != 0 && g_item_records[item->iItemNo].spell_id != 0 &&
+        if (record->spell_id != W8_SPELL_NONE &&
+            g_item_records[item->iItemNo].spell_id != W8_SPELL_NONE &&
             g_item_records[item->iItemNo].equip_class != W8_ITEM_EQUIP_CLASS_GADGET &&
             (g_item_records[item->iItemNo].equip_class < W8_ITEM_EQUIP_CLASS_FOOD ||
              g_item_records[item->iItemNo].equip_class > W8_ITEM_EQUIP_CLASS_DRINK) &&
@@ -1287,7 +1289,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
         if (g_settings.verbose_combat_messages == 0) {
             SetTextBoxMode(1, -1);
         }
-        if (record->spell_id == 0) {
+        if (record->spell_id == W8_SPELL_NONE) {
             char* message =
                 FormatString("UseItem: ERROR - Usable item %d doesn't do anything!", item->iItemNo);
             srAssertFail("FALSE", PC_ITEM_CPP, 0x934, message);
@@ -1696,7 +1698,7 @@ void StashDepartingCharacterItems(W8Character* character)
 {
     int item_id;
 
-    for (int equip_slot = 0; equip_slot < 12; ++equip_slot) {
+    for (int equip_slot = 0; equip_slot < W8_EQUIP_SLOT_COUNT; ++equip_slot) {
         W8ItemInstance* item = &character->EquippedItem[equip_slot];
         item_id = item->iItemNo;
         if (item_id != -1 &&
@@ -2554,7 +2556,7 @@ W8RangeCategory GetItemSpellRange(const W8ItemInstance* item)
     if (item->iItemNo >= static_cast<int>(gXStatus.uiItemsInDatabase)) {
         srAssertFail("pPCItem->iItemNo < (INT32) gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 4004, 0);
     }
-    if (g_item_records[item->iItemNo].spell_id != 0) {
+    if (g_item_records[item->iItemNo].spell_id != W8_SPELL_NONE) {
         return g_spell_records[g_item_records[item->iItemNo].spell_id].range_category;
     }
     return W8_RANGE_NONE;
@@ -3300,7 +3302,7 @@ bool CharacterHasServiceItem(W8Character* character)
             record = &g_item_records[item->iItemNo];
             if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
                 record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
-                (record->spell_id == 0x3 || record->spell_id == 0x29)) {
+                (record->spell_id == W8_SPELL_CHARM || record->spell_id == W8_SPELL_MINDREAD)) {
                 return true;
             }
         }
@@ -3311,7 +3313,7 @@ bool CharacterHasServiceItem(W8Character* character)
             record = &g_item_records[item->iItemNo];
             if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
                 record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
-                (record->spell_id == 0x3 || record->spell_id == 0x29)) {
+                (record->spell_id == W8_SPELL_CHARM || record->spell_id == W8_SPELL_MINDREAD)) {
                 return true;
             }
         }
@@ -3323,7 +3325,7 @@ bool CharacterHasServiceItem(W8Character* character)
                 record = &g_item_records[item->iItemNo];
                 if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
                     record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
-                    (record->spell_id == 0x3 || record->spell_id == 0x29)) {
+                    (record->spell_id == W8_SPELL_CHARM || record->spell_id == W8_SPELL_MINDREAD)) {
                     return true;
                 }
             }
@@ -3612,7 +3614,7 @@ void AimItemUseAtCurrentTarget(W8Character* character, W8ItemInstance* item)
     detail.item_use.kind = -1;
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     StagePartySlotItemUse(party_slot, item, target);
-    if (g_item_records[item->iItemNo].spell_id == 0x17) {
+    if (g_item_records[item->iItemNo].spell_id == W8_SPELL_IDENTIFY_ITEM) {
         ChooseAction(party_slot, W8_ACTION_USE_ITEM, -1, &detail, true, 1);
         OpenCharacterScreenForPartySlot(CharacterPointerToPartySlot(character), true);
         return;
@@ -3751,11 +3753,12 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
 
     /* A record with no spell, an off-hand-only class and the two casting-aid
        classes are the ones the spell engine is told about rather than cast. */
-    rejected_spell = (record->spell_id == 0 || record->equip_class == W8_ITEM_EQUIP_CLASS_GADGET ||
-                      (record->equip_class > W8_ITEM_EQUIP_CLASS_SCROLL &&
-                       record->equip_class < W8_ITEM_EQUIP_CLASS_KEY))
-                         ? 1
-                         : 0;
+    rejected_spell =
+        (record->spell_id == W8_SPELL_NONE || record->equip_class == W8_ITEM_EQUIP_CLASS_GADGET ||
+         (record->equip_class > W8_ITEM_EQUIP_CLASS_SCROLL &&
+          record->equip_class < W8_ITEM_EQUIP_CLASS_KEY))
+            ? 1
+            : 0;
     if (!ValidateSpellTarget(party_slot, spell_id, power, true, rejected_spell)) {
         return 0;
     }

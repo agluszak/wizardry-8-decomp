@@ -1,3 +1,5 @@
+#include "wiz8/character_skills.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Widget.h"
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/local_screens/CharacterScreen.h"
@@ -244,7 +246,7 @@ void W8CharacterSpellsPage::SetCharacter(W8Character* character,
 {
     W8CharacterPage::SetCharacter(character, creation_state, mode);
     AcquireRegionSet(&g_character_spells_region_set);
-    for (int realm = 0; realm < 6; ++realm) {
+    for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         m_realms[realm] =
             new W8CharacterSpellList(this, (realm % 2) * 215 + 13, (realm / 2) * 130 + 8,
                                      m_SpellData, &g_character_spell_list_region_sets[realm]);
@@ -257,7 +259,7 @@ void W8CharacterSpellsPage::Activate()
 {
     EnableRegionSet(true);
     UpdateSpellLists();
-    for (int realm = 0; realm < 6; ++realm) {
+    for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         m_realms[realm]->m_range->EnableRegionSet(true);
     }
     m_dirty = true;
@@ -268,7 +270,7 @@ void W8CharacterSpellsPage::Activate()
 void W8CharacterSpellsPage::Deactivate()
 {
     EnableRegionSet(false);
-    for (int realm = 0; realm < 6; ++realm) {
+    for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         m_realms[realm]->m_range->EnableRegionSet(false);
     }
 }
@@ -335,7 +337,7 @@ void W8CharacterSpellsPage::Redraw()
     }
 
     if (redraw) {
-        for (int realm = 0; realm < 6; ++realm) {
+        for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
             if (m_realms[realm]->m_entry_count == 0) {
                 continue;
             }
@@ -351,7 +353,8 @@ void W8CharacterSpellsPage::Redraw()
             text.RenderToTarget(0, false, FRAME_BUFFER);
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-            text.SetText(FormatWideString(g_format_d, m_character->skills[0x1c + realm].points),
+            text.SetText(FormatWideString(g_format_d,
+                                          m_character->skills[W8_SKILL_FIRE_MAGIC + realm].points),
                          g_wiz_text_font_secondary);
             text.RenderToTarget(0, false, FRAME_BUFFER);
 
@@ -376,7 +379,7 @@ void W8CharacterSpellsPage::Redraw()
 
     int elapsed = static_cast<int>(anim_timer.GetProgress());
     if (elapsed > 0 || redraw) {
-        for (int realm = 0; realm < 6; ++realm) {
+        for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
             const W8SpellRealmAnimation& animation = g_spell_realm_animations[realm];
             if (m_realms[realm]->m_entry_count != 0 && elapsed != 0) {
                 m_animation_frames[realm] =
@@ -390,7 +393,7 @@ void W8CharacterSpellsPage::Redraw()
             }
         }
     }
-    for (int realm = 0; realm < 6; ++realm) {
+    for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         m_realms[realm]->m_range->Redraw();
     }
 }
@@ -405,7 +408,7 @@ void W8CharacterSpellsPage::Refresh()
 void W8CharacterSpellsPage::UpdateSpellLists()
 {
     int entry = 0;
-    for (int realm = 0; realm < 6; ++realm) {
+    for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         m_animation_frames[realm] = g_spell_realm_animations[realm].initial_frame;
         int first = entry;
         for (char pass = 0; pass < 2; ++pass) {

@@ -1,3 +1,5 @@
+#include "wiz8/monster_cycles.h"
+#include "wiz8/conditions.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/integer_constants.h"
@@ -1410,31 +1412,31 @@ void StartMonsterAttackCycle(W8MonsterInfo* monster_info, W8AttackMode action_de
 
     switch (action_detail) {
     case W8_ATTACK_MODE_THRUST:
-        cycle = 10;
+        cycle = W8_MONSTER_CYCLE_ATTACK_THRUST;
         break;
     case W8_ATTACK_MODE_SHOOT:
-        cycle = 17;
+        cycle = W8_MONSTER_CYCLE_ATTACK_SHOOT;
         break;
     case W8_ATTACK_MODE_THROW:
-        cycle = 13;
+        cycle = W8_MONSTER_CYCLE_ATTACK_THROW;
         break;
     case W8_ATTACK_MODE_SWING:
-        cycle = 9;
+        cycle = W8_MONSTER_CYCLE_ATTACK_SWING;
         break;
     case W8_ATTACK_MODE_KICK:
-        cycle = 15;
+        cycle = W8_MONSTER_CYCLE_ATTACK_KICK;
         break;
     case W8_ATTACK_MODE_BASH:
-        cycle = 11;
+        cycle = W8_MONSTER_CYCLE_ATTACK_BASH;
         break;
     case W8_ATTACK_MODE_PUNCH:
-        cycle = 14;
+        cycle = W8_MONSTER_CYCLE_ATTACK_PUNCH;
         break;
     case W8_ATTACK_MODE_LASH:
-        cycle = 16;
+        cycle = W8_MONSTER_CYCLE_ATTACK_LASH;
         break;
     case W8_ATTACK_MODE_BERSERK:
-        cycle = 12;
+        cycle = W8_MONSTER_CYCLE_ATTACK_MELEE;
         break;
     default:
         srAssertFail(
@@ -1444,22 +1446,23 @@ void StartMonsterAttackCycle(W8MonsterInfo* monster_info, W8AttackMode action_de
     }
     if (!MonsterIsCycleSupported(monster_info->p3D, cycle)) {
         switch (cycle) {
-        case 9:
-        case 10:
-        case 11:
-        case 12:
-        case 14:
-        case 15:
-        case 16:
-            cycle = 6;
+        case W8_MONSTER_CYCLE_ATTACK_SWING:
+        case W8_MONSTER_CYCLE_ATTACK_THRUST:
+        case W8_MONSTER_CYCLE_ATTACK_BASH:
+        case W8_MONSTER_CYCLE_ATTACK_MELEE:
+        case W8_MONSTER_CYCLE_ATTACK_PUNCH:
+        case W8_MONSTER_CYCLE_ATTACK_KICK:
+        case W8_MONSTER_CYCLE_ATTACK_LASH:
+            cycle = W8_MONSTER_CYCLE_ATTACK_CLOSE;
             break;
-        case 13:
-        case 17:
-            cycle = 7;
+        case W8_MONSTER_CYCLE_ATTACK_THROW:
+        case W8_MONSTER_CYCLE_ATTACK_SHOOT:
+            cycle = W8_MONSTER_CYCLE_ATTACK_RANGED;
             break;
         }
     }
-    if (cycle == 0x11 || cycle == 0xd || cycle == 7) {
+    if (cycle == W8_MONSTER_CYCLE_ATTACK_SHOOT || cycle == W8_MONSTER_CYCLE_ATTACK_THROW ||
+        cycle == W8_MONSTER_CYCLE_ATTACK_RANGED) {
         if (record->attacks[attack].range_category <= W8_RANGE_SHORT) {
             record->attacks[attack].range_category = W8_RANGE_EXTREME;
             FormatDebugMessage(0, "DATA ERROR: %ls has mismatched range/attack modes for attack %d",
@@ -1726,12 +1729,12 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                                       MonsterQuery(monster_info->p3D, W8_MONSTER_QUERY_CYCLE),
                                       monster_info->p3D->m_pRep->pending_cycle));
         }
-        if (g_combat_state->missile_hit_result == 1) {
+        if (g_combat_state->missile_hit_result == W8_MISSILE_HIT) {
             swing_missed = false;
             guaranteed_hit = true;
             guaranteed_penetration = false;
             roll = Random(100) + 1;
-        } else if (g_combat_state->missile_hit_result == 2) {
+        } else if (g_combat_state->missile_hit_result == W8_MISSILE_HIT_DEFLECTED) {
             swing_missed = false;
             deflected = true;
         } else {
@@ -1823,7 +1826,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
                     target_info->p3D->IsFacingMonster(monster_info->p3D) != 0 &&
                     !target_info->fMotionless) {
-                    StartMonsterCycle(target_info, 0x13, 1);
+                    StartMonsterCycle(target_info, W8_MONSTER_CYCLE_DODGE, 1);
                 }
             }
         } else {
@@ -2084,10 +2087,11 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
                 ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x261], report->notice_values[2]);
             }
             for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
-                if (report->condition_counts[condition] > 0 && condition != 1) {
-                    if (condition == 0x13) {
+                if (report->condition_counts[condition] > 0 && condition != W8_CONDITION_DRAINED) {
+                    if (condition == W8_CONDITION_MISSING) {
                         if (report->target.iType == W8_TARGET_KIND_CHARACTER &&
-                            GetConditionRecordFlag(report->target.iChar, 1) != 0) {
+                            GetConditionRecordFlag(report->target.iChar, W8_DEPENDENCE_SWALLOWED) !=
+                                0) {
                             PostCharacterNotice(report->target.iChar, g_format_s,
                                                 gppStringList[0x1d5]);
                         }
@@ -3037,8 +3041,8 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                 if (accumulator != NULL) {
                                     accumulator->condition_counts[W8_CONDITION_MISSING]++;
                                 }
-                                BindMonsterToCharacterDependence(target->iChar, 1,
-                                                                 source->iMonsterID);
+                                BindMonsterToCharacterDependence(
+                                    target->iChar, W8_DEPENDENCE_SWALLOWED, source->iMonsterID);
                             }
                         } else if (target->iType == W8_TARGET_KIND_MONSTER) {
                             ResolveAttackOnTarget(source, target, W8_CONDITION_DEAD,
@@ -3406,7 +3410,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         if (use_default_accuracy) {
             return NULL;
         }
-        g_combat_state->missile_hit_result = 1;
+        g_combat_state->missile_hit_result = W8_MISSILE_HIT;
         g_combat_state->TargetHit = *target;
         return NULL;
     }
@@ -3505,7 +3509,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         missile->SetEffectDefinition(attack);
         if (!use_default_accuracy) {
             g_combat_state->engaged_missile = missile;
-            g_combat_state->missile_hit_result = 0;
+            g_combat_state->missile_hit_result = W8_MISSILE_HIT_NONE;
         }
         PointCameraAtCombatTarget(source, target);
         return missile;
@@ -3934,7 +3938,7 @@ int ResolveCharacterAttack(int party_slot)
     SetTargetSourceToCharacter(party_slot, &source);
     if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == 0x272) {
         special_item = true;
-        if (g_combat_state->missile_hit_result == 2) {
+        if (g_combat_state->missile_hit_result == W8_MISSILE_HIT_DEFLECTED) {
             if (!verbose) {
                 report->missed = true;
             } else {
@@ -4007,7 +4011,7 @@ int ResolveCharacterAttack(int party_slot)
                 PLDestroy(fumble_list);
                 guaranteed_penetration = guaranteed_hit;
             }
-        } else if (g_combat_state->missile_hit_result == 1) {
+        } else if (g_combat_state->missile_hit_result == W8_MISSILE_HIT) {
             swing_missed = false;
             guaranteed_hit = true;
             guaranteed_penetration = false;
@@ -4020,7 +4024,7 @@ int ResolveCharacterAttack(int party_slot)
             }
             roll = Random(100) + 1;
         } else {
-            if (g_combat_state->missile_hit_result == 2) {
+            if (g_combat_state->missile_hit_result == W8_MISSILE_HIT_DEFLECTED) {
                 swing_missed = false;
                 staged_miss = true;
             } else {
@@ -4109,7 +4113,7 @@ int ResolveCharacterAttack(int party_slot)
                     }
                     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
                         monster_info->p3D->IsFacingPlayer() != 0 && !monster_info->fMotionless) {
-                        StartMonsterCycle(monster_info, 0x13, 1);
+                        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_DODGE, 1);
                     }
                 }
             } else {
@@ -4369,7 +4373,7 @@ int ResolveCharacterAttack(int party_slot)
     } else {
         W8ItemInstance* item = &character->EquippedItem[row->current_equip_slot];
         if (character->Hand[hand].combat_skill == W8_SKILL_RANGED_COMBAT &&
-            g_item_records[item->iItemNo].spell_id == 0) {
+            g_item_records[item->iItemNo].spell_id == W8_SPELL_NONE) {
             if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_THROWN_WEAPON) {
                 if ((g_item_records[item->iItemNo].flags & W8_ITEM_FLAG_NEVER_DEPLETES) == 0) {
                     if (g_item_records[item->iItemNo].quantity_kind == W8_ITEM_QUANTITY_STACK) {

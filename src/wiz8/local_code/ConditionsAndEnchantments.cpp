@@ -1,3 +1,5 @@
+#include "wiz8/monster_cycles.h"
+#include "wiz8/conditions.h"
 #include "wiz8/fonts.h"
 #include <string.h>
 
@@ -61,37 +63,37 @@ unsigned short g_condition_notices[128] = {
     0x3a1, 0x3a2, 0x3a3, 0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
 };
 // FUNCTION: WIZ8 0x005248a0
-unsigned char GetConditionRecordFlag(int party_slot, int condition)
+bool GetConditionRecordFlag(int party_slot, W8CharacterDependence dependence)
 {
-    return g_status.buffers.Char[party_slot].conditions[condition].active;
+    return g_status.buffers.Char[party_slot].conditions[dependence].active;
 }
 
 // FUNCTION: WIZ8 0x005248D0
 void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info)
 {
-    for (unsigned int slot_kind = 0; slot_kind < 2; ++slot_kind) {
+    for (unsigned int slot_kind = 0; slot_kind < W8_DEPENDENCE_COUNT; ++slot_kind) {
         bool cleared = false;
         if ((monster_info->condition_binding_mask & (1 << slot_kind)) != 0) {
             W8Condition condition;
             switch (slot_kind) {
-            case 0:
+            case W8_DEPENDENCE_SUMMON:
                 condition = W8_CONDITION_NONE;
                 break;
-            case 1:
+            case W8_DEPENDENCE_SWALLOWED:
                 condition = W8_CONDITION_MISSING;
                 break;
             }
             for (unsigned int party_slot = 0; party_slot < 8; ++party_slot) {
                 W8Character* character = &g_status.buffers.Char[party_slot];
                 W8CharacterConditionRecord* record = &character->conditions[slot_kind];
-                if ((condition == 0 || character->uiCondition[condition] != 0) &&
+                if ((condition == W8_CONDITION_NONE || character->uiCondition[condition] != 0) &&
                     record->level_acquired == g_status.current_level &&
                     record->source_monster == monster_info->location_id) {
                     cleared = true;
                     record->active = false;
                     record->level_acquired = 0;
                     record->source_monster = 0;
-                    if (condition != 0 && character->fInParty) {
+                    if (condition != W8_CONDITION_NONE && character->fInParty) {
                         RemoveCharacterCondition(party_slot, condition, true);
                     }
                 }
@@ -99,8 +101,8 @@ void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info)
             if (!cleared && slot_kind == 0) {
                 for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                     W8MonsterInfo* bound = MonsterGetScriptPartByLocationIndex(index);
-                    if (bound->insanity_summon == monster_info->location_id) {
-                        bound->insanity_summon = -1;
+                    if (bound->elemental_summon == monster_info->location_id) {
+                        bound->elemental_summon = -1;
                         break;
                     }
                 }
@@ -374,8 +376,8 @@ void ApplyCharacterCondition(int party_slot, W8EnchantmentSlot slot, int argumen
         enchantment->percent = static_cast<unsigned short>(percent);
         enchantment->turns = duration;
         if (slot == W8_ENCHANTMENT_GUARDIAN_ANGEL) {
-            enchantment->magnitude =
-                static_cast<short>(RollDice(&g_spell_records[0x15].effect_dice) * argument);
+            enchantment->magnitude = static_cast<short>(
+                RollDice(&g_spell_records[W8_SPELL_GUARDIAN_ANGEL].effect_dice) * argument);
             enchantment->magnitude =
                 static_cast<short>((static_cast<unsigned int>(enchantment->magnitude) * percent) /
                                    100) +
@@ -571,7 +573,7 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
                     gppStringList[g_condition_notices[condition * 4 + 1]]);
     }
     if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle)) {
-        StartMonsterCycle(monster_info, 0x14, 1);
+        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_GET_HIT, 1);
     }
 }
 /* Clearing a monster's condition also re-derives its highest set condition
@@ -750,7 +752,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
         }
         break;
     case W8_CONDITION_INSANE:
-        if (duration == 9999) {
+        if (duration == W8_CONDITION_INDEFINITE) {
             break;
         }
         /* fall through */
@@ -924,7 +926,7 @@ void ApplyMonsterCondition(int location_id, W8EnchantmentSlot slot, int argument
         enchantment->percent = static_cast<unsigned short>(percent);
         enchantment->turns = duration;
         if (slot == W8_ENCHANTMENT_GUARDIAN_ANGEL) {
-            int roll = RollDice(&g_spell_records[0x15].effect_dice);
+            int roll = RollDice(&g_spell_records[W8_SPELL_GUARDIAN_ANGEL].effect_dice);
             enchantment->magnitude =
                 static_cast<short>(
                     (static_cast<unsigned int>(static_cast<unsigned short>(roll * argument)) *
@@ -1108,7 +1110,7 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
     if (party_slot >= 8) {
         srAssertFail("uiChar < MAX_CHARS", CONDITIONS_CPP, 0x447, 0);
     }
-    if (dependence_slot >= 2) {
+    if (dependence_slot >= W8_DEPENDENCE_COUNT) {
         srAssertFail("uiDependence < DEPEND_COND_COUNT", CONDITIONS_CPP, 0x448, 0);
     }
     if (monster_id == -1) {
@@ -1119,7 +1121,7 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
         MonsterGetIndexByLocationID(0x44b, CONDITIONS_CPP, monster_id, true));
     monster_info->condition_binding_mask =
         static_cast<unsigned char>(monster_info->condition_binding_mask | (1 << dependence_slot));
-    if (dependence_slot == 1) {
+    if (dependence_slot == W8_DEPENDENCE_SWALLOWED) {
         RetireMonsterGroupAndAllies(GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x455, CONDITIONS_CPP, monster_info->monster_group_id, true)));
     }

@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/fonts.h"
 #include "soundman.h"
 #include "wiz8/integer_constants.h"
@@ -3296,13 +3297,13 @@ void Trigger::Run(int source)
                 srVector3T<double> position = g_world->camera->getLocation();
 
                 if (action == 0x28) {
-                    spell_id = 0x44;
+                    spell_id = W8_SPELL_HEAL_ALL;
                 } else if (action == 0x29) {
-                    spell_id = 0x45;
+                    spell_id = W8_SPELL_HEX;
                 } else if (action == 0x2a) {
-                    spell_id = 0x0c;
+                    spell_id = W8_SPELL_SLEEP;
                 } else {
-                    spell_id = 0x2a;
+                    spell_id = W8_SPELL_NOXIOUS_FUMES;
                 }
                 PointCastSpell(srVector3T<float>(static_cast<float>(position.x),
                                                  static_cast<float>(position.y),

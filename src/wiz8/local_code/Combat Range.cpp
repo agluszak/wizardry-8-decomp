@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/character_skills.h"
@@ -213,7 +214,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
         GetCameraPosition(&camera_top);
         point = target->point;
         unsigned int spell_id = GetActionSpellLikeId(party_slot, context);
-        if (spell_id == 0) {
+        if (spell_id == W8_SPELL_NONE) {
             srAssertFail("uiSpell != SPELL_NONE", COMBAT_RANGE_CPP, 0xee, 0);
         }
         W8SpellTargetType target_type = GetSpellTargetType(spell_id, false);

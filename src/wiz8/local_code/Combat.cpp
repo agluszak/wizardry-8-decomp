@@ -1,3 +1,6 @@
+#include "wiz8/conditions.h"
+#include "wiz8/monster_cycles.h"
+#include "wiz8/spell_ids.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/integer_constants.h"
@@ -318,9 +321,9 @@ void ResetPartyCombatRows(void)
         g_combat_state->characters[slot].dead =
             g_status.buffers.Char[slot].hp_current == 0 ||
             g_status.buffers.Char[slot].highest_condition >= W8_CONDITION_ASLEEP;
-        g_status.buffers.Char[slot].conditions[0].active = false;
-        g_status.buffers.Char[slot].conditions[0].level_acquired = 0;
-        g_status.buffers.Char[slot].conditions[0].source_monster = 0;
+        g_status.buffers.Char[slot].conditions[W8_DEPENDENCE_SUMMON].active = false;
+        g_status.buffers.Char[slot].conditions[W8_DEPENDENCE_SUMMON].level_acquired = 0;
+        g_status.buffers.Char[slot].conditions[W8_DEPENDENCE_SUMMON].source_monster = 0;
     }
 }
 
@@ -1990,7 +1993,8 @@ int CheckCombatEnd(unsigned int end_if_no_hostiles)
             W8Character* character = &g_status.buffers.Char[party_slot];
             if (g_status.buffers.XChar[party_slot].fOccupied &&
                 (character->hp_current != 0 || character->highest_condition < W8_CONDITION_DEAD)) {
-                SetCharacterCondition(party_slot, W8_CONDITION_DEAD, 9999, 0, 0, 1);
+                SetCharacterCondition(party_slot, W8_CONDITION_DEAD, W8_CONDITION_INDEFINITE, 0, 0,
+                                      1);
             }
         }
     } else {
@@ -2602,7 +2606,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             monster_info->spell_power_level = power;
             OrientMonsterTowardTarget(monster_info, false);
             monster_info->fSpellReleased = false;
-            StartMonsterCycle(monster_info, 0x19, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPELL, 1);
             result = 1;
             break;
         }
@@ -2670,7 +2674,7 @@ bool MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         AimMonsterBreathAtTarget(monster_info);
     }
     monster_info->pCombat->special_ready = false;
-    StartMonsterCycle(monster_info, 0x12, 1);
+    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL, 1);
     if (g_settings.verbose_combat_messages != 0) {
         ShowNoticef(9, L"%s %s!", GetMonsterName(monster_info, NULL, 0),
                     gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind]]);
@@ -2809,8 +2813,9 @@ bool CreateCharacterBreathEffect(int party_slot)
     target = &g_status.buffers.XChar[party_slot].target_out_of_combat;
     PopulateSpellTargetMarkers(0x77, 0, &source, target, &monster_targets, &char_targets, 0);
     if (monster_targets.GetCount() == 0) {
-        PostCharacterNotice(
-            party_slot, FormatWideString(gppStringList[0x1b7], g_spell_records[0x13].display_name));
+        PostCharacterNotice(party_slot,
+                            FormatWideString(gppStringList[0x1b7],
+                                             g_spell_records[W8_SPELL_DRACON_BREATH].display_name));
         return false;
     }
     FaceCharacterTowardCombatTarget(party_slot, target);
@@ -2826,8 +2831,8 @@ bool CreateCharacterBreathEffect(int party_slot)
     aim = rotation.Transform(direction);
     pitch = -atan2(aim.y, aim.z);
     rotation.RotateAboutX(pitch);
-    g_combat_state->breath_visual =
-        CreateAimedSpellEffect(g_spell_records[0x77].resource_name, 1, &camera, &rotation, 0, 0);
+    g_combat_state->breath_visual = CreateAimedSpellEffect(
+        g_spell_records[W8_SPELL_SPECIAL_ATTACK_CONE].resource_name, 1, &camera, &rotation, 0, 0);
     if (g_combat_state->breath_visual == 0) {
         return false;
     }

@@ -1,3 +1,5 @@
+#include "wiz8/conditions.h"
+#include "wiz8/monster_cycles.h"
 #include "wiz8/fonts.h"
 #include "wiz8/cursor.h"
 #include "wiz8/bink_video.h"
@@ -1643,7 +1645,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_SET_CONDITION_13: {
         int party_slot = line->payload.argument;
         g_status.skip_next_condition_reaction = 1;
-        SetCharacterCondition(party_slot, W8_CONDITION_MISSING, 9999, 0, 0, 0);
+        SetCharacterCondition(party_slot, W8_CONDITION_MISSING, W8_CONDITION_INDEFINITE, 0, 0, 0);
         g_status.condition13_clock = 1;
         g_status.condition13_stamp = g_status.world_clock;
         g_status.pending_condition_party_slot = party_slot;
@@ -1816,7 +1818,7 @@ void ProcessMessageBoxQueue(void)
                 0x968, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_location_id, true);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            StartMonsterCycle(monster_info, 0x12, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL, 1);
             monster_info->p3D->SetCycleCallback(0x12, NpcScriptHenchmanDeparted);
         }
         ClearMainGameTargetState();
@@ -1913,7 +1915,7 @@ void ProcessMessageBoxQueue(void)
                 group->leader_location_id, true);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetCycleCallback(0x12, NpcScriptHenchmanArrives);
-            StartMonsterCycle(monster_info, 0x12, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL, 1);
         }
         break;
     }
@@ -1977,7 +1979,7 @@ void ProcessMessageBoxQueue(void)
         npc = GetNpcStateByKind(0x84);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
-            StartMonsterCycle(monster_info, 0x1a, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPECIAL, 1);
         }
         srVector3T<float> position;
         W8MonsterGroup* group;
@@ -1989,7 +1991,7 @@ void ProcessMessageBoxQueue(void)
             monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetPosition(&position);
             MonsterForwardReferencePosition(monster_info->p3D, 0);
-            StartMonsterCycle(monster_info, 0x12, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL, 1);
         }
         npc = GetNpcStateByKind(0x8d);
         if (npc != 0) {
@@ -2040,7 +2042,7 @@ void ProcessMessageBoxQueue(void)
                 0xb2e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_location_id, true);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            StartMonsterCycle(monster_info, 0x19, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPELL, 1);
             monster_info->p3D->SetCycleCallback(0x19, NpcScriptSavantHackDone);
         }
         break;
@@ -2654,7 +2656,8 @@ void BeginSedexusCapture(void)
             (g_status.buffers.Char[party_slot].hp_current > 0 ||
              g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) &&
             party_slot != static_cast<unsigned int>(g_status.sedexus_party_slot)) {
-            SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS, 9999, 0, 0, 0);
+            SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS, W8_CONDITION_INDEFINITE, 0,
+                                  0, 0);
         }
     }
 }

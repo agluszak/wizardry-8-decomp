@@ -440,11 +440,14 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
             target->out_of_formation = 1;
             break;
         case 0x13:
-            if (GetConditionRecordFlag(CharacterPointerToPartySlot(character), 1) != 0) {
+            if (GetConditionRecordFlag(CharacterPointerToPartySlot(character),
+                                       W8_DEPENDENCE_SWALLOWED) != 0) {
                 W8MonsterInfo* bound;
-                if (character->conditions[1].level_acquired == g_status.current_level &&
-                    (bound = MonsterInfoFromID(0x16b, GAMEPLAY_MODS_CPP,
-                                               character->conditions[1].source_monster, true)) !=
+                if (character->conditions[W8_DEPENDENCE_SWALLOWED].level_acquired ==
+                        g_status.current_level &&
+                    (bound = MonsterInfoFromID(
+                         0x16b, GAMEPLAY_MODS_CPP,
+                         character->conditions[W8_DEPENDENCE_SWALLOWED].source_monster, true)) !=
                         0) {
                     W8MonsterRecord* monster = GetMonsterDataForInfo(bound);
                     target->health_regen_adjustment += -1 - (monster->effective_level >> 1);

@@ -1,3 +1,5 @@
+#include "wiz8/conditions.h"
+#include "wiz8/monster_cycles.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/integer_constants.h"
@@ -540,7 +542,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
             MonsterGetIndexByLocationID(0x6c7, NPC_MANAGER_CPP, group->leader_location_id, true));
         if (monster != 0) {
             CopyCharacterConditionsToTarget(npc->character, &monster->location_id);
-            if (monster->uiCondition[W8_CONDITION_UNCONSCIOUS] == 9999) {
+            if (monster->uiCondition[W8_CONDITION_UNCONSCIOUS] == W8_CONDITION_INDEFINITE) {
                 unsigned int stamina = static_cast<unsigned int>(npc->character->uiStaminaMax);
                 if (static_cast<unsigned int>(npc->character->stamina) < stamina) {
                     stamina = static_cast<unsigned int>(npc->character->stamina);
@@ -980,7 +982,7 @@ void ProcessNpcPendingEvents(void)
                                             g_character_event_full_volume);
                     }
                     SetCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,
-                                          9999, 0, 0, 1);
+                                          W8_CONDITION_INDEFINITE, 0, 0, 1);
                     g_status.infatuation_pending = false;
                     SetFact(W8_FACT_QUEST_KILL_ALSEDEXUS, 1, false);
                 }
@@ -2158,7 +2160,7 @@ void UpdateNpcEvents(void)
             index = MonsterGetIndexByLocationID(0xc2f, NPC_MANAGER_CPP, group->leader_location_id,
                                                 true);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
-            StartMonsterCycle(monster_info, 0x10, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_LASH, 1);
             monster_info->p3D->SetCycleCallback(0x10, TriggerBelaVoice);
         }
         g_status.bela_cycle_tick = 0;

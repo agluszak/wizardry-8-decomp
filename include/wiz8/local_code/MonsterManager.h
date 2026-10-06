@@ -472,10 +472,10 @@ struct W8MonsterInfo {
        condition setter. */
     W8TargetSource condition_target;
     srVector3T<float> movement_watch_position; /* 0x338 */
-    /* 0x344: location id of the phantom an Insanity effect summoned against
+    /* 0x344: location id of the elemental Summon Elemental bound to
        this monster, -1 while none is bound; a bound monster cannot be picked
        again. */
-    int insanity_summon;
+    int elemental_summon;
     W8VisibilityRecord player_visibility; /* 0x348 */
     unsigned char unknown_379;
     bool has_projectile_origin;

@@ -291,13 +291,13 @@ bool CharacterActionTargetsEnemies(W8Character* character, W8ActionKind action_k
         item = detail->item_use.item;
         if (CanCharacterActivateItem(character, item)) {
             spell_id = g_item_records[item->iItemNo].spell_id;
-            if (spell_id != 0) {
+            if (spell_id != W8_SPELL_NONE) {
                 if (spell_id > 0x95) {
                     srAssertFail("iType < SPELL_COUNT",
                                  "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp",
                                  0x1c2, 0);
                 }
-                if (spell_id != 3 && spell_id != 0x29) {
+                if (spell_id != W8_SPELL_CHARM && spell_id != W8_SPELL_MINDREAD) {
                     target_type = GetSpellTargetType(spell_id, false);
                     if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
                         return true;
@@ -350,7 +350,7 @@ bool MonsterCanAimSpell(int spell_id)
         srAssertFail("iType < SPELL_COUNT",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp", 0x1c2, 0);
     }
-    if (spell_id != 3 && spell_id != 0x29) {
+    if (spell_id != W8_SPELL_CHARM && spell_id != W8_SPELL_MINDREAD) {
         W8SpellTargetType target_type = GetSpellTargetType(spell_id, false);
         if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
             return true;
@@ -789,7 +789,8 @@ int CharacterPrayAction(int party_slot)
             }
             break;
         case 6: {
-            const float range = CalcRangeDistance(g_spell_records[0x19].range_category);
+            const float range =
+                CalcRangeDistance(g_spell_records[W8_SPELL_MAGIC_MISSILES].range_category);
             in_range = 0;
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
@@ -891,7 +892,8 @@ int CharacterPrayAction(int party_slot)
         case 0xc:
             power_level >>= 1;
             {
-                const float range = CalcRangeDistance(g_spell_records[0x60].range_category);
+                const float range =
+                    CalcRangeDistance(g_spell_records[W8_SPELL_FALLING_STARS].range_category);
                 for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                     W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                     if (monster->fActive && monster->fInCombat &&

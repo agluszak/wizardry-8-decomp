@@ -430,7 +430,7 @@ bool W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x8d7], g_assay_entry_text, 10, 0xf, 0);
     }
-    if ((m_item->identified || m_item->spell_hint) && record->spell_id != 0) {
+    if ((m_item->identified || m_item->spell_hint) && record->spell_id != W8_SPELL_NONE) {
         if (record->equip_class == W8_ITEM_EQUIP_CLASS_INSTRUMENT ||
             record->equip_class == W8_ITEM_EQUIP_CLASS_GADGET ||
             record->equip_class == W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
@@ -557,7 +557,7 @@ bool W8AssayDialog::PopulateText()
     count = AppendAssayRequirements(record->skill_requirements, count);
     if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6 ||
         record->category == W8_ITEM_CATEGORY_CASTER_ITEM_8) {
-        if (record->spell_id == 0) {
+        if (record->spell_id == W8_SPELL_NONE) {
             srAssertFail("uiSpell != SPELL_NONE", ASSAY_DIALOG_CPP, 0x390, 0);
         }
         if (count != 0) {

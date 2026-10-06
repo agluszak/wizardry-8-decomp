@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/integer_constants.h"
 
@@ -1144,7 +1145,7 @@ void SetItemTooltip(W8ItemInstance* item, W8Region* region)
     wcscpy(g_camp_screen->text_buffer, name);
     record = g_item_records + item->iItemNo;
     if (record->category == W8_ITEM_CATEGORY_SPELL_SOURCE) {
-        if (record->spell_id == 0) {
+        if (record->spell_id == W8_SPELL_NONE) {
             srAssertFail("ubSpell != SPELL_NONE",
                          "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0xa7a, 0);
         }

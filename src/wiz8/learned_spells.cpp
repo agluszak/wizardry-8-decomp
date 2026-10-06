@@ -10,11 +10,11 @@ void BuildLearnedSpellState(W8LearnedSpellState* scratch, W8Character* character
     int realm;
     int count;
 
-    for (realm = 0; realm < 6; ++realm) {
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         character->skill_unlocks[0x1c + realm] = 0;
     }
     scratch->learned_total = 0;
-    for (spell_id = 0; spell_id < 0x72; ++spell_id) {
+    for (spell_id = W8_SPELL_NONE; spell_id < 0x72; ++spell_id) {
         if (character->spell_learned[spell_id] == 1 || character->spell_learned[spell_id] == 2) {
             realm = g_spell_records[spell_id].realm;
             count = character->skill_unlocks[0x1c + realm];
@@ -23,7 +23,7 @@ void BuildLearnedSpellState(W8LearnedSpellState* scratch, W8Character* character
             ++scratch->learned_total;
         }
     }
-    for (realm = 0; realm < 6; ++realm) {
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         scratch->scroll[realm] = 0;
     }
 }

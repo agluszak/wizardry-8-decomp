@@ -175,7 +175,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
     }
     missile->flight_done = true;
     if (missile->missile_table_index == 0x23 &&
-        (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
+        (g_combat_state == 0 || g_combat_state->missile_hit_result != W8_MISSILE_HIT_DEFLECTED)) {
         missile->DetonateMissileSpell();
     }
     if (g_missile_table[missile->missile_table_index].spell_missile != 0) {
@@ -476,7 +476,8 @@ W8Missile* AllocateMissile(int missile_table_index)
     missile->flight_done = false;
     if (missile->flight_done) {
         if (missile->missile_table_index == 0x23 &&
-            (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
+            (g_combat_state == 0 ||
+             g_combat_state->missile_hit_result != W8_MISSILE_HIT_DEFLECTED)) {
             missile->DetonateMissileSpell();
         }
         if (g_missile_table[missile->missile_table_index].spell_missile != 0) {
@@ -1056,7 +1057,8 @@ void W8Missile::StartIfHostActive()
     } else {
         flight_done = true;
         if (missile_table_index == 0x23 &&
-            (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
+            (g_combat_state == 0 ||
+             g_combat_state->missile_hit_result != W8_MISSILE_HIT_DEFLECTED)) {
             DetonateMissileSpell();
         }
         if (g_missile_table[missile_table_index].spell_missile) {
@@ -1353,7 +1355,8 @@ void W8Missile::EnterImpactCycle()
     } else {
         flight_done = true;
         if (missile_table_index == 0x23 &&
-            (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
+            (g_combat_state == 0 ||
+             g_combat_state->missile_hit_result != W8_MISSILE_HIT_DEFLECTED)) {
             DetonateMissileSpell();
         }
         if (g_missile_table[missile_table_index].spell_missile) {
@@ -1418,7 +1421,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         }
     }
 
-    hit_result = 1;
+    hit_result = W8_MISSILE_HIT;
     if (!g_missile_table[missile_table_index].spell_missile) {
         if (combat_slot.iType == W8_TARGET_KIND_CHARACTER) {
             deflect_chance = g_status.buffers.Char[combat_slot.iChar].bonus.missile_deflect_chance;
@@ -1428,7 +1431,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
             deflect_chance = monster_info->modifiers.missile_deflect_chance;
         }
         if (deflect_chance > 0 && Random(100) + 1 <= deflect_chance) {
-            hit_result = 2;
+            hit_result = W8_MISSILE_HIT_DEFLECTED;
         }
     }
 
@@ -1440,7 +1443,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
     } else if (g_missile_table[missile_table_index].spell_missile) {
         ResolveSpellMissileHit(this);
     } else {
-        ResolveMissileHit(this, hit_result == 2);
+        ResolveMissileHit(this, hit_result == W8_MISSILE_HIT_DEFLECTED);
     }
     EnterImpactCycle();
     active = false;

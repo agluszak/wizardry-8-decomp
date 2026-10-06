@@ -1,3 +1,5 @@
+#include "wiz8/monster_cycles.h"
+#include "wiz8/conditions.h"
 #include "wiz8/fonts.h"
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/integer_constants.h"
@@ -903,7 +905,7 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, bool announc
 // FUNCTION: WIZ8 0x0052beb0
 void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* attacker, bool quiet)
 {
-    StartMonsterCycle(monster_info, 0x14, 1);
+    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_GET_HIT, 1);
 
     if (monster_info->uiCondition[W8_CONDITION_ASLEEP] != 0 && !quiet &&
         Random(100) < static_cast<unsigned int>(
@@ -1148,7 +1150,7 @@ void CharacterDies(int party_slot)
 
     ++character->death_count;
     for (condition = 0; condition < W8_CONDITION_CLEARABLE_COUNT; ++condition) {
-        if (condition != 10 && character->uiCondition[condition] != 0) {
+        if (condition != W8_CONDITION_INFATUATED && character->uiCondition[condition] != 0) {
             RemoveCharacterCondition(party_slot, static_cast<W8Condition>(condition), false);
         }
     }
@@ -1324,7 +1326,7 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
         }
     }
     for (index = 0; index < 4; ++index) {
-        realm_skills[index] = character->skills[0x18 + index].level;
+        realm_skills[index] = character->skills[W8_SKILL_SPELLBOOK_WIZARDRY + index].level;
     }
     qsort(realm_skills, 4, 4, CompareUnsignedDescending);
 
@@ -1337,11 +1339,12 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
     for (index = 0; index < 6; ++index) {
         int old = character->sp_max[index];
         unsigned int learned = character->skill_unlocks[0x1c + index];
-        int computed = static_cast<int>(((weighted + character->skills[0x1c + index].level * 3 +
-                                          character->attributes[W8_ATTRIBUTE_PIETY].effective) *
-                                         g_float_two_hundredths) *
-                                            (learned + character->uiExpLevel + 1) +
-                                        g_double_half);
+        int computed =
+            static_cast<int>(((weighted + character->skills[W8_SKILL_FIRE_MAGIC + index].level * 3 +
+                               character->attributes[W8_ATTRIBUTE_PIETY].effective) *
+                              g_float_two_hundredths) *
+                                 (learned + character->uiExpLevel + 1) +
+                             g_double_half);
         if (best < computed) {
             best = computed;
         }

@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/sgp_text.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/integer_constants.h"
@@ -1386,7 +1387,7 @@ void RefreshCampItemActions(bool invalidate)
                 if (!IsPartySlotEligible(giReviewCharSlot) || gXStatus.fCombatMode) {
                     break;
                 }
-                spell = &g_spell_records[0x17];
+                spell = &g_spell_records[W8_SPELL_IDENTIFY_ITEM];
                 if (spell->spell_point_cost > g_review_character->iSPLeft[spell->realm]) {
                     break;
                 }
@@ -1406,7 +1407,7 @@ void RefreshCampItemActions(bool invalidate)
                 if (!IsPartySlotEligible(giReviewCharSlot) || gXStatus.fCombatMode) {
                     break;
                 }
-                spell = &g_spell_records[0x3a];
+                spell = &g_spell_records[W8_SPELL_REMOVE_CURSE];
                 if (spell->spell_point_cost > g_review_character->iSPLeft[spell->realm]) {
                     break;
                 }

@@ -1,3 +1,4 @@
+#include "wiz8/conditions.h"
 #include "wiz8/fonts.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/integer_constants.h"
@@ -527,7 +528,7 @@ void AdvanceTimedEffects(unsigned int minutes)
         if (g_status.buffers.XChar[slot].fOccupied &&
             (character->highest_condition < W8_CONDITION_DEAD ||
              (character->uiCondition[W8_CONDITION_DEAD] == 0 &&
-              GetConditionRecordFlag(slot, 1) != 0))) {
+              GetConditionRecordFlag(slot, W8_DEPENDENCE_SWALLOWED) != 0))) {
             GameTurnsPassedChar(slot, minutes);
         }
     }
@@ -1216,7 +1217,7 @@ after_early: {
     }
     for (int condition = 0; condition < 0x14; ++condition) {
         if (monster_info->uiCondition[condition] != 0 &&
-            monster_info->uiCondition[condition] < 9999) {
+            monster_info->uiCondition[condition] < W8_CONDITION_INDEFINITE) {
             TickMonsterCondition(monster_info->location_id, static_cast<W8Condition>(condition),
                                  minutes);
         }
@@ -1224,7 +1225,7 @@ after_early: {
     for (int enchant = 0; enchant < 8; ++enchant) {
         float remaining = static_cast<float>(monster_info->enchantments[enchant].turns);
 
-        if (remaining != 0.0f && static_cast<unsigned int>(remaining) < 9999) {
+        if (remaining != 0.0f && static_cast<unsigned int>(remaining) < W8_CONDITION_INDEFINITE) {
             if (minutes < static_cast<unsigned int>(remaining)) {
                 monster_info->enchantments[enchant].turns =
                     static_cast<int>(remaining) - static_cast<int>(minutes);
@@ -1361,7 +1362,7 @@ void UpdatePartyStamina(int ticks)
         W8Character* character = &g_status.buffers.Char[slot];
         if (character->highest_condition >= W8_CONDITION_DEAD &&
             (character->uiCondition[W8_CONDITION_DEAD] != 0 ||
-             GetConditionRecordFlag(slot, 1) == 0)) {
+             GetConditionRecordFlag(slot, W8_DEPENDENCE_SWALLOWED) == 0)) {
             continue;
         }
         if (g_status.party_fatigued &&

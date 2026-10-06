@@ -1,3 +1,4 @@
+#include "wiz8/monster_cycles.h"
 #include "wiz8/fonts.h"
 #include <stdio.h>
 #include "wiz8/integer_constants.h"
@@ -131,7 +132,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->fMotionless = false;
     monster_info->ai_mode = W8_RT_AI_IDLE;
     monster_info->summoned = W8_MONSTER_SUMMON_NONE;
-    monster_info->insanity_summon = -1;
+    monster_info->elemental_summon = -1;
     monster_info->movement_watch_position.SetZero();
 
     if (PLAdoptAppend(record->unborn != 0 ? gXStatus.plsUnbornMonsterList : gXStatus.plsMonsterList,
@@ -328,7 +329,7 @@ void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
     if (!monster_info->fMotionless) {
         result = MonsterQuery(monster_info->p3D, W8_MONSTER_QUERY_CYCLE);
         if (result != 1 && result != 2 && monster_info->p3D->m_pRep->pending_cycle == -1) {
-            StartMonsterCycle(monster_info, 1, 3);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, 3);
         }
     }
 }
@@ -337,7 +338,7 @@ void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
 void MonsterStartsDying(W8MonsterInfo* monster_info, bool display_message)
 {
     if (!monster_info->p3D->IsDying()) {
-        StartMonsterCycle(monster_info, 0x15, 1);
+        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_DIE, 1);
         DeactivateMonster(monster_info);
         RecordMonsterKill(monster_info, display_message);
         RemoveMonster(MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP,
@@ -876,7 +877,7 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, bool motionless)
         if (previous) {
             MonsterSetAnimating(monster, true);
             if (monster_info->p3D->m_pRep->pending_cycle == -1) {
-                StartMonsterCycle(monster_info, 1, 3);
+                StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, 3);
             }
         }
     } else if (!previous) {
@@ -1038,7 +1039,7 @@ void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int 
                 unsigned int chance = group->member_count * 20;
 
                 if (!gXStatus.fNpcDialogueMode && Random(chance) == 0) {
-                    StartMonsterCycle(monster_info, 2, 1);
+                    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPICE, 1);
                 }
             }
         }
@@ -1219,7 +1220,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         if (monster_info->p3D == 0) {
             srAssertFail("pMonsterInfo->p3D != NULL", MONSTER_MANAGER_CPP, 0x249, 0);
         }
-        monster_info->uiCondition[W8_CONDITION_DEAD] = 9999;
+        monster_info->uiCondition[W8_CONDITION_DEAD] = W8_CONDITION_INDEFINITE;
         monster_info->highest_condition = W8_CONDITION_DEAD;
         monster_info->hp_current = 0;
         monster_info->stamina = 0;
@@ -1534,7 +1535,7 @@ void ProcessMonsterManagerFrame(void)
                                slot to -1. W8_CYCLE_NONE is 0xff as int 255,
                                which a signed char never equals. */
                             if (monster_info->p3D->m_pRep->pending_cycle == -1) {
-                                StartMonsterCycle(monster_info, 1, 3);
+                                StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, 3);
                             }
                         } else if (MonsterIsAnimating(monster) != 0) {
                             MonsterSetAnimating(monster, false);

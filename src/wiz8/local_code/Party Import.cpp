@@ -1,3 +1,4 @@
+#include "wiz8/conditions.h"
 #include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/learned_spells.h"
@@ -316,7 +317,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     character->level_band_base = 0;
     status = imported->status;
     if (status == 2 || status == 3) {
-        character->uiCondition[W8_CONDITION_DEAD] = 9999;
+        character->uiCondition[W8_CONDITION_DEAD] = W8_CONDITION_INDEFINITE;
         character->highest_condition = W8_CONDITION_DEAD;
     } else {
         character->highest_condition = W8_CONDITION_NONE;
@@ -324,7 +325,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     character->enchantment_top = W8_ENCHANTMENT_NONE;
     ConvertAttribute(character, imported);
     GrantStartingSpells(character, imported);
-    for (skill_id = 0; skill_id < 0x29; ++skill_id) {
+    for (skill_id = 0; skill_id < W8_SKILL_COUNT; ++skill_id) {
         character->skills[skill_id].active = false;
         character->skills[skill_id].points =
             ConvertSkill(static_cast<W8Skill>(skill_id), character, imported);

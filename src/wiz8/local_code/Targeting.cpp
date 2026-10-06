@@ -344,7 +344,7 @@ W8TargetNeed GetTargetNeededForItem(const W8ItemInstance* item)
         return W8_TARGET_NEED_NONE;
     }
     record = &g_item_records[item->iItemNo];
-    if (record->spell_id == 0) {
+    if (record->spell_id == W8_SPELL_NONE) {
         return W8_TARGET_NEED_NONE;
     }
     return GetTargetNeededForSpellFriendly(record->spell_id, ItemClassNormalizesTarget(record),
@@ -703,7 +703,7 @@ W8TargetNeed GetTargetNeededForAction(W8ActionKind action, int spell_id,
     case W8_ACTION_USE_ITEM:
         if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1) {
             record = &g_item_records[detail_block->item_use.item->iItemNo];
-            if (record->spell_id != 0) {
+            if (record->spell_id != W8_SPELL_NONE) {
                 return GetTargetNeededForSpellFriendly(record->spell_id,
                                                        ItemClassNormalizesTarget(record),
                                                        W8_TARGETING_CONTEXT_CURRENT);
@@ -750,7 +750,7 @@ bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
 
     if (item != 0 && item->iItemNo != -1) {
         record = &g_item_records[item->iItemNo];
-        if (record->spell_id != 0) {
+        if (record->spell_id != W8_SPELL_NONE) {
             needed = GetTargetNeededForSpellFriendly(
                 record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
             if (needed == W8_TARGET_NEED_ENEMY && g_settings.autotarget_spells != 0) {
@@ -1819,16 +1819,16 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
     entry->highlighted_monsters.Clear();
     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                        &detail_block);
-    spell_id = 0;
+    spell_id = W8_SPELL_NONE;
     if (action == W8_ACTION_BREATHE) {
-        spell_id = 0x77;
+        spell_id = W8_SPELL_SPECIAL_ATTACK_CONE;
     } else if (action == W8_ACTION_CAST_SPELL) {
         spell_id = detail;
     } else if (action == W8_ACTION_USE_ITEM) {
         spell_id = GetItemSpell(detail_block->item_use.item);
     }
 
-    if (spell_id != 0) {
+    if (spell_id != W8_SPELL_NONE) {
         if (target == 0) {
             srAssertFail("pSource != NULL", TARGETING_CPP, 0xcc9, 0);
         }
@@ -1915,7 +1915,7 @@ void HighlightSpellTargetsAtCachedPosition(void)
     int party_slot = g_status.selected_character;
     unsigned int spell_id = GetActionSpellLikeId(party_slot, W8_TARGETING_CONTEXT_CURRENT);
 
-    if (spell_id == 0) {
+    if (spell_id == W8_SPELL_NONE) {
         return;
     }
 
@@ -1955,7 +1955,7 @@ void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                        &detail_block);
     if (action == W8_ACTION_BREATHE) {
-        spell_id = 0x77;
+        spell_id = W8_SPELL_SPECIAL_ATTACK_CONE;
     } else if (action == W8_ACTION_CAST_SPELL) {
         spell_id = detail;
     } else if (action == W8_ACTION_USE_ITEM) {
@@ -1963,7 +1963,7 @@ void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
     } else {
         return;
     }
-    if (spell_id == 0) {
+    if (spell_id == W8_SPELL_NONE) {
         return;
     }
 

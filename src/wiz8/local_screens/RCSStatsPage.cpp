@@ -1,3 +1,4 @@
+#include "wiz8/conditions.h"
 #include "wiz8/sgp_text.h"
 /* Local Screens\RCSStatsPage.cpp - the review character screen's stats pages.
 
@@ -468,10 +469,10 @@ void RebuildCampEffectList(void)
             entry.detrimental = 1;
             entry.turns = character->uiCondition[condition];
             entry.lines = 1;
-            if (entry.turns == 9999) {
+            if (entry.turns == W8_CONDITION_INDEFINITE) {
                 entry.lines = 2;
             }
-            if (condition == 1) {
+            if (condition == W8_CONDITION_DRAINED) {
                 if (character->hp_adjustment != 0) {
                     ++entry.lines;
                 }
@@ -509,7 +510,7 @@ void RebuildCampEffectList(void)
                 entry.lines = detrimental + beneficial + 1;
                 entry.items = 1;
                 entry.kind = 2;
-                entry.turns = 9999;
+                entry.turns = W8_CONDITION_INDEFINITE;
                 entry.index = slot;
                 AddCampEffectEntry(screen, &entry);
             }
@@ -612,7 +613,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
                 gppStringList[0x8d1], gppStringList[g_condition_notices[entry->index * 4]]);
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
         int next = line + 1;
-        if (entry->turns == 9999) {
+        if (entry->turns == W8_CONDITION_INDEFINITE) {
             gprintf(0x15e, (line + 1) * 0xe + 0xbf, gppStringList[0x8d2]);
             next = line + 2;
         }

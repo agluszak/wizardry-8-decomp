@@ -44,7 +44,7 @@ void ApplyCharacterCondition(int party_slot, W8EnchantmentSlot slot, int argumen
                              unsigned int duration, unsigned int percent);
 void ApplyMonsterCondition(int location_id, W8EnchantmentSlot slot, int argument,
                            unsigned int duration, unsigned int percent);
-unsigned char GetConditionRecordFlag(int party_slot, int condition);
+bool GetConditionRecordFlag(int party_slot, W8CharacterDependence dependence);
 /* 0x00524780: record a bound monster in a party member's condition record -
    the level the binding was made on and the monster's location id, with the
    record's flag byte raised. Slot one also retires the monster's group and

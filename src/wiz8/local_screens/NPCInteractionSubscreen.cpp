@@ -1,3 +1,4 @@
+#include "wiz8/conditions.h"
 #include "line.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/MGSFormation.h"
@@ -554,7 +555,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
                         if (characters[slot].uiCondition[condition] != 0) {
                             RemoveCharacterCondition(slot, static_cast<W8Condition>(condition),
                                                      false);
-                            if (condition == 0x12) {
+                            if (condition == W8_CONDITION_DEAD) {
                                 characters[slot].hp_current = 10;
                             }
                         }

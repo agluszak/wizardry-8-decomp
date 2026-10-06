@@ -1,3 +1,4 @@
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Widget.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/CharacterScreen.h"
@@ -1060,7 +1061,7 @@ void W8CharacterStatsPage::Redraw()
         text.SetText(gppStringList[0xb9], g_wiz_text_font_secondary);
         text.RenderToTarget(0, false, FRAME_BUFFER);
         if (m_character->iRace != W8_RACE_NONE || m_character->iProfession != W8_PROFESSION_NONE) {
-            for (int realm = 0; realm < 6; ++realm) {
+            for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
                 bool first_column = (realm & 1) == 0;
                 bounds.left = (realm / 2) * 0x3f + 0x39 + left;
                 bounds.top = (first_column ? 0x157 : 0x171) + top;

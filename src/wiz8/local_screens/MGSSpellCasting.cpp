@@ -428,7 +428,7 @@ void SelectSpellCastingCharacter(int party_slot)
     if (GetAffordableSpellPowerLevel(party_slot) != 0) {
         int spell_id = g_status.buffers.XChar[party_slot].spell_id;
         SelectSpellCastingRealm(g_spell_records[spell_id].realm);
-        if (spell_id == 0x17) {
+        if (spell_id == W8_SPELL_IDENTIFY_ITEM) {
             gpSCSV->uiSpellIndex = -1;
             return;
         }
@@ -667,7 +667,7 @@ static void RebuildSpellCastingList(int spell_id)
             ++pass;
         } while (pass < 2);
     }
-    if (spell_id == 0 || selected == -1) {
+    if (spell_id == W8_SPELL_NONE || selected == -1) {
         ScrollTextBoxTo(0);
     } else {
         SelectSpellCastingListRow(selected);
@@ -1327,7 +1327,7 @@ static void SelectSpellCastingListRow(int index)
         SetSpellListLineColor(previous, -1);
     }
     spell_id = gpSCSV->uiSpells[gpSCSV->uiSpellIndex];
-    if (spell_id == 0) {
+    if (spell_id == W8_SPELL_NONE) {
         return;
     }
     color = gpSCSV->alt_colors[index];

@@ -1,3 +1,4 @@
+#include "wiz8/conditions.h"
 #include "wiz8/sgp_text.h"
 #include "line.h"
 #include "wiz8/integer_constants.h"
@@ -510,7 +511,8 @@ static unsigned int CanSelectedCharacterCastKnockKnock(W8Character* character)
     if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x27] == 1) {
         unsigned int book = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
         unsigned int realm =
-            character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[0x27].realm].level;
+            character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[W8_SPELL_KNOCK_KNOCK].realm]
+                .level;
         book = character->skills[book].level;
         int power = (book + realm * 4) / 5;
         if (power > -1) {
@@ -837,7 +839,8 @@ void W8LockInfoPanel::RefreshInfo()
         m_text4->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
         W8Skill book_skill = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
-        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        realm = character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[W8_SPELL_KNOCK_KNOCK].realm]
+                    .level;
         book = character->skills[book_skill].level;
         m_text4->SetFontStateIndex(-1);
         m_text4->SetText(FormatWideString(g_format_d_percent, (book + realm * 4) / 5),
@@ -1083,7 +1086,7 @@ int GetKnockKnockSpellPower(int slot)
         return -1;
     }
     book = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
-    return GetSpellCastingSkillLevel(character, book, g_spell_records[0x27].realm);
+    return GetSpellCastingSkillLevel(character, book, g_spell_records[W8_SPELL_KNOCK_KNOCK].realm);
 }
 
 // FUNCTION: WIZ8 0x00586AF0
@@ -1242,7 +1245,8 @@ void W8LockInteraction::AttemptForce()
                 m_spell_button->SetEnabled(false);
             } else {
                 book = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
-                power = GetSpellCastingSkillLevel(character, book, g_spell_records[0x27].realm);
+                power = GetSpellCastingSkillLevel(character, book,
+                                                  g_spell_records[W8_SPELL_KNOCK_KNOCK].realm);
                 if (power > -1) {
                     m_spell_button->SetEnabled(CanCharacterCastSpell(character, 0x27));
                 } else {
@@ -1899,7 +1903,8 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
         m_text3->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
         W8Skill book_skill = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
-        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        realm = character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[W8_SPELL_KNOCK_KNOCK].realm]
+                    .level;
         book = character->skills[book_skill].level;
         m_text3->SetFontStateIndex(-1);
         m_text3->SetText(FormatWideString(g_format_d_percent, (book + realm * 4) / 5),
@@ -1907,7 +1912,8 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
     }
     if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x12] == 1) {
         W8Skill figure_skill = GetBestSpellbookSkillForSpell(character, 0x12, true, false, 7);
-        figure = GetSpellCastingSkillLevel(character, figure_skill, g_spell_records[0x12].realm);
+        figure = GetSpellCastingSkillLevel(character, figure_skill,
+                                           g_spell_records[W8_SPELL_DIVINE_TRAP].realm);
         if (static_cast<int>(figure) >= 0) {
             m_text5->SetFontStateIndex(-1);
             m_text5->SetText(FormatWideString(g_format_d_percent, figure),
@@ -2394,7 +2400,8 @@ void W8MainGameScreen::CastTrapSpell()
 
     if (IsPartySlotEligible(slot) && character->spell_learned[0x27] == 1) {
         book = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
-        figure = GetSpellCastingSkillLevel(character, book, g_spell_records[0x27].realm);
+        figure =
+            GetSpellCastingSkillLevel(character, book, g_spell_records[W8_SPELL_KNOCK_KNOCK].realm);
         if (static_cast<int>(figure) >= 0) {
             ready = true;
         }
@@ -2405,7 +2412,8 @@ void W8MainGameScreen::CastTrapSpell()
             return;
         }
         book = GetBestSpellbookSkillForSpell(character, 0x12, true, false, 7);
-        figure = GetSpellCastingSkillLevel(character, book, g_spell_records[0x12].realm);
+        figure =
+            GetSpellCastingSkillLevel(character, book, g_spell_records[W8_SPELL_DIVINE_TRAP].realm);
         if (static_cast<int>(figure) < 0) {
             return;
         }
@@ -4549,7 +4557,7 @@ void DrawPortraitVitalsOverlay(int party_slot)
         value_width = width;
     }
     int realm;
-    for (realm = 0; realm < 6; ++realm) {
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         swprintf(g_level_block->text_paint_scratch, g_format_d_slash_d,
                  GetCharacterRealmSpellPoints(character, static_cast<W8SpellRealm>(realm)),
                  character->sp_max[realm]);
@@ -4589,7 +4597,7 @@ void DrawPortraitVitalsOverlay(int party_slot)
             g_level_block->text_paint_scratch);
     row_y += 0x12;
 
-    for (realm = 0; realm < 6; ++realm) {
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         DrawCatalogImage(FRAME_BUFFER, realm_icons[realm], 0,
                          static_cast<short>(g_spell_realm_animations[realm].initial_frame), text_x,
                          row_y, VO_BLT_SRCTRANSPARENCY, 0);

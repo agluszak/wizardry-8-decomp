@@ -1,3 +1,6 @@
+#include "wiz8/conditions.h"
+#include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/spell_ids.h"
 #include "wiz8/fonts.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/integer_constants.h"
@@ -77,7 +80,6 @@
 #define MAGIC_EFFECTS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic Effects.cpp"
 
 /* The duration that means "for good". */
-enum { W8_EFFECT_PERMANENT = 9999 };
 
 // GLOBAL: WIZ8 0x005ee838
 const float g_camera_shake_intensity_base = 0.7900000214576721f;
@@ -241,11 +243,11 @@ W8EffectVisual g_effect_visual_table[150] = {
     {-1, SPELL_ICON_NONE},
 };
 
-/* 0x00616F4C: the monster group the Insanity effect summons - one row of four
+/* 0x00616F4C: the monster group Summon Elemental summons - one row of four
    per power level, the column the elemental realm the caster's realm skills
    weighted the roll toward. */
 // GLOBAL: WIZ8 0x00616f4c
-int g_insanity_group_ids[8][4] = {
+int g_elemental_summon_group_ids[8][4] = {
     {24, 23, 21, 22}, {24, 23, 21, 22}, {28, 27, 25, 26}, {32, 31, 29, 30},
     {36, 35, 33, 34}, {40, 39, 37, 38}, {44, 43, 41, 42}, {48, 47, 45, 46},
 };
@@ -264,7 +266,7 @@ unsigned int RollEffectMagnitude(W8SpellEffectDefinition* definition)
 {
     unsigned int magnitude = RollDice(&definition->magnitude);
 
-    if (magnitude != W8_EFFECT_PERMANENT) {
+    if (magnitude != W8_CONDITION_INDEFINITE) {
         AdjustIntegerByPercent(&magnitude, definition->percent);
     }
     return magnitude;
@@ -274,7 +276,7 @@ static unsigned int RollEffectDuration(int per_power, int scale, int base, unsig
 {
     unsigned int duration = per_power * scale + base;
 
-    if (duration != W8_EFFECT_PERMANENT) {
+    if (duration != W8_CONDITION_INDEFINITE) {
         ++duration;
         switch (Random(4)) {
         case 0:
@@ -468,7 +470,7 @@ void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, 
     unsigned int half;
     unsigned int percent;
 
-    if (*magnitude == W8_EFFECT_PERMANENT) {
+    if (*magnitude == W8_CONDITION_INDEFINITE) {
         return;
     }
     if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -660,19 +662,19 @@ void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, W8SpellR
 W8EnchantmentSlot GetConditionDisplaySlot(int spell_id)
 {
     switch (spell_id) {
-    case 0x13:
+    case W8_SPELL_DRACON_BREATH:
         return W8_ENCHANTMENT_DRACON_BREATH;
-    case 0x15:
+    case W8_SPELL_GUARDIAN_ANGEL:
         return W8_ENCHANTMENT_GUARDIAN_ANGEL;
-    case 0x1b:
+    case W8_SPELL_RAZOR_CLOAK:
         return W8_ENCHANTMENT_RAZOR_CLOAK;
-    case 0x36:
+    case W8_SPELL_EYE_FOR_AN_EYE:
         return W8_ENCHANTMENT_EYE_FOR_AN_EYE;
-    case 0x3d:
+    case W8_SPELL_SUPERMAN:
         return W8_ENCHANTMENT_SUPERMAN;
-    case 0x41:
+    case W8_SPELL_BODY_OF_STONE:
         return W8_ENCHANTMENT_BODY_OF_STONE;
-    case 0x38:
+    case W8_SPELL_HASTE:
         return W8_ENCHANTMENT_HASTE;
     default:
         srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 3339, 0);
@@ -735,15 +737,12 @@ float HeadingTowardNearestMonster(srVector3T<float> point, W8Disposition disposi
     return GetHeadingAngle(&point, &position);
 }
 
-/* The Insanity effect, spell 0x3c: a hostile monster's phantom double is
-   summoned to draw attacks away from the party. When the target already has
-   the bound-monster record set the effect only reports; otherwise the caster's
-   four elemental realm skills (plus a base twenty each) weight which of the
-   four phantom kinds appears, a turncoated or backfired source flips the
-   phantom's disposition, and on a secondary roll the new group also picks up
-   the matching summon enchantment. */
+/* Summon Elemental chooses one of four elemental kinds, weighted by a
+   character caster's realm skills. An existing bound summon prevents a new
+   one; turncoat and backfire flip its disposition. A secondary roll grants
+   the new group a matching enchantment. */
 // FUNCTION: WIZ8 0x005500c0
-void ApplyInsanityEffect(W8SpellEffectEntry* effect)
+void ApplySummonElementalEffect(W8SpellEffectEntry* effect)
 {
     W8MonsterInfo* target_info;
     W8MonsterInfo* summon;
@@ -762,7 +761,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     unsigned int index;
 
     if (TargetSourceIsCharacter(&effect->Source, 0) &&
-        GetConditionRecordFlag(effect->Source.iChar, 0) != 0) {
+        GetConditionRecordFlag(effect->Source.iChar, W8_DEPENDENCE_SUMMON) != 0) {
         if (g_settings.verbose_combat_messages != 0) {
             PostCharacterNotice(effect->Source.iChar, gppStringList[0x1a8]);
         } else {
@@ -775,7 +774,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     }
     if (TargetSourceIsMonster(&effect->Source, 0)) {
         target_info = MonsterInfoFromID(0x9b0, MAGIC_EFFECTS_CPP, effect->Source.iMonsterID, true);
-        if (target_info->insanity_summon != -1) {
+        if (target_info->elemental_summon != -1) {
             return;
         }
     }
@@ -814,7 +813,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     if (effect->Source.fBackfire) {
         disposition = (disposition == W8_DISPOSITION_HOSTILE) + 1;
     }
-    group = CreateGroup(g_insanity_group_ids[effect->definition.duration_scale][tier], 1,
+    group = CreateGroup(g_elemental_summon_group_ids[effect->definition.duration_scale][tier], 1,
                         &effect->target.point, true, false, true);
     if (group == 0) {
         srAssertFail("pGroup", MAGIC_EFFECTS_CPP, 0xa0c, 0);
@@ -850,9 +849,10 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     }
     RefreshAllSight();
     if (TargetSourceIsCharacter(&effect->Source, 0)) {
-        BindMonsterToCharacterDependence(effect->Source.iChar, 0, summon->location_id);
+        BindMonsterToCharacterDependence(effect->Source.iChar, W8_DEPENDENCE_SUMMON,
+                                         summon->location_id);
     } else if (TargetSourceIsMonster(&effect->Source, 0)) {
-        target_info->insanity_summon = summon->location_id;
+        target_info->elemental_summon = summon->location_id;
     }
     if (effect->definition.percent != 0 && Random(100) < effect->definition.percent) {
         ClearAttackBlock(&attack_block);
@@ -887,25 +887,25 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             attack_block.duration_per_power = g_spell_records[spell_id].duration;
             duration = RollEffectDuration(&attack_block);
             switch (spell_id) {
-            case 0x13:
+            case W8_SPELL_DRACON_BREATH:
                 slot = W8_ENCHANTMENT_DRACON_BREATH;
                 break;
-            case 0x15:
+            case W8_SPELL_GUARDIAN_ANGEL:
                 slot = W8_ENCHANTMENT_GUARDIAN_ANGEL;
                 break;
-            case 0x1b:
+            case W8_SPELL_RAZOR_CLOAK:
                 slot = W8_ENCHANTMENT_RAZOR_CLOAK;
                 break;
-            case 0x36:
+            case W8_SPELL_EYE_FOR_AN_EYE:
                 slot = W8_ENCHANTMENT_EYE_FOR_AN_EYE;
                 break;
-            case 0x3d:
+            case W8_SPELL_SUPERMAN:
                 slot = W8_ENCHANTMENT_SUPERMAN;
                 break;
-            case 0x41:
+            case W8_SPELL_BODY_OF_STONE:
                 slot = W8_ENCHANTMENT_BODY_OF_STONE;
                 break;
-            case 0x38:
+            case W8_SPELL_HASTE:
                 slot = W8_ENCHANTMENT_HASTE;
                 break;
             default:
@@ -1106,7 +1106,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
                 }
                 break;
             case W8_CONDITION_INSANE:
-                if (duration == W8_EFFECT_PERMANENT) {
+                if (duration == W8_CONDITION_INDEFINITE) {
                     break;
                 }
             case W8_CONDITION_TURNCOAT:
@@ -1712,20 +1712,20 @@ void DrainTargetsLife(W8SpellEffectEntry* effect)
             if (monster_info == 0) {
                 srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0x739, 0);
             }
-            if (effect->kind == 0x52) {
+            if (effect->kind == W8_SPELL_LIFESTEAL) {
                 HealMonster(monster_info, (drained * 7) / 10, announce);
-            } else if (effect->kind == 0x54) {
+            } else if (effect->kind == W8_SPELL_MIGHT_TO_MAGIC) {
                 monster_info->spell_points += drained >> 1;
             }
         }
-    } else if (effect->kind == 0x52) {
+    } else if (effect->kind == W8_SPELL_LIFESTEAL) {
         unsigned int slot = FindPartySlotWithLowestHitPoints();
         if (g_status.buffers.XChar[slot].fOccupied &&
             g_status.buffers.Char[slot].hp_current <
                 static_cast<unsigned int>(g_status.buffers.Char[slot].uiHPMax)) {
             HealCharacter(slot, (drained * 7) / 10, announce);
         }
-    } else if (effect->kind == 0x54) {
+    } else if (effect->kind == W8_SPELL_MIGHT_TO_MAGIC) {
         unsigned int slot = FindPartySlotWithLowestSpellPoints();
         if (g_status.buffers.XChar[slot].fOccupied) {
             W8Character* character = &g_status.buffers.Char[slot];
@@ -1768,7 +1768,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, W8Condition condition
         }
         W8Character* character = &g_status.buffers.Char[character_index];
         if (character->uiCondition[condition] != 0) {
-            if (character->uiCondition[condition] == W8_EFFECT_PERMANENT || force) {
+            if (character->uiCondition[condition] == W8_CONDITION_INDEFINITE || force) {
                 if (condition == W8_CONDITION_DEAD ||
                     (condition == W8_CONDITION_DRAINED || force)) {
                     chance = 100;
@@ -1834,7 +1834,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, W8Condition condition
         }
         turns = monster_info->uiCondition[condition];
         if (turns != 0) {
-            if (turns == W8_EFFECT_PERMANENT || turns <= power || force) {
+            if (turns == W8_CONDITION_INDEFINITE || turns <= power || force) {
                 if (condition == W8_CONDITION_DEAD || condition == W8_CONDITION_DRAINED ||
                     turns <= power || force) {
                     chance = 100;
@@ -1918,7 +1918,7 @@ void InflictConditionAttack(W8SpellEffectEntry* effect, W8Condition condition, i
         }
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = character_index;
-        if (effect->kind == 0x1d &&
+        if (effect->kind == W8_SPELL_SLOW &&
             g_status.buffers.Char[character_index].enchantments[W8_ENCHANTMENT_HASTE].turns != 0) {
             /* Retail subtracts the shield with signed JLE on the leftover. */
             remaining = static_cast<int>(duration) -
@@ -1940,11 +1940,12 @@ void InflictConditionAttack(W8SpellEffectEntry* effect, W8Condition condition, i
                     effect->definition.power_level, argument, duration, verbose, verbose, 0)) {
                 continue;
             }
-            if (effect->kind == 0xe) {
-                ResolveAttackOnTarget(
-                    &effect->Source, &target, W8_CONDITION_UNCONSCIOUS, g_spell_records[0xe].realm,
-                    static_cast<unsigned int>(effect->definition.power_level) >> 1, argument,
-                    duration >> 1, false, verbose, 0);
+            if (effect->kind == W8_SPELL_TERROR) {
+                ResolveAttackOnTarget(&effect->Source, &target, W8_CONDITION_UNCONSCIOUS,
+                                      g_spell_records[W8_SPELL_TERROR].realm,
+                                      static_cast<unsigned int>(effect->definition.power_level) >>
+                                          1,
+                                      argument, duration >> 1, false, verbose, 0);
             }
             if (!verbose) {
                 ++affected;
@@ -1964,7 +1965,8 @@ void InflictConditionAttack(W8SpellEffectEntry* effect, W8Condition condition, i
         }
         target.iType = W8_TARGET_KIND_MONSTER;
         target.iMonsterID = monster_info->location_id;
-        if (effect->kind == 0x1d && monster_info->enchantments[W8_ENCHANTMENT_HASTE].turns != 0) {
+        if (effect->kind == W8_SPELL_SLOW &&
+            monster_info->enchantments[W8_ENCHANTMENT_HASTE].turns != 0) {
             remaining = static_cast<int>(duration) -
                         static_cast<int>(monster_info->enchantments[W8_ENCHANTMENT_HASTE].turns);
             TickMonsterEnchantmentSlot(monster_info->location_id, W8_ENCHANTMENT_HASTE, duration);
@@ -1982,7 +1984,7 @@ void InflictConditionAttack(W8SpellEffectEntry* effect, W8Condition condition, i
                     effect->definition.power_level, argument, duration, verbose, verbose, 0)) {
                 continue;
             }
-            if (effect->kind == 0xe || effect->kind == 0x1e) {
+            if (effect->kind == W8_SPELL_TERROR || effect->kind == W8_SPELL_SONIC_BOOM) {
                 ResolveAttackOnTarget(
                     &effect->Source, &target, condition, g_spell_records[effect->kind].realm,
                     static_cast<unsigned int>(effect->definition.power_level) >> 1, argument,
@@ -2831,7 +2833,7 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
         srAssertFail("gXStatus.fCombatMode", MAGIC_EFFECTS_CPP, 900, 0);
     }
     duration = effect->definition.duration_scale;
-    if (duration != 9999) {
+    if (duration != W8_CONDITION_INDEFINITE) {
         ++duration;
         switch (Random(4)) {
         case 0:
@@ -2856,8 +2858,8 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
         case 0x50:
         case 0x51:
         case 0x5d:
-            reduce =
-                g_spell_records[72].spell_level - g_spell_records[*table].spell_level + duration;
+            reduce = g_spell_records[W8_SPELL_PURIFY_AIR].spell_level -
+                     g_spell_records[*table].spell_level + duration;
             if (reduce > 0) {
                 slot = &g_combat_state->effect_slots[slot_index];
                 if (effect->target_indices.GetCount() != 0 && slot->active) {
@@ -3012,7 +3014,7 @@ void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)
     do {
         if (effect_slots->active && effect_slots->effect_id == 0x3e) {
             ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x1ae],
-                        g_spell_records[62].display_name);
+                        g_spell_records[W8_SPELL_RING_OF_FIRE].display_name);
             SetTextBoxMode(1, -1);
             {
                 float reach = CalcRangeDistance(W8_RANGE_SHORT);
@@ -3027,12 +3029,13 @@ void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)
                 if (monster_info == 0) {
                     srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0x11a7, 0);
                 }
-                dice = g_spell_records[62].effect_dice;
+                dice = g_spell_records[W8_SPELL_RING_OF_FIRE].effect_dice;
                 dice.count = static_cast<char>(effect_slots->amount) * dice.count;
                 amount = RollDice(&dice);
                 target.iType = W8_TARGET_KIND_MONSTER;
                 target.iMonsterID = monster_info->location_id;
-                ApplyEffectAndAnnounce(&amount, &target, g_spell_records[62].realm,
+                ApplyEffectAndAnnounce(&amount, &target,
+                                       g_spell_records[W8_SPELL_RING_OF_FIRE].realm,
                                        effect_slots->amount * 3);
                 if (amount != 0) {
                     ApplyDamageToMonster(monster_info, amount, &source, false, verbose, 0,
@@ -3127,16 +3130,16 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
             difficulty = GetSpellDifficulty(0, spell_id, power);
             AdjustIntegerByPercent(&difficulty, static_cast<unsigned int>(percent) >> 1);
             switch (spell_id) {
-            case 0x30:
-            case 0x4c:
-            case 0x50:
-            case 0x51:
+            case W8_SPELL_ACID_BOMB:
+            case W8_SPELL_TOXIC_CLOUD:
+            case W8_SPELL_DRAINING_CLOUD:
+            case W8_SPELL_FIRESTORM:
                 dice = g_spell_records[spell_id].effect_dice;
                 dice.count = static_cast<char>(power) * dice.count;
                 rolls_damage = true;
                 sleep_type = false;
                 break;
-            case 0x5d:
+            case W8_SPELL_DEATH_CLOUD:
                 rolls_damage = false;
                 sleep_type = true;
                 break;
@@ -3165,8 +3168,8 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                                                        false);
                                 resisted_total += amount;
                                 ++hit_count;
-                                if (spell_id == 0x50) {
-                                    for (realm = 0; realm < 6; ++realm) {
+                                if (spell_id == W8_SPELL_DRAINING_CLOUD) {
+                                    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
                                         DrainCharacterRealmSpellPoints(
                                             party_slot, static_cast<W8SpellRealm>(realm), amount,
                                             true);
@@ -3178,33 +3181,35 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                         if (sleep_type &&
                             !TargetResistsCondition(&char_target, g_spell_records[spell_id].realm,
                                                     difficulty, W8_CONDITION_DEAD)) {
-                            SetCharacterCondition(party_slot, W8_CONDITION_DEAD, 9999, 0, 0, 1);
+                            SetCharacterCondition(party_slot, W8_CONDITION_DEAD,
+                                                  W8_CONDITION_INDEFINITE, 0, 0, 1);
                         }
-                        if (spell_id == 0x4c) {
+                        if (spell_id == W8_SPELL_TOXIC_CLOUD) {
                             duration =
                                 RollEffectDuration(duration_scale, power, duration_base, percent);
                             condition_turns = duration;
                             ReduceMagnitudeByResistance(&condition_turns, target,
-                                                        g_spell_records[0x4c].realm, difficulty);
+                                                        g_spell_records[W8_SPELL_TOXIC_CLOUD].realm,
+                                                        difficulty);
                             if (condition_turns != 0) {
                                 if (condition_turns == 1) {
                                     condition_turns = 2;
                                 }
-                                if (!TargetResistsCondition(&char_target,
-                                                            g_spell_records[0x4c].realm, difficulty,
-                                                            W8_CONDITION_NAUSEATED)) {
+                                if (!TargetResistsCondition(
+                                        &char_target, g_spell_records[W8_SPELL_TOXIC_CLOUD].realm,
+                                        difficulty, W8_CONDITION_NAUSEATED)) {
                                     SetCharacterCondition(party_slot, W8_CONDITION_NAUSEATED,
                                                           condition_turns, 0, 0, 1);
                                 }
-                                if (!TargetResistsCondition(&char_target,
-                                                            g_spell_records[0x4c].realm, difficulty,
-                                                            W8_CONDITION_POISONED)) {
+                                if (!TargetResistsCondition(
+                                        &char_target, g_spell_records[W8_SPELL_TOXIC_CLOUD].realm,
+                                        difficulty, W8_CONDITION_POISONED)) {
                                     SetCharacterCondition(party_slot, W8_CONDITION_POISONED,
                                                           condition_turns, condition_turns, 0, 1);
                                 }
-                                if (!TargetResistsCondition(&char_target,
-                                                            g_spell_records[0x4c].realm, difficulty,
-                                                            W8_CONDITION_UNCONSCIOUS)) {
+                                if (!TargetResistsCondition(
+                                        &char_target, g_spell_records[W8_SPELL_TOXIC_CLOUD].realm,
+                                        difficulty, W8_CONDITION_UNCONSCIOUS)) {
                                     SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS,
                                                           condition_turns, 0, 0, 1);
                                 }
@@ -3228,7 +3233,7 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                                            difficulty);
                     if (amount != 0) {
                         ApplyDamageToMonster(monster_info, amount, &source, false, 1, 0, 0, false);
-                        if (spell_id == 0x50) {
+                        if (spell_id == W8_SPELL_DRAINING_CLOUD) {
                             FatigueMonster(monster_info, amount, 0);
                             monster_info->spell_points = monster_info->spell_points - (amount >> 1);
                         }
@@ -3236,35 +3241,39 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                 }
                 monster_record = GetMonsterDataForInfo(monster_info);
                 if (sleep_type && monster_record->instant_death_immune == 0 &&
-                    !TargetResistsCondition(target, g_spell_records[0x5d].realm, difficulty,
-                                            W8_CONDITION_DEAD)) {
-                    SetMonsterCondition(target->iMonsterID, W8_CONDITION_DEAD, 9999, 0, &source,
-                                        true);
+                    !TargetResistsCondition(target, g_spell_records[W8_SPELL_DEATH_CLOUD].realm,
+                                            difficulty, W8_CONDITION_DEAD)) {
+                    SetMonsterCondition(target->iMonsterID, W8_CONDITION_DEAD,
+                                        W8_CONDITION_INDEFINITE, 0, &source, true);
                 }
                 if (monster_info->hp_current == 0) {
                     return;
                 }
-                if (spell_id == 0x4c) {
+                if (spell_id == W8_SPELL_TOXIC_CLOUD) {
                     duration = RollEffectDuration(duration_scale, power, duration_base, percent);
                     condition_turns = duration;
                     ReduceMagnitudeByResistance(&condition_turns, target,
-                                                g_spell_records[0x4c].realm, difficulty);
+                                                g_spell_records[W8_SPELL_TOXIC_CLOUD].realm,
+                                                difficulty);
                     if (condition_turns != 0) {
                         if (condition_turns == 1) {
                             condition_turns = 2;
                         }
-                        if (!TargetResistsCondition(target, g_spell_records[0x4c].realm, difficulty,
-                                                    W8_CONDITION_NAUSEATED)) {
+                        if (!TargetResistsCondition(target,
+                                                    g_spell_records[W8_SPELL_TOXIC_CLOUD].realm,
+                                                    difficulty, W8_CONDITION_NAUSEATED)) {
                             SetMonsterCondition(target->iMonsterID, W8_CONDITION_NAUSEATED,
                                                 condition_turns, 0, &source, true);
                         }
-                        if (!TargetResistsCondition(target, g_spell_records[0x4c].realm, difficulty,
-                                                    W8_CONDITION_POISONED)) {
+                        if (!TargetResistsCondition(target,
+                                                    g_spell_records[W8_SPELL_TOXIC_CLOUD].realm,
+                                                    difficulty, W8_CONDITION_POISONED)) {
                             SetMonsterCondition(target->iMonsterID, W8_CONDITION_POISONED,
                                                 condition_turns, condition_turns, &source, true);
                         }
-                        if (!TargetResistsCondition(target, g_spell_records[0x4c].realm, difficulty,
-                                                    W8_CONDITION_UNCONSCIOUS)) {
+                        if (!TargetResistsCondition(target,
+                                                    g_spell_records[W8_SPELL_TOXIC_CLOUD].realm,
+                                                    difficulty, W8_CONDITION_UNCONSCIOUS)) {
                             SetMonsterCondition(target->iMonsterID, W8_CONDITION_UNCONSCIOUS,
                                                 condition_turns, 0, &source, true);
                         }
@@ -3324,67 +3333,67 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         target_type != W8_TARGET_TYPE_PARTY) {
         return;
     }
-    if (effect->Source.auto_cast != 0 && spell_id != 9) {
+    if (effect->Source.auto_cast != 0 && spell_id != W8_SPELL_MAKE_WOUNDS) {
         effect->reported = true;
     }
     switch (spell_id) {
-    case 1:
-    case 5:
-    case 10:
-    case 0xb:
-    case 0x19:
-    case 0x4f:
+    case W8_SPELL_ACID_SPLASH:
+    case W8_SPELL_ENERGY_BLAST:
+    case W8_SPELL_MIND_STAB:
+    case W8_SPELL_PARALYZE:
+    case W8_SPELL_MAGIC_MISSILES:
+    case W8_SPELL_BOILING_BLOOD:
         return;
-    case 2:
-    case 0x35:
-    case 0x3b:
-    case 0x3e:
+    case W8_SPELL_BLESS:
+    case W8_SPELL_ELEMENT_SHIELD:
+    case W8_SPELL_SOUL_SHIELD:
+    case W8_SPELL_RING_OF_FIRE:
         ApplyDefenseEffectSlot(effect);
         break;
-    case 3:
+    case W8_SPELL_CHARM:
         ApplyCharmToMonsterTarget(effect);
         break;
-    case 6:
-    case 0x44:
+    case W8_SPELL_HEAL_WOUNDS:
+    case W8_SPELL_HEAL_ALL:
         if (!effect->Source.fBackfire) {
             applied &= HealTargets(effect);
         } else {
             ApplyDamageToTargets(effect);
         }
         break;
-    case 7:
+    case W8_SPELL_ITCHING_SKIN:
         InflictConditionAttack(effect, W8_CONDITION_IRRITATED, 100, 0);
         break;
-    case 8:
-    case 0x11:
-    case 0x14:
-    case 0x1a:
-    case 0x20:
-    case 0x21:
-    case 0x28:
-    case 0x2d:
-    case 0x40:
+    case W8_SPELL_LIGHT:
+    case W8_SPELL_DETECT_SECRETS:
+    case W8_SPELL_ENCHANTED_BLADE:
+    case W8_SPELL_MISSILE_SHIELD:
+    case W8_SPELL_ARMORPLATE:
+    case W8_SPELL_CHAMELEON:
+    case W8_SPELL_MAGIC_SCREEN:
+    case W8_SPELL_SHADOW_HOUND:
+    case W8_SPELL_X_RAY:
         ApplyBeingEffectSlot(effect);
         break;
-    case 0xc:
+    case W8_SPELL_SLEEP:
         InflictConditionAttack(effect, W8_CONDITION_ASLEEP, 100, 0);
         break;
-    case 0xd:
-    case 0x2c:
+    case W8_SPELL_STAMINA:
+    case W8_SPELL_REST_ALL:
         if (!effect->Source.fBackfire) {
             applied &= RestoreTargetsStamina(effect);
         } else {
             FatigueTargets(effect);
         }
         break;
-    case 0xe:
-    case 0x75:
+    case W8_SPELL_TERROR:
+    case W8_SPELL_ROUT:
         InflictConditionAttack(effect, W8_CONDITION_AFRAID, 100, 0);
         break;
-    case 0xf:
+    case W8_SPELL_BLINDING_FLASH:
         InflictConditionAttack(effect, W8_CONDITION_BLIND, 100, 0);
         break;
-    case 0x10:
+    case W8_SPELL_CURE_LESSER_COND:
         if (!effect->Source.fBackfire) {
             applied &= TryCureConditionOnTargets(effect, W8_CONDITION_IRRITATED, false) &
                        TryCureConditionOnTargets(effect, W8_CONDITION_NAUSEATED, false) &
@@ -3393,16 +3402,16 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
                        TryCureConditionOnTargets(effect, W8_CONDITION_BLIND, false);
         } else {
             switch (Random(5)) {
-            case 0:
+            case W8_SPELL_NONE:
                 InflictConditionAttack(effect, W8_CONDITION_IRRITATED, 100, 0);
                 break;
-            case 1:
+            case W8_SPELL_ACID_SPLASH:
                 InflictConditionAttack(effect, W8_CONDITION_NAUSEATED, 100, 0);
                 break;
-            case 2:
+            case W8_SPELL_BLESS:
                 InflictConditionAttack(effect, W8_CONDITION_AFRAID, 100, 0);
                 break;
-            case 3:
+            case W8_SPELL_CHARM:
                 InflictConditionAttack(effect, W8_CONDITION_ASLEEP, 100, 0);
                 break;
             default:
@@ -3411,7 +3420,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             }
         }
         break;
-    case 0x12:
+    case W8_SPELL_DIVINE_TRAP:
         level = effect->definition.duration_scale;
         AdjustIntegerByPercent(&level, effect->definition.percent);
         if (6 < level) {
@@ -3420,57 +3429,57 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         SetKnockKnockTarget(level, effect->Source.name_known, effect->Source.fBackfire);
         effect->reported = true;
         break;
-    case 0x13:
-    case 0x15:
-    case 0x1b:
-    case 0x36:
-    case 0x38:
-    case 0x3d:
-    case 0x41:
+    case W8_SPELL_DRACON_BREATH:
+    case W8_SPELL_GUARDIAN_ANGEL:
+    case W8_SPELL_RAZOR_CLOAK:
+    case W8_SPELL_EYE_FOR_AN_EYE:
+    case W8_SPELL_HASTE:
+    case W8_SPELL_SUPERMAN:
+    case W8_SPELL_BODY_OF_STONE:
         if (!effect->Source.fBackfire) {
             W8EnchantmentSlot enchantment;
             switch (spell_id) {
-            case 0x13:
+            case W8_SPELL_DRACON_BREATH:
                 enchantment = W8_ENCHANTMENT_DRACON_BREATH;
                 break;
             default:
                 srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 0xd0b, 0);
                 enchantment = W8_ENCHANTMENT_NONE;
                 break;
-            case 0x15:
+            case W8_SPELL_GUARDIAN_ANGEL:
                 enchantment = W8_ENCHANTMENT_GUARDIAN_ANGEL;
                 break;
-            case 0x1b:
+            case W8_SPELL_RAZOR_CLOAK:
                 enchantment = W8_ENCHANTMENT_RAZOR_CLOAK;
                 break;
-            case 0x36:
+            case W8_SPELL_EYE_FOR_AN_EYE:
                 enchantment = W8_ENCHANTMENT_EYE_FOR_AN_EYE;
                 break;
-            case 0x38:
+            case W8_SPELL_HASTE:
                 enchantment = W8_ENCHANTMENT_HASTE;
                 break;
-            case 0x3d:
+            case W8_SPELL_SUPERMAN:
                 enchantment = W8_ENCHANTMENT_SUPERMAN;
                 break;
-            case 0x41:
+            case W8_SPELL_BODY_OF_STONE:
                 enchantment = W8_ENCHANTMENT_BODY_OF_STONE;
                 break;
             }
             ApplyConditionToTargets(effect, enchantment);
             effect->applied = true;
         } else {
-            if (effect->kind == 0x13) {
+            if (effect->kind == W8_SPELL_DRACON_BREATH) {
                 InflictConditionAttack(effect, W8_CONDITION_NAUSEATED, 100, 0);
             }
-            if (effect->kind == 0x1b) {
+            if (effect->kind == W8_SPELL_RAZOR_CLOAK) {
                 ApplyDamageToTargets(effect);
             }
-            if (effect->kind == 0x38) {
+            if (effect->kind == W8_SPELL_HASTE) {
                 InflictConditionAttack(effect, W8_CONDITION_SLOWED, 100, 0);
             }
         }
         break;
-    case 0x17:
+    case W8_SPELL_IDENTIFY_ITEM:
         if (!TargetSourceIsCharacter(&effect->Source, 0)) {
             srAssertFail("SourceIsCharacter(&(pQueue->Source))", MAGIC_EFFECTS_CPP, 0x1c2, 0);
         }
@@ -3481,14 +3490,14 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             effect->applied = true;
         }
         break;
-    case 0x18:
+    case W8_SPELL_INSANITY:
         InflictConditionAttack(effect, W8_CONDITION_INSANE, 100, 0);
         break;
-    case 0x1d:
+    case W8_SPELL_SLOW:
         InflictConditionAttack(effect, W8_CONDITION_SLOWED, 100, 0);
         break;
-    case 0x1e:
-    case 0x7b:
+    case W8_SPELL_SONIC_BOOM:
+    case W8_SPELL_ALARM:
         InflictConditionAttack(effect, W8_CONDITION_AFRAID, 100, 0);
         AlertMonsterGroupsToNoise(&effect->target.point,
                                   effect->definition.duration_scale * 15000 + 25000, 0);
@@ -3496,10 +3505,10 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             effect->applied = true;
         }
         break;
-    case 0x1f:
+    case W8_SPELL_WEB:
         InflictConditionAttack(effect, W8_CONDITION_WEBBED, 100, 0);
         break;
-    case 0x22:
+    case W8_SPELL_CURE_PARALYSIS:
         if (!effect->Source.fBackfire) {
             applied &= TryCureConditionOnTargets(effect, W8_CONDITION_PARALYZED, false) &
                        TryCureConditionOnTargets(effect, W8_CONDITION_WEBBED, false);
@@ -3507,7 +3516,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             InflictConditionAttack(effect, W8_CONDITION_PARALYZED, 100, 0);
         }
         break;
-    case 0x23:
+    case W8_SPELL_CURE_POISON:
         if (!effect->Source.fBackfire) {
             applied &= TryCureConditionOnTargets(effect, W8_CONDITION_POISONED, false);
         } else {
@@ -3518,14 +3527,14 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             InflictConditionAttack(effect, W8_CONDITION_POISONED, 100, roll + 1 + condition);
         }
         break;
-    case 0x25:
-    case 0x43:
+    case W8_SPELL_FREEZE_FLESH:
+    case W8_SPELL_FREEZE_ALL:
         InflictConditionAttack(effect, W8_CONDITION_PARALYZED, 100, 0);
         break;
-    case 0x26:
+    case W8_SPELL_HYPNOTIC_LURE:
         ApplyMonsterControlToNearbyMonsters(effect);
         break;
-    case 0x27:
+    case W8_SPELL_KNOCK_KNOCK:
         level = effect->definition.duration_scale;
         AdjustIntegerByPercent(&level, effect->definition.percent);
         if (6 < level) {
@@ -3534,61 +3543,61 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         CastSpellAtLockInteraction(level, effect->Source.name_known, effect->Source.fBackfire);
         effect->reported = true;
         break;
-    case 0x29:
+    case W8_SPELL_MINDREAD:
         ResolveCharmRefusal(effect);
         effect->reported = true;
         break;
-    case 0x2a:
+    case W8_SPELL_NOXIOUS_FUMES:
         ApplyDamageToTargets(effect);
         InflictConditionAttack(effect, W8_CONDITION_NAUSEATED, 0x5a, 0);
         InflictConditionAttack(effect, W8_CONDITION_UNCONSCIOUS, 0x19, 0);
         break;
-    case 0x2e:
+    case W8_SPELL_SILENCE:
         InflictConditionAttack(effect, W8_CONDITION_SILENCED, 100, 0);
         break;
-    case 0x30:
-    case 0x31:
-    case 0x4c:
-    case 0x50:
-    case 0x51:
-    case 0x5d:
+    case W8_SPELL_ACID_BOMB:
+    case W8_SPELL_ARMORMELT:
+    case W8_SPELL_TOXIC_CLOUD:
+    case W8_SPELL_DRAINING_CLOUD:
+    case W8_SPELL_FIRESTORM:
+    case W8_SPELL_DEATH_CLOUD:
         ApplyCombatEffectSlot(effect);
         break;
-    case 0x33:
+    case W8_SPELL_CURE_DISEASE:
         applied &= TryCureConditionOnTargets(effect, W8_CONDITION_DISEASED, false);
         break;
-    case 0x3a:
+    case W8_SPELL_REMOVE_CURSE:
         if (effect->Source.fBackfire) {
             InflictConditionAttack(effect, W8_CONDITION_HEXED, 100, 0);
         } else {
             RevealItemBindingsToTarget(effect);
         }
         break;
-    case 0x3c:
-        ApplyInsanityEffect(effect);
+    case W8_SPELL_SUMMON_ELEMENTAL:
+        ApplySummonElementalEffect(effect);
         break;
-    case 0x45:
+    case W8_SPELL_HEX:
         InflictConditionAttack(effect, W8_CONDITION_HEXED, 100, 0);
         break;
-    case 0x46:
-    case 0x57:
-    case 0x5a:
-    case 0x5e:
+    case W8_SPELL_INSTANT_DEATH:
+    case W8_SPELL_QUICKSAND:
+    case W8_SPELL_ASPHYXIATION:
+    case W8_SPELL_DEATH_WISH:
         InflictConditionAttack(effect, W8_CONDITION_DEAD, 100, 0);
         break;
-    case 0x47:
+    case W8_SPELL_PSIONIC_BLAST:
         ApplyDamageToTargets(effect);
         InflictConditionAttack(effect, W8_CONDITION_INSANE, 0x19, 0);
         break;
-    case 0x48:
+    case W8_SPELL_PURIFY_AIR:
         ReduceCombatEffectDurations(effect);
         effect->applied = true;
         break;
-    case 0x49:
+    case W8_SPELL_RETURN_TO_PORTAL:
         RecallCasterToSavedLocation(effect);
         effect->applied = true;
         break;
-    case 0x4a:
+    case W8_SPELL_SANE_MIND:
         if (!effect->Source.fBackfire) {
             applied &= TryCureConditionOnTargets(effect, W8_CONDITION_INSANE, false) &
                        TryCureConditionOnTargets(effect, W8_CONDITION_TURNCOAT, false);
@@ -3596,7 +3605,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             InflictConditionAttack(effect, W8_CONDITION_INSANE, 100, 0);
         }
         break;
-    case 0x4b:
+    case W8_SPELL_SET_PORTAL:
         if (!TargetSourceIsCharacter(&effect->Source, 0)) {
             srAssertFail("SourceIsCharacter(&(pQueue->Source))", MAGIC_EFFECTS_CPP, 0xa6f, 0);
         }
@@ -3607,37 +3616,37 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         g_status.buffers.Char[effect->Source.iChar].has_saved_location = true;
         effect->applied = true;
         break;
-    case 0x4e:
+    case W8_SPELL_BLIZZARD:
         ApplyDamageToTargets(effect);
         InflictConditionAttack(effect, W8_CONDITION_BLIND, 0x19, 0);
         break;
-    case 0x52:
-    case 0x54:
+    case W8_SPELL_LIFESTEAL:
+    case W8_SPELL_MIGHT_TO_MAGIC:
         DrainTargetsLife(effect);
         break;
-    case 0x55:
+    case W8_SPELL_PANDEMONIUM:
         AttackThenInflictCondition(effect, W8_CONDITION_INSANE, W8_CONDITION_AFRAID, 100, 0, 0);
         break;
-    case 0x56:
-    case 0x63:
+    case W8_SPELL_PRISMIC_RAY:
+    case W8_SPELL_PRISMIC_CHAOS:
         ResolveAfflictionAgainstTargets(effect);
         effect->reported = true;
         break;
-    case 0x58:
+    case W8_SPELL_RESURRECTION:
         applied &= TryCureConditionOnTargets(effect, W8_CONDITION_DEAD, false);
         break;
-    case 0x59:
+    case W8_SPELL_TURNCOAT:
         InflictConditionAttack(effect, W8_CONDITION_TURNCOAT, 100, 0);
         break;
-    case 0x5b:
+    case W8_SPELL_CEREBRAL_HEMORRHAGE:
         ApplyDamageToTargets(effect);
         InflictConditionAttack(effect, W8_CONDITION_INSANE, 0x4b, 0);
         break;
-    case 0x5c:
+    case W8_SPELL_CONCUSSION:
         ApplyDamageToTargets(effect);
         InflictConditionAttack(effect, W8_CONDITION_UNCONSCIOUS, 0x32, 0);
         break;
-    case 0x5f:
+    case W8_SPELL_EARTHQUAKE:
         point = effect->Source.point;
         level = effect->definition.duration_scale;
         shake = CreateCameraShakeEffect(
@@ -3651,44 +3660,44 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             SoundPlay(path, parms);
         }
         /* fall through */
-    case 4:
-    case 9:
-    case 0x16:
-    case 0x1c:
-    case 0x24:
-    case 0x2b:
-    case 0x2f:
-    case 0x32:
-    case 0x34:
-    case 0x37:
-    case 0x39:
-    case 0x3f:
-    case 0x42:
-    case 0x4d:
-    case 0x53:
-    case 0x60:
-    case 0x61:
-    case 0x62:
-    case 0x65:
-    case 0x76:
+    case W8_SPELL_FROST:
+    case W8_SPELL_MAKE_WOUNDS:
+    case W8_SPELL_HOLY_WATER:
+    case W8_SPELL_SHRILL_SOUND:
+    case W8_SPELL_FIREBALL:
+    case W8_SPELL_PSIONIC_FIRE:
+    case W8_SPELL_WHIPPING_ROCKS:
+    case W8_SPELL_CRUSH:
+    case W8_SPELL_EGO_WHIP:
+    case W8_SPELL_FIRE_BOMB:
+    case W8_SPELL_ICEBALL:
+    case W8_SPELL_WHIRLWIND:
+    case W8_SPELL_DEHYDRATE:
+    case W8_SPELL_BANISH:
+    case W8_SPELL_LIGHTNING:
+    case W8_SPELL_FALLING_STARS:
+    case W8_SPELL_MIND_FLAY:
+    case W8_SPELL_NUCLEAR_BLAST:
+    case W8_SPELL_TSUNAMI:
+    case W8_SPELL_BOILING_BLOOD_EXPLOSION:
         ApplyDamageToTargets(effect);
         break;
-    case 0x64:
+    case W8_SPELL_RESTORATION:
         applied &= HealTargets(effect) & RestoreTargetsStamina(effect);
         for (condition = 2; condition < 0x12; ++condition) {
-            if (condition != 10) {
+            if (condition != W8_CONDITION_INFATUATED) {
                 applied &=
                     TryCureConditionOnTargets(effect, static_cast<W8Condition>(condition), true);
             }
         }
         break;
-    case 0x72:
+    case W8_SPELL_RESTORE_HEALTH:
         applied &= HealTargets(effect);
         effect->definition.magnitude.count <<= 1;
         applied &= RestoreTargetsStamina(effect);
         effect->reported = true;
         break;
-    case 0x73:
+    case W8_SPELL_RESTORE_MAGIC:
         count = effect->target_indices.GetCount();
         if (0 < count) {
             for (index = 0; index < count; ++index) {
@@ -3702,14 +3711,14 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         }
         effect->applied = true;
         break;
-    case 0x74:
+    case W8_SPELL_SMELLING_SALTS:
         applied &= TryCureConditionOnTargets(effect, W8_CONDITION_UNCONSCIOUS, false) &
                    TryCureConditionOnTargets(effect, W8_CONDITION_ASLEEP, false);
         break;
-    case 0x78:
+    case W8_SPELL_RENEWAL:
         TryCureConditionOnTargets(effect, W8_CONDITION_DRAINED, true);
         break;
-    case 0x7c:
+    case W8_SPELL_PHILOSOPHERS_BANE:
         if (0 < effect->target_indices.GetCount()) {
             percent_roll = RollDice(&effect->definition.magnitude);
             if (percent_roll < 100) {
@@ -3731,13 +3740,13 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             }
         }
         break;
-    case 0x7d:
+    case W8_SPELL_VAMPIRIC_VORTEX:
         DamageTargetsAndReport(effect);
         break;
-    case 0x7e:
+    case W8_SPELL_HEATWAVE:
         DestroyConsumablesOnTargets(effect);
         break;
-    case 0x7f:
+    case W8_SPELL_ANTI_MAGIC:
         amount = effect->definition.duration_scale * 0x32;
         AdjustIntegerByPercent(&amount, effect->definition.percent);
         if (0 < effect->target_indices.GetCount()) {
@@ -3752,14 +3761,14 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         }
         effect->reported = true;
         break;
-    case 0x81:
+    case W8_SPELL_DISPEL_UNDEAD:
         ApplyDamageToTargets(effect);
         InflictConditionAttack(effect, W8_CONDITION_PARALYZED, 0x32, 0);
         break;
-    case 0x82:
+    case W8_SPELL_BOOZE:
         ApplyRandomAfflictionToTarget(effect);
         break;
-    case 0x83:
+    case W8_SPELL_ROCKET_BLAST:
         GetFact(W8_FACT_UMISSION_TRAIN_FIRE_ASSIGN);
         ApplyDamageToTargets(effect);
         break;
@@ -3796,7 +3805,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         }
     }
     FinishSpellEffectTargets(effect);
-    if (queued_spell_id != 0x17 && g_current_screen_state.id == W8_SCREEN_CAMP) {
+    if (queued_spell_id != W8_SPELL_IDENTIFY_ITEM && g_current_screen_state.id == W8_SCREEN_CAMP) {
         RefreshTextBoxMode(0xffff);
     }
 }
@@ -3818,7 +3827,7 @@ void ApplyDiceDamageToCharacter(int party_slot, W8TargetSource* source, W8Enchan
         return;
     }
     memset(&result, 0, sizeof(result));
-    dice = g_spell_records[0x1b].effect_dice;
+    dice = g_spell_records[W8_SPELL_RAZOR_CLOAK].effect_dice;
     dice.count = static_cast<unsigned char>(enchantment->power) * dice.count;
     amount = ApplyCharacterDamageReduction(&g_status.buffers.Char[party_slot], RollDice(&dice));
     if (amount > 0) {
@@ -3847,7 +3856,7 @@ void ApplyDiceDamageToMonster(W8MonsterInfo* monster_info, W8TargetSource* sourc
     if (enchantment->power == 0) {
         return;
     }
-    dice = g_spell_records[0x1b].effect_dice;
+    dice = g_spell_records[W8_SPELL_RAZOR_CLOAK].effect_dice;
     dice.count = static_cast<unsigned char>(enchantment->power) * dice.count;
     damage = RollDice(&dice);
     record = GetMonsterDataForInfo(monster_info);

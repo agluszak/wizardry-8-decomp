@@ -584,7 +584,8 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
     }
     if (path->animated == 0) {
         if (path->discrete_mode == 0) {
-            index = static_cast<int>((path->nodes->GetCount() - 1) * path->position + g_double_half);
+            index =
+                static_cast<int>((path->nodes->GetCount() - 1) * path->position + g_double_half);
         } else {
             index = static_cast<int>(path->position + g_double_one_tenth);
         }
