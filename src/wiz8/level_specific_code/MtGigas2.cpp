@@ -54,8 +54,6 @@ static void RunOptionalTrigger(const char* name)
 // FUNCTION: WIZ8 0x004DB200
 void MtGigas2Setup(void)
 {
-    Trigger* pTrigger;
-
     if (GetLocationVarIDByName("WirePanel") != -1) {
         if (GetLocationVarValueByName("WirePanel") == 3) {
             RunOptionalTrigger("redwire");
