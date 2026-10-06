@@ -58,12 +58,8 @@ void W8DialogNumericInput::SetActive(bool active)
 // FUNCTION: WIZ8 0x005e1500
 void W8DialogNumericInput::SetActive(bool active, const POINT* point)
 {
-    m_active = active;
+    SetActive(active);
     if (!active) {
-        m_caret = -1;
-        m_dialog->m_field_4c = 0;
-        m_dirty = true;
-        m_button->m_dirty = true;
         return;
     }
     swprintf(g_numeric_input_text, g_format_d, m_value);
@@ -284,11 +280,7 @@ bool W8DialogNumericInput::HandleInput(const InputAtom* input)
         }
         break;
     case 0x1b:
-        m_active = false;
-        m_caret = -1;
-        m_dialog->m_field_4c = 0;
-        m_dirty = true;
-        m_button->m_dirty = true;
+        SetActive(false);
         break;
     default:
         return false;

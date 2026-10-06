@@ -975,15 +975,8 @@ unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region)
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
         return 1;
     case LEFT_BUTTON_DOWN:
-        g_submenu_rows[region->callback_id]->OnLeftButtonDown(0);
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        return 1;
     case LEFT_BUTTON_UP:
-        g_submenu_rows[region->callback_id]->OnLeftButtonUp(0);
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-        }
-        return 1;
+        return DispatchButtonRegionEvent(event, region, g_submenu_rows[region->callback_id]);
     case RIGHT_BUTTON_UP:
         g_submenu_rows[region->callback_id]->OnRightButtonUp(0);
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {

@@ -731,19 +731,27 @@ unsigned int W8TextBuffer::GetLineHeight()
     return height;
 }
 
-/* The text-control declaration is shared in Controls.h so every consumer sees
-   the same 20-slot hierarchy and its embedded W8TextBuffer at +0x60. */
-void W8TextControl::InvalidateCore(bool immediate)
+/* Concrete controls share the widget dirty flag, panel invalidation and
+   frame redraw request. Text controls also invalidate their text geometry. */
+// FUNCTION: WIZ8 0x004f40a0
+void W8Widget::Invalidate(bool immediate)
 {
     if (m_pPanel != 0) {
         m_dirty = true;
         if (immediate) {
             m_pPanel->Invalidate(0);
-        } else {
-            m_pPanel->InvalidateLayout();
+            RequestRedraw(W8_MAIN_REDRAW_FRAME);
+            return;
         }
+        m_pPanel->InvalidateLayout();
         RequestRedraw(W8_MAIN_REDRAW_FRAME);
     }
+}
+
+// FUNCTION: WIZ8 0x004f4650
+void W8TextControl::Invalidate(bool immediate)
+{
+    W8Widget::Invalidate(immediate);
     m_textBuffer.SetGeometryDirty();
 }
 
@@ -1039,12 +1047,6 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
     }
 }
 
-// FUNCTION: WIZ8 0x004f4650
-void W8TextControl::Invalidate(bool immediate)
-{
-    InvalidateCore(immediate);
-}
-
 // FUNCTION: WIZ8 0x004f4600
 void W8TextControl::SetFlaggedRegionBounds(int left, int top, int right)
 {
@@ -1085,7 +1087,7 @@ void W8TextControl::EnableSecondaryState(bool immediate)
         (m_stateFlags & g_W8TextControlStateSecondary) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         m_stateFlags |= g_W8TextControlStateSecondary;
-        InvalidateCore(immediate);
+        Invalidate(immediate);
     }
 }
 
@@ -1096,7 +1098,7 @@ void W8TextControl::DisableSecondaryState(bool immediate)
         (m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         m_stateFlags &= ~g_W8TextControlStateSecondary;
-        InvalidateCore(immediate);
+        Invalidate(immediate);
     }
 }
 
@@ -1124,7 +1126,7 @@ void W8TextControl::OnMouseEnter(int event)
     }
 
     SetAlternateTextEnabled(true);
-    InvalidateCore(static_cast<unsigned char>(event));
+    Invalidate(static_cast<unsigned char>(event));
 }
 
 // FUNCTION: WIZ8 0x004f4e00
@@ -1155,7 +1157,7 @@ void W8TextControl::OnMouseLeave(int event)
             return;
         }
         SetAlternateTextEnabled(false);
-        InvalidateCore(static_cast<unsigned char>(event));
+        Invalidate(static_cast<unsigned char>(event));
         return;
     }
 
@@ -1163,13 +1165,13 @@ void W8TextControl::OnMouseLeave(int event)
         (m_alternateNormalSprite != -1 &&
          (m_layoutFlags & g_W8TextControlLayoutLatchedImage) != 0)) {
         SetAlternateTextEnabled(false);
-        InvalidateCore(static_cast<unsigned char>(event));
+        Invalidate(static_cast<unsigned char>(event));
     }
     if ((m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         return;
     }
     m_stateFlags &= ~g_W8TextControlStatePressed;
-    InvalidateCore(static_cast<unsigned char>(event));
+    Invalidate(static_cast<unsigned char>(event));
 }
 
 void W8TextControl::NotifyPrimaryActivation()
@@ -1213,12 +1215,12 @@ void W8TextControl::OnLeftButtonDown(int event)
     if ((m_layoutFlags & g_W8TextControlLayoutToggle) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         if (m_imageObject != -1 && m_imageFrame != -1) {
-            InvalidateCore(static_cast<unsigned char>(event));
+            Invalidate(static_cast<unsigned char>(event));
         }
     } else if ((m_stateFlags & g_W8TextControlStatePressed) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         if ((m_layoutFlags & g_W8TextControlLayoutLatchedImage) == 0) {
-            InvalidateCore(static_cast<unsigned char>(event));
+            Invalidate(static_cast<unsigned char>(event));
         }
     }
 
@@ -1268,17 +1270,17 @@ void W8TextControl::OnLeftButtonUp(int event)
 
     if ((m_layoutFlags & g_W8TextControlLayoutToggle) == 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
-        InvalidateCore(static_cast<unsigned char>(event));
+        Invalidate(static_cast<unsigned char>(event));
     } else if ((m_stateFlags & g_W8TextControlStateSecondary) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         m_stateFlags |= g_W8TextControlStateSecondary;
         if ((m_layoutFlags & g_W8TextControlLayoutLatchedImage) != 0) {
-            InvalidateCore(static_cast<unsigned char>(event));
+            Invalidate(static_cast<unsigned char>(event));
         }
     } else if ((m_layoutFlags & g_W8TextControlLayoutStayLatched) == 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         m_stateFlags &= ~g_W8TextControlStateSecondary;
-        InvalidateCore(static_cast<unsigned char>(event));
+        Invalidate(static_cast<unsigned char>(event));
     }
 
     m_textBuffer.SetGeometryDirty();
@@ -1575,11 +1577,7 @@ void W8VerticalRangeThumb::ClampPositionAndInvalidate()
     m_pixelPosition = static_cast<int>(
         ((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
         m_trackLength);
-    if (m_pPanel != 0) {
-        m_dirty = true;
-        m_pPanel->InvalidateLayout();
-        RequestRedraw(W8_MAIN_REDRAW_FRAME);
-    }
+    Invalidate(false);
 }
 
 void W8VerticalRangeThumb::SynchronizeRangeValue()
@@ -1692,10 +1690,8 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
     }
 
     bool hovered = (m_pixelPosition <= y && y <= m_pixelPosition + m_thumbHeight);
-    if (hovered != m_hovered && m_pPanel != 0) {
-        m_dirty = true;
-        m_pPanel->InvalidateLayout();
-        RequestRedraw(W8_MAIN_REDRAW_FRAME);
+    if (hovered != m_hovered) {
+        Invalidate(false);
     }
     m_hovered = hovered;
 }
@@ -1834,28 +1830,12 @@ void W8HelpTextControl::OnLeftButtonUp(int event)
 }
 
 // FUNCTION: WIZ8 0x004f6780
-void W8HelpTextControl::OnRightButtonUp(int)
+void W8HelpTextControl::OnRightButtonUp(int event)
 {
     if (m_secondaryActivationCallback == 0) {
         PushButtonSoundScheme(0, true);
     }
-    if (m_active && m_enabled) {
-        if ((m_layoutFlags & W8_TEXT_CONTROL_SILENT) != 0) {
-            PushButtonSoundScheme(0, true);
-        }
-        if ((m_layoutFlags & W8_TEXT_CONTROL_ACTIVATE_WHILE_HELD) != 0 &&
-            (m_stateFlags & W8_TEXT_CONTROL_ACTIVATED_WHILE_HELD) != 0) {
-            m_stateFlags &= ~W8_TEXT_CONTROL_ACTIVATED_WHILE_HELD;
-            PushButtonSoundScheme(0, true);
-            return;
-        }
-        NotifySecondaryActivation();
-        return;
-    }
-    if (!m_active && m_enabled) {
-        return;
-    }
-    PushButtonSoundScheme(0, true);
+    W8TextControl::OnRightButtonUp(event);
 }
 
 // FUNCTION: WIZ8 0x004f6810
@@ -1870,14 +1850,6 @@ void W8HelpTextControl::OnLeftButtonDoubleClick(int event)
    the movable thumb sprite and retains the remaining horizontal travel at
    +0x4c. The interaction methods independently prove that geometry: cursor X
    is converted through +0x4c into the normalized float range +0x60..+0x68. */
-void W8HorizontalRangeThumb::InvalidateThumb()
-{
-    if (m_pPanel != 0) {
-        m_dirty = true;
-        m_pPanel->InvalidateLayout();
-        RequestRedraw(W8_MAIN_REDRAW_FRAME);
-    }
-}
 
 void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
 {
@@ -1890,7 +1862,7 @@ void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
     m_pixelPosition = static_cast<int>(
         ((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
         m_trackLength);
-    InvalidateThumb();
+    Invalidate(false);
 }
 
 // FUNCTION: WIZ8 0x004f5620
@@ -1986,16 +1958,7 @@ void W8VerticalRangeThumb::OnMouseLeave(int event)
     PushButtonSoundScheme(0, true);
     if (m_hovered && !m_dragging) {
         m_hovered = false;
-        if (m_pPanel != 0) {
-            m_dirty = true;
-            if (static_cast<unsigned char>(event) != 0) {
-                m_pPanel->Invalidate(0);
-                RequestRedraw(W8_MAIN_REDRAW_FRAME);
-                return;
-            }
-            m_pPanel->InvalidateLayout();
-            RequestRedraw(W8_MAIN_REDRAW_FRAME);
-        }
+        Invalidate(static_cast<unsigned char>(event) != 0);
     }
 }
 
@@ -2005,16 +1968,7 @@ void W8HorizontalRangeThumb::OnMouseLeave(int event)
     PushButtonSoundScheme(0, true);
     if (m_hovered && !m_dragging) {
         m_hovered = false;
-        if (m_pPanel != 0) {
-            m_dirty = true;
-            if (static_cast<unsigned char>(event) != 0) {
-                m_pPanel->Invalidate(0);
-                RequestRedraw(W8_MAIN_REDRAW_FRAME);
-                return;
-            }
-            m_pPanel->InvalidateLayout();
-            RequestRedraw(W8_MAIN_REDRAW_FRAME);
-        }
+        Invalidate(static_cast<unsigned char>(event) != 0);
     }
 }
 
@@ -2045,7 +1999,7 @@ void W8HorizontalRangeThumb::OnMouseMove(int event)
 
     bool hovered = (m_pixelPosition <= x && x <= m_pixelPosition + m_thumbWidth);
     if (m_hovered != hovered && m_pPanel != 0) {
-        InvalidateThumb();
+        Invalidate(false);
     }
     m_hovered = hovered;
 }
@@ -2253,23 +2207,6 @@ void W8Widget::DisableRegionHelp()
 {
     if (m_region != -1) {
         SetRegionHelp(m_region, false, -1);
-    }
-}
-
-/* Marks the widget dirty and either asks its panel to invalidate immediately
-   or raises the panel's deferred-layout flag. */
-// FUNCTION: WIZ8 0x004f40a0
-void W8Widget::Invalidate(bool immediate)
-{
-    if (m_pPanel != 0) {
-        m_dirty = true;
-        if (immediate) {
-            m_pPanel->Invalidate(0);
-            RequestRedraw(W8_MAIN_REDRAW_FRAME);
-            return;
-        }
-        m_pPanel->InvalidateLayout();
-        RequestRedraw(W8_MAIN_REDRAW_FRAME);
     }
 }
 

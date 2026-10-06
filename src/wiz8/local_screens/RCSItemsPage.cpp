@@ -1072,59 +1072,14 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
 // FUNCTION: WIZ8 0x005BBBB0
 unsigned char RealmTabRegionHandler(const InputAtom* event, W8Region* region)
 {
-    if (event->usEvent < 0x41) {
-        if (event->usEvent == 0x40 || event->usEvent == 8) {
-            g_camp_item_filter_buttons[region->callback_id]->OnLeftButtonDown(0);
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-            return 1;
-        }
-        if (event->usEvent == 0x10) {
-            g_camp_item_filter_buttons[region->callback_id]->OnLeftButtonUp(0);
-            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-            }
-            return 1;
-        }
-    } else if (event->usEvent == 0x400) {
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_camp_item_filter_buttons[region->callback_id]->OnMouseLeave(0);
-            return 1;
-        }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_camp_item_filter_buttons[region->callback_id]->OnMouseEnter(0);
-            return 1;
-        }
-    }
-    return 0;
+    return DispatchButtonRegionEvent(event, region,
+                                     g_camp_item_filter_buttons[region->callback_id]);
 }
 
 // FUNCTION: WIZ8 0x005BBC70
 unsigned char PanelTabRegionHandler(const InputAtom* event, W8Region* region)
 {
-    if (event->usEvent < 0x41) {
-        if (event->usEvent == 0x40 || event->usEvent == 8) {
-            g_camp_action_buttons[region->callback_id]->OnLeftButtonDown(0);
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-            return 1;
-        }
-        if (event->usEvent == 0x10) {
-            g_camp_action_buttons[region->callback_id]->OnLeftButtonUp(0);
-            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-            }
-            return 1;
-        }
-    } else if (event->usEvent == 0x400) {
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_camp_action_buttons[region->callback_id]->OnMouseLeave(0);
-            return 1;
-        }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_camp_action_buttons[region->callback_id]->OnMouseEnter(0);
-            return 1;
-        }
-    }
-    return 0;
+    return DispatchButtonRegionEvent(event, region, g_camp_action_buttons[region->callback_id]);
 }
 
 // FUNCTION: WIZ8 0x005BBD30

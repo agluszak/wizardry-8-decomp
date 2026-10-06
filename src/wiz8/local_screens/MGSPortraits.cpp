@@ -1488,30 +1488,12 @@ void UpdateConditionButtons(void)
 // FUNCTION: WIZ8 0x0059C260
 unsigned char ConditionButtonRegionEvent(const InputAtom* event, W8Region* region)
 {
-    unsigned short us_event = event->usEvent;
-    unsigned short slot = region->callback_id;
-    if (us_event == LEFT_BUTTON_DOWN) {
-        g_condition_buttons[slot]->OnLeftButtonDown(0);
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-    } else {
-        if (us_event != LEFT_BUTTON_UP) {
-            if (us_event == MOUSE_POS) {
-                if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-                    g_condition_buttons[slot]->OnMouseLeave(0);
-                    return 1;
-                }
-                if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                    g_condition_buttons[slot]->OnMouseEnter(0);
-                    return 1;
-                }
-            }
-            return 0;
-        }
-        g_condition_buttons[slot]->OnLeftButtonUp(0);
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-            return 1;
-        }
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+    case LEFT_BUTTON_UP:
+    case MOUSE_POS:
+        return DispatchButtonRegionEvent(event, region, g_condition_buttons[region->callback_id]);
+    default:
+        return 0;
     }
-    return 1;
 }

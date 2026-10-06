@@ -859,14 +859,7 @@ void W8PartySelectionCharacterPanel::OpenCampForSelectedMember(int row)
 // FUNCTION: WIZ8 0x005bf0e0
 void W8PartySelectionCharacterPanel::AdjustPartyMemberRange(int amount)
 {
-    while (amount > 0) {
-        m_range->Decrement();
-        --amount;
-    }
-    while (amount < 0) {
-        m_range->Increment();
-        ++amount;
-    }
+    m_range->AdjustValue(amount);
 }
 
 // FUNCTION: WIZ8 0x005bf120

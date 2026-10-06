@@ -1502,15 +1502,7 @@ void W8MainGameTextKeyHandler::OnMouseMove(int)
 // FUNCTION: WIZ8 0x00588070
 void W8MainGameTextKeyHandler::AdjustValue(int steps)
 {
-    if (steps > 0) {
-        for (; steps > 0; --steps) {
-            m_range.Decrement();
-        }
-    } else {
-        for (; steps < 0; ++steps) {
-            m_range.Increment();
-        }
-    }
+    m_range.AdjustValue(steps);
 }
 
 // FUNCTION: WIZ8 0x005880b0

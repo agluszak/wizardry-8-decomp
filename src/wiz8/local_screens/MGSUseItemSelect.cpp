@@ -759,79 +759,29 @@ void CloseUseItemSelection(void)
 // FUNCTION: WIZ8 0x0059D970
 unsigned char UseItemSelectScrollRegionEvent(const InputAtom* event, W8Region* region)
 {
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-    case LEFT_BUTTON_REPEAT:
-        g_use_item_select_scroll_buttons[region->callback_id]->OnLeftButtonDown(0);
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        return 1;
-    case LEFT_BUTTON_UP:
-        g_use_item_select_scroll_buttons[region->callback_id]->OnLeftButtonUp(0);
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-        }
-        return 1;
-    case MOUSE_POS:
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_use_item_select_scroll_buttons[region->callback_id]->OnMouseLeave(0);
-            return 1;
-        }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_use_item_select_scroll_buttons[region->callback_id]->OnMouseEnter(0);
-            return 1;
-        }
-        break;
-    }
-    return 0;
+    return DispatchButtonRegionEvent(event, region,
+                                     g_use_item_select_scroll_buttons[region->callback_id]);
 }
 
 /* Use-item select action/icon controls (catalog callback_ids 0, 3, 8). */
 // FUNCTION: WIZ8 0x0059DA30
 unsigned char UseItemSelectControlRegionEvent(const InputAtom* event, W8Region* region)
 {
-    int us_event = event->usEvent;
-
-    if (us_event <= RIGHT_BUTTON_DOWN) {
-        if (us_event == RIGHT_BUTTON_DOWN) {
-            g_use_item_select_controls[region->callback_id]->OnRightButtonDown(0);
-            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
-            return 1;
-        }
-        if (us_event != LEFT_BUTTON_DOWN) {
-            if (us_event == LEFT_BUTTON_UP) {
-                g_use_item_select_controls[region->callback_id]->OnLeftButtonUp(0);
-                if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
-                    return 1;
-                }
-                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-                return 1;
-            }
-            if (us_event != LEFT_BUTTON_REPEAT) {
-                return 0;
-            }
-        }
-        g_use_item_select_controls[region->callback_id]->OnLeftButtonDown(0);
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+    switch (event->usEvent) {
+    case RIGHT_BUTTON_DOWN:
+        g_use_item_select_controls[region->callback_id]->OnRightButtonDown(0);
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
         return 1;
-    }
-    if (us_event == RIGHT_BUTTON_UP) {
+    case RIGHT_BUTTON_UP:
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
             g_use_item_select_controls[region->callback_id]->OnRightButtonUp(0);
             region->flags &= ~W8_REGION_RIGHT_BUTTON_HELD;
         }
         return 1;
+    default:
+        return DispatchButtonRegionEvent(event, region,
+                                         g_use_item_select_controls[region->callback_id]);
     }
-    if (us_event == MOUSE_POS) {
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_use_item_select_controls[region->callback_id]->OnMouseLeave(0);
-            return 1;
-        }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_use_item_select_controls[region->callback_id]->OnMouseEnter(0);
-            return 1;
-        }
-    }
-    return 0;
 }
 
 /* Use-item text-box body region event: button presses only arm the held bits

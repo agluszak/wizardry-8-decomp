@@ -109,7 +109,6 @@ public:
     Listener* m_listener; /* 0xb4 */
 
 protected:
-    void InvalidateCore(bool immediate);
     void UpdateTextLayout();
     void NotifyPrimaryActivation();
     void NotifySecondaryActivation();

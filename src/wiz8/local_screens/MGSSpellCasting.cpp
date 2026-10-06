@@ -574,6 +574,18 @@ static void RefreshSpellPowerPip(int pip)
     }
 }
 
+static void AppendSpellCastingListEntry(int id, W8SpellRuntimeRecord* spell, char color)
+{
+    ++gpSCSV->uiSpellsInList;
+    gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
+    gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = color;
+    wchar_t line[120];
+    swprintf(line, g_format_s_space_s, g_spell_target_parentheticals[GetSpellTargetType(id, false)],
+             spell->display_name);
+    ShowNotice(W8_FONT_PALETTE_TEXT_BOX, line, 2);
+    AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost), 2);
+}
+
 /* Rebuilds the realm's spell list: pass zero appends every castable spell,
    pass one appends the unaffordable and blocked ones with their own colors.
    A nonzero spell id scrolls the list to and selects that spell's row. */
@@ -616,30 +628,12 @@ static void RebuildSpellCastingList(int spell_id)
                               !gXStatus.fTrapInteract) ||
                              SpellUsableNow(id, false)) &&
                             gpSCSV->uiSpellsInList + 1 <= 0x15e) {
-                            ++gpSCSV->uiSpellsInList;
-                            gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
-                            gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 4;
-                            wchar_t line[120];
-                            swprintf(line, g_format_s_space_s,
-                                     g_spell_target_parentheticals[GetSpellTargetType(id, false)],
-                                     spell->display_name);
-                            ShowNotice(W8_FONT_PALETTE_TEXT_BOX, line, 2);
-                            AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
-                                              2);
+                            AppendSpellCastingListEntry(id, spell, 4);
                             SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 4);
                         }
                     } else if (pass == 0) {
                         if (gpSCSV->uiSpellsInList + 1 <= 0x15e) {
-                            ++gpSCSV->uiSpellsInList;
-                            gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
-                            gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 0xf;
-                            wchar_t line[120];
-                            swprintf(line, g_format_s_space_s,
-                                     g_spell_target_parentheticals[GetSpellTargetType(id, false)],
-                                     spell->display_name);
-                            ShowNotice(W8_FONT_PALETTE_TEXT_BOX, line, 2);
-                            AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
-                                              2);
+                            AppendSpellCastingListEntry(id, spell, 0xf);
                         }
                         if (id == spell_id) {
                             selected = gpSCSV->uiSpellsInList - 1;
@@ -650,15 +644,7 @@ static void RebuildSpellCastingList(int spell_id)
                              !gXStatus.fTrapInteract) ||
                             SpellUsableNow(id, false)) &&
                            gpSCSV->uiSpellsInList + 1 <= 0x15e) {
-                    ++gpSCSV->uiSpellsInList;
-                    gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
-                    gpSCSV->alt_colors[gpSCSV->uiSpellsInList - 1] = 0;
-                    wchar_t line[120];
-                    swprintf(line, g_format_s_space_s,
-                             g_spell_target_parentheticals[GetSpellTargetType(id, false)],
-                             spell->display_name);
-                    ShowNotice(W8_FONT_PALETTE_TEXT_BOX, line, 2);
-                    AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost), 2);
+                    AppendSpellCastingListEntry(id, spell, 0);
                     SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 0);
                 }
                 ++index;

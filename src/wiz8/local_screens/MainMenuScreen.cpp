@@ -131,6 +131,13 @@ unsigned char DrawMainMenuItem(short item, short state)
     return 1;
 }
 
+static void SelectMainMenuItem(short item)
+{
+    DrawMainMenuItem(g_main_menu_selected_item, 0);
+    g_main_menu_selected_item = item;
+    DrawMainMenuItem(item, 1);
+}
+
 /* Zero is the retail BSS state. The first screen synchronization replaces it
    with the default cursor and then records the normal -1 state. */
 
@@ -302,14 +309,10 @@ void MainMenuScreenFrame()
                         RequestExitScreen();
                         break;
                     case VK_PRIOR:
-                        DrawMainMenuItem(g_main_menu_selected_item, 0);
-                        g_main_menu_selected_item = 0;
-                        DrawMainMenuItem(0, 1);
+                        SelectMainMenuItem(0);
                         break;
                     case VK_NEXT:
-                        DrawMainMenuItem(g_main_menu_selected_item, 0);
-                        g_main_menu_selected_item = 5;
-                        DrawMainMenuItem(5, 1);
+                        SelectMainMenuItem(5);
                         break;
                     case VK_UP:
                         DrawMainMenuItem(g_main_menu_selected_item, 0);
@@ -378,181 +381,92 @@ void SetMainMenuMessage(const wchar_t* message)
     wcscpy(g_pending_main_menu_message, message);
 }
 
-// FUNCTION: WIZ8 0x005bd040
-unsigned char MainMenuNewGame(const InputAtom* event, W8Region* region)
+static void UpdateMainMenuItem(const InputAtom* event, W8Region* region, short item)
 {
     switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         DrawMainMenuItem(g_main_menu_selected_item, 2);
-        return 1;
+        break;
     case LEFT_BUTTON_UP:
         DrawMainMenuItem(g_main_menu_selected_item, 1);
-        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
-            SetPendingScreenState(W8_SCREEN_PARTY_SELECTION);
-        }
-        return 1;
-    case MOUSE_POS:
-        if (region->flags & W8_REGION_MOUSE_LEAVE) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = static_cast<unsigned short>(-1);
-            return 0;
-        }
-        if (region->flags & W8_REGION_MOUSE_ENTER) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = 1;
-            DrawMainMenuItem(1, 1);
-        }
-    }
-    return 0;
-}
-
-// FUNCTION: WIZ8 0x005bd110
-unsigned char MainMenuLoadGame(const InputAtom* event, W8Region* region)
-{
-    if (!g_main_menu_has_save_games)
-        return 0;
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        DrawMainMenuItem(g_main_menu_selected_item, 2);
-        return 1;
-    case LEFT_BUTTON_UP:
-        DrawMainMenuItem(g_main_menu_selected_item, 1);
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) && g_main_menu_has_save_games) {
-            g_pending_screen_state.mode = 1;
-            SetPendingScreenState(W8_SCREEN_OPTIONS);
-        }
-        return 1;
+        break;
     case MOUSE_POS:
         if (region->flags & W8_REGION_MOUSE_LEAVE) {
             DrawMainMenuItem(g_main_menu_selected_item, 0);
             g_main_menu_selected_item = static_cast<unsigned short>(-1);
         } else if (region->flags & W8_REGION_MOUSE_ENTER) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = 2;
-            DrawMainMenuItem(2, 1);
+            SelectMainMenuItem(item);
         }
+        break;
     }
-    return 0;
+}
+
+// FUNCTION: WIZ8 0x005bd040
+unsigned char MainMenuNewGame(const InputAtom* event, W8Region* region)
+{
+    UpdateMainMenuItem(event, region, 1);
+    if (event->usEvent == LEFT_BUTTON_UP && (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+        SetPendingScreenState(W8_SCREEN_PARTY_SELECTION);
+    }
+    return event->usEvent == LEFT_BUTTON_DOWN || event->usEvent == LEFT_BUTTON_UP;
+}
+
+// FUNCTION: WIZ8 0x005bd110
+unsigned char MainMenuLoadGame(const InputAtom* event, W8Region* region)
+{
+    if (!g_main_menu_has_save_games) {
+        return 0;
+    }
+    UpdateMainMenuItem(event, region, 2);
+    if (event->usEvent == LEFT_BUTTON_UP && (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
+        g_main_menu_has_save_games) {
+        g_pending_screen_state.mode = 1;
+        SetPendingScreenState(W8_SCREEN_OPTIONS);
+    }
+    return event->usEvent == LEFT_BUTTON_DOWN || event->usEvent == LEFT_BUTTON_UP;
 }
 
 // FUNCTION: WIZ8 0x005bd1f0
 unsigned char MainMenuExit(const InputAtom* event, W8Region* region)
 {
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        DrawMainMenuItem(g_main_menu_selected_item, 2);
-        return 1;
-    case LEFT_BUTTON_UP:
-        DrawMainMenuItem(g_main_menu_selected_item, 1);
-        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
-            RequestExitScreen();
-        }
-        return 1;
-    case MOUSE_POS:
-        if (region->flags & W8_REGION_MOUSE_LEAVE) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = static_cast<unsigned short>(-1);
-            return 0;
-        }
-        if (region->flags & W8_REGION_MOUSE_ENTER) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = 5;
-            DrawMainMenuItem(5, 1);
-        }
+    UpdateMainMenuItem(event, region, 5);
+    if (event->usEvent == LEFT_BUTTON_UP && (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+        RequestExitScreen();
     }
-    return 0;
+    return event->usEvent == LEFT_BUTTON_DOWN || event->usEvent == LEFT_BUTTON_UP;
 }
 
 // FUNCTION: WIZ8 0x005bd2b0
 unsigned char MainMenuOptions(const InputAtom* event, W8Region* region)
 {
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        DrawMainMenuItem(g_main_menu_selected_item, 2);
-        return 1;
-    case LEFT_BUTTON_UP:
-        DrawMainMenuItem(g_main_menu_selected_item, 1);
-        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
-            g_pending_screen_state.mode = 0;
-            SetPendingScreenState(W8_SCREEN_OPTIONS);
-        }
-        return 1;
-    case MOUSE_POS:
-        if (region->flags & W8_REGION_MOUSE_LEAVE) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = static_cast<unsigned short>(-1);
-            return 0;
-        }
-        if (region->flags & W8_REGION_MOUSE_ENTER) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = 4;
-            DrawMainMenuItem(4, 1);
-        }
+    UpdateMainMenuItem(event, region, 4);
+    if (event->usEvent == LEFT_BUTTON_UP && (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+        g_pending_screen_state.mode = 0;
+        SetPendingScreenState(W8_SCREEN_OPTIONS);
     }
-    return 0;
+    return event->usEvent == LEFT_BUTTON_DOWN || event->usEvent == LEFT_BUTTON_UP;
 }
 
 // FUNCTION: WIZ8 0x005bd380
 unsigned char MainMenuIntroduction(const InputAtom* event, W8Region* region)
 {
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        DrawMainMenuItem(g_main_menu_selected_item, 2);
-        return 1;
-    case LEFT_BUTTON_UP:
-        DrawMainMenuItem(g_main_menu_selected_item, 1);
-        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
-            RequestScreenTransition();
-            g_settings.intro_seen = false;
-            SetIntroVideoIndex(0);
-            SetPendingScreenState(W8_SCREEN_INTRO);
-        }
-        return 1;
-    case MOUSE_POS:
-        if (region->flags & W8_REGION_MOUSE_LEAVE) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = static_cast<unsigned short>(-1);
-            return 0;
-        }
-        if (region->flags & W8_REGION_MOUSE_ENTER) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = 0;
-            DrawMainMenuItem(0, 1);
-        }
+    UpdateMainMenuItem(event, region, 0);
+    if (event->usEvent == LEFT_BUTTON_UP && (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+        RequestScreenTransition();
+        g_settings.intro_seen = false;
+        SetIntroVideoIndex(0);
+        SetPendingScreenState(W8_SCREEN_INTRO);
     }
-    return 0;
+    return event->usEvent == LEFT_BUTTON_DOWN || event->usEvent == LEFT_BUTTON_UP;
 }
 
 // FUNCTION: WIZ8 0x005bd460
 unsigned char MainMenuCredits(const InputAtom* event, W8Region* region)
 {
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        DrawMainMenuItem(g_main_menu_selected_item, 2);
-        return 1;
-    case LEFT_BUTTON_UP:
-        DrawMainMenuItem(g_main_menu_selected_item, 1);
-        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
-            SetPendingScreenState(W8_SCREEN_CREDITS);
-        }
-        return 1;
-    case MOUSE_POS:
-        if (region->flags & W8_REGION_MOUSE_LEAVE) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = static_cast<unsigned short>(-1);
-            return 0;
-        }
-        if (region->flags & W8_REGION_MOUSE_ENTER) {
-            DrawMainMenuItem(g_main_menu_selected_item, 0);
-            g_main_menu_selected_item = 3;
-            DrawMainMenuItem(3, 1);
-        }
+    UpdateMainMenuItem(event, region, 3);
+    if (event->usEvent == LEFT_BUTTON_UP && (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+        SetPendingScreenState(W8_SCREEN_CREDITS);
     }
-    return 0;
+    return event->usEvent == LEFT_BUTTON_DOWN || event->usEvent == LEFT_BUTTON_UP;
 }

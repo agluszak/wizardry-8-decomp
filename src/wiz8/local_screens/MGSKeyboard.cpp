@@ -1094,16 +1094,8 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
         return 1;
     case LEFT_BUTTON_DOWN:
     case LEFT_BUTTON_REPEAT:
-        row->OnLeftButtonDown(0);
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        return 1;
     case LEFT_BUTTON_UP:
-        row->OnLeftButtonUp(0);
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
-            return 1;
-        }
-        region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-        return 1;
+        return DispatchButtonRegionEvent(event, region, row);
     case RIGHT_BUTTON_UP:
         row->OnRightButtonUp(0);
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
