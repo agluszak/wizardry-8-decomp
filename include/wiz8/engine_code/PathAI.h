@@ -92,7 +92,7 @@ unsigned char PathAIAddPoint(W8PathAI* path, const srVector3T<float>* point);
 
 /* Build a zeroed 0x40-byte path and its position-pointer vector. Every caller
    pushes an argument the factory never reads. */
-W8PathAI* CreateRecord(int unused);
+W8PathAI* CreateRecord(int);
 
 /* The two operations stLight applies to the path it owns at +0x244. The
    release is DestroyPathAI's body behind an extra `kind == W8_AI_RECORD_PATH`

@@ -59,7 +59,7 @@ public:
     virtual int _memcmp(const void* source_0, const void* source_1, SRDWORD bytes);
     virtual void _memcopy(void* destination, const void* source, SRDWORD bytes);
     virtual void _memcopy(void* destination, int source, SRDWORD bytes);
-    virtual void _prefetch(const void* destination, SRDWORD bytes, SRDWORD value_014);
+    virtual void _prefetch(const void* destination, SRDWORD bytes, SRDWORD unused);
     virtual void _copyInterleaved(void* destination, const void* source, SRDWORD destination_pitch,
                                   SRDWORD source_pitch, SRDWORD width, SRDWORD count);
     virtual void _swap(void* first, void* second, SRDWORD bytes);
@@ -347,7 +347,7 @@ public:
        implementations (RET 0x8 and RET) and have no entry in srDebugVP's
        signature table, so their original names and parameter types are not
        recoverable; only the stack arity is proven. */
-    virtual void unknown_2a0(SRDWORD arg0, SRDWORD arg1);
+    virtual void unknown_2a0(SRDWORD, SRDWORD);
     virtual void unknown_2a4();
     virtual void _srGetClipFlags(SRBYTE* destination, const srVector4* source, SRDWORD count);
 

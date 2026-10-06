@@ -104,7 +104,7 @@ W8SearchableView* CollectSearchablesInView(void)
             if (searchable->world_item == 0 && searchable->trigger != 0) {
                 g_search_view.items.Add(searchable);
             } else {
-                float half_cone = g_search_cone_angle * g_float_005ebc7c;
+                float half_cone = g_search_cone_angle * g_float_half;
                 srVector3T<float> from = camera;
                 srVector3T<float> to = position;
                 float yaw = GetCameraYawRadians();
@@ -188,9 +188,9 @@ void W8Searchable::GetPosition(srVector3T<float>* position)
             srVector3T<float> minimum;
             srVector3T<float> maximum;
             prop->PlayRepAnimation(&minimum, &maximum);
-            position->Set((minimum.x + maximum.x) * g_double_005ebe80,
-                          (minimum.y + maximum.y) * g_double_005ebe80,
-                          (minimum.z + maximum.z) * g_double_005ebe80);
+            position->Set((minimum.x + maximum.x) * g_double_half,
+                          (minimum.y + maximum.y) * g_double_half,
+                          (minimum.z + maximum.z) * g_double_half);
         }
     }
 }

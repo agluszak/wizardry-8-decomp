@@ -283,7 +283,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
             monster->GetAnimationBounds(&minimum, &maximum);
             position.x = monster_position.x;
-            position.y = monster_position.y + (maximum.y - minimum.y) * g_float_005ebc7c;
+            position.y = monster_position.y + (maximum.y - minimum.y) * g_float_half;
             position.z = monster_position.z;
             SetCyclePosition(&position);
         }
@@ -538,7 +538,7 @@ static int FindSpellCycleByName(const char* name)
    sound events, and SHAKE_FRAME rows attach camera-shake effects. */
 // FUNCTION: WIZ8 0x004ab580
 bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* name,
-                             W8SpellVisualMode group, W8SpellVisual** visual, int unused)
+                             W8SpellVisualMode group, W8SpellVisual** visual, int)
 {
     W8SpellVisual* shared = static_cast<W8SpellVisual*>(FindFirstGrCycleByName(name));
     if (shared != 0 && shared->mode == group) {
@@ -954,14 +954,14 @@ placed:
         visual->location_id = monster->location_id;
         monster->GetAnimationBounds(&minimum, &maximum);
         position = monster->GetPosition();
-        position.y += (maximum.y - minimum.y) * g_float_005ebc7c;
+        position.y += (maximum.y - minimum.y) * g_float_half;
         visual->SetCyclePosition(&position);
         height = maximum.y - minimum.y;
         width = maximum.x - minimum.x;
         if (height <= width) {
             height = width;
         }
-        visual->scale0 = height * g_float_005ec128;
+        visual->scale0 = height * g_float_one_thousandth;
     }
     return visual;
 }
@@ -1042,7 +1042,7 @@ W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, 
             if (height <= width) {
                 height = width;
             }
-            visual->scale0 = height * g_float_005ec128;
+            visual->scale0 = height * g_float_one_thousandth;
             if (!parent->GetSpellPosition(&position)) {
                 parent->GetMappedPosition(&position);
             }

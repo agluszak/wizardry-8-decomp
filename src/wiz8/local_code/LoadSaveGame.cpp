@@ -134,7 +134,7 @@ static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
 void ReadSaveChunks(W8Chunk* source, W8Chunk* destination);
 void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status);
 
-static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index);
+static bool SaveMonsterRecord(W8Chunk* chunks, unsigned int index);
 
 /* 0x0061A134/0x0061A138: the two XOR masks SaveGame applies to the file's
    creation-time pair before it lands in the status block. */
@@ -201,7 +201,7 @@ void BuildCharacterPath(char* destination, const wchar_t* name, int slot)
    length and then that many bytes. A short or failed second read leaves the
    record cleared and reports failure, and the file is closed either way. */
 // FUNCTION: WIZ8 0x005152b0
-unsigned char LoadCharacter(const char* name, W8Character* character, int slot, bool report_failure)
+bool LoadCharacter(const char* name, W8Character* character, int slot, bool report_failure)
 {
     char path[60];
     char directory[260];
@@ -222,7 +222,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
     }
 
     if (g_status.game_started && (slot == -1 || g_status.flags[slot] != 0)) {
-        loaded = LoadCharacterFromCurrentGame(path, character) != 0;
+        loaded = LoadCharacterFromCurrentGame(path, character);
     } else {
         handle = FileOpen(path, 1, 0);
         if (handle != 0) {
@@ -240,13 +240,13 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
         }
     }
     if (loaded) {
-        return 1;
+        return true;
     }
     if (report_failure) {
         CreateMessageBox(FormatWideString(gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name),
                          g_small_font, 1, true, false, 0);
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00511df0
@@ -265,7 +265,7 @@ void FillCurrentSaveSlot(W8SaveSlot* slot)
 }
 
 // FUNCTION: WIZ8 0x00511e70
-unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
+bool EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
 {
     W8Chunk chunks;
     WIN32_FIND_DATAA find_data;
@@ -337,7 +337,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
         } while (FindNextFileA(search, &find_data));
     }
     FindClose(search);
-    return 1;
+    return true;
 }
 
 /* Open one save slot and read only its game-status chunk. Startup needs the
@@ -409,7 +409,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     if (_access(path, 2) != 0 && errno == EACCES) {
         _chmod(path, _S_IREAD | _S_IWRITE);
     }
-    if (chunks.OpenWrite(path) == 0) {
+    if (!chunks.OpenWrite(path)) {
         return false;
     }
     if (_stricmp(name, "CurrentGame") != 0 &&
@@ -504,7 +504,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
         SaveMonsterControlSpellEffect(&chunks);
         chunks.ReleaseCurrentChunk();
     }
-    if (SaveStatusHeader(&chunks) == 0) {
+    if (!SaveStatusHeader(&chunks)) {
         return false;
     }
     chunks.Close();
@@ -549,7 +549,7 @@ void BuildLevelStatusPath(char* path, unsigned int level)
    tested before the store: the canonical writes all four globals, loads 1 once,
    and revisits each that turned out to be zero. */
 // FUNCTION: WIZ8 0x00513090
-unsigned char LoadStatusHeader(W8Chunk* chunk)
+bool LoadStatusHeader(W8Chunk* chunk)
 {
     unsigned int transferred;
     W8StatusHeader header;
@@ -558,10 +558,10 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     InitializeItemManagerState();
     ResetNextTriggerId();
     if (!chunk->Read(&header, sizeof(header), &transferred)) {
-        return 0;
+        return false;
     }
     if (header.version != 2.0f) {
-        return 0;
+        return false;
     }
     g_status.next_group_id = header.next_group_id;
     g_status.next_monster_location_id = header.next_monster_location_id;
@@ -580,7 +580,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
         g_status.next_trigger_id = 1;
     }
     memcpy(g_status.status_header_prefix, header.status_block, sizeof(header.status_block));
-    return 1;
+    return true;
 }
 
 /* Persist the current game status to one path. An existing current-game save
@@ -588,11 +588,11 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
    first rolled into a CleanUp save and renamed into place; any other existing
    file is reopened for append. A fresh path is created outright. */
 // FUNCTION: WIZ8 0x00513160
-unsigned char SaveLevelStatus(const char* path)
+bool SaveLevelStatus(const char* path)
 {
     W8Chunk chunk;
-    unsigned char opened;
-    unsigned char result = 0;
+    bool opened;
+    bool result = false;
 
     if (!chunk.OpenReadWrite(const_cast<char*>(path))) {
         opened = chunk.OpenWrite(const_cast<char*>(path));
@@ -605,11 +605,11 @@ unsigned char SaveLevelStatus(const char* path)
             SaveGame("CleanUp", 0);
             FileDelete("Saves\\CurrentGame.SAV");
             rename("Saves\\CleanUp.SAV", "Saves\\CurrentGame.SAV");
-            return 0;
+            return false;
         }
         opened = chunk.OpenAppend(const_cast<char*>(path));
     }
-    if (opened != 0) {
+    if (opened) {
         result = SaveStatusHeader(&chunk);
         chunk.Close();
     }
@@ -622,7 +622,7 @@ unsigned char SaveLevelStatus(const char* path)
    automation, trigger, prop, cube, generator, lock, ambient, particle and
    light sections. */
 // FUNCTION: WIZ8 0x00513260
-unsigned char SaveStatusHeader(W8Chunk* chunks)
+bool SaveStatusHeader(W8Chunk* chunks)
 {
     W8StatusHeader header;
     unsigned int count;
@@ -681,7 +681,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
         if (g_level_status_loading) {
             chunks->ReleaseGroup();
             chunks->ReleaseCurrentChunk();
-            return 1;
+            return true;
         }
     }
 
@@ -725,7 +725,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
 
     chunks->ReleaseGroup();
     chunks->ReleaseCurrentChunk();
-    return 1;
+    return true;
 }
 
 /* MONS chunk: the group and monster totals, then every group's 0x12b-byte
@@ -733,7 +733,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
    monster record. A missing group or a failed monster record releases the
    chunk and fails the section. */
 // FUNCTION: WIZ8 0x005145a0
-unsigned char SaveMonsterStatus(W8Chunk* chunks)
+bool SaveMonsterStatus(W8Chunk* chunks)
 {
     unsigned int group_count;
     unsigned int monster_count;
@@ -778,21 +778,20 @@ unsigned char SaveMonsterStatus(W8Chunk* chunks)
     }
     for (index = 0; index < monster_count; ++index) {
         if (index < PLLength(gXStatus.plsMonsterList)) {
-            if (SaveMonsterRecord(chunks, index) == 0) {
+            if (!SaveMonsterRecord(chunks, index)) {
                 goto fail;
             }
         } else {
-            if (SaveMonsterRecord(chunks, index - PLLength(gXStatus.plsMonsterList) + 0x2710) ==
-                0) {
+            if (!SaveMonsterRecord(chunks, index - PLLength(gXStatus.plsMonsterList) + 0x2710)) {
                 goto fail;
             }
         }
     }
-    return 1;
+    return true;
 
 fail:
     chunks->ReleaseCurrentChunk();
-    return 0;
+    return false;
 }
 
 /* One monster's save record: the version-7 tag, the 0x425-byte W8MonsterInfo
@@ -801,7 +800,7 @@ fail:
    state and the order/patrol fields the loader reads back in record-version
    order. */
 // FUNCTION: WIZ8 0x005147a0
-static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
+static bool SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
 {
     char script_name[0x40] = {0};
     memcpy(script_name, &g_empty_ambient_name, sizeof(g_empty_ambient_name));
@@ -887,16 +886,16 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
     chunks->Write(&script_flag, 1, 0);
     script_flag = monster->stay_home;
     chunks->Write(&script_flag, 1, 0);
-    return 1;
+    return true;
 }
 
 /* Open a per-level status file and hand it to the section reader. A file that
    cannot be opened reports failure without touching the live status. */
 // FUNCTION: WIZ8 0x005135d0
-unsigned char LoadLevelStatus(const char* path, int level)
+bool LoadLevelStatus(const char* path, int level)
 {
     W8Chunk chunk;
-    unsigned char result = 0;
+    bool result = false;
 
     if (chunk.OpenRead(const_cast<char*>(path))) {
         result = LoadItemStatus(&chunk, level);
@@ -912,7 +911,7 @@ unsigned char LoadLevelStatus(const char* path, int level)
    overrides. The chunk ids dispatch as a flat chain; LOCK and LCKS share the
    trigger-state loader. */
 // FUNCTION: WIZ8 0x00513650
-unsigned char LoadItemStatus(W8Chunk* chunk, int level)
+bool LoadItemStatus(W8Chunk* chunk, int level)
 {
     unsigned int file_level;
     W8Chunk* stream = chunk;
@@ -952,12 +951,12 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                                 stream->Read(&group_count, 4, 0);
                                 stream->Read(&monster_count, 4, 0);
                                 for (index = 0; index < group_count; ++index) {
-                                    if (LoadMonsterGroup(stream) == 0) {
+                                    if (!LoadMonsterGroup(stream)) {
                                         goto chunk_done;
                                     }
                                 }
                                 for (index = 0; index < monster_count; ++index) {
-                                    if (LoadMonster(stream) == 0) {
+                                    if (!LoadMonster(stream)) {
                                         goto chunk_done;
                                     }
                                 }
@@ -1031,7 +1030,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
    both trigger-state records. The level number the LVLS group carries is read
    and discarded; the file is already level-specific. */
 // FUNCTION: WIZ8 0x005139c0
-unsigned char LoadDefaultLevelStatus(unsigned int level)
+bool LoadDefaultLevelStatus(unsigned int level)
 {
     W8Chunk chunk;
     W8LevelInfo info;
@@ -1054,7 +1053,7 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
     } else {
         sprintf(path, "%s\\Test\\Level%c.%s", "Levels", level - 0x38, "STS");
     }
-    if (chunk.OpenRead(path) != 0) {
+    if (chunk.OpenRead(path)) {
         chunk.OpenChunk(0, 0);
         chunk.OpenGroup();
         chunk.Read(&file_level, 4, 0);
@@ -1085,9 +1084,9 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
         chunk.SkipCurrentChunk();
         chunk.ReleaseCurrentChunk();
         chunk.Close();
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Reads one saved monster group and files it under the species or the encounter
@@ -1097,7 +1096,7 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
    is neither listed nor given a monster list, and the function still reports
    success. */
 // FUNCTION: WIZ8 0x00513c20
-unsigned char LoadMonsterGroup(W8Chunk* chunk)
+bool LoadMonsterGroup(W8Chunk* chunk)
 {
     unsigned int record_size;
     W8MonsterGroup* group;
@@ -1108,7 +1107,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
 
     group = static_cast<W8MonsterGroup*>(malloc(sizeof(W8MonsterGroup)));
     if (group == 0) {
-        return 0;
+        return false;
     }
     memset(group, 0, sizeof(W8MonsterGroup));
     stream = chunk;
@@ -1126,13 +1125,13 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
     record = MonsterDBFromSpecies(group->monster_id);
     if (record == 0) {
         free(group);
-        return 0;
+        return false;
     }
     if (record->deleted == 0) {
         group->monsters = ILCreate();
         if (group->monsters == 0) {
             free(group);
-            return 0;
+            return false;
         }
         group->member_count = 0;
         group->active_member_count = 0;
@@ -1145,14 +1144,14 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         }
         if (index == -1) {
             free(group);
-            return 0;
+            return false;
         }
         ActivateGroupMembers(group, W8_MONSTER_LOAD_ALL_CYCLES);
         if (group->encounter_registered && group->leader_group_id == 0) {
             RegisterActiveEncounterGroup(group);
         }
     }
-    return 1;
+    return true;
 }
 
 /* One saved monster entry: a version dword, the uiSize-prefixed
@@ -1163,7 +1162,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
    visuals and its script, then dropped again if its database record was
    deleted and started dying when the record says it is dead. */
 // FUNCTION: WIZ8 0x00513d80
-unsigned char LoadMonster(W8Chunk* chunk)
+bool LoadMonster(W8Chunk* chunk)
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
@@ -1194,7 +1193,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     chunk->Read(&record_version, 4, 0);
     monster_info = static_cast<W8MonsterInfo*>(malloc(sizeof(W8MonsterInfo)));
     if (monster_info == 0) {
-        return 0;
+        return false;
     }
     memset(monster_info, 0, sizeof(W8MonsterInfo));
     chunk->Read(&record_size, 4, 0);
@@ -1227,19 +1226,19 @@ unsigned char LoadMonster(W8Chunk* chunk)
     list_index = PLAdoptAppend(plist, monster_info);
     if (list_index == -1) {
         free(monster_info);
-        return 0;
+        return false;
     }
     record = MonsterDBFromSpecies(monster_info->monster_species);
     if (record == 0) {
         free(monster_info);
-        return 0;
+        return false;
     }
     if (record->deleted == 0) {
         monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
             0x698, LOADSAVEGAME_CPP, monster_info->monster_group_id, true));
         if (monster_group == 0) {
             free(monster_info);
-            return 0;
+            return false;
         }
         IListAdd(monster_group->monsters, monster_info->location_id);
         if (static_cast<unsigned int>(monster_group->leader_location_id) ==
@@ -1343,7 +1342,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     } else if (monster_info->hp_current == 0) {
         MonsterStartsDying(monster_info, true);
     }
-    return 1;
+    return true;
 }
 
 /* Write the MONS section: the group and monster counts, then every group
@@ -1393,7 +1392,7 @@ void ResetLiveSessionForLoad(void)
    The empty fourth slot is initialized from a string literal, not zeroed in
    place, so it is spelled as one here. */
 // FUNCTION: WIZ8 0x00512d00
-unsigned char VerifyDataSubdirs(void)
+bool VerifyDataSubdirs(void)
 {
     char directories[4][60] = {"Saves", "Saves\\Characters", "Saves\\NPCs", ""};
     char* directory;
@@ -1401,7 +1400,7 @@ unsigned char VerifyDataSubdirs(void)
 
     for (directory = directories[0]; strlen(directory) != 0; directory += 60) {
         if (!DirectoryExists(directory) && !MakeFileManDirectory(directory)) {
-            return 0;
+            return false;
         }
         /* A read-only directory left behind by an earlier install is repaired
            rather than reported, but only for the one errno that means exactly
@@ -1411,16 +1410,16 @@ unsigned char VerifyDataSubdirs(void)
         }
         attributes = FileGetAttributes(directory);
         if (attributes == 0xffffffff) {
-            return 0;
+            return false;
         }
         if (!(attributes & FILE_ATTRIBUTE_DIRECTORY)) {
-            return 0;
+            return false;
         }
         if (attributes & FILE_ATTRIBUTE_READONLY) {
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 /* Walks the item's sibling chain and writes each record whole. Two reads go
@@ -1428,7 +1427,7 @@ unsigned char VerifyDataSubdirs(void)
    representation flags copied into the current record are read from the head's
    rep, and the bit-3 clear lands on the head rather than the cursor. */
 // FUNCTION: WIZ8 0x00514be0
-unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
+bool SaveItemFile(int handle, W8WorldItem* item_info)
 {
     W8WorldItem* item = item_info;
     unsigned int bytes_written;
@@ -1445,11 +1444,11 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
             item_info->entity_flags &= ~W8_ITEM_ENTITY_RADAR_SEEN;
         }
         if (!FileWrite(handle, item, sizeof(W8WorldItem), &bytes_written)) {
-            return 0;
+            return false;
         }
         item = item->next;
     }
-    return 1;
+    return true;
 }
 
 /* Reads the same chain back. Each record carries its predecessor's next
@@ -1533,8 +1532,8 @@ bool SaveGameExists(void)
    save-failed notice and the continuation is dropped; without it the
    continuation runs instead. Either way the answer is failure. */
 // FUNCTION: WIZ8 0x00515090
-unsigned char SaveCharacter(W8Character* character, int slot, bool report_failure,
-                            void (*continuation)(void))
+bool SaveCharacter(W8Character* character, int slot, bool report_failure,
+                   void (*continuation)(void))
 {
     char file_name[16];
     char path[260];
@@ -1573,21 +1572,21 @@ unsigned char SaveCharacter(W8Character* character, int slot, bool report_failur
             }
         }
     } else {
-        saved = SaveCharacterToCurrentGame(path, slot, character) != 0;
+        saved = SaveCharacterToCurrentGame(path, slot, character);
     }
     if (saved) {
-        return 1;
+        return true;
     }
     if (report_failure) {
         CreateMessageBox(
             FormatWideString(gppStringList[W8_NOTICE_CHARACTER_SAVE_FAILED], character->name),
             g_small_font, 1, true, false, continuation);
-        return 0;
+        return false;
     }
     if (continuation != 0) {
         continuation();
     }
-    return 0;
+    return false;
 }
 
 /* The two chunk tags the walk recognises, as the four-character codes the
@@ -1597,7 +1596,7 @@ enum { W8_SAVE_TAG_CHAR = 0x52414843, W8_SAVE_TAG_LVLS = 0x534c564c };
 /* Find a live CHAR chunk in Saves\\CurrentGame.SAV whose 64-byte name matches
    and mark it consumed so a later append can supersede it. */
 // FUNCTION: WIZ8 0x005154a0
-char MarkCurrentGameCharacterChunkConsumed(const char* path)
+bool MarkCurrentGameCharacterChunkConsumed(const char* path)
 {
     W8Chunk chunk;
     char name[64];
@@ -1632,7 +1631,7 @@ char MarkCurrentGameCharacterChunkConsumed(const char* path)
    64-byte name, size and body without opening a CHAR chunk header first; the
    matching load walk still keys on CHAR tags produced by other writers. */
 // FUNCTION: WIZ8 0x005155b0
-char SaveCharacterToCurrentGame(const char* path, int /*slot*/, W8Character* character)
+bool SaveCharacterToCurrentGame(const char* path, int /*slot*/, W8Character* character)
 {
     W8Chunk chunk;
     char name[64];
@@ -1647,14 +1646,14 @@ char SaveCharacterToCurrentGame(const char* path, int /*slot*/, W8Character* cha
         chunk.Write(&size, 4, 0);
         chunk.Write(character, size, 0);
         chunk.Close();
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Load one character record from a CHAR chunk in Saves\\CurrentGame.SAV. */
 // FUNCTION: WIZ8 0x005156c0
-char LoadCharacterFromCurrentGame(const char* path, W8Character* character)
+bool LoadCharacterFromCurrentGame(const char* path, W8Character* character)
 {
     W8Chunk chunk;
     char name[64];
@@ -1762,7 +1761,7 @@ void DeleteCurrentSaveFiles(void)
 /* Declining an autosave is reported as success. Iron Man saves overwrite the
    current slot rather than the fixed AutoSave slot. */
 // FUNCTION: WIZ8 0x005159e0
-unsigned char AutoSaveIfAllowed(bool forced)
+bool AutoSaveIfAllowed(bool forced)
 {
     char name[64];
 
@@ -1774,13 +1773,13 @@ unsigned char AutoSaveIfAllowed(bool forced)
         strcpy(name, g_status.iron_man ? ConvertWideStringToString(GetLastSaveName()) : "AutoSave");
         return SaveGame(name, 0);
     }
-    return 1;
+    return true;
 }
 
 /* Take the pending-save flag and clear it in one go, so the caller that reads
    it is the only one that sees it. */
 // FUNCTION: WIZ8 0x00515910
-unsigned char TakePendingSaveFlag(void)
+bool TakePendingSaveFlag(void)
 {
     bool pending = g_save_pending;
 
@@ -1911,7 +1910,7 @@ void SaveMonsterControlSpellEffect(W8Chunk* chunks)
    A missing slot wins immediately; when all three exist, replace the one with
    the oldest modification time. */
 // FUNCTION: WIZ8 0x00516670
-unsigned char SelectQuickSaveSlotForWrite(char* slot_name)
+bool SelectQuickSaveSlotForWrite(char* slot_name)
 {
     SGP_FILETIME creation_time;
     SGP_FILETIME access_time;
@@ -1940,14 +1939,14 @@ unsigned char SelectQuickSaveSlotForWrite(char* slot_name)
         }
     }
     sprintf(slot_name, "%s %d", "Quick", write_slot);
-    return 1;
+    return true;
 }
 
 /* Select the newest numbered quick save for command-line startup. The three
    candidates are real save files named Quick 1 through Quick 3; the unnumbered
    Quick slot is accepted only when none of those files exists. */
 // FUNCTION: WIZ8 0x00516740
-unsigned char FindStartupQuickSave(char* slot_name)
+bool FindStartupQuickSave(char* slot_name)
 {
     int newest_slot = 0;
     SGP_FILETIME creation_time;
@@ -1977,14 +1976,14 @@ unsigned char FindStartupQuickSave(char* slot_name)
     }
     if (newest_slot > 0) {
         sprintf(slot_name, "%s %d", "Quick", newest_slot);
-        return 1;
+        return true;
     }
     sprintf(path, "%s\\%s.%s", "Saves", "Quick", g_save_extension);
     if (FileExists(path)) {
         strcpy(slot_name, "Quick");
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Walk every chunk of a saved game. Character chunks are read straight in; a
@@ -2028,7 +2027,7 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
    is rolled into CleanUp. Retail wraps the percentage in an unguarded DIV, so
    a zero total would trap there as well. */
 // FUNCTION: WIZ8 0x00514df0
-unsigned char MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* empty_percent)
+bool MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* empty_percent)
 {
     bool found = false;
     unsigned int total = 0;
@@ -2180,7 +2179,7 @@ void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status)
    inside is loaded and appended to the caller's vector. The scan stops once
    the level's group has been processed. */
 // FUNCTION: WIZ8 0x00516070
-unsigned char LoadSavedLevelItems(int level, W8GrowableVector<W8WorldItem*>* items)
+bool LoadSavedLevelItems(int level, W8GrowableVector<W8WorldItem*>* items)
 {
     W8Chunk chunk;
     unsigned int file_level;
@@ -2192,7 +2191,7 @@ unsigned char LoadSavedLevelItems(int level, W8GrowableVector<W8WorldItem*>* ite
     bool found = false;
 
     if (chunk.OpenRead(const_cast<char*>("Saves\\CurrentGame.SAV")) == 0) {
-        return 0;
+        return false;
     }
     outer_count = chunk.ChunkCount();
     for (outer = 0; outer < outer_count; ++outer) {
@@ -2242,7 +2241,7 @@ unsigned char LoadSavedLevelItems(int level, W8GrowableVector<W8WorldItem*>* ite
    Writes the chosen bare name into `name`; returns 0 when all twenty-one
    slots are taken. */
 // FUNCTION: WIZ8 0x00516890
-unsigned char FindFreeEndingSaveName(char* name)
+bool FindFreeEndingSaveName(char* name)
 {
     char path[260];
     int index;
@@ -2250,16 +2249,16 @@ unsigned char FindFreeEndingSaveName(char* name)
     strcpy(name, "Ending");
     sprintf(path, "%s\\%s.%s", "Saves", name, g_save_extension);
     if (FileExists(path) == 0) {
-        return 1;
+        return true;
     }
     for (index = 1; index <= 20; ++index) {
         sprintf(name, "%s%d", "Ending", index);
         sprintf(path, "%s\\%s.%s", "Saves", name, g_save_extension);
         if (FileExists(path) == 0) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Write a full save slot: repair the target's read-only bit, fold the running
@@ -2277,7 +2276,7 @@ unsigned char FindFreeEndingSaveName(char* name)
    recorded, the gameplay timer restarts, the held-item cursor is restored,
    and the loaded items are normalized. */
 // FUNCTION: WIZ8 0x00512920
-unsigned char LoadGame(const char* slot_name)
+bool LoadGame(const char* slot_name)
 {
     W8Chunk chunks;
     char path[260];
@@ -2310,7 +2309,7 @@ unsigned char LoadGame(const char* slot_name)
         _chmod("Saves\\CurrentGame.SAV", _S_IREAD | _S_IWRITE);
     }
     if (chunks.OpenRead(const_cast<char*>("Saves\\CurrentGame.SAV")) == 0) {
-        return 0;
+        return false;
     }
     count = chunks.ChunkCount();
     for (index = 0; index < count; ++index) {
@@ -2366,7 +2365,7 @@ unsigned char LoadGame(const char* slot_name)
         SetItemCursor(0);
     }
     SanitizeLoadedItems();
-    return 1;
+    return true;
 }
 
 /* Render the world onto an 80x60 ARGB1555 surface backed by the record's

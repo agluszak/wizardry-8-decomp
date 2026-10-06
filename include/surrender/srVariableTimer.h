@@ -11,7 +11,7 @@ SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream, const srVariableTim
 // class srVariableTimer
 class SR_DLL_IMPORT SR_DLL_EXPORT srVariableTimer : public srTimer {
 public:
-    srVariableTimer(int argument_0 = 0, int argument_1 = 0, int argument_2 = 1,
+    srVariableTimer(int force_system_timer = 0, int unused = 0, int save_calibration = 1,
                     float multiplier = 1.0f, unsigned long step_size = 0x1e);
     srVariableTimer(const srTimer& timer);
     srVariableTimer(const srVariableTimer& timer);
@@ -23,7 +23,7 @@ public:
     virtual char* getAscTime(char* buffer, e_timerReadControl control) override;
     virtual int pause() override;
     virtual unsigned long resume() override;
-    virtual int reset(int argument_0, int argument_1, int argument_2) override;
+    virtual int reset(int force_system_timer, int unused, int save_calibration) override;
     virtual unsigned long getMsTime(e_timerReadControl control) override;
     virtual double getTime(e_timerReadControl control) override;
     virtual unsigned long getUTime(e_timerReadControl control) override;
@@ -41,8 +41,8 @@ public:
     unsigned long getBaseRawTime(srQuadWord& out, e_timerReadControl control);
     float getMultiplier() const;
     int is_stepping() const;
-    int reset(float multiplier, unsigned long step_size, int argument_2, int argument_3,
-              int argument_4);
+    int reset(float multiplier, unsigned long step_size, int force_system_timer, int unused,
+              int save_calibration);
     void resetMultiplier();
     void setMultiplier(float multiplier);
     void setTime(float time);

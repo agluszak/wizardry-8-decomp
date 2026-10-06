@@ -428,9 +428,9 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                     unsigned int cell = node->cell;
                     float world_y = node->y;
                     float world_x =
-                        ((cell & 0xffff) + g_float_005ebc7c) * grid_scale + level_bounds.minimum.x;
+                        ((cell & 0xffff) + g_float_half) * grid_scale + level_bounds.minimum.x;
                     float world_z =
-                        ((cell >> 0x10) + g_float_005ebc7c) * grid_scale + level_bounds.minimum.z;
+                        ((cell >> 0x10) + g_float_half) * grid_scale + level_bounds.minimum.z;
                     for (int n = 0; n < named_position_count && clear_of_named; ++n) {
                         float dx = world_x - named_positions[n].x;
                         float dy = world_y - named_positions[n].y;

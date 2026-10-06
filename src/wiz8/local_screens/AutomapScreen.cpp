@@ -177,8 +177,9 @@ srVector2i g_automap_button_positions[16] = {
 srVector2i g_automap_cursor_offsets[5] = {{0, 0}, {8, 7}, {1, 24}, {1, 24}, {8, 7}};
 // GLOBAL: WIZ8 0x0064b910
 float g_automap_range = 10000.0f;
+/* Developer I-key latch; retail has no rendering consumer for this toggle. */
 // GLOBAL: WIZ8 0x0064b90d
-bool g_flag_64b90d = true;
+bool g_automap_developer_i_toggle = true;
 // GLOBAL: WIZ8 0x0064b918
 int g_automap_layer = -1;
 // GLOBAL: WIZ8 0x0064b91c
@@ -333,14 +334,13 @@ void ResetAutomapView(void)
         g_octree->m_spatial.GetClippedBounds(&g_automap_grid_min, &g_automap_grid_max);
     }
     g_automap_grid_origin = g_automap_grid_min;
-    g_automap_grid_center.Set((g_automap_grid_min.x + g_automap_grid_max.x) * g_float_005ebc7c,
-                              0.0f,
-                              (g_automap_grid_min.z + g_automap_grid_max.z) * g_float_005ebc7c);
+    g_automap_grid_center.Set((g_automap_grid_min.x + g_automap_grid_max.x) * g_float_half, 0.0f,
+                              (g_automap_grid_min.z + g_automap_grid_max.z) * g_float_half);
     g_automap_bounds_dirty = true;
     float span_x = g_automap_grid_max.x - g_automap_grid_min.x;
     float span_z = g_automap_grid_max.z - g_automap_grid_min.z;
     float largest = span_z < span_x ? span_x : span_z;
-    if (largest <= g_float_005ec360) {
+    if (largest <= g_float_twenty_five_thousand) {
         g_automap_top_y = 25000.0f;
     } else {
         g_automap_top_y = largest;
@@ -475,7 +475,7 @@ void AutomapZoomOutButton(void)
             SetAutomapButtonMode(0);
         } else {
             float ground_y = g_automap_position.y - g_automap_zoom;
-            float height = g_automap_top_y - (g_automap_top_y - ground_y) * g_float_005ebc7c;
+            float height = g_automap_top_y - (g_automap_top_y - ground_y) * g_float_half;
             if (g_automap_position.y <= height) {
                 g_automap_position.y = height;
                 if (g_automap_buttons != 0) {
@@ -562,28 +562,28 @@ void AutomapLayerUpButton(void)
 // FUNCTION: WIZ8 0x00584150
 void AutomapPanNorthButton(void)
 {
-    g_automap_position.z += g_float_005ebcd8 * g_automap_zoom;
+    g_automap_position.z += g_float_thirty_five_hundredths * g_automap_zoom;
     SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x00584180
 void AutomapPanSouthButton(void)
 {
-    g_automap_position.z -= g_float_005ebcd8 * g_automap_zoom;
+    g_automap_position.z -= g_float_thirty_five_hundredths * g_automap_zoom;
     SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x005841B0
 void AutomapPanWestButton(void)
 {
-    g_automap_position.x -= g_float_005ebcd8 * g_automap_zoom;
+    g_automap_position.x -= g_float_thirty_five_hundredths * g_automap_zoom;
     SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x005841E0
 void AutomapPanEastButton(void)
 {
-    g_automap_position.x += g_float_005ebcd8 * g_automap_zoom;
+    g_automap_position.x += g_float_thirty_five_hundredths * g_automap_zoom;
     SetAutomapCameraPoint(&g_automap_position);
 }
 
@@ -629,7 +629,7 @@ unsigned char AutomapScreenEnter(void)
     UpdateWorldMesh(g_world);
     SetWorldMeshVertexLightTable(g_world, 1);
     g_light_update_flags &= ~1u;
-    SetWorldModelPickingEnabled(0);
+    SetWorldModelPickingEnabled(false);
     if (!g_automap_state) {
         g_automap_state = static_cast<W8AutomapState*>(malloc(sizeof(W8AutomapState)));
         if (!g_automap_state)
@@ -958,19 +958,19 @@ void AutomapScreenFrame(void)
     }
     bool moved = false;
     if (gfKeyState[0x25]) {
-        g_automap_position.x -= g_float_005ebcd8 * g_automap_zoom;
+        g_automap_position.x -= g_float_thirty_five_hundredths * g_automap_zoom;
         moved = true;
     }
     if (gfKeyState[0x27]) {
-        g_automap_position.x += g_float_005ebcd8 * g_automap_zoom;
+        g_automap_position.x += g_float_thirty_five_hundredths * g_automap_zoom;
         moved = true;
     }
     if (gfKeyState[0x26]) {
-        g_automap_position.z += g_float_005ebcd8 * g_automap_zoom;
+        g_automap_position.z += g_float_thirty_five_hundredths * g_automap_zoom;
         moved = true;
     }
     if (gfKeyState[0x28]) {
-        g_automap_position.z -= g_float_005ebcd8 * g_automap_zoom;
+        g_automap_position.z -= g_float_thirty_five_hundredths * g_automap_zoom;
         moved = true;
     }
     if (moved)
@@ -1002,7 +1002,7 @@ void RestoreAutomapWorldSettings(void)
     SetWorldMeshVertexLightTable(g_world, 0);
     g_light_update_flags |= 1u;
     SetResidentTexturePolicy(g_resident_texture_policy);
-    SetWorldModelPickingEnabled(1);
+    SetWorldModelPickingEnabled(true);
 }
 
 // FUNCTION: WIZ8 0x0057efe0
@@ -1138,7 +1138,7 @@ void SetAutomapButtonMode(int update)
 void SetAutomapToolCursor(int tool)
 {
     if (g_automap_tool == 0 && g_automap_cursor_inside) {
-        if (g_automap_zoom <= g_float_005ec360) {
+        if (g_automap_zoom <= g_float_twenty_five_thousand) {
             tool = 4;
         } else {
             tool = 1;
@@ -1251,7 +1251,7 @@ void ResetAutomapZoom(void)
     SetAutomapCameraPoint(&position);
     int tool = g_automap_tool;
     if (g_automap_tool == 0 && g_automap_cursor_inside) {
-        tool = g_float_005ec360 < g_automap_zoom ? 1 : 4;
+        tool = g_float_twenty_five_thousand < g_automap_zoom ? 1 : 4;
     }
     SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
                                   GetCatalogVideoObjectYOffset(tool + 0x14b),
@@ -1268,9 +1268,9 @@ void ResetAutomapZoom(void)
 unsigned char ZoomAutomapIn(const srVector3T<float>* point)
 {
     srVector3T<float> position;
-    position.x = (point->x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
+    position.x = (point->x - g_float_half) * g_automap_zoom + g_automap_position.x;
     position.y = g_automap_top_y;
-    position.z = g_automap_position.z - (point->y - g_float_005ebc7c) * g_automap_zoom;
+    position.z = g_automap_position.z - (point->y - g_float_half) * g_automap_zoom;
 
     srVector3T<float> from;
     srVector3T<float> to;
@@ -1292,8 +1292,8 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
         ground = to.y;
     }
 
-    float height = (g_automap_top_y - ground) * g_float_005ebc7c;
-    float minimum = ground + g_float_005ec360;
+    float height = (g_automap_top_y - ground) * g_float_half;
+    float minimum = ground + g_float_twenty_five_thousand;
     if (g_automap_zoom_mode != 0 || g_automap_top_y <= minimum || height < minimum) {
         SetAutomapButtonMode(2);
         height = minimum;
@@ -1305,7 +1305,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
     SetAutomapCameraPoint(&position);
     int tool = g_automap_tool;
     if (g_automap_tool == 0 && g_automap_cursor_inside) {
-        tool = g_float_005ec360 < g_automap_zoom ? 1 : 4;
+        tool = g_float_twenty_five_thousand < g_automap_zoom ? 1 : 4;
     }
     SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
                                   GetCatalogVideoObjectYOffset(tool + 0x14b),
@@ -1348,7 +1348,7 @@ static srVector3T<float> GetAutomapCellPosition(unsigned int index)
     cell.SetZero();
     if (g_automap_cell_keys != 0 || index < static_cast<unsigned int>(g_automap_cell_count)) {
         unsigned int key = g_automap_cell_keys[index];
-        float half = g_automap_grid_cell_size * g_float_005ebc7c;
+        float half = g_automap_grid_cell_size * g_float_half;
         cell.Set((key >> 0x15) * g_automap_grid_cell_size + half,
                  (key & 0x3ff) * g_automap_grid_cell_size + half,
                  ((key >> 10) & 0x7ff) * g_automap_grid_cell_size + half);
@@ -1451,10 +1451,10 @@ void UpdateAutomapBounds(void)
                 ++bit;
             } while (bit < static_cast<unsigned int>(g_automap_cell_count));
         }
-        g_automap_bounds_min.x -= g_float_005ec2f8;
-        g_automap_bounds_max.x += g_float_005ec2f8;
-        g_automap_bounds_min.z -= g_float_005ec2f8;
-        g_automap_bounds_max.z += g_float_005ec2f8;
+        g_automap_bounds_min.x -= g_float_five_thousand;
+        g_automap_bounds_max.x += g_float_five_thousand;
+        g_automap_bounds_min.z -= g_float_five_thousand;
+        g_automap_bounds_max.z += g_float_five_thousand;
         float span = g_automap_bounds_max.x - g_automap_bounds_min.x;
         if (span <= g_automap_bounds_max.z - g_automap_bounds_min.z) {
             span = g_automap_bounds_max.z - g_automap_bounds_min.z;
@@ -1573,7 +1573,7 @@ void RenderAutomapFrame(void)
         } else {
             if (g_automap_overlay_redraw) {
                 SetResidentTexturePolicy(3);
-                float half = g_automap_zoom * g_float_005ebc7c;
+                float half = g_automap_zoom * g_float_half;
                 srCamera::Rect view;
                 view.left = static_cast<double>(-half);
                 view.bottom = static_cast<double>(-half);
@@ -1669,8 +1669,8 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
         } while (index < g_automap_layers.GetCount());
     }
     if (index - 1 == g_automap_layer) {
-        float left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
-        float bottom = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
+        float left = g_automap_position.x - g_automap_zoom * g_float_half;
+        float bottom = g_automap_position.z - g_automap_zoom * g_float_half;
         if (left <= note->position.x && note->position.x <= left + g_automap_zoom &&
             bottom <= note->position.y && note->position.y <= bottom + g_automap_zoom) {
             int screen_x = static_cast<int>((note->position.x - left) / g_automap_zoom * -455.0f);
@@ -1820,8 +1820,8 @@ unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position)
             height = g_automap_grid_min.y;
         }
         position->y = height;
-        position->x = (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
-        position->z = g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom;
+        position->x = (point.x - g_float_half) * g_automap_zoom + g_automap_position.x;
+        position->z = g_automap_position.z - (point.y - g_float_half) * g_automap_zoom;
         return 1;
     }
     return 0;
@@ -1842,8 +1842,8 @@ W8AutomapNote* FindAutomapNoteUnderCursor(void)
             *g_automap_layers.GetAt(layer) != 0) {
             (*g_automap_layers.GetAt(layer))->getLocationY();
         }
-        float x = (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
-        float y = g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom;
+        float x = (point.x - g_float_half) * g_automap_zoom + g_automap_position.x;
+        float y = g_automap_position.z - (point.y - g_float_half) * g_automap_zoom;
         for (unsigned int index = 0; index < static_cast<unsigned int>(g_automap_notes->GetCount());
              ++index) {
             W8AutomapNote* note = *g_automap_notes->GetAt(index);
@@ -1968,10 +1968,10 @@ void RenderAutomapMarkers(void)
         object->release();
         g_automap_markers->Remove(object);
     }
-    float left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
+    float left = g_automap_position.x - g_automap_zoom * g_float_half;
     srVector3T<float> point(g_automap_saved_camera.position.x, 1.0f,
                             g_automap_saved_camera.position.z);
-    float top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
+    float top = g_automap_position.z - g_automap_zoom * g_float_half;
     if (point.x < left || left + g_automap_zoom < point.x || point.z < top ||
         top + g_automap_zoom < point.z) {
         g_automap_party_marker->setFlag(srNode::FLAG_DISABLE);
@@ -2011,8 +2011,8 @@ void RenderAutomapMarkers(void)
         }
         if (g_automap_show_all_monsters || detect_all ||
             (!monster->disabled && info->party_threat.sight_state == W8_SIGHT_SEEN)) {
-            left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
-            top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
+            left = g_automap_position.x - g_automap_zoom * g_float_half;
+            top = g_automap_position.z - g_automap_zoom * g_float_half;
             if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||
                 top + g_automap_zoom < location.z) {
                 continue;
@@ -2060,8 +2060,8 @@ void RenderAutomapMarkers(void)
              (static_cast<W8ItemRep*>(item->m_pRep)->flags & W8_ITEM_ENTITY_RADAR_SEEN) != 0 ||
              HasCameraLineOfSight(&location)) &&
             layer - 1 == g_automap_layer) {
-            left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
-            top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
+            left = g_automap_position.x - g_automap_zoom * g_float_half;
+            top = g_automap_position.z - g_automap_zoom * g_float_half;
             if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||
                 top + g_automap_zoom < location.z) {
                 continue;
@@ -2094,8 +2094,8 @@ void RenderAutomapMarkers(void)
                 layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0) {
                 (*g_automap_layers.GetAt(layer))->getLocationY();
             }
-            left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
-            top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
+            left = g_automap_position.x - g_automap_zoom * g_float_half;
+            top = g_automap_position.z - g_automap_zoom * g_float_half;
             if (note->position.x < left || left + g_automap_zoom < note->position.x ||
                 note->position.y < top || top + g_automap_zoom < note->position.y) {
                 continue;
@@ -2251,7 +2251,7 @@ stModelInstance2D* CreateAutomapTextMarker(void)
     }
     *marker = *g_automap_text_marker;
     g_automap_markers->Add(marker);
-    float factor = (g_float_one / (g_automap_zoom * 0.00004f)) * 0.44f * g_float_005ebc7c;
+    float factor = (g_float_one / (g_automap_zoom * 0.00004f)) * 0.44f * g_float_half;
     if (marker->GetScaledHeight() * factor < g_float_one) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
         factor = g_float_one / marker->GetScaledHeight();
@@ -2283,8 +2283,8 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
                     (*g_automap_layers.GetAt(layer))->getLocationY();
                 }
                 g_automap_editing_note->position.Set(
-                    (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x,
-                    g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom);
+                    (point.x - g_float_half) * g_automap_zoom + g_automap_position.x,
+                    g_automap_position.z - (point.y - g_float_half) * g_automap_zoom);
                 g_automap_redraw = true;
             }
         }
@@ -2419,7 +2419,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         g_automap_tool = 0;
         tool = 0;
         if (g_automap_cursor_inside) {
-            tool = g_float_005ec360 < g_automap_zoom ? 1 : 4;
+            tool = g_float_twenty_five_thousand < g_automap_zoom ? 1 : 4;
         }
         SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
                                       GetCatalogVideoObjectYOffset(tool + 0x14b),
@@ -2509,7 +2509,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         break;
     case 0x49:
         if (g_dev_mode) {
-            g_flag_64b90d = !g_flag_64b90d;
+            g_automap_developer_i_toggle = !g_automap_developer_i_toggle;
             g_automap_redraw = true;
             return 1;
         }

@@ -55,7 +55,7 @@ void RefreshLevelUpReadyNotices(void); /* 0x004EF1F0 */
 int AddCharacterToParty(W8Character* character, int slot);
 /* 0x004EF610: remove a slot's character from the party; fSaveCharData
    persists it back to its NPC record first. */
-unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data);
+bool RemoveCharacterFromParty(int party_slot, bool save_character_data);
 
 void AwardPartyExperience(int value, int mode); /* 0x004EEF10 */
 bool IsCharacterReadyToAdvance(int party_slot);

@@ -36,13 +36,13 @@
 #include <string.h>
 #include "wiz8/engine_code/GameData.h"
 // GLOBAL: WIZ8 0x005ebc3c
-const float g_float_005ebc3c = 0.10000000149011612f;
+const float g_float_one_tenth = 0.10000000149011612f;
 // GLOBAL: WIZ8 0x005ec390
-const float g_float_005ec390 = 0.8999999761581421f;
+const float g_float_nine_tenths = 0.8999999761581421f;
 // GLOBAL: WIZ8 0x005ec5c0
-const float g_float_005ec5c0 = 0.30000001192092896f;
+const float g_lod_level_zero_exit_threshold = 0.30000001192092896f;
 // GLOBAL: WIZ8 0x005ec5c4
-const float g_float_005ec5c4 = 0.699999988079071f;
+const float g_lod_level_two_exit_threshold = 0.699999988079071f;
 
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
    canonical assertion at line 1598; the body bounds-checks against 1 and 3, so
@@ -58,9 +58,9 @@ const float g_float_005ec5c4 = 0.699999988079071f;
 // class W8GrCycle
 
 // GLOBAL: WIZ8 0x005ecf98
-const float g_float_005ecf98 = 0.02500000037252903f;
+const float g_camera_shake_tick_seconds = 0.02500000037252903f;
 // GLOBAL: WIZ8 0x005ecf9c
-const float g_float_005ecf9c = 250.0f;
+const float g_float_two_hundred_fifty = 250.0f;
 // GLOBAL: WIZ8 0x0060da88
 static bool g_camera_shake_enabled = true;
 // GLOBAL: WIZ8 0x0065be2c
@@ -92,7 +92,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float inte
 {
     if (g_shake_effects == 0) {
         g_shake_effects = new W8Vector<W8CameraShakeEffect*>(5);
-        g_shake_timer = new W8GameTimer(g_float_005ecf98, 0);
+        g_shake_timer = new W8GameTimer(g_camera_shake_tick_seconds, 0);
         g_shake_timer->Restart();
     }
     if (preset) {
@@ -201,7 +201,7 @@ void UpdateShakeEffects()
         }
         if (intensity > g_float_zero) {
             float amplitude = intensity < g_float_one ? intensity : g_float_one;
-            amplitude *= g_float_005ecf9c;
+            amplitude *= g_float_two_hundred_fifty;
             int span = static_cast<int>(amplitude) << 1;
             g_trigger_action_scene_offset.x = Random(span) - amplitude;
             g_trigger_action_scene_offset.y = Random(span) - amplitude;
@@ -249,9 +249,9 @@ unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, f
 }
 
 // GLOBAL: WIZ8 0x005ec128
-const float g_float_005ec128 = 0.0010000000474974513f;
+const float g_float_one_thousandth = 0.0010000000474974513f;
 // GLOBAL: WIZ8 0x005ebc64
-const float g_float_005ebc64 = 1000.0f;
+const float g_float_one_thousand = 1000.0f;
 
 /* Build the two paths used while reading a .mon resource, verify its one-byte
    version, and hand the open file plus its resource context to the typed cycle
@@ -604,14 +604,14 @@ void W8GrCycle::TickAnimation(float scale)
             }
 
             rate = GetCurrentAnimationScale() * scale;
-            progress = elapsed * rate * g_float_005ec128;
+            progress = elapsed * rate * g_float_one_thousandth;
             frames = static_cast<int>(progress);
             frame_fraction = progress - frames;
 
             if (frames != 0) {
                 srVector3T<float> position;
 
-                representation->timer += static_cast<int>(frames * g_float_005ebc64 / rate);
+                representation->timer += static_cast<int>(frames * g_float_one_thousand / rate);
                 wrapped = false;
                 position = GetPosition();
                 do {
@@ -1198,20 +1198,20 @@ void W8GrCycle::SelectLOD(const srVector3T<float>* position)
             pRep->m_bLOD = 2;
         }
     }
-    if (g_render_fog_distance <= g_float_005ebc3c && pRep->m_bLOD != 2) {
+    if (g_render_fog_distance <= g_float_one_tenth && pRep->m_bLOD != 2) {
         if (has_lod_2) {
             pRep->m_bLOD = 2;
         }
         return;
     }
-    if ((g_render_fog_distance <= g_float_005ec5c0 && pRep->m_bLOD == 0) ||
-        (g_render_fog_distance >= g_float_005ec5c4 && pRep->m_bLOD == 2)) {
+    if ((g_render_fog_distance <= g_lod_level_zero_exit_threshold && pRep->m_bLOD == 0) ||
+        (g_render_fog_distance >= g_lod_level_two_exit_threshold && pRep->m_bLOD == 2)) {
         if (has_lod_1) {
             pRep->m_bLOD = 1;
         }
         return;
     }
-    if (g_render_fog_distance >= g_float_005ec390 && pRep->m_bLOD != 0 && has_lod_0) {
+    if (g_render_fog_distance >= g_float_nine_tenths && pRep->m_bLOD != 0 && has_lod_0) {
         pRep->m_bLOD = 0;
     }
 }

@@ -443,10 +443,10 @@ void srDebugVP::_memcopy(void* destination, int source, SRDWORD bytes)
 }
 
 // FUNCTION: SURRENDER 0x1006A550
-void srDebugVP::_prefetch(const void* destination, SRDWORD bytes, SRDWORD value_014)
+void srDebugVP::_prefetch(const void* destination, SRDWORD bytes, SRDWORD unused)
 {
     ScopeTimer scope_timer(this, bytes >> 5, COMMAND_PREFETCH, destination, 0, 0, 0);
-    processor->_prefetch(destination, bytes, value_014);
+    processor->_prefetch(destination, bytes, unused);
 }
 
 // FUNCTION: SURRENDER 0x1006A5D0
@@ -1801,7 +1801,7 @@ void srDebugVP::_srLinearToFloat(float* destination, const SRDWORD* source, SRDW
 }
 
 // FUNCTION: SURRENDER 0x1006FBE0
-void srDebugVP::unknown_2a0(SRDWORD arg0, SRDWORD arg1) {}
+void srDebugVP::unknown_2a0(SRDWORD, SRDWORD) {}
 
 // FUNCTION: SURRENDER 0x1006FBF0
 void srDebugVP::unknown_2a4() {}

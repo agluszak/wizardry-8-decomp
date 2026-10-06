@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 // GLOBAL: WIZ8 0x005ebccc
-const float g_float_005ebccc = 0.75f;
+const float g_float_three_quarters = 0.75f;
 
 // FUNCTION: WIZ8 0x004b6e00
 GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
@@ -181,10 +181,10 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
                 surface->flags |= W8_GD_SURFACE_SKIP_FILTERED_TRACE;
             }
 
-            if (g_float_005ebc7c <= surface->plane.normal.y) {
+            if (g_float_half <= surface->plane.normal.y) {
                 surface->contact_margin = 500.0f;
                 surface->flags |= W8_GD_SURFACE_WALKABLE;
-                if (g_float_005ebccc < surface->plane.normal.y) {
+                if (g_float_three_quarters < surface->plane.normal.y) {
                     surface->slope = 1.0f;
                 } else {
                     surface->slope = surface->plane.normal.y;
@@ -296,7 +296,7 @@ void GDProp::ComputeBounds(srVector3T<float>* minimum, srVector3T<float>* maximu
 
     m_path_range.minimum = m_bound_min.y;
     m_path_range.maximum = m_bound_max.y;
-    m_path_range.sentinel = (m_bound_min.y + m_bound_max.y) * g_float_005ebc7c;
+    m_path_range.sentinel = (m_bound_min.y + m_bound_max.y) * g_float_half;
 
     *minimum = m_bound_min;
     *maximum = m_bound_max;
@@ -557,15 +557,15 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     if (node->path.angle != g_double_zero) {
         rotation.RotateAroundAxis(sin(node->path.angle), cos(node->path.angle), axis);
     }
-    translation.Set(node->path.position.x * g_double_005ec150,
-                    node->path.position.y * g_double_005ec150,
-                    node->path.position.z * g_double_005ec150);
+    translation.Set(node->path.position.x * g_double_five_hundred,
+                    node->path.position.y * g_double_five_hundred,
+                    node->path.position.z * g_double_five_hundred);
 
     if ((mesh->flags & W8_LEVEL_MESH_LOD_VERTICES) != 0 &&
         (mesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) != 0) {
         factor = mesh->lod_scale * g_world_scale;
     } else {
-        factor = static_cast<float>(g_double_005ec150);
+        factor = static_cast<float>(g_double_five_hundred);
     }
     scale = node->scale * factor;
 
@@ -658,7 +658,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
         }
         surface->flags = dominant_axis + W8_GD_SURFACE_PROP_GEOMETRY;
         surface->hit_plane = 0;
-        if (g_float_005ebc7c <= surface->plane.normal.y) {
+        if (g_float_half <= surface->plane.normal.y) {
             surface->contact_margin = 500.0f;
             surface->flags |= W8_GD_SURFACE_WALKABLE;
         } else {

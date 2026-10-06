@@ -341,9 +341,9 @@ void FaceCameraToSelection(int party_slot)
 /* Face one position the way the rules say it should, unless the rules have no
    preference or it already faces that way. */
 // FUNCTION: WIZ8 0x005557e0
-void FacePositionAsDecided(int position, int arg_2)
+void FacePositionAsDecided(int position, int target_position)
 {
-    signed char facing = DecideFacingForPosition(position, arg_2);
+    signed char facing = DecideFacingForPosition(position, target_position);
 
     if (facing != W8_FACING_ANY && g_status.formation.positions[position].facing != facing) {
         g_status.formation.positions[position].facing = facing;
@@ -354,9 +354,9 @@ void FacePositionAsDecided(int position, int arg_2)
 /* Whether a position already faces the way the rules want. No preference
    always agrees. */
 // FUNCTION: WIZ8 0x00555920
-bool PositionFacesAsDecided(int position, int arg_2)
+bool PositionFacesAsDecided(int position, int target_position)
 {
-    signed char facing = DecideFacingForPosition(position, arg_2);
+    signed char facing = DecideFacingForPosition(position, target_position);
 
     if (facing == W8_FACING_ANY) {
         return true;
@@ -367,9 +367,9 @@ bool PositionFacesAsDecided(int position, int arg_2)
 /* Whether a position is facing exactly away from where the rules want it -
    two of the four facings apart. */
 // FUNCTION: WIZ8 0x00555c20
-bool PositionFacesOppositeToDecided(int arg_1, int position)
+bool PositionFacesOppositeToDecided(int target_position, int position)
 {
-    signed char facing = DecideFacingForPosition(position, arg_1);
+    signed char facing = DecideFacingForPosition(position, target_position);
     int difference;
 
     if (facing == W8_FACING_ANY) {
@@ -395,15 +395,15 @@ bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
     return ShortestAngleDistance(bearing, facing) >= g_facing_tolerance1;
 }
 
-/* The facing step from `position`'s quadrant toward `arg_2`'s quadrant: the
+/* The facing step from `position`'s quadrant toward `target_position`'s quadrant: the
    target quadrant verbatim for rows 0-3, the opposite quadrant when the
    target sits in the centre, and the no-facing code 4 when either side is
    unseated or both match. */
 // FUNCTION: WIZ8 0x00555e70
-signed char DecideFacingForPosition(int position, int arg_2)
+signed char DecideFacingForPosition(int position, int target_position)
 {
     signed char source = g_status.formation.positions[position].bQuadrant;
-    signed char target = g_status.formation.positions[arg_2].bQuadrant;
+    signed char target = g_status.formation.positions[target_position].bQuadrant;
 
     if (source == -1) {
         srAssertFail("bSourceQuadrant != -1", FORMATION_CPP, 0x40d, 0);

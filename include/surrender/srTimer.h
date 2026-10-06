@@ -39,7 +39,7 @@ public:
         CPU_TYPE_RESERVED = 3
     };
 
-    srTimer(int argument_0 = 0, int argument_1 = 0, int argument_2 = 1);
+    srTimer(int force_system_timer = 0, int unused = 0, int save_calibration = 1);
     srTimer(const srTimer& other);
     srTimer& operator=(const srTimer& other);
 
@@ -48,7 +48,7 @@ public:
     char* getAscTime(char* buffer, srQuadWord value);
     virtual int pause();            /* 2 */
     virtual unsigned long resume(); /* 3 */
-    virtual int reset(int argument_0, int argument_1, int argument_2);
+    virtual int reset(int force_system_timer, int unused, int save_calibration);
     virtual unsigned long getMsTime(e_timerReadControl control); /* 5 */
     virtual double getTime(e_timerReadControl control);          /* 6 */
     /* Slots 7/9 take srQuadWord&, slots 8/10 take only the control. MSVC lays

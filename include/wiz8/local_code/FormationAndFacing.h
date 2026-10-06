@@ -14,19 +14,19 @@ void SyncPartyFacingFromCamera(void); /* 0x005552F0 */
 extern const double g_facing_tolerance1;
 extern const float g_facing_tolerance0;
 
-signed char DecideFacingForPosition(int position, int arg_2); /* 0x00555E70 */
+signed char DecideFacingForPosition(int position, int target_position); /* 0x00555E70 */
 
 void RebuildPartyStatus(W8PartyFormationState* status);
 
 /* 0x005557E0: turn the position's formation facing toward the second position
    the way DecideFacingForPosition resolved it. */
-void FacePositionAsDecided(int position, int arg_2);
+void FacePositionAsDecided(int position, int target_position);
 /* 0x00555920: whether the position already faces the second position the way
    DecideFacingForPosition resolved it. */
-bool PositionFacesAsDecided(int position, int arg_2);
+bool PositionFacesAsDecided(int position, int target_position);
 /* 0x00555C20: whether the position faces opposite to the second position the
    way DecideFacingForPosition resolved it. */
-bool PositionFacesOppositeToDecided(int arg_1, int position);
+bool PositionFacesOppositeToDecided(int target_position, int position);
 /* 0x00555D60: whether the party's world position looks away from the
    monster. */
 bool IsPartyLookingAwayFrom(int party_slot, W8MonsterInfo* monster_info);

@@ -238,7 +238,7 @@ void OpenSecondaryAttributeInfoDialog(unsigned int uiIndex)
 void IdentifyAndOpenItemInfo(W8ItemInstance* item)
 {
     if (CanItemLeaveItsSlot(item)) {
-        if (PartyAttemptsToIdentifyItem(item, 0) != 0 &&
+        if (PartyAttemptsToIdentifyItem(item, 0) &&
             g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_UNIDENTIFIED] != 0) {
             RebuildCampItemList();
             g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
@@ -282,7 +282,7 @@ void UseCampItem(W8ItemInstance* item)
 {
     unsigned short slot;
 
-    if (ValidateItemSpellUse(giReviewCharSlot, item, 0) != 0) {
+    if (ValidateItemSpellUse(giReviewCharSlot, item, 0)) {
         SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
         return;
     }
@@ -311,7 +311,7 @@ void UseCampItem(W8ItemInstance* item)
 void MergeItemStacksWithHeld(W8ItemInstance* item)
 {
     if (item->iItemNo != -1) {
-        if (MergeItems(g_review_character, item) != 0) {
+        if (MergeItems(g_review_character, item)) {
             RebuildCampItemList();
             g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
             SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
@@ -791,7 +791,7 @@ void ToggleCampItemFilter(W8CampItemFilterButton tab)
 static void ShowCampItemInfo(W8ItemInstance* item)
 {
     g_camp_identifying_character = g_review_character;
-    if (CanItemLeaveItsSlot(item) && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
+    if (CanItemLeaveItsSlot(item) && PartyAttemptsToIdentifyItem(item, 0) &&
         g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_UNIDENTIFIED] != 0) {
         RebuildCampItemList();
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;

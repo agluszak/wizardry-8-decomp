@@ -113,10 +113,10 @@ static wchar_t g_W8TextBreakCharacters[] = L" ";
 const float g_float_one = 1.0f;
 
 // GLOBAL: WIZ8 0x005ebc7c
-const float g_float_005ebc7c = 0.5f;
+const float g_float_half = 0.5f;
 
 // GLOBAL: WIZ8 0x005ebcd8
-const float g_float_005ebcd8 = 0.35f;
+const float g_float_thirty_five_hundredths = 0.35f;
 
 // FUNCTION: WIZ8 0x004f30f0
 void Controls::EnableRegionSet(bool enable)
@@ -819,18 +819,18 @@ W8TextControl::W8TextControl(Controls* panel, unsigned int region, int left, int
 /* Refresh the cached extent from the preferred text handle, falling back to
    the alternate handle. */
 // FUNCTION: WIZ8 0x004F4800
-unsigned char W8TextControl::MeasureText()
+bool W8TextControl::MeasureText()
 {
     int handle;
 
     if (m_imageObject != -1 && m_imageFrame != -1 &&
         ((handle = m_normalSprite) != -1 || (handle = m_pressedSprite) != -1)) {
         GetCatalogImageSize(m_imageObject, m_imageFrame, handle, &m_measured_w, &m_measured_h);
-        return 1;
+        return true;
     }
     m_measured_w = -1;
     m_measured_h = -1;
-    return 0;
+    return false;
 }
 
 /* Where the text should be drawn: the panel origin plus either the widget's
@@ -1528,7 +1528,7 @@ void W8RangeControl::SetValue(int value)
     } else if (m_value == m_maximum) {
         position = g_float_one;
     } else {
-        position = ((m_value - m_minimum) + g_float_005ebc7c) / ((m_maximum - m_minimum) + 1);
+        position = ((m_value - m_minimum) + g_float_half) / ((m_maximum - m_minimum) + 1);
     }
     m_thumb->SetRangePosition(position);
 }
@@ -1895,7 +1895,7 @@ void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
 
 // FUNCTION: WIZ8 0x004f5620
 W8HorizontalRangeThumb::W8HorizontalRangeThumb(Controls* panel, unsigned int region, int left,
-                                               int top, int render_arg_0, int render_arg_1,
+                                               int top, int catalog_object, int catalog_frame,
                                                int background_sprite, int normal_thumb_sprite,
                                                int hovered_thumb_sprite, int disabled_thumb_sprite)
     : W8Widget(panel, region, left, top, 0, 0)
@@ -1906,8 +1906,8 @@ W8HorizontalRangeThumb::W8HorizontalRangeThumb(Controls* panel, unsigned int reg
     m_normalThumbSprite = normal_thumb_sprite;
     m_hoveredThumbSprite = hovered_thumb_sprite;
     m_disabledThumbSprite = disabled_thumb_sprite;
-    m_catalogObject = render_arg_0;
-    m_catalogFrame = render_arg_1;
+    m_catalogObject = catalog_object;
+    m_catalogFrame = catalog_frame;
     m_backgroundSprite = background_sprite;
     m_pixelPosition = 0;
     m_hovered = false;
@@ -1916,7 +1916,7 @@ W8HorizontalRangeThumb::W8HorizontalRangeThumb(Controls* panel, unsigned int reg
     m_maximumPosition = 1.0f;
     m_position = 0.0f;
     m_listener = 0;
-    GetCatalogImageSize(render_arg_0, render_arg_1, background_sprite, &width, &height);
+    GetCatalogImageSize(catalog_object, catalog_frame, background_sprite, &width, &height);
     m_right = static_cast<unsigned short>(width) + m_left;
     m_bottom = m_top + static_cast<unsigned short>(height);
     SetRegion(m_region);

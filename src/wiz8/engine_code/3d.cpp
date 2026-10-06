@@ -31,9 +31,9 @@
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
 
 // GLOBAL: WIZ8 0x005EC428
-const double g_double_005ec428 = 0.9980430528375734;
+const double g_light_range_attenuation_numerator = 0.9980430528375734;
 // GLOBAL: WIZ8 0x005EC430
-const double g_double_005ec430 = 0.0019569471624266144;
+const double g_light_range_attenuation_denominator = 0.0019569471624266144;
 
 // FUNCTION: WIZ8 0x0046DD70
 void UpdateWorldMonsters(W8World* world)
@@ -238,7 +238,8 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                 stLight* light = static_cast<stLight*>(light_node);
                 srVector3T<float> attenuation = light->opengl_attenuation;
                 float range =
-                    static_cast<float>(g_double_005ec428 / (attenuation.y * g_double_005ec430));
+                    static_cast<float>(g_light_range_attenuation_numerator /
+                                       (attenuation.y * g_light_range_attenuation_denominator));
                 srVector3T<float> light_position;
                 light_position = light_node->getWorldSpaceLocation();
                 srVector3T<float> light_min(light_position.x - range, light_position.y - range,
@@ -271,7 +272,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                             float facing = DotProduct(direction, world_normals[index]);
                             if (facing < g_double_zero) {
                                 double contribution =
-                                    -facing * intensity * (g_double_005ebc30 - distance / range);
+                                    -facing * intensity * (g_double_one - distance / range);
                                 if (vertex_materials != 0) {
                                     srMaterialIFace* vertex_material = vertex_materials[index];
                                     if (vertex_material != 0) {
@@ -395,7 +396,7 @@ unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<fl
 {
     srVector3T<float> point;
 
-    point = (*lower + *upper) * g_double_005ebe80;
+    point = (*lower + *upper) * g_double_half;
     if (ProjectPointThroughCamera(&point) != 0) {
         if (g_octree->HasLineOfSight(eye, &point, true)) {
             return 1;
@@ -461,7 +462,7 @@ char TraceLineOfSightToBounds(const srVector3T<float>* origin, srVector3T<float>
 {
     srVector3T<float> point;
 
-    point = (*minimum + *maximum) * g_double_005ebe80;
+    point = (*minimum + *maximum) * g_double_half;
     if (g_octree->TraceLineOfSight(origin, &point, true, -3, -3, true, 0) == 0) {
         return 1;
     }
@@ -503,7 +504,7 @@ bool HasLineOfSightToBounds(const srVector3T<float>* origin, srVector3T<float>* 
 {
     srVector3T<float> point;
 
-    point = (*minimum + *maximum) * g_double_005ebe80;
+    point = (*minimum + *maximum) * g_double_half;
     if (g_octree->HasLineOfSight(origin, &point, true)) {
         return true;
     }
@@ -733,19 +734,19 @@ void WorldUpdateLights(W8World* world)
    this global instead. */
 
 // FUNCTION: WIZ8 0x0046e580
-void AddMonsterToWorld(W8World* unused, W8Monster* monster)
+void AddMonsterToWorld(W8World*, W8Monster* monster)
 {
     PLAdoptAppend(g_world->plsMonsters, monster);
 }
 
 // FUNCTION: WIZ8 0x0046e5c0
-void AddItemToWorld(W8World* unused, W8Item* item)
+void AddItemToWorld(W8World*, W8Item* item)
 {
     PLAdoptAppend(g_world->plsItems, item);
 }
 
 // FUNCTION: WIZ8 0x0046e5e0
-void RemoveItemFromWorld(W8World* unused, W8Item* item)
+void RemoveItemFromWorld(W8World*, W8Item* item)
 {
     PListRemove(g_world->plsItems, item);
 }
@@ -754,13 +755,13 @@ void RemoveItemFromWorld(W8World* unused, W8Item* item)
    discarded by the wrapper itself, which is what makes these thin forwarders
    rather than accessors. */
 // FUNCTION: WIZ8 0x0046e600
-int WorldGetPropCount(W8World* unused)
+int WorldGetPropCount(W8World*)
 {
     return PLLength(g_world->plsProps);
 }
 
 // FUNCTION: WIZ8 0x0046e620
-W8Prop* WorldGetPropAt(W8World* unused, int index)
+W8Prop* WorldGetPropAt(W8World*, int index)
 {
     return GetWorldProp(g_world, index);
 }
@@ -933,7 +934,7 @@ double WorldGetFarClip(W8World* world)
 }
 
 // FUNCTION: WIZ8 0x0046E5A0
-void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster)
+void RemoveMonsterFromWorldList(W8World*, W8Monster* monster)
 {
     PListRemove(g_world->plsMonsters, monster);
 }

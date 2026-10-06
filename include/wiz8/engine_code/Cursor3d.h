@@ -14,7 +14,7 @@ void UpdateWorldCursor(void);
 /* 0x004914E0: when the cursor's group-bind flag is set, locate the monster
    group recorded on the cursor and attach its leader at the cursor point. */
 void BindCursorMonsterToGroup(void);
-/* 0x00491EC0: place the world cursor's target point g_float_60ab48 units in
+/* 0x00491EC0: place the world cursor's target point g_cursor_projection_distance units in
    front of the camera and re-derive the cursor position from it. */
 void UpdateWorldCursorPlacement(void);
 /* 0x004919E0: march the requested cursor target from the stored position,

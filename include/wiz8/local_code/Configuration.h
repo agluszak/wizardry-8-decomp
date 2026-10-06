@@ -12,7 +12,7 @@ enum W8CameraRotationMode {
 enum W8CameraRotationStyle { W8_CAMERA_ROTATION_SNAP = 0, W8_CAMERA_ROTATION_SMOOTH = 1 };
 
 void LoadGameConfiguration(void);
-unsigned char SaveGameConfiguration(void);
+bool SaveGameConfiguration(void);
 /* Bodies live in music_playlist.cpp (address-interleaved with that fragment). */
 void SetMusicVolume(unsigned char volume);
 bool IsMusicMuted(void);

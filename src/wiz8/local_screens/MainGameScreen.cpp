@@ -232,7 +232,7 @@ static unsigned int g_main_game_text_key_region_set;
 static unsigned int g_main_game_action_panel_region_set;
 
 // GLOBAL: WIZ8 0x0061e9ec
-unsigned short g_value_0061e9ec[] = {
+unsigned short g_trap_name_string_ids[] = {
     0x542, 0x543, 0x544, 0x545, 0x546, 0x547, 0x548, 0x549, 0x54a, 0x54b,
     0x54c, 0x54d, 0x54e, 0x54f, 0x550, 0,     0x551, 0x552, 0x553, 0x554,
     0x555, 0,     0x556, 0x557, 0x558, 0x559, 0x55a, 0x55b,
@@ -294,15 +294,15 @@ wchar_t g_format_s_colon_s[] = L"%s: %s";
 wchar_t g_format_s_spaced_colon[] = L"%s :  ";
 
 // GLOBAL: WIZ8 0x005ec258
-const float g_float_005ec258 = 0.019999999552965164f;
+const float g_float_one_fiftieth = 0.019999999552965164f;
 // GLOBAL: WIZ8 0x005ec25c
-const float g_float_005ec25c = 180.0f;
+const float g_float_half_turn_degrees = 180.0f;
 // GLOBAL: WIZ8 0x005ee998
 const float g_mouselook_yaw_scale = 0.004908738192170858f;
 // GLOBAL: WIZ8 0x005ee99c
 const float g_mouselook_pitch_scale = 0.00654498441144824f;
 // GLOBAL: WIZ8 0x005eebbc
-const float g_float_005eebbc = 120.0f;
+const float g_text_panel_progress_scale = 120.0f;
 
 // GLOBAL: WIZ8 0x00659c11
 bool g_navigator_position_changed;
@@ -1702,8 +1702,8 @@ W8MainGameTextPanel::W8MainGameTextPanel()
         m_entries[index]->m_listener = this;
         m_entries[index]->EnableRegionHelp(0x7d1);
     }
-    m_key_handler = new W8MainGameTextKeyHandler(this, 0x8e, 5, 0x10f, 0x59, 0xf, g_value_0061e9ec,
-                                                 &g_main_game_text_key_region_set);
+    m_key_handler = new W8MainGameTextKeyHandler(
+        this, 0x8e, 5, 0x10f, 0x59, 0xf, g_trap_name_string_ids, &g_main_game_text_key_region_set);
     m_key_handler->m_range_listener = this;
     m_text_bounds.left = m_bounds.left + 0xc;
     m_text_bounds.top = m_bounds.top + 0x29;
@@ -1755,7 +1755,7 @@ void W8MainGameTextPanel::Redraw()
         return;
     }
     if (m_progress_display) {
-        progress = static_cast<int>(m_progress_elapsed * g_float_005eebbc);
+        progress = static_cast<int>(m_progress_elapsed * g_text_panel_progress_scale);
         if (progress > m_progress_drawn) {
             m_progress_drawn = progress;
             InvalidateRegion(m_text_bounds.left, m_text_bounds.top, m_text_bounds.right,
@@ -2021,7 +2021,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
 
     m_selected_character = slot;
     skill = GetPartySlotLocksTrapsLevel(slot);
-    hold = g_navigator_linked_radius_scale - skill * g_float_005ec258;
+    hold = g_navigator_linked_radius_scale - skill * g_float_one_fiftieth;
     chance = m_difficulty;
     if (chance < 0) {
         chance = 0;
@@ -2115,7 +2115,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     slot = g_status.selected_character;
     m_selected_character = slot;
     skill = GetPartySlotLocksTrapsLevel(slot);
-    hold = g_float_005ebca0 - skill * g_camera_snap_epsilon;
+    hold = g_float_six - skill * g_camera_snap_epsilon;
     chance = GetTrapInteractionChance();
     roll = static_cast<int>(Random(0x64));
     if (roll < chance) {
@@ -5048,7 +5048,7 @@ void RequestLevelTransition(int level, int entry, unsigned char flag)
         } else {
             swprintf(g_level_block->text_paint_scratch, g_format_enter_test_level, normalized + 2);
         }
-        if (QueueNpcDepartureEvents(normalized) != 0) {
+        if (QueueNpcDepartureEvents(normalized)) {
             WorldSetCameraLocation(g_world, &g_trigger_camera);
             return;
         }
@@ -8632,7 +8632,7 @@ unsigned char UpdateSurpriseFade(void)
             g_surprise_fade_tick_base = now;
         }
     } else {
-        opacity = (now - g_surprise_fade_tick_base) * g_float_005ebc60;
+        opacity = (now - g_surprise_fade_tick_base) * g_float_one_five_hundredth;
         if (!g_surprise_fade_in) {
             opacity = g_float_one - opacity;
         }

@@ -507,9 +507,9 @@ void SetWorldEnvironmentIntensity(W8World* world, float value)
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
     }
-    if (g_double_005ebc30 <= value || g_double_zero < value) {
-        if (g_double_005ebc30 <= value) {
-            value = static_cast<float>(g_double_005ebc30);
+    if (g_double_one <= value || g_double_zero < value) {
+        if (g_double_one <= value) {
+            value = static_cast<float>(g_double_one);
         }
     } else {
         value = static_cast<float>(g_double_zero);
@@ -525,9 +525,9 @@ void SetWorldEnvironmentIntensity(W8World* world, float value)
 static float ApplyWorldLightingIntensity(W8World* world, float intensity)
 {
     EnvironmentColour colour;
-    if (g_double_005ebc30 <= intensity || g_double_zero < intensity) {
-        if (g_double_005ebc30 <= intensity) {
-            intensity = static_cast<float>(g_double_005ebc30);
+    if (g_double_one <= intensity || g_double_zero < intensity) {
+        if (g_double_one <= intensity) {
+            intensity = static_cast<float>(g_double_one);
         }
     } else {
         intensity = static_cast<float>(g_double_zero);
@@ -787,11 +787,11 @@ void SetWorldEnvironmentColour(W8World* world, EnvironmentColour colour)
 }
 
 // GLOBAL: WIZ8 0x005ec980
-const double g_double_005ec980 = 0.25;
+const double g_double_quarter = 0.25;
 // GLOBAL: WIZ8 0x005ec988
-const double g_double_005ec988 = 2.3148148148148148e-08;
+const double g_inverse_half_day_ms = 2.3148148148148148e-08;
 // GLOBAL: WIZ8 0x005ec990
-const double g_double_005ec990 = 43200000.0;
+const double g_half_day_ms = 43200000.0;
 
 /* Scale one colour triple by a double factor and clamp every component to the
    unit range in place. A product helper like SaturateColor: no matching
@@ -843,15 +843,15 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
         srMaterial* material = static_cast<srMaterial*>(
             registry->find(node, "AnimatedCloudMaterial", static_cast<const srRuntimeClass*>(0)));
         if (material != 0) {
-            double brightness = g_double_005ebc30 -
-                                fabs(g_status.game_time_ms - g_double_005ec990) * g_double_005ec988;
+            double brightness =
+                g_double_one - fabs(g_status.game_time_ms - g_half_day_ms) * g_inverse_half_day_ms;
 
             material->parms.ambient.x = static_cast<float>(brightness);
             material->parms.ambient.y = static_cast<float>(brightness);
             material->parms.ambient.z = static_cast<float>(brightness);
             material->parms.ambient.w = static_cast<float>(brightness);
             material->parms.diffuse.w =
-                static_cast<float>(brightness * g_double_005ebf40 + g_double_005ec980);
+                static_cast<float>(brightness * g_double_three_quarters + g_double_quarter);
 
             material->dirty = 1;
         }
@@ -904,7 +904,7 @@ void SetCameraLightMode(int mode)
             if (camera_light != 0) {
                 intensity = camera_light->intensity;
             }
-            intensity += g_float_005ebc7c;
+            intensity += g_float_half;
             if (CAMERA_LIGHT_MAXIMUM_INTENSITY < intensity) {
                 intensity = CAMERA_LIGHT_MAXIMUM_INTENSITY;
             }
@@ -913,7 +913,7 @@ void SetCameraLightMode(int mode)
             }
             return;
         case 1:
-            intensity = camera_light->intensity - g_float_005ebc7c;
+            intensity = camera_light->intensity - g_float_half;
             if (g_float_zero < intensity) {
                 camera_light->intensity = intensity;
                 return;

@@ -127,7 +127,7 @@ void ResetPartyCombatRows(void);
    one is still owed, refuse while dialogue or a script event defers it, then
    reset the world, UI and per-monster state and allocate the combat state. */
 // FUNCTION: WIZ8 0x004E7090
-unsigned char StartCombat(int surprise)
+bool StartCombat(int surprise)
 {
     W8MonsterInfo* monster_info;
     W8MonsterInfo* nearest_info;
@@ -137,10 +137,10 @@ unsigned char StartCombat(int surprise)
     unsigned int index;
 
     if (!AnyCharacterActive()) {
-        return 0;
+        return false;
     }
     if (!HasLevelWalkableContact()) {
-        return 0;
+        return false;
     }
     if (g_status.world_cursor_gate != 0) {
         ClearMainGameTargetState();
@@ -163,7 +163,7 @@ unsigned char StartCombat(int surprise)
     }
     if (gXStatus.npc_combat_notice_pending) {
         if (gXStatus.fNpcDialogueMode || ShouldDeferCharacterEventForNpcScript(false)) {
-            return 0;
+            return false;
         }
         gXStatus.npc_combat_notice_pending = false;
         ClearMainGameTargetState();
@@ -190,7 +190,7 @@ unsigned char StartCombat(int surprise)
     ResetEditorStatusLine(1);
     g_combat_state = static_cast<W8CombatState*>(malloc(sizeof(W8CombatState)));
     if (g_combat_state == 0) {
-        return 0;
+        return false;
     }
     memset(g_combat_state, 0, sizeof(W8CombatState));
     g_combat_state->round_count = 0;
@@ -285,7 +285,7 @@ unsigned char StartCombat(int surprise)
             SetCountdownClock(g_settings.continuous_combat_start_delay_ms);
     }
     SoundPlay("Data\\Sound\\Misc\\Ready Weapons.wav", 0);
-    return 1;
+    return true;
 }
 
 /* Reset every occupied party slot's combat bookkeeping on combat entry: clear
@@ -899,24 +899,24 @@ int GetCharacterTurnValue(int party_slot)
    have to be below the fraction of their hit points that triggers it, and then
    it is a roll - so the same wound does not always panic. */
 // FUNCTION: WIZ8 0x004ece00
-unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target)
+bool TryPanicWoundedCharacter(const W8CombatSlot* target)
 {
     W8Character* character;
 
     if (target->iType != W8_TARGET_KIND_CHARACTER) {
-        return 0;
+        return false;
     }
     character = &g_status.buffers.Char[target->iChar];
     if ((character->hp_current * 100) / static_cast<unsigned int>(character->uiHPMax) >=
         g_flee_hp_fraction) {
-        return 0;
+        return false;
     }
     if (Random(100) >= g_flee_chance) {
-        return 0;
+        return false;
     }
     QueueCharacterEvent(character, g_effect22, 0, g_character_event_no_flags,
                         g_character_event_full_volume);
-    return 1;
+    return true;
 }
 
 /* End one monster's turn: forget what it was doing, mark its combat state
@@ -1026,28 +1026,28 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
    already on; anyone else may switch, except into the fourth action while
    something else forbids it. */
 // FUNCTION: WIZ8 0x004ed2d0
-unsigned char TryCharacterAction(int party_slot, W8ActionKind action, bool commit)
+bool TryCharacterAction(int party_slot, W8ActionKind action, bool commit)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
     if (character->hp_current == 0 || character->highest_condition >= W8_CONDITION_ASLEEP) {
-        return 0;
+        return false;
     }
     if (g_combat_state->characters[party_slot].dead) {
         return g_status.buffers.XChar[party_slot].pending_action == action;
     }
     if (g_status.buffers.XChar[party_slot].action != action) {
         if (action != W8_ACTION_DEFEND) {
-            return 0;
+            return false;
         }
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false)) {
-            return 0;
+            return false;
         }
     }
     if (commit) {
         SwitchCharacterTo(party_slot, action);
     }
-    return 1;
+    return true;
 }
 
 /* Put one character on the defend or protect action: record the action on the
@@ -1980,7 +1980,7 @@ void AdvanceCombatRound(void)
    torn down - the all-dead defeat, the no-kill end, or the victory fanfare -
    and 0 while it may continue. */
 // FUNCTION: WIZ8 0x004e9f90
-int CheckCombatEnd(unsigned int arg_1)
+int CheckCombatEnd(unsigned int end_if_no_hostiles)
 {
     bool any_active = AnyCharacterActive();
     RecountCombatMonsters();
@@ -1994,7 +1994,7 @@ int CheckCombatEnd(unsigned int arg_1)
             }
         }
     } else {
-        if (((arg_1 == 0 || gXStatus.hostile_monster_count != 0) ||
+        if (((end_if_no_hostiles == 0 || gXStatus.hostile_monster_count != 0) ||
              gXStatus.hostile_group_count != 0) &&
             g_combat_state->unengaged_rounds < 2) {
             return 0;
@@ -2044,7 +2044,7 @@ int CheckCombatEnd(unsigned int arg_1)
    hostile side when none of them can see the party while surprise is
    possible. Mutual surprise cancels. */
 // FUNCTION: WIZ8 0x004ecf50
-void RollCombatSurprise(char arg_1)
+void RollCombatSurprise(char party_cannot_be_surprised)
 {
     bool search_surprise = false;
     bool level_surprise = false;
@@ -2056,7 +2056,7 @@ void RollCombatSurprise(char arg_1)
         srAssertFail("gXStatus.fCombatMode", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
                      0x1552, 0);
     }
-    if (arg_1 == 0) {
+    if (party_cannot_be_surprised == 0) {
         if (g_status.party_modifiers.sight_override == 0) {
             /* The party is surprised unless a hostile monster in the fight
                has seen it and PartyAvoidsSurprise returns 0. */
@@ -2500,7 +2500,8 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 if (range != W8_RANGE_NONE) {
                     unsigned short move_result;
                     if (range < W8_RANGE_LONG) {
-                        approach_distance = CalcRangeDistance(W8_RANGE_TOUCH) * g_float_005ebccc;
+                        approach_distance =
+                            CalcRangeDistance(W8_RANGE_TOUCH) * g_float_three_quarters;
                     } else {
                         approach_distance =
                             CalcRangeDistance(W8_RANGE_SHORT) * g_prepath_link_height;
@@ -2656,13 +2657,13 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
    its flee cycle unless the special-attack mode table keeps it facing the
    target, then report the attempt. */
 // FUNCTION: WIZ8 0x004EB980
-char MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
+bool MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
 {
     if (!CanMonsterFlee(monster_info, record, false)) {
-        return 0;
+        return false;
     }
     if (!AimFleeingMonster(monster_info, record)) {
-        return 0;
+        return false;
     }
     if (g_special_attack_table[record->special_attack_kind][0] != 6) {
         OrientMonsterTowardTarget(monster_info, false);
@@ -2673,11 +2674,11 @@ char MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     if (g_settings.verbose_combat_messages != 0) {
         ShowNoticef(9, L"%s %s!", GetMonsterName(monster_info, NULL, 0),
                     gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind]]);
-        return 1;
+        return true;
     }
     ShowNoticef(W8_FONT_PALETTE_RUST, g_format_s_space_s, GetMonsterName(monster_info, NULL, 0),
                 gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind]]);
-    return 1;
+    return true;
 }
 
 /* Aim the monster's mode-three particle axis at its combat target: the target
@@ -2791,7 +2792,7 @@ int ExecuteCharacterSpecialAttack(int party_slot)
    visual cannot be created, and otherwise reports the breath name and leaves
    the visual held for the attack. */
 // FUNCTION: WIZ8 0x004EBCE0
-char CreateCharacterBreathEffect(int party_slot)
+bool CreateCharacterBreathEffect(int party_slot)
 {
     W8TargetSource source;
     srMatrix3T<float> rotation;
@@ -2810,7 +2811,7 @@ char CreateCharacterBreathEffect(int party_slot)
     if (monster_targets.GetCount() == 0) {
         PostCharacterNotice(
             party_slot, FormatWideString(gppStringList[0x1b7], g_spell_records[0x13].display_name));
-        return 0;
+        return false;
     }
     FaceCharacterTowardCombatTarget(party_slot, target);
     GetCameraPosition(&camera);
@@ -2828,7 +2829,7 @@ char CreateCharacterBreathEffect(int party_slot)
     g_combat_state->breath_visual =
         CreateAimedSpellEffect(g_spell_records[0x77].resource_name, 1, &camera, &rotation, 0, 0);
     if (g_combat_state->breath_visual == 0) {
-        return 0;
+        return false;
     }
     if (g_settings.verbose_combat_messages != 0) {
         PostCharacterNotice(party_slot, g_format_s_bang, gppStringList[g_breath_notice_id]);
@@ -2837,7 +2838,7 @@ char CreateCharacterBreathEffect(int party_slot)
     }
     g_combat_state->breath_visual->auto_release = false;
     PointCameraAtCombatTarget(&source, target);
-    return 1;
+    return true;
 }
 
 /* Step the acting monster's committed action: attack swings, the spell wait,
@@ -3515,9 +3516,9 @@ short GetCombatActionProgress(int* out_total)
             W8Character* character = &g_status.buffers.Char[party_slot];
             if (g_status.buffers.XChar[party_slot].fOccupied && character->hp_current != 0 &&
                 character->highest_condition < W8_CONDITION_ASLEEP &&
-                TryCharacterAction(party_slot, W8_ACTION_DEFEND, false) == 0 &&
-                TryCharacterAction(party_slot, W8_ACTION_PROTECT, false) == 0 &&
-                TryCharacterAction(party_slot, W8_ACTION_NONE, false) == 0) {
+                !TryCharacterAction(party_slot, W8_ACTION_DEFEND, false) &&
+                !TryCharacterAction(party_slot, W8_ACTION_PROTECT, false) &&
+                !TryCharacterAction(party_slot, W8_ACTION_NONE, false)) {
                 total += GetCharacterTurnValue(party_slot);
                 W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
                 if (row->dead) {

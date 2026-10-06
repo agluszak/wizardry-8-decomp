@@ -26,7 +26,7 @@
 #include "wiz8/engine_code/PolyPick.h"
 
 // GLOBAL: WIZ8 0x005ec5a8
-const float g_float_005ec5a8 = 0.6000000238418579f;
+const float g_ambient_sound_inner_radius_scale = 0.6000000238418579f;
 
 // FUNCTION: WIZ8 0x00479030
 void StopAllAmbientSounds()
@@ -121,7 +121,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                                 match->target_volume =
                                     (match->volume_max * g_settings.sound_effects_volume) / 0x7f;
                                 match->current_volume = SoundGetVolume(sound_handle);
-                                match->fade_timer.SetDuration(g_float_005ec3b8 /
+                                match->fade_timer.SetDuration(g_float_one_and_a_half /
                                                               match->target_volume);
                                 match->fade_timer.Restart();
                                 match->fade_timer.m_flags &= ~W8_TIMER_PAUSED;
@@ -141,7 +141,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                     {
                         unsigned int full_volume =
                             (volume_max * g_settings.sound_effects_volume) / 0x7f;
-                        fade_timer.SetDuration(g_float_005ec3b8 / full_volume);
+                        fade_timer.SetDuration(g_float_one_and_a_half / full_volume);
                         fade_timer.Restart();
                         fade_timer.m_flags &= ~W8_TIMER_PAUSED;
                         fade_timer.m_start = fade_timer.GetTime() - fade_timer.m_start;
@@ -181,7 +181,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                 } else {
                     volume = static_cast<unsigned int>(
                         (g_float_one - (distance - radius * g_navigator_mode3_scale) /
-                                           (radius * g_float_005ec5a8)) *
+                                           (radius * g_ambient_sound_inner_radius_scale)) *
                         current_volume);
                 }
                 SoundSetVolume(sound_handle, volume);
@@ -192,7 +192,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
             unsigned int full_volume = (volume_max * g_settings.sound_effects_volume) / 0x7f;
             if (target_volume != full_volume) {
                 target_volume = full_volume;
-                fade_timer.SetDuration(g_float_005ec3b8 / full_volume);
+                fade_timer.SetDuration(g_float_one_and_a_half / full_volume);
                 fade_timer.Restart();
                 fade_timer.m_flags &= ~W8_TIMER_PAUSED;
                 fade_timer.m_start = fade_timer.GetTime() - fade_timer.m_start;
@@ -286,7 +286,7 @@ void W8AmbientSound::Service(bool entered)
                 } else {
                     pos.uiVolume = static_cast<unsigned int>(
                         (g_float_one - (distance - radius * g_navigator_mode3_scale) /
-                                           (radius * g_float_005ec5a8)) *
+                                           (radius * g_ambient_sound_inner_radius_scale)) *
                         current_volume);
                 }
                 sound_handle = Sound3DStartRandom(sample_handle, &pos);
@@ -349,7 +349,7 @@ void W8AmbientSound::Service(bool entered)
         current_volume = 0;
         target_volume = (volume_max * g_settings.sound_effects_volume) / 0x7f;
         sound_handle = SoundPlay(config.wave_name, &parms);
-        fade_timer.SetDuration(g_float_005ec3b8 / target_volume);
+        fade_timer.SetDuration(g_float_one_and_a_half / target_volume);
         fade_timer.Restart();
         fade_timer.m_flags &= ~W8_TIMER_PAUSED;
         fade_timer.m_start = fade_timer.GetTime() - fade_timer.m_start;

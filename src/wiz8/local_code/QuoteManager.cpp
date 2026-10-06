@@ -1458,7 +1458,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
         return;
     }
     effect = g_effect3;
-    if (g_value_005ed8fc == 0) {
+    if (g_portrait_low_health_percent == 0) {
         if (g_flee_hp_fraction == 0) {
             return;
         }
@@ -1524,7 +1524,7 @@ void QueueDamageReactionEvents(W8Character* character)
     gXStatus.character_event_queue->HasEventCharacter(g_effect17, party_slot);
     if (character->highest_condition != W8_CONDITION_ASLEEP &&
         character->highest_condition != W8_CONDITION_UNCONSCIOUS) {
-        if (g_value_005ed8fc <= hp_percent || has_incapacitation_event) {
+        if (g_portrait_low_health_percent <= hp_percent || has_incapacitation_event) {
             if (g_flee_hp_fraction <= hp_percent) {
                 goto queue_follow_up_event;
             }

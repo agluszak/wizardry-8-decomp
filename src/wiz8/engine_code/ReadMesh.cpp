@@ -812,7 +812,7 @@ static int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials
 
 // FUNCTION: WIZ8 0x00485B20
 unsigned char ReadSingleLevelMesh(W8ReadLevelInfo* info, srModelInstance** instance,
-                                  int positional_0, int positional_1, const char* name,
+                                  int unused_first, int unused_second, const char* name,
                                   bool load_materials)
 {
     if (name != 0) {
@@ -832,14 +832,13 @@ unsigned char ReadSingleLevelMesh(W8ReadLevelInfo* info, srModelInstance** insta
         }
     }
 
-    return ReadSingleLevelMeshBody(info, instance, positional_0, positional_1, name,
+    return ReadSingleLevelMeshBody(info, instance, unused_first, unused_second, name,
                                    load_materials);
 }
 
 // FUNCTION: WIZ8 0x00485C10
-unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** instance,
-                                      int positional_0, int positional_1, const char* name,
-                                      bool load_materials)
+unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** instance, int, int,
+                                      const char* name, bool load_materials)
 {
     /* Retail read mapping_count/value/key/compression_type uninitialised when
        a FileRead short-circuited; the recovery keeps that read. */
@@ -859,9 +858,6 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
     unsigned int mesh_count = 0;
     unsigned int vertex_map_count = 0;
     stMeshModel* first_model = 0;
-
-    (void)positional_0;
-    (void)positional_1;
 
     if (info == 0) {
         srAssertFail("pInfo", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0xd7, 0);

@@ -29,7 +29,7 @@ void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
    character target fatigues that party slot, a monster target resolves the
    monster from its location id. Retail callers pass a third argument the
    body never reads. */
-void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3);
+void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int);
 unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind);
 void DamageCharacter(int party_slot, unsigned int damage, bool announce); /* 0x0052B7E0 */
 void DrainCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, unsigned int amount,
@@ -70,7 +70,7 @@ extern wchar_t g_poison_suffix[]; /* 0x0061C964 */
    possible condition knock-on, and the hostility check toward the attacker. */
 void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* attacker, bool quiet);
 void CharacterDies(int party_slot);
-void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* result, int arg_3);
+void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* result, int announce);
 /* 0x0052BA80: roll the dice once for every live monster within the radius of
    a point and apply each roll as damage. */
 void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const W8Dice* dice,

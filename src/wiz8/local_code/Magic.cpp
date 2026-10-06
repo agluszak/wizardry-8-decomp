@@ -636,7 +636,7 @@ void UpdateSpellEffects(void)
                 }
                 if (missile != 0) {
                     srVector3T<float> position = missile->GetPosition();
-                    position.y -= g_float_005ebc64;
+                    position.y -= g_float_one_thousand;
                     W8SpellVisual* visual =
                         SpawnSpellEffect(&position, g_spell_records[effect->kind].resource_name,
                                          missile->definition.duration_scale, 0, 0);
@@ -2924,7 +2924,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                 PopulateSpellTargetMarkers(spell_id, power_level, source, target, &monster_markers,
                                            &party_markers, 0);
                 if (spell_id == 0x3c) {
-                    ground_point.y = target->point.y - g_float_005ebc64;
+                    ground_point.y = target->point.y - g_float_one_thousand;
                     target->point.y = ground_point.y;
                     ground_point.x = target->point.x;
                     ground_point.z = target->point.z;
@@ -3027,7 +3027,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             if (GetSpellTargetType(spell_id, false) == 6) {
                 ResetCombatSlot(&point_target);
                 point_target.point.Set(target->point.x,
-                                       g_default_world_height * g_float_005ebc7c + target->point.y,
+                                       g_default_world_height * g_float_half + target->point.y,
                                        target->point.z);
                 point_target.iType = W8_TARGET_KIND_PLACE;
                 missile = FireMissileSourceToTarget(missile_index, source, &point_target, &block,
@@ -3075,7 +3075,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             case W8_TARGET_TYPE_RADIUS:
                 if (spell_id == 0x76) {
                     if (party_markers.GetCount() == 0) {
-                        point.y = target->point.y - g_float_005ebc64;
+                        point.y = target->point.y - g_float_one_thousand;
                         target->point.y = point.y;
                         point.x = target->point.x;
                         point.z = target->point.z;
@@ -3088,7 +3088,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                                                   g_spell_records[0x76].resource_name, 2, 0, 0);
                     }
                 } else {
-                    point.y = target->point.y - g_float_005ebc64;
+                    point.y = target->point.y - g_float_one_thousand;
                     target->point.y = point.y;
                     point.x = target->point.x;
                     point.z = target->point.z;
@@ -3138,7 +3138,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     SpawnLureEffects(owner, power_level, target);
                 } else {
                     if (spell_id != 0x3c) {
-                        target->point.y -= g_float_005ebc64;
+                        target->point.y -= g_float_one_thousand;
                     }
                     point = target->point;
                     visual = SpawnSpellEffect(&point, g_spell_records[spell_id].resource_name,
@@ -3190,7 +3190,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     break;
                 }
                 if (spell_id == 0x62) {
-                    point.y = target->point.y - g_float_005ebc64;
+                    point.y = target->point.y - g_float_one_thousand;
                     target->point.y = point.y;
                     point.x = target->point.x;
                     point.z = target->point.z;
@@ -3632,11 +3632,13 @@ void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot*
     origin = navigator->GetPosition();
     attempt = 0;
     do {
-        point.x = static_cast<float>(
-            (Random(0x7d1) - g_monster_poster_max_distance) * range * g_double_005ec8d0 + origin.x);
-        point.z = static_cast<float>(
-            (Random(0x7d1) - g_monster_poster_max_distance) * range * g_double_005ec8d0 + origin.z);
-        point.y = Random(0x3e9) * range * g_double_005ec8d0 + origin.y;
+        point.x = static_cast<float>((Random(0x7d1) - g_monster_poster_max_distance) * range *
+                                         g_double_one_thousandth +
+                                     origin.x);
+        point.z = static_cast<float>((Random(0x7d1) - g_monster_poster_max_distance) * range *
+                                         g_double_one_thousandth +
+                                     origin.z);
+        point.y = Random(0x3e9) * range * g_double_one_thousandth + origin.y;
         g_octree->TraceLineOfSight(&origin, &point, true, -3, -3, true, 0);
         point.y = SettlePositionToGround(&point, 0);
         if (point.y != g_ground_settle_fail) {
@@ -3966,7 +3968,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         }
         break;
     case W8_TARGET_TYPE_RADIUS:
-        trace.Set(target_point.x, target_point.y - g_float_005ebc64, target_point.z);
+        trace.Set(target_point.x, target_point.y - g_float_one_thousand, target_point.z);
         radius = (g_spell_records[spell_id].radius_per_level * power_level +
                   g_spell_records[spell_id].effect_radius) *
                  g_world_scale;

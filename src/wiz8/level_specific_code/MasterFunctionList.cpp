@@ -231,7 +231,7 @@ unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, .
     } else {
         position = info->p3D->GetPosition();
     }
-    position.y = SettlePositionToGround(&position, 0) + g_float_005ec3f8;
+    position.y = SettlePositionToGround(&position, 0) + g_float_one_hundred_twenty_five;
     node = FindWorldCursorNodeAtPoint(0, &position);
     if (command == 4) {
         context = va_arg(arguments, int);
@@ -505,9 +505,9 @@ bool g_running_trigger_from_script;
 // GLOBAL: WIZ8 0x006109F0
 bool g_npc_dialogue_closed = true;
 // GLOBAL: WIZ8 0x006834E0
-static int g_value_6834e0;
+static int g_master_function_level;
 // GLOBAL: WIZ8 0x00652DA5
-bool g_flag_652da5;
+bool g_sea_caves_slope_override_enabled;
 
 /* Fill the away camp chest from the level-0x26 item records stored in the
    current save. Records that are not world-persistent move into the chest
@@ -654,8 +654,8 @@ void InitializeLevelMasterFunctions(int level)
     }
     g_running_trigger_from_script = false;
     g_npc_dialogue_closed = true;
-    g_value_6834e0 = level;
-    g_flag_652da5 = false;
+    g_master_function_level = level;
+    g_sea_caves_slope_override_enabled = false;
     switch (level) {
     case 0:
         pTrigger = FindTriggerByName("ChaosMolori");
@@ -1369,8 +1369,8 @@ void InitializeLevelMasterFunctions(int level)
         pTrigger->activation_callback = Rift1TimeDorado;
         return;
     case 0x16:
-        g_flag_652da5 = true;
-        g_byte = FindItemOnParty(0x254, 0, 0, 0, 0);
+        g_sea_caves_slope_override_enabled = true;
+        g_party_has_slope_override_item = FindItemOnParty(0x254, 0, 0, 0, 0);
         pTrigger = FindTriggerByName("HigardiChest01");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2b1,

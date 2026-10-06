@@ -273,7 +273,7 @@ public:
        X term for left-handed strikes. */
     float scale_x;
     /* Y-axis scale applied while W8_MONSTER_SCALING_Y is set (decayed per
-       frame by g_float_005ebc3c). */
+       frame by g_float_one_tenth). */
     float scale_y;
     float scale_z;
     /* Attack-animation frame that triggers the missile launch. */

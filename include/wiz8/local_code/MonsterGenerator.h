@@ -51,7 +51,7 @@ struct MonGen {
     /* Moves the generator, notifying the scene when the generator has a marker. */
     void SetState(const srVector3T<float>* state);
     /* Loads the marker unconditionally, then applies the armed state. */
-    void Reload(int unused, bool active);
+    void Reload(int, bool active);
     /* 0x0048CC30: strncpy into the fixed 32-byte name member. */
     void SetName(const char* name);
     /* Select one loaded encounter table and apply its HARASSMENT flag. */

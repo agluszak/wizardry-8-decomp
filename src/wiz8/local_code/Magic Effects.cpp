@@ -80,7 +80,7 @@
 enum { W8_EFFECT_PERMANENT = 9999 };
 
 // GLOBAL: WIZ8 0x005ee838
-const float g_float_005ee838 = 0.7900000214576721f;
+const float g_camera_shake_intensity_base = 0.7900000214576721f;
 
 /* 0x0060CFF8: eight bytes per effect id. The leading dword is the icon the
    party and combat HUD strips show for the effect (-1 means none); the second
@@ -2618,7 +2618,7 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
 
     far_clip = static_cast<float>(WorldGetFarClip(GetWorld()));
     center = effect->target.point;
-    center.y += g_default_world_height * g_float_005ebc7c;
+    center.y += g_default_world_height * g_float_half;
     lower.Set(center.x - far_clip, center.y - far_clip, center.z - far_clip);
     upper.Set(center.x + far_clip, center.y + far_clip, center.z + far_clip);
     location_ids = static_cast<unsigned long*>(operator new(0x400));
@@ -3640,9 +3640,9 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     case 0x5f:
         point = effect->Source.point;
         level = effect->definition.duration_scale;
-        shake = CreateCameraShakeEffect(level * g_navigator_vertical_phase_step + g_float_005ebc7c,
-                                        true, level * g_navigator_snap_angle + g_float_005ee838,
-                                        50000.0f, &point);
+        shake = CreateCameraShakeEffect(
+            level * g_navigator_vertical_phase_step + g_float_half, true,
+            level * g_navigator_snap_angle + g_camera_shake_intensity_base, 50000.0f, &point);
         shake->flags &= 0xffffffe7;
         sound_name = g_spell_records[spell_id].sound_name;
         if (sound_name[0] != 0) {

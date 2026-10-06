@@ -1023,7 +1023,7 @@ bool ResolveTargetPoint(W8CombatSlot* target, bool sight_probe)
         return false;
     }
     if (sight_probe) {
-        point.y += g_float_005ebc64;
+        point.y += g_float_one_thousand;
     }
     target->point = point;
     return true;
@@ -2928,7 +2928,7 @@ bool AnyMonsterVisible(void)
     int count;
     int index;
 
-    limit = static_cast<float>(WorldGetFarClip(GetWorld())) * g_float_005ec3b8;
+    limit = static_cast<float>(WorldGetFarClip(GetWorld())) * g_float_one_and_a_half;
     if (g_world == 0 || g_world->camera == 0) {
         return false;
     }
@@ -3166,11 +3166,11 @@ bool TargetInRangeAndArcs(const srVector3T<float>* target, float bonus,
         static_cast<float>(floor(sqrt(dx * dx + dy * dy + dz * dz) - bonus - eye_radius));
     if (GetGroundTargetRange() >= excess) {
         float angle = GetHeadingAngle(eye, target);
-        if (NormalizeAngle(heading - angle) < g_float_005ec29c ||
-            NormalizeAngle(angle - heading) < g_float_005ec29c) {
+        if (NormalizeAngle(heading - angle) < g_targeting_quarter_pi ||
+            NormalizeAngle(angle - heading) < g_targeting_quarter_pi) {
             angle = GetElevationAngle(eye, target);
-            if (NormalizeAngle(elevation - angle) < g_float_005ec29c ||
-                NormalizeAngle(angle - elevation) < g_float_005ec29c) {
+            if (NormalizeAngle(elevation - angle) < g_targeting_quarter_pi ||
+                NormalizeAngle(angle - elevation) < g_targeting_quarter_pi) {
                 return true;
             }
         }
@@ -3409,10 +3409,10 @@ int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext
          g_combat_state->characters[party_slot].phase == 0) &&
         !IsItemBoundToWearer(&character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON]) &&
         !IsItemBoundToWearer(&character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON]) &&
-        SwapWeaponSetSlots(party_slot, false, false) == 1) {
+        SwapWeaponSetSlots(party_slot, false, false)) {
         result = ChooseMonsterTarget(party_slot, group_id, context);
         if (result == -1) {
-            if (SwapWeaponSetSlots(party_slot, false, false) != 0) {
+            if (SwapWeaponSetSlots(party_slot, false, false)) {
                 return -1;
             }
             PostCharacterNotice(party_slot, gppStringList[0x26c]);

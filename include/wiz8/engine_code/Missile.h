@@ -59,8 +59,7 @@ public:
                                               signed char lod) override;
     virtual unsigned int ApplyEmitterSetting(signed char emitter) override;
     virtual W8AniMesh* GetEmitterAniMesh(signed char emitter) override;
-    unsigned char ReadCycleData(W8ReadLevelInfo* info, W8Missile* missile, int cycle_index,
-                                int positional_3);
+    unsigned char ReadCycleData(W8ReadLevelInfo* info, W8Missile* missile, int cycle_index, int);
 
     unsigned int value_0ac;
     unsigned int value_0b0;
@@ -201,7 +200,7 @@ W8Missile* NextMissile(bool restart);
 
 W8Missile* AllocateMissile(int missile_table_index);
 unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
-                               W8Missile** ppMissile, int unused);
+                               W8Missile** ppMissile, int);
 
 W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* source, float heading,
                          float pitch, float flight_speed, unsigned int trace_mask,

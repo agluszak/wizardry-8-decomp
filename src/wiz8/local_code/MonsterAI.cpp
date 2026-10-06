@@ -129,7 +129,7 @@ static int g_spell_cast_weights[10] = {5, 5, 5, 10, 10, 10, 10, 15, 15, 15};
 /* 0x005EE768: 1500.0, the "close enough" distance for patrol points and heard
    noises. */
 // GLOBAL: WIZ8 0x005EE768
-extern const double g_double_005ee768 = 1500.0;
+extern const double g_double_fifteen_hundred = 1500.0;
 
 /* 0x005EE774: scales the record float into the group-engagement probe
    distance. */
@@ -215,7 +215,7 @@ void UpdateMonsterGroups(bool staggered)
             continue;
         }
         if (!monster_group->members_active) {
-            if (nearest_distance < WorldGetFarClip(GetWorld()) * g_float_005ec3b8) {
+            if (nearest_distance < WorldGetFarClip(GetWorld()) * g_float_one_and_a_half) {
                 LoadMonsterGroupMembers(monster_group);
             }
         }
@@ -327,7 +327,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
         }
         if (MonsterApproachStartupNavigator(
                 monster_info->p3D, CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) *
-                                       g_float_005ec390) == 0) {
+                                       g_float_nine_tenths) == 0) {
             return;
         }
         monster_group = GetMonsterGroupByListIndex(
@@ -402,7 +402,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
             (!monster_info->p3D->face_party || monster_info->pathing_cooldown != 0 ||
              mode != W8_RT_AI_FACE_DIRECTION || !monster_info->player_visibility.line_of_sight ||
              (monster_info->p3D->movement.position - g_startup_world->GetPosition()).Length() >=
-                 g_float_005ec2f8)) {
+                 g_float_five_thousand)) {
             monster_info->ai_mode &= ~W8_MONSTER_AI_REAPPLY_MODE;
         }
         if (decision <= W8_RT_AI_LINK_TO_PARTY || decision == W8_RT_AI_FOLLOW_LURE) {
@@ -440,7 +440,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
         srVector3T<float> delta;
 
         delta = monster->movement.position - g_startup_world->GetPosition();
-        if (delta.Length() < g_float_005ec2f8) {
+        if (delta.Length() < g_float_five_thousand) {
             srVector3T<float> camera;
             srVector3T<float> position;
 
@@ -463,7 +463,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 
             monster->GetPatrolPoint(&patrol);
             delta = patrol - monster->GetPosition();
-            if (delta.Length() >= g_double_005ee768) {
+            if (delta.Length() >= g_double_fifteen_hundred) {
                 *decision = monster_info->ai_mode;
                 return true;
             }
@@ -489,7 +489,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
             srVector3T<float> delta;
 
             delta = monster_info->heard_noise_position - monster->GetPosition();
-            if (delta.Length() < g_double_005ee768) {
+            if (delta.Length() < g_double_fifteen_hundred) {
                 monster_info->heard_noise_radius = 0;
             }
         }
@@ -526,9 +526,9 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 
                 mode = W8_RT_AI_FACE_DIRECTION;
                 angle = (Random(0x168) << 1) * g_camera_pi * g_inverse_full_turn_degrees;
-                monster->move_direction.x = static_cast<float>(cos(angle) * g_double_005ec150);
+                monster->move_direction.x = static_cast<float>(cos(angle) * g_double_five_hundred);
                 monster->move_direction.y = 0.0f;
-                monster->move_direction.z = static_cast<float>(sin(angle) * g_double_005ec150);
+                monster->move_direction.z = static_cast<float>(sin(angle) * g_double_five_hundred);
             } else {
                 mode = W8_RT_AI_IDLE;
             }
@@ -540,7 +540,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 
                 monster->GetPatrolPoint(&patrol);
                 delta = patrol - monster->GetPosition();
-                if (delta.Length() < g_double_005ee768) {
+                if (delta.Length() < g_double_fifteen_hundred) {
                     mode = W8_RT_AI_IDLE;
                 } else {
                     mode = W8_RT_AI_MOVE_TO_PATROL_POINT;
@@ -563,7 +563,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 mode = W8_RT_AI_MOVE_TO_PATROL_POINT;
                 monster->GetPatrolPoint(&patrol);
                 delta = patrol - monster->GetPosition();
-                if (delta.Length() >= g_double_005ee768) {
+                if (delta.Length() >= g_double_fifteen_hundred) {
                     break;
                 }
                 count = monster->vector.GetCount();
@@ -662,7 +662,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         }
         if (MonsterApproachStartupNavigator(
                 monster, CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) *
-                             g_float_005ec390) == 1) {
+                             g_float_nine_tenths) == 1) {
             if (IsSightRangeOverridden()) {
                 monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                     0x315, MONSTER_AI_CPP, monster_info->monster_group_id, true));
@@ -2101,7 +2101,7 @@ void CheckMonsterGroupsLeaveCombat(void)
             if (GetMonsterGroupEngagementState(group->group_id) && leader != 0 && leader->fActive) {
                 nearest = GetGroupNearestDistance(group);
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, true, &sight)) +
-                        GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
+                        GetMonsterCombatMoveRange(leader) * g_float_one_thousand;
                 minimum = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
                 if (reach <= minimum) {
                     reach = minimum;
@@ -2219,7 +2219,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, bool party_only,
 
     if (within_reach) {
         reach = CalcRangeDistance(GetMonsterBestRangeCategory(monster_info, true, &sight)) +
-                GetMonsterCombatMoveRange(monster_info) * g_float_005ebc64;
+                GetMonsterCombatMoveRange(monster_info) * g_float_one_thousand;
         if (reach <= GetMonsterEngagementRange() + g_monster_engagement_range_floor) {
             reach = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
         }
@@ -2708,7 +2708,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                 member->highest_condition < W8_CONDITION_DEAD &&
                 MonsterHasVisibleTarget(member, false, W8_VISIBLE_TARGET_NON_NEUTRAL, true)) {
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, true, &sight)) +
-                        GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
+                        GetMonsterCombatMoveRange(leader) * g_float_one_thousand;
                 minimum = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
                 if (reach <= minimum) {
                     reach = minimum;

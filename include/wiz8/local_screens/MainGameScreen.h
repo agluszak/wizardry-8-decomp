@@ -37,11 +37,11 @@ extern wchar_t g_format_s_paren_d[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 extern W8ScreenRect g_viewport_modes[];
-extern const float g_float_005ec258;
-extern const float g_float_005ec25c;
+extern const float g_float_one_fiftieth;
+extern const float g_float_half_turn_degrees;
 /* String-list ids naming each trap row; Traps.cpp indexes it with the
    trigger's trap type for the disarm/spring notices. */
-extern unsigned short g_value_0061e9ec[];
+extern unsigned short g_trap_name_string_ids[];
 #include "wiz8/layouts/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"

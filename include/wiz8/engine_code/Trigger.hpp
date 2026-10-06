@@ -325,7 +325,6 @@ void SaveTriggerActionData(W8World* world, int handle);
 bool LoadTriggerActionData(int handle);
 
 extern bool g_trigger_feedback;
-extern unsigned char g_flag_0068506e;
 /* Camera position cached by the per-frame trigger walk. */
 extern srVector3T<float> g_trigger_camera;
 /* Trigger's action camera offset, added to the world scene position while an

@@ -120,7 +120,7 @@ void stTextureAnim::UpdateFrame()
     }
 
     elapsed_frames =
-        static_cast<int>((GetTickCount() - frame_tick) * frame_rate * g_float_005ec128);
+        static_cast<int>((GetTickCount() - frame_tick) * frame_rate * g_float_one_thousandth);
     if (animation_mode == W8_TEXTURE_ANIM_LOOP) {
         int frame = (direction * elapsed_frames) % textures->GetCount();
         if (frame < this->frame) {

@@ -71,11 +71,12 @@ static const char* g_quote_bubble_backgrounds[] = {
 // GLOBAL: WIZ8 0x0069c5c8
 static unsigned int g_quote_bubble_flags;
 
-static int MeasureWrappedText(int arg_1, int arg_2, unsigned int wrap_width, int arg_4, int font,
-                              int colour, const wchar_t* text, int arg_8, int arg_9, int arg_10,
+static int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int font,
+                              int alternate_font, const wchar_t* text, int, int, int,
                               unsigned int* out_edge);
-int DrawWrappedText(int x, int y, unsigned int wrap_width, int arg_4, int font,
-                    unsigned char colour, const wchar_t* text, int arg_8, int arg_9, int arg_10);
+int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int font,
+                    unsigned char colour, const wchar_t* text, int background, int dirty,
+                    int flags);
 
 // FUNCTION: WIZ8 0x005d0590
 static int DrawWrappedTextLine(UINT16* text, int x, int top, int width, int font,
@@ -298,8 +299,8 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
 
 // FUNCTION: WIZ8 0x005d0050
 static int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int font,
-                              int alternate_font, const wchar_t* text, int arg_8, int arg_9,
-                              int arg_10, unsigned int* out_edge)
+                              int alternate_font, const wchar_t* text, int, int, int,
+                              unsigned int* out_edge)
 {
     wchar_t line[0x140];
     wchar_t word[0x140];

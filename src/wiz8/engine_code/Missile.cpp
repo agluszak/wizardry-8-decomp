@@ -154,7 +154,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
     }
     record->elapsed = advance + record->elapsed;
     missile->SetCyclePosition(&out);
-    if (missile->CheckNavigatorCollision(&position, &out) == 0 && missile->align_camera) {
+    if (!missile->CheckNavigatorCollision(&position, &out) && missile->align_camera) {
         pitch = ElevationToTargetCPP(&out);
         yaw = HeadingToTargetCPP(&out);
         rotation.SetIdentity();
@@ -168,7 +168,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
     }
     if (advance + record->elapsed <= missile->duration) {
         if (record->limit > 0.0f && record->limit < advance + record->elapsed &&
-            missile->CheckNavigatorCollision(&position, &out) == 0) {
+            !missile->CheckNavigatorCollision(&position, &out)) {
             missile->EnterImpactCycle();
         }
         return 1;
@@ -352,7 +352,7 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     }
     rotation.SetIdentity();
     position->y = g_character_projectile_height -
-                  character_index * g_float_005ebc7c * g_character_projectile_height_step;
+                  character_index * g_float_half * g_character_projectile_height_step;
     angle = GetCameraYawRadians() - g_monster_rotation_offset;
     if (angle != 0.0) {
         cosine = cos(angle);
@@ -758,7 +758,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         }
         ai = static_cast<W8AIMissile*>(malloc(sizeof(W8AIMissile)));
         if (ai != 0) {
-            float scale = flight_speed * g_float_005ec128;
+            float scale = flight_speed * g_float_one_thousandth;
             memset(ai, 0, sizeof(W8AIMissile));
             ai->speed_per_step = scale;
             ai->kind = W8_AI_RECORD_MISSILE;
@@ -771,7 +771,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         if (ai == 0) {
             srAssertFail("pMissile->GrObject::GetAI()", MISSILE_CPP, 0x120, 0);
         }
-        ai->fall_speed = static_cast<float>(sin(-pitch) * flight_speed * g_float_005ec128);
+        ai->fall_speed = static_cast<float>(sin(-pitch) * flight_speed * g_float_one_thousandth);
         ai->limit = limit;
         missile->trace_mask = trace_mask;
         missile->duration = duration;

@@ -355,7 +355,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
         }
         amount = *frame_elapsed;
         if (g_status.search_mode != 0 || gXStatus.fCombatMode) {
-            amount = *real_elapsed * g_float_005ebc7c + amount;
+            amount = *real_elapsed * g_float_half + amount;
         }
         switch (character->load_category) {
         case 0:
@@ -381,7 +381,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
             multiplier += multiplier;
         }
         if (character->uiCondition[W8_CONDITION_DISEASED] != 0) {
-            multiplier *= g_float_005ec3b8;
+            multiplier *= g_float_one_and_a_half;
         }
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;
         if (row->movement_fatigue > g_position_height_epsilon) {

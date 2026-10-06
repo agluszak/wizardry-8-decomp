@@ -153,7 +153,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
 /* The far distance at which the camera aims at a monster's lower height
    offset rather than its head. */
 // GLOBAL: WIZ8 0x005EBCDC
-const float g_float_005ebcdc = 2000.0f;
+const float g_float_two_thousand = 2000.0f;
 
 /* Turn the camera to face a monster: when rotation tracking is off the
    monster's own combat target still drives it if that target is the selected
@@ -185,8 +185,8 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
         return;
     }
     if (monster->movement.height_offset - monster->movement.secondary_height_offset <
-            g_float_005ebc64 ||
-        monster->GetDistanceToPlayer() > g_float_005ebcdc) {
+            g_float_one_thousand ||
+        monster->GetDistanceToPlayer() > g_float_two_thousand) {
         position = monster->movement.position;
         position.y += monster->movement.secondary_height_offset;
     } else {

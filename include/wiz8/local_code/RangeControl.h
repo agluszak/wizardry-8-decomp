@@ -86,7 +86,7 @@ public:
 class W8HorizontalRangeThumb : public W8Widget {
 public:
     W8HorizontalRangeThumb(Controls* panel, unsigned int region, int left, int top,
-                           int render_arg_0, int render_arg_1, int background_sprite,
+                           int catalog_object, int catalog_frame, int background_sprite,
                            int normal_thumb_sprite, int hovered_thumb_sprite,
                            int disabled_thumb_sprite);
     virtual void Redraw(bool full_redraw) override;

@@ -35,7 +35,7 @@ const unsigned int g_character_event_npc_script = 0x40;
 const unsigned int g_flee_hp_fraction = 50;
 
 // GLOBAL: WIZ8 0x005ED8FC
-const unsigned int g_value_005ed8fc = 20;
+const unsigned int g_portrait_low_health_percent = 20;
 
 // GLOBAL: WIZ8 0x005ed900
 const unsigned int g_effect_threshold0 = 70;

@@ -481,7 +481,7 @@ void UpdateNpcDialogueSubMode(void);    /* 0x00571F60 */
 /* 0x00575390: restate the five transcript category buttons so only the
    active dialogue_category_filter's button shows its secondary state. */
 void SyncDialogueCategoryButtons(void);
-void EndNpcDialogueSession(bool);
+void EndNpcDialogueSession(bool skip_exit_actions);
 
 /* Retail emits one standalone copy but expands it at every caller, in other
    units too, so the definition is visible here. */

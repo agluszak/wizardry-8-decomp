@@ -223,7 +223,7 @@ int ApplyDamageReduction(const W8MonsterInfo* monster_info, const W8MonsterRecor
    reaches anyone, judged with the monster's current action set aside. */
 // FUNCTION: WIZ8 0x0053d4b0
 unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                unsigned int attack, int unused, bool friendly_targets)
+                                unsigned int attack, int, bool friendly_targets)
 {
     W8MonsterActionKind action_kind;
     bool reaches;
@@ -535,7 +535,7 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
         W8CombatCharacterRow* row = &g_combat_state->characters[slot];
         W8PartySlotRow* party_row = &g_status.buffers.XChar[slot];
         if (IsPartySlotEligible(slot) && character->highest_condition < W8_CONDITION_BLIND &&
-            character->Hand[0].in_play && TryCharacterAction(slot, W8_ACTION_PROTECT, false) != 0 &&
+            character->Hand[0].in_play && TryCharacterAction(slot, W8_ACTION_PROTECT, false) &&
             row->interception_count < character->Hand[0].attacks) {
             W8CombatSlot* guarded =
                 !row->dead ? &party_row->target_in_combat : &party_row->target_out_of_combat;
@@ -1132,7 +1132,7 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, W8AttackMode attack_mode)
                 }
             }
             if (GetEffectivePartyAction() == W8_PARTY_ACTION_NONE &&
-                TryCharacterAction(target->iChar, W8_ACTION_PRAY, false) != 0) {
+                TryCharacterAction(target->iChar, W8_ACTION_PRAY, false)) {
                 modifier -= 4;
             }
             distracted = GetEffectivePartyAction() == W8_PARTY_ACTION_RUN;
@@ -1810,7 +1810,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 if (verbose) {
                     ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x209]);
                 }
-                if (TryPanicWoundedCharacter(&g_combat_state->TargetHit) == 0 &&
+                if (!TryPanicWoundedCharacter(&g_combat_state->TargetHit) &&
                     g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER &&
                     Random(100) < 0x32) {
                     event_ids[0] = g_special_event19;
@@ -2123,7 +2123,7 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
    the pending attack, confirm the target is still reachable, roll the swing
    count, announce it and start the cycle. */
 // FUNCTION: WIZ8 0x0053fea0
-char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
+bool StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
 {
     W8MonsterCombatState* combat;
     unsigned int attack;
@@ -2143,24 +2143,24 @@ char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         FormatDebugMessage(
             1, "ERROR: Monster ID %d is starting attack with 0 of %d attacks remaining!",
             monster_info->location_id, combat->attacks_per_round0);
-        return 0;
+        return false;
     }
     attack = combat->attack_index;
     --combat->attacks_per_round;
     W8AttackMode action_detail = static_cast<W8AttackMode>(monster_info->action_detail);
     if (RateMonsterAttack(monster_info, record, attack, 0, false) != 0) {
-        return 0;
+        return false;
     }
     if (!TargetMatchesNeeded(&monster_info->Target, W8_TARGET_NEED_ENEMY) ||
         !MonsterActionReachesTarget(monster_info, record, attack, &monster_info->Target)) {
         if (!ClearMonsterCombatSlot(monster_info)) {
-            return 0;
+            return false;
         }
     }
     combat->uiSwingsRemaining = Random(record->swings_per_round) + 1;
     AnnounceMonsterAttack(monster_info, record, 0);
     StartMonsterAttackCycle(monster_info, action_detail);
-    return 1;
+    return true;
 }
 
 /* Attack weapon-type name string ids; the monster attack announcement indexes
@@ -2201,8 +2201,8 @@ bool CharacterNoticesAttacker(int party_slot)
         g_status.buffers.Char[party_slot].uiCondition[W8_CONDITION_BLIND] != 0) {
         return false;
     }
-    if (TryCharacterAction(party_slot, W8_ACTION_DEFEND, true) == 0 &&
-        TryCharacterAction(party_slot, W8_ACTION_PROTECT, true) == 0) {
+    if (!TryCharacterAction(party_slot, W8_ACTION_DEFEND, true) &&
+        !TryCharacterAction(party_slot, W8_ACTION_PROTECT, true)) {
         return false;
     }
     if (row->spot_attempts == 0) {
@@ -2233,7 +2233,8 @@ static void AppendAttackWeaponName(const wchar_t* name, int mode)
 }
 
 // FUNCTION: WIZ8 0x00541630
-void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3)
+void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                           char target_changed)
 {
     W8MonsterCombatState* combat = monster_info->pCombat;
     W8AttackMode action_detail = static_cast<W8AttackMode>(monster_info->action_detail);
@@ -2257,7 +2258,7 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         g_combat_state->natural_attack = 0;
     }
     swprintf(g_combat_state->attack_message, L"%s ", GetMonsterName(monster_info, record, 0));
-    if (arg_3 != 0) {
+    if (target_changed != 0) {
         wcscat(g_combat_state->attack_message, gppStringList[0x211]);
         wcscat(g_combat_state->attack_message, L" ");
     }
@@ -2386,7 +2387,8 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
    INT/DEX/SPEED/SENSES differential count too; a blinded attacker caps at ten
    unless a trait lets it fight blind. Finally the difficulty scaler runs. */
 // FUNCTION: WIZ8 0x00541c00
-static int GetTargetAttackAttributes(int party_slot, int hand, W8AttackMode attack_mode, char arg_4)
+static int GetTargetAttackAttributes(int party_slot, int hand, W8AttackMode attack_mode,
+                                     char ignore_target_defenses)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8HandAttack* attack = &character->Hand[hand];
@@ -2421,13 +2423,14 @@ static int GetTargetAttackAttributes(int party_slot, int hand, W8AttackMode atta
         if (surprise < 0) {
             surprise = 0;
         }
-        penalty = static_cast<int>(50.0 - pow(static_cast<double>(surprise), g_double_005ebf40));
+        penalty =
+            static_cast<int>(50.0 - pow(static_cast<double>(surprise), g_double_three_quarters));
         if (penalty < 0) {
             penalty = 0;
         }
         score -= penalty;
     }
-    if (arg_4 == 0) {
+    if (ignore_target_defenses == 0) {
         target = &g_status.buffers.XChar[party_slot].target_out_of_combat;
         score -= GetTargetArmorClass(target, attack_mode) * 5;
         if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -2567,8 +2570,8 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
         out_of_formation = target->bonus.out_of_formation;
         target_moving = party_action == W8_PARTY_ACTION_RUN;
         target_defending =
-            TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, true) != 0 ||
-            TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_PROTECT, true) != 0;
+            TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, true) ||
+            TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_PROTECT, true);
     }
 
     unsigned int dice_count = 1;
@@ -2698,7 +2701,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
    attribute comparison against the target, the blind cap, and difficulty. */
 // FUNCTION: WIZ8 0x00542720
 int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack,
-                          W8AttackMode attack_mode, char arg_4)
+                          W8AttackMode attack_mode, char ignore_target_defenses)
 {
     W8MonsterCombatState* combat = monster_info->pCombat;
     int score = monster_info->modifiers.hit_bonus * 5 + attack->attack_score;
@@ -2726,13 +2729,13 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack,
             surprise = 0;
         }
         int penalty_roll =
-            static_cast<int>(50.0 - pow(static_cast<double>(surprise), g_double_005ebf40));
+            static_cast<int>(50.0 - pow(static_cast<double>(surprise), g_double_three_quarters));
         if (penalty_roll < 0) {
             penalty_roll = 0;
         }
         score -= penalty_roll;
     }
-    if (arg_4 == 0) {
+    if (ignore_target_defenses == 0) {
         score -= GetTargetArmorClass(&monster_info->Target, attack_mode) * 5;
         int target_sum;
         if (monster_info->Target.iType == W8_TARGET_KIND_MONSTER) {
@@ -2797,8 +2800,8 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         out_of_formation = target->bonus.out_of_formation;
         target_moving = party_action == W8_PARTY_ACTION_RUN;
         target_defending =
-            TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, true) != 0 ||
-            TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_PROTECT, true) != 0;
+            TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, true) ||
+            TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_PROTECT, true);
     } else {
         if (g_combat_state->TargetHit.iMonsterID == -1) {
             srAssertFail("gpCombat->TargetHit.iMonsterID != BAD_INDEX", COMBAT_ATTACK_CPP, 0xd48,
@@ -3607,7 +3610,7 @@ void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to
     sy = py + sy;
     sz = pz + sz;
     float distance = static_cast<float>(sqrt(dy * dy + dx * dx + dz * dz));
-    if (distance < static_cast<float>(g_double_005ebc30)) {
+    if (distance < static_cast<float>(g_double_one)) {
         return;
     }
     double probability;
@@ -3616,7 +3619,7 @@ void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to
         factor = 0.08;
         probability = 0.2;
     } else {
-        factor = g_double_005ec150 / distance;
+        factor = g_double_five_hundred / distance;
         probability = 1.75;
         if (1.75 < factor) {
             factor = 1.75;
@@ -3683,7 +3686,7 @@ static void AppendAttackMessageSuffix(int mode)
 }
 
 // FUNCTION: WIZ8 0x0053d870
-char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
+bool StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
 {
     W8Character* character;
     W8CombatCharacterRow* row;
@@ -3713,7 +3716,7 @@ char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
     if (!character->Hand[hand].in_play) {
         if (GetCharAttackRange(character, hand) == W8_RANGE_NONE) {
             row->hand_attack_values[hand] = 0;
-            return 0;
+            return false;
         }
     }
     if (attack_mode == W8_ATTACK_MODE_NONE) {
@@ -3726,7 +3729,7 @@ char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
         FormatDebugMessage(
             1, "ERROR: %ls is starting attack with 0 of %d attacks remaining (hand %d)!",
             character->name, row->saved_attack_value[hand], hand);
-        return 0;
+        return false;
     }
     row->hand_attack_values[hand]--;
     g_combat_state->unaware = 0;
@@ -3734,7 +3737,7 @@ char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
     if (!TargetIsInPlay(party_slot, hand, W8_TARGETING_CONTEXT_OUT_OF_COMBAT)) {
         FormatDebugMessage(1, "ERROR: %ls is starting attack with invalid target!",
                            character->name);
-        return 0;
+        return false;
     }
     if (hand == 0) {
         row->current_equip_slot = W8_EQUIP_SLOT_PRIMARY_WEAPON;
@@ -3781,7 +3784,7 @@ char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
     if (found == NULL) {
         FormatDebugMessage(1, "ERROR: %ls does not have a %ls!", character->name,
                            g_item_records[row->weapon_item_id].display_name);
-        return 0;
+        return false;
     }
     if (g_combat_state->natural_attack != 0) {
         wcscpy(g_combat_state->attack_message, gppStringList[0x204]);
@@ -3887,7 +3890,7 @@ char StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
         QueueCharacterEvent(character, event_ids[Random(3)], 0, g_character_event_no_flags,
                             g_character_event_full_volume);
     }
-    return 1;
+    return true;
 }
 
 /* Resolves one queued swing of the character's attack: plays the swing sound
@@ -4358,7 +4361,7 @@ int ResolveCharacterAttack(int party_slot)
                      true, 0);
     if (row->paired_equip_slot != -1) {
         int item_id = character->EquippedItem[row->paired_equip_slot].iItemNo;
-        RemoveCharacterItem(character, &character->EquippedItem[row->paired_equip_slot], 1);
+        RemoveCharacterItem(character, &character->EquippedItem[row->paired_equip_slot], true);
         if (character->EquippedItem[row->paired_equip_slot].stack_count == 0) {
             EquipMatchingPartnerItem(character, &character->EquippedItem[row->current_equip_slot],
                                      item_id, row->paired_equip_slot);
@@ -4381,7 +4384,7 @@ int ResolveCharacterAttack(int party_slot)
                             }
                         }
                     } else {
-                        RemoveCharacterItem(character, item, 1);
+                        RemoveCharacterItem(character, item, true);
                         SplitThrowableStackBetweenHands(character, row->current_equip_slot);
                     }
                     if (character->EquippedItem[row->current_equip_slot].iItemNo == -1 ||
@@ -4390,7 +4393,7 @@ int ResolveCharacterAttack(int party_slot)
                     }
                 }
             } else {
-                RemoveCharacterItem(character, item, 0);
+                RemoveCharacterItem(character, item, false);
                 if (character->EquippedItem[row->current_equip_slot].uses_or_charges == 0) {
                     MergeMatchingPartnerItem(character,
                                              &character->EquippedItem[row->current_equip_slot]);

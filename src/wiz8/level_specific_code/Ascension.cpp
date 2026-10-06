@@ -123,7 +123,7 @@ unsigned char AscensionPeakInit(void)
 /* Spawn the Alfie "chaos" monster (0xae) at the NP_AlfieChaos entity once the
    party carries the Astral Dominae (0x244). */
 // FUNCTION: WIZ8 0x004DFAE0
-unsigned char SpawnAlfieChaos(int unused)
+unsigned char SpawnAlfieChaos(int)
 {
     srVector3T<float> position;
 
@@ -139,7 +139,7 @@ unsigned char SpawnAlfieChaos(int unused)
 /* Spawn the Alfie "life" monster (0xaf) at the NP_AlfieLife entity when it is
    present in the level. */
 // FUNCTION: WIZ8 0x004DFB40
-unsigned char SpawnAlfieLife(int unused)
+unsigned char SpawnAlfieLife(int)
 {
     srVector3T<float> position;
 
@@ -152,7 +152,7 @@ unsigned char SpawnAlfieLife(int unused)
 /* Spawn the Alfie "know" monster (0xb0) at the NP_AlfieKnow entity when it is
    present in the level. */
 // FUNCTION: WIZ8 0x004DFB80
-unsigned char SpawnAlfieKnow(int unused)
+unsigned char SpawnAlfieKnow(int)
 {
     srVector3T<float> position;
 
@@ -179,12 +179,12 @@ void AscensionAvalanche(bool command)
 
         position = GetWorld()->camera->getLocation();
         FindTriggerByName("ASC40")->GetPosition(&trigger_position);
-        if ((position - trigger_position).Length() < g_double_005ec030) {
+        if ((position - trigger_position).Length() < g_double_twenty_five_hundred) {
             SetFact(W8_FACT_LANDSLIDE_RAPAX_SIDE, 1, false);
             SetFact(W8_FACT_LANDSLIDE_WILD_SIDE, 0, false);
         } else {
             FindTriggerByName("ASC30")->GetPosition(&trigger_position);
-            if ((position - trigger_position).Length() < g_double_005ec030) {
+            if ((position - trigger_position).Length() < g_double_twenty_five_hundred) {
                 SetFact(W8_FACT_LANDSLIDE_RAPAX_SIDE, 0, false);
                 SetFact(W8_FACT_LANDSLIDE_WILD_SIDE, 1, false);
             }

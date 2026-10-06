@@ -86,13 +86,13 @@ static float g_radar_map_scale;
 static bool g_radar_map_enabled = false;
 
 // GLOBAL: WIZ8 0x005eecd8
-const double g_double_005eecd8 = 3.141592653589793;
+const double g_radar_pi = 3.141592653589793;
 // GLOBAL: WIZ8 0x005eece8
-const float g_float_005eece8 = 404.0f;
+const float g_radar_center_y = 404.0f;
 // GLOBAL: WIZ8 0x005eecec
-const float g_float_005eecec = 75.0f;
+const float g_radar_center_x = 75.0f;
 // GLOBAL: WIZ8 0x005eecf0
-const float g_float_005eecf0 = 38.0f;
+const float g_radar_max_marker_scale = 38.0f;
 
 static stModelInstance2D* AcquireRadarBlip(int sector, bool lit);
 static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool lit);
@@ -349,9 +349,9 @@ void UpdateRadarBlips(void)
             if ((rep->flags & W8_ITEM_ENTITY_NO_PICKUP) == 0) {
                 rep->GetLocation(&position);
                 item->GetCachedLocalBounds(&bounds_min, &bounds_max);
-                center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
-                           (bounds_min.y + bounds_max.y) * g_double_005ebe80,
-                           (bounds_min.z + bounds_max.z) * g_double_005ebe80);
+                center.Set((bounds_min.x + bounds_max.x) * g_double_half,
+                           (bounds_min.y + bounds_max.y) * g_double_half,
+                           (bounds_min.z + bounds_max.z) * g_double_half);
                 position += center;
                 party = g_startup_world->GetPosition();
                 delta = position - party;
@@ -384,9 +384,9 @@ void UpdateRadarBlips(void)
             if (!monster->IsRenderable(true) && !detect_all) {
                 if (info->party_threat.sight_state == W8_SIGHT_RECENT) {
                     monster->GetAnimationBounds(&bounds_min, &bounds_max);
-                    center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
-                               (bounds_min.y + bounds_max.y) * g_double_005ebe80,
-                               (bounds_min.z + bounds_max.z) * g_double_005ebe80);
+                    center.Set((bounds_min.x + bounds_max.x) * g_double_half,
+                               (bounds_min.y + bounds_max.y) * g_double_half,
+                               (bounds_min.z + bounds_max.z) * g_double_half);
                     position = center + info->party_threat.camera_position;
                     party = g_startup_world->GetPosition();
                     delta = position - party;
@@ -409,9 +409,9 @@ void UpdateRadarBlips(void)
                 }
             } else {
                 monster->GetAnimationBounds(&bounds_min, &bounds_max);
-                center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
-                           (bounds_min.y + bounds_max.y) * g_double_005ebe80,
-                           (bounds_min.z + bounds_max.z) * g_double_005ebe80);
+                center.Set((bounds_min.x + bounds_max.x) * g_double_half,
+                           (bounds_min.y + bounds_max.y) * g_double_half,
+                           (bounds_min.z + bounds_max.z) * g_double_half);
                 party = monster->GetPosition();
                 position = center + party;
                 party = g_startup_world->GetPosition();
@@ -442,9 +442,9 @@ void UpdateRadarBlips(void)
     while (missile != 0) {
         if (!missile->impacting) {
             missile->GetAnimationBounds(&bounds_min, &bounds_max);
-            center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
-                       (bounds_min.y + bounds_max.y) * g_double_005ebe80,
-                       (bounds_min.z + bounds_max.z) * g_double_005ebe80);
+            center.Set((bounds_min.x + bounds_max.x) * g_double_half,
+                       (bounds_min.y + bounds_max.y) * g_double_half,
+                       (bounds_min.z + bounds_max.z) * g_double_half);
             party = missile->GetPosition();
             position = center + party;
             party = g_startup_world->GetPosition();
@@ -466,7 +466,7 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool li
     int left;
     int top;
 
-    if (fabs(delta->y) >= g_double_005ee768) {
+    if (fabs(delta->y) >= g_double_fifteen_hundred) {
         if (delta->y > g_double_zero) {
             ring = 2;
         }
@@ -475,7 +475,7 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool li
     }
 
     rotation.SetIdentity();
-    double angle = g_double_005eecd8 * g_float_005ebcf8 * (0x168 - g_status.party_facing);
+    double angle = g_radar_pi * g_float_inverse_half_turn_degrees * (0x168 - g_status.party_facing);
     if (angle != g_double_zero) {
         float cosine = static_cast<float>(cos(angle));
         float sine = static_cast<float>(sin(angle));
@@ -498,15 +498,15 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool li
         top = 0x194 - static_cast<int>(scale * delta->z);
     } else {
         float scale = g_radar_map_scale + (distance - g_radar_inner_radius) *
-                                              (g_float_005eecf0 - g_radar_map_scale) /
+                                              (g_radar_max_marker_scale - g_radar_map_scale) /
                                               (g_radar_outer_radius - g_radar_inner_radius);
 
-        if (scale > g_float_005eecf0) {
-            scale = g_float_005eecf0;
+        if (scale > g_radar_max_marker_scale) {
+            scale = g_radar_max_marker_scale;
         }
         scale /= distance;
-        left = static_cast<int>(scale * delta->x + g_float_005eecec);
-        top = static_cast<int>(g_float_005eece8 - scale * delta->z);
+        left = static_cast<int>(scale * delta->x + g_radar_center_x);
+        top = static_cast<int>(g_radar_center_y - scale * delta->z);
     }
     stModelInstance2D* blip = AcquireRadarBlip(ring + group * 3, lit);
     Position2DNodeUnsnapped(blip, left, top);

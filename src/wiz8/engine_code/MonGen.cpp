@@ -1155,9 +1155,8 @@ void MonGen::SetState(const srVector3T<float>* state)
    what installs the first. SetActive then applies the requested state, including its own conditional
    second load. */
 // FUNCTION: WIZ8 0x0048b850
-void MonGen::Reload(int unused, bool active)
+void MonGen::Reload(int, bool active)
 {
-    (void)unused;
     LoadMonsterGeneratorMarker(this);
     /* SetActive never reads its second argument. Its value at this retail
        expansion is unrecoverable; zero represents the unused argument. */

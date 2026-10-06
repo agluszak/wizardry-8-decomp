@@ -442,7 +442,7 @@ void TickCharacterCondition(unsigned int party_slot, W8Condition condition, unsi
 }
 
 // FUNCTION: WIZ8 0x00523C00
-void SetMonsterCondition(int location_id, W8Condition condition, int duration, int argument,
+void SetMonsterCondition(int location_id, W8Condition condition, int duration, int poison_strength,
                          W8TargetSource* target, bool announce)
 {
     unsigned int list_index;
@@ -456,12 +456,12 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
     int slot;
     bool handled;
 
-    if (argument != 0 && condition != W8_CONDITION_POISONED) {
+    if (poison_strength != 0 && condition != W8_CONDITION_POISONED) {
         srAssertFail("(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x220,
                      0);
     }
-    if (condition == W8_CONDITION_POISONED && argument == 0) {
+    if (condition == W8_CONDITION_POISONED && poison_strength == 0) {
         return;
     }
     switch (condition) {
@@ -549,9 +549,9 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
             monster_info->condition_target = *target;
         }
     }
-    if (static_cast<unsigned int>(argument) >
+    if (static_cast<unsigned int>(poison_strength) >
         static_cast<unsigned int>(monster_info->condition_argument)) {
-        monster_info->condition_argument = argument;
+        monster_info->condition_argument = poison_strength;
         handled = true;
     }
     RebuildMonsterDerivedStats(location_id);
@@ -688,7 +688,8 @@ void TickMonsterCondition(int location_id, W8Condition condition, unsigned int m
    transitions. */
 // FUNCTION: WIZ8 0x00522FE0
 unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int duration,
-                                    int argument, char value_5, char value_6)
+                                    int poison_strength, char alternate_missing_notice,
+                                    char announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
@@ -701,12 +702,12 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x2a,
                      0);
     }
-    if (argument != 0 && condition != W8_CONDITION_POISONED) {
+    if (poison_strength != 0 && condition != W8_CONDITION_POISONED) {
         srAssertFail("(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x2d,
                      0);
     }
-    if (condition == W8_CONDITION_POISONED && argument == 0) {
+    if (condition == W8_CONDITION_POISONED && poison_strength == 0) {
         return 0;
     }
     if (condition == W8_CONDITION_DEAD && CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) &&
@@ -779,8 +780,8 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
         handled = false;
     }
     if (static_cast<unsigned int>(character->condition_argument) <
-        static_cast<unsigned int>(argument)) {
-        character->condition_argument = argument;
+        static_cast<unsigned int>(poison_strength)) {
+        character->condition_argument = poison_strength;
     }
     RebuildConditionsAndDerivedStats(party_slot);
     if (!handled) {
@@ -795,8 +796,8 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
     if (old_highest != character->highest_condition) {
         QueueConditionChangeReaction(character);
     }
-    if (value_6 != 0) {
-        if (condition == W8_CONDITION_MISSING && value_5 != 0) {
+    if (announce != 0) {
+        if (condition == W8_CONDITION_MISSING && alternate_missing_notice != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x1d5]);
         } else {
             PostCharacterNotice(party_slot, L"%s!",

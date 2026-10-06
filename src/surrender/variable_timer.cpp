@@ -5,8 +5,9 @@
 #include <ostream>
 
 // FUNCTION: SURRENDER 0x100632C0
-srVariableTimer::srVariableTimer(int a0, int a1, int a2, float multiplier, unsigned long step_size)
-    : srTimer(a0, a1, a2)
+srVariableTimer::srVariableTimer(int force_system_timer, int unused, int save_calibration,
+                                 float multiplier, unsigned long step_size)
+    : srTimer(force_system_timer, unused, save_calibration)
 {
     m_multiplier = multiplier;
     m_step_size = step_size;
@@ -95,9 +96,9 @@ srVariableTimer& srVariableTimer::operator=(const srVariableTimer& other)
 }
 
 // FUNCTION: SURRENDER 0x10063870
-int srVariableTimer::reset(int a0, int a1, int a2)
+int srVariableTimer::reset(int force_system_timer, int unused, int save_calibration)
 {
-    if (!srTimer::reset(a0, a1, a2))
+    if (!srTimer::reset(force_system_timer, unused, save_calibration))
         return 0;
     m_multiplier = 1.0f;
     m_step_size = 0x1e;
@@ -112,9 +113,10 @@ int srVariableTimer::reset(int a0, int a1, int a2)
 }
 
 // FUNCTION: SURRENDER 0x10063990
-int srVariableTimer::reset(float multiplier, unsigned long step_size, int a2, int a3, int a4)
+int srVariableTimer::reset(float multiplier, unsigned long step_size, int force_system_timer,
+                           int unused, int save_calibration)
 {
-    if (!srTimer::reset(a2, a3, a4))
+    if (!srTimer::reset(force_system_timer, unused, save_calibration))
         return 0;
     m_multiplier = multiplier;
     m_step_size = step_size;

@@ -41,7 +41,7 @@ static char g_record_mode_line[0x1000];
 // GLOBAL: WIZ8 0x0069da6c
 static bool g_record_mode_active;
 // GLOBAL: WIZ8 0x0069da68
-static int g_value_69da68;
+static int g_record_mode_value;
 // GLOBAL: WIZ8 0x0069da70
 static int g_record_mode_length;
 
@@ -164,7 +164,7 @@ void PromptRecordModeEntry(void)
 // FUNCTION: WIZ8 0x005E35F0
 void ClearRecordModeValue(void)
 {
-    g_value_69da68 = 0;
+    g_record_mode_value = 0;
 }
 // FUNCTION: WIZ8 0x005E3600
 bool IsRecordModeActive(void)
@@ -267,7 +267,7 @@ void CompleteTrapDisarm(Trigger* trigger)
     if (Random(100) < 40) {
         ApplyItemEffectToRandomCharacter(g_learn_sound, -1, 0, g_character_event_no_flags);
     }
-    text = FormatWideString(g_format_s_space_s, gppStringList[g_value_0061e9ec[type]],
+    text = FormatWideString(g_format_s_space_s, gppStringList[g_trap_name_string_ids[type]],
                             gppStringList[0x7b2]);
     ShowString(text);
     trigger->Run(-1);
@@ -343,7 +343,8 @@ void ResolveSprungTrap(Trigger* trigger)
     } else {
         result = gppStringList[0x7b4];
     }
-    text = FormatWideString(g_format_s_space_s, gppStringList[g_value_0061e9ec[type]], result);
+    text =
+        FormatWideString(g_format_s_space_s, gppStringList[g_trap_name_string_ids[type]], result);
     ShowString(text);
     count = devices - static_cast<int>(Random(devices / 2));
     power = 4;
@@ -360,9 +361,8 @@ void ResolveSprungTrap(Trigger* trigger)
         GetCameraForwardPoint(1000.0f, &point);
     } else {
         prop->PlayRepAnimation(&minimum, &maximum);
-        point.Set((minimum.x + maximum.x) * g_double_005ebe80,
-                  (minimum.y + maximum.y) * g_double_005ebe80,
-                  (minimum.z + maximum.z) * g_double_005ebe80);
+        point.Set((minimum.x + maximum.x) * g_double_half, (minimum.y + maximum.y) * g_double_half,
+                  (minimum.z + maximum.z) * g_double_half);
     }
     GetCameraPosition(&camera);
     g_octree->TraceLineOfSight(&camera, &point, true, -3, -3, true, 0);

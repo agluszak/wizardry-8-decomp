@@ -890,7 +890,7 @@ char W8Prop::GetDelta(srVector3T<float>* out, const srVector3T<float>* point)
    action pointer for non-door actions, then dereferences it when the lock
    state does not short-circuit the test. */
 // FUNCTION: WIZ8 0x0044e0c0
-bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, bool notify)
+bool W8Prop::CanBeUsedFrom(int path_x, int path_z, bool notify)
 {
     Trigger* owner;
     W8TriggerActionData* action;
@@ -912,8 +912,8 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, bool notify)
          (W8_DOOR_OPEN | W8_DOOR_KEY_REQUIRED)) != 0) {
         return false;
     }
-    if (!m_gd_prop->ContainsPathCoordinate(static_cast<unsigned short>(arg_2),
-                                           static_cast<unsigned short>(arg_3))) {
+    if (!m_gd_prop->ContainsPathCoordinate(static_cast<unsigned short>(path_x),
+                                           static_cast<unsigned short>(path_z))) {
         return false;
     }
     if (notify) {
@@ -1360,9 +1360,8 @@ bool W8Prop::IsTriggerInView(srVector3T<float>* position)
     if (trigger != 0 && (trigger->flags & W8_TRIGGER_ENABLED) != 0 &&
         ((trigger->flags & W8_TRIGGER_ONCE) == 0 || (trigger->flags & W8_TRIGGER_FIRED) == 0)) {
         AnimObjGetBounds(Rep()->animation, 2, Rep()->subcycle, &minimum, &maximum);
-        center.Set((minimum.x + maximum.x) * g_double_005ebe80,
-                   (minimum.y + maximum.y) * g_double_005ebe80,
-                   (minimum.z + maximum.z) * g_double_005ebe80);
+        center.Set((minimum.x + maximum.x) * g_double_half, (minimum.y + maximum.y) * g_double_half,
+                   (minimum.z + maximum.z) * g_double_half);
         distance = (center - *position).Length();
         if (distance < trigger->range_maximum && trigger->range_minimum <= distance) {
             {
@@ -1518,9 +1517,9 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
             FileRead(hFile, &lx, 4, 0);
             FileRead(hFile, &ly, 4, 0);
             FileRead(hFile, &lz, 4, 0);
-            lx *= g_double_005ec150;
-            ly *= g_double_005ec150;
-            lz *= g_double_005ec150;
+            lx *= g_double_five_hundred;
+            ly *= g_double_five_hundred;
+            lz *= g_double_five_hundred;
             this->local_location.x = lx;
             this->location.x = lx;
             this->local_location.y = ly;
@@ -1702,7 +1701,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
         if (extent < maximum.z - minimum.z) {
             extent = maximum.z - minimum.z;
         }
-        this->bounds_extent = extent * g_float_005ebc7c;
+        this->bounds_extent = extent * g_float_half;
     }
 
     if (version > 2) {

@@ -177,7 +177,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                     srVector3T<float> nav = anchor;
                     nav.x += dirs[d][0] * radii[r];
                     nav.z += dirs[d][1] * radii[r];
-                    if (g_pathing->SnapWaypointPosition(&nav, false) == 0) {
+                    if (!g_pathing->SnapWaypointPosition(&nav, false)) {
                         continue;
                     }
                     nav.y = anchor.y + 2000.0f;
@@ -677,7 +677,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
             srVector3T<float> nav = anchor;
             nav.x += dirs[d][0] * radii[r];
             nav.z += dirs[d][1] * radii[r];
-            if (g_pathing->SnapWaypointPosition(&nav, false) == 0) {
+            if (!g_pathing->SnapWaypointPosition(&nav, false)) {
                 continue;
             }
             nav.y = anchor.y + 2000.0f;

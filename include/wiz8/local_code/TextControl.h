@@ -59,7 +59,7 @@ public:
         m_pressedSprite = -1;
     }
 
-    unsigned char MeasureText();
+    bool MeasureText();
     void GetTextOrigin(int* px, int* py);
     void Invalidate(bool immediate);
     virtual void SetEnabled(bool enabled) override;

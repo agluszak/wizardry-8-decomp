@@ -19,7 +19,7 @@ public:
 
     virtual void _memcopy(void* destination, const void* source, SRDWORD bytes) override;
 
-    virtual void _prefetch(const void* destination, SRDWORD bytes, SRDWORD value_014) override;
+    virtual void _prefetch(const void* destination, SRDWORD bytes, SRDWORD unused) override;
 
     virtual void _copyInterleaved(void* destination, const void* source, SRDWORD destination_pitch,
                                   SRDWORD source_pitch, SRDWORD width, SRDWORD count) override;
@@ -483,7 +483,7 @@ public:
     virtual SRDWORD _srCullNoClip(SRDWORD* destination, const srVector4& constant,
                                   const srVector4* vectors, SRDWORD count) override;
 
-    virtual void unknown_2a0(SRDWORD arg0, SRDWORD arg1) override;
+    virtual void unknown_2a0(SRDWORD, SRDWORD) override;
 
     virtual void unknown_2a4() override;
 

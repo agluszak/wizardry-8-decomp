@@ -35,7 +35,7 @@ W8AnimObj* CreateAnimObj()
 
 // FUNCTION: WIZ8 0x004a05c0
 unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, int load_all,
-                                  W8GrowableVector<stLight*>* light_list, int unused)
+                                  W8GrowableVector<stLight*>* light_list, int)
 {
     /* Retail read `frames` uninitialised when its FileRead short-circuited; the recovery keeps
        that read. */
@@ -46,7 +46,6 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
     int handle;
     int index;
 
-    (void)unused;
     if (info == 0 || info->hFile == 0 || animation == 0) {
         srAssertFail("pInfo && pInfo->hFile && pao", ANIM_OBJ_CPP, 0xef, 0);
     }
@@ -106,8 +105,8 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
             for (index = 0; index < frames; ++index) {
                 FileRead(handle, &animation->pvecBoundMin[index], sizeof(srVector3T<float>), 0);
                 FileRead(handle, &animation->pvecBoundMax[index], sizeof(srVector3T<float>), 0);
-                animation->pvecBoundMin[index] *= static_cast<float>(g_double_005ec150);
-                animation->pvecBoundMax[index] *= static_cast<float>(g_double_005ec150);
+                animation->pvecBoundMin[index] *= static_cast<float>(g_double_five_hundred);
+                animation->pvecBoundMax[index] *= static_cast<float>(g_double_five_hundred);
             }
         }
     }
@@ -130,7 +129,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
             FileRead(handle, &color, sizeof(color), 0);
             FileRead(handle, &intensity, 4, 0);
             FileRead(handle, &range, 4, 0);
-            position *= static_cast<float>(g_double_005ec150);
+            position *= static_cast<float>(g_double_five_hundred);
             if (light_version < 3) {
                 definition_kind = light_version == 2 ? 1 : 0;
             } else {

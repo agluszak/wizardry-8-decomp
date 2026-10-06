@@ -16,7 +16,7 @@ extern bool g_world_cleanup_flag;
 extern bool g_navigator_vertical_enabled;
 extern bool g_world_mesh_update_enabled;
 extern float g_mesh_view_half_angle_degrees;
-extern bool g_flag_00609c8c;
+extern bool g_world_update_requested;
 
 /* 0x00450780: the three-argument assert the main-game code paths use; it
    forwards to the four-argument SurRender export. */

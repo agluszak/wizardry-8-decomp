@@ -24,7 +24,7 @@ extern W8ConditionImmunity g_condition_immunities[3];
 extern unsigned short g_condition_notices[128];
 
 void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announce);
-void SetMonsterCondition(int location_id, W8Condition condition, int duration, int argument,
+void SetMonsterCondition(int location_id, W8Condition condition, int duration, int poison_strength,
                          W8TargetSource* target, bool announce);
 void ClearMonsterCondition(int location_id, W8Condition condition);
 void ClearMonsterEnchantmentSlot(int location_id, W8EnchantmentSlot slot);
@@ -65,7 +65,8 @@ void RecomputeCharacterHighestCondition(int party_slot);
 void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info);
 
 unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int duration,
-                                    int argument, char value_5, char value_6);
+                                    int poison_strength, char alternate_missing_notice,
+                                    char announce);
 
 void RemoveConditionFromEveryone(W8Condition condition); /* 0x005244A0 */
 void RemoveConditionFromParty(W8Condition condition);    /* 0x005246C0 */

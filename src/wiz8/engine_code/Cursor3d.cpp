@@ -62,28 +62,28 @@ static bool g_cursor_pick_latch;
 static int g_cursor_saved_group_id = -1;
 
 // GLOBAL: WIZ8 0x0060ab48
-static float g_float_60ab48 = 4000.0f;
+static float g_cursor_projection_distance = 4000.0f;
 
 // GLOBAL: WIZ8 0x005ebc88
-const float g_float_005ebc88 = 10.0f;
+const float g_float_ten = 10.0f;
 
 // GLOBAL: WIZ8 0x005ecb08
-const float g_float_005ecb08 = 750.0f;
+const float g_cursor_sight_probe_height = 750.0f;
 
 // GLOBAL: WIZ8 0x005ecb20
-const float g_float_005ecb20 = -10000000.0f;
+const float g_cursor_ground_height_sentinel = -10000000.0f;
 
 // GLOBAL: WIZ8 0x005ec8d8
-const double g_double_005ec8d8 = 15.625;
+const double g_double_fifteen_and_five_eighths = 15.625;
 
 // GLOBAL: WIZ8 0x005ecb18
-const double g_double_005ecb18 = 0.97;
+const double g_cursor_probe_shrink_scale = 0.97;
 
 // GLOBAL: WIZ8 0x005ecb10
-const float g_float_005ecb10 = 25.0f;
+const float g_cursor_ground_probe_lift = 25.0f;
 
 // GLOBAL: WIZ8 0x005ecb0c
-const float g_float_005ecb0c = 83.333335876464844f;
+const float g_cursor_ground_step_threshold = 83.333335876464844f;
 
 /* Build the world cursor on demand: allocate and clear the state block, load
    the 3DCursor monster cycle into it, create its tracking light and seed the
@@ -187,9 +187,9 @@ void InitializeWorldCursor(void)
             }
             ClearCombatSelection();
             gp3DCursor->monster->GetAnimationBounds(&minimum, &maximum);
-            gp3DCursor->probe_center.Set((maximum.x + minimum.x) * g_double_005ebe80,
-                                         (minimum.y + maximum.y) * g_double_005ebe80,
-                                         (minimum.z + maximum.z) * g_double_005ebe80);
+            gp3DCursor->probe_center.Set((maximum.x + minimum.x) * g_double_half,
+                                         (minimum.y + maximum.y) * g_double_half,
+                                         (minimum.z + maximum.z) * g_double_half);
             gp3DCursor->probe_offsets[0] = maximum;
             gp3DCursor->probe_offsets[1].Set(minimum.x, maximum.y, maximum.z);
             gp3DCursor->probe_offsets[2].Set(minimum.x, maximum.y, minimum.z);
@@ -225,7 +225,7 @@ void ReleaseWorldCursor(void)
     camera.y = 0.0f;
     cursor->position.y = 0.0f;
     delta = cursor->position - camera;
-    g_float_60ab48 = delta.Length();
+    g_cursor_projection_distance = delta.Length();
 
     PListRemove(g_world->plsMonsters, cursor->monster);
     DetachMonsterRepresentation(cursor->monster, g_world);
@@ -342,9 +342,8 @@ void ApplyWorldCursorInput(void)
     if (!gp3DCursor->enabled) {
         srAssertFail("gp3DCursor->fEnabled", CURSOR3D_CPP, 0x189, 0);
     }
-    delta.Set(gp3DCursor->input_delta.x * g_float_005ebc88,
-              gp3DCursor->input_delta.y * g_float_005ebc88,
-              gp3DCursor->input_delta.z * g_float_005ebc88);
+    delta.Set(gp3DCursor->input_delta.x * g_float_ten, gp3DCursor->input_delta.y * g_float_ten,
+              gp3DCursor->input_delta.z * g_float_ten);
     gp3DCursor->input_delta.x = 0;
     gp3DCursor->input_delta.y = 0;
     gp3DCursor->input_delta.z = 0;
@@ -361,7 +360,7 @@ void ApplyWorldCursorInput(void)
         }
     }
     if (!gp3DCursor->detached) {
-        lifted.Set(delta.x, delta.y + g_float_005ebc64, delta.z);
+        lifted.Set(delta.x, delta.y + g_float_one_thousand, delta.z);
         if (gp3DCursor->range > g_float_zero && gp3DCursor->range < lifted.Length()) {
             delta.SetLength(gp3DCursor->range);
         }
@@ -501,23 +500,23 @@ void BindCursorMonsterToGroup(void)
 // FUNCTION: WIZ8 0x00492530
 void ResetWorldCursorRange(void)
 {
-    g_float_60ab48 = 4000.0f;
+    g_cursor_projection_distance = 4000.0f;
 }
 
 /* 0x005EC260: hard ceiling for SetWorldCursorRange. */
 // GLOBAL: WIZ8 0x005ec260
-const float g_float_005ec260 = 50000.0f;
+const float g_float_fifty_thousand = 50000.0f;
 
 /* Install an action-range distance into the live cursor: subtract
-   g_float_005ebcdc / distance * world_scale, clamp to 50000, write range,
+   g_float_two_thousand / distance * world_scale, clamp to 50000, write range,
    and force last_published to the -1e8 republish sentinel. */
 // FUNCTION: WIZ8 0x00491650
 void SetWorldCursorRange(float distance)
 {
     if (gp3DCursor != 0) {
-        distance = distance - (g_float_005ebcdc / distance) * g_world_scale;
-        if (distance >= g_float_005ec260) {
-            distance = g_float_005ec260;
+        distance = distance - (g_float_two_thousand / distance) * g_world_scale;
+        if (distance >= g_float_fifty_thousand) {
+            distance = g_float_fifty_thousand;
         }
         gp3DCursor->range = distance;
         gp3DCursor->last_published = -100000000.0f;
@@ -631,7 +630,7 @@ void UpdateWorldCursor(void)
     }
     if (!(old_position == position)) {
         if (gp3DCursor->detached) {
-            position.y += g_float_005ecb08;
+            position.y += g_cursor_sight_probe_height;
             PointCameraAtTarget(&position, true, false);
         }
         if (gXStatus.iTargetingMode == W8_TARGET_NEED_PLACE) {
@@ -672,7 +671,7 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
     if (g_double_zero < dist) {
         do {
             lower_count = 0;
-            step += g_double_005ec8d8;
+            step += g_double_fifteen_and_five_eighths;
             upper_found = false;
             upper_best = -1e+10f;
             lower_best = -1e+10f;
@@ -686,7 +685,7 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
             end_pos = step_pos;
             for (i = 4; i < 8; i++) {
                 probe = gp3DCursor->probe_offsets[i];
-                probe *= g_double_005ecb18;
+                probe *= g_cursor_probe_shrink_scale;
                 probe += step_pos;
                 ground = g_octree->SettleToGround(&probe, &hit, 1, 500.0f);
                 if (ground <= step_pos.y) {
@@ -696,18 +695,18 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
                             lower_best = ground;
                         }
                     }
-                } else if (ground - step_pos.y < g_float_005ebc64 && upper_best < ground) {
+                } else if (ground - step_pos.y < g_float_one_thousand && upper_best < ground) {
                     upper_found = true;
                     upper_best = ground;
                 }
             }
             if (gp3DCursor->track_ground) {
                 if (upper_found) {
-                    end_pos.y = upper_best + g_float_005ecb10;
+                    end_pos.y = upper_best + g_cursor_ground_probe_lift;
                     target->y = end_pos.y;
                     origin.y = end_pos.y;
                 } else if (lower_count == 4) {
-                    end_pos.y = lower_best + g_float_005ecb10;
+                    end_pos.y = lower_best + g_cursor_ground_probe_lift;
                     target->y = end_pos.y;
                     origin.y = end_pos.y;
                 }
@@ -724,13 +723,13 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
         } while (step < dist);
     }
     *target = last_valid;
-    if (target->y - lower_best < g_float_005ecb0c) {
+    if (target->y - lower_best < g_cursor_ground_step_threshold) {
         gp3DCursor->track_ground = true;
     }
     return 0;
 }
 
-/* Update the world cursor's placement: derive a point g_float_60ab48 units
+/* Update the world cursor's placement: derive a point g_cursor_projection_distance units
    in front of the yaw-rotated camera, resolve it through the cursor walk and
    store the result as the cursor position and camera-relative offset. */
 // FUNCTION: WIZ8 0x00491EC0
@@ -762,7 +761,7 @@ void UpdateWorldCursorPlacement(void)
     camera.y -= g_default_world_height;
     cursor = gp3DCursor;
     cursor->last_published = -100000000.0f;
-    forward.Set(0.0, 0.0, g_float_60ab48);
+    forward.Set(0.0, 0.0, g_cursor_projection_distance);
     target = camera + rotation.Transform(forward);
     cursor->position = camera;
     cursor->track_ground = true;
@@ -772,7 +771,7 @@ void UpdateWorldCursorPlacement(void)
         if (!cursor->detached) {
             cursor->cam_rel_offset -= camera;
         }
-        target.y += g_float_005ecb08;
+        target.y += g_cursor_sight_probe_height;
         PointCameraAtTarget(&target, true, false);
     } else {
         cursor->position = target;
@@ -802,7 +801,7 @@ int ResolveWorldCursorTarget(srVector3T<float>* position)
 {
     W8WorldCursorState* cursor = gp3DCursor;
     srVector3T<float> probe;
-    float best = g_float_005ecb20;
+    float best = g_cursor_ground_height_sentinel;
     int i;
 
     if (cursor == 0) {
@@ -840,11 +839,11 @@ int ResolveWorldCursorTarget(srVector3T<float>* position)
             best = g_octree->SettleToGround(&probe, 0, 1, 500.0f);
         }
         if (static_cast<float>(g_monster_poster_max_distance) <= fabs(best - position->y)) {
-            position->y = best + g_float_005ebc64;
+            position->y = best + g_float_one_thousand;
             return 0;
         }
     }
-    position->y = best + g_float_005ebc64;
+    position->y = best + g_float_one_thousand;
     return 1;
 }
 

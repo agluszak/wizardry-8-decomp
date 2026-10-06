@@ -35,19 +35,19 @@
    companion. */
 
 // GLOBAL: WIZ8 0x005ec1a8
-const float g_float_005ec1a8 = -0.3333333432674408f;
+const float g_float_negative_one_third = -0.3333333432674408f;
 // GLOBAL: WIZ8 0x005ebc58
-const float g_float_005ebc58 = 1.0000000116860974e-07f;
+const float g_vector_length_squared_epsilon = 1.0000000116860974e-07f;
 // GLOBAL: WIZ8 0x005ec028
-const float g_float_005ec028 = 1.0099999904632568f;
+const float g_float_one_and_one_hundredth = 1.0099999904632568f;
 // GLOBAL: WIZ8 0x005ec1a0
-const float g_float_005ec1a0 = 0.9959999918937683f;
+const float g_surface_flat_normal_threshold = 0.9959999918937683f;
 // GLOBAL: WIZ8 0x005ec1ac
-const float g_float_005ec1ac = 3000.0f;
+const float g_vertex_sort_x_weight = 3000.0f;
 // GLOBAL: WIZ8 0x005ec1b0
-const float g_float_005ec1b0 = 60000.0f;
+const float g_vertex_sort_y_weight = 60000.0f;
 // GLOBAL: WIZ8 0x005ec1b4
-const float g_float_005ec1b4 = 900000.0f;
+const float g_vertex_sort_z_weight = 900000.0f;
 // GLOBAL: WIZ8 0x005ff56c
 static char g_string[] = "\n";
 
@@ -701,7 +701,7 @@ void W8GameData::AddLinkedRecord(const srVector3T<float>* vertices, float value,
 }
 
 /* Appends a linked record's vertices to the trigger bank, scaled by
-   g_double_005ec150, and emits twelve consecutive trigger surfaces under the
+   g_double_five_hundred, and emits twelve consecutive trigger surfaces under the
    current environment index. The surface numbered `*face` also grows an
    environment record scaled by `value`/`scalar`. */
 // FUNCTION: WIZ8 0x00448C60
@@ -738,9 +738,9 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
     vertex_base = m_iNumTrigVertices;
     for (index = 0; index < 36; ++index) {
         m_pTrigVertices[m_iNumTrigVertices].Set(
-            static_cast<float>(vertices[index].x * g_double_005ec150),
-            static_cast<float>(vertices[index].y * g_double_005ec150),
-            static_cast<float>(vertices[index].z * g_double_005ec150));
+            static_cast<float>(vertices[index].x * g_double_five_hundred),
+            static_cast<float>(vertices[index].y * g_double_five_hundred),
+            static_cast<float>(vertices[index].z * g_double_five_hundred));
         ++m_iNumTrigVertices;
     }
     for (index = 0; index < 12; ++index) {
@@ -1163,9 +1163,9 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
     }
 
     float upper_value = g_float_one;
-    if (g_float_005ebc7c < surface->plane.normal.y) {
+    if (g_float_half < surface->plane.normal.y) {
         if ((surface->flags & W8_GD_SURFACE_WALKABLE) == 0 &&
-            g_float_005ec1a0 < surface->plane.normal.y) {
+            g_surface_flat_normal_threshold < surface->plane.normal.y) {
             surface->flags |= W8_GD_SURFACE_WALKABLE;
             surface->slope = g_float_one;
         }
@@ -1173,7 +1173,7 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
             surface->flags |= W8_GD_SURFACE_EXPLICIT_SLOPE;
             surface->slope = g_float_zero;
         }
-    } else if (surface->contact_margin < g_float_005ec028 &&
+    } else if (surface->contact_margin < g_float_one_and_one_hundredth &&
                g_path_endpoint_scale < surface->contact_margin &&
                (surface->flags & W8_GD_SURFACE_WALKABLE) != 0) {
         surface->contact_margin = 0.1f;
@@ -1183,8 +1183,9 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
     surface->contact_margin *= g_world_scale;
     if ((flags & W8_GD_SURFACE_WALKABLE) == 0) {
         surface->slope = g_float_zero;
-    } else if (surface->slope < g_float_005ebc58 && (flags & W8_GD_SURFACE_EXPLICIT_SLOPE) == 0) {
-        if (surface->plane.normal.y <= g_float_005ebccc) {
+    } else if (surface->slope < g_vector_length_squared_epsilon &&
+               (flags & W8_GD_SURFACE_EXPLICIT_SLOPE) == 0) {
+        if (surface->plane.normal.y <= g_float_three_quarters) {
             upper_value = surface->plane.normal.y;
         }
         surface->slope = upper_value;
@@ -1366,10 +1367,10 @@ void W8GameData::CompileGameData()
                 progress += 10;
             }
             found = false;
-            unsigned int key =
-                static_cast<unsigned int>(vertex->position.z * g_float_005ebc60 * g_float_005ec1b4 +
-                                          vertex->position.y * g_float_005ebc60 * g_float_005ec1b0 +
-                                          vertex->position.x * g_float_005ebc60 * g_float_005ec1ac);
+            unsigned int key = static_cast<unsigned int>(
+                vertex->position.z * g_float_one_five_hundredth * g_vertex_sort_z_weight +
+                vertex->position.y * g_float_one_five_hundredth * g_vertex_sort_y_weight +
+                vertex->position.x * g_float_one_five_hundredth * g_vertex_sort_x_weight);
             int linked = weld_table.Lookup(&key);
             if (linked == 0) {
                 int vertex_id = i + 1;

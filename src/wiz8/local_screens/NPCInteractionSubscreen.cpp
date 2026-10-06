@@ -1252,7 +1252,7 @@ static void CloseActiveNpcDialogueLayout()
 }
 
 // FUNCTION: WIZ8 0x0056E800
-void EndNpcDialogueSession(bool param_1)
+void EndNpcDialogueSession(bool skip_exit_actions)
 {
     if (!gXStatus.fNpcDialogueMode) {
         return;
@@ -1263,7 +1263,7 @@ void EndNpcDialogueSession(bool param_1)
         return;
     }
     if (gXStatus.fCampMode) {
-        param_1 = true;
+        skip_exit_actions = true;
     }
     if (g_npc_interaction_state->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
@@ -1309,7 +1309,7 @@ void EndNpcDialogueSession(bool param_1)
     GetNpcMonsterInfo(g_npc_interaction_state->dialogue_npc);
     KillTextInputMode();
     ResumeMainGameWorld();
-    if (!param_1) {
+    if (!skip_exit_actions) {
         if (!g_npc_interaction_state->held_item_pending) {
             SetTargetCursor(W8_CURSOR_NONE);
         } else {

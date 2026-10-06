@@ -233,9 +233,9 @@ float GetPartyMovementSpeed(void)
         speed = 1.5f;
     }
     if (GetPartyHasteSteps(&steps)) {
-        return (steps * g_movement_speed_step + speed) * g_float_005ec0a8;
+        return (steps * g_movement_speed_step + speed) * g_float_ten_thousand;
     }
-    return speed * g_float_005ec0a8;
+    return speed * g_float_ten_thousand;
 }
 
 /* Reconcile character turns after the party finishes moving. Characters that
@@ -253,7 +253,7 @@ void CompletePartyMovementTurns(void)
 
     unsigned int remaining = 100 - g_level_block->move_percent;
     if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_RUN) {
-        remaining = static_cast<unsigned int>(remaining * g_float_005ec3b8);
+        remaining = static_cast<unsigned int>(remaining * g_float_one_and_a_half);
     }
     remaining = remaining < 100 ? 100 - remaining : 0;
 

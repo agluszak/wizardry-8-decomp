@@ -99,7 +99,7 @@ void FlushDirtyTiles(void);
 HWND ghWindow;
 
 // GLOBAL: WIZ8 0x603c38
-unsigned char g_world_pick_enabled = 1;
+bool g_world_pick_enabled = true;
 // GLOBAL: WIZ8 0x603c4c
 unsigned char g_fullscreen_scene_last = 1;
 // GLOBAL: WIZ8 0x603c60
@@ -354,7 +354,7 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
     memset(&status, 0, sizeof(status));
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
-    g_world_pick_enabled = 1;
+    g_world_pick_enabled = true;
     SetPickedModelInstance(0);
     g_fps_frame_count = 0;
     g_fps_window_tick = GetTickCount();
@@ -1431,10 +1431,10 @@ bool RendererBufferIsLockable(void)
 }
 
 // FUNCTION: WIZ8 0x00427830
-void SetWorldModelPickingEnabled(char enabled)
+void SetWorldModelPickingEnabled(bool enabled)
 {
     g_world_pick_enabled = enabled;
-    if (enabled == 0) {
+    if (!enabled) {
         SetPickedModelInstance(0);
     }
 }
@@ -1500,7 +1500,7 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
 
 // FUNCTION: WIZ8 0x00425190
 stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width, double height,
-                                           bool keep_aspect, bool a5)
+                                           bool keep_aspect, bool overlay)
 {
     srShader shader;
     srVector3T<float> scale;
@@ -1540,7 +1540,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
         instance->render_state.height = static_cast<unsigned short>(h);
         instance->setName("Video2DMakePolygonBrush");
         instance->SetModel(model);
-        if (a5) {
+        if (overlay) {
             instance->overlay_scene_flag |= 1;
         }
     }
@@ -1690,8 +1690,8 @@ BOOLEAN SetMouseCursorFromVideoObject(UINT32 video_object, UINT16 region, INT16 
     }
     g_cursor_image_width = properties.usWidth;
     g_cursor_image_height = properties.usHeight;
-    g_cursor_image_u_extent = g_cursor_image_width * g_double_005ebe90;
-    g_cursor_image_v_extent = g_cursor_image_height * g_double_005ebe88;
+    g_cursor_image_u_extent = g_cursor_image_width * g_inverse_screen_width;
+    g_cursor_image_v_extent = g_cursor_image_height * g_inverse_screen_height;
     ClearMouseSurface();
     return BlitVideoObjectToColorSurface(video_object, region, g_mouse_surface, 0, 0);
 }
@@ -2215,15 +2215,15 @@ void SetViewport(int left, int top, int right, int bottom)
     fractional_bottom = g_viewport.bottom * g_viewport_y_scale;
 
     if (g_world != 0 && g_world->camera != 0) {
-        g_world->camera->setViewPlane(3.14159265358979323846 * g_float_005ebcf8 * 85.0f,
-                                      3.14159265358979323846 * g_float_005ebcf8 * 71.0f);
+        g_world->camera->setViewPlane(
+            3.14159265358979323846 * g_float_inverse_half_turn_degrees * 85.0f,
+            3.14159265358979323846 * g_float_inverse_half_turn_degrees * 71.0f);
         g_world->camera->getViewPlane(view, depth);
 
         plane.left = fractional_left * (view.right - view.left) + view.left;
         plane.right = fractional_right * (view.right - view.left) + view.left;
-        plane.bottom =
-            (g_double_005ebc30 - fractional_bottom) * (view.top - view.bottom) + view.bottom;
-        plane.top = (g_double_005ebc30 - fractional_top) * (view.top - view.bottom) + view.bottom;
+        plane.bottom = (g_double_one - fractional_bottom) * (view.top - view.bottom) + view.bottom;
+        plane.top = (g_double_one - fractional_top) * (view.top - view.bottom) + view.bottom;
 
         g_world->camera->setViewPlane(plane, 1.0);
         if (g_secondary_world != 0) {
@@ -2658,7 +2658,7 @@ void ReleaseObject(srClass* object)
 // FUNCTION: WIZ8 0x00425840
 void RotateNodeInDegrees(srNode* node, int degrees)
 {
-    node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_005ebcf8 * degrees);
+    node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_inverse_half_turn_degrees * degrees);
     if ((static_cast<stModelInstance2D*>(node)->overlay_scene_flag & 1) != 0) {
         SetOverlayRenderMode();
     } else {
@@ -2886,11 +2886,11 @@ int g_help_box_y;
 int g_screen_transition_object_capacity;
 
 // GLOBAL: WIZ8 0x005ebe88
-const double g_double_005ebe88 = 0.0020833333333333333;
+const double g_inverse_screen_height = 0.0020833333333333333;
 // GLOBAL: WIZ8 0x005ebe90
-const double g_double_005ebe90 = 0.0015625;
+const double g_inverse_screen_width = 0.0015625;
 // GLOBAL: WIZ8 0x005ebf40
-const double g_double_005ebf40 = 0.75;
+const double g_double_three_quarters = 0.75;
 
 /* Pack normalized alpha/red/green/blue into the surface's high-to-low
    bytes, using the current x87 rounding mode. */
@@ -2898,10 +2898,10 @@ const double g_double_005ebf40 = 0.75;
 void __fastcall PackColourBytes(unsigned char* colour, double alpha, double red, double green,
                                 double blue)
 {
-    colour[3] = static_cast<unsigned char>(srFloatToInt(alpha * g_double_005ebf60));
-    colour[2] = static_cast<unsigned char>(srFloatToInt(red * g_double_005ebf60));
-    colour[1] = static_cast<unsigned char>(srFloatToInt(green * g_double_005ebf60));
-    colour[0] = static_cast<unsigned char>(srFloatToInt(blue * g_double_005ebf60));
+    colour[3] = static_cast<unsigned char>(srFloatToInt(alpha * g_color_byte_scale));
+    colour[2] = static_cast<unsigned char>(srFloatToInt(red * g_color_byte_scale));
+    colour[1] = static_cast<unsigned char>(srFloatToInt(green * g_color_byte_scale));
+    colour[0] = static_cast<unsigned char>(srFloatToInt(blue * g_color_byte_scale));
 }
 
 /* Places one tooltip node at a screen position in normalized coordinates.
@@ -2911,8 +2911,8 @@ void __fastcall PackColourBytes(unsigned char* colour, double alpha, double red,
 void PositionToolTipNode(srNode* node, int x, int y, bool positional)
 {
     stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-    double position_x = x * g_double_005ebe90;
-    double position_y = y * g_double_005ebe88;
+    double position_x = x * g_inverse_screen_width;
+    double position_y = y * g_inverse_screen_height;
 
     if (positional && g_gerd != 0) {
         double whole;
@@ -2925,18 +2925,18 @@ void PositionToolTipNode(srNode* node, int x, int y, bool positional)
     }
 
     int width = instance->GetScaledWidth();
-    double half_width = width * g_double_005ebe90 * g_double_005ebe80;
+    double half_width = width * g_inverse_screen_width * g_double_half;
     int height = instance->GetScaledHeight();
-    double half_height = height * g_double_005ebe88 * g_double_005ebe80;
+    double half_height = height * g_inverse_screen_height * g_double_half;
 
     srVector3T<double> location;
     location.x = half_width + position_x;
     location.z = -0.0001;
     if ((instance->overlay_scene_flag & 1U) == 0) {
-        location.y = g_double_005ebc30 - (half_height + position_y);
+        location.y = g_double_one - (half_height + position_y);
         g_paired_render_mode = 2;
     } else {
-        location.y = g_double_005ebf40 - (half_height + position_y) * g_double_005ebf40;
+        location.y = g_double_three_quarters - (half_height + position_y) * g_double_three_quarters;
     }
     node->setLocation(location);
     SetOverlayRenderMode();
@@ -2954,7 +2954,7 @@ srModelInstance* Video2DRectToSquarePolygon(const W8ControlsRect* rect, void* so
 {
     int extent = (rect->bottom - rect->top) + 2;
     int width_extent = (rect->right - rect->left) + 2;
-    double width = rect->right * g_double_005ebe90 - rect->left * g_double_005ebe90;
+    double width = rect->right * g_inverse_screen_width - rect->left * g_inverse_screen_width;
     if (extent < width_extent) {
         extent = width_extent;
     }
@@ -3002,8 +3002,8 @@ srModelInstance* Video2DRectToSquarePolygon(const W8ControlsRect* rect, void* so
    into either the user overlay polygon path or the square overlay path, and
    records the resulting 2D instance extents. */
 // FUNCTION: WIZ8 0x004253F0
-stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect* bounds, int a3,
-                                                int /*a4*/, char a5)
+stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect* bounds,
+                                                int square, int, char overlay)
 {
     HVSURFACE surface;
     unsigned short width;
@@ -3013,7 +3013,7 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
     BYTE* pixels;
     srModelInstance* node;
     stModelInstance2D* instance;
-    char mode = static_cast<char>(a3);
+    char mode = static_cast<char>(square);
 
     if (!GetVideoSurface(&surface, static_cast<UINT32>(target))) {
         return 0;
@@ -3050,10 +3050,10 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
     }
     if (mode != 0) {
         node = Video2DRectToSquarePolygon(&source_rect, pixels, static_cast<int>(pitch),
-                                          g_scene_square, a5);
+                                          g_scene_square, overlay);
     } else {
-        node =
-            Video2DRectToPolygon(&source_rect, pixels, static_cast<int>(pitch), g_scene_user, a5);
+        node = Video2DRectToPolygon(&source_rect, pixels, static_cast<int>(pitch), g_scene_user,
+                                    overlay);
         g_paired_render_mode = 2;
     }
     SetOverlayRenderMode();
@@ -3083,10 +3083,10 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
    the material emissive. Radar blip templates are the observed callers. */
 // FUNCTION: WIZ8 0x00424790
 stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVector4T<float>* color,
-                                              bool a4)
+                                              bool fullscreen)
 {
-    double scale_x = width * g_double_005ebe90;
-    double scale_y = height * g_double_005ebe88;
+    double scale_x = width * g_inverse_screen_width;
+    double scale_y = height * g_inverse_screen_height;
     srMeshModel* model = SR_NEW(srMeshModel)(0L, 0L);
     model->autoRelease();
 
@@ -3121,7 +3121,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     instance->render_state.width = static_cast<unsigned short>(width);
     instance->render_state.height = static_cast<unsigned short>(height);
     SetModelInstance2DDisplayState(instance, 3);
-    if (a4) {
+    if (fullscreen) {
         instance->setParent(g_scene_fullscreen, 1);
     }
     return instance;
@@ -3129,9 +3129,9 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
 
 // FUNCTION: WIZ8 0x004255c0
 stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsRect* rect, int mode,
-                                           int arg_4, int arg_5)
+                                           int unused, int overlay)
 {
-    return CreateSpriteFromVideoSurface(image, rect, mode, arg_4, arg_5);
+    return CreateSpriteFromVideoSurface(image, rect, mode, unused, overlay);
 }
 
 // FUNCTION: WIZ8 0x004257D0
@@ -3221,12 +3221,12 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, const W8ControlsRec
 srModelInstance* Video2DRectToPolygon(const W8ControlsRect* rect, void* source, int source_pitch,
                                       srNode* parent, unsigned char overlay)
 {
-    double left = rect->left * g_double_005ebe90;
+    double left = rect->left * g_inverse_screen_width;
     int extent = rect->right - rect->left;
-    double top = rect->top * g_double_005ebe88;
+    double top = rect->top * g_inverse_screen_height;
     int rect_height = rect->bottom - rect->top;
-    double width = rect->right * g_double_005ebe90 - left;
-    double height = rect->bottom * g_double_005ebe88 - top;
+    double width = rect->right * g_inverse_screen_width - left;
+    double height = rect->bottom * g_inverse_screen_height - top;
 
     if (extent <= rect_height) {
         extent = rect_height;
@@ -3281,8 +3281,8 @@ srModelInstance* Video2DRectToPolygon(const W8ControlsRect* rect, void* source, 
         instance->render_state.position_x = static_cast<short>(rect->left);
         instance->render_state.position_y = static_cast<short>(rect->top);
         srVector3T<double> location;
-        location.Set(width * g_double_005ebe80 + left,
-                     g_double_005ebc30 - (height * g_double_005ebe80 + top), -0.0001);
+        location.Set(width * g_double_half + left, g_double_one - (height * g_double_half + top),
+                     -0.0001);
         node->setLocation(location);
         instance->setName("Video2DRectToPolygon");
     }

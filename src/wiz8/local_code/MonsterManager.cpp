@@ -365,7 +365,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, bool announce)
     if (record == 0) {
         record = static_cast<W8MonsterRecord*>(malloc(sizeof(W8MonsterRecord)));
         if (record != 0) {
-            if (LoadMonsterDatabaseRecord(monster_species, record) == 0) {
+            if (!LoadMonsterDatabaseRecord(monster_species, record)) {
                 free(record);
                 record = 0;
             } else {
@@ -1662,8 +1662,8 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         health_knowledge = GetBestPartySkillLevel(W8_SKILL_MYTHOLOGY, &best_party_slot);
         if (static_cast<int>(average_party_level) < monster_level) {
             float adjusted_knowledge = health_knowledge -
-                                       (monster_level - average_party_level) * g_float_005ec52c +
-                                       g_float_005ebc7c;
+                                       (monster_level - average_party_level) * g_float_three +
+                                       g_float_half;
             if (adjusted_knowledge < g_float_zero) {
                 adjusted_knowledge = g_float_zero;
             }
@@ -1839,9 +1839,8 @@ void EvaluateCombatDifficulty(void)
     unsigned int party_power = 0;
     if (eligible_count > 0) {
         party_power = static_cast<unsigned int>(
-            party_levels /
-                pow(static_cast<double>(eligible_count) * g_float_005ebca0, g_double_005ebe80) +
-            g_double_005ebe80);
+            party_levels / pow(static_cast<double>(eligible_count) * g_float_six, g_double_half) +
+            g_double_half);
     }
     int relative_strength = static_cast<int>(party_power * 100 / threat_level) - 100;
     unsigned char difficulty;

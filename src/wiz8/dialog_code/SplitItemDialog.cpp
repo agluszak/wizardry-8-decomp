@@ -509,12 +509,14 @@ void W8SplitItemDialog::UpdateTotals()
     m_count_input->m_dirty = true;
     m_count_input->m_button->m_dirty = true;
     swprintf(text, g_assay_format,
-             static_cast<double>(GetItemUnitWeight(m_item) * m_remaining) * g_float_005ed8b8);
+             static_cast<double>(GetItemUnitWeight(m_item) * m_remaining) *
+                 g_item_weight_display_scale);
     m_texts[7]->SetText(text, g_wiz_text_font_secondary);
     m_buttons[4]->m_dirty = true;
     m_texts[7]->SetGeometryDirty();
     swprintf(text, g_assay_format,
-             static_cast<double>(GetItemUnitWeight(m_item) * split_count) * g_float_005ed8b8);
+             static_cast<double>(GetItemUnitWeight(m_item) * split_count) *
+                 g_item_weight_display_scale);
     m_texts[9]->SetText(text, g_wiz_text_font_secondary);
     m_buttons[5]->m_dirty = true;
     m_texts[9]->SetGeometryDirty();

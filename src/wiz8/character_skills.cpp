@@ -317,14 +317,14 @@ void CheatDeathRevive(int party_slot)
     SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS,
                           character->uiCondition[W8_CONDITION_UNCONSCIOUS] -
                               static_cast<int>(ScaleValueByProfessionLevel(
-                                  character, W8_TRAIT_CHEAT_DEATH, g_float_005ebc28)) +
+                                  character, W8_TRAIT_CHEAT_DEATH, g_float_five)) +
                               7,
                           0, 0, 1);
     if (g_combat_state != 0 && !g_combat_state->characters[party_slot].cheat_death_used) {
         character->hp_current =
             (Random(static_cast<unsigned int>(ScaleValueByProfessionLevel(
                  character, W8_TRAIT_CHEAT_DEATH,
-                 static_cast<unsigned int>(character->uiHPMax) * g_float_005ebc7c))) +
+                 static_cast<unsigned int>(character->uiHPMax) * g_float_half))) +
              0x32) *
             character->uiHPMax / 100;
         g_combat_state->characters[party_slot].cheat_death_used = true;

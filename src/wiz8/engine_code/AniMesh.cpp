@@ -22,7 +22,7 @@ const float g_float_zero = 0.0f;
 #define ANI_MESH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\AniMesh.cpp"
 
 // GLOBAL: WIZ8 0x005ebe80
-const double g_double_005ebe80 = 0.5;
+const double g_double_half = 0.5;
 // GLOBAL: WIZ8 0x005ebb40
 extern const double g_double_zero = 0.0;
 
@@ -196,7 +196,7 @@ float GetAniMeshFrameRadius(W8AniMesh* mesh, unsigned char frame)
                 model = model->next;
             } while (model != 0);
 
-            return static_cast<float>((minimum - maximum).Length() * g_double_005ebe80);
+            return static_cast<float>((minimum - maximum).Length() * g_double_half);
         }
     }
     return g_float_zero;

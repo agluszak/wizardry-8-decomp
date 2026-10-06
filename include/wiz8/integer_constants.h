@@ -18,7 +18,7 @@ extern const unsigned char g_character_event_flags_mask; /* Gates the portrait q
 extern const unsigned int g_character_event_no_preempt;
 extern const unsigned int g_character_event_npc_script;
 extern const unsigned int g_flee_hp_fraction;
-extern const unsigned int g_value_005ed8fc;
+extern const unsigned int g_portrait_low_health_percent;
 extern const unsigned int g_effect_threshold0;
 extern const unsigned int g_effect_threshold1;
 extern const unsigned int g_flee_chance;

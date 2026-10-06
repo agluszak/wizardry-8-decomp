@@ -13,7 +13,7 @@ const char* srVP_generic::getName()
 }
 
 // FUNCTION: SURRENDER 0x10065890
-void srVP_generic::unknown_2a0(SRDWORD arg0, SRDWORD arg1) {}
+void srVP_generic::unknown_2a0(SRDWORD, SRDWORD) {}
 
 // FUNCTION: SURRENDER 0x100658A0
 void srVP_generic::unknown_2a4() {}
@@ -1588,7 +1588,7 @@ int srVP_generic::_memcmp(const void* source_0, const void* source_1, SRDWORD by
 }
 
 // FUNCTION: SURRENDER 0x10068560
-void srVP_generic::_prefetch(const void* destination, SRDWORD bytes, SRDWORD value_014) {}
+void srVP_generic::_prefetch(const void*, SRDWORD, SRDWORD) {}
 
 // FUNCTION: SURRENDER 0x10068570
 void srVP_generic::_copyInterleaved(void* destination, const void* source,

@@ -184,11 +184,11 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
 /* Stamina and realm spell-point constants the encodings keep as addressable
    storage rather than immediates. */
 // GLOBAL: WIZ8 0x005ed8b8
-const float g_float_005ed8b8 = 0.1f;
+const float g_item_weight_display_scale = 0.1f;
 // GLOBAL: WIZ8 0x005ec3f8
-const float g_float_005ec3f8 = 125.0f;
+const float g_float_one_hundred_twenty_five = 125.0f;
 // GLOBAL: WIZ8 0x005ecbb4
-const float g_float_005ecbb4 = 0.02f;
+const float g_float_two_hundredths = 0.02f;
 
 /* The eligibility window the party sweeps use, the same one GetRandomCharacter
    and AnyPartyMemberCanUseItem apply: highest_condition below death. */
@@ -200,14 +200,15 @@ enum { W8_RESTORE_EVERYTHING = -1 };
 /* Roll the dice once per eligible party member and apply the result to each of
    them. The roll is separate per character rather than shared. */
 // FUNCTION: WIZ8 0x0052a820
-void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* result, int arg_3)
+void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* result, int announce)
 {
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied &&
             g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) {
-            ApplyDamageToCharacter(party_slot, RollDice(dice), false, arg_3, false, result, false);
+            ApplyDamageToCharacter(party_slot, RollDice(dice), false, announce, false, result,
+                                   false);
         }
     }
 }
@@ -1253,8 +1254,8 @@ void RecalculateCharacterStamina(W8Character* character)
           character->attributes[W8_ATTRIBUTE_PIETY].effective +
           character->attributes[W8_ATTRIBUTE_VITALITY].effective) *
          (1.0f / 3.0f)) *
-            (character->uiExpLevel * g_float_005ed8b8 + g_environment_near_scale) +
-        g_double_005ebe80);
+            (character->uiExpLevel * g_item_weight_display_scale + g_environment_near_scale) +
+        g_double_half);
     character->uiStaminaMax = value;
     if (character->fatigue_penalty < value) {
         character->uiStaminaMax = value - character->fatigue_penalty;
@@ -1338,9 +1339,9 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
         unsigned int learned = character->skill_unlocks[0x1c + index];
         int computed = static_cast<int>(((weighted + character->skills[0x1c + index].level * 3 +
                                           character->attributes[W8_ATTRIBUTE_PIETY].effective) *
-                                         g_float_005ecbb4) *
+                                         g_float_two_hundredths) *
                                             (learned + character->uiExpLevel + 1) +
-                                        g_double_005ebe80);
+                                        g_double_half);
         if (best < computed) {
             best = computed;
         }

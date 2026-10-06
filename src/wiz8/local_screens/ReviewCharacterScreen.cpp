@@ -1940,7 +1940,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
     short related_kind;
     bool changed = false;
     bool merged = false;
-    unsigned char partially_merged = 0;
+    bool partially_merged = false;
     bool merge_tried = false;
     bool same_kind = false;
     bool choose_character;
@@ -1970,7 +1970,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
     /* A held stackable whose name kind the clicked item merges with counts as
        the same item for the use-merge path below. */
     if (g_status.item_in_cursor && item->iItemNo != -1 &&
-        GetItemMergeKind(item->iItemNo, &related_kind) != 0 &&
+        GetItemMergeKind(item->iItemNo, &related_kind) &&
         g_item_records[g_status.item_in_hand.iItemNo].unidentified_name_index == related_kind) {
         same_kind = true;
     }
@@ -2190,7 +2190,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
                 if (g_status.item_in_cursor) {
                     if (g_camp_character_pending) {
                         SelectPendingCampCharacter();
-                    } else if (InsertItemIntoPartyPool(&g_status.item_in_hand, slot_index) != 0) {
+                    } else if (InsertItemIntoPartyPool(&g_status.item_in_hand, slot_index)) {
                         changed = true;
                         RebuildCampItemList();
                     } else {
@@ -2320,7 +2320,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
             }
         }
     }
-    if (!changed && partially_merged == 0 && !merged) {
+    if (!changed && !partially_merged && !merged) {
         if (same_kind) {
             g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ITEM_ACTIONS;
         }
@@ -2331,14 +2331,14 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     } else {
         if (origin == W8_ITEM_ORIGIN_BACKPACK) {
-            if (partially_merged != 0 || merged) {
+            if (partially_merged || merged) {
                 g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK;
             } else {
                 g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST
                                                     << slot_index;
             }
         } else if (origin == W8_ITEM_ORIGIN_EQUIPPED) {
-            if (partially_merged != 0 || merged) {
+            if (partially_merged || merged) {
                 g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST
                                                     << slot_index;
             } else {
@@ -2616,7 +2616,7 @@ void BeginEndgameSequence(void)
    darkening to black); `fade_out` selects the direction the opacity runs. */
 // FUNCTION: WIZ8 0x005A6620
 void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callback)(void),
-                     bool flag, char arg_6)
+                     bool fullscreen_scene_last, char render_each_tick)
 {
     srShader shader;
     srVector4T<float> color;
@@ -2624,9 +2624,9 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
     g_fade_duration = duration;
     g_fade_out = fade_out;
     g_fade_callback = callback;
-    g_fade_flag = arg_6;
+    g_fade_flag = render_each_tick;
     g_level_block->review_transition_done = true;
-    if (flag) {
+    if (fullscreen_scene_last) {
         SetFullscreenSceneLast(1);
     }
     if (fade_to_black != 0) {
@@ -2740,7 +2740,7 @@ void PumpReviewTransition(void)
         return;
     }
     if (g_ending_autosave) {
-        if (FindFreeEndingSaveName(name) != 0) {
+        if (FindFreeEndingSaveName(name)) {
             SaveGame(name, 0);
             SetMainMenuMessage(
                 FormatWideString(L"%s %S.%S", gppStringList[0x78b], name, g_save_extension));

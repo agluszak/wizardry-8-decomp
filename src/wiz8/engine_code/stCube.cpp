@@ -69,7 +69,7 @@ W8GrowableVector<W8WorldCursorNode*> g_world_cursor_nodes(5);
 /* The double selection range at 0x005ECAC8: node distances below it select the
    node. Read as 75000.0, not the zero a float view would give. */
 // GLOBAL: WIZ8 0x005ecac8
-const double g_double_005ecac8 = 75000.0;
+const double g_cube_effect_max_distance = 75000.0;
 
 // GLOBAL: WIZ8 0x0060a9b0
 static int g_cursor_node_index = -1;
@@ -882,7 +882,7 @@ bool SelectWorldCursorNode(void)
                 srVector3T<double> delta = target;
 
                 delta -= camera_location;
-                if (delta.Length() < g_double_005ecac8) {
+                if (delta.Length() < g_cube_effect_max_distance) {
                     return true;
                 }
             }
@@ -896,7 +896,7 @@ bool SelectWorldCursorNode(void)
                 srVector3T<double> delta = target;
 
                 delta -= camera_location;
-                if (delta.Length() < g_double_005ecac8) {
+                if (delta.Length() < g_cube_effect_max_distance) {
                     g_cursor_node_index = index;
                     return true;
                 }

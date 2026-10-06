@@ -632,8 +632,8 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
             ReplaceOrCreateItem(&item, item_id, true, true, true);
             equip_slot = GetItemDefaultEquipSlot(item_id);
             if (equip_slot == W8_EQUIP_SLOT_NONE) {
-                if (FindCharacterItemByDatabaseKind(
-                        character, g_item_records[item_id].unidentified_name_index, 0, 2) == 0) {
+                if (!FindCharacterItemByDatabaseKind(
+                        character, g_item_records[item_id].unidentified_name_index, 0, 2)) {
                     AddItemToCharacter(character, &item, true, false, false);
                 }
             } else {

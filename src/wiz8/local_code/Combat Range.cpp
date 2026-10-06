@@ -67,7 +67,7 @@ int g_event_sight_blocked = g_first_remapped_event + 30;
 enum { W8_FORMATION_ROW_WIDTH = 3 };
 
 // GLOBAL: WIZ8 0x005ec35c
-const float g_float_005ec35c = 12500.0f;
+const float g_float_twelve_thousand_five_hundred = 12500.0f;
 
 /* The formation. Three party positions per row at 0x00687511, and each
    position's own row number at 0x00687525 with a twelve-byte stride. -1 marks
@@ -219,7 +219,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
         W8SpellTargetType target_type = GetSpellTargetType(spell_id, false);
         if (target_type == W8_TARGET_TYPE_CONE) {
             trace = false;
-            distance = g_float_005ec35c;
+            distance = g_float_twelve_thousand_five_hundred;
         } else {
             if (target_type != W8_TARGET_TYPE_RADIUS && target_type != W8_TARGET_TYPE_POINT) {
                 srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x101, 0);
@@ -228,7 +228,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
 
             trace = true;
             camera.y -= g_default_world_height;
-            point.y -= g_float_005ebc64;
+            point.y -= g_float_one_thousand;
             distance = CalcRangeDistance(g_spell_records[spell_id].range_category);
         }
         float dx = point.x - camera.x;
@@ -1044,13 +1044,13 @@ int PickReachableSlotByDisposition(int party_slot, W8Disposition relationship)
 // FUNCTION: WIZ8 0x0051b300
 float GetMonsterEngagementRange(void)
 {
-    return g_float_005ec360;
+    return g_float_twenty_five_thousand;
 }
 
 // FUNCTION: WIZ8 0x0051b310
 float GetGroundTargetRange(void)
 {
-    return g_float_005ec35c;
+    return g_float_twelve_thousand_five_hundred;
 }
 
 /* Cache which origin points this monster can actually provide. Projectile
