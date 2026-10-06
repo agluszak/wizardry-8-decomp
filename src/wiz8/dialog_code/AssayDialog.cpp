@@ -732,23 +732,23 @@ bool W8AssayDialog::PopulateRequirements()
     }
 
     m_buttons[0]->Configure("Data\\Dialogs\\popup_iteminfo.sti", BUTTON_NO_IMAGE, 1, 1, 1, 1,
-                            BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[1]->Configure("Data\\Dialogs\\popup_iteminfo.sti", BUTTON_NO_IMAGE, 2, 2, 2, 2,
-                            BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[2]->Configure("Data\\Dialogs\\iteminfo_tabbutton.sti", 3, 0, 1, 4, 2,
-                            PrimaryTabCallback, BUTTON_NO_CALLBACK, true, MSYS_PRIORITY_HIGHEST,
-                            0x115, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            PrimaryTabCallback, true, MSYS_PRIORITY_HIGHEST,
+                            0x115);
     m_buttons[3]->Configure("Data\\Dialogs\\iteminfo_tabbutton.sti", 8, 5, 6, 9, 7,
-                            SecondaryTabCallback, BUTTON_NO_CALLBACK, true, MSYS_PRIORITY_HIGHEST,
-                            0x116, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            SecondaryTabCallback, true, MSYS_PRIORITY_HIGHEST,
+                            0x116);
     m_buttons[4]->Configure("Data\\Dialogs\\popup_iteminfo.sti", BUTTON_NO_IMAGE, 3, 3, 3, 3,
-                            BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[5]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 2, 2,
-                            W8TriggerItemPickerDialog::CloseOwningDialog, BUTTON_NO_CALLBACK, false,
-                            MSYS_PRIORITY_HIGHEST, 0x12, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            W8TriggerItemPickerDialog::CloseOwningDialog, false,
+                            MSYS_PRIORITY_HIGHEST, 0x12);
     m_buttons[6]->ConfigureIcon("Data\\Dialogs\\icons_profession.sti", 1, 0, MSYS_PRIORITY_HIGHEST,
                                 0x2ad);
     m_buttons[7]->ConfigureIcon("Data\\Dialogs\\icons_profession.sti", 3, 2, MSYS_PRIORITY_HIGHEST,

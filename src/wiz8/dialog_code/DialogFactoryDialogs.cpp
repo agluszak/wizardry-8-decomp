@@ -629,23 +629,22 @@ bool W8SplitAmountDialog::CreateButtons()
         return false;
     }
     m_buttons[0]->Configure("Data\\Dialogs\\popup_splititem.sti", 0xc, 9, 10, 0xd, 0xb,
-                            SplitDecrementOne, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, SplitDecrementFive, BUTTON_NO_CALLBACK);
-    m_buttons[1]->Configure("Data\\Dialogs\\popup_splititem.sti", 7, 4, 5, 8, 6, SplitIncrementOne,
-                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, SplitIncrementFive, BUTTON_NO_CALLBACK);
+                            SplitDecrementOne, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, SplitDecrementFive);
+    m_buttons[1]->Configure("Data\\Dialogs\\popup_splititem.sti", 7, 4, 5, 8, 6,
+                            SplitIncrementOne, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, SplitIncrementFive);
     m_buttons[2]->ConfigureIcon("Data\\Dialogs\\popup_splititem.sti", BUTTON_NO_IMAGE, 3,
                                 MSYS_PRIORITY_LOWEST, W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[3]->Configure("Data\\Dialogs\\popup_splititem.sti", BUTTON_NO_IMAGE, 3,
-                            BUTTON_NO_IMAGE, 3, BUTTON_NO_IMAGE, SplitActivateField,
-                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            BUTTON_NO_IMAGE, 3, BUTTON_NO_IMAGE, SplitActivateField, false,
+                            MSYS_PRIORITY_HIGHEST, W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[4]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                            SplitAccept, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            SplitAccept, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[5]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7,
-                            SplitCancel, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            SplitCancel, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[0]->m_fires_on_press = true;
     m_buttons[1]->m_fires_on_press = true;
     for (index = 0; index < 6; ++index) {
@@ -971,50 +970,47 @@ bool W8TriggerItemPickerDialog::CreateButtons()
         m_buttons[index]->m_owner = this;
     }
     m_buttons[0]->Configure("Data\\Dialogs\\popup_chest_selectionbuttons.sti", 3, 0, 1, 2, 2,
-                            ToggleAllItems, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST, 0x15,
-                            BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            ToggleAllItems, false, MSYS_PRIORITY_HIGHEST, 0x15);
     m_buttons[1]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 0xd, 10, 0xb, 0xc, 0xc,
-                            TakeSelectedToParty, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                            0x13, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            TakeSelectedToParty, false, MSYS_PRIORITY_HIGHEST,
+                            0x13);
     m_buttons[2]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 3, 0, 1, 2, 2,
-                            TakeSelectedToCharacter, BUTTON_NO_CALLBACK, false,
-                            MSYS_PRIORITY_HIGHEST, 0x14, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            TakeSelectedToCharacter, false,
+                            MSYS_PRIORITY_HIGHEST, 0x14);
     m_buttons[3]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 8, 5, 6, 7, 7,
-                            CloseOwningDialog, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                            0x16, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
-    m_buttons[4]->Configure("Data\\Dialogs\\popup_chest2.sti", BUTTON_NO_IMAGE, 0, BUTTON_NO_IMAGE,
-                            BUTTON_NO_IMAGE, BUTTON_NO_IMAGE, BUTTON_NO_CALLBACK,
-                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            CloseOwningDialog, false, MSYS_PRIORITY_HIGHEST,
+                            0x16);
+    m_buttons[4]->Configure("Data\\Dialogs\\popup_chest2.sti", BUTTON_NO_IMAGE, 0,
+                            BUTTON_NO_IMAGE, BUTTON_NO_IMAGE, BUTTON_NO_IMAGE, BUTTON_NO_CALLBACK,
+                            false, MSYS_PRIORITY_LOWEST, W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[5]->Configure("Data\\Dialogs\\popup_chest2.sti", BUTTON_NO_IMAGE, 1, BUTTON_NO_IMAGE,
-                            2, BUTTON_NO_IMAGE, ToggleVisibleItem0, BUTTON_NO_CALLBACK, true,
+                            2, BUTTON_NO_IMAGE, ToggleVisibleItem0, true,
                             MSYS_PRIORITY_HIGHEST - 1, W8_DIALOG_BUTTON_NO_TOOLTIP,
-                            ShowVisibleItemInfo0, BUTTON_NO_CALLBACK);
+                            ShowVisibleItemInfo0);
     m_buttons[6]->Configure("Data\\Dialogs\\popup_chest2.sti", BUTTON_NO_IMAGE, 1, BUTTON_NO_IMAGE,
-                            2, BUTTON_NO_IMAGE, ToggleVisibleItem1, BUTTON_NO_CALLBACK, true,
+                            2, BUTTON_NO_IMAGE, ToggleVisibleItem1, true,
                             MSYS_PRIORITY_HIGHEST - 1, W8_DIALOG_BUTTON_NO_TOOLTIP,
-                            ShowVisibleItemInfo1, BUTTON_NO_CALLBACK);
+                            ShowVisibleItemInfo1);
     m_buttons[7]->Configure("Data\\Dialogs\\popup_chest2.sti", BUTTON_NO_IMAGE, 1, BUTTON_NO_IMAGE,
-                            2, BUTTON_NO_IMAGE, ToggleVisibleItem2, BUTTON_NO_CALLBACK, true,
+                            2, BUTTON_NO_IMAGE, ToggleVisibleItem2, true,
                             MSYS_PRIORITY_HIGHEST - 1, W8_DIALOG_BUTTON_NO_TOOLTIP,
-                            ShowVisibleItemInfo2, BUTTON_NO_CALLBACK);
+                            ShowVisibleItemInfo2);
     m_buttons[8]->Configure("Data\\Dialogs\\popup_chest2.sti", BUTTON_NO_IMAGE, 1, BUTTON_NO_IMAGE,
-                            2, BUTTON_NO_IMAGE, ToggleVisibleItem3, BUTTON_NO_CALLBACK, true,
+                            2, BUTTON_NO_IMAGE, ToggleVisibleItem3, true,
                             MSYS_PRIORITY_HIGHEST - 1, W8_DIALOG_BUTTON_NO_TOOLTIP,
-                            ShowVisibleItemInfo3, BUTTON_NO_CALLBACK);
-    m_buttons[9]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 3, 0, 1, 2, 2, ScrollItemsUp,
-                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                            ShowVisibleItemInfo3);
+    m_buttons[9]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 3, 0, 1, 2, 2,
+                            ScrollItemsUp, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[10]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 0xb, 8, 9, 10, 10,
-                             ScrollItemsDown, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                             W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                             ScrollItemsDown, false, MSYS_PRIORITY_HIGHEST,
+                             W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[11]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 7, 4, 5, 6, 6,
-                             BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
-                             W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                             BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
+                             W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[12]->Configure("Data\\Dialogs\\popup_chest2.sti", BUTTON_NO_IMAGE, 3, 3, 3, 3,
                              BUTTON_NO_CALLBACK, ScrollItemsToMouse, false,
-                             MSYS_PRIORITY_HIGHEST - 1, W8_DIALOG_BUTTON_NO_TOOLTIP,
-                             BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                             MSYS_PRIORITY_HIGHEST - 1, W8_DIALOG_BUTTON_NO_TOOLTIP);
     m_buttons[5]->m_right_toggles = true;
     m_buttons[6]->m_right_toggles = true;
     m_buttons[7]->m_right_toggles = true;

@@ -77,6 +77,33 @@ public:
                    bool left_toggles, short priority, int tooltip_index,
                    W8DialogButtonCallback right_callback,
                    W8DialogButtonCallback double_click_callback);
+    bool Configure(const char* image_path, int gray_frame, int off_normal_frame,
+                   int off_hover_frame, int on_normal_frame, int on_hover_frame,
+                   W8DialogButtonCallback left_callback, bool left_toggles, short priority,
+                   int tooltip_index)
+    {
+        return Configure(image_path, gray_frame, off_normal_frame, off_hover_frame, on_normal_frame,
+                         on_hover_frame, left_callback, BUTTON_NO_CALLBACK, left_toggles, priority,
+                         tooltip_index, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    }
+    bool Configure(const char* image_path, int gray_frame, int off_normal_frame,
+                   int off_hover_frame, int on_normal_frame, int on_hover_frame,
+                   W8DialogButtonCallback left_callback, bool left_toggles, short priority,
+                   int tooltip_index, W8DialogButtonCallback right_callback)
+    {
+        return Configure(image_path, gray_frame, off_normal_frame, off_hover_frame, on_normal_frame,
+                         on_hover_frame, left_callback, BUTTON_NO_CALLBACK, left_toggles, priority,
+                         tooltip_index, right_callback, BUTTON_NO_CALLBACK);
+    }
+    bool Configure(const char* image_path, int gray_frame, int off_normal_frame,
+                   int off_hover_frame, int on_normal_frame, int on_hover_frame,
+                   W8DialogButtonCallback left_callback, W8DialogButtonCallback move_callback,
+                   bool left_toggles, short priority, int tooltip_index)
+    {
+        return Configure(image_path, gray_frame, off_normal_frame, off_hover_frame, on_normal_frame,
+                         on_hover_frame, left_callback, move_callback, left_toggles, priority,
+                         tooltip_index, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    }
     bool ConfigureIcon(const char* image_path, int disabled_frame, int normal_frame, short priority,
                        int tooltip_index)
     {
