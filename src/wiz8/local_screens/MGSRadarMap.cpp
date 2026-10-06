@@ -214,30 +214,7 @@ void RefreshRadarMap(void)
     if (!g_radar_map_enabled) {
         return;
     }
-    if (g_radar_map != 0) {
-        ReleaseObject(g_radar_map);
-        g_radar_map = 0;
-    }
-    if (g_radar_frame != 0) {
-        ReleaseObject(g_radar_frame);
-        g_radar_frame = 0;
-    }
-    if (g_radar_compass != 0) {
-        ReleaseObject(g_radar_compass);
-        g_radar_compass = 0;
-    }
-    for (sector = 0; sector < 18; ++sector) {
-        W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
-
-        while (pool->count != 0) {
-            stModelInstance2D* icon = *pool->GetAt(0);
-            pool->RemoveAt(0);
-            if (icon != 0) {
-                icon->release();
-            }
-        }
-    }
-    ReleaseRendererObject(g_radar_backdrop);
+    ReleaseRadarMap();
 
     unsigned int map_surface;
     unsigned int handle;
