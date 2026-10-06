@@ -689,28 +689,6 @@ static void KeyboardMenuOpenSpellView(void);
 static void KeyboardMenuCastRecordedSpell(void);
 static void KeyboardMenuUseRecordedItem(void);
 
-// FUNCTION: WIZ8 0x00592C70
-void OpenKeyboardMenuForSlot(int slot)
-{
-    memset(g_keyboard_menu_rows, 0, sizeof(g_keyboard_menu_rows));
-    g_selected_party_slot = slot;
-    g_keyboard_menu_panel = 0;
-    g_level_block->keyboard_menu_open = true;
-    SelectPartyCharacter(g_selected_party_slot);
-    if (BuildKeyboardMenu() == 0) {
-        CloseKeyboardMenu();
-        return;
-    }
-    UpdateScreenOverlays(0);
-    gXStatus.monster_manager_entries[slot].keyboard_menu_open = true;
-    RegionSetDisable(slot + 7);
-    DisableRegionSetInput(slot + 7);
-    DisableRegionInput(slot + 0x5a);
-    DisableRegionInput(slot + 0xa);
-    EnableKeyboardMenuInput();
-    RequestRedraw(1 << slot);
-}
-
 // FUNCTION: WIZ8 0x00592E60
 void CloseKeyboardMenu(void)
 {
@@ -738,6 +716,28 @@ void CloseKeyboardMenu(void)
     DestroyControlPanel(g_keyboard_menu_panel);
     DestroyTextControls(g_keyboard_menu_rows, 13);
     RequestRedraw(1 << g_selected_party_slot);
+}
+
+// FUNCTION: WIZ8 0x00592C70
+void OpenKeyboardMenuForSlot(int slot)
+{
+    memset(g_keyboard_menu_rows, 0, sizeof(g_keyboard_menu_rows));
+    g_selected_party_slot = slot;
+    g_keyboard_menu_panel = 0;
+    g_level_block->keyboard_menu_open = true;
+    SelectPartyCharacter(g_selected_party_slot);
+    if (BuildKeyboardMenu() == 0) {
+        CloseKeyboardMenu();
+        return;
+    }
+    UpdateScreenOverlays(0);
+    gXStatus.monster_manager_entries[slot].keyboard_menu_open = true;
+    RegionSetDisable(slot + 7);
+    DisableRegionSetInput(slot + 7);
+    DisableRegionInput(slot + 0x5a);
+    DisableRegionInput(slot + 0xa);
+    EnableKeyboardMenuInput();
+    RequestRedraw(1 << slot);
 }
 
 // FUNCTION: WIZ8 0x00592F90
