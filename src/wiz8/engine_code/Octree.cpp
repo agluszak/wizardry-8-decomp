@@ -4187,17 +4187,7 @@ void W8Octree::UnregisterLocationObjects(unsigned int location_id)
 // FUNCTION: WIZ8 0x0042e880
 void W8Octree::UnregisterLocationObject(unsigned int location_id, W8OctreeObjectKind kind)
 {
-    W8OctreeIndex* by_object = object_registry->by_object;
-    W8OctreeIndex* by_cell = object_registry->by_cell;
-    unsigned int object_key = PackOctreeObjectKey(kind, location_id + 1);
-    int slot = by_object->FindNextEntry(&object_key, -1);
-    while (slot != -1) {
-        unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
-        int object_value = static_cast<int>(object_key);
-        by_object->RemoveAt(slot);
-        by_cell->Remove(&cell_key, &object_value);
-        slot = by_object->FindNextEntry(&object_key, slot);
-    }
+    object_registry->UnregisterObject(kind, location_id + 1);
 }
 
 /* Collect object ids of `kind` from every cell under the `origin`-swept

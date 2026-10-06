@@ -879,37 +879,13 @@ int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y)
 void SetGroupHighlight(int party_slot, int group_id, bool on)
 {
     unsigned int group_index = GetMonsterGroupIndexByID(1498, TARGETING_CPP, group_id, false);
-    W8MonsterGroup* group;
-    unsigned int member;
-    int location_id;
-    int index;
-    W8MonsterInfo* monster_info;
-    W8Monster* monster;
-    unsigned char bit;
 
     if (group_index == 0xffffffff) {
         return;
     }
-    group = GetMonsterGroupByListIndex(group_index);
-    for (member = 0; member < ILLength(group->monsters); ++member) {
-        location_id = IListGetAt(group->monsters, member);
-        index = MonsterGetIndexByLocationID(1879, TARGETING_CPP, location_id, false);
-        if (index == -1) {
-            continue;
-        }
-        monster_info = MonsterGetScriptPartByLocationIndex(index);
-        monster = monster_info->p3D;
-        if (monster == 0) {
-            srAssertFail("pMonster", TARGETING_CPP, 1888, 0);
-        }
-        bit = static_cast<unsigned char>(1 << (party_slot & 0x1f));
-        unsigned char mask = MonsterGetHighlightMask(monster);
-        if (!on) {
-            MonsterSetHighlightMask(monster, mask & ~bit);
-        } else {
-            MonsterSetHighlightMask(monster, mask | bit);
-        }
-        NotifyMonsterHighlight(party_slot, location_id, on);
+    W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
+    for (unsigned int member = 0; member < ILLength(group->monsters); ++member) {
+        SetMonsterHighlight(party_slot, IListGetAt(group->monsters, member), on);
     }
 }
 

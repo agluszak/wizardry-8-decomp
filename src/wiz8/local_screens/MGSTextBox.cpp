@@ -1072,19 +1072,8 @@ static void DrawDialogueTextCursor(int x, int y)
 {
     unsigned int pitch = 0;
     W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    unsigned int line = 1;
+    unsigned int line = FindDialogueTextLine(input);
     unsigned int hidden = 0;
-
-    if (input->line_count > 1) {
-        const unsigned int* offset = input->line_offsets + 1;
-        while (input->cursor >= *offset) {
-            ++line;
-            ++offset;
-            if (line >= input->line_count) {
-                break;
-            }
-        }
-    }
     short text_box = g_status.text_line_cursor;
     if (g_status.text_box_lines_shown[text_box] < g_level_block->text_lines[text_box]) {
         hidden = g_level_block->text_lines[text_box] - g_status.text_box_lines_shown[text_box];
