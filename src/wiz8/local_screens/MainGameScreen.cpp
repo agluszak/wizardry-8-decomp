@@ -5372,6 +5372,40 @@ void DisableMainRegionSet(void)
     DisableRegionSetInput(W8_REGION_SET_MAIN);
 }
 
+/* The viewport mode the screen falls back to after a raised overlay drops:
+   full-3d while every overlay flag is clear and no main-game mode override is
+   set, the plain mode when any of the board, radar or combat latches is still
+   down, and otherwise the override field's own mapping.
+   Retail expands this body (sign-extending the short result) in the
+   radar/action-panel/formation-board setters and in SyncMainGameModeRegions
+   and calls it elsewhere in this unit. All consumers use this canonical helper. */
+// FUNCTION: WIZ8 0x005698C0
+short GetMainGameViewportMode(void)
+{
+    if (!gXStatus.fSpellCastMode && (!gXStatus.fNpcDialogueMode || CanOpenNpcDialogue()) &&
+        !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode && !gXStatus.fItemSelectMode &&
+        g_level_block->action_panel_visible == 0 && g_level_block->formation_board_visible &&
+        g_level_block->radar_map_visible != 0 &&
+        g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+        return 4;
+    }
+    if (!gXStatus.fSpellCastMode && (!gXStatus.fNpcDialogueMode || CanOpenNpcDialogue()) &&
+        !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode && !gXStatus.fItemSelectMode &&
+        (!g_level_block->formation_board_visible || g_level_block->radar_map_visible == 0 ||
+         g_level_block->action_panel_visible == 0)) {
+        return 0;
+    }
+    switch (g_settings.main_ui_mode) {
+    case W8_MAIN_UI_MODE_RADAR:
+        return 0;
+    case W8_MAIN_UI_MODE_FORMATION:
+        return 1;
+    case W8_MAIN_UI_MODE_PORTRAITS:
+    default:
+        return 2;
+    }
+}
+
 /* Re-arm the main-game region sets after ResetRegions: pick the viewport and
    layout band from the current mode, then re-enable whichever overlays are
    up (combat portraits, condition buttons, spell/NPC/lock/trap/formation/
@@ -7503,40 +7537,6 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, bool flag)
     SetPendingScreenState(W8_SCREEN_CAMP);
     UpdateScreenOverlays(1);
     SetPrimarySurfaceTextureHint2Enabled(false);
-}
-
-/* The viewport mode the screen falls back to after a raised overlay drops:
-   full-3d while every overlay flag is clear and no main-game mode override is
-   set, the plain mode when any of the board, radar or combat latches is still
-   down, and otherwise the override field's own mapping.
-   Retail expands this body (sign-extending the short result) in the
-   radar/action-panel/formation-board setters and in SyncMainGameModeRegions
-   and calls it elsewhere in this unit. All consumers use this canonical helper. */
-// FUNCTION: WIZ8 0x005698C0
-short GetMainGameViewportMode(void)
-{
-    if (!gXStatus.fSpellCastMode && (!gXStatus.fNpcDialogueMode || CanOpenNpcDialogue()) &&
-        !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode && !gXStatus.fItemSelectMode &&
-        g_level_block->action_panel_visible == 0 && g_level_block->formation_board_visible &&
-        g_level_block->radar_map_visible != 0 &&
-        g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-        return 4;
-    }
-    if (!gXStatus.fSpellCastMode && (!gXStatus.fNpcDialogueMode || CanOpenNpcDialogue()) &&
-        !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode && !gXStatus.fItemSelectMode &&
-        (!g_level_block->formation_board_visible || g_level_block->radar_map_visible == 0 ||
-         g_level_block->action_panel_visible == 0)) {
-        return 0;
-    }
-    switch (g_settings.main_ui_mode) {
-    case W8_MAIN_UI_MODE_RADAR:
-        return 0;
-    case W8_MAIN_UI_MODE_FORMATION:
-        return 1;
-    case W8_MAIN_UI_MODE_PORTRAITS:
-    default:
-        return 2;
-    }
 }
 
 /* Drop whichever of the formation board, the radar map and the combat bar is

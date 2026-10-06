@@ -550,6 +550,20 @@ void ResetCharacterSkills(W8Character* character)
     }
 }
 
+/* Average the two attribute values g_skill_attributes names for every skill
+   into the skill's 0x0a base level. 0x00557D80 and 0x00557B20 seed the
+   profession skill levels from these. */
+// FUNCTION: WIZ8 0x00553c90
+void InitializeSkillBaseLevels(W8Character* character)
+{
+    for (int index = 0; index < 0x29; ++index) {
+        W8Attribute first = g_skill_attributes[index].attribute_1;
+        W8Attribute second = g_skill_attributes[index].attribute_2;
+        character->skills[index].base_level =
+            (character->attributes[first].base + character->attributes[second].base) >> 1;
+    }
+}
+
 /* An attribute's base value changed: flip the at-maximum flag on the
    attribute's pseudo-skill entry (id = attribute + 0x22), resetting or
    refunding its row while the character screen is up and announcing the cap
@@ -606,20 +620,6 @@ void ApplySkillChange(W8Character* character, W8Skill skill_id)
     character->skills[skill_id].level = GetEffectiveSkillLevel(character, skill_id);
     UnequipUnusableItems(character);
     RecalculateCharacterDerivedStats(character);
-}
-
-/* Average the two attribute values g_skill_attributes names for every skill
-   into the skill's 0x0a base level. 0x00557D80 and 0x00557B20 seed the
-   profession skill levels from these. */
-// FUNCTION: WIZ8 0x00553c90
-void InitializeSkillBaseLevels(W8Character* character)
-{
-    for (int index = 0; index < 0x29; ++index) {
-        W8Attribute first = g_skill_attributes[index].attribute_1;
-        W8Attribute second = g_skill_attributes[index].attribute_2;
-        character->skills[index].base_level =
-            (character->attributes[first].base + character->attributes[second].base) >> 1;
-    }
 }
 
 /* Re-scan every skill's availability and mirror each flag change onto the
