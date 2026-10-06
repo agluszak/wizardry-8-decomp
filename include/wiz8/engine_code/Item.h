@@ -1,6 +1,7 @@
 #pragma once
 
 #include "timer.h"
+#include "random.h"
 #include <stddef.h>
 
 #include "surrender/srMath.h"
@@ -29,7 +30,14 @@ enum {
 /* Engine Code\Item.cpp. The assertion expressions establish the original
    m_pRep and m_psrMesh names; the bodies establish their offsets. */
 struct W8ItemRep : public W8AnimRepBase {
-    W8ItemRep();
+    /* Inlined into both item construction paths. Retail leaves the mesh pointer
+       and bounds untouched until ReadFromFile; do not initialize them here. */
+    W8ItemRep()
+    {
+        flags = 0;
+        pulse_level = static_cast<float>(Random(20) * 0.05);
+        flags |= W8_ITEM_ENTITY_PULSE_INCREASING;
+    }
     virtual ~W8ItemRep() override;
 
     srModelInstance* m_psrMesh;       /* 0x64 */
