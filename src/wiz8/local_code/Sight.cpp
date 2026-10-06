@@ -805,8 +805,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction, bool use_bo
                                         g_character_event_no_flags, g_character_event_full_volume);
 
                                     if (notice != 0) {
-                                        notice->dispatch_delay_ms = 0x5dc;
-                                        notice->dispatch_delay_start = GetTickCount();
+                                        notice->DelayDispatch(0x5dc);
                                     }
                                 }
                             }
@@ -837,8 +836,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction, bool use_bo
                                             g_character_event_full_volume);
 
                                         if (notice != 0) {
-                                            notice->dispatch_delay_ms = 0x5dc;
-                                            notice->dispatch_delay_start = GetTickCount();
+                                            notice->DelayDispatch(0x5dc);
                                         }
                                     }
                                 }

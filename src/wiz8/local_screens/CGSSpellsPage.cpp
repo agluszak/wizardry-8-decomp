@@ -306,17 +306,15 @@ void W8CharacterSpellsPage::Redraw()
         bounds.top = 0xec;
         bounds.right = 0xc2;
         bounds.bottom = 0x173;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[m_creation_state->spell_points_total == 0 ? 0xeb : 0xea],
-                     g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds,
+                          gppStringList[m_creation_state->spell_points_total == 0 ? 0xeb : 0xea],
+                          g_wiz_text_font_secondary, true, FRAME_BUFFER);
 
         bounds.top = 0x173;
         bounds.bottom = 0x18a;
         bounds.right = 0x8f;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0xf4], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0xf4], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
         m_prepared = false;
     }
 
@@ -327,10 +325,10 @@ void W8CharacterSpellsPage::Redraw()
         bounds.bottom = 0x18a;
         DrawCatalogImage(FRAME_BUFFER, 0x107, 0, 5, 0x8f, 0x173, VO_BLT_SRCTRANSPARENCY, 0);
         text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(FormatWideString(g_format_d_slash_d, m_creation_state->spell_points_remaining,
-                                      m_creation_state->spell_points_total),
-                     g_options_detail_font);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(FormatWideString(g_format_d_slash_d,
+                                           m_creation_state->spell_points_remaining,
+                                           m_creation_state->spell_points_total),
+                          g_options_detail_font, true, FRAME_BUFFER);
         m_dirty = false;
     }
 
@@ -346,32 +344,29 @@ void W8CharacterSpellsPage::Redraw()
             bounds.bottom = bounds.top + 0x0e;
             text.SetLayoutBounds(&bounds, true, true);
             text.SetFontStateIndex(1);
-            text.SetText(FormatWideString(g_format_s0, gppStringList[0xf2]),
-                         g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, FRAME_BUFFER);
+            text.RenderString(FormatWideString(g_format_s0, gppStringList[0xf2]),
+                              g_wiz_text_font_secondary, false, FRAME_BUFFER);
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-            text.SetText(FormatWideString(g_format_d,
-                                          m_character->skills[W8_SKILL_FIRE_MAGIC + realm].points),
-                         g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, FRAME_BUFFER);
+            text.RenderString(
+                FormatWideString(g_format_d,
+                                 m_character->skills[W8_SKILL_FIRE_MAGIC + realm].points),
+                g_wiz_text_font_secondary, false, FRAME_BUFFER);
 
             text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
             bounds.left += 0x58;
             bounds.right = bounds.left + 0x53;
             text.SetLayoutBounds(&bounds, true, true);
             text.SetFontStateIndex(1);
-            text.SetText(FormatWideString(g_format_s0, gppStringList[0xf3]),
-                         g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, FRAME_BUFFER);
+            text.RenderString(FormatWideString(g_format_s0, gppStringList[0xf3]),
+                              g_wiz_text_font_secondary, false, FRAME_BUFFER);
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-            text.SetText(FormatWideString(g_format_d_slash_d,
-                                          GetCharacterRealmSpellPoints(
-                                              m_character, static_cast<W8SpellRealm>(realm)),
-                                          m_character->sp_max[realm]),
-                         g_wiz_text_font_secondary);
-            text.RenderToTarget(0, false, FRAME_BUFFER);
+            text.RenderString(FormatWideString(g_format_d_slash_d,
+                                               GetCharacterRealmSpellPoints(
+                                                   m_character, static_cast<W8SpellRealm>(realm)),
+                                               m_character->sp_max[realm]),
+                              g_wiz_text_font_secondary, false, FRAME_BUFFER);
         }
     }
 

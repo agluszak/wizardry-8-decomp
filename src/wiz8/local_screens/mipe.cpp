@@ -358,11 +358,10 @@ void ShowMipeTableRows(W8PList* list)
 
 /* Mode-9 menu: pick a monster or item to edit, showing the one/group choice
    the 'C' key toggles. */
-// FUNCTION: WIZ8 0x00577de0
-void ShowMipeChooseMenu(void)
+static void ShowMipeSelectionMenu(const wchar_t* title)
 {
     ResetEditorStatusLine(-1);
-    ShowNoticef(W8_FONT_PALETTE_PINK, L"Choose monster or item to edit.");
+    ShowNoticef(W8_FONT_PALETTE_PINK, title);
     ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"Type C to change how to choose.");
     ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
     ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
@@ -373,6 +372,12 @@ void ShowMipeChooseMenu(void)
         return;
     }
     ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"Choosing: One");
+}
+
+// FUNCTION: WIZ8 0x00577de0
+void ShowMipeChooseMenu(void)
+{
+    ShowMipeSelectionMenu(L"Choose monster or item to edit.");
 }
 
 /* Mode-5 menu: which kind of object to edit. */
@@ -2623,15 +2628,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             return handled;
         }
         if (key == 0x34) {
-            ResetEditorStatusLine(-1);
-            ShowNoticef(W8_FONT_PALETTE_PINK, L"MOVE IT!!");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"Type C to change how to choose.");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX,
-                        !g_mipe_choose_group ? L"Choosing: One" : L"Choosing: Group");
+            ShowMipeSelectionMenu(L"MOVE IT!!");
             g_mipe_mode = 4;
             g_mipe_state->selecting = 1;
             HideWorldCursor();
@@ -2644,15 +2641,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             if (g_mipe_state != 0) {
                 IListClear(&g_mipe_state->monster_ids);
             }
-            ResetEditorStatusLine(-1);
-            ShowNoticef(W8_FONT_PALETTE_PINK, L"MOVE IT!!");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"Type C to change how to choose.");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX,
-                        !g_mipe_choose_group ? L"Choosing: One" : L"Choosing: Group");
+            ShowMipeSelectionMenu(L"MOVE IT!!");
             return handled;
         }
         break;
@@ -2677,15 +2666,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             if (g_mipe_state != 0) {
                 IListClear(&g_mipe_state->monster_ids);
             }
-            ResetEditorStatusLine(-1);
-            ShowNoticef(W8_FONT_PALETTE_PINK, L"Choose monster or item to edit.");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"Type C to change how to choose.");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX,
-                        !g_mipe_choose_group ? L"Choosing: One" : L"Choosing: Group");
+            ShowMipeSelectionMenu(L"Choose monster or item to edit.");
             return handled;
         }
         break;

@@ -2534,11 +2534,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
                 } else {
                     SetTriggerVariableByName("CODESgtRubbleTeleport", 1);
                 }
-                Trigger* trigger = FindTriggerByName("door08");
-
-                if (trigger != 0) {
-                    trigger->Run(-1);
-                }
+                RunNamedTrigger("door08", -1);
             }
             SetFact(W8_FACT_UMISSION_MOVE_RUBBLE_COVERT, 0, false);
             npc->event_pending = 0;

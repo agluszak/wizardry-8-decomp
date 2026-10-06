@@ -257,10 +257,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         return;
     case W8_FACT_LOCATION_GIGAS_MOTION_SENSORS_OFF:
         if (value != 0) {
-            trigger = FindTriggerByName("SecurityLasers");
-            if (trigger != 0) {
-                trigger->Run(-1);
-            }
+            RunNamedTrigger("SecurityLasers", -1);
             CreateLocationVar("LasersOff", 1);
         }
         return;
@@ -268,10 +265,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        trigger = FindTriggerByName("ewaxxdoortrigger01");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("ewaxxdoortrigger01", -1);
         return;
     case W8_FACT_UMISSION_TRAIN_GUNNARY_OPEN:
         if (value == 0) {
@@ -292,10 +286,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         }
         return;
     case W8_FACT_ARNIKA_HLL_OPEN:
-        trigger = FindTriggerByName("scannerdoor");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("scannerdoor", -1);
         trigger = FindTriggerByName("Scanner_Trigger_Plane");
         if (trigger == 0) {
             return;
@@ -313,20 +304,11 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         }
         return;
     case W8_FACT_MOOK_HALL_OPEN:
-        trigger = FindTriggerByName("MookFrontDoor");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
-        trigger = FindTriggerByName("Mookoff-01");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("MookFrontDoor", -1);
+        RunNamedTrigger("Mookoff-01", -1);
         return;
     case W8_FACT_ARNIKA_BLACKBOX_RECEIVED:
-        trigger = FindTriggerByName("blackboxrecorder");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("blackboxrecorder", -1);
         return;
     case W8_FACT_ARNIKA_MYLES_TROOPERS_HOSTILE:
         group = FindFirstMonsterByID(0x13);
@@ -335,10 +317,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         }
         return;
     case W8_FACT_ARNIKA_SAFETY_DEPOSIT_OPEN:
-        trigger = FindTriggerByName("redbutton");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("redbutton", -1);
         return;
     case W8_FACT_FACTION_HIGARDI_HLL_FRIENDLY:
         if (value == 0) {
@@ -392,10 +371,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         return;
     case W8_FACT_MURAL_OPEN:
         if (value != 0) {
-            trigger = FindTriggerByName("MartenMural");
-            if (trigger != 0) {
-                trigger->Run(-1);
-            }
+            RunNamedTrigger("MartenMural", -1);
             trigger = FindTriggerByName("Muraltrigger");
             if (trigger == 0) {
                 return;
@@ -403,10 +379,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
             trigger->flags &= ~W8_TRIGGER_ENABLED;
             return;
         }
-        trigger = FindTriggerByName("Muraltrigger");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("Muraltrigger", -1);
         return;
     case W8_FACT_FACTION_TRANG_COMMON_FRIENDLY:
         if (value == 0) {
@@ -423,10 +396,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (trigger != 0) {
             trigger->flags &= ~W8_TRIGGER_ENABLED;
         }
-        trigger = FindTriggerByName("ChaosDoor01");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("ChaosDoor01", -1);
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_ALETHEIDES_AD, 0);
         return;
     case W8_FACT_DD_RIDDLE2:
@@ -434,10 +404,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (trigger != 0) {
             trigger->flags &= ~W8_TRIGGER_ENABLED;
         }
-        trigger = FindTriggerByName("DoorKnow03");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("DoorKnow03", -1);
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_ALETHEIDES_DD, 0);
         return;
     case W8_FACT_AD_RIDDLE2:
@@ -445,10 +412,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (trigger != 0) {
             trigger->flags &= ~W8_TRIGGER_ENABLED;
         }
-        trigger = FindTriggerByName("DoorLife03");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("DoorLife03", -1);
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_ALETHEIDES_CM, 0);
         return;
     case W8_FACT_AP_SAVANT_DISAPPEARS:
@@ -496,14 +460,8 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        trigger = FindTriggerByName("greenLight23MeansOpen");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
-        trigger = FindTriggerByName("greenLight23MeansOpen01");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("greenLight23MeansOpen", -1);
+        RunNamedTrigger("greenLight23MeansOpen01", -1);
         return;
     case W8_FACT_TRYNNIE_FOUNTAIN_ANSWERED_CORRECT:
         if (value == 0) {
@@ -585,20 +543,14 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
             return;
         }
         MarkNpcOfKind(0x3c);
-        trigger = FindTriggerByName("templargate07");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("templargate07", -1);
         return;
     case W8_FACT_RAPAX_OPEN_TEMPLE:
         if (value == 0) {
             return;
         }
         MarkNpcOfKind(0x3a);
-        trigger = FindTriggerByName("templargate10");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("templargate10", -1);
         return;
     case W8_FACT_ALSEDEXUS_SACRIFICE_SELECT:
         if (value == 0) {
@@ -668,10 +620,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         } else {
             trigger_name = "glassTrigger";
         }
-        trigger = FindTriggerByName(trigger_name);
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger(trigger_name, -1);
         return;
     case W8_FACT_RATTUS_BANK_ROBBERY:
         if (value == 0) {
@@ -724,36 +673,21 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        trigger = FindTriggerByName("greenLightMeansGo");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("greenLightMeansGo", -1);
         return;
     case W8_FACT_LOCATION_GIGAS_TOGGLE_LIFT1:
         if (value == 0) {
             return;
         }
-        trigger = FindTriggerByName("greenLightMeansGo01");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("greenLightMeansGo01", -1);
         return;
     case W8_FACT_LOCATION_GIGAS_OFFICERS_QUARTERS_GATE_OPEN2:
         if (value == 0) {
             return;
         }
-        trigger = FindTriggerByName("Door18");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
-        trigger = FindTriggerByName("greenLightEwaxx02");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
-        trigger = FindTriggerByName("greenLightEwaxx03");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("Door18", -1);
+        RunNamedTrigger("greenLightEwaxx02", -1);
+        RunNamedTrigger("greenLightEwaxx03", -1);
         location_id = GetLocationVarIDByName("ObstacleDoors");
         if (location_id != -1) {
             SetTriggerVariableByName("ObstacleDoors",
@@ -766,18 +700,9 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        trigger = FindTriggerByName("Door19");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
-        trigger = FindTriggerByName("greenLightEwaxx");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
-        trigger = FindTriggerByName("greenLightEwaxx01");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("Door19", -1);
+        RunNamedTrigger("greenLightEwaxx", -1);
+        RunNamedTrigger("greenLightEwaxx01", -1);
         location_id = GetLocationVarIDByName("ObstacleDoors");
         if (location_id != -1) {
             SetTriggerVariableByName("ObstacleDoors",
@@ -791,14 +716,8 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        trigger = FindTriggerByName("greenLightMeansOpen02");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
-        trigger = FindTriggerByName("greenLightMeansOpen03");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("greenLightMeansOpen02", -1);
+        RunNamedTrigger("greenLightMeansOpen03", -1);
         return;
     case W8_FACT_TRANG_INTRO_DISAPPEAR_GUARD:
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_SELF, 0);

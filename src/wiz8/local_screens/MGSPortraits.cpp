@@ -248,9 +248,8 @@ static void DrawDamageSplatOverlay(unsigned int party_slot)
             bounds.right = left + 0x52;
             bounds.bottom = top + 0x4c;
             W8TextBuffer splat_text(&bounds, 0, 0, 0, 4);
-            splat_text.SetText(FormatWideString(g_format_d, entry->damage_splat_amount),
-                               g_wiz_text_bold_font);
-            splat_text.RenderToTarget(0, false, FRAME_BUFFER);
+            splat_text.RenderString(FormatWideString(g_format_d, entry->damage_splat_amount),
+                                    g_wiz_text_bold_font, false, FRAME_BUFFER);
         }
         if (gXStatus.fCombatMode) {
             entry->combat_portrait_dirty = true;

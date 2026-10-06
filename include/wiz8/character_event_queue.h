@@ -2,6 +2,7 @@
 #define WIZ8_CHARACTER_EVENT_QUEUE_H
 
 #include "timer.h"
+#include <windows.h>
 
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/integer_constants.h"
@@ -65,6 +66,12 @@ struct W8CharacterEvent {
        milliseconds have elapsed since the queued GetTickCount stamp. */
     int dispatch_delay_ms;
     unsigned int dispatch_delay_start;
+
+    void DelayDispatch(int milliseconds)
+    {
+        dispatch_delay_ms = milliseconds;
+        dispatch_delay_start = GetTickCount();
+    }
 
     void Complete(); /* 0x0052CED0 */
 

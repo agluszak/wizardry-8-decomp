@@ -381,12 +381,35 @@ void CancelMouselook()
    is suspended; outside those paths a random party member eats the trigger's
    event and the failure sound plays. */
 
+static void QueueInteractionNotice(int event_type)
+{
+    W8CharacterEvent* event = ApplyItemEffectToRandomCharacter(
+        event_type, -1, g_character_event_no_preempt, g_character_event_no_flags);
+    if (event != 0) {
+        event->DelayDispatch(600);
+    }
+}
+
+static void EnableActionPanelRegions()
+{
+    if (g_level_block->action_panel_visible != 0) {
+        RegionSetEnable(0x14);
+        EnableRegionInput(0x59);
+        EnableRegionInput(0x52);
+        EnableRegionInput(0x53);
+        EnableRegionInput(0x54);
+        EnableRegionInput(0x55);
+        EnableRegionInput(0x56);
+        EnableRegionInput(0x57);
+        EnableRegionInput(0x58);
+    }
+}
+
 // FUNCTION: WIZ8 0x00587510
 int OpenLockInteraction(Trigger* trigger)
 {
     W8Character* character;
     W8LockTumblerPanel* panel;
-    W8CharacterEvent* event;
     int count;
     W8MainUiMode mode;
     int skill;
@@ -398,22 +421,12 @@ int OpenLockInteraction(Trigger* trigger)
         return 0;
     }
     if (gXStatus.fLockInteractMode || (gXStatus.fLockInteract && trigger != 0)) {
-        event = ApplyItemEffectToRandomCharacter(
-            g_lock_notice_event, -1, g_character_event_no_preempt, g_character_event_no_flags);
-        if (event != 0) {
-            event->dispatch_delay_ms = 600;
-            event->dispatch_delay_start = GetTickCount();
-        }
+        QueueInteractionNotice(g_lock_notice_event);
         SoundPlay(s_lock_open_fail, 0);
         return 1;
     }
     if (gXStatus.fCombatMode) {
-        event = ApplyItemEffectToRandomCharacter(
-            g_lock_notice_event, -1, g_character_event_no_preempt, g_character_event_no_flags);
-        if (event != 0) {
-            event->dispatch_delay_ms = 600;
-            event->dispatch_delay_start = GetTickCount();
-        }
+        QueueInteractionNotice(g_lock_notice_event);
         SoundPlay(s_lock_open_fail, 0);
         return 1;
     }
@@ -435,12 +448,7 @@ int OpenLockInteraction(Trigger* trigger)
     RequestRedrawCombatBar();
     RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
     if (!gXStatus.fLockInteract) {
-        event = ApplyItemEffectToRandomCharacter(
-            g_lock_notice_event, -1, g_character_event_no_preempt, g_character_event_no_flags);
-        if (event != 0) {
-            event->dispatch_delay_ms = 600;
-            event->dispatch_delay_start = GetTickCount();
-        }
+        QueueInteractionNotice(g_lock_notice_event);
         SoundPlay(s_lock_open_fail, 0);
         g_lock_interaction = new W8LockInteraction(trigger);
         gXStatus.fLockInteract = false;
@@ -2379,7 +2387,6 @@ void W8MainGameScreen::UseTrapItem()
 // FUNCTION: WIZ8 0x0058A470
 int OpenTrapInteraction(Trigger* trigger)
 {
-    W8CharacterEvent* event;
     W8MainGameScreen* screen;
     W8MainGameTextPanel* panel;
     W8MainUiMode mode;
@@ -2392,22 +2399,12 @@ int OpenTrapInteraction(Trigger* trigger)
         if (g_main_game_screen != 0 && g_main_game_screen->m_disarm_state == 9) {
             return 1;
         }
-        event = ApplyItemEffectToRandomCharacter(
-            g_trap_notice_event, -1, g_character_event_no_preempt, g_character_event_no_flags);
-        if (event != 0) {
-            event->dispatch_delay_ms = 600;
-            event->dispatch_delay_start = GetTickCount();
-        }
+        QueueInteractionNotice(g_trap_notice_event);
         SoundPlay(s_trap_detect, 0);
         return 1;
     }
     if (gXStatus.fCombatMode) {
-        event = ApplyItemEffectToRandomCharacter(
-            g_trap_notice_event, -1, g_character_event_no_preempt, g_character_event_no_flags);
-        if (event != 0) {
-            event->dispatch_delay_ms = 600;
-            event->dispatch_delay_start = GetTickCount();
-        }
+        QueueInteractionNotice(g_trap_notice_event);
         SoundPlay(s_trap_detect, 0);
         return 1;
     }
@@ -2452,12 +2449,7 @@ int OpenTrapInteraction(Trigger* trigger)
         if (0x13 < Random(100)) {
             event_type = g_trap_notice_event;
         }
-        event = ApplyItemEffectToRandomCharacter(event_type, -1, g_character_event_no_preempt,
-                                                 g_character_event_no_flags);
-        if (event != 0) {
-            event->dispatch_delay_ms = 600;
-            event->dispatch_delay_start = GetTickCount();
-        }
+        QueueInteractionNotice(event_type);
     }
     trigger->lock_state.last_interaction_clock = g_status.world_clock;
     SoundPlay(s_trap_detect, 0);
@@ -5377,17 +5369,7 @@ void SyncMainGameModeRegions(void)
     }
 
     if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_RADAR) {
-        if (g_level_block->action_panel_visible != 0) {
-            RegionSetEnable(0x14);
-            EnableRegionInput(0x59);
-            EnableRegionInput(0x52);
-            EnableRegionInput(0x53);
-            EnableRegionInput(0x54);
-            EnableRegionInput(0x55);
-            EnableRegionInput(0x56);
-            EnableRegionInput(0x57);
-            EnableRegionInput(0x58);
-        }
+        EnableActionPanelRegions();
         if (gXStatus.fSpellCastMode) {
             RegionSetEnable(0x19);
             RestoreSpellCastingRegions();
@@ -6851,12 +6833,8 @@ static void DrawMainGamePrompt(void)
         bounds.bottom = 0x153;
         buffer = new W8TextBuffer(&bounds, 0, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter,
                                   0, 4);
-        if (!gXStatus.fCombatMode) {
-            buffer->SetText(gppStringList[0x77f], g_wiz_text_font_secondary);
-        } else {
-            buffer->SetText(gppStringList[0x780], g_wiz_text_font_secondary);
-        }
-        buffer->RenderToTarget(0, false, FRAME_BUFFER);
+        buffer->RenderString(gppStringList[gXStatus.fCombatMode ? 0x780 : 0x77f],
+                             g_wiz_text_font_secondary, false, FRAME_BUFFER);
         delete buffer;
     }
 }
@@ -6899,17 +6877,7 @@ void SetActionPanelVisible(bool visible)
 {
     if (visible) {
         g_level_block->action_panel_visible = visible;
-        if (g_level_block->action_panel_visible != 0) {
-            RegionSetEnable(0x14);
-            EnableRegionInput(0x59);
-            EnableRegionInput(0x52);
-            EnableRegionInput(0x53);
-            EnableRegionInput(0x54);
-            EnableRegionInput(0x55);
-            EnableRegionInput(0x56);
-            EnableRegionInput(0x57);
-            EnableRegionInput(0x58);
-        }
+        EnableActionPanelRegions();
         RequestRedraw(W8_MAIN_REDRAW_LAYOUT | W8_MAIN_REDRAW_PORTRAIT_PANEL);
     } else {
         g_level_block->action_panel_visible = 0;

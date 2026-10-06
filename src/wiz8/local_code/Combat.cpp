@@ -2033,8 +2033,7 @@ int CheckCombatEnd(unsigned int end_if_no_hostiles)
                                              g_effect_argument3, g_effect_argument0,
                                              g_character_event_full_volume),
                  event != 0)) {
-                event->dispatch_delay_ms = 0x5dc;
-                event->dispatch_delay_start = GetTickCount();
+                event->DelayDispatch(0x5dc);
                 EndCombat(false);
                 return 1;
             }

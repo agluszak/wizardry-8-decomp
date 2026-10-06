@@ -1497,8 +1497,7 @@ void QueuePartyDeathReaction(unsigned int party_slot)
         entry = QueueCharacterEvent(&g_status.buffers.Char[selected[index]], effect, 0,
                                     g_effect_argument0, g_character_event_full_volume);
         if (entry != 0) {
-            entry->dispatch_delay_ms = 3000;
-            entry->dispatch_delay_start = GetTickCount();
+            entry->DelayDispatch(3000);
         }
     }
 }
@@ -1540,8 +1539,7 @@ void QueueDamageReactionEvents(W8Character* character)
                                         g_effect_argument1, g_character_event_full_volume);
         }
         if (entry != 0) {
-            entry->dispatch_delay_ms = 0x5dc;
-            entry->dispatch_delay_start = GetTickCount();
+            entry->DelayDispatch(0x5dc);
         }
     }
 queue_follow_up_event:

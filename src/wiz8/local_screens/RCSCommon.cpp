@@ -958,10 +958,9 @@ void DrawCampVitals(void)
     } else {
         text->SetFontStateIndex(g_status.buffers.XChar[giReviewCharSlot].party_order_index);
     }
-    text->SetText(
+    text->RenderString(
         gppStringList[g_profession_name_message_ids[g_review_character->iProfession + 0x10]],
-        g_smfnt_font);
-    text->RenderToTarget(0, false, FRAME_BUFFER);
+        g_smfnt_font, false, FRAME_BUFFER);
     if (g_settings.numeric_hit_points != 0) {
         bounds.left = 0x10e;
         bounds.right = 0x120;
@@ -970,8 +969,7 @@ void DrawCampVitals(void)
         text->SetLayoutBounds(&bounds, true, false);
         text->SetFontStateIndex(-1);
         formatted = FormatWideString(g_format_d, g_review_character->hp_current);
-        text->SetText(formatted, g_smfnt_font);
-        text->RenderToTarget(0, false, FRAME_BUFFER);
+        text->RenderString(formatted, g_smfnt_font, false, FRAME_BUFFER);
     }
     InvalidateRegion(0x10c, bar_top, 0x124, frame_column + 0x38, 0);
     delete text;

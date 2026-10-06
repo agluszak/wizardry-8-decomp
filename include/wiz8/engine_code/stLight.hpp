@@ -3,6 +3,7 @@
 #include "surrender/srLight.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
+#include "wiz8/layouts/world.h"
 
 #include <stddef.h>
 
@@ -262,3 +263,39 @@ static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
 
 void SaveLightStates(int handle);
 void LoadLightStates(int handle);
+
+/* Animation copies retain per-light position before assignment, detach the new
+   light and register it with the world before adding it to the owned list. */
+inline W8GrowableVector<stLight*>* CloneAnimationLightList(W8GrowableVector<stLight*>* source,
+                                                           const char* file, int list_line,
+                                                           int light_line)
+{
+    W8GrowableVector<stLight*>* copy = 0;
+    if (source != 0) {
+        copy = new W8Vector<stLight*>;
+        if (copy == 0) {
+            srAssertFail("plsNewLights", file, list_line,
+                         "Out of memory creating monster light list");
+        }
+        for (int index = 0; index < source->GetCount(); ++index) {
+            stLight* light = *source->GetAt(index);
+            float x = light->positionalX();
+            float y = light->positionalY();
+            float z = light->positionalZ();
+            stLight* copied_light = new stLight;
+            if (copied_light != 0) {
+                *copied_light = *light;
+            }
+            if (copied_light == 0) {
+                srAssertFail("pstNewLight", file, light_line,
+                             "Out of memory creating monster light");
+            }
+            copied_light->ConfigureMonsterCopy();
+            copied_light->setLocation(x, y, z);
+            copied_light->setParent(0, 0);
+            PLAdoptAppend(&g_world->transient_lights, copied_light);
+            copy->Add(copied_light);
+        }
+    }
+    return copy;
+}

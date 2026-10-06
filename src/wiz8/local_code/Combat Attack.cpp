@@ -2973,8 +2973,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                             &g_status.buffers.Char[source->iChar], g_item_message7,
                                             0, g_character_event_no_flags,
                                             g_character_event_full_volume)) != NULL) {
-                                event->dispatch_delay_ms = 800;
-                                event->dispatch_delay_start = GetTickCount();
+                                event->DelayDispatch(800);
                             }
                         } else {
                             ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x17f]);
@@ -4150,8 +4149,7 @@ int ResolveCharacterAttack(int party_slot)
                                     character, g_item_message7, 0, g_character_event_no_flags,
                                     g_character_event_full_volume);
                                 if (event != NULL) {
-                                    event->dispatch_delay_ms = 800;
-                                    event->dispatch_delay_start = GetTickCount();
+                                    event->DelayDispatch(800);
                                 }
                             }
                         } else {

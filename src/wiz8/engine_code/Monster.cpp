@@ -1119,37 +1119,8 @@ void W8MonsterRep::CopyCycle(signed char cycle, const W8MonsterRep* other, signe
 
     for (index = 0; index < other->light_lists[other_cycle].GetCount(); ++index) {
         W8GrowableVector<stLight*>* source_lights = *other->light_lists[other_cycle].GetAt(index);
-        W8GrowableVector<stLight*>* copied_lights = 0;
-
-        if (source_lights != 0) {
-            int light_index;
-
-            copied_lights = new W8Vector<stLight*>;
-            if (copied_lights == 0) {
-                srAssertFail("plsNewLights", MONSTER_CPP, 0x1e5,
-                             "Out of memory creating monster light list");
-            }
-            for (light_index = 0; light_index < source_lights->GetCount(); ++light_index) {
-                stLight* source_light = *source_lights->GetAt(light_index);
-                float x = source_light->positionalX();
-                float y = source_light->positionalY();
-                float z = source_light->positionalZ();
-                stLight* copied_light = new stLight;
-
-                if (copied_light != 0) {
-                    *copied_light = *source_light;
-                }
-                if (copied_light == 0) {
-                    srAssertFail("pstNewLight", MONSTER_CPP, 0x1ed,
-                                 "Out of memory creating monster light");
-                }
-                copied_light->ConfigureMonsterCopy();
-                copied_light->setLocation(x, y, z);
-                copied_light->setParent(0, 0);
-                PLAdoptAppend(&g_world->transient_lights, copied_light);
-                copied_lights->Add(copied_light);
-            }
-        }
+        W8GrowableVector<stLight*>* copied_lights =
+            CloneAnimationLightList(source_lights, MONSTER_CPP, 0x1e5, 0x1ed);
         light_lists[cycle].Add(copied_lights);
     }
 }

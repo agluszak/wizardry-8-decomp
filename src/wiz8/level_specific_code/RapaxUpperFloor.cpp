@@ -27,10 +27,7 @@
 
 static void RunTreasureDoor()
 {
-    Trigger* door = FindTriggerByName("TDoor1");
-    if (door != 0) {
-        door->Run(-1);
-    }
+    RunNamedTrigger("TDoor1", -1);
 }
 
 /* "AirBox": while the cursor holds an item, placing one of the four vault

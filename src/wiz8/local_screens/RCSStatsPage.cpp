@@ -1191,49 +1191,42 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.right = m_bounds.left + 100;
         bounds.top = m_bounds.top + 0x19;
         bounds.bottom = m_bounds.top + 0x31;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0xee], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0xee], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
 
         bounds.top = m_bounds.top + 0x67;
         bounds.bottom = m_bounds.top + 0x7f;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0xf0], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0xf0], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
 
         bounds.left = m_bounds.left + 0x160;
         bounds.right = m_bounds.left + 0x198;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0xf1], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0xf1], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
 
         bounds.top = m_bounds.top + 0x19;
         bounds.bottom = m_bounds.top + 0x31;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0xef], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0xef], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
 
         bounds.left = m_bounds.left + 0x24;
         bounds.right = m_bounds.left + 0x92;
         bounds.top = m_bounds.top + 0xaa;
         bounds.bottom = m_bounds.top + 0xbc;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0x84], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0x84], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
 
         bounds.top = m_bounds.top + 0xc6;
         bounds.bottom = m_bounds.top + 0xd8;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0x85], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0x85], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
 
         bounds.left = m_bounds.left + 0x18;
         bounds.top = m_bounds.top + 0xee;
         bounds.right = m_bounds.left + 0x1a8;
         bounds.bottom = m_bounds.top + 0xfa;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0x86], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0x86], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
 
         int index = 0;
         for (const unsigned short* message_id = g_personality_message_ids;
@@ -1244,8 +1237,8 @@ void W8CharacterPersonalityPage::Redraw()
             bounds.bottom = bounds.top + 0xe;
             text.SetLayoutBounds(&bounds, true, true);
             text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft);
-            text.SetText(gppStringList[*message_id], g_wiz_text_font_secondary);
-            text.RenderToTarget(0, true, FRAME_BUFFER);
+            text.RenderString(gppStringList[*message_id], g_wiz_text_font_secondary, true,
+                              FRAME_BUFFER);
         }
 
         bounds.top = m_bounds.top + 0x13f;
@@ -1253,15 +1246,13 @@ void W8CharacterPersonalityPage::Redraw()
         bounds.left = m_bounds.left + 0x29;
         bounds.right = m_bounds.left + 0x69;
         text.SetLayoutMode(g_W8TextBufferAlignCenter | g_W8TextBufferAlignTop);
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0x8d], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0x8d], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
 
         bounds.top = m_bounds.top + 0x15c;
         bounds.bottom = m_bounds.top + 0x16a;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0x8e], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0x8e], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
 
         m_portrait_dirty = true;
         m_description_dirty = true;
@@ -1294,9 +1285,8 @@ void W8CharacterPersonalityPage::Redraw()
     if (m_prepared) {
         W8TextBuffer text;
         W8ControlsRect bounds = {9, 0xec, 0xbd, 0x184};
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0xe9], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0xe9], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
         m_prepared = false;
     }
 }
@@ -1476,29 +1466,25 @@ void W8CharacterSkillsPage::Redraw()
     if (m_prepared) {
         W8TextBuffer text;
         W8ControlsRect bounds = {4, 0xec, 0xc2, 0x162};
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0xe8], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0xe8], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
         bounds.top = 0x162;
         bounds.right = 0x8f;
         bounds.bottom = 0x179;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0xe3], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0xe3], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
         bounds.top = 0x184;
         bounds.bottom = 0x19b;
-        text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(gppStringList[0xe4], g_wiz_text_font_secondary);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(&bounds, gppStringList[0xe4], g_wiz_text_font_secondary, true,
+                          FRAME_BUFFER);
         bounds.left = 0x8f;
         bounds.top = 0x162;
         bounds.right = 0xbf;
         bounds.bottom = 0x179;
         DrawCatalogImage(FRAME_BUFFER, 0x107, 0, 5, 0x8f, 0x162, VO_BLT_SRCTRANSPARENCY, 0);
         text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(FormatWideString(g_format_d, m_creation_state->skill_step_limit),
-                     g_options_detail_font);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(FormatWideString(g_format_d, m_creation_state->skill_step_limit),
+                          g_options_detail_font, true, FRAME_BUFFER);
         m_prepared = false;
     }
 
@@ -1507,10 +1493,10 @@ void W8CharacterSkillsPage::Redraw()
         W8ControlsRect bounds = {0x8f, 0x184, 0xbf, 0x19b};
         DrawCatalogImage(FRAME_BUFFER, 0x107, 0, 5, 0x8f, 0x184, VO_BLT_SRCTRANSPARENCY, 0);
         text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(FormatWideString(g_format_d_slash_d, m_creation_state->skill_points_remaining,
-                                      m_creation_state->skill_points_total),
-                     g_options_detail_font);
-        text.RenderToTarget(0, true, FRAME_BUFFER);
+        text.RenderString(FormatWideString(g_format_d_slash_d,
+                                           m_creation_state->skill_points_remaining,
+                                           m_creation_state->skill_points_total),
+                          g_options_detail_font, true, FRAME_BUFFER);
         m_dirty = false;
     }
 }

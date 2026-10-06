@@ -35,6 +35,19 @@ public:
     void SetText(const wchar_t* text, int font);
     void SetLayoutBounds(const W8ControlsRect* bounds, bool copy_pending, bool update_layout);
 
+    void RenderString(const wchar_t* text, int font, bool force, unsigned int target)
+    {
+        SetText(text, font);
+        RenderToTarget(0, force, target);
+    }
+
+    void RenderString(const W8ControlsRect* bounds, const wchar_t* text, int font, bool force,
+                      unsigned int target)
+    {
+        SetLayoutBounds(bounds, true, true);
+        RenderString(text, font, force, target);
+    }
+
     void SetLayoutBounds(int left, int top, int right, int bottom)
     {
         m_layoutBounds.left = left;

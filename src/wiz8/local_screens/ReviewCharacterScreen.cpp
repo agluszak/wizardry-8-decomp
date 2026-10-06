@@ -348,8 +348,7 @@ void DrawCampSpellPages(void)
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
         }
         state = g_camp_screen;
-        state->spell_ranges[realm]->m_range->Invalidate(0);
-        state->spell_ranges[realm]->m_range->Redraw();
+        state->spell_ranges[realm]->UpdateRange(true);
     }
     for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         if (g_camp_screen->dialog != 0 && realm != 0 && realm != 3) {
@@ -1936,6 +1935,21 @@ static void SelectPendingCampCharacter()
     }
 }
 
+static void RefreshCampItemOrigin(W8ItemOrigin origin, W8EquipSlot equip_slot)
+{
+    if (origin == W8_ITEM_ORIGIN_EQUIPPED) {
+        RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
+        if (GetPairedEquipSlot(equip_slot) != -1) {
+            g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending = false;
+        }
+        RebuildCampItemList();
+    } else if (origin == W8_ITEM_ORIGIN_BACKPACK) {
+        RecalculateCharacterDerivedStats(&g_status.buffers.Char[giReviewCharSlot]);
+    } else {
+        RebuildCampItemList();
+    }
+}
+
 // FUNCTION: WIZ8 0x005a4c70
 void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOrigin origin)
 {
@@ -2159,17 +2173,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
         MergeItemUses(&g_status.buffers.Char[giReviewCharSlot], item, &g_status.item_in_hand);
         SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
         changed = true;
-        if (origin == W8_ITEM_ORIGIN_EQUIPPED) {
-            RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
-            if (GetPairedEquipSlot(equip_slot) != -1) {
-                g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending = false;
-            }
-            RebuildCampItemList();
-        } else if (origin == W8_ITEM_ORIGIN_BACKPACK) {
-            RecalculateCharacterDerivedStats(&g_status.buffers.Char[giReviewCharSlot]);
-        } else {
-            RebuildCampItemList();
-        }
+        RefreshCampItemOrigin(origin, equip_slot);
     } else {
         /* Fold the held stack onto a matching stack; for the pool the scan
            continues across every row until the held stack is consumed. */
@@ -2310,17 +2314,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
                 SetHandCursors(0);
             }
             if (changed) {
-                if (origin == W8_ITEM_ORIGIN_EQUIPPED) {
-                    RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
-                    if (GetPairedEquipSlot(equip_slot) != -1) {
-                        g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending = false;
-                    }
-                    RebuildCampItemList();
-                } else if (origin == W8_ITEM_ORIGIN_BACKPACK) {
-                    RecalculateCharacterDerivedStats(&g_status.buffers.Char[giReviewCharSlot]);
-                } else {
-                    RebuildCampItemList();
-                }
+                RefreshCampItemOrigin(origin, equip_slot);
             }
         }
     }

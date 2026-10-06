@@ -129,6 +129,19 @@ static int DrawWrappedTextLine(UINT16* text, int x, int top, int width, int font
     return 1;
 }
 
+static void RenderWrappedTextLine(UINT16* text, int x, int top, int width, int font,
+                                  unsigned char foreground, unsigned char background, bool dirty,
+                                  unsigned int flags)
+{
+    if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
+        SetFontShadow(0);
+    }
+    DrawWrappedTextLine(text, x, top, width, font, foreground, background, dirty, flags);
+    if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
+        SetFontShadow(2);
+    }
+}
+
 // FUNCTION: WIZ8 0x005d0770
 int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int font,
                     unsigned char colour, const wchar_t* text, int background, int dirty, int flags)
@@ -161,15 +174,9 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
             word[word_length++] = L' ';
             word[word_length] = L'\0';
             if ((wrap_width & 0xffff) < word_width + line_width) {
-                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                    SetFontShadow(0);
-                }
-                DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
-                                    active_colour, static_cast<unsigned char>(background),
-                                    section != 0, flags);
-                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                    SetFontShadow(2);
-                }
+                RenderWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                      active_colour, static_cast<unsigned char>(background),
+                                      section != 0, flags);
                 draw_y += GetFontHeight(active_font) + (line_spacing & 0xff);
                 ++line_count;
                 wcscpy(line, word);
@@ -183,15 +190,9 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
             word_length = 0;
         } else {
             if (word[0] == L'\n') {
-                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                    SetFontShadow(0);
-                }
-                DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
-                                    active_colour, static_cast<unsigned char>(background),
-                                    section != 0, flags);
-                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                    SetFontShadow(2);
-                }
+                RenderWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                      active_colour, static_cast<unsigned char>(background),
+                                      section != 0, flags);
                 draw_y += GetFontHeight(active_font) + (line_spacing & 0xff);
                 ++line_count;
                 memset(line, 0, sizeof(line));
@@ -201,15 +202,9 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                 remaining_width = wrap_width;
                 draw_x = x;
             } else if (word[0] == 0xb2) {
-                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                    SetFontShadow(0);
-                }
-                DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
-                                    active_colour, static_cast<unsigned char>(background),
-                                    section != 0, flags);
-                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                    SetFontShadow(2);
-                }
+                RenderWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                      active_colour, static_cast<unsigned char>(background),
+                                      section != 0, flags);
                 if (alternate) {
                     int span = StringPixLength(line, active_font);
                     remaining_width -= line_width;
@@ -232,15 +227,9 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                 }
             } else if (word[0] == 0xb3) {
                 if (section == 2) {
-                    if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                        SetFontShadow(0);
-                    }
-                    DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
-                                        active_colour, static_cast<unsigned char>(background), true,
-                                        flags);
-                    if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                        SetFontShadow(2);
-                    }
+                    RenderWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                          active_colour, static_cast<unsigned char>(background),
+                                          true, flags);
                     section = 1;
                     draw_y += GetFontHeight(active_font) + (line_spacing & 0xff);
                     ++line_count;
@@ -257,23 +246,18 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                     line_width = 0;
                 }
             } else if (word[0] == 0xb4 || word[0] == 0xb5) {
-                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                    SetFontShadow(0);
-                }
-                DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
-                                    active_colour, static_cast<unsigned char>(background),
-                                    section != 0, flags);
-                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                    SetFontShadow(2);
-                }
+                RenderWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
+                                      active_colour, static_cast<unsigned char>(background),
+                                      section != 0, flags);
                 if (word[0] == 0xb4 && word[1] != L' ' && word[1] < 0x100) {
                     active_colour = static_cast<unsigned char>(word[1]);
                 }
                 int span = StringPixLength(line, active_font);
                 remaining_width -= line_width;
+                bool restore_colour = word[0] == 0xb5;
                 memset(line, 0, sizeof(line));
                 memset(word, 0, sizeof(word));
-                if (word[0] == 0xb5) {
+                if (restore_colour) {
                     active_colour = colour;
                 }
                 word_length = 0;
@@ -284,14 +268,8 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
         ++position;
         if (ch == L'\0') {
             wcscat(line, &g_empty_wide_string);
-            if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                SetFontShadow(0);
-            }
-            DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font, active_colour,
-                                static_cast<unsigned char>(background), section != 0, flags);
-            if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
-                SetFontShadow(2);
-            }
+            RenderWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font, active_colour,
+                                  static_cast<unsigned char>(background), section != 0, flags);
             return (GetFontHeight(font) + (line_spacing & 0xff)) * line_count;
         }
     }

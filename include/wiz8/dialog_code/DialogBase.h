@@ -17,6 +17,7 @@ enum { W8_DIALOG_DIRTY_REDRAW = 1u };
 
 class W8DialogBase;
 class W8DialogButton;
+class W8DialogTextArea;
 typedef void (*W8DialogDestroyCallback)(W8DialogBase* dialog);
 void SetDialogDestroyCallback(W8DialogBase* dialog, W8DialogDestroyCallback callback);
 /* Shared close-button callback used by the monster and spell info dialogs. */
@@ -59,6 +60,8 @@ public:
     unsigned int m_dirty_flags; /* 0x04 */
 protected:
     void CreateCloseButton(W8DialogButton& button, int left, int top);
+    void ScrollTextArea(W8DialogTextArea& area, int first_visible_line, int left, int top,
+                        int width, int height);
 
     int m_error;                /* 0x08 */
     int m_resource;             /* 0x0c */

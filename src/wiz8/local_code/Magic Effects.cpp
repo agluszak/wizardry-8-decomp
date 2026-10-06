@@ -1198,6 +1198,26 @@ void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect)
     ApplyConditionToTargets(effect, W8_ENCHANTMENT_SUPERMAN);
 }
 
+static void ReportSpellDeaths(W8SpellEffectEntry* effect)
+{
+    W8SpellDamageReport* report;
+
+    while (effect->result.reports.GetCount() > 0) {
+        report = *effect->result.reports.GetAt(0);
+        effect->result.reports.RemoveAt(0);
+        if (report != 0) {
+            if (report->kind == 1) {
+                PostCharacterNotice(report->value, L"%s!",
+                                    gppStringList[g_condition_notices[0x49]]);
+            } else if (report->kind == 3) {
+                ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", report->text,
+                            gppStringList[g_condition_notices[0x49]]);
+            }
+            free(report);
+        }
+    }
+}
+
 /* Post what a non-verbose effect accumulated. The total goes out as one
    "<amount>" line for a lone hit or "<count> <average>" for several, each
    nonzero condition adds its own "<count> <name>", and the queued report
@@ -1208,7 +1228,6 @@ void ReportSpellEffectResult(W8SpellEffectEntry* effect)
     unsigned char text_box_mode;
     const unsigned short* condition_text;
     unsigned int* condition_count;
-    W8SpellDamageReport* report;
     const wchar_t* condition_name;
 
     if (g_settings.verbose_combat_messages != 0) {
@@ -1254,20 +1273,7 @@ void ReportSpellEffectResult(W8SpellEffectEntry* effect)
         ++condition_count;
     } while (condition_text < g_condition_notices + 0x4a);
 
-    while (effect->result.reports.GetCount() > 0) {
-        report = *effect->result.reports.GetAt(0);
-        effect->result.reports.RemoveAt(0);
-        if (report != 0) {
-            if (report->kind == 1) {
-                PostCharacterNotice(report->value, L"%s!",
-                                    gppStringList[g_condition_notices[0x49]]);
-            } else if (report->kind == 3) {
-                ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", report->text,
-                            gppStringList[g_condition_notices[0x49]]);
-            }
-            free(report);
-        }
-    }
+    ReportSpellDeaths(effect);
 }
 
 /* Resolve the queued monster target with the caller's original lookup and
@@ -1318,7 +1324,6 @@ void FatigueTargets(W8SpellEffectEntry* effect)
     W8MonsterInfo* monster_info;
     unsigned int magnitude;
     int character_index;
-    int location_id;
     int index;
 
     for (index = 0; index < effect->target_indices.GetCount(); ++index) {
@@ -1332,12 +1337,7 @@ void FatigueTargets(W8SpellEffectEntry* effect)
         }
     }
     for (index = 0; index < effect->monster_ids.GetCount(); ++index) {
-        location_id = MonsterGetIndexByLocationID(0x871, MAGIC_EFFECTS_CPP,
-                                                  *effect->monster_ids.GetAt(index), true);
-        monster_info = MonsterGetScriptPartByLocationIndex(location_id);
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0x872, 0);
-        }
+        monster_info = GetEffectMonsterTarget(*effect->monster_ids.GetAt(index), 0x871, 0x872);
         if (monster_info->stamina != 0) {
             magnitude = RollEffectMagnitude(&effect->definition);
             FatigueMonster(monster_info, magnitude, 0);
@@ -2309,11 +2309,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
     }
     for (index = 0; index < effect->monster_ids.GetCount(); ++index) {
         unsigned int duration = RollEffectDuration(&effect->definition);
-        monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-            0x907, MAGIC_EFFECTS_CPP, *effect->monster_ids.GetAt(index), true));
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0x908, 0);
-        }
+        monster_info = GetEffectMonsterTarget(*effect->monster_ids.GetAt(index), 0x907, 0x908);
         target.iType = W8_TARGET_KIND_MONSTER;
         target.iMonsterID = monster_info->location_id;
         roll = Random(100);
@@ -2361,7 +2357,6 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
     int party_slot;
     int index;
     W8CombatSlot target;
-    W8SpellDamageReport* report;
 
     result = &effect->result;
     verbose = g_settings.verbose_combat_messages != 0;
@@ -2386,11 +2381,7 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
     }
     TargetSourceIsCharacter(&effect->Source, 1);
     for (index = 0; index < effect->monster_ids.GetCount(); ++index) {
-        monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-            0xb39, MAGIC_EFFECTS_CPP, *effect->monster_ids.GetAt(index), true));
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0xb3a, 0);
-        }
+        monster_info = GetEffectMonsterTarget(*effect->monster_ids.GetAt(index), 0xb39, 0xb3a);
         magnitude = RollEffectMagnitude(&effect->definition);
         ApplyEffectAndAnnounce(&magnitude, &target, g_spell_records[effect->kind].realm,
                                effect->definition.power_level);
@@ -2417,20 +2408,7 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
             effect->reported = true;
             effect->applied = true;
         }
-        while (effect->result.reports.GetCount() > 0) {
-            report = *effect->result.reports.GetAt(0);
-            effect->result.reports.RemoveAt(0);
-            if (report != 0) {
-                if (report->kind == 1) {
-                    PostCharacterNotice(report->value, L"%s!",
-                                        gppStringList[g_condition_notices[0x49]]);
-                } else if (report->kind == 3) {
-                    ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", report->text,
-                                gppStringList[g_condition_notices[0x49]]);
-                }
-                free(report);
-            }
-        }
+        ReportSpellDeaths(effect);
     }
 }
 
@@ -3730,6 +3708,15 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     }
 }
 
+static void QueueCombatDamageReports(W8SpellEffectResult* result)
+{
+    while (result->reports.GetCount() > 0) {
+        W8SpellDamageReport* report = *result->reports.GetAt(0);
+        result->reports.RemoveAt(0);
+        g_combat_state->attack_report.reports.Add(report);
+    }
+}
+
 /* Damage from the target-side enchantment: the enchantment's power scales the
    spell record's dice, the reduced roll is applied to the character, the
    result's amount feeds the running combat total at +0xa1a, and the reports
@@ -3739,7 +3726,6 @@ void ApplyDiceDamageToCharacter(int party_slot, W8TargetSource* source, W8Enchan
 {
     bool verbose = g_settings.verbose_combat_messages != 0;
     W8SpellEffectResult result;
-    W8SpellDamageReport* report;
     W8Dice dice;
     unsigned int amount;
 
@@ -3753,11 +3739,7 @@ void ApplyDiceDamageToCharacter(int party_slot, W8TargetSource* source, W8Enchan
     if (amount > 0) {
         ApplyDamageToCharacter(party_slot, amount, false, verbose, verbose, &result, false);
         g_combat_state->attack_report.notice_values[3] += result.amount;
-        while (result.reports.GetCount() > 0) {
-            report = *result.reports.GetAt(0);
-            result.reports.RemoveAt(0);
-            g_combat_state->attack_report.reports.Add(report);
-        }
+        QueueCombatDamageReports(&result);
     }
 }
 
@@ -3795,7 +3777,6 @@ void ApplyDirectDamageToCharacter(int party_slot, W8TargetSource* source, int da
 {
     bool verbose = g_settings.verbose_combat_messages != 0;
     W8SpellEffectResult result;
-    W8SpellDamageReport* report;
     unsigned int amount;
 
     amount = ApplyCharacterDamageReduction(&g_status.buffers.Char[party_slot], damage);
@@ -3806,11 +3787,7 @@ void ApplyDirectDamageToCharacter(int party_slot, W8TargetSource* source, int da
             amount =
                 ApplyDamageToCharacter(party_slot, amount, false, false, false, &result, false);
             g_combat_state->attack_report.notice_values[4] += amount;
-            while (result.reports.GetCount() > 0) {
-                report = *result.reports.GetAt(0);
-                result.reports.RemoveAt(0);
-                g_combat_state->attack_report.reports.Add(report);
-            }
+            QueueCombatDamageReports(&result);
         }
     }
 }
@@ -3823,7 +3800,6 @@ void ApplyDirectDamageToMonster(W8MonsterInfo* monster_info, W8TargetSource* sou
 {
     bool verbose = g_settings.verbose_combat_messages != 0;
     W8SpellEffectResult result;
-    W8SpellDamageReport* report;
     W8MonsterRecord* record;
     unsigned int amount;
 
@@ -3836,11 +3812,7 @@ void ApplyDirectDamageToMonster(W8MonsterInfo* monster_info, W8TargetSource* sou
             amount =
                 ApplyDamageToMonster(monster_info, amount, source, false, 0, 0, &result, false);
             g_combat_state->attack_report.notice_values[4] += amount;
-            while (result.reports.GetCount() > 0) {
-                report = *result.reports.GetAt(0);
-                result.reports.RemoveAt(0);
-                g_combat_state->attack_report.reports.Add(report);
-            }
+            QueueCombatDamageReports(&result);
         }
     }
 }

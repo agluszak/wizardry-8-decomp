@@ -1365,8 +1365,6 @@ bool LoadMonster(W8Chunk* chunk)
 // FUNCTION: WIZ8 0x00512c40
 void ResetLiveSessionForLoad(void)
 {
-    int index;
-
     if (g_status.current_level != -1) {
         UnloadLevel("");
         SoundEmptyCache();
@@ -1377,9 +1375,7 @@ void ResetLiveSessionForLoad(void)
     ResetMainGameScreenState();
     ClearNpcMessageQueue();
     ResetMainScreenStateBlock();
-    for (index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
-        g_spell_effects.RemoveAtAndDelete(index);
-    }
+    g_spell_effects.RemoveAllAndDelete();
     ReleaseAllTriggers();
     ResetGameplayStatusBlock();
 }

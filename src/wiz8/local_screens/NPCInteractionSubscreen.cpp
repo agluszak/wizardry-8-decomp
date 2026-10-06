@@ -657,6 +657,8 @@ void DispatchPendingNpcScriptNotice(void)
    while everything else falls to the force gate and then the
    dispatch: a record-0x056 NPC takes the plain quote, otherwise the
    disposition band picks the hostile or friendly entry. */
+static void CloseActiveNpcDialogueLayout();
+
 // FUNCTION: WIZ8 0x0056CAD0
 unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool force)
 {
@@ -734,28 +736,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
                 greet = true;
             }
         } else if (HandleNpcDialogueItem(&state->pending_item) == 0) {
-            switch (g_npc_interaction_state->dialogue_layout) {
-            case W8_DIALOGUE_LAYOUT_SERVICES:
-                CloseNpcDialogueMode1Layout();
-                break;
-            case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
-                CloseNpcDialogueLayout();
-                break;
-            case W8_DIALOGUE_LAYOUT_BARE:
-                SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
-                break;
-            case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-                CloseNpcDialogueTranscriptLayout();
-                break;
-            case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
-                CloseNpcDialogueOptionLayout();
-                break;
-            case W8_DIALOGUE_LAYOUT_TRADE:
-                CloseNpcDialogueMode5Layout();
-                break;
-            default:
-                break;
-            }
+            CloseActiveNpcDialogueLayout();
             if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) ==
                 W8_NPC_BAND_FRIENDLY) {
                 OpenNpcDialogueTranscriptLayout();
@@ -1297,8 +1278,7 @@ void EndNpcDialogueSession(bool skip_exit_actions)
                     &g_status.buffers.Char[slot], g_special_event8, g_character_event_no_preempt,
                     g_character_event_no_flags, g_character_event_full_volume);
                 if (event != 0) {
-                    event->dispatch_delay_ms = 1000;
-                    event->dispatch_delay_start = GetTickCount();
+                    event->DelayDispatch(1000);
                 }
             }
         }
@@ -2615,95 +2595,58 @@ static void SelectNpcTradePoolControls(W8NpcDialogueControlSlot previous,
         ->m_textBuffer.SetGeometryDirty();
 }
 
+static void SelectNpcTradeModeControls(W8NpcDialogueControlSlot selected,
+                                       W8NpcDialogueControlSlot first,
+                                       W8NpcDialogueControlSlot second,
+                                       W8NpcDialogueControlSlot third)
+{
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[selected])
+        ->EnableSecondaryState(true);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[first])
+        ->DisableSecondaryState(true);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[second])
+        ->DisableSecondaryState(true);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[third])
+        ->DisableSecondaryState(true);
+}
+
+static void SetNpcTradeTitle(int text_id)
+{
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
+        ->m_textBuffer.SetText(gppStringList[text_id], g_wiz_text_bold_font);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
+        ->m_textBuffer.SetText(gppStringList[text_id], g_wiz_text_bold_font);
+}
+
 // FUNCTION: WIZ8 0x00571F60
 void UpdateNpcDialogueSubMode(void)
 {
     switch (g_npc_interaction_state->trade_mode) {
     case W8_NPC_TRADE_GIVE:
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-            ->EnableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
-            ->m_textBuffer.SetText(gppStringList[0x73b], g_wiz_text_bold_font);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-            ->m_textBuffer.SetText(gppStringList[0x73b], g_wiz_text_bold_font);
+        SelectNpcTradeModeControls(W8_NPC_CONTROL_TEXT_3, W8_NPC_CONTROL_TEXT_1,
+                                   W8_NPC_CONTROL_TEXT_2, W8_NPC_CONTROL_TEXT_4);
+        SetNpcTradeTitle(0x73b);
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(true);
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(true);
         break;
     case W8_NPC_TRADE_SELL:
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-            ->EnableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-            ->DisableSecondaryState(true);
+        SelectNpcTradeModeControls(W8_NPC_CONTROL_TEXT_2, W8_NPC_CONTROL_TEXT_1,
+                                   W8_NPC_CONTROL_TEXT_3, W8_NPC_CONTROL_TEXT_4);
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(true);
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
-            ->m_textBuffer.SetText(gppStringList[0x73a], g_wiz_text_bold_font);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-            ->m_textBuffer.SetText(gppStringList[0x73a], g_wiz_text_bold_font);
+        SetNpcTradeTitle(0x73a);
         break;
     case W8_NPC_TRADE_BUY:
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->EnableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
-            ->m_textBuffer.SetText(gppStringList[0x73c], g_wiz_text_bold_font);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-            ->m_textBuffer.SetText(gppStringList[0x73c], g_wiz_text_bold_font);
+        SelectNpcTradeModeControls(W8_NPC_CONTROL_TEXT_1, W8_NPC_CONTROL_TEXT_2,
+                                   W8_NPC_CONTROL_TEXT_3, W8_NPC_CONTROL_TEXT_4);
+        SetNpcTradeTitle(0x73c);
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(false);
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(false);
         break;
     case W8_NPC_TRADE_SHOPLIFT:
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
-            ->EnableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-            ->DisableSecondaryState(true);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])
-            ->m_textBuffer.SetText(gppStringList[0x72e], g_wiz_text_bold_font);
-        static_cast<W8TextControl*>(
-            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
-            ->m_textBuffer.SetText(gppStringList[0x72e], g_wiz_text_bold_font);
+        SelectNpcTradeModeControls(W8_NPC_CONTROL_TEXT_4, W8_NPC_CONTROL_TEXT_2,
+                                   W8_NPC_CONTROL_TEXT_3, W8_NPC_CONTROL_TEXT_1);
+        SetNpcTradeTitle(0x72e);
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5]->SetEnabled(false);
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6]->SetEnabled(false);
         break;
