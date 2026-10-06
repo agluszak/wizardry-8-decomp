@@ -254,27 +254,11 @@ W8NpcState* GetNpcState(int index)
 // FUNCTION: WIZ8 0x0050b830
 W8NpcState* GetNpcStateByKind(int kind)
 {
-    int count = g_npc_states->GetCount();
-    W8GrowableVector<W8NpcState*>* npc_states = g_npc_states;
-    int index = 0;
-
-    if (count > 0) {
-        do {
-            W8NpcState** element;
-            W8NpcState* npc;
-
-            if (index < count) {
-                element = &npc_states->data[index];
-            } else {
-                element = npc_states->data;
-            }
-            npc = *element;
-
-            if (npc->record->kind == kind) {
-                return npc;
-            }
-            ++index;
-        } while (index < count);
+    for (int index = 0; index < g_npc_states->GetCount(); ++index) {
+        W8NpcState* npc = *g_npc_states->GetAt(index);
+        if (npc->record->kind == kind) {
+            return npc;
+        }
     }
     return 0;
 }
@@ -286,36 +270,14 @@ W8NpcState* GetNpcStateByKind(int kind)
 bool NpcLeadHasNameStyle(W8NpcId kind)
 {
     if (g_status.buffers.XChar[0].fOccupied) {
-        W8NpcState* npc = 0;
-        if (g_npc_states != 0) {
-            int index = g_status.buffers.XChar[0].npc_index;
-            W8NpcState** slot = g_npc_states->data;
-            if (index < g_npc_states->GetCount()) {
-                slot += index;
-            }
-            npc = *slot;
-            if (npc != 0 && npc->binding_unavailable != 0) {
-                npc = 0;
-            }
-        }
+        W8NpcState* npc = GetNpcState(g_status.buffers.XChar[0].npc_index);
         if (npc->name_style == kind &&
             g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
             return true;
         }
     }
     if (g_status.buffers.XChar[1].fOccupied) {
-        W8NpcState* npc = 0;
-        if (g_npc_states != 0) {
-            int index = g_status.buffers.XChar[1].npc_index;
-            W8NpcState** slot = g_npc_states->data;
-            if (index < g_npc_states->GetCount()) {
-                slot += index;
-            }
-            npc = *slot;
-            if (npc != 0 && npc->binding_unavailable != 0) {
-                npc = 0;
-            }
-        }
+        W8NpcState* npc = GetNpcState(g_status.buffers.XChar[1].npc_index);
         if (npc->name_style == kind &&
             g_status.buffers.Char[1].highest_condition < W8_CONDITION_ASLEEP) {
             return true;
@@ -1582,11 +1544,7 @@ void ReleaseNpcBinding(int value)
     if (value > g_npc_states->GetCount()) {
         return;
     }
-    if (value < g_npc_states->GetCount()) {
-        npc = g_npc_states->data[value];
-    } else {
-        npc = g_npc_states->data[0];
-    }
+    npc = *g_npc_states->GetAt(value);
     npc->has_monster = false;
     ReleaseNpcScriptFile(npc->script_file);
     npc->script_file = 0;
@@ -2324,11 +2282,7 @@ void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name)
     W8NpcState* npc = 0;
 
     for (int index = 0; index < count; ++index) {
-        W8NpcState** slot = g_npc_states->data;
-        if (index < count) {
-            slot += index;
-        }
-        W8NpcState* candidate = *slot;
+        W8NpcState* candidate = *g_npc_states->GetAt(index);
         if (candidate->record->kind == kind) {
             npc = candidate;
             break;
@@ -2353,26 +2307,16 @@ void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name)
 // FUNCTION: WIZ8 0x0050c270
 void ClearPendingNpcLevelFlags(void)
 {
-    unsigned int count = g_npc_states->GetCount();
-    unsigned int npc_index = 0;
+    for (unsigned int npc_index = 0;
+         npc_index < static_cast<unsigned int>(g_npc_states->GetCount()); ++npc_index) {
+        W8NpcState* npc = *g_npc_states->GetAt(npc_index);
 
-    if (count != 0) {
-        do {
-            W8NpcState** slot = g_npc_states->data;
-            if (npc_index < count) {
-                slot += npc_index;
+        if (npc->pending_restore && npc->binding_unavailable == 0 &&
+            npc->pending_restore_level == g_status.current_level) {
+            if (RestoreNpcMonster(npc, npc->restore_entity_name)) {
+                npc->pending_restore = false;
             }
-            W8NpcState* npc = *slot;
-
-            if (npc->pending_restore && npc->binding_unavailable == 0 &&
-                npc->pending_restore_level == g_status.current_level) {
-                if (RestoreNpcMonster(npc, npc->restore_entity_name)) {
-                    npc->pending_restore = false;
-                }
-            }
-            count = g_npc_states->GetCount();
-            ++npc_index;
-        } while (npc_index < count);
+        }
     }
 }
 
@@ -2400,27 +2344,16 @@ static void ReleaseNpcCompanionMonster(W8NpcState* npc)
 // FUNCTION: WIZ8 0x0050c2e0
 void ReleaseNpcMonsterBindings(void)
 {
-    unsigned int count = g_npc_states->GetCount();
-    unsigned int npc_index = 0;
-
-    if (count == 0) {
-        return;
-    }
-    do {
-        W8NpcState** slot = g_npc_states->data;
-        if (npc_index < count) {
-            slot += npc_index;
-        }
-        W8NpcState* npc = *slot;
+    for (unsigned int npc_index = 0;
+         npc_index < static_cast<unsigned int>(g_npc_states->GetCount()); ++npc_index) {
+        W8NpcState* npc = *g_npc_states->GetAt(npc_index);
 
         if (npc->pending_release && npc->binding_unavailable == 0 &&
             npc->pending_release_level == g_status.current_level) {
             W8NpcState* companion = GetNpcStateByKind(npc->name_style);
             ReleaseNpcCompanionMonster(companion);
         }
-        count = g_npc_states->GetCount();
-        ++npc_index;
-    } while (npc_index < count);
+    }
 }
 
 /* Release the monster binding held under this NPC's naming style, now or when
@@ -2598,18 +2531,9 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
 // FUNCTION: WIZ8 0x0050da00
 void ReleaseMarkedNpcBindings(void)
 {
-    unsigned int count = g_npc_states->GetCount();
-    unsigned int npc_index = 0;
-
-    if (count == 0) {
-        return;
-    }
-    do {
-        W8NpcState** slot = g_npc_states->data;
-        if (npc_index < count) {
-            slot += npc_index;
-        }
-        W8NpcState* npc = *slot;
+    for (unsigned int npc_index = 0;
+         npc_index < static_cast<unsigned int>(g_npc_states->GetCount()); ++npc_index) {
+        W8NpcState* npc = *g_npc_states->GetAt(npc_index);
 
         if (npc->binding_unavailable == 0) {
             if (npc->event_pending != 0) {
@@ -2620,9 +2544,7 @@ void ReleaseMarkedNpcBindings(void)
                 ReleaseNpcCompanionMonster(companion);
             }
         }
-        count = g_npc_states->GetCount();
-        ++npc_index;
-    } while (npc_index < count);
+    }
 }
 
 /* The activation callback RebindNpcLevelTriggers installs on every NPC
@@ -2652,40 +2574,27 @@ bool NotifyNpcTriggerActivation(Trigger* trigger)
 // FUNCTION: WIZ8 0x0050ac60
 void RebindNpcLevelTriggers(void)
 {
-    unsigned int count = g_npc_states->GetCount();
-    unsigned int npc_index = 0;
+    unsigned int npc_index;
 
-    if (count != 0) {
-        do {
-            W8NpcState** slot = g_npc_states->data;
-            if (npc_index < count) {
-                slot += npc_index;
-            }
-            W8NpcState* npc = *slot;
+    for (npc_index = 0; npc_index < static_cast<unsigned int>(g_npc_states->GetCount());
+         ++npc_index) {
+        W8NpcState* npc = *g_npc_states->GetAt(npc_index);
 
-            if (npc->has_monster && (npc->record->merchant != 0 ||
-                                     (npc->record->voice_script != 0 && !npc->is_present))) {
-                npc->has_monster = false;
-                ReleaseNpcScriptFile(npc->script_file);
-                npc->script_file = 0;
-                if (npc->record->monster_bound != 0) {
-                    npc->binding_unavailable = 1;
-                }
+        if (npc->has_monster &&
+            (npc->record->merchant != 0 || (npc->record->voice_script != 0 && !npc->is_present))) {
+            npc->has_monster = false;
+            ReleaseNpcScriptFile(npc->script_file);
+            npc->script_file = 0;
+            if (npc->record->monster_bound != 0) {
+                npc->binding_unavailable = 1;
             }
-            count = g_npc_states->GetCount();
-            ++npc_index;
-        } while (npc_index < count);
+        }
     }
 
-    count = g_npc_states->GetCount();
-    for (npc_index = 0; npc_index < count; ++npc_index) {
-        W8NpcState** slot = g_npc_states->data;
+    for (npc_index = 0; npc_index < static_cast<unsigned int>(g_npc_states->GetCount());
+         ++npc_index) {
+        W8NpcState* npc = *g_npc_states->GetAt(npc_index);
         char trigger_name[40];
-
-        if (npc_index < count) {
-            slot += npc_index;
-        }
-        W8NpcState* npc = *slot;
 
         if (npc->record->merchant != 0 || npc->record->voice_script != 0) {
             sprintf(trigger_name, "_%S", npc->record->source_name);
@@ -2701,7 +2610,6 @@ void RebindNpcLevelTriggers(void)
                 npc->is_present = false;
             }
         }
-        count = g_npc_states->GetCount();
     }
 }
 

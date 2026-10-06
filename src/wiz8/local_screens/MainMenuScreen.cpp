@@ -7,6 +7,7 @@
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/fonts.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/Strings.h"
@@ -170,9 +171,12 @@ unsigned char MainMenuScreenEnter(void)
     g_main_menu_selected_item = 0;
     DrawCatalogImage(FRAME_BUFFER, 0xe8, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
 
-    for (int index = 0; index < 6; ++index) {
-        DrawMainMenuItem(index, 0);
-    }
+    DrawMainMenuItem(0, 0);
+    DrawMainMenuItem(1, 0);
+    DrawMainMenuItem(2, 0);
+    DrawMainMenuItem(3, 0);
+    DrawMainMenuItem(4, 0);
+    DrawMainMenuItem(5, 0);
     DrawMainMenuItem(g_main_menu_selected_item, 1);
 
     FormatVersionBanner(text, false, false, false);
@@ -442,8 +446,7 @@ unsigned char MainMenuOptions(const InputAtom* event, W8Region* region)
 {
     UpdateMainMenuItem(event, region, 4);
     if (event->usEvent == LEFT_BUTTON_UP && (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-        g_pending_screen_state.mode = 0;
-        SetPendingScreenState(W8_SCREEN_OPTIONS);
+        ClearScreenWait();
     }
     return event->usEvent == LEFT_BUTTON_DOWN || event->usEvent == LEFT_BUTTON_UP;
 }

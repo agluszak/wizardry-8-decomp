@@ -409,14 +409,9 @@ int W8OctBuildTree::CollectRecursive(W8OctSpatialState* state, const srVector3T<
         collected = CollectLeaf(state->m_root, state->m_depth, kind);
     } else if (verdict == 1) {
         short octant = 0;
-        int x = 0;
-        do {
-            int y = 0;
-            int y_count = 2;
-            do {
-                int z = 0;
-                int z_count = 2;
-                do {
+        for (int x = 0; x < 2; ++x) {
+            for (int y = 0; y < 2; ++y) {
+                for (int z = 0; z < 2; ++z, ++octant) {
                     W8OctBuildNode* node = state->m_root;
                     if (node->children[octant] != 0) {
                         child.m_minimum.x = x * child.m_extent + state->m_minimum.x;
@@ -428,15 +423,9 @@ int W8OctBuildTree::CollectRecursive(W8OctSpatialState* state, const srVector3T<
                         child.m_root = node->children[octant];
                         collected += CollectRecursive(&child, bounds, kind);
                     }
-                    ++octant;
-                    ++z;
-                    --z_count;
-                } while (z_count != 0);
-                ++y;
-                --y_count;
-            } while (y_count != 0);
-            ++x;
-        } while (octant < 8);
+                }
+            }
+        }
     }
     return collected;
 }

@@ -386,11 +386,8 @@ static void MtGigas2UmpaniAlarm(int command)
             g_master_functions->Add(MtGigas2UmpaniAlarm);
         }
     }
-    if (!g_mt_gigas_alarm_gate->IsFinished()) {
-        g_mt_gigas_alarm_gate->PollElapsedIntervals();
-        if (!g_mt_gigas_alarm_gate->IsFinished()) {
-            return;
-        }
+    if (!g_mt_gigas_alarm_gate->PollFinished()) {
+        return;
     }
     g_remove_current_master_function = true;
     g_mt_gigas_alarm_sound->Stop();

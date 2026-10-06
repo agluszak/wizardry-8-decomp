@@ -78,7 +78,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
       position(other.position), timer(other.timer.m_duration_seconds, 0), cycle(other.cycle),
       frame(other.frame), subcycle(other.subcycle), completion_callback(other.completion_callback)
 {
-    flags &= ~W8_SHAKE_ACTIVE;
+    flags.active = false;
 }
 
 /* The first effect built also builds the shared live list and its timer; every
@@ -88,7 +88,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
 // FUNCTION: WIZ8 0x004aded0
 W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float intensity,
                                          float distance_cap, const srVector3T<float>* position)
-    : flags(0), intensity(intensity), distance_cap(distance_cap), timer(duration, 0), cycle(0),
+    : flags(), intensity(intensity), distance_cap(distance_cap), timer(duration, 0), cycle(0),
       frame(0), subcycle(0), completion_callback(0)
 {
     if (g_shake_effects == 0) {
@@ -97,7 +97,9 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float inte
         g_shake_timer->Restart();
     }
     if (preset) {
-        flags |= (W8_SHAKE_LIMIT_DISTANCE | W8_SHAKE_QUADRATIC_FALLOFF | W8_SHAKE_FADE_OUT);
+        flags.limit_distance = true;
+        flags.quadratic_falloff = true;
+        flags.fade_out = true;
     }
     if (position != 0) {
         this->position = *position;
@@ -114,7 +116,8 @@ W8CameraShakeEffect* CreateCameraShakeEffect(float duration, bool preset, float 
     W8CameraShakeEffect* effect =
         new W8CameraShakeEffect(duration, preset, intensity, distance_cap, position);
 
-    effect->flags |= (W8_SHAKE_ACTIVE | W8_SHAKE_LIST_OWNS);
+    effect->flags.active = true;
+    effect->flags.list_owns = true;
     effect->timer.Restart();
     g_shake_effects->Add(effect);
     return effect;
@@ -133,11 +136,11 @@ void TriggerShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects, int cy
 
         if (effect->cycle == cycle && effect->frame == static_cast<int>(frame) &&
             effect->subcycle == subcycle) {
-            if ((effect->flags & W8_SHAKE_ACTIVE) == 0) {
+            if (!effect->flags.active) {
                 g_shake_effects->Add(effect);
             }
             effect->position = *position;
-            effect->flags |= W8_SHAKE_ACTIVE;
+            effect->flags.active = true;
             effect->timer.Restart();
         }
     }
@@ -154,13 +157,13 @@ void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
     for (index = 0; index < effects->GetCount(); ++index) {
         W8CameraShakeEffect* effect = *effects->GetAt(index);
 
-        if ((effect->flags & W8_SHAKE_ACTIVE) != 0) {
-            unsigned int flags;
+        if (effect->flags.active) {
+            W8CameraShakeEffect::Flags flags;
 
             g_shake_effects->Remove(effect);
             flags = effect->flags;
-            effect->flags = flags & ~W8_SHAKE_ACTIVE;
-            if ((flags & W8_SHAKE_LIST_OWNS) != 0 && effect != 0) {
+            effect->flags.active = false;
+            if (flags.list_owns && effect != 0) {
                 delete effect;
             }
         }
@@ -189,11 +192,11 @@ void UpdateShakeEffects()
             if (effect->Evaluate(&camera, &amount) == 0) {
                 g_shake_effects->RemoveAt(index);
                 --index;
-                effect->flags &= ~W8_SHAKE_ACTIVE;
+                effect->flags.active = false;
                 if (effect->completion_callback != 0) {
                     effect->completion_callback();
                 }
-                if ((effect->flags & W8_SHAKE_LIST_OWNS) != 0 && effect != 0) {
+                if (effect->flags.list_owns && effect != 0) {
                     delete effect;
                 }
             } else {
@@ -223,14 +226,14 @@ unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, f
     if (g_float_one <= progress) {
         return 0;
     }
-    if ((flags & W8_SHAKE_LIMIT_DISTANCE) != 0) {
+    if (flags.limit_distance) {
         float dx = this->position.x - position->x;
         float dy = this->position.y - position->y;
         float dz = this->position.z - position->z;
         float distance = sqrtf(dx * dx + dy * dy + dz * dz);
         if (distance_cap < distance) {
             *out_amount = 0.0f;
-        } else if ((flags & W8_SHAKE_QUADRATIC_FALLOFF) != 0) {
+        } else if (flags.quadratic_falloff) {
             float weight = distance / distance_cap - g_float_one;
             *out_amount = weight * weight;
         } else {
@@ -239,11 +242,11 @@ unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, f
     } else {
         *out_amount = 1.0f;
     }
-    if ((flags & W8_SHAKE_FADE_OUT) != 0) {
+    if (flags.fade_out) {
         *out_amount = (g_float_one - progress) * *out_amount;
         return 1;
     }
-    if ((flags & W8_SHAKE_FADE_IN) != 0) {
+    if (flags.fade_in) {
         *out_amount = progress * *out_amount;
     }
     return 1;

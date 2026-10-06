@@ -238,7 +238,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
-                        for (drain = 6; drain != 0; --drain) {
+                        for (drain = 0; drain < 6; ++drain) {
                             DrainCharacterRealmSpellPoints(
                                 iChar, g_special_attack_realm_table[special_attack_kind], uiDamage,
                                 true);
@@ -408,10 +408,9 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     case 1:
                         text = FormatWideString(
                             L"%ld %s", uiHits[i],
-                            gppStringList
-                                [g_condition_notices
-                                     [g_special_attack_condition_table[special_attack_kind][i] * 4 +
-                                      2]],
+                            gppStringList[g_condition_notices[g_special_attack_condition_table
+                                                                  [special_attack_kind][i]]
+                                              .plural],
                             -1);
                         break;
                     case 2:

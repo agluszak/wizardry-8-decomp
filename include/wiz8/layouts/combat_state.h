@@ -61,8 +61,8 @@ struct W8PartySlotRow {
     unsigned char item_origin;
     unsigned short item_slot;
     /* 0x0d0: the non-melee W8_ACTION_* code ChooseAction stored for the slot,
-       0xff when none; the action-key paths dispatch on it as "iActionState". */
-    unsigned char queued_action;
+       -1 when none; the action-key paths sign-extend it as "iActionState". */
+    signed char queued_action;
     /* 0x0d1: context-five breath target (0x00501880); recovered role name. */
     W8CombatSlot breath_target;
     /* 0x0f1: the slot's place in the marching order, the index of its entry

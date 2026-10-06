@@ -22,14 +22,17 @@ struct W8LevelFileScaledPathNode;
    constructs it at 0x004B6E00, and owns it at Prop+0x38. Assertions in the
    same-object method at 0x004B6F30 retain the original m_pGDSurfaces and
    m_pVertices member names and establish their offsets. */
-enum {
-    W8_GD_PROP_ALWAYS_BLOCKS_PATH = 0x01u,
-    W8_GD_PROP_DOOR = 0x02u,
-    W8_GD_PROP_UNATTACHED = 0x04u,
-    W8_GD_PROP_DOOR_USABLE = 0x08u
-};
-
 class GDProp {
+    struct Flags {
+        bool always_blocks_path : 1;
+        bool door : 1;
+        bool unattached : 1;
+        bool door_usable : 1;
+        unsigned char reserved : 4;
+        unsigned char reserved_byte;
+    };
+    static_assert(sizeof(Flags) == 2, "GDProp_flags_size");
+
     friend class W8Prop;
     friend class W8PathingService;
     /* W8Octree's AABB occupancy test and W8GameData's prop-surface trace read
@@ -48,7 +51,7 @@ public:
        inlined inside the derived ctor at 0x004B7BC0. */
     GDProp()
     {
-        m_flags = 0;
+        m_flags = Flags();
         m_prop_number = 0;
         m_vertex_count = 0;
         m_surface_count = 0;
@@ -97,7 +100,7 @@ private:
        channel by ApplyAnimFrame. */
     void TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8LevelFileMesh* mesh);
 
-    unsigned short m_flags;               /* 0x00 */
+    Flags m_flags;                        /* 0x00 */
     unsigned short m_prop_number;         /* 0x02 */
     unsigned int m_path_handle;           /* 0x04 */
     unsigned short m_path_edge_count;     /* 0x08 */

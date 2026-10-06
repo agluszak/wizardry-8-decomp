@@ -381,7 +381,7 @@ bool MartensBluff2DoorControls(Trigger* pTrigger)
         if (action == 0 || action->type != W8_TRIGGER_PAYLOAD_DOOR) {
             action = 0;
         }
-        if ((static_cast<W8DoorTriggerActionData*>(action)->door_flags & W8_DOOR_OPEN) != 0) {
+        if (static_cast<W8DoorTriggerActionData*>(action)->open) {
             pDoor->Run(-1);
         }
         pDoor = FindTriggerByName("SquisherDoor1");
@@ -389,7 +389,7 @@ bool MartensBluff2DoorControls(Trigger* pTrigger)
         if (action == 0 || action->type != W8_TRIGGER_PAYLOAD_DOOR) {
             action = 0;
         }
-        if ((static_cast<W8DoorTriggerActionData*>(action)->door_flags & W8_DOOR_OPEN) != 0) {
+        if (static_cast<W8DoorTriggerActionData*>(action)->open) {
             pDoor->Run(-1);
         }
     }
@@ -640,11 +640,8 @@ void MartensBluff2IdolGas(int command)
         ResolveSurpriseWake();
         return;
     }
-    if (!g_idol_gas_gate->IsFinished()) {
-        g_idol_gas_gate->PollElapsedIntervals();
-        if (!g_idol_gas_gate->IsFinished()) {
-            return;
-        }
+    if (!g_idol_gas_gate->PollFinished()) {
+        return;
     }
     g_idol_gas_gate->Arm();
     g_idol_gas_armed = false;

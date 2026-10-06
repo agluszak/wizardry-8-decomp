@@ -373,27 +373,22 @@ void DrawWorldBox(W8World* world, srVector3T<float> minimum, srVector3T<float> m
     float viewport_height = viewport_maximum.y - viewport_minimum.y;
 
     long screen[8][2];
-    int index = 0;
-    const srVector3T<float>* corner = corners;
-    long (*pixel)[2] = screen;
-    do {
+    for (int index = 0; index < 8; ++index) {
         srVector3T<float> projected;
-        srVector3T<double> position(corner->x, corner->y, corner->z);
+        srVector3T<double> position(corners[index].x, corners[index].y, corners[index].z);
         if (world->camera->project(projected, position) ==
             static_cast<srCamera::e_projectionResult>(-1)) {
             return;
         }
-        (*pixel)[0] =
+        screen[index][0] =
             static_cast<long>((projected.x * viewport_width + viewport_minimum.x) * 640.0f);
-        (*pixel)[1] =
+        screen[index][1] =
             static_cast<long>((projected.y * viewport_height + viewport_minimum.y) * 480.0f);
-        if ((*pixel)[0] < 0 || (*pixel)[0] > 640 || (*pixel)[1] < 0 || (*pixel)[1] > 480) {
+        if (screen[index][0] < 0 || screen[index][0] > 640 || screen[index][1] < 0 ||
+            screen[index][1] > 480) {
             return;
         }
-        ++index;
-        ++corner;
-        ++pixel;
-    } while (index < 8);
+    }
 
     DrawBufferLine(screen[0][0], screen[0][1], screen[1][0], screen[1][1], &color);
     DrawBufferLine(screen[1][0], screen[1][1], screen[2][0], screen[2][1], &color);
@@ -875,7 +870,7 @@ bool SelectWorldCursorNode(void)
         camera_location.SetFromFloat(&camera_position);
         int selected = g_cursor_node_index;
         if (selected >= 0 && selected < g_world_cursor_nodes.GetCount()) {
-            W8WorldCursorNode* entry = g_world_cursor_nodes.data[selected];
+            W8WorldCursorNode* entry = g_world_cursor_nodes[selected];
             srVector3T<double> target = entry->node->getLocation();
 
             if (entry != 0) {
@@ -889,7 +884,7 @@ bool SelectWorldCursorNode(void)
         }
         int count = g_world_cursor_nodes.GetCount();
         for (int index = 0; index < count; ++index) {
-            W8WorldCursorNode* entry = g_world_cursor_nodes.data[index];
+            W8WorldCursorNode* entry = g_world_cursor_nodes[index];
             srVector3T<double> target = entry->node->getLocation();
 
             if (entry != 0) {
@@ -913,7 +908,7 @@ bool SelectWorldCursorNode(void)
 void ReleaseWorldCursorNodes(void)
 {
     while (g_world_cursor_nodes.GetCount() != 0) {
-        W8WorldCursorNode* entry = g_world_cursor_nodes.data[0];
+        W8WorldCursorNode* entry = g_world_cursor_nodes[0];
 
         DestroyWorldCursorCube(entry);
     }

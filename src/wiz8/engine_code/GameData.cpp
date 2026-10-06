@@ -122,14 +122,13 @@ bool g_shared_timers_paused;
 // FUNCTION: WIZ8 0x004214d0
 unsigned char LoadSurfaceVertices(srVector3T<float>* output, const int* vertex_indices)
 {
-    short index = 0;
-    do {
+    short index;
+    for (index = 0; index < 3; ++index) {
         if (g_octree_game_data->m_iNumVertices < vertex_indices[index]) {
             return 0;
         }
         output[index] = g_octree_game_data->m_pVertices[vertex_indices[index]];
-        ++index;
-    } while (index < 3);
+    }
     return 1;
 }
 
@@ -179,7 +178,7 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
 {
     float pitch_input;
     float yaw_input;
-    unsigned short timer_flags;
+    W8GameTimer::Flags timer_flags;
     unsigned int level_flags;
     W8LevelDataRecord* level;
     W8EnvironRecord* environ_record;
@@ -194,16 +193,16 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
     }
 
     timer_flags = g_game_time_accumulator->m_flags;
-    if ((timer_flags & W8_TIMER_PAUSED) != 0) {
+    if (timer_flags.paused) {
         return;
     }
-    if (g_shared_timer_paused && (timer_flags & W8_TIMER_RAW_TIME) == 0) {
+    if (g_shared_timer_paused && !timer_flags.raw_time) {
         return;
     }
     if (g_shared_timer_flag0) {
         return;
     }
-    if ((timer_flags & W8_TIMER_SLOW_SCALE) != 0) {
+    if (timer_flags.slow_scale) {
         return;
     }
 
@@ -295,7 +294,7 @@ srVector3T<float> g_world_origin;
 unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float>* position,
                                             srVector3T<float>* delta, srMatrix3T<float>* saved)
 {
-    unsigned short timer_flags;
+    W8GameTimer::Flags timer_flags;
     unsigned int level_flags;
     W8LevelDataRecord* level;
     float forward_scale;
@@ -318,12 +317,12 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
     }
 
     timer_flags = g_game_time_accumulator->m_flags;
-    if ((timer_flags & W8_TIMER_PAUSED) != 0 ||
-        (g_shared_timer_paused && (timer_flags & W8_TIMER_RAW_TIME) == 0) || g_shared_timer_flag0) {
+    if (timer_flags.paused || (g_shared_timer_paused && !timer_flags.raw_time) ||
+        g_shared_timer_flag0) {
         if (!g_level_motion_resume_pending) {
             return 0;
         }
-        if ((timer_flags & W8_TIMER_RAW_TIME) != 0) {
+        if (timer_flags.raw_time) {
             return 0;
         }
         g_level_motion_resume_pending = false;
@@ -337,7 +336,7 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
     if ((((level_flags & W8_LEVEL_FLAG_MOVEMENT_STOPPED) != 0 &&
           (level_flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) != 0) &&
          ((level_flags & W8_LEVEL_FLAG_PROP_CONTACT) == 0 && !g_animated_prop_present)) ||
-        (g_game_time_accumulator->m_flags & W8_TIMER_SLOW_SCALE) != 0) {
+        g_game_time_accumulator->m_flags.slow_scale) {
         return 0;
     }
 
@@ -1179,7 +1178,7 @@ bool W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, cha
     m_pSurfaces = gd_prop->m_pGDSurfaces;
     m_pVertices = gd_prop->m_pVertices;
     if (g_oct_pre_tree == 0) {
-        if (gate == 0 || (gd_prop->m_flags & W8_GD_PROP_UNATTACHED) == 0) {
+        if (gate == 0 || !gd_prop->m_flags.unattached) {
             srVector3T<float> start = trace->start;
             srVector3T<float> end = trace->end;
             srVector3T<float> delta;

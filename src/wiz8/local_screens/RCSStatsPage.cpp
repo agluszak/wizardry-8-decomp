@@ -573,7 +573,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
                                   g_font_state_palettes[W8_FONT_PALETTE_GREEN]);
         gprintf(0x15e, line * 0xe + 0xbf, Wiz8ToSgpWideText(g_format_s_space_s),
-                gppStringList[0x8d1], gppStringList[g_condition_notices[entry->index * 4]]);
+                gppStringList[0x8d1], gppStringList[g_condition_notices[entry->index].name]);
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
         int next = line + 1;
         if (entry->turns == W8_CONDITION_INDEFINITE) {
@@ -597,7 +597,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
                                   g_font_state_palettes[W8_FONT_PALETTE_GREEN]);
         gprintf(0x15e, line * 0xe + 0xbf, L"%s %s (%d)", gppStringList[0x8d4],
-                gppStringList[g_condition_notices[entry->index + 100]], entry->enchantment);
+                gppStringList[g_enchantment_notices[entry->index]], entry->enchantment);
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
         gprintf(0x15e, (line + 1) * 0xe + 0xbf, Wiz8ToSgpWideText(g_format_d_s), entry->turns,
                 gppStringList[0x8d3]);
@@ -1364,7 +1364,7 @@ void W8CharacterSkillsPage::Accept()
     m_dirty = true;
     m_screen->UpdateNavigation(this);
     for (int index = 0; index < m_entries.GetCount(); ++index) {
-        m_entries.data[index]->UpdateButtons();
+        m_entries[index]->UpdateButtons();
     }
 }
 
@@ -1375,7 +1375,7 @@ void W8CharacterSkillsPage::GetNavigationState(bool* next_enabled, bool* exit_en
     *exit_enabled = m_creation_state->skill_points_remaining < m_creation_state->skill_points_total;
     if (*next_enabled != nav_next_state) {
         for (int index = 0; index < m_entries.GetCount(); ++index) {
-            m_entries.data[index]->SetIncrementAllowed(!*next_enabled);
+            m_entries[index]->SetIncrementAllowed(!*next_enabled);
         }
         nav_next_state = *next_enabled;
     }
@@ -1468,7 +1468,7 @@ void W8CharacterSkillsPage::UpdateEntries()
 {
     int index;
     for (index = 0; index < 0x29; ++index) {
-        m_entries.data[index]->SetEnabled(false);
+        m_entries[index]->SetEnabled(false);
     }
 
     int category_count[5] = {0, 0, 0, 0, 0};
@@ -1485,7 +1485,7 @@ void W8CharacterSkillsPage::UpdateEntries()
                     break;
                 }
             }
-            W8CharacterPageEntry* entry = m_entries.data[entry_index];
+            W8CharacterPageEntry* entry = m_entries[entry_index];
             ++category_count[category];
             if (category == 4)
                 m_show_fifth_category = true;

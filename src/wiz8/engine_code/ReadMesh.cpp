@@ -587,7 +587,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
                 vertex_shades[type][vertex] = vertex;
                 ++vertex_counts[type];
                 for (int mapped = 0; mapped < mapped_values->GetCount(); ++mapped) {
-                    if (mapped_values->data[mapped] == original_vertex) {
+                    if ((*mapped_values)[mapped] == original_vertex) {
                         mapped_vertices.SetAt(mapped, static_cast<short>(vertex));
                         mapped_meshes.SetAt(mapped, static_cast<short>(type));
                         break;
@@ -642,9 +642,9 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
         }
 
         for (int mapped = 0; mapped < mapped_meshes.GetCount(); ++mapped) {
-            if (mapped_meshes.data[mapped] == type) {
+            if (mapped_meshes[mapped] == type) {
                 for (int entry = 0; entry < mapped_values->GetCount(); ++entry) {
-                    model->SetMappedVertex(mapped_vertices.data[entry], mapped_keys->data[entry]);
+                    model->SetMappedVertex(mapped_vertices[entry], (*mapped_keys)[entry]);
                 }
                 break;
             }
@@ -1180,11 +1180,17 @@ void ClearMaterialRecordPadding(W8MaterialRecord* material)
     if (material == 0) {
         return;
     }
+    /* Retail expands the four tail clears straight-line; VC6 does not unroll
+       a counted loop, so these are four authored statements. */
     memset(material->texture_name, 0, sizeof(material->texture_name));
-    for (int index = 0; index < 4; ++index) {
-        char* name = material->texture_names[index];
-        memset(name + strlen(name), 0, sizeof(material->texture_names[index]) - strlen(name));
-    }
+    memset(material->texture_names[0] + strlen(material->texture_names[0]), 0,
+           sizeof(material->texture_names[0]) - strlen(material->texture_names[0]));
+    memset(material->texture_names[1] + strlen(material->texture_names[1]), 0,
+           sizeof(material->texture_names[1]) - strlen(material->texture_names[1]));
+    memset(material->texture_names[2] + strlen(material->texture_names[2]), 0,
+           sizeof(material->texture_names[2]) - strlen(material->texture_names[2]));
+    memset(material->texture_names[3] + strlen(material->texture_names[3]), 0,
+           sizeof(material->texture_names[3]) - strlen(material->texture_names[3]));
 }
 
 // FUNCTION: WIZ8 0x004881d0

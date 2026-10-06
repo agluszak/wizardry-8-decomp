@@ -144,11 +144,6 @@ void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float
 // FUNCTION: WIZ8 0x00476140
 GDCamera::GDCamera()
 {
-    srMatrix3T<float>* first_matrix = &m_pitch_rotation;
-    srMatrix3T<float>* second_matrix = &m_yaw_rotation;
-    float pitch;
-    float angle;
-
     m_orientation_flags = 0;
     m_target_yaw = 0.0f;
     m_target_pitch = 0.0f;
@@ -156,35 +151,8 @@ GDCamera::GDCamera()
     m_position.y = g_default_world_height;
     m_transition_active = false;
 
-    pitch = 0.0f;
-    if (pitch > g_camera_pitch_upper) {
-        pitch = g_camera_pitch_upper;
-    }
-    if (pitch < g_camera_pitch_lower) {
-        pitch = g_camera_pitch_lower;
-    }
-    m_pitch = pitch;
-
-    first_matrix->SetIdentity();
-    if (pitch != g_double_zero) {
-        first_matrix->RotateAboutX(sin(pitch), cos(pitch));
-    }
-    MarkRendererReady();
-
-    angle = g_float_zero;
-    while (angle > g_camera_angle_period0) {
-        angle -= g_camera_angle_period0;
-    }
-    while (angle < g_camera_angle_lower) {
-        angle += g_camera_angle_period0;
-    }
-    m_yaw = angle;
-
-    second_matrix->SetIdentity();
-    if (angle != g_double_zero) {
-        second_matrix->RotateAboutY(sin(angle), cos(angle));
-    }
-    MarkRendererReady();
+    SetPitch(0.0f);
+    SetYaw(g_float_zero);
 
     m_frame_elapsed = 0.0f;
     m_transition_active = false;
@@ -200,7 +168,7 @@ GDCamera::GDCamera()
     m_transition_duration = 0.0f;
     m_manual_input_timer = new W8IntervalGate(1.0f, false, true);
 
-    m_rotation = *second_matrix;
+    m_rotation = m_yaw_rotation;
     m_rotation.MultiplyBy(m_pitch_rotation);
 }
 
@@ -298,11 +266,7 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
         if ((m_orientation_flags & W8_CAMERA_MANUAL_INPUT) != 0) {
             return;
         }
-        W8IntervalGate* timer = m_manual_input_timer;
-        if (!timer->IsFinished()) {
-            timer->PollElapsedIntervals();
-        }
-        if (!timer->IsFinished()) {
+        if (!m_manual_input_timer->PollFinished()) {
             return;
         }
     }
@@ -346,11 +310,7 @@ void GDCamera::SetOrientationImmediate(float pitch, float angle)
         if ((m_orientation_flags & W8_CAMERA_MANUAL_INPUT) != 0) {
             return;
         }
-        W8IntervalGate* timer = m_manual_input_timer;
-        if (!timer->IsFinished()) {
-            timer->PollElapsedIntervals();
-        }
-        if (!timer->IsFinished()) {
+        if (!m_manual_input_timer->PollFinished()) {
             return;
         }
     }
@@ -372,11 +332,7 @@ unsigned char GDCamera::LookAt(const srVector3T<float>* target, bool preserve_pi
         if ((m_orientation_flags & W8_CAMERA_MANUAL_INPUT) != 0) {
             return 0;
         }
-        W8IntervalGate* timer = m_manual_input_timer;
-        if (!timer->IsFinished()) {
-            timer->PollElapsedIntervals();
-        }
-        if (!timer->IsFinished()) {
+        if (!m_manual_input_timer->PollFinished()) {
             return 0;
         }
     }
@@ -481,11 +437,7 @@ unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float tar
         if ((m_orientation_flags & W8_CAMERA_MANUAL_INPUT) != 0) {
             return 0;
         }
-        W8IntervalGate* timer = m_manual_input_timer;
-        if (!timer->IsFinished()) {
-            timer->PollElapsedIntervals();
-        }
-        if (!timer->IsFinished()) {
+        if (!m_manual_input_timer->PollFinished()) {
             return 0;
         }
     }
@@ -792,42 +744,6 @@ void GDCamera::BrakePitchAtLimit()
             ~(W8_CAMERA_BRAKING_PITCH | W8_CAMERA_PITCH_UPPER_LIMIT | W8_CAMERA_PITCH_LOWER_LIMIT);
     }
     SetPitch(m_pitch);
-}
-
-// FUNCTION: WIZ8 0x004784C0
-void GDCamera::SetPitch(float pitch)
-{
-    if (pitch > g_camera_pitch_upper) {
-        pitch = g_camera_pitch_upper;
-    }
-    if (pitch < g_camera_pitch_lower) {
-        pitch = g_camera_pitch_lower;
-    }
-    m_pitch = pitch;
-
-    m_pitch_rotation.SetIdentity();
-    if (pitch != g_double_zero) {
-        m_pitch_rotation.RotateAboutX(sin(pitch), cos(pitch));
-    }
-    MarkRendererReady();
-}
-
-// FUNCTION: WIZ8 0x00478720
-void GDCamera::SetYaw(float angle)
-{
-    while (angle > g_camera_angle_period0) {
-        angle -= g_camera_angle_period0;
-    }
-    while (angle < g_camera_angle_lower) {
-        angle += g_camera_angle_period0;
-    }
-    m_yaw = angle;
-
-    m_yaw_rotation.SetIdentity();
-    if (angle != g_double_zero) {
-        m_yaw_rotation.RotateAboutY(sin(angle), cos(angle));
-    }
-    MarkRendererReady();
 }
 
 // FUNCTION: WIZ8 0x004788E0

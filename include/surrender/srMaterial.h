@@ -35,7 +35,7 @@ public:
     };
 
     // FUNCTION: SURRENDER 0x10034700 SYMBOL
-    // ??0srMaterial@@QAE@XZ
+    // RECOMP: ??0srMaterial@@QAE@XZ
     inline srMaterial()
     {
         reset();
@@ -74,32 +74,32 @@ public:
     float getTranslucency() const;
     int isEnabled(e_oper operation) const;
     // FUNCTION: SURRENDER 0x10034930 SYMBOL
-    // ?setAmbient@srMaterial@@QAEXABV?$srVector4T@M@@@Z
+    // RECOMP: ?setAmbient@srMaterial@@QAEXABV?$srVector4T@M@@@Z
     void setAmbient(const srVector4T<float>& ambient)
     {
         setVector(parms.ambient, ambient);
     }
     void setAmbientAndDiffuse(const srVector4T<float>& color);
     // FUNCTION: SURRENDER 0x10034960 SYMBOL
-    // ?setDiffuse@srMaterial@@QAEXABV?$srVector4T@M@@@Z
+    // RECOMP: ?setDiffuse@srMaterial@@QAEXABV?$srVector4T@M@@@Z
     inline void setDiffuse(const srVector4T<float>& diffuse)
     {
         setVector(parms.diffuse, diffuse);
     }
     // FUNCTION: SURRENDER 0x10034990 SYMBOL
-    // ?setEmissive@srMaterial@@QAEXABV?$srVector4T@M@@@Z
+    // RECOMP: ?setEmissive@srMaterial@@QAEXABV?$srVector4T@M@@@Z
     inline void setEmissive(const srVector4T<float>& emissive)
     {
         setVector(parms.emissive, emissive);
     }
     // FUNCTION: SURRENDER 0x10034B40 SYMBOL
-    // ?setMapper@srMaterial@@QAEXPAVsrVertexProcessor@@@Z
+    // RECOMP: ?setMapper@srMaterial@@QAEXPAVsrVertexProcessor@@@Z
     inline void setMapper(srVertexProcessor* mapper)
     {
         this->mapper = mapper;
     }
     // FUNCTION: SURRENDER 0x10034A80 SYMBOL
-    // ?setOpacity@srMaterial@@QAEXN@Z
+    // RECOMP: ?setOpacity@srMaterial@@QAEXN@Z
     inline void setOpacity(double opacity)
     {
         parms.diffuse.w = static_cast<float>(opacity);
@@ -107,7 +107,7 @@ public:
     }
     void setShininess(double shininess);
     // FUNCTION: SURRENDER 0x100349C0 SYMBOL
-    // ?setSpecular@srMaterial@@QAEXABV?$srVector4T@M@@@Z
+    // RECOMP: ?setSpecular@srMaterial@@QAEXABV?$srVector4T@M@@@Z
     inline void setSpecular(const srVector4T<float>& specular)
     {
         setVector(parms.specular, specular);

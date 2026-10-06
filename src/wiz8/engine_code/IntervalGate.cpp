@@ -24,7 +24,7 @@ W8IntervalGate::W8IntervalGate(float duration, bool raw_time, bool one_shot)
     : W8GameTimer(duration, raw_time), m_finished(0)
 {
     if (one_shot) {
-        m_flags |= ONE_SHOT;
+        m_flags.one_shot = true;
     }
 }
 
@@ -45,7 +45,7 @@ unsigned int W8IntervalGate::PollElapsedIntervals()
     unsigned int intervals = static_cast<unsigned int>(ReadClock() - m_start) /
                              static_cast<unsigned int>(m_end - m_start);
     if (static_cast<int>(intervals) > 0) {
-        if ((m_flags & ONE_SHOT) != 0) {
+        if (m_flags.one_shot) {
             m_finished = true;
             return intervals;
         }
@@ -58,7 +58,7 @@ unsigned int W8IntervalGate::PollElapsedIntervals()
 // FUNCTION: WIZ8 0x0043a690
 BOOLEAN W8IntervalGate::Load(int handle)
 {
-    if ((m_flags & ONE_SHOT) == 0) {
+    if (!m_flags.one_shot) {
         return W8GameTimer::Load(handle);
     }
     BOOLEAN loaded = FileRead(handle, &m_duration_seconds, sizeof(m_duration_seconds), 0);
@@ -74,7 +74,7 @@ BOOLEAN W8IntervalGate::Load(int handle)
 BOOLEAN W8IntervalGate::Save(int handle)
 {
     float elapsed;
-    if ((m_flags & ONE_SHOT) == 0) {
+    if (!m_flags.one_shot) {
         int sample = ReadClock();
         float progress = static_cast<unsigned int>(sample - m_start) /
                          static_cast<float>(static_cast<unsigned int>(m_end - m_start));

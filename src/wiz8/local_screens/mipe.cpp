@@ -342,8 +342,7 @@ void ShowMipeTableRows(W8PList* list)
     unsigned int palette;
 
     if (list != 0) {
-        row = 0;
-        do {
+        for (row = 0; row < 6; ++row) {
             entry = PLGet(list, g_mipe_table_base + row);
             if (entry == 0) {
                 ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, &g_empty_wide_string);
@@ -351,8 +350,7 @@ void ShowMipeTableRows(W8PList* list)
                 palette = row == g_mipe_table_row ? 3 : 0xf;
                 ShowNoticef(palette, L"    %s", entry);
             }
-            ++row;
-        } while (row < 6);
+        }
     }
 }
 
@@ -1006,21 +1004,18 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
             item_index = 0;
         }
         GetWorldCursorAnchor(&anchor);
-        spawned_index = 0;
-        if (g_mipe_count != 0) {
-            do {
-                int flags = W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE;
-                if (g_mipe_item_hidden) {
-                    flags = W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE |
-                            W8_ITEM_ENTITY_HIGHLIGHT_BLUE;
-                }
-                spawned = SpawnItem(item_index & 0xffff, &anchor, flags, true);
-                if (g_mipe_item_hidden) {
-                    SetItemFlags(spawned, W8_WORLD_ITEM_HIDDEN, true);
-                    RegisterSearchableWorldItem(spawned);
-                }
-                ++spawned_index;
-            } while (spawned_index < static_cast<unsigned int>(g_mipe_count));
+        for (spawned_index = 0; spawned_index < static_cast<unsigned int>(g_mipe_count);
+             ++spawned_index) {
+            int flags = W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE;
+            if (g_mipe_item_hidden) {
+                flags =
+                    W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE | W8_ITEM_ENTITY_HIGHLIGHT_BLUE;
+            }
+            spawned = SpawnItem(item_index & 0xffff, &anchor, flags, true);
+            if (g_mipe_item_hidden) {
+                SetItemFlags(spawned, W8_WORLD_ITEM_HIDDEN, true);
+                RegisterSearchableWorldItem(spawned);
+            }
         }
         return 1;
     default:
@@ -1058,8 +1053,7 @@ void HandleMipeMonsterCategoryKey(unsigned short key)
         if (g_mipe_state->creation_method != 1) {
             if (g_mipe_state->creation_method == 2) {
                 LoadMonsterDatabaseRecord(static_cast<int>(record.record_id), &selected);
-                g_mipe_count = selected.group_size_dice.sides * selected.group_size_dice.count +
-                               static_cast<int>(selected.group_size_dice.base);
+                g_mipe_count = selected.group_size_dice.Maximum();
             }
             ShowMipeMonsterStatus();
             g_mipe_mode = 1;
@@ -1361,7 +1355,6 @@ void HandleMipePropEditKey(unsigned short key)
     Trigger* trigger;
     W8ItemTableRecord* table;
     int index;
-    int found;
     int count;
     int table_index;
 
@@ -1421,18 +1414,12 @@ void HandleMipePropEditKey(unsigned short key)
                             }
                         }
                     }
-                    index = 0;
-                    found = static_cast<int>(PLLength(g_mipe_category_list));
-                    if (0 < found) {
-                        do {
-                            table =
-                                static_cast<W8ItemTableRecord*>(PLGet(g_mipe_category_list, index));
-                            if (table == g_item_tables[table_index]) {
-                                break;
-                            }
-                            ++index;
-                            found = static_cast<int>(PLLength(g_mipe_category_list));
-                        } while (index < found);
+                    for (index = 0; index < static_cast<int>(PLLength(g_mipe_category_list));
+                         ++index) {
+                        table = static_cast<W8ItemTableRecord*>(PLGet(g_mipe_category_list, index));
+                        if (table == g_item_tables[table_index]) {
+                            break;
+                        }
                     }
                     g_mipe_table_base = (index / 6) * 6;
                     g_mipe_table_row = index % 6;
@@ -1724,18 +1711,12 @@ static int HandleMonsterGeneratorKey(unsigned short key)
         sprintf(name, "MonGen%3.3d", gXStatus.saved_encounter_budget++);
         generator->SetName(name);
         AddMonsterGenerator(generator);
-        index = 0;
-        count = GetMonsterGeneratorCount();
-        if (0 < count) {
-            do {
-                other = GetMonsterGenerator(index);
-                if (other->marker_item != 0) {
-                    static_cast<W8ItemRep*>(other->marker_item->m_pRep)->SetFlags(0x10, false);
-                    other->marker_item->SetHighlight(false);
-                }
-                ++index;
-                count = GetMonsterGeneratorCount();
-            } while (index < count);
+        for (index = 0; index < GetMonsterGeneratorCount(); ++index) {
+            other = GetMonsterGenerator(index);
+            if (other->marker_item != 0) {
+                static_cast<W8ItemRep*>(other->marker_item->m_pRep)->SetFlags(0x10, false);
+                other->marker_item->SetHighlight(false);
+            }
         }
         g_mipe_state->generator = generator;
         if (generator->marker_item != 0) {
@@ -1787,15 +1768,11 @@ static void RebuildMipeEncounterCategory(W8PList* list)
 {
     PListClear(list);
     int count = g_encounter_tables.GetCount();
-    int index = 0;
-    if (0 < g_encounter_tables.GetCount()) {
-        do {
-            W8EncounterTableRuntime* entry = GetEncounterTable(index);
-            if (entry->category == static_cast<unsigned int>(g_mipe_category)) {
-                PLAdoptAppend(list, entry);
-            }
-            ++index;
-        } while (index < count);
+    for (int index = 0; index < count; ++index) {
+        W8EncounterTableRuntime* entry = GetEncounterTable(index);
+        if (entry->category == static_cast<unsigned int>(g_mipe_category)) {
+            PLAdoptAppend(list, entry);
+        }
     }
 }
 
@@ -1858,8 +1835,7 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
         if (g_mipe_category_list == 0) {
             return 1;
         }
-        slot = 0;
-        do {
+        for (slot = 0; slot < 6; ++slot) {
             entry = static_cast<W8EncounterTableRuntime*>(
                 PLGet(g_mipe_category_list, g_mipe_table_base + slot));
             if (entry == 0) {
@@ -1867,8 +1843,7 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
             } else {
                 ShowNoticef(slot == g_mipe_table_row ? 3 : 0xf, L"    %S", entry->name);
             }
-            ++slot;
-        } while (slot < 6);
+        }
         return 1;
     case 0x33:
         g_mipe_state->generator->generation_enabled =
@@ -2011,15 +1986,11 @@ void HandleMipeGeneratorTableKey(unsigned short key)
             if (g_mipe_category_list != 0) {
                 PListClear(g_mipe_category_list);
                 count = g_encounter_tables.GetCount();
-                index = 0;
-                if (0 < g_encounter_tables.GetCount()) {
-                    do {
-                        entry = GetEncounterTable(index);
-                        if (entry->category == static_cast<unsigned int>(category)) {
-                            PLAdoptAppend(list, entry);
-                        }
-                        ++index;
-                    } while (index < count);
+                for (index = 0; index < count; ++index) {
+                    entry = GetEncounterTable(index);
+                    if (entry->category == static_cast<unsigned int>(category)) {
+                        PLAdoptAppend(list, entry);
+                    }
                 }
             }
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
@@ -2112,9 +2083,7 @@ void HandleMipeLockTrapKey(unsigned short key)
             } else {
                 pending = true;
             }
-            static_cast<W8DoorTriggerActionData*>(action)->door_flags =
-                (pending << 2) |
-                (static_cast<W8DoorTriggerActionData*>(action)->door_flags & ~W8_DOOR_KEY_REQUIRED);
+            static_cast<W8DoorTriggerActionData*>(action)->locked = pending;
             static_cast<W8DoorTriggerActionData*>(action)->item =
                 static_cast<short>(trigger->lock_state.key_id);
         }
@@ -2189,9 +2158,7 @@ void EditTriggerKeyID(unsigned int key)
         } else {
             pending = true;
         }
-        static_cast<W8DoorTriggerActionData*>(action)->door_flags =
-            (pending << 2) |
-            (static_cast<W8DoorTriggerActionData*>(action)->door_flags & ~W8_DOOR_KEY_REQUIRED);
+        static_cast<W8DoorTriggerActionData*>(action)->locked = pending;
         static_cast<W8DoorTriggerActionData*>(action)->item =
             static_cast<short>(trigger->lock_state.key_id);
     }
@@ -2814,24 +2781,16 @@ bool IsMipeMenuActive(void)
 // FUNCTION: WIZ8 0x0057dbd0
 int FindCategoryItemTable(unsigned int category, int ordinal)
 {
-    int found;
+    int found = 0;
     int index;
-    W8ItemTableRecord** tables;
 
-    found = 0;
-    index = 0;
-    if (0 < static_cast<int>(gXStatus.uiItemTablesInDatabase)) {
-        tables = g_item_tables;
-        do {
-            if (tables[0]->category_id == (category & 0xff)) {
-                if (found == ordinal) {
-                    return index;
-                }
-                ++found;
+    for (index = 0; index < static_cast<int>(gXStatus.uiItemTablesInDatabase); ++index) {
+        if (g_item_tables[index]->category_id == (category & 0xff)) {
+            if (found == ordinal) {
+                return index;
             }
-            ++index;
-            ++tables;
-        } while (index < static_cast<int>(gXStatus.uiItemTablesInDatabase));
+            ++found;
+        }
     }
     return index;
 }

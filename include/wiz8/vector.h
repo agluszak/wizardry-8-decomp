@@ -458,6 +458,19 @@ public:
         return data;
     }
 
+    /* Unchecked element access. Retail indexes the backing store directly at
+       many sites (for example the chunk reader's top-of-stack reads), which
+       GetAt's bounds test cannot produce. */
+    T& operator[](int position)
+    {
+        return data[position];
+    }
+
+    const T& operator[](int position) const
+    {
+        return data[position];
+    }
+
     T SetAt(int position, T value)
     {
         T previous;

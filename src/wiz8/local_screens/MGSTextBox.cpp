@@ -1122,28 +1122,25 @@ void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
         gprintf(x, y, Wiz8ToSgpWideText(g_format_s), input->first_line_prefix);
         x += StringPixLength(input->first_line_prefix, g_level_block->text_box_font);
     }
-    if (line < input->line_count - 1) {
-        do {
-            wchar_t* next = input->text + input->line_offsets[line + 1];
-            wchar_t saved = *next;
-            *next = 0;
-            gprintf(x, y, Wiz8ToSgpWideText(g_format_s), string);
-            int width = StringPixLength(string, g_level_block->text_box_font);
-            if (max_width < width) {
-                max_width = StringPixLength(string, g_level_block->text_box_font);
-            }
-            input->text[input->line_offsets[line + 1]] = saved;
-            y += 0xb;
-            if (y >= g_level_block->text_box_bottom) {
-                clipped = true;
-                break;
-            }
-            if (x != x_start) {
-                x = x_start;
-            }
-            string = input->text + input->line_offsets[line + 1];
-            ++line;
-        } while (line < input->line_count - 1);
+    for (; line < input->line_count - 1; ++line) {
+        wchar_t* next = input->text + input->line_offsets[line + 1];
+        wchar_t saved = *next;
+        *next = 0;
+        gprintf(x, y, Wiz8ToSgpWideText(g_format_s), string);
+        int width = StringPixLength(string, g_level_block->text_box_font);
+        if (max_width < width) {
+            max_width = StringPixLength(string, g_level_block->text_box_font);
+        }
+        input->text[input->line_offsets[line + 1]] = saved;
+        y += 0xb;
+        if (y >= g_level_block->text_box_bottom) {
+            clipped = true;
+            break;
+        }
+        if (x != x_start) {
+            x = x_start;
+        }
+        string = input->text + input->line_offsets[line + 1];
     }
     if (!clipped) {
         gprintf(x, y, Wiz8ToSgpWideText(g_format_s), string);

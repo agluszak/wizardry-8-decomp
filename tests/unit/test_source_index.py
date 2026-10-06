@@ -538,3 +538,51 @@ def test_address_identity_preserves_pairing_only_selector(tmp_path, monkeypatch,
     assert identity.recomp_selector == marker["recomp_selector"]
     assert identity.selector_is_symbol
     assert identity.kind == "template"
+
+
+def test_address_bindings_include_globals_and_primary_and_secondary_vtables(tmp_path, monkeypatch):
+    from reccmp.parser.reader import AnchorCandidate, MarkerAnchor, MarkerBlock, MarkerComment
+
+    blocks = []
+    for line, target, address, name in (
+        (1, "WIZ8", 0x1000, "state"),
+        (5, "SURRENDER", 0x2000, "provider"),
+    ):
+        blocks.append(
+            MarkerBlock(
+                "include/wiz8/storage.h",
+                (MarkerComment(f"// GLOBAL: {target} 0x{address:08x}", line, 1, line),),
+                MarkerAnchor(line + 1, 1, (AnchorCandidate("variable", "_" + name, name),)),
+            ).to_dict()
+        )
+    index = {
+        "markers": [],
+        "declarations": [],
+        "marker_blocks": blocks,
+        "classes": [
+            {
+                "target": "WIZ8",
+                "qualified_name": "Owner",
+                "semantic_id": "record:Owner",
+                "source_file": "include/wiz8/storage.h",
+                "line": 10,
+                "vtable_address": 0x1100,
+                "base_vtables": [{"address": 0x1120, "base_class": "Secondary"}],
+            },
+            {
+                "target": "SURRENDER",
+                "qualified_name": "Provider",
+                "vtable_address": 0x2100,
+            },
+        ],
+    }
+    monkeypatch.setattr(source_index, "load_source_index", lambda _: index)
+    monkeypatch.setattr(source_index, "project_targets", lambda _: {})
+    bound = source_index.address_bound_identities(tmp_path, "WIZ8")
+    assert set(bound) == {0x1000, 0x1100, 0x1120}
+    assert bound[0x1000][0].kind == "global"
+    assert bound[0x1000][0].qualified_name == "state"
+    assert bound[0x1000][0].semantic_id == "_state"
+    for address in (0x1100, 0x1120):
+        assert bound[address][0].kind == "vtable"
+        assert bound[address][0].owning_class == "Owner"

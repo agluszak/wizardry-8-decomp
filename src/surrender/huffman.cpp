@@ -414,8 +414,8 @@ srHuffman::Decompressor::Decompressor(BitIStream& stream)
         setupSymbolTable(symbols);
         for (unsigned long index = 0; index < 0x100; ++index) {
             Symbol* node = symbols;
-            unsigned long depth = 0;
-            do {
+            unsigned long depth;
+            for (depth = 0; depth < 8; ++depth) {
                 Symbol* next = node->children[0];
                 if (next == 0) {
                     break;
@@ -423,9 +423,8 @@ srHuffman::Decompressor::Decompressor(BitIStream& stream)
                 if ((index & (1 << depth)) != 0) {
                     next = node->children[1];
                 }
-                ++depth;
                 node = next;
-            } while (depth < 8);
+            }
             lookup[index] = node;
             this->depth[index] = (unsigned char)depth;
         }

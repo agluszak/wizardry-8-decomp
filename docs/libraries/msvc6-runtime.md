@@ -75,6 +75,30 @@ authored loop — check the fingerprint before writing source. The reproducible 
 | `memset(d,c,n)` | byte splat (`bl`,`bh`, `shl 16`, `mov ax,bx`), `shr ecx,2; rep stosd; and ecx,3; rep stosb` |
 | `_strset(s,c)` | `repnz scasb` length pass, `not ecx; dec ecx`, byte splat, `rep stosd`/`rep stosb` |
 
+## Loop, table and fill lowering
+
+These facts decide whether a retail body came from a loop, a descriptor table or straight-line
+source; the reproducible fixture is `docker/msvc600/probes/loop_shape_probe.cpp`.
+
+- The pinned SP5 compiler does not unroll the counted loops tested in this fixture, including
+  a four-iteration constant store, or fold its `static const` descriptor table into immediates.
+  A loop of `new T(...)` keeps one EH state;
+  straight-line allocations each get their own. These results support straight-line source for
+  the reviewed retail push-immediate construction runs with incrementing EH states. They do not
+  establish that every possible counted loop or descriptor table resists optimization.
+- Store-constant loops in any spelling (dword, byte, pointer walk, `char[]`, `-1` fill) become the
+  same `rep stosd` as `memset`; the retail binary cannot distinguish them, so prefer the plausible
+  authored form over cast-shaped loops. Copy loops are not idiom-recognised: retail `rep movsd`
+  is `memcpy` or aggregate assignment, and a retail element-copy loop is an authored loop.
+- Tests of two bitfields in one byte merge into one `test byte, mask`, and a run of constant
+  bitfield stores covering a byte folds into one byte store; single-bit insert sequences
+  (`(old ^ new) & 1 ^ old`, `and/shl/or`) are consistent with bitfield assignment. These operations
+  alone do not distinguish unsigned bitfields from `bool` bitfields or explicit mask operations.
+- `W8GrowableVector::GetAt(GetCount() - 1)` keeps its bounds test; an unchecked
+  `data[count - 1]` load in retail is a different accessor or direct member use.
+- Switch cases that end in the same call are cross-jumped (`mov eax, K; jmp shared_tail`); the
+  resulting backward branches are not a dispatch table.
+
 ## Toolchain identification evidence
 
 The VC6 family is confirmed; the exact compiler build remains unresolved.

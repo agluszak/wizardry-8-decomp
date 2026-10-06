@@ -74,8 +74,8 @@ public:
     float tile_v;                        /* 0x164 */
     int field_168;
     float field_16c;
-    float texture_coordinates[8]; /* 0x170 */
-    float scale;                  /* 0x190 */
+    float texture_coordinates[4][2]; /* 0x170: u, v per corner */
+    float scale;                     /* 0x190 */
     int texture_update_flags;
 };
 

@@ -35,7 +35,7 @@ public:
 #endif
         MappingInfo {
         // FUNCTION: SURRENDER 0x10037BD0
-        // ??0MappingInfo@srModeler@@QAE@W4e_axis@1@0MMMM@Z
+        // RECOMP: ??0MappingInfo@srModeler@@QAE@W4e_axis@1@0MMMM@Z
         MappingInfo(e_axis axis_u = AXIS_X, e_axis axis_v = AXIS_Y, float u_scale = 1.0f,
                     float v_scale = 1.0f, float u_offset = 0.0f, float v_offset = 0.0f)
             : axis_u(axis_u), axis_v(axis_v), u_scale(u_scale), v_scale(v_scale),
@@ -69,8 +69,6 @@ public:
            (Polygon::Polygon 0x10038890, Triangle::Triangle 0x10038B50) while
            Wiz8.exe imports the standalone copy - so the body is an inline
            definition in modeler.cpp, not visible to consumers. */
-        // FUNCTION: SURRENDER 0x10037BC0
-        // ??0Vertex@srModeler@@QAE@XZ
         Vertex();
         void reset();
         void interpolate(const Vertex& first, const Vertex& second, float fraction);

@@ -5,6 +5,7 @@
 #include "wiz8/conditions.h"
 #include "wiz8/layouts/targeting.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/layouts/character.h"
 #include "surrender/srMath.h"
 #include "wiz8/vector.h"
 
@@ -71,7 +72,18 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
 /* Zeroes the six per-realm learned-spell counters and recounts them from the
    spell_learned array. */
 void RecountLearnedSpellsByRealm(W8Character* character);
-bool CanCharacterCastSpell(W8Character* character, int spell_id);
+/* Learned, and the remaining points in the spell's realm cover its cost.
+   CharacterHasCastableSpell expands this body for every spell. */
+// FUNCTION: WIZ8 0x004f9750
+inline bool CanCharacterCastSpell(W8Character* character, int spell_id)
+{
+    if (spell_id != W8_SPELL_NONE && character->spell_learned[spell_id] == 1 &&
+        g_spell_records[spell_id].spell_point_cost <=
+            character->iSPLeft[g_spell_records[spell_id].realm]) {
+        return true;
+    }
+    return false;
+}
 unsigned int GetSpellCastingSkillLevel(const W8Character* character, W8Skill spellbook_skill,
                                        W8SpellRealm realm);
 W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool pricing,

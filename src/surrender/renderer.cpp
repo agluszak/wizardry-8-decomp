@@ -704,15 +704,12 @@ void srGERD::Renderer::transformVertices(const TriInput& input, unsigned char* c
 static int fullyClipped(const unsigned char* flags, unsigned long count)
 {
     unsigned char mask = srRendererDefs::FRUSTUM_CLIP_MASK;
-    unsigned long index = 0;
-    if ((count & ~3UL) != 0) {
-        do {
-            mask &= flags[index] & flags[index + 1] & flags[index + 2] & flags[index + 3];
-            if (mask == 0) {
-                return 0;
-            }
-            index += 4;
-        } while (index < (count & ~3UL));
+    unsigned long index;
+    for (index = 0; index < (count & ~3UL); index += 4) {
+        mask &= flags[index] & flags[index + 1] & flags[index + 2] & flags[index + 3];
+        if (mask == 0) {
+            return 0;
+        }
     }
     for (; index < count; index++) {
         mask &= flags[index];

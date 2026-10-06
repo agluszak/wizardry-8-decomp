@@ -186,11 +186,24 @@ void AdvanceEnvironmentTime(int elapsed)
     }
 
     unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
-    stTextureAnim** animation = g_sky_gradient_animations;
+    for (int index = 0; index < 3; ++index) {
+        if (g_sky_gradient_animations[index] != 0) {
+            g_sky_gradient_animations[index]->frame = static_cast<int>(phase);
+        }
+    }
+}
 
-    for (int index = 0; index != 3; ++index, ++animation) {
-        if (*animation != 0) {
-            (*animation)->frame = static_cast<int>(phase);
+/* Move the world clock on by the game-clock multiplier's share of the ticks
+   since the baseline. Every caller expands this body, including its enable
+   test, which SetEnvironmentTimeEnabled repeats right after setting the flag. */
+static void AdvanceEnvironmentClock(void)
+{
+    if (g_environment_time_enabled) {
+        unsigned long now = GetTickCount();
+        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
+        if (elapsed != 0) {
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
 }
@@ -208,14 +221,7 @@ void SetEnvironmentTimeEnabled(bool enabled)
 
     g_environment_time_enabled = true;
     g_tick = GetTickCount();
-    if (g_environment_time_enabled) {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
-    }
+    AdvanceEnvironmentClock();
 }
 
 /* The environment's per-frame update. A running transition short-circuits to
@@ -242,12 +248,7 @@ void UpdateEnvironment(void)
             RefreshEnvironment();
         }
     } else {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
+        AdvanceEnvironmentClock();
     }
 }
 
@@ -361,14 +362,7 @@ void BuildLightColourRamp(void)
 // FUNCTION: WIZ8 0x004834B0
 void UpdateEnvironmentLight(void)
 {
-    if (g_environment_time_enabled) {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
-    }
+    AdvanceEnvironmentClock();
     unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_light_phase)) {
         g_light_direction = g_environment_colours1[phase];
@@ -475,14 +469,7 @@ int g_last_environment_colour_phase = -1;
 // FUNCTION: WIZ8 0x00483560
 void RefreshEnvironment(void)
 {
-    if (g_environment_time_enabled) {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
-    }
+    AdvanceEnvironmentClock();
     unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
         EnvironmentColour colour = g_environment_colours0[phase];
@@ -769,9 +756,8 @@ void SetWorldEnvironmentColour(W8World* world, EnvironmentColour colour)
 {
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
-        srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
     }
-    ApplyEnvironmentColour(world, world->environment_intensity, &colour);
+    ApplyEnvironmentColour(world, GetWorldEnvironmentIntensity(world), &colour);
 }
 
 // GLOBAL: WIZ8 0x005ec980
@@ -977,32 +963,9 @@ void InitializeLevelEnvironment(void)
             }
         }
     }
-    if (g_environment_time_enabled) {
-        unsigned int now = GetTickCount();
-        unsigned int elapsed;
-
-        if (now < g_tick) {
-            elapsed = now - g_tick - 1;
-        } else {
-            elapsed = now - g_tick;
-        }
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
-    }
-    {
-        unsigned int phase = (g_status.game_time_ms / 1000U << 8) / 0x15180;
-        EnvironmentColour colour = g_environment_colours0[phase];
-
-        if (g_world == 0) {
-            srAssertFail("pWorld", ENVIRONMENT_CPP, 0x27a, 0);
-            srAssertFail("pWorld", ENVIRONMENT_CPP, 0x288, 0);
-        }
-        ApplyEnvironmentColour(g_world, g_world->environment_intensity, &colour);
-        {
-            g_light_direction = g_environment_colours1[phase];
-            PublishLightDirection(&g_environment_colours1[phase]);
-        }
-    }
+    AdvanceEnvironmentClock();
+    unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
+    SetWorldEnvironmentColour(g_world, g_environment_colours0[phase]);
+    g_light_direction = g_environment_colours1[phase];
+    PublishLightDirection(&g_environment_colours1[phase]);
 }

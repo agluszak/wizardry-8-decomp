@@ -160,6 +160,18 @@ static_assert(sizeof(W8CharacterStatsRowListener) == 0x4, "W8CharacterStatsRowLi
 class W8CharacterStatsRow : public W8TextControl::Listener {
 public:
     W8CharacterStatsRow();
+    /* Retail 0x005C9AE0 expands this body under each `delete row`, restoring
+       the row vptr before releasing the subpanel and its 16-bit-counted entries. */
+    ~W8CharacterStatsRow()
+    {
+        delete m_subpanel;
+        if (m_subpanel_entries != 0) {
+            for (unsigned short index = 0; index < m_count; ++index) {
+                delete m_subpanel_entries[index];
+            }
+            delete[] m_subpanel_entries;
+        }
+    }
     virtual void OnPrimary(W8TextControl* control) override;   /* 0x005c9760 */
     virtual void OnSecondary(W8TextControl* control) override; /* 0x005c9a50 */
     void Initialize(Controls* owner, unsigned int* region_set, int x, int y, int count,

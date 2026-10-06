@@ -64,7 +64,11 @@ def read_emissions(text: str) -> list[Emission]:
             recomp_selector=row.get("recomp_selector", ""),
             selector_is_symbol=flag in {"true", "1"},
         )
-        if emission.target not in TARGET_FILES or emission.type not in {"synthetic", "template"}:
+        if emission.target not in TARGET_FILES or emission.type not in {
+            "synthetic",
+            "template",
+            "global",
+        }:
             raise ValueError(f"invalid emission target/type: {emission}")
         if emission.address <= 0 or not (emission.symbol or emission.name):
             raise ValueError(f"emission requires an address and symbol or name: {emission}")
@@ -121,7 +125,9 @@ def derive_emissions(rows: list[Emission], engine: Compare) -> list[Emission]:
         match = engine.get_match(row.address)
         symbol = (
             match.fact(ImageId.RECOMP, "symbol")
-            if match is not None and match.entity_type == EntityType.FUNCTION
+            if match is not None
+            and match.entity_type
+            == (EntityType.DATA if row.type == "global" else EntityType.FUNCTION)
             else None
         )
         candidates = slot_symbols.get(row.address, set())

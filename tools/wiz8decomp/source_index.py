@@ -13,7 +13,7 @@ import shutil
 import subprocess
 from collections.abc import Mapping
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any
 
 from reccmp.source import SourceIndex, SourceIndexError, SourceMarker
@@ -369,6 +369,54 @@ def address_bound_identities(
                 selector_is_symbol=bool(marker.get("selector_is_symbol")),
             )
         )
+
+    # Storage markers are already parsed by reccmp from compiler-reported
+    # comment blocks; the function-marker list does not include them.
+    from reccmp.parser.node import ParserVariable
+    from reccmp.parser.reader import MarkerBlock, read_marker_blocks
+
+    blocks = [MarkerBlock.from_dict(item) for item in document.get("marker_blocks", [])]
+    for result in read_marker_blocks(
+        blocks, {block.source_file: PurePath(block.source_file) for block in blocks}
+    ):
+        for storage in result.tokens:
+            if not isinstance(storage, ParserVariable) or storage.module.upper() != wanted:
+                continue
+            add(
+                _identity_from_declaration(
+                    {
+                        "qualified_name": storage.name,
+                        "semantic_id": storage.semantic_id,
+                        "source_file": storage.filename.as_posix(),
+                        "line": storage.line_number,
+                    },
+                    target=wanted,
+                    address=storage.offset,
+                    marker_kind="GLOBAL",
+                    kind="global",
+                )
+            )
+
+    for record in document.get("classes", []):
+        if str(record.get("target") or "").upper() != wanted:
+            continue
+        tables = []
+        if record.get("vtable_address") is not None:
+            tables.append((int(record["vtable_address"]), record["qualified_name"]))
+        tables.extend(
+            (int(table["address"]), str(table["base_class"]))
+            for table in record.get("base_vtables", [])
+        )
+        for address, _subobject in tables:
+            add(
+                _identity_from_declaration(
+                    {**record, "owning_class": record["qualified_name"]},
+                    target=wanted,
+                    address=address,
+                    marker_kind="VTABLE",
+                    kind="vtable",
+                )
+            )
 
     seen_declarations: set[tuple[str, int, int]] = set()
     source_lines: dict[str, list[str] | None] = {}

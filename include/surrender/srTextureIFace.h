@@ -107,7 +107,7 @@ public:
     };
 
     // FUNCTION: SURRENDER 0x1005F5B0 SYMBOL
-    // ?sGetClassName@srTextureIFace@@SAPBDXZ
+    // RECOMP: ?sGetClassName@srTextureIFace@@SAPBDXZ
     static const char* sGetClassName()
     {
         return "srTextureIFace";

@@ -217,6 +217,7 @@ namespace {
    Retail emits the whole family file-local at 0x1002EBD0-0x1002ED70. */
 class ReadJob : public srScheduler::Job {
 public:
+    // FUNCTION: SURRENDER 0x1002EBD0
     ReadJob(srBinIStream* stream, void* buffer, unsigned long size)
     {
         this->stream = stream;

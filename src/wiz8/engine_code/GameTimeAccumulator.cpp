@@ -36,7 +36,7 @@ void W8GameTimeAccumulator::SetDurationScale(float scale)
 {
     m_duration_scale = scale;
     if (scale < 0.5f) {
-        m_flags |= W8_TIMER_SLOW_SCALE;
+        m_flags.slow_scale = true;
     }
     m_max_frame_delta = 2.0f / scale;
     m_duration = static_cast<int>(scale * m_duration_seconds * 10000.0f);
@@ -47,7 +47,7 @@ void W8GameTimeAccumulator::SetDurationScale(float scale)
 // FUNCTION: WIZ8 0x0043aa20
 void W8GameTimeAccumulator::ResetDurationScale()
 {
-    m_flags &= ~W8_TIMER_SLOW_SCALE;
+    m_flags.slow_scale = false;
     m_max_frame_delta = 2.0f;
     m_duration_scale = 1.0f;
     m_duration = static_cast<int>(m_duration_seconds * 10000.0f);
@@ -58,8 +58,7 @@ void W8GameTimeAccumulator::ResetDurationScale()
 // FUNCTION: WIZ8 0x0043aad0
 float W8GameTimeAccumulator::Update()
 {
-    if ((m_flags & W8_TIMER_PAUSED) != 0 ||
-        (g_shared_timer_paused && (m_flags & W8_TIMER_RAW_TIME) == 0) || g_shared_timer_flag0) {
+    if (m_flags.paused || (g_shared_timer_paused && !m_flags.raw_time) || g_shared_timer_flag0) {
         m_frame_delta = 0.0f;
     } else {
         int sample = ReadClock();
@@ -73,7 +72,7 @@ float W8GameTimeAccumulator::Update()
         }
         m_elapsed += m_frame_delta;
     }
-    if (g_level_motion_resume_pending && (m_flags & W8_TIMER_RAW_TIME) == 0) {
+    if (g_level_motion_resume_pending && !m_flags.raw_time) {
         return 0.0f;
     }
     return m_frame_delta;

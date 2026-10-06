@@ -45,10 +45,6 @@ enum W8TriggerPayloadKind {
     W8_TRIGGER_PAYLOAD_DOOR = 10
 };
 
-/* Only independently identified door bits are named; the other serialized
-   bits retain their original numeric values. */
-enum W8DoorTriggerFlag { W8_DOOR_OPEN = 1, W8_DOOR_KEY_REQUIRED = 4 };
-
 /* The common polymorphic prefix of the trigger action payload family. */
 class W8TriggerActionData {
 public:
@@ -71,12 +67,43 @@ static_assert(sizeof(W8EnvironmentTriggerActionData) == 0x0c,
 
 /* The level loader allocates 0x98 bytes for type 10. Its first twelve bytes
    are the common polymorphic payload above; the remaining bytes are the
-   linked trigger name and optional world position read from the save. */
+   linked trigger name and optional world position read from the save.
+   The door state is a run of one-bit fields: retail stores them with VC6's
+   single-bit insert sequences, and mipe's editor table labels the first nine
+   in order (Open .. Jammed) with the key id as the tenth field. */
 class W8DoorTriggerActionData : public W8TriggerActionData {
 public:
-    unsigned char door_flags;
-    unsigned char extra_flags;
-    short item;
+    /* Both allocation sites (0x0043C1B0 and 0x004417C0) expand this body; the
+       eight leading bits fold to one 0x40 byte store and has_position stays
+       uninitialized. */
+    W8DoorTriggerActionData()
+    {
+        open = false;
+        lockable = false;
+        locked = false;
+        auto_locking = false;
+        one_way = false;
+        secret = false;
+        found = true;
+        jammable = false;
+        jammed = false;
+        item = -1;
+        type = W8_TRIGGER_PAYLOAD_DOOR;
+        position.SetZero();
+        linked_trigger[0] = 0;
+    }
+
+    bool open : 1;
+    bool lockable : 1;
+    bool locked : 1;
+    bool auto_locking : 1;
+    bool one_way : 1;
+    bool secret : 1;
+    bool found : 1;
+    bool jammable : 1;
+    bool jammed : 1;
+    bool has_position : 1;
+    short item; /* key item id; -1 for none */
     char linked_trigger[0x80];
     srVector3T<float> position;
 };

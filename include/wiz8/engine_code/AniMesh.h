@@ -1,6 +1,8 @@
 #ifndef WIZ8_ENGINE_CODE_ANI_MESH_H
 #define WIZ8_ENGINE_CODE_ANI_MESH_H
 
+#include <stddef.h>
+
 #include "surrender/srMath.h"
 #include "wiz8/3d_code/PList.h"
 
@@ -8,20 +10,21 @@ class stModelInstance;
 struct W8ReadLevelInfo;
 struct W8World;
 
-enum W8AniMeshFlags {
-    W8_ANI_MESH_LOADED = 0x01,
-    W8_ANI_MESH_FRAME_COUNT_LOADED = 0x02,
-    W8_ANI_MESH_RADIUS_LOADED = 0x04,
-    W8_ANI_MESH_KEEP_LOADED = 0x08,
-    W8_ANI_MESH_CACHE_PROTECTED = 0x10, /* excluded from memory-limit eviction */
-    W8_ANI_MESH_SINGLE_INSTANCE = 0x20,
-};
-
 /* Engine Code\AniMesh.cpp. The class name and string members are
    assertion-backed. Construction, copying, unloading, and frame lookup prove
    the remaining storage roles. */
 struct W8AniMesh {
-    unsigned char flags;              /* 0x00 */
+    struct State {
+        bool loaded : 1;
+        bool frame_count_loaded : 1;
+        bool radius_loaded : 1;
+        bool keep_loaded : 1;
+        bool cache_protected : 1;
+        bool single_instance : 1;
+        unsigned char reserved : 2;
+    };
+
+    State flags;                      /* 0x00: runtime cache state, not a disk byte */
     unsigned char frame_count;        /* 0x01 */
     stModelInstance** meshes;         /* 0x04: ppsrMeshes */
     srVector3T<float> bounds_minimum; /* 0x08 */
@@ -36,6 +39,8 @@ struct W8AniMesh {
     int last_used;                    /* 0x3c */
 }; /* 0x40 */
 
+static_assert(sizeof(W8AniMesh::State) == 1, "W8AniMesh_state_size");
+static_assert(offsetof(W8AniMesh, frame_count) == 1, "W8AniMesh_frame_count_offset");
 static_assert(sizeof(W8AniMesh) == 0x40, "W8AniMesh_minimum_size_must_be_0x40");
 
 extern int g_animesh_cache_stamp;

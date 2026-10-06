@@ -427,17 +427,12 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
         }
     } else if (control == m_increment) {
         int previous = m_index;
-        int index = previous + 1;
-        if (index < static_cast<int>(static_cast<unsigned int>(m_count))) {
-            const W8CharacterStatsRecord* record = &m_table[index];
-            do {
-                if (record->enabled != 0) {
-                    SetValue(index);
-                    return;
-                }
-                ++index;
-                ++record;
-            } while (index < static_cast<int>(static_cast<unsigned int>(m_count)));
+        int index;
+        for (index = previous + 1; index < m_count; ++index) {
+            if (m_table[index].enabled != 0) {
+                SetValue(index);
+                return;
+            }
         }
         index = 0;
         if (previous > 0) {
@@ -571,9 +566,9 @@ void W8CharacterStatsPage::Refresh()
     if (m_character->iRace != W8_RACE_NONE || m_character->iProfession != W8_PROFESSION_NONE) {
         for (int index = 0; index < m_entries.GetCount(); ++index) {
             if (!m_rows_initialized) {
-                m_entries.data[index]->SetEnabled(true);
+                m_entries[index]->SetEnabled(true);
             }
-            m_entries.data[index]->UpdateButtons();
+            m_entries[index]->UpdateButtons();
         }
         m_rows_initialized = true;
     }
@@ -589,7 +584,7 @@ void W8CharacterStatsPage::Accept()
     m_dirty = true;
     m_screen->UpdateNavigation(this);
     for (int index = 0; index < m_entries.GetCount(); ++index) {
-        m_entries.data[index]->UpdateButtons();
+        m_entries[index]->UpdateButtons();
     }
 }
 
@@ -608,7 +603,7 @@ void W8CharacterStatsPage::GetNavigationState(bool* next_enabled, bool* exit_ena
         m_creation_state->attribute_points_remaining < m_creation_state->attribute_points_total;
     if (*next_enabled != nav_next_state) {
         for (int index = 0; index < m_entries.GetCount(); ++index) {
-            m_entries.data[index]->SetIncrementAllowed(!*next_enabled);
+            m_entries[index]->SetIncrementAllowed(!*next_enabled);
         }
         nav_next_state = *next_enabled;
     }
@@ -684,7 +679,7 @@ void W8CharacterStatsPage::SetRowControlsActive(W8CharacterStatsRow* row, bool a
         m_gender_row->m_increment->SetActive(active);
     }
     for (int entry_index = 0; entry_index < m_entries.GetCount(); ++entry_index) {
-        m_entries.data[entry_index]->SetHelpActive(active);
+        m_entries[entry_index]->SetHelpActive(active);
     }
     for (int control_index = 0; control_index < 5; ++control_index) {
         m_attribute_controls[control_index]->SetActive(active);
@@ -741,14 +736,9 @@ void W8CharacterStatsPage::OnSecondary(W8TextControl* control)
 void W8CharacterStatsPage::Prepare()
 {
     W8CharacterPage::Prepare();
-    W8CharacterStatsRow* rows[3] = {
-        m_profession_row,
-        m_race_row,
-        m_gender_row,
-    };
-    for (int index = 0; index < 3; ++index) {
-        rows[index]->Invalidate();
-    }
+    m_profession_row->Invalidate();
+    m_race_row->Invalidate();
+    m_gender_row->Invalidate();
 }
 
 /* The whole page: three value rows, seven attribute entries, five attribute
@@ -776,27 +766,25 @@ void W8CharacterStatsPage::SetCharacter(W8Character* character,
     m_gender_row->m_listener = this;
 
     if (mode == 0) {
-        W8CharacterStatsRow* rows[3] = {
-            m_profession_row,
-            m_race_row,
-            m_gender_row,
-        };
-        for (int row_index = 0; row_index < 3; ++row_index) {
-            rows[row_index]->m_decrement->SetEnabled(true);
-            rows[row_index]->m_increment->SetEnabled(true);
-            rows[row_index]->m_value_control->SetEnabled(true);
-        }
+        m_profession_row->m_decrement->SetEnabled(true);
+        m_profession_row->m_increment->SetEnabled(true);
+        m_profession_row->m_value_control->SetEnabled(true);
+        m_race_row->m_decrement->SetEnabled(true);
+        m_race_row->m_increment->SetEnabled(true);
+        m_race_row->m_value_control->SetEnabled(true);
+        m_gender_row->m_decrement->SetEnabled(true);
+        m_gender_row->m_increment->SetEnabled(true);
+        m_gender_row->m_value_control->SetEnabled(true);
     } else if (mode == 1) {
-        W8CharacterStatsRow* rows[3] = {
-            m_profession_row,
-            m_race_row,
-            m_gender_row,
-        };
-        for (int row_index = 0; row_index < 3; ++row_index) {
-            rows[row_index]->m_decrement->SetEnabled(false);
-            rows[row_index]->m_increment->SetEnabled(false);
-            rows[row_index]->m_value_control->SetEnabled(false);
-        }
+        m_profession_row->m_decrement->SetEnabled(false);
+        m_profession_row->m_increment->SetEnabled(false);
+        m_profession_row->m_value_control->SetEnabled(false);
+        m_race_row->m_decrement->SetEnabled(false);
+        m_race_row->m_increment->SetEnabled(false);
+        m_race_row->m_value_control->SetEnabled(false);
+        m_gender_row->m_decrement->SetEnabled(false);
+        m_gender_row->m_increment->SetEnabled(false);
+        m_gender_row->m_value_control->SetEnabled(false);
     } else if (mode == 2) {
         if (character->iRace == W8_RACE_ANDROID) {
             m_profession_row->m_decrement->SetEnabled(false);
@@ -844,24 +832,9 @@ void W8CharacterStatsPage::SetCharacter(W8Character* character,
 // FUNCTION: WIZ8 0x005c9ae0
 W8CharacterStatsPage::~W8CharacterStatsPage()
 {
-    W8CharacterStatsRow* rows[3] = {
-        m_profession_row,
-        m_race_row,
-        m_gender_row,
-    };
-    for (int index = 0; index < 3; ++index) {
-        W8CharacterStatsRow* row = rows[index];
-        if (row != 0) {
-            delete row->m_subpanel;
-            if (row->m_subpanel_entries != 0) {
-                for (unsigned int entry = 0; entry < row->m_count; ++entry) {
-                    delete row->m_subpanel_entries[entry];
-                }
-                delete[] row->m_subpanel_entries;
-            }
-            delete row;
-        }
-    }
+    delete m_profession_row;
+    delete m_race_row;
+    delete m_gender_row;
 }
 
 /* The page redraw: header figures, the seven attribute entries' section,
@@ -1137,16 +1110,14 @@ void W8CharacterStatsPage::Redraw()
         m_dirty = false;
     }
 
-    W8CharacterStatsRow* rows[3] = {
-        m_profession_row,
-        m_race_row,
-        m_gender_row,
-    };
-    for (int row_index = 0; row_index < 3; ++row_index) {
-        W8CharacterStatsRow* row = rows[row_index];
-        if (row->m_subpanel != 0 && row->m_subpanel->m_fEnabled) {
-            row->m_subpanel->Redraw();
-        }
+    if (m_profession_row->m_subpanel != 0 && m_profession_row->m_subpanel->m_fEnabled) {
+        m_profession_row->m_subpanel->Redraw();
+    }
+    if (m_race_row->m_subpanel != 0 && m_race_row->m_subpanel->m_fEnabled) {
+        m_race_row->m_subpanel->Redraw();
+    }
+    if (m_gender_row->m_subpanel != 0 && m_gender_row->m_subpanel->m_fEnabled) {
+        m_gender_row->m_subpanel->Redraw();
     }
 }
 

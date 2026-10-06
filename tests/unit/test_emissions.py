@@ -225,3 +225,18 @@ def test_bootstrap_repairs_missing_or_corrupt_output(tmp_path, missing):
         path.write_text("corrupt generated metadata")
     generate_emissions(tmp_path)
     assert path.read_bytes() == baseline
+
+
+def test_compiler_data_emissions_keep_data_kind_and_exact_symbol(monkeypatch):
+    symbol = "??_8Stream@@7B@"
+    [row] = read_emissions(
+        "target|address|symbol|name|type\nSURRENDER|10076000|" + symbol + "|Stream vbtable|global\n"
+    )
+    [(address, facts)] = csv_parse(render_emissions([row]))
+    assert address == row.address
+    assert facts["type"] == EntityType.DATA
+    assert facts["symbol"] == symbol
+    entity = SimpleNamespace(entity_type=EntityType.DATA, fact=lambda *_: symbol)
+    [derived] = derive_emissions([row], _engine(monkeypatch, matches={row.address: entity}))
+    assert derived.recomp_selector == symbol
+    assert derived.selector_is_symbol

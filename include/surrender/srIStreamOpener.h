@@ -11,10 +11,10 @@ public:
     class __declspec(novtable) Opener {
     public:
         // FUNCTION: SURRENDER 0x10032680
-        // ??0Opener@srIStreamOpener@@QAE@XZ
+        // RECOMP: ??0Opener@srIStreamOpener@@QAE@XZ
         SR_DLL_EXPORT Opener() {}
         // FUNCTION: SURRENDER 0x10032690
-        // ??1Opener@srIStreamOpener@@UAE@XZ
+        // RECOMP: ??1Opener@srIStreamOpener@@UAE@XZ
         virtual SR_DLL_EXPORT ~Opener() {}
         SR_DLL_IMPORT Opener& operator=(const Opener& other);
 
@@ -23,7 +23,7 @@ public:
     };
 
     // FUNCTION: SURRENDER 0x100326B0
-    // ??0srIStreamOpener@@QAE@XZ
+    // RECOMP: ??0srIStreamOpener@@QAE@XZ
     srIStreamOpener()
     {
         first = new StreamType;
@@ -74,7 +74,7 @@ public:
        the header body for that folding while still emitting the exported
        standalone copy. */
     // FUNCTION: SURRENDER 0x10032440
-    // ??0srFStreamOpener@@QAE@XZ
+    // RECOMP: ??0srFStreamOpener@@QAE@XZ
     srFStreamOpener() {}
 
     virtual srBinIStream* open(const char* path) override;

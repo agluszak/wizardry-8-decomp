@@ -624,7 +624,7 @@ void W8Navigator::ClearMovementStopped()
         g_navigator_group.Clear();
         CollectGroupNavigators(&g_navigator_group);
         for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
-            g_navigator_group.data[index]->movement_stopped = false;
+            g_navigator_group[index]->movement_stopped = false;
         }
     }
 }

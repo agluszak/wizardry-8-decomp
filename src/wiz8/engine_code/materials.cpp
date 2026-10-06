@@ -149,9 +149,6 @@ stMaterial::~stMaterial()
     }
 }
 
-/* The srMaterialIFace class-support base's own construction: installs the
-   0x005EBF94 table and registers class 8704. */
-
 /* ===== OctBuild level preprocessing =====
    The retail level preprocessor lives in this TU between the stMaterial
    cluster and LoadMaterial. Its option globals are plain .data and its
@@ -969,11 +966,7 @@ void ReportStartupMessage(const char* message)
         for (index = 0; index < 6; ++index) {
             unsigned short* buffer = new unsigned short[0x100];
             g_status_lines[index] = buffer;
-            for (length = 0x80; length != 0; --length) {
-                *reinterpret_cast<unsigned long*>(buffer) =
-                    0; /* reinterpret-ok: status cells cleared through the raw buffer */
-                buffer += 2;
-            }
+            memset(buffer, 0, 0x100 * sizeof(unsigned short));
         }
         GetWorldColour(&s_saved_colour);
         PublishLightDirection(&s_black);

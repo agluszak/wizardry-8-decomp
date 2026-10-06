@@ -208,14 +208,12 @@ unsigned char EvaluateFact(W8FactId fact_id)
             return NpcLeadHasNameStyle(W8_NPC_MYLES);
         case W8_FACT_FATHER_IN_PARTY:
             if (g_status.rpc_active) {
-                unsigned int slot = 0;
-                do {
+                for (unsigned int slot = 0; slot < 8; ++slot) {
                     if (g_status.buffers.XChar[slot].fOccupied &&
                         slot == static_cast<unsigned int>(g_status.sedexus_party_slot)) {
                         return 1;
                     }
-                    ++slot;
-                } while (slot < 8);
+                }
             }
             return 0;
         case W8_FACT_PARTY_HAS_BLOODLUST_SWORD:

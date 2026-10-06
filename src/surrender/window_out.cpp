@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <stdio.h>
+#include <string.h>
 #include <windows.h>
 
 #include <commdlg.h>
@@ -379,9 +380,7 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
     SendMessageA(edit_window, WM_SETFONT, (WPARAM)font, 0);
     SendMessageA(edit_window, EM_SETBKGNDCOLOR, 0, 0);
     CHARFORMATA format;
-    unsigned long index;
-    for (index = 0; index < sizeof(format) / 4; ++index)
-        ((unsigned long*)&format)[index] = 0;
+    memset(&format, 0, sizeof(format));
     SendMessageA(edit_window, EM_GETCHARFORMAT, 0, (LPARAM)&format);
     format.dwMask |= 0x40000008;
     format.cbSize = 0x3c;
@@ -394,8 +393,7 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
     menu = CreateMenu();
     file_menu = CreateMenu();
     MENUITEMINFOA item;
-    for (index = 0; index < sizeof(item) / 4; ++index)
-        ((unsigned long*)&item)[index] = 0;
+    memset(&item, 0, sizeof(item));
     item.cbSize = 0x2c;
     item.fMask = 0x37;
     item.fType = 0;

@@ -170,11 +170,9 @@ unsigned char LoadRenderOptions(int handle)
     if (FileRead(handle, options, W8_RENDER_OPTION_COUNT, &transferred) == 0) {
         return 0;
     }
-    option = 0;
-    do {
+    for (option = 0; option < W8_RENDER_OPTION_COUNT; ++option) {
         SetRenderOption(static_cast<W8RenderOption>(option), options[option] != 0);
-        ++option;
-    } while (option < W8_RENDER_OPTION_COUNT);
+    }
     return 1;
 }
 

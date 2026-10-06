@@ -354,13 +354,10 @@ bool LoadTriggerRuntimeStates(int handle)
             }
             action_data = trigger->m_pActionData;
             if (action_data != 0 && action_data->type == W8_TRIGGER_PAYLOAD_DOOR &&
-                ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags &
-                  W8_DOOR_KEY_REQUIRED) == 0 ||
+                (!static_cast<W8DoorTriggerActionData*>(action_data)->locked ||
                  static_cast<W8DoorTriggerActionData*>(action_data)->item == -1)) {
-                static_cast<W8DoorTriggerActionData*>(action_data)->door_flags =
-                    ((trigger->lock_state.device_state.completed == 0) << 2) |
-                    (static_cast<W8DoorTriggerActionData*>(action_data)->door_flags &
-                     ~W8_DOOR_KEY_REQUIRED);
+                static_cast<W8DoorTriggerActionData*>(action_data)->locked =
+                    trigger->lock_state.device_state.completed == 0;
                 static_cast<W8DoorTriggerActionData*>(action_data)->item =
                     static_cast<short>(trigger->lock_state.key_id);
             }
@@ -412,33 +409,31 @@ bool Trigger::Save(int hFile)
             progress_delay = 0;
             action_kind = 2;
             FileWrite(hFile, &action_kind, sizeof(action_kind), 0);
-            if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & W8_DOOR_OPEN) !=
-                0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->open) {
                 action_flags |= 1;
             }
-            if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & 2) != 0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->lockable) {
                 action_flags |= 2;
             }
-            if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags &
-                 W8_DOOR_KEY_REQUIRED) != 0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->locked) {
                 action_flags |= 4;
             }
-            if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & 8) != 0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->auto_locking) {
                 action_flags |= 8;
             }
-            if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & 0x10) != 0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->one_way) {
                 action_flags |= 0x10;
             }
-            if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & 0x20) != 0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->secret) {
                 action_flags |= 0x20;
             }
-            if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & 0x40) != 0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->found) {
                 action_flags |= 0x40;
             }
-            if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & 0x80) != 0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->jammable) {
                 action_flags |= 0x80;
             }
-            if ((static_cast<W8DoorTriggerActionData*>(action_data)->extra_flags & 1) != 0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->jammed) {
                 action_flags |= 0x100;
             }
             if (static_cast<W8DoorTriggerActionData*>(action_data)->item != 0) {
@@ -508,13 +503,6 @@ bool Trigger::Load(int hFile, char version)
             if (pDoor == 0) {
                 srAssertFail("pDoor", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x20b,
                              0);
-            } else {
-                pDoor->door_flags = 0x40;
-                pDoor->extra_flags &= ~1;
-                pDoor->item = -1;
-                pDoor->type = W8_TRIGGER_PAYLOAD_DOOR;
-                pDoor->position.SetZero();
-                pDoor->linked_trigger[0] = 0;
             }
             delete m_pActionData;
             m_pActionData = pDoor;
@@ -522,71 +510,71 @@ bool Trigger::Load(int hFile, char version)
             FileRead(hFile, &flag_mode, 1, 0);
             if (flag_mode == 1) {
                 FileRead(hFile, &flag, 1, 0);
-                pDoor->door_flags = (pDoor->door_flags & ~W8_DOOR_OPEN) | (flag & 1);
+                pDoor->open = (flag & 1) != 0;
                 FileRead(hFile, &flag, 1, 0);
-                pDoor->door_flags = (pDoor->door_flags & ~2) | ((flag & 1) << 1);
+                pDoor->lockable = (flag & 1) != 0;
                 FileRead(hFile, &flag, 1, 0);
-                pDoor->door_flags = (pDoor->door_flags & ~W8_DOOR_KEY_REQUIRED) | ((flag & 1) << 2);
+                pDoor->locked = (flag & 1) != 0;
                 FileRead(hFile, &flag, 1, 0);
-                pDoor->door_flags = (pDoor->door_flags & ~8) | ((flag & 1) << 3);
+                pDoor->auto_locking = (flag & 1) != 0;
                 FileRead(hFile, &flag, 1, 0);
-                pDoor->door_flags = (pDoor->door_flags & ~0x10) | ((flag & 1) << 4);
+                pDoor->one_way = (flag & 1) != 0;
                 FileRead(hFile, &flag, 1, 0);
-                pDoor->door_flags = (pDoor->door_flags & ~0x20) | ((flag & 1) << 5);
+                pDoor->secret = (flag & 1) != 0;
                 FileRead(hFile, &flag, 1, 0);
-                pDoor->door_flags = (pDoor->door_flags & ~0x40) | ((flag & 1) << 6);
+                pDoor->found = (flag & 1) != 0;
                 FileRead(hFile, &flag, 1, 0);
-                pDoor->door_flags = (pDoor->door_flags & ~0x80) | (flag << 7);
+                pDoor->jammable = (flag & 1) != 0;
                 FileRead(hFile, &flag, 1, 0);
-                pDoor->extra_flags = (pDoor->extra_flags & ~1) | (flag & 1);
+                pDoor->jammed = (flag & 1) != 0;
             } else {
                 action_flags = 0;
                 progress_delay = 0;
                 FileRead(hFile, &action_flags, 2, 0);
                 if ((action_flags & 1) != 0) {
-                    pDoor->door_flags |= W8_DOOR_OPEN;
+                    pDoor->open = true;
                 } else {
-                    pDoor->door_flags &= ~W8_DOOR_OPEN;
+                    pDoor->open = false;
                 }
                 if ((action_flags & 2) != 0) {
-                    pDoor->door_flags |= 2;
+                    pDoor->lockable = true;
                 } else {
-                    pDoor->door_flags &= ~2;
+                    pDoor->lockable = false;
                 }
                 if ((action_flags & 4) != 0) {
-                    pDoor->door_flags |= W8_DOOR_KEY_REQUIRED;
+                    pDoor->locked = true;
                 } else {
-                    pDoor->door_flags &= ~W8_DOOR_KEY_REQUIRED;
+                    pDoor->locked = false;
                 }
                 if ((action_flags & 8) != 0) {
-                    pDoor->door_flags |= 8;
+                    pDoor->auto_locking = true;
                 } else {
-                    pDoor->door_flags &= ~8;
+                    pDoor->auto_locking = false;
                 }
                 if ((action_flags & 0x10) != 0) {
-                    pDoor->door_flags |= 0x10;
+                    pDoor->one_way = true;
                 } else {
-                    pDoor->door_flags &= ~0x10;
+                    pDoor->one_way = false;
                 }
                 if ((action_flags & 0x20) != 0) {
-                    pDoor->door_flags |= 0x20;
+                    pDoor->secret = true;
                 } else {
-                    pDoor->door_flags &= ~0x20;
+                    pDoor->secret = false;
                 }
                 if ((action_flags & 0x40) != 0) {
-                    pDoor->door_flags |= 0x40;
+                    pDoor->found = true;
                 } else {
-                    pDoor->door_flags &= ~0x40;
+                    pDoor->found = false;
                 }
                 if ((action_flags & 0x80) != 0) {
-                    pDoor->door_flags |= 0x80;
+                    pDoor->jammable = true;
                 } else {
-                    pDoor->door_flags &= ~0x80;
+                    pDoor->jammable = false;
                 }
                 if ((action_flags & 0x100) != 0) {
-                    pDoor->extra_flags |= 1;
+                    pDoor->jammed = true;
                 } else {
-                    pDoor->extra_flags &= ~1;
+                    pDoor->jammed = false;
                 }
                 FileRead(hFile, &progress_delay, 2, 0);
                 if (m_lData1 != 0 && progress_delay != 0) {
@@ -908,13 +896,13 @@ void W8TriggerShakeEvent::Update()
             intensity = g_float_one;
         }
         effect = CreateCameraShakeEffect(m_pCountdown->m_duration_seconds, false, intensity, 0, 0);
-        effect->flags &= ~W8_SHAKE_LIST_OWNS;
+        effect->flags.list_owns = false;
         if (reverse) {
-            effect->flags |= W8_SHAKE_FADE_OUT;
+            effect->flags.fade_out = true;
         }
     }
 
-    if ((effect->flags & W8_SHAKE_ACTIVE) == 0) {
+    if (!effect->flags.active) {
         delete effect;
         effect = 0;
         if (trigger != 0) {
@@ -963,7 +951,7 @@ void Trigger::CompleteItemInteraction()
     W8TriggerActionData* action_data = m_pActionData;
     lock_state.device_state.completed = 1;
     if (action_data != 0 && action_data->type == W8_TRIGGER_PAYLOAD_DOOR) {
-        static_cast<W8DoorTriggerActionData*>(action_data)->door_flags &= ~W8_DOOR_KEY_REQUIRED;
+        static_cast<W8DoorTriggerActionData*>(action_data)->locked = false;
     }
 }
 
@@ -977,9 +965,8 @@ void Trigger::Activate()
     W8TriggerActionData* action_data = m_pActionData;
     if (action_data != 0 && action_data->type == W8_TRIGGER_PAYLOAD_DOOR &&
         (lock_state.lock_type == 0 || lock_state.device_state.completed != 0) &&
-        (static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & W8_DOOR_KEY_REQUIRED) ==
-            0) {
-        if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & W8_DOOR_OPEN) == 0) {
+        !static_cast<W8DoorTriggerActionData*>(action_data)->locked) {
+        if (!static_cast<W8DoorTriggerActionData*>(action_data)->open) {
             running = true;
             Run(-1);
             running = false;
@@ -1084,21 +1071,19 @@ bool Trigger::PlayActionSound(const char* sound_name, int volume)
 void W8TriggerEvent::Update()
 {
     if (action == 2) {
-        unsigned short flags = timer.m_flags;
+        W8GameTimer::Flags flags = timer.m_flags;
 
         if (g_combat_inactive == 0) {
-            if ((flags & W8_TIMER_PAUSED) != 0 ||
-                (g_shared_timer_paused && (flags & W8_TIMER_RAW_TIME) == 0) ||
+            if (flags.paused || (g_shared_timer_paused && !flags.raw_time) ||
                 g_shared_timer_flag0) {
                 return;
             }
-            timer.m_flags = flags | W8_TIMER_PAUSED;
+            timer.m_flags.paused = true;
             timer.m_start = timer.GetTime() - timer.m_start;
             return;
         }
-        if ((flags & W8_TIMER_PAUSED) != 0 ||
-            (g_shared_timer_paused && (flags & W8_TIMER_RAW_TIME) == 0) || g_shared_timer_flag0) {
-            timer.m_flags = flags & ~W8_TIMER_PAUSED;
+        if (flags.paused || (g_shared_timer_paused && !flags.raw_time) || g_shared_timer_flag0) {
+            timer.m_flags.paused = false;
             timer.m_start = timer.GetTime() - timer.m_start;
             timer.SetDuration(-1.0f);
         }
@@ -1192,8 +1177,7 @@ void W8TriggerEvent::Update()
     case 2:
         if (trigger->m_pActionData != 0 &&
             trigger->m_pActionData->type == W8_TRIGGER_PAYLOAD_DOOR &&
-            (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->door_flags &
-             W8_DOOR_OPEN) != 0) {
+            static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->open) {
             trigger->Run(-1);
         }
         break;
@@ -1323,46 +1307,51 @@ void Trigger::SetPosition(srVector3T<float>* position)
 W8TriggerActionData* ReadDoorTriggerActionData(int handle)
 {
     W8DoorTriggerActionData* data = new W8DoorTriggerActionData;
-    data->type = W8_TRIGGER_PAYLOAD_DOOR;
-    data->door_flags = 0x40;
-    data->extra_flags &= ~1;
-    data->item = -1;
-    data->linked_trigger[0] = 0;
-    data->position.SetZero();
 
     unsigned char version;
-    unsigned char flags[9];
+    unsigned char open;
+    unsigned char lockable;
+    unsigned char locked;
+    unsigned char auto_locking;
+    unsigned char one_way;
+    unsigned char secret;
+    unsigned char found;
+    unsigned char jammable;
+    unsigned char jammed;
     unsigned short item;
     unsigned char has_position;
     srVector3T<float> position;
     char linked_trigger[0x80];
     FileRead(handle, &version, 1, 0);
-    for (int index = 0; index < 9; ++index) {
-        FileRead(handle, &flags[index], 1, 0);
-    }
+    FileRead(handle, &open, 1, 0);
+    FileRead(handle, &lockable, 1, 0);
+    FileRead(handle, &locked, 1, 0);
+    FileRead(handle, &auto_locking, 1, 0);
+    FileRead(handle, &one_way, 1, 0);
+    FileRead(handle, &secret, 1, 0);
+    FileRead(handle, &found, 1, 0);
+    FileRead(handle, &jammable, 1, 0);
+    FileRead(handle, &jammed, 1, 0);
     FileRead(handle, &item, 2, 0);
     FileRead(handle, &has_position, 1, 0);
     FileRead(handle, &position, sizeof(position), 0);
     position *= 500.0f;
     FileRead(handle, linked_trigger, sizeof(linked_trigger), 0);
 
-    for (int bit = 0; bit < 8; ++bit) {
-        if (flags[bit] != 0) {
-            data->door_flags |= W8_DOOR_OPEN << bit;
-        } else {
-            data->door_flags &= ~(1 << bit);
-        }
-    }
-    if (flags[8] != 0) {
-        data->extra_flags |= 1;
-    } else {
-        data->extra_flags &= ~1;
-    }
+    data->open = (open & 1) != 0;
+    data->lockable = (lockable & 1) != 0;
+    data->locked = (locked & 1) != 0;
+    data->auto_locking = (auto_locking & 1) != 0;
+    data->one_way = (one_way & 1) != 0;
+    data->secret = (secret & 1) != 0;
+    data->found = (found & 1) != 0;
+    data->jammable = (jammable & 1) != 0;
+    data->jammed = (jammed & 1) != 0;
     data->item = item;
     strcpy(data->linked_trigger, linked_trigger);
     if (has_position != 0) {
         data->position = position;
-        data->extra_flags |= 2;
+        data->has_position = true;
     }
     return data;
 }
@@ -1455,8 +1444,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 if (action_data_kind == 1) {
                     trigger->m_pActionData = ReadDoorTriggerActionData(handle);
                     trigger->state_index =
-                        (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->door_flags &
-                         W8_DOOR_OPEN) != 0;
+                        static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->open;
                 }
             }
         }
@@ -1908,8 +1896,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             if (action_data_kind == 1) {
                 trigger->m_pActionData = ReadDoorTriggerActionData(handle);
                 trigger->state_index =
-                    (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->door_flags &
-                     W8_DOOR_OPEN) != 0;
+                    static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->open;
             } else if (action_data_kind == 2) {
                 unsigned char count;
                 srVector3T<float> legacy_vertices[36];
@@ -2615,13 +2602,12 @@ void Trigger::Run(int source)
             if (m_pActionData != 0 && m_pActionData->type == W8_TRIGGER_PAYLOAD_DOOR) {
                 action_data = static_cast<W8DoorTriggerActionData*>(m_pActionData);
             }
-            if (action_data != 0 && (action_data->door_flags & W8_DOOR_KEY_REQUIRED) != 0 &&
-                action_data->item != -1) {
+            if (action_data != 0 && action_data->locked && action_data->item != -1) {
                 if (!FindItemOnParty(action_data->item, 0, 0, 2, 0)) {
                     ShowNoticef(W8_FONT_PALETTE_BLUE, L"Your party doesn't have required key.");
                     break;
                 }
-                action_data->door_flags &= ~W8_DOOR_KEY_REQUIRED;
+                action_data->locked = false;
             }
 
             m_pProp->SetRepresentationActive(1, true);
@@ -2631,7 +2617,7 @@ void Trigger::Run(int source)
             }
             flags |= W8_TRIGGER_RUNNING;
             if (action_data != 0) {
-                action_data->door_flags |= W8_DOOR_OPEN;
+                action_data->open = true;
             }
 
             if (m_lData1 != 0) {
@@ -2672,11 +2658,9 @@ void Trigger::Run(int source)
             flags |= W8_TRIGGER_RUNNING;
             if (m_pActionData != 0 && m_pActionData->type == W8_TRIGGER_PAYLOAD_DOOR) {
                 if (state_index == 0) {
-                    static_cast<W8DoorTriggerActionData*>(m_pActionData)->door_flags &=
-                        ~W8_DOOR_OPEN;
+                    static_cast<W8DoorTriggerActionData*>(m_pActionData)->open = false;
                 } else {
-                    static_cast<W8DoorTriggerActionData*>(m_pActionData)->door_flags |=
-                        W8_DOOR_OPEN;
+                    static_cast<W8DoorTriggerActionData*>(m_pActionData)->open = true;
                 }
             }
             goto commit_action;
@@ -2689,13 +2673,12 @@ void Trigger::Run(int source)
             if (m_pActionData != 0 && m_pActionData->type == W8_TRIGGER_PAYLOAD_DOOR) {
                 action_data = static_cast<W8DoorTriggerActionData*>(m_pActionData);
             }
-            if (action_data != 0 && (action_data->door_flags & W8_DOOR_KEY_REQUIRED) != 0 &&
-                action_data->item != -1) {
+            if (action_data != 0 && action_data->locked && action_data->item != -1) {
                 if (!FindItemOnParty(action_data->item, 0, 0, 2, 0)) {
                     ShowNoticef(W8_FONT_PALETTE_BLUE, L"Your party doesn't have required key.");
                     break;
                 }
-                action_data->door_flags &= ~W8_DOOR_KEY_REQUIRED;
+                action_data->locked = false;
             }
             if (m_bRepType != W8_TRIGGER_REP_PROP || m_pProp == 0) {
                 break;
@@ -2712,8 +2695,7 @@ void Trigger::Run(int source)
                 flags &= ~W8_TRIGGER_RUNNING;
             }
             if (action_data != 0) {
-                action_data->door_flags =
-                    (action_data->door_flags & ~W8_DOOR_OPEN) | (state_index & 1);
+                action_data->open = (state_index & 1) != 0;
             }
             goto commit_action;
         }
@@ -3508,7 +3490,7 @@ bool Trigger::SelectAction()
 
     if (g_combat_inactive == 0 && m_pActionData != 0 &&
         m_pActionData->type == W8_TRIGGER_PAYLOAD_DOOR &&
-        (static_cast<W8DoorTriggerActionData*>(m_pActionData)->door_flags & W8_DOOR_OPEN) != 0) {
+        static_cast<W8DoorTriggerActionData*>(m_pActionData)->open) {
         return false;
     }
 
@@ -3615,7 +3597,7 @@ bool Trigger::SelectAction()
             return false;
         }
 
-        if ((action_data->door_flags & W8_DOOR_KEY_REQUIRED) != 0 && action_data->item != -1) {
+        if (action_data->locked && action_data->item != -1) {
             if (GetItemInHand() != action_data->item) {
                 if (m_lData2 == 1 && activation_callback != 0) {
                     activation_callback(this);
@@ -3625,7 +3607,7 @@ bool Trigger::SelectAction()
                 fallback_selected = true;
             } else {
                 lock_state.device_state.completed = 1;
-                action_data->door_flags &= ~W8_DOOR_KEY_REQUIRED;
+                action_data->locked = false;
                 if (action_data->linked_trigger[0] != '\0') {
                     Trigger* linked_trigger;
                     action_state = 1;

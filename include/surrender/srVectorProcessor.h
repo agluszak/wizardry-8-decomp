@@ -54,7 +54,7 @@ public:
     /* Retail also emits a guarded variant at 0x10027BA0 that skips the call
        when count is zero. */
     // FUNCTION: SURRENDER 0x10027BC0 SYMBOL
-    // ?copy@srVectorProcessor@@SAXPAKKK@Z
+    // RECOMP: ?copy@srVectorProcessor@@SAXPAKKK@Z
     static inline void copy(SRDWORD* destination, SRDWORD constant, SRDWORD count)
     {
         vp->_copy(destination, constant, count);
@@ -71,7 +71,7 @@ public:
     }
 
     // FUNCTION: SURRENDER 0x1005CC60 SYMBOL
-    // ?copyIndexed@srVectorProcessor@@SAXPAKPBK1K@Z
+    // RECOMP: ?copyIndexed@srVectorProcessor@@SAXPAKPBK1K@Z
     static inline void copyIndexed(SRDWORD* destination, const SRDWORD* source,
                                    const SRDWORD* indices, SRDWORD count)
     {

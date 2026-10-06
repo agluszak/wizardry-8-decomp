@@ -393,7 +393,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, bool announce)
     if (announce && !monster_info->death_processed &&
         monster_info->party_threat.sight_state != W8_SIGHT_UNSEEN) {
         ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, 0),
-                    gppStringList[g_condition_notices[0x49]]);
+                    gppStringList[g_condition_notices[W8_CONDITION_DEAD].singular]);
     }
     ReleaseMonsterConditionBindings(monster_info);
     if (monster_info->summoned == W8_MONSTER_SUMMON_FRIENDLY) {
@@ -722,9 +722,8 @@ void ProcessMonstersAtCombatEnd(bool forced_cleanup)
 // FUNCTION: WIZ8 0x004e5d00
 void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
 {
-    unsigned int monster_attribute = 0;
-
-    do {
+    for (unsigned int monster_attribute = 0; monster_attribute < W8_MONSTER_ATTR_COUNT;
+         ++monster_attribute) {
         W8MonsterRecord* record;
         W8Attribute attribute_index;
         int value;
@@ -760,8 +759,7 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
         value += monster_info->modifiers.attribute_adjustments[attribute_index];
         ClampInteger(&value, 1, 125);
         monster_info->attributes[monster_attribute] = static_cast<unsigned char>(value);
-        ++monster_attribute;
-    } while (monster_attribute < W8_MONSTER_ATTR_COUNT);
+    }
 }
 
 // FUNCTION: WIZ8 0x004e5e50
@@ -999,8 +997,8 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
     }
     W8MonsterRecord* record = MonsterDBFromSpecies(monster_info->monster_species);
-    int minimum_hp = record->hit_points.base + record->hit_points.count;
-    int maximum_hp = record->hit_points.base + record->hit_points.count * record->hit_points.sides;
+    int minimum_hp = record->hit_points.Minimum();
+    int maximum_hp = record->hit_points.Maximum();
     float scale =
         ((maximum - minimum) * (static_cast<unsigned int>(monster_info->uiHPMax) - minimum_hp)) /
             (maximum_hp - minimum_hp) +

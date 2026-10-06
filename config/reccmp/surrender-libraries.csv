@@ -17,3 +17,15 @@ address|symbol|name|type
 1007007c||??_L@YGXPAXIHP6EX0@Z1@Z|library
 100701e0||__allmul|library
 10070220||__aulldiv|library
+100381d0||iostream Init global initializer|library
+100381e0||iostream Init atexit registrar|library
+10038210||iostream wide-stream Init global initializer|library
+10038220||iostream wide-stream Init atexit registrar|library
+1006ff82||vector destruction unwind funclet|library
+1006ff9a||vector element destruction unwind loop|library
+1007010f||type_info scalar deleting destructor|library
+10070288||DLL CRT initialization and termination|library
+100381f0||iostream Init global destructor callback|library
+10038200||iostream wide-stream initialization dispatcher|library
+10038230||iostream wide-stream Init global destructor callback|library
+10070333||DLL CRT entry-point dispatcher|library

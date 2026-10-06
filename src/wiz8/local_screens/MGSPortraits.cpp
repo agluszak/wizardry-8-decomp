@@ -1099,25 +1099,31 @@ void ReleasePortraitControls(void)
 void ReleaseConditionButtons(void)
 {
     DestroyControlPanel(g_condition_buttons_panel);
-    W8ConditionButton** control = g_condition_buttons;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
+    for (int slot = 0; slot < 8; ++slot) {
+        if (g_condition_buttons[slot] != 0) {
+            delete g_condition_buttons[slot];
+            g_condition_buttons[slot] = 0;
         }
-        ++control;
-    } while (control < g_condition_buttons + 8);
+    }
+}
+
+/* Drop the condition-icon highlight: every dismissal path clears the slot,
+   removes the overlay and redraws the portrait panel and portraits. */
+static void ClearConditionHighlight(void)
+{
+    g_level_block->condition_highlight_party_slot = -1;
+    DismissHighlightOverlay();
+    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
+    RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
 }
 
 // FUNCTION: WIZ8 0x0059BB40
 void DisablePortraitControls(void)
 {
     RegionSetDisable(5);
-    W8TextControl** control = g_portrait_controls;
-    do {
-        (*control)->SetActive(false);
-        ++control;
-    } while (control < g_portrait_controls + 8);
+    for (int slot = 0; slot < 8; ++slot) {
+        g_portrait_controls[slot]->SetActive(false);
+    }
 }
 
 // FUNCTION: WIZ8 0x0059C030
@@ -1126,29 +1132,22 @@ void DisableConditionButtons(void)
     RegionSetDisable(6);
     g_condition_buttons_panel->SetEnabled(false);
     if (g_level_block->condition_highlight_party_slot != -1) {
-        g_level_block->condition_highlight_party_slot = -1;
-        DismissHighlightOverlay();
-        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
-        RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
+        ClearConditionHighlight();
     }
 }
 
 // FUNCTION: WIZ8 0x0059BFC0
 void EnableConditionButtons(void)
 {
-    W8ConditionButton** control;
-
     if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
         srAssertFail("gConfig.uiCurrentLayout != LAYOUT_NORMAL",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0xa0c, 0);
     }
     RegionSetEnable(6);
     g_condition_buttons_panel->SetEnabled(true);
-    control = g_condition_buttons;
-    do {
-        (*control)->SetEnabled(true);
-        ++control;
-    } while (control < g_condition_buttons + 8);
+    for (int slot = 0; slot < 8; ++slot) {
+        g_condition_buttons[slot]->SetEnabled(true);
+    }
     g_condition_buttons_panel->Invalidate(0);
 }
 
@@ -1156,18 +1155,14 @@ void EnableConditionButtons(void)
 void EnablePortraitAdvanceRegions(void)
 {
     RegionSetEnable(5);
-    unsigned int state_offset = 0;
-    int party_slot = 0;
-    do {
+    for (int party_slot = 0; party_slot < 8; ++party_slot) {
         if (!IsCharacterReadyToAdvance(party_slot) ||
             g_status.buffers.XChar[party_slot].portrait_advance == 0) {
             DisableRegionInput(party_slot + 0x12);
         } else {
             EnableRegionInput(party_slot + 0x12);
         }
-        state_offset += 0x106;
-        ++party_slot;
-    } while (state_offset < 0x830);
+    }
 }
 
 // FUNCTION: WIZ8 0x0059BBD0
@@ -1226,16 +1221,10 @@ static void OnLevelButtonActivate(void)
 void CreateLevelButtons(void)
 {
     unsigned int uiSlot;
-    unsigned int column_x;
-    int row_y;
-    int count;
-    W8TextControl** control;
 
     g_portrait_panel = 0;
-    control = g_portrait_controls;
-    for (count = 8; count != 0; --count) {
-        *control = 0;
-        ++control;
+    for (uiSlot = 0; uiSlot < 8; ++uiSlot) {
+        g_portrait_controls[uiSlot] = 0;
     }
 
     g_portrait_panel = new Controls(0, 0, 0x280, 0x1e0, -1, 0, -1);
@@ -1244,31 +1233,24 @@ void CreateLevelButtons(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x8e0, 0);
     }
 
-    uiSlot = 0;
-    control = g_portrait_controls;
-    do {
-        column_x = (uiSlot & 1) != 0 ? 0x23b : 0;
-        row_y = (uiSlot >> 1) * 0x55;
-        W8TextControl* button =
+    for (uiSlot = 0; uiSlot < 8; ++uiSlot) {
+        unsigned int column_x = (uiSlot & 1) != 0 ? 0x23b : 0;
+        int row_y = (uiSlot >> 1) * 0x55;
+        g_portrait_controls[uiSlot] =
             new W8TextControl(g_portrait_panel, uiSlot + 0x12, column_x + 0x19, row_y + 0x46,
                               column_x + 0x2b, row_y + 0x58, 0xa7, 0, 0, 2, 1, 4, 3);
-        *control = button;
-        button->m_primaryActivationCallback = OnLevelButtonActivate;
-        if (*control == 0) {
+        g_portrait_controls[uiSlot]->m_primaryActivationCallback = OnLevelButtonActivate;
+        if (g_portrait_controls[uiSlot] == 0) {
             srAssertFail("gpLevelButtons[uiSlot]",
                          "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x8f7, 0);
         }
-        ++control;
-        ++uiSlot;
-    } while (control < g_portrait_controls + 8);
+    }
 
     giLevelUpChar = -1;
     g_portrait_panel->SetEnabled(true);
-    control = g_portrait_controls;
-    do {
-        (*control)->SetActive(false);
-        ++control;
-    } while (control < g_portrait_controls + 8);
+    for (uiSlot = 0; uiSlot < 8; ++uiSlot) {
+        g_portrait_controls[uiSlot]->SetActive(false);
+    }
 }
 
 // FUNCTION: WIZ8 0x00599210
@@ -1305,10 +1287,7 @@ void W8ConditionButton::OnMouseLeave(int event)
 {
     W8TextControl::OnMouseLeave(event);
     if (g_level_block->condition_highlight_party_slot != -1) {
-        g_level_block->condition_highlight_party_slot = -1;
-        DismissHighlightOverlay();
-        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
-        RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
+        ClearConditionHighlight();
     }
 }
 
@@ -1324,26 +1303,17 @@ void W8ConditionButton::OnLeftButtonDown(int event)
 void W8ConditionButton::OnLeftButtonUp(int event)
 {
     W8TextControl::OnLeftButtonUp(event);
-    g_level_block->condition_highlight_party_slot = -1;
-    DismissHighlightOverlay();
-    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
-    RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
+    ClearConditionHighlight();
 }
 
 // FUNCTION: WIZ8 0x0059BDB0
 void CreateConditionButtons(void)
 {
     unsigned int uiSlot;
-    unsigned int column_x;
-    int row_y;
-    int count;
-    W8ConditionButton** control;
 
     g_condition_buttons_panel = 0;
-    control = g_condition_buttons;
-    for (count = 8; count != 0; --count) {
-        *control = 0;
-        ++control;
+    for (uiSlot = 0; uiSlot < 8; ++uiSlot) {
+        g_condition_buttons[uiSlot] = 0;
     }
 
     g_condition_buttons_panel = new Controls(0, 0, 0x280, 0x1e0, -1, 0, -1);
@@ -1352,22 +1322,17 @@ void CreateConditionButtons(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x9db, 0);
     }
 
-    uiSlot = 0;
-    control = g_condition_buttons;
-    do {
-        column_x = (uiSlot & 1) != 0 ? 0x23f : 0;
-        row_y = (uiSlot >> 1) * 0x55;
-        W8ConditionButton* button = new W8ConditionButton(
+    for (uiSlot = 0; uiSlot < 8; ++uiSlot) {
+        unsigned int column_x = (uiSlot & 1) != 0 ? 0x23f : 0;
+        int row_y = (uiSlot >> 1) * 0x55;
+        g_condition_buttons[uiSlot] = new W8ConditionButton(
             g_condition_buttons_panel, uiSlot + 0x1a, column_x + 0x17, row_y + 0x13,
             column_x + 0x2a, row_y + 0x26, 0xa8, 0, 0, 0, 1, 1, -1, uiSlot);
-        *control = button;
-        if (button == 0) {
+        if (g_condition_buttons[uiSlot] == 0) {
             srAssertFail("gpConditionButtons[uiSlot]",
                          "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x9ec, 0);
         }
-        ++control;
-        ++uiSlot;
-    } while (control < g_condition_buttons + 8);
+    }
 
     DisableConditionButtons();
 }
@@ -1454,10 +1419,7 @@ void UpdateConditionButtons(void)
                                      button->m_bottom + g_condition_buttons_panel->m_bounds.top);
                 }
                 if (g_level_block->condition_highlight_party_slot == slot) {
-                    g_level_block->condition_highlight_party_slot = -1;
-                    DismissHighlightOverlay();
-                    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
-                    RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
+                    ClearConditionHighlight();
                 }
             }
         } else if (!button->m_active) {

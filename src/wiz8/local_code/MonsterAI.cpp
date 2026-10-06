@@ -763,7 +763,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         break;
     case W8_RT_AI_FOLLOW_LURE:
         effect = FindMonsterControlSpellEffect();
-        if (effect == 0 || (visual = effect->spell_visuals.data[0]) == 0) {
+        if (effect == 0 || (visual = effect->spell_visuals[0]) == 0) {
             break;
         }
         if (monster->SetMovementTargetToNavigator(visual, 2500.0) == 0) {
@@ -2435,7 +2435,7 @@ short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
     if (effect == 0) {
         return 0;
     }
-    visual = effect->spell_visuals.data[0];
+    visual = effect->spell_visuals[0];
     if (visual == 0) {
         return 0;
     }

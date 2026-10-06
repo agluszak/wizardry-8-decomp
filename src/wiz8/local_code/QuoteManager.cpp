@@ -399,10 +399,7 @@ static void CharacterEventSoundEndCallback(void* callback_data)
     RuntimeObserve(RUNTIME_VOICE_FINISHED, CharacterPointerToPartySlot(entry->character),
                    entry->event_type, 0);
 #endif
-    queue->active_events.Remove(entry);
-    queue->RestartFollowUpClock(entry);
-    entry->Complete();
-    delete entry;
+    queue->CompleteActiveEvent(entry);
 }
 
 // FUNCTION: WIZ8 0x0052C810
@@ -579,10 +576,7 @@ void W8CharacterEventQueue::CompleteFirstActiveEvent()
 
     if (active_events.GetCount() > 0) {
         entry = *active_events.GetAt(0);
-        active_events.Remove(entry);
-        RestartFollowUpClock(entry);
-        entry->Complete();
-        delete entry;
+        CompleteActiveEvent(entry);
     }
 }
 
@@ -1156,12 +1150,12 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
     }
     if (entry->event_type == 0x21) {
         int index;
-        if (active_events.GetCount() > 0 && active_events.data[0]->event_type == 0x21) {
+        if (active_events.GetCount() > 0 && active_events[0]->event_type == 0x21) {
             delete entry;
             return 0;
         }
         for (index = 0; index < pending_events.GetCount(); ++index) {
-            if (pending_events.data[index]->event_type == 0x21) {
+            if (pending_events[index]->event_type == 0x21) {
                 delete entry;
                 return 0;
             }
@@ -1270,14 +1264,14 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
     if (npc_deferred_events.GetCount() > 0 && !ShouldDeferCharacterEventForNpcScript(false) &&
         !IsNpcScriptSessionActive()) {
         for (index = 0; index < npc_deferred_events.GetCount(); ++index) {
-            QueueEntry(npc_deferred_events.data[index]);
+            QueueEntry(npc_deferred_events[index]);
         }
         npc_deferred_events.Clear();
     }
 
     if (pending_events.GetCount() != 0) {
         conflict_count = 1;
-        baseline = pending_events.data[0];
+        baseline = pending_events[0];
         conflict_indices = new int[pending_events.GetCount()];
         conflict_indices[0] = 0;
         for (index = 1; index < pending_events.GetCount(); ++index) {
@@ -1411,18 +1405,6 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, un
         return 0;
     }
     return entry;
-}
-
-/* Remove one queued character event from the owned vector before dispatching
-   and deleting it. Event types 14 and 15 also restart the runtime state's
-   follow-up clock; bit 1 selects the short interval. */
-// FUNCTION: WIZ8 0x0052D8D0
-void W8CharacterEventQueue::CompleteActiveEvent(W8CharacterEvent* entry)
-{
-    active_events.Remove(entry);
-    RestartFollowUpClock(entry);
-    entry->Complete();
-    delete entry;
 }
 
 /* Set the pose a party-slot portrait is animating toward. The request drops

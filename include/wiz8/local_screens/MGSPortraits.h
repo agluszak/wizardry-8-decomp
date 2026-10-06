@@ -23,10 +23,12 @@ public:
     /* 0x0059BDB0 shows the whole body inlined at the allocation site: the base
        constructor, the 0xff selector store and the slot store, then the vptr. */
     W8ConditionButton(Controls* panel, unsigned int region, int left, int top, int right,
-                      int bottom, int text_40, int text_44, int text_48, int text_4c, int text_54,
-                      int text_50, int text_58, int ui_slot)
-        : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48, text_4c,
-                        text_54, text_50, text_58),
+                      int bottom, int image_object, int image_frame, int normal_sprite,
+                      int pressed_sprite, int alternate_normal_sprite, int alternate_pressed_sprite,
+                      int disabled_sprite, int ui_slot)
+        : W8TextControl(panel, region, left, top, right, bottom, image_object, image_frame,
+                        normal_sprite, pressed_sprite, alternate_normal_sprite,
+                        alternate_pressed_sprite, disabled_sprite),
           m_condition(0xff), m_ui_slot(ui_slot)
     {
     }

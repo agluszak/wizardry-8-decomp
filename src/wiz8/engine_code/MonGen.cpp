@@ -62,20 +62,11 @@ MonGen::MonGen()
 // FUNCTION: WIZ8 0x0048bdc0
 MonGen* FindMonGenByName(const char* name)
 {
-    W8GrowableVector<MonGen*>* generators = g_world->monster_generators;
-    MonGen* generator;
-    int index = 0;
-
-    if (generators->GetCount() > 0) {
-        do {
-            generator = *generators->GetAt(index);
-
-            if (strncmp(name, generator->name, sizeof(generator->name)) == 0) {
-                return generator;
-            }
-            generators = g_world->monster_generators;
-            ++index;
-        } while (index < generators->GetCount());
+    for (int index = 0; index < g_world->monster_generators->GetCount(); ++index) {
+        MonGen* generator = *g_world->monster_generators->GetAt(index);
+        if (strncmp(name, generator->name, sizeof(generator->name)) == 0) {
+            return generator;
+        }
     }
     return 0;
 }
@@ -308,8 +299,8 @@ int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
 {
     W8Dice* dice = &record->group_size_dice;
     float relative_level = record->display_level / GetAveragePartyMemberLevel();
-    int minimum = dice->base + dice->count;
-    int maximum = dice->base + dice->count * dice->sides;
+    int minimum = dice->Minimum();
+    int maximum = dice->Maximum();
     float midpoint = (minimum + maximum) * 0.5f;
     int rolled = RollDice(dice);
 
@@ -798,7 +789,7 @@ void LoadMonsterGenerators(int handle)
                 generator->m_pTimer->Arm();
             } else {
                 W8IntervalGate* timer = new W8IntervalGate;
-                timer->m_flags &= 0xfffd;
+                timer->m_flags.one_shot = false;
                 timer->Load(handle);
                 delete timer;
             }
@@ -993,7 +984,7 @@ void MonGen::Reset()
             srAssertFail("m_pTimer", MON_GEN_CPP, 0x217,
                          "MonGen::Reset() out of memory allocating m_pTimer");
         }
-        m_pTimer->m_flags &= 0xfffd;
+        m_pTimer->m_flags.one_shot = false;
     }
     interval = (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0 ? g_generator_default_interval
                                                              : custom_interval_seconds;

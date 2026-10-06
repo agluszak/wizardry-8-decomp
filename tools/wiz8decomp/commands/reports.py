@@ -133,6 +133,9 @@ def pr_comparison_command(
 @app.command("semantic-debt")
 def semantic_debt_command(
     program: str = typer.Option("wiz8", "--program"),
+    retail_identities: bool = typer.Option(
+        False, help="Classify ownership in the native reccmp catalog; requires existing products."
+    ),
 ) -> None:
     """Rank provisional recovery work without turning it into a gate."""
 
@@ -142,7 +145,7 @@ def semantic_debt_command(
     settings = cli.settings()
     target = target_for_program(settings.repo_dir, program)
     warn_if_source_index_may_be_stale(settings.repo_dir, target)
-    cli.emit(semantic_debt_report(settings.repo_dir, target))
+    cli.emit(semantic_debt_report(settings.repo_dir, target, retail_identities=retail_identities))
 
 
 @app.command("source-oracle")

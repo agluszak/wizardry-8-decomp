@@ -113,7 +113,7 @@ W8PartySelectionCharacterCollection::~W8PartySelectionCharacterCollection()
     int index;
     ClearCharacters();
     for (index = 0; index < names.GetCount(); ++index) {
-        delete names.data[index];
+        delete names[index];
     }
     names.Clear();
 }
@@ -147,7 +147,7 @@ void W8PartySelectionCharacterCollection::ReloadCharacters()
 W8Character* W8PartySelectionCharacterCollection::GetCharacter(int index)
 {
     if (index >= 0 && index < characters.GetCount()) {
-        return characters.data[index];
+        return characters[index];
     }
     return 0;
 }
@@ -293,7 +293,7 @@ void W8PartySelectionCharacterCollection::SortCharactersByWriteTime()
     memset(times, 0, characters.GetCount() * sizeof(SGP_FILETIME));
     for (int index = 0; index < characters.GetCount(); ++index) {
         char path[128];
-        BuildCharacterPath(path, characters.data[index]->name, -1);
+        BuildCharacterPath(path, characters[index]->name, -1);
         int handle = FileOpen(path, FILE_ACCESS_READ, 0);
         if (handle) {
             SGP_FILETIME creation;
@@ -948,7 +948,7 @@ W8PartySelectionPartySlotPanel::W8PartySelectionPartySlotPanel() : Controls()
     }
     m_control.m_selectionListener = this;
     for (int slot = 0; slot < 6; ++slot) {
-        W8TextControl* control = m_control.m_lsButtons.data[slot];
+        W8TextControl* control = m_control.m_lsButtons[slot];
         control->SetEnabled(g_status.buffers.XChar[slot + 2].fOccupied);
     }
     Invalidate(0);
@@ -1139,7 +1139,7 @@ void W8PartySelectionOptionPanel::Redraw()
     }
 
     for (int index = 0; index < m_entries.GetCount(); ++index) {
-        m_entries.data[index]->RenderToTarget(0, true, FRAME_BUFFER);
+        m_entries[index]->RenderToTarget(0, true, FRAME_BUFFER);
     }
     if (m_page == W8_PARTY_CREATION_SAVE_NAME) {
         DrawCatalogImage(FRAME_BUFFER, 0x102, 0, 1, m_render_left, m_render_top,
@@ -1291,8 +1291,8 @@ void W8PartySelectionController::Setup()
     m_control3 = new W8PartySelectionOptionPanel;
 
     for (int slot = 0; slot < 6; ++slot) {
-        W8PartySelectionPartySlotRow* row = static_cast<W8PartySelectionPartySlotRow*>(
-            m_control1->m_control.m_lsButtons.data[slot]);
+        W8PartySelectionPartySlotRow* row =
+            static_cast<W8PartySelectionPartySlotRow*>(m_control1->m_control.m_lsButtons[slot]);
         row->m_redraw_partner = m_control0->ControlAt(slot);
     }
 
@@ -1952,7 +1952,7 @@ void W8PartySelectionController::LoadImportedPartyFile(int selection)
     int slot;
     for (slot = 0; slot < 6; ++slot) {
         bool occupied = g_status.buffers.XChar[slot + 2].fOccupied;
-        m_control1->m_control.m_lsButtons.data[slot]->SetEnabled(occupied);
+        m_control1->m_control.m_lsButtons[slot]->SetEnabled(occupied);
     }
     m_control1->Invalidate(0);
     for (slot = 0; slot < 6; ++slot) {
@@ -2015,7 +2015,7 @@ void W8PartySelectionController::TogglePartyMemberSelection()
 
     for (int slot = 0; slot < 6; ++slot) {
         bool occupied = g_status.buffers.XChar[slot + 2].fOccupied;
-        m_control1->m_control.m_lsButtons.data[slot]->SetEnabled(occupied);
+        m_control1->m_control.m_lsButtons[slot]->SetEnabled(occupied);
     }
     m_control1->Invalidate(0);
     m_character_panel->Invalidate(0);

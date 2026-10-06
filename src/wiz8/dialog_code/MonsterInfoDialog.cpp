@@ -240,7 +240,7 @@ bool W8MonsterInfoDialog::PopulateText()
             if (count > 0) {
                 wcscat(text, g_comma_space);
             }
-            wcscat(text, gppStringList[g_condition_notices[index * 4]]);
+            wcscat(text, gppStringList[g_condition_notices[index].name]);
             ++count;
         }
     }
@@ -288,7 +288,7 @@ bool W8MonsterInfoDialog::PopulateText()
             if (count > 0) {
                 wcscat(text, g_comma_space);
             }
-            wcscat(text, gppStringList[g_condition_notices[100 + index]]);
+            wcscat(text, gppStringList[g_enchantment_notices[index]]);
             ++count;
         }
     }
@@ -318,14 +318,12 @@ bool W8MonsterInfoDialog::PopulateText()
         m_text_area.AddEntry(gppStringList[0x148], text, 10, 0xf, 0);
     }
 
-    range_category = W8_RANGE_TOUCH;
-    do {
+    for (range_category = W8_RANGE_TOUCH; range_category < 4; ++range_category) {
         if (combat_range <= CalcRangeDistance(static_cast<W8RangeCategory>(range_category))) {
             wcscpy(text, gppStringList[g_spell_range_name_ids[range_category]]);
             break;
         }
-        ++range_category;
-    } while (range_category < 4);
+    }
     if (range_category == 4) {
         wcscpy(text, gppStringList[0x140]);
     }
@@ -401,7 +399,7 @@ bool W8MonsterInfoDialog::PopulateText()
                         wcscat(text, g_comma_space);
                     }
                     wcscat(text,
-                           gppStringList[g_condition_notices[immunity->conditions[slot] * 4 + 3]]);
+                           gppStringList[g_condition_notices[immunity->conditions[slot]].noun]);
                     ++count;
                 }
                 if (immunity->immune_all != 0) {

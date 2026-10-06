@@ -1028,23 +1028,9 @@ bool CharacterHasCastableSpell(W8Character* character)
     int spell_id;
 
     for (spell_id = W8_SPELL_NONE; spell_id < 0x72; ++spell_id) {
-        if (spell_id != W8_SPELL_NONE && character->spell_learned[spell_id] == 1 &&
-            g_spell_records[spell_id].spell_point_cost <=
-                character->iSPLeft[g_spell_records[spell_id].realm]) {
+        if (CanCharacterCastSpell(character, spell_id)) {
             return true;
         }
-    }
-    return false;
-}
-
-/* Learned, and the remaining points in the spell's realm cover its cost. */
-// FUNCTION: WIZ8 0x004f9750
-bool CanCharacterCastSpell(W8Character* character, int spell_id)
-{
-    if (spell_id != W8_SPELL_NONE && character->spell_learned[spell_id] == 1 &&
-        g_spell_records[spell_id].spell_point_cost <=
-            character->iSPLeft[g_spell_records[spell_id].realm]) {
-        return true;
     }
     return false;
 }
@@ -2087,10 +2073,6 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, W8CombatSlot* tar
     }
 }
 
-/* Condition names are the condition-notice table from +5, not a second
-   initialized object at 0x0061E57A. */
-static const unsigned short* const g_spell_condition_text = g_condition_notices + 5;
-
 /* Queued report records use the exhausted-condition notice. */
 
 /* Post what an effect accumulated. The opening separator only appears once
@@ -2104,7 +2086,6 @@ static const unsigned short* const g_spell_condition_text = g_condition_notices 
 // FUNCTION: WIZ8 0x005005c0
 void ReportSpellResult(W8SpellEffectEntry* effect)
 {
-    const unsigned short* condition_text = g_spell_condition_text;
 
     if (GetTextBoxMode() != 0) {
         AppendToLastTextLine(!effect->reported ? L" -- " : L", ", -1);
@@ -2122,41 +2103,39 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
         SetTextBoxMode(1, -1);
         effect->reported = true;
     }
-    unsigned int* condition_count = &effect->result.condition_counts[1];
-
-    do {
-        if (*condition_count != 0) {
+    for (int condition = W8_CONDITION_DRAINED; condition < W8_CONDITION_COUNT; ++condition) {
+        if (effect->result.condition_counts[condition] != 0) {
             if (effect->reported && GetTextBoxMode() != 0) {
                 AppendToLastTextLine(L", ", -1);
                 SetTextBoxMode(1, -1);
             }
-            if (*condition_count == 1) {
+            if (effect->result.condition_counts[condition] == 1) {
                 if (effect->target.iType == W8_TARGET_KIND_CHARACTER) {
                     AppendToLastTextLine(
                         FormatWideString(L"%s %s", g_status.buffers.Char[effect->target.iChar].name,
-                                         gppStringList[condition_text[0]]),
+                                         gppStringList[g_condition_notices[condition].singular]),
                         -1);
                 } else if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
                     W8MonsterInfo* monster_info =
                         MonsterInfoFromID(0x112a, MAGIC_CPP, effect->target.iMonsterID, true);
                     if (monster_info != 0) {
-                        AppendToLastTextLine(FormatWideString(L"%s %s",
-                                                              GetMonsterName(monster_info, 0, 0),
-                                                              gppStringList[condition_text[0]]),
-                                             -1);
+                        AppendToLastTextLine(
+                            FormatWideString(
+                                L"%s %s", GetMonsterName(monster_info, 0, 0),
+                                gppStringList[g_condition_notices[condition].singular]),
+                            -1);
                     }
                 }
             } else {
                 AppendToLastTextLine(
-                    FormatWideString(L"%ld %s", *condition_count, gppStringList[condition_text[1]]),
+                    FormatWideString(L"%ld %s", effect->result.condition_counts[condition],
+                                     gppStringList[g_condition_notices[condition].plural]),
                     -1);
             }
             SetTextBoxMode(1, -1);
             effect->reported = true;
         }
-        condition_text += 4;
-        ++condition_count;
-    } while (condition_text < g_spell_condition_text + 76);
+    }
 
     while (effect->result.reports.GetCount() > 0) {
         W8SpellDamageReport* report = *effect->result.reports.GetAt(0);
@@ -2164,14 +2143,13 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
         if (report != 0) {
             if (report->kind == 1) {
                 SetTextBoxMode(0, -1);
-                PostCharacterNotice(
-                    report->value, g_format_s_bang,
-                    gppStringList[g_spell_condition_text[W8_CONDITION_UNCONSCIOUS * 4]]);
+                PostCharacterNotice(report->value, g_format_s_bang,
+                                    gppStringList[g_condition_notices[W8_CONDITION_DEAD].singular]);
                 effect->reported = true;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
                 ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", report->text,
-                            gppStringList[g_spell_condition_text[W8_CONDITION_UNCONSCIOUS * 4]]);
+                            gppStringList[g_condition_notices[W8_CONDITION_DEAD].singular]);
                 effect->reported = true;
             }
             free(report);
@@ -2579,7 +2557,6 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     int result;
     int cast_result;
     bool recast;
-    const int* profession_level;
     bool clamp_power;
 
     character = &g_status.buffers.Char[party_slot];
@@ -2685,18 +2662,14 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     caster_level = GetProfessionCasterLevel(character, W8_PROFESSION_NONE);
     spellbook = (record->psionics_spell != 0 ? 8U : 0U) | (record->divinity_spell != 0 ? 2U : 0U) |
                 (record->wizardry_spell != 0 ? 1U : 0U) | (record->alchemy_spell != 0 ? 4U : 0U);
-    profession_level = character->profession_levels;
-    profession = W8_PROFESSION_FIGHTER;
-    do {
-        if (*profession_level != 0 && profession != character->iProfession &&
+    for (profession = W8_PROFESSION_FIGHTER; profession < W8_PROFESSION_COUNT; ++profession) {
+        if (character->profession_levels[profession] != 0 && profession != character->iProfession &&
             (g_profession_spellbooks[profession] & spellbook) != 0 &&
             (index = GetProfessionCasterLevel(character, static_cast<W8Profession>(profession)),
              0 < index)) {
             caster_level += index;
         }
-        ++profession;
-        ++profession_level;
-    } while (profession < W8_PROFESSION_COUNT);
+    }
     index = (minimum_level - caster_level) - 1 + power_level;
     if (0 < index) {
         chance += record->spell_level * index;
@@ -2723,16 +2696,14 @@ finish_difficulty_adjustment:
         aim->iChar == party_slot) {
         chance += 0x32;
     }
-    index = 0;
-    do {
+    for (index = 0; index < 0x72; ++index) {
         if (index != 0 && character->spell_learned[index] == 1 &&
             g_spell_records[index].spell_point_cost <=
                 character->iSPLeft[g_spell_records[index].realm] &&
             SpellUsableNow(index, false)) {
             ++g_status.spell_usage[index - 1].usable_cast_count;
         }
-        ++index;
-    } while (index < 0x72);
+    }
     ++g_status.spell_usage[spell_id - 1].cast_count;
     affected = SpellAffectedTarget(character, spell_id, aim, power_level);
     if (!continue_cast) {
@@ -3568,8 +3539,7 @@ void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot*
         navigator = monster_info->p3D;
     }
     origin = navigator->GetPosition();
-    attempt = 0;
-    do {
+    for (attempt = 0; attempt < 5; ++attempt) {
         point.x = static_cast<float>((Random(0x7d1) - g_monster_poster_max_distance) * range *
                                          g_double_one_thousandth +
                                      origin.x);
@@ -3582,8 +3552,7 @@ void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot*
         if (point.y != g_ground_settle_fail) {
             break;
         }
-        ++attempt;
-    } while (attempt < 5);
+    }
     delta = origin - point;
     if (range < delta.Length()) {
         delta.SetLength(range);
@@ -4040,8 +4009,8 @@ void TrackItemSpellSource(W8Character* character, int spell_id)
     W8ItemInstance* item;
     int count;
 
-    item = character->EquippedItem;
-    for (count = 0xc; count != 0; --count) {
+    for (count = 0; count < 0xc; ++count) {
+        item = &character->EquippedItem[count];
         int item_id = item->iItemNo;
         if (item_id != -1 && g_item_records[item_id].spell_id != W8_SPELL_NONE &&
             CanCharacterActivateItem(character, item) &&
@@ -4050,10 +4019,9 @@ void TrackItemSpellSource(W8Character* character, int spell_id)
              item->uses_or_charges != 0)) {
             has_spell[g_item_records[item_id].spell_id - 1] = 1;
         }
-        ++item;
     }
-    item = character->backpack;
-    for (count = 8; count != 0; --count) {
+    for (count = 0; count < 8; ++count) {
+        item = &character->backpack[count];
         int item_id = item->iItemNo;
         if (item_id != -1 && g_item_records[item_id].spell_id != W8_SPELL_NONE &&
             CanCharacterActivateItem(character, item) &&
@@ -4062,7 +4030,6 @@ void TrackItemSpellSource(W8Character* character, int spell_id)
              item->uses_or_charges != 0)) {
             has_spell[g_item_records[item_id].spell_id - 1] = 1;
         }
-        ++item;
     }
     /* Retail maps spell ids to records directly: record r is gated by
        storage[r] (the walk reads has_spell[index - 1] with the 0-based

@@ -1107,15 +1107,13 @@ void ServiceNpcDialogue(void)
     }
     if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
         if (wcslen(field_text) == 0) {
-            if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->m_enabled !=
-                0) {
+            if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->m_enabled) {
                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->SetEnabled(
                     false);
                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]
                     ->W8Widget::Invalidate(true);
             }
-        } else if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->m_enabled ==
-                   0) {
+        } else if (!g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->m_enabled) {
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]->SetEnabled(true);
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_12]
                 ->W8Widget::Invalidate(true);
@@ -1124,15 +1122,13 @@ void ServiceNpcDialogue(void)
             static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
                 ->GetSelectedTranscriptEntryIndex();
         if (selection == -1) {
-            if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->m_enabled !=
-                0) {
+            if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->m_enabled) {
                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->SetEnabled(
                     false);
                 g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]
                     ->W8Widget::Invalidate(true);
             }
-        } else if (g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->m_enabled ==
-                   0) {
+        } else if (!g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->m_enabled) {
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]->SetEnabled(true);
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_13]
                 ->W8Widget::Invalidate(true);
@@ -1302,7 +1298,7 @@ void EndNpcDialogueSession(bool skip_exit_actions)
 bool IsPortraitObscuredByNpcDialogue(unsigned int party_slot)
 {
     if (gXStatus.fNpcDialogueMode && !g_npc_interaction_state->scripted_dialogue &&
-        g_npc_interaction_state->dialogue_panels[2]->m_fEnabled != 0) {
+        g_npc_interaction_state->dialogue_panels[2]->m_fEnabled) {
         return static_cast<W8NpcDialogueTextController*>(
                    g_npc_interaction_state->dialogue_panels[2])
             ->IsSlotPortraitTranscriptCovered(party_slot);
@@ -2961,8 +2957,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
             }
         } else {
             W8Character* character = &g_status.buffers.Char[selected];
-            i = 0;
-            do {
+            for (i = 0; i < 8; ++i) {
                 if (character->backpack[i].iItemNo != -1 &&
                     !NpcTradeItemAllowed(&character->backpack[i])) {
                     if (index == hit) {
@@ -2981,8 +2976,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                     }
                     ++hit;
                 }
-                ++i;
-            } while (i < 8);
+            }
         }
         return 0;
     }

@@ -329,6 +329,8 @@ void AutoSmoother::smooth()
    0x10076C90 (pi + pi / pi * 2.0 in retail emission). */
 static const double pi = 3.141592653589793;
 
+// FUNCTION: SURRENDER 0x10037BC0
+// RECOMP: ??0Vertex@srModeler@@QAE@XZ
 srModeler::Vertex::Vertex()
 {
     reset();
@@ -608,22 +610,14 @@ void srModeler::removeDisabledTriangles()
 {
     unsigned long enabled = getEnabledTriangleCount();
     if (enabled != triangle_count) {
-        Triangle* destination = &triangles[0];
         unsigned long destination_index = 0;
-        unsigned long index = 0;
-        Triangle* source = destination;
-        if (triangle_count != 0) {
-            do {
-                if (source->disabled == 0) {
-                    if (destination_index != index) {
-                        *destination = *source;
-                    }
-                    ++destination_index;
-                    ++destination;
+        for (unsigned long index = 0; index < triangle_count; ++index) {
+            if (triangles[index].disabled == 0) {
+                if (destination_index != index) {
+                    triangles[destination_index] = triangles[index];
                 }
-                ++index;
-                ++source;
-            } while (index < triangle_count);
+                ++destination_index;
+            }
         }
         triangle_count = enabled;
     }
@@ -1169,30 +1163,27 @@ void srModeler::createGrid(long columns, long rows)
     if (rows < 1) {
         rows = 1;
     }
-    int row = 0;
-    if (0 < rows) {
-        do {
-            int column = 0;
-            if (0 < columns) {
-                float top = (row + 1) / static_cast<double>(rows) - 0.5;
-                float bottom = row / static_cast<double>(rows) - 0.5;
-                do {
-                    Triangle triangle;
-                    long column_position = column;
-                    ++column;
-                    float left = column_position / static_cast<double>(columns) - 0.5;
-                    float right = column / static_cast<double>(columns) - 0.5;
-                    triangle.vertices[0].position.Set(left, bottom, 0.0);
-                    triangle.vertices[1].position.Set(left, top, 0.0);
-                    triangle.vertices[2].position.Set(right, top, 0.0);
-                    addTriangle(triangle);
-                    triangle.vertices[1].position.Set(right, bottom, 0.0);
-                    triangle.flipFacing();
-                    addTriangle(triangle);
-                } while (column < columns);
-            }
-            ++row;
-        } while (row < rows);
+    int row;
+    for (row = 0; row < rows; ++row) {
+        int column = 0;
+        if (0 < columns) {
+            float top = (row + 1) / static_cast<double>(rows) - 0.5;
+            float bottom = row / static_cast<double>(rows) - 0.5;
+            do {
+                Triangle triangle;
+                long column_position = column;
+                ++column;
+                float left = column_position / static_cast<double>(columns) - 0.5;
+                float right = column / static_cast<double>(columns) - 0.5;
+                triangle.vertices[0].position.Set(left, bottom, 0.0);
+                triangle.vertices[1].position.Set(left, top, 0.0);
+                triangle.vertices[2].position.Set(right, top, 0.0);
+                addTriangle(triangle);
+                triangle.vertices[1].position.Set(right, bottom, 0.0);
+                triangle.flipFacing();
+                addTriangle(triangle);
+            } while (column < columns);
+        }
     }
 }
 
@@ -1320,8 +1311,8 @@ void srModeler::tesselateEdges(unsigned long triangle, double threshold)
         Triangle* source = &triangles[triangle];
         double longest = 0.0;
         int edge = 0;
-        int vertex = 0;
-        do {
+        int vertex;
+        for (vertex = 0; vertex < 3; ++vertex) {
             int next = (vertex + 1) % 3;
             double dx =
                 source->vertices[vertex].position.x - (double)source->vertices[next].position.x;
@@ -1334,8 +1325,7 @@ void srModeler::tesselateEdges(unsigned long triangle, double threshold)
                 longest = distance;
                 edge = vertex;
             }
-            ++vertex;
-        } while (vertex < 3);
+        }
         if (threshold < longest && longest != 0.0) {
             Triangle child;
             for (int pass = 0; pass < 4; ++pass) {

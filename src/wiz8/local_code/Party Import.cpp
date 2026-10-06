@@ -354,8 +354,6 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
     int points;
     int added;
     int spins;
-    W8CharacterAttribute* attribute;
-    const int* primary;
     unsigned int add;
     unsigned int cap;
     unsigned int pick;
@@ -418,9 +416,8 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
         }
     }
     average = total / 6;
-    primary = g_profession_primary_attributes[character->iProfession];
-    for (i = 3; i != 0; --i) {
-        imported_values[*primary++] += 0x28;
+    for (i = 0; i < 3; ++i) {
+        imported_values[g_profession_primary_attributes[character->iProfession][i]] += 0x28;
     }
     for (i = 0; i < 7; ++i) {
         character->attributes[i].base = g_race_attribute_minimums[character->iRace].values[i];
@@ -450,22 +447,16 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
         }
         points -= added;
         spins = points * 3;
-        i = 0;
-        if (0 < spins) {
-            attribute = character->attributes;
-            do {
-                Random(7);
-                if (attribute->base < 100) {
-                    --points;
-                    spins -= 3;
-                    attribute->base += 1;
-                    if (points == 0) {
-                        return;
-                    }
+        for (i = 0; i < spins; ++i) {
+            Random(7);
+            if (character->attributes[i].base < 100) {
+                --points;
+                spins -= 3;
+                character->attributes[i].base += 1;
+                if (points == 0) {
+                    return;
                 }
-                ++i;
-                ++attribute;
-            } while (i < spins);
+            }
         }
         return;
     }
@@ -494,8 +485,8 @@ void GrantStartingSpells(W8Character* character, const W8Wiz7Character*)
     int offset;
     int i;
 
-    for (i = 0x72; i != 0; --i) {
-        character->spell_learned[i - 1] = 0;
+    for (i = 0; i < 0x72; ++i) {
+        character->spell_learned[i] = 0;
     }
     offset = g_profession_magic_level_offsets[character->iProfession];
     if (offset < 0 && -0xff < offset) {
@@ -506,15 +497,13 @@ void GrantStartingSpells(W8Character* character, const W8Wiz7Character*)
         }
         count = 4;
     }
-    i = 0;
-    do {
+    for (i = 0; i < 6; ++i) {
         LearnSpell(character, g_profession_starting_spells[character->iProfession][i], false);
         --count;
         if (count == 0) {
             break;
         }
-        ++i;
-    } while (i < 6);
+    }
     BuildLearnedSpellState(&scratch, character);
 }
 
@@ -537,7 +526,6 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
     int item_index;
     int price;
     int give;
-    const int* starting;
     int item_id;
     W8EquipSlot equip_slot;
     W8Profession profession;
@@ -626,9 +614,8 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
     if (character->iRace != W8_RACE_FAERIE) {
         profession = character->iProfession;
     }
-    starting = g_starting_equipment[profession];
-    for (slot = 6; slot != 0; --slot) {
-        item_id = *starting++;
+    for (slot = 0; slot < 6; ++slot) {
+        item_id = g_starting_equipment[profession][slot];
         if (item_id != -1) {
             ReplaceOrCreateItem(&item, item_id, true, true, true);
             equip_slot = GetItemDefaultEquipSlot(item_id);

@@ -766,14 +766,12 @@ void ToggleCampItemFilter(W8CampItemFilterButton tab)
         g_camp_screen->item_filters[filter] = 1;
         if (filter != W8_CAMP_ITEM_FILTER_USABLE && filter != W8_CAMP_ITEM_FILTER_UNIDENTIFIED) {
             ClearOtherCampItemGroupFilters(filter);
-            index = 0;
-            do {
+            for (index = 0; index < 4; ++index) {
                 if (index != tab && (g_camp_item_filter_buttons[index]->m_stateFlags &
                                      g_W8TextControlStateSecondary) != 0) {
                     g_camp_item_filter_buttons[index]->DisableSecondaryState(true);
                 }
-                ++index;
-            } while (index < 4);
+            }
         }
     }
     g_camp_screen->item_scroll = 0;
@@ -1226,10 +1224,11 @@ static void DrawCampItemLabel(W8ItemInstance* item, int left, int top, char flag
 class W8CampInfoLabel : public W8TextControl {
 public:
     W8CampInfoLabel(Controls* panel, unsigned int region, int left, int top, int right, int bottom,
-                    int text_40, int text_44, int text_48, int text_4c, int text_54, int text_50,
-                    int text_58)
-        : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48, text_4c,
-                        text_54, text_50, text_58)
+                    int image_object, int image_frame, int normal_sprite, int pressed_sprite,
+                    int alternate_normal_sprite, int alternate_pressed_sprite, int disabled_sprite)
+        : W8TextControl(panel, region, left, top, right, bottom, image_object, image_frame,
+                        normal_sprite, pressed_sprite, alternate_normal_sprite,
+                        alternate_pressed_sprite, disabled_sprite)
     {
     }
 

@@ -4762,7 +4762,7 @@ void W8Monster::CollectModelInstances(W8GrowableVector<stModelInstance*>* instan
                     if (mesh != 0) {
                         int frame_count = AniMeshValue(mesh);
 
-                        if ((mesh->flags & W8_ANI_MESH_SINGLE_INSTANCE) != 0) {
+                        if (mesh->flags.single_instance) {
                             instances->Add(GetAniMeshFrame(mesh, 0));
                         } else {
                             int frame;

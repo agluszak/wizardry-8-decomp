@@ -47,7 +47,7 @@ private:
     /* Retail inlines both helpers at every call site yet still exports the
        standalone copies; the class-level provider export roots the emission. */
     // FUNCTION: SURRENDER 0x100369E0
-    // ?convertPtr@srMemoryPool@@ABEJPBX@Z
+    // RECOMP: ?convertPtr@srMemoryPool@@ABEJPBX@Z
     long convertPtr(const void* allocation) const
     {
         return static_cast<const char*>(allocation) - static_cast<const char*>(memory);
@@ -61,7 +61,7 @@ private:
     Entry* findSpace(long size) const;
     void freeInternal(Entry* entry);
     // FUNCTION: SURRENDER 0x100369D0
-    // ?hashVal@srMemoryPool@@ABEKJ@Z
+    // RECOMP: ?hashVal@srMemoryPool@@ABEKJ@Z
     unsigned long hashVal(long offset) const
     {
         return (offset >> 5) & 0xff;

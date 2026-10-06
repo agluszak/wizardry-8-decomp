@@ -959,7 +959,8 @@ void DrawSubMenuCharacterAction(void)
         if (character->highest_condition == W8_CONDITION_NONE) {
             return;
         }
-        swprintf(text, L"%s", gppStringList[g_condition_notices[character->highest_condition * 4]]);
+        swprintf(text, L"%s",
+                 gppStringList[g_condition_notices[character->highest_condition].name]);
     } else {
         action = row->action;
         switch (action) {

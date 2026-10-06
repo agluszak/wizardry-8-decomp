@@ -842,7 +842,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         }
         SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake End.wav", 0);
         shake = CreateCameraShakeEffect(6.0f, false, 1.0f, 0, 0);
-        shake->flags |= 0x20;
+        shake->flags.fade_in = true;
         shake->completion_callback = ReplayEarthquakeShake;
         return;
     default:
