@@ -231,10 +231,7 @@ void ReleaseWorldCursor(void)
     PListRemove(g_world->plsMonsters, cursor->monster);
     DetachMonsterRepresentation(cursor->monster, g_world);
     DeleteMonster(cursor->monster);
-    if (cursor->particle != 0) {
-        cursor->particle->release();
-    }
-    cursor->particle = 0;
+    ReleaseRendererObject(cursor->particle);
     ReleaseRendererObject(g_cursor_value);
     if (cursor->light != 0) {
         WorldRemoveLight(g_world, cursor->light);

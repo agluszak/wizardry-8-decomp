@@ -6044,22 +6044,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
             return 0;
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            if (g_main_game_mode == W8_MAIN_GAME_NPC_DIALOGUE) {
-                CloseNpcDialogueIfActive();
-            } else if (g_main_game_mode == W8_MAIN_GAME_MODAL) {
-                CloseMessageBox();
-            } else if (g_main_game_mode == W8_MAIN_GAME_HIGHLIGHT_OVERLAY) {
-                if (g_level_block->highlight_graphic != 0) {
-                    ReleaseObject(g_level_block->highlight_graphic);
-                    g_level_block->highlight_graphic = 0;
-                    if (g_main_game_mode != W8_MAIN_GAME_HIGHLIGHT_OVERLAY) {
-                        goto open_automap;
-                    }
-                }
-                ClearHighlightOverlayRegion();
-            }
-        open_automap:
-            g_main_game_mode = W8_MAIN_GAME_DEFAULT;
+            SetMainGameMode(W8_MAIN_GAME_DEFAULT);
             SetPendingScreenState(W8_SCREEN_AUTOMAP);
             return 1;
         }
