@@ -1934,8 +1934,7 @@ void W8PathingService::AdjustFinalPathEndpoint(W8NavigatorMovementState* movemen
         attachment->path_destination = *endpoint;
 
         if ((attachment->flags & 0x08000000) == 0) {
-            attachment->flags |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
-            attachment->recorded_position = adjusted;
+            attachment->RecordPosition(&adjusted);
             g_octree->RegisterNavigatorCell(movement->location_id, &adjusted);
         }
     }
@@ -2349,12 +2348,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             path_heap->root_node = heap->entries[0].node;
         }
 
-        if (heap->size == 0) {
-            path_heap->root_node = 0;
-        } else {
-            path_heap->root_node = heap->Delete().node;
-        }
-        m_search_nodes[best_node].flags |= W8_PATH_SEARCH_EXPANDED;
+        path_heap->DeleteRoot(&m_search_nodes[best_node]);
         best_node = path_heap->root_node;
         if (best_node > m_search_node_count) {
             char message[80];
@@ -2416,8 +2410,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     }
 
     if ((m_probe_cell_key == 0 && result == 0) || direct_path) {
-        attachment->flags |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
-        attachment->recorded_position = movement->position;
+        attachment->RecordPosition(&movement->position);
         attachment->path_positions[attachment->path_position_index] = movement->position;
         attachment->path_destination = attachment->path_positions[attachment->path_position_index];
         g_octree->RegisterNavigatorCell(movement->location_id, &movement->position);
@@ -2508,8 +2501,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         attachment->path_destination = attachment->path_positions[attachment->path_position_index];
     }
     if ((attachment->flags & 0x08000000) == 0) {
-        attachment->flags |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
-        attachment->recorded_position = m_search_nodes[m_probe_cell_key].position;
+        attachment->RecordPosition(&m_search_nodes[m_probe_cell_key].position);
         g_octree->RegisterNavigatorCell(movement->location_id,
                                         &m_search_nodes[m_probe_cell_key].position);
     }

@@ -722,9 +722,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         missile->m_pRep->pending_behaviour = 3;
         missile->m_pRep->pending_subcycle = 0;
         missile->m_pRep->subcycle = 0;
-        rotation.vectors[0].Set(1.0, 0.0, 0.0);
-        rotation.vectors[1].Set(0.0, 1.0, 0.0);
-        rotation.vectors[2].Set(0.0, 0.0, 1.0);
+        rotation.SetIdentity();
         if (heading != g_double_zero) {
             rotation.RotateAboutY(sin(heading), cos(heading));
         }

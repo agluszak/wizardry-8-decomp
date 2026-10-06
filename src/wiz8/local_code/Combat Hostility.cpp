@@ -518,14 +518,14 @@ int TurnUndead(int party_slot, int* out_cost, bool check)
     W8CombatSlot target;
     ResetCombatSlot(&target);
     PopulateSpellTargetMarkers(0x81, 1, &source, &target, &monsters, &party, 0);
-    if (monsters.count == 0) {
+    if (monsters.GetCount() == 0) {
         return 0;
     }
     SetTextBoxMode(1, -1);
-    unsigned int spell_power = power / monsters.count;
+    unsigned int spell_power = power / monsters.GetCount();
     if (spell_power == 0) {
-        while (power < monsters.count) {
-            monsters.RemoveAt(Random(monsters.count));
+        while (power < monsters.GetCount()) {
+            monsters.RemoveAt(Random(monsters.GetCount()));
         }
         spell_power = 1;
     } else if (spell_power > 6) {
@@ -535,7 +535,7 @@ int TurnUndead(int party_slot, int* out_cost, bool check)
     if (out_cost != 0) {
         *out_cost = CharacterActionFatigueCost(party_slot, W8_ACTION_TURN_UNDEAD);
     }
-    return monsters.count;
+    return monsters.GetCount();
 }
 
 // FUNCTION: WIZ8 0x00547f40

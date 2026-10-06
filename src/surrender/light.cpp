@@ -428,10 +428,7 @@ void srLight::process(srVertexPipe& pipe)
 
     if ((channels & (1UL << srVertexProcessor::CHANNEL_LIGHT_AMBIENT)) != 0) {
         srVector4T<float> ambient;
-        ambient.x = scaled_ambient.x * pipe.material_info.ambient.x;
-        ambient.y = scaled_ambient.y * pipe.material_info.ambient.y;
-        ambient.z = scaled_ambient.z * pipe.material_info.ambient.z;
-        ambient.w = scaled_ambient.w * pipe.material_info.ambient.w;
+        ambient = scaled_ambient * pipe.material_info.ambient;
         if (attenuation != 0) {
             pipe.applyDiffuseLight(attenuation, ambient);
         } else {
@@ -446,10 +443,7 @@ void srLight::process(srVertexPipe& pipe)
     }
     if ((channels & (1UL << srVertexProcessor::CHANNEL_LIGHT_DIFFUSE)) != 0) {
         srVector4T<float> diffuse;
-        diffuse.x = scaled_diffuse.x * pipe.material_info.diffuse.x;
-        diffuse.y = scaled_diffuse.y * pipe.material_info.diffuse.y;
-        diffuse.z = scaled_diffuse.z * pipe.material_info.diffuse.z;
-        diffuse.w = scaled_diffuse.w * pipe.material_info.diffuse.w;
+        diffuse = scaled_diffuse * pipe.material_info.diffuse;
         srCore.getStatisticsManager()->statistics.diffuse_operations += count;
         if ((pipe.lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_DIFFUSE)) == 0) {
             pipe.setupDiffuse();
@@ -498,10 +492,7 @@ void srLight::process(srVertexPipe& pipe)
     }
     srVectorProcessor::mul(distances, distances, dots, count);
     srVector4T<float> specular;
-    specular.x = scaled_specular.x * pipe.material_info.specular.x;
-    specular.y = scaled_specular.y * pipe.material_info.specular.y;
-    specular.z = scaled_specular.z * pipe.material_info.specular.z;
-    specular.w = scaled_specular.w * pipe.material_info.specular.w;
+    specular = scaled_specular * pipe.material_info.specular;
     srCore.getStatisticsManager()->statistics.specular_operations += count;
     if ((pipe.lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_SPECULAR)) == 0) {
         pipe.setupSpecular();

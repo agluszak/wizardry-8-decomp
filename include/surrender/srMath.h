@@ -435,6 +435,18 @@ template <class T> srVector3T<T> operator*(double scalar, const srVector3T<T>& v
     return result;
 }
 
+/* Component product: the node scale composition and the generic processor's
+   vector and indexed-vector multiplication expand this operation. It is not
+   a dot product. */
+template <class T> srVector3T<T> operator*(const srVector3T<T>& first, const srVector3T<T>& second)
+{
+    srVector3T<T> result;
+    result.x = first.x * second.x;
+    result.y = first.y * second.y;
+    result.z = first.z * second.z;
+    return result;
+}
+
 template <class T> srVector3T<T> operator/(const srVector3T<T>& vector, double scalar)
 {
     double reciprocal = 1.0 / scalar;
@@ -471,6 +483,17 @@ public:
         srHeap.free(allocation);
     }
 
+    /* Preserve ordinary same-precision copies; conversion is componentwise
+       in the renderer's float/double matrix load and read paths. */
+    template <class U> srVector4T<T>& operator=(const srVector4T<U>& source)
+    {
+        x = static_cast<T>(source.x);
+        y = static_cast<T>(source.y);
+        z = static_cast<T>(source.z);
+        w = static_cast<T>(source.w);
+        return *this;
+    }
+
     srVector4T<T>* Set(T source_0, T source_1, T source_2, T source_3);
     T Length() const;
     /* srMeshModel::verify asserts t.pEq[i].isValid()/t.DCG[p][i].isValid()/
@@ -479,6 +502,31 @@ public:
     {
         return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y)) &&
                _finite(static_cast<double>(z)) && _finite(static_cast<double>(w));
+    }
+
+    /* Four-channel saturation, expanded in setClearColor (0x1001CA30),
+       setFogColor (0x1001C6B0) and finishDiffuseAlpha (0x1002B200).
+       Keep the same <=/>= comparisons as the three-channel SetSaturated
+       operation, including the writes at the two endpoints. */
+    void SetSaturated(const srVector4T<T>& source)
+    {
+        *this = source;
+        if (x <= 0.0f)
+            x = 0;
+        else if (x >= 1.0f)
+            x = 1.0f;
+        if (y <= 0.0f)
+            y = 0;
+        else if (y >= 1.0f)
+            y = 1.0f;
+        if (z <= 0.0f)
+            z = 0;
+        else if (z >= 1.0f)
+            z = 1.0f;
+        if (w <= 0.0f)
+            w = 0;
+        else if (w >= 1.0f)
+            w = 1.0f;
     }
 
     srVector4T<T>& operator*=(double scalar);
@@ -522,6 +570,64 @@ template <class T> srVector4T<T>& srVector4T<T>::operator*=(double scalar)
     return *this;
 }
 
+/* Four-component counterparts of the vector operations above. The generic
+   processor's add/subtract/component-product loops at 0x100671D0,
+   0x10067290 and 0x10067230 expand these operations, including w. */
+template <class T> srVector4T<T> operator-(const srVector4T<T>& vector)
+{
+    srVector4T<T> result;
+    result.Set(-vector.x, -vector.y, -vector.z, -vector.w);
+    return result;
+}
+
+template <class T> srVector4T<T> operator+(const srVector4T<T>& first, const srVector4T<T>& second)
+{
+    srVector4T<T> result;
+    result.x = first.x + second.x;
+    result.y = first.y + second.y;
+    result.z = first.z + second.z;
+    result.w = first.w + second.w;
+    return result;
+}
+
+template <class T> srVector4T<T> operator-(const srVector4T<T>& first, const srVector4T<T>& second)
+{
+    srVector4T<T> result;
+    result.x = first.x - second.x;
+    result.y = first.y - second.y;
+    result.z = first.z - second.z;
+    result.w = first.w - second.w;
+    return result;
+}
+
+template <class T> srVector4T<T> operator*(const srVector4T<T>& first, const srVector4T<T>& second)
+{
+    srVector4T<T> result;
+    result.x = first.x * second.x;
+    result.y = first.y * second.y;
+    result.z = first.z * second.z;
+    result.w = first.w * second.w;
+    return result;
+}
+
+template <class T> srVector4T<T> operator*(const srVector4T<T>& vector, double scalar)
+{
+    srVector4T<T> result;
+    result.x = (T)(vector.x * scalar);
+    result.y = (T)(vector.y * scalar);
+    result.z = (T)(vector.z * scalar);
+    result.w = (T)(vector.w * scalar);
+    return result;
+}
+
+/* 0x10067720 / 0x10067770 / 0x100677D0: the four-dimensional dot includes
+   w*w. Plane evaluation with a three-dimensional point is a distinct
+   operation and keeps its addition of the plane constant. */
+template <class T> T DotProduct(const srVector4T<T>& first, const srVector4T<T>& second)
+{
+    return first.x * second.x + first.y * second.y + first.z * second.z + first.w * second.w;
+}
+
 template <class T> class srMatrix2T {
 public:
     srMatrix2T<T>* MultiplyBy(const srMatrix2T<T>& other);
@@ -554,6 +660,7 @@ public:
     srMatrix3T<T>* SetRows(const srVector3T<T>& first, const srVector3T<T>& second,
                            const srVector3T<T>& third);
     srMatrix3T<T>* MultiplyBy(const srMatrix3T<T>& other);
+    void OrthonormalizeRows();
     void SetIdentity();
     srMatrix3T<T>* RotateAboutY(double sine, double cosine);
     srMatrix3T<T>* RotateAboutX(double sine, double cosine);
@@ -600,6 +707,21 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>&
     }
     *this = result;
     return this;
+}
+
+/* Row-wise Gram-Schmidt, expanded by srNode::setParent, pitchAt, yawAt,
+   rollUp and rollAt (0x10050F00, 0x10052D80, 0x10052FC0, 0x10053210,
+   0x10053470). Original method spelling is unknown. Each projection and
+   reciprocal is rounded through the vector operators' double arguments;
+   zero-length rows remain unguarded, unlike srVector3T::Normalize. */
+template <class T> void srMatrix3T<T>::OrthonormalizeRows()
+{
+    for (int row = 0; row < 3; ++row) {
+        for (int earlier = 0; earlier < row; ++earlier) {
+            vectors[row] -= vectors[earlier] * DotProduct(vectors[row], vectors[earlier]);
+        }
+        vectors[row] *= 1.0 / vectors[row].Length();
+    }
 }
 
 template <class T> void srMatrix3T<T>::SetIdentity()
@@ -810,9 +932,48 @@ public:
         TYPE_PERSPECTIVE = 6
     };
 
+    /* The renderer maintains float matrices and exposes double overloads.
+       A member template leaves the same-precision implicit copy intact. */
+    template <class U> srMatrix4T<T>& operator=(const srMatrix4T<U>& source)
+    {
+        for (int row = 0; row != 4; ++row) {
+            vectors[row] = source.vectors[row];
+        }
+        return *this;
+    }
+    void SetIdentity()
+    {
+        vectors[0].Set(1, 0, 0, 0);
+        vectors[1].Set(0, 1, 0, 0);
+        vectors[2].Set(0, 0, 1, 0);
+        vectors[3].Set(0, 0, 0, 1);
+    }
+
     srMatrix4T<T>* Invert();
     srMatrix4T<T>* Inverse(srMatrix4T<T>& source);
-    srMatrix4T<T>* MultiplyBy(const srMatrix4T<T>& other);
+    /* Each completed row is stored before reading the source for the next
+       row; the matrices must not alias. Mixed-precision multiplication
+       retains the source coefficient width.
+       srGERD's double overload uses FMUL double and rounds only each result
+       into the float matrix; converting the input first loses precision. */
+    template <class U> srMatrix4T<T>* MultiplyBy(const srMatrix4T<U>& other)
+    {
+        for (int row = 0; row != 4; ++row) {
+            T x = vectors[row].x;
+            T y = vectors[row].y;
+            T z = vectors[row].z;
+            T w = vectors[row].w;
+            vectors[row].x = static_cast<T>(x * other.vectors[0].x + y * other.vectors[1].x +
+                                            z * other.vectors[2].x + w * other.vectors[3].x);
+            vectors[row].y = static_cast<T>(x * other.vectors[0].y + y * other.vectors[1].y +
+                                            z * other.vectors[2].y + w * other.vectors[3].y);
+            vectors[row].z = static_cast<T>(x * other.vectors[0].z + y * other.vectors[1].z +
+                                            z * other.vectors[2].z + w * other.vectors[3].z);
+            vectors[row].w = static_cast<T>(x * other.vectors[0].w + y * other.vectors[1].w +
+                                            z * other.vectors[2].w + w * other.vectors[3].w);
+        }
+        return this;
+    }
     srMatrix4T<T>* Multiply(const srMatrix4T<T>& other, srMatrix4T<T>& result);
     T* Scale(double scale);
     void AdjugateFrom(T* source);
@@ -824,30 +985,6 @@ public:
 
     srVector4T<T> vectors[4];
 };
-
-/* Row-major 4×4 multiply-assign in place: each row's old components feed all
-   four new components, so the row reads hoist into temps before the stores.
-   Retail emits the double instantiation out-of-line for the srNode
-   world-space setters. Retail stores each finished row into this before
-   reading other for the next row, so other must not alias this. */
-template <class T> srMatrix4T<T>* srMatrix4T<T>::MultiplyBy(const srMatrix4T<T>& other)
-{
-    for (int index = 0; index != 4; ++index) {
-        T x = vectors[index].x;
-        T y = vectors[index].y;
-        T z = vectors[index].z;
-        T w = vectors[index].w;
-        vectors[index].x = x * other.vectors[0].x + y * other.vectors[1].x +
-                           z * other.vectors[2].x + w * other.vectors[3].x;
-        vectors[index].y = x * other.vectors[0].y + y * other.vectors[1].y +
-                           z * other.vectors[2].y + w * other.vectors[3].y;
-        vectors[index].z = x * other.vectors[0].z + y * other.vectors[1].z +
-                           z * other.vectors[2].z + w * other.vectors[3].z;
-        vectors[index].w = x * other.vectors[0].w + y * other.vectors[1].w +
-                           z * other.vectors[2].w + w * other.vectors[3].w;
-    }
-    return this;
-}
 
 /* Three-operand row-major multiply: result.row_i.j = row_i · other.column_j.
    Retail emits the float instantiation out-of-line for

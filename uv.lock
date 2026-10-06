@@ -314,14 +314,14 @@ wheels = [
 [[package]]
 name = "pyghidra"
 version = "3.3.0"
-source = { url = "https://github.com/agluszak/ghidra/releases/download/wizardry-7de63e440dffd1c96c22fdebd9a59d974df8a543/pyghidra-3.3.0-py3-none-any.whl" }
+source = { url = "https://github.com/agluszak/ghidra/releases/download/wizardry-cfd01e0128630ae9d162009ec7af402fe57bced2/pyghidra-3.3.0-py3-none-any.whl" }
 dependencies = [
     { name = "jpype1" },
     { name = "packaging" },
     { name = "typing-extensions" },
 ]
 wheels = [
-    { url = "https://github.com/agluszak/ghidra/releases/download/wizardry-7de63e440dffd1c96c22fdebd9a59d974df8a543/pyghidra-3.3.0-py3-none-any.whl", hash = "sha256:b715322973ea69e58f774f038a63ee0d799c0f616705e8cf1e3813c009f9ba1a" },
+    { url = "https://github.com/agluszak/ghidra/releases/download/wizardry-cfd01e0128630ae9d162009ec7af402fe57bced2/pyghidra-3.3.0-py3-none-any.whl", hash = "sha256:815cbeded2902f30ace80db95434856b04134ac953f945144035157591e9b878" },
 ]
 
 [package.metadata]
@@ -420,7 +420,7 @@ wheels = [
 [[package]]
 name = "reccmp"
 version = "0.1.7"
-source = { git = "https://github.com/agluszak/reccmp?rev=a6ec5861d4863e52edcc3ed52d20d21e3460a190#a6ec5861d4863e52edcc3ed52d20d21e3460a190" }
+source = { git = "https://github.com/agluszak/reccmp?rev=03c5428199d71adfd83f2c05aa4cb06b0cfd3f63#03c5428199d71adfd83f2c05aa4cb06b0cfd3f63" }
 dependencies = [
     { name = "capstone" },
     { name = "colorama" },
@@ -555,7 +555,7 @@ requires-dist = [
     { name = "pefile", specifier = ">=2024.8.26" },
     { name = "pydantic", specifier = ">=2.11,<3" },
     { name = "pygdbmi", specifier = "==0.11.0.0" },
-    { name = "pyghidra", url = "https://github.com/agluszak/ghidra/releases/download/wizardry-7de63e440dffd1c96c22fdebd9a59d974df8a543/pyghidra-3.3.0-py3-none-any.whl" },
+    { name = "pyghidra", url = "https://github.com/agluszak/ghidra/releases/download/wizardry-cfd01e0128630ae9d162009ec7af402fe57bced2/pyghidra-3.3.0-py3-none-any.whl" },
     { name = "python-dotenv", specifier = ">=1.1,<2" },
     { name = "pyyaml", specifier = ">=6.0.2,<7" },
     { name = "rich", specifier = ">=14,<15" },
@@ -568,6 +568,6 @@ dev = [
     { name = "cmake", specifier = ">=3.26,<5" },
     { name = "pyright", specifier = ">=1.1.403,<2" },
     { name = "pytest", specifier = ">=8.4,<10" },
-    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=a6ec5861d4863e52edcc3ed52d20d21e3460a190" },
+    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=03c5428199d71adfd83f2c05aa4cb06b0cfd3f63" },
     { name = "ruff", specifier = ">=0.12,<1" },
 ]

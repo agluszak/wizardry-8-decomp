@@ -97,7 +97,14 @@ struct W8NavigatorAttachment {
        entries whose preceding path value carries bit 0x2. */
     float MeasurePathLength(); /* 0x00456B00 */
 
-    void RecordPosition(const srVector3T<float>* position);
+    /* Also expanded in OctPath.cpp at 0x00465F63, 0x0046400A and
+       0x00464820: set the recorded flag before copying the three components. */
+    // FUNCTION: WIZ8 0x00456ae0
+    void RecordPosition(const srVector3T<float>* position)
+    {
+        flags |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
+        recorded_position = *position;
+    }
     void GrowPathStorage();
     /* Descriptive name for route append, expanded in the path-building users.
        Read the position after growth, retaining retail's pointer lifetime. */

@@ -2640,7 +2640,7 @@ void W8NpcDialogueTextController::Redraw()
             } else if (force == 0 && !m_fLayoutDirty) {
                 return;
             }
-            for (index = 0; index < m_controls.count; ++index) {
+            for (index = 0; index < m_controls.GetCount(); ++index) {
                 if (ControlAt(index)->m_active) {
                     ControlAt(index)->Redraw(force);
                 }
@@ -2659,7 +2659,7 @@ unsigned char W8NpcDialogueTextController::AddTranscriptEntry(const wchar_t* tex
     int index;
     int added;
 
-    for (index = 0; index < text_area.m_all_lines.count; ++index) {
+    for (index = 0; index < text_area.m_all_lines.GetCount(); ++index) {
         text_area.GetEntry(index);
         text_area.CopyEntryText(index, existing);
         if (CompareWideTextIgnoreAsciiCase(existing, text) == 0) {
@@ -2671,8 +2671,8 @@ unsigned char W8NpcDialogueTextController::AddTranscriptEntry(const wchar_t* tex
     if (mark != 0) {
         text_area.SetEntryMarked(added, true);
     }
-    if (1u < (unsigned)text_area.m_all_lines.count) {
-        for (index = 0; index < text_area.m_all_lines.count; ++index) {
+    if (1u < (unsigned)text_area.m_all_lines.GetCount()) {
+        for (index = 0; index < text_area.m_all_lines.GetCount(); ++index) {
             text_area.GetEntry(index);
             text_area.CopyEntryText(index, existing);
             if (CompareWideTextIgnoreAsciiCase(existing, L" [No Keywords]") == 0) {
@@ -2905,12 +2905,12 @@ void W8NpcDialogueTextController::RestoreTranscriptEntries()
     W8NpcDialogueTextController* controller;
     int index;
 
-    for (index = 0; index < g_npc_interaction_state->dialogue_transcript.count; ++index) {
+    for (index = 0; index < g_npc_interaction_state->dialogue_transcript.GetCount(); ++index) {
         record = *g_npc_interaction_state->dialogue_transcript.GetAt(index);
         AddTranscriptEntry(record->text, record->category, 0);
     }
     Invalidate(0);
-    if (g_npc_interaction_state->dialogue_transcript.count == 0) {
+    if (g_npc_interaction_state->dialogue_transcript.GetCount() == 0) {
         g_npc_interaction_state->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ALL;
         controller =
             static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2]);
@@ -7834,7 +7834,7 @@ void W8NpcDialogueTextController::SaveTranscriptEntries()
     int index;
 
     ClearNpcDialogueTranscript();
-    for (index = 0; index < text_area.m_all_lines.count; ++index) {
+    for (index = 0; index < text_area.m_all_lines.GetCount(); ++index) {
         record =
             static_cast<W8DialogueTranscriptRecord*>(malloc(sizeof(W8DialogueTranscriptRecord)));
         memset(record, 0, sizeof(W8DialogueTranscriptRecord));
@@ -7848,7 +7848,7 @@ void W8NpcDialogueTextController::SaveTranscriptEntries()
 // FUNCTION: WIZ8 0x0055EA40
 void W8NpcDialogueTextController::ClearTranscriptEntries()
 {
-    while (0u < (unsigned)text_area.m_all_lines.count) {
+    while (0u < (unsigned)text_area.m_all_lines.GetCount()) {
         text_area.RemoveEntry(0);
     }
     Invalidate(0);

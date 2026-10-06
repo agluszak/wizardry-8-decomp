@@ -135,8 +135,7 @@ void srVariableTimer::addTime(float time)
     srQuadWord scaled;
 
     delta = static_cast<unsigned __int64>((double)m_frequency * time);
-    scaled.lo = (unsigned long)delta;
-    scaled.hi = (unsigned long)(delta >> 0x20);
+    scaled = delta;
     m_scaled_tick += scaled;
 }
 
@@ -147,8 +146,7 @@ void srVariableTimer::setTime(float time)
     srQuadWord scaled;
 
     delta = static_cast<unsigned __int64>((double)m_frequency * time);
-    scaled.lo = (unsigned long)delta;
-    scaled.hi = (unsigned long)(delta >> 0x20);
+    scaled = delta;
     m_scaled_tick = scaled;
     m_scaled_tick += m_scaled_base;
 }
@@ -217,8 +215,7 @@ unsigned long srVariableTimer::getUTime(e_timerReadControl control)
         (*m_read_tick)(&m_tick);
         delta = m_tick - m_prev_tick;
         scaled = static_cast<unsigned __int64>((double)delta * m_multiplier);
-        add.lo = (unsigned long)scaled;
-        add.hi = (unsigned long)(scaled >> 0x20);
+        add = scaled;
         m_scaled_tick += add;
     }
     return (unsigned long)((m_scaled_tick - m_scaled_base) * m_units_per_tick);
@@ -279,8 +276,7 @@ unsigned long srVariableTimer::getUTime(srQuadWord& out, e_timerReadControl cont
 {
     getUTime(control);
     unsigned __int64 units = (unsigned __int64)((m_scaled_tick - m_scaled_base) * m_units_per_tick);
-    out.lo = (unsigned long)units;
-    out.hi = (unsigned long)(units >> 0x20);
+    out = units;
     return out.lo;
 }
 

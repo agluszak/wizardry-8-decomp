@@ -563,7 +563,7 @@ void UpdateRandomEncounterBudget(bool reset_budget)
         RollRandomEncounters();
         return;
     }
-    for (index = 0; index < g_active_groups.count; ++index) {
+    for (index = 0; index < g_active_groups.GetCount(); ++index) {
         W8MonsterGroup* group = *g_active_groups.GetAt(index);
 
         group->spawn_time += elapsed;
@@ -573,8 +573,8 @@ void UpdateRandomEncounterBudget(bool reset_budget)
 // FUNCTION: WIZ8 0x0048c9f0
 void DespawnAllActiveMonsterGroups(void)
 {
-    while (g_active_groups.count > 0) {
-        DespawnMonsterGroup(*g_active_groups.GetAt(g_active_groups.count - 1));
+    while (g_active_groups.GetCount() > 0) {
+        DespawnMonsterGroup(*g_active_groups.GetAt(g_active_groups.GetCount() - 1));
     }
 }
 
@@ -586,7 +586,7 @@ void ResetMonsterGeneratorTimers(void)
     g_encounter_culling_scale_fast = 1.0f;
     W8GrowableVector<MonGen*>* generators = g_world->monster_generators;
 
-    for (int index = 0; index < generators->count; ++index) {
+    for (int index = 0; index < generators->GetCount(); ++index) {
         MonGen* generator = *generators->GetAt(index);
 
         generator->m_pTimer->ResetDurationScale();
@@ -628,7 +628,7 @@ void CullExpiredEncounters(void)
         span = g_encounter_culling_time_seconds * g_encounter_culling_scale_fast *
                g_encounter_culling_rate;
     }
-    for (index = 0; index < g_active_groups.count; ++index) {
+    for (index = 0; index < g_active_groups.GetCount(); ++index) {
         W8MonsterGroup* group = *g_active_groups.GetAt(index);
 
         if (span < (static_cast<unsigned int>(g_status.world_clock - group->spawn_time))) {

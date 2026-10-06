@@ -326,26 +326,7 @@ void srVertexPipe::finishDiffuseAlpha()
         color.y = input->ambient_light.y * material_info.ambient.y + material_info.emissive.y;
         color.z = input->ambient_light.z * material_info.ambient.z + material_info.emissive.z;
         color.w = material_info.diffuse.w;
-        if (color.x <= 0.0f) {
-            color.x = 0.0f;
-        } else if (color.x >= 1.0f) {
-            color.x = 1.0f;
-        }
-        if (color.y <= 0.0f) {
-            color.y = 0.0f;
-        } else if (color.y >= 1.0f) {
-            color.y = 1.0f;
-        }
-        if (color.z <= 0.0f) {
-            color.z = 0.0f;
-        } else if (color.z >= 1.0f) {
-            color.z = 1.0f;
-        }
-        if (color.w <= 0.0f) {
-            color.w = 0.0f;
-        } else if (color.w >= 1.0f) {
-            color.w = 1.0f;
-        }
+        color.SetSaturated(color);
         if ((current_record->flags & srVertexPipe::Record::HAS_DIFFUSE_MULTIPLIERS) != 0) {
             vector_processor->_mulIndexed(diffuse, color, current_record->spec_for_diffuse,
                                           avt + sub_batch_offset, vertex_count);

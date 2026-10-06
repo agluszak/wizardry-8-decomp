@@ -90,7 +90,7 @@ void W8Searchable::Reveal()
 // FUNCTION: WIZ8 0x00516ba0
 W8SearchableView* CollectSearchablesInView(void)
 {
-    int total = g_searchables.count;
+    int total = g_searchables.GetCount();
     srVector3T<float> camera;
     GetCameraPosition(&camera);
     g_search_view.items.Clear();
@@ -119,7 +119,7 @@ W8SearchableView* CollectSearchablesInView(void)
             }
         }
     }
-    return g_search_view.items.count != 0 ? &g_search_view : 0;
+    return g_search_view.items.GetCount() != 0 ? &g_search_view : 0;
 }
 
 /* Register one searchable world item. The item pointer lands in the record's
@@ -150,7 +150,7 @@ void RegisterSearchableTrigger(Trigger* trigger)
 // FUNCTION: WIZ8 0x00516fe0
 void UnregisterSearchableTrigger(Trigger* trigger)
 {
-    for (int index = 0; index < g_searchables.count; ++index) {
+    for (int index = 0; index < g_searchables.GetCount(); ++index) {
         W8Searchable* searchable = *g_searchables.GetAt(index);
         if (searchable->trigger == trigger) {
             g_searchables.Remove(searchable);
@@ -221,7 +221,7 @@ void RunSearchPulse(void)
             if (view != 0) {
                 for (;;) {
                     ++view->cursor;
-                    if (view->items.count <= view->cursor) {
+                    if (view->items.GetCount() <= view->cursor) {
                         --view->cursor;
                         break;
                     }
