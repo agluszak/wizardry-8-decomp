@@ -436,11 +436,7 @@ int OpenLockInteraction(Trigger* trigger)
     }
     CloseMainGameOverlays();
     mode = g_settings.main_ui_mode;
-    if (mode == W8_MAIN_UI_MODE_RADAR) {
-        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, false);
-    } else {
-        SetViewportMode(GetMainGameViewportMode());
-    }
+    SetMainGameOverlayViewport(mode);
     g_ui_mode_current = mode;
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
@@ -2415,11 +2411,7 @@ int OpenTrapInteraction(Trigger* trigger)
     CloseMainGameOverlays();
     mode = g_settings.main_ui_mode;
     g_ui_mode_saved = mode;
-    if (mode == W8_MAIN_UI_MODE_RADAR) {
-        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, false);
-    } else {
-        SetViewportMode(GetMainGameViewportMode());
-    }
+    SetMainGameOverlayViewport(mode);
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
     ResetLevelDataVectors();

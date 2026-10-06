@@ -294,6 +294,30 @@ bool HasAutomapLayer(int layer)
     return layer >= 0 && layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0;
 }
 
+/* The first live clip plane below a height, or the layer count when none
+   qualifies. Notes and world-marker placement share this walk. */
+static int FindAutomapLayerAtHeight(double height)
+{
+    int layer;
+    for (layer = 0; layer < g_automap_layers.GetCount(); ++layer) {
+        if (HasAutomapLayer(layer) && (*g_automap_layers.GetAt(layer))->getLocation().y < height) {
+            break;
+        }
+    }
+    return layer;
+}
+
+/* Transient markers release their renderer reference before unlinking the
+   pointer. Both the redraw and screen teardown use that order. */
+static void ClearAutomapMarkers()
+{
+    while (g_automap_markers->GetCount()) {
+        srClass* object = *g_automap_markers->GetAt(0);
+        object->release();
+        g_automap_markers->Remove(object);
+    }
+}
+
 /* Full-screen automap background: arm on left-down, dismiss on left-up. */
 // FUNCTION: WIZ8 0x00581790
 unsigned char AutomapBackgroundRegionEvent(const InputAtom* event, W8Region* region)
@@ -1020,11 +1044,7 @@ unsigned char AutomapScreenLeave(int)
     }
     gfTrackMousePos = 0;
     ReleaseRendererObject(g_automap_surface);
-    while (g_automap_markers->GetCount()) {
-        srClass* object = *g_automap_markers->GetAt(0);
-        object->release();
-        g_automap_markers->Remove(object);
-    }
+    ClearAutomapMarkers();
     g_automap_party_marker->setParent(0, 1);
     for (int index = 0; index < 16; ++index) {
         delete g_automap_buttons[index];
@@ -1175,8 +1195,7 @@ void SetAutomapCameraPoint(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x00580F20
 void SetAutomapLayer(int layer)
 {
-    if (layer < 0 || g_automap_layers.GetCount() == 0 || g_automap_layers.GetCount() <= layer ||
-        *g_automap_layers.GetAt(layer) == 0) {
+    if (!HasAutomapLayer(layer)) {
         g_automap_near_clip = 1.0f;
     } else {
         float height = g_automap_position.y -
@@ -1593,26 +1612,14 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
     }
     float floor_y;
     int layer = note->layer + 1;
-    if (layer < 0 || g_automap_layers.GetCount() == 0 || g_automap_layers.GetCount() <= layer ||
-        *g_automap_layers.GetAt(layer) == 0) {
+    if (!HasAutomapLayer(layer)) {
         floor_y = g_automap_grid_min.y;
     } else if (layer < g_automap_layers.GetCount()) {
         floor_y = static_cast<float>(g_automap_layers.data[layer]->getLocationY());
     } else {
         floor_y = static_cast<float>((*g_automap_layers.data)->getLocationY());
     }
-    int index = 0;
-    if (0 < g_automap_layers.GetCount()) {
-        do {
-            if (index >= 0 && g_automap_layers.GetCount() != 0 &&
-                index < g_automap_layers.GetCount() && *g_automap_layers.GetAt(index) != 0) {
-                if ((*g_automap_layers.GetAt(index))->getLocation().y < floor_y) {
-                    break;
-                }
-            }
-            ++index;
-        } while (index < g_automap_layers.GetCount());
-    }
+    int index = FindAutomapLayerAtHeight(floor_y);
     if (index - 1 == g_automap_layer) {
         float left = g_automap_position.x - g_automap_zoom * g_float_half;
         float bottom = g_automap_position.z - g_automap_zoom * g_float_half;
@@ -1758,8 +1765,7 @@ unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position)
     if (GetCursorPositionInViewport(&point) != 0) {
         int layer = g_automap_layer + 1;
         float height;
-        if (layer >= 0 && g_automap_layers.GetCount() != 0 && layer < g_automap_layers.GetCount() &&
-            g_automap_layers.data[layer] != 0) {
+        if (HasAutomapLayer(layer)) {
             height = static_cast<float>((*g_automap_layers.GetAt(layer))->getLocationY());
         } else {
             height = g_automap_grid_min.y;
@@ -1783,8 +1789,7 @@ W8AutomapNote* FindAutomapNoteUnderCursor(void)
 
     if (g_automap_page != 2 && GetCursorPositionInViewport(&point) != 0) {
         int layer = g_automap_layer + 1;
-        if (layer >= 0 && g_automap_layers.GetCount() != 0 && layer < g_automap_layers.GetCount() &&
-            *g_automap_layers.GetAt(layer) != 0) {
+        if (HasAutomapLayer(layer)) {
             (*g_automap_layers.GetAt(layer))->getLocationY();
         }
         float x = (point.x - g_float_half) * g_automap_zoom + g_automap_position.x;
@@ -1885,11 +1890,7 @@ void CreateAutomapMarkerSprites(void)
 void RenderAutomapMarkers(void)
 {
     bool detect_all = PartyHasCondition(0x40);
-    while (g_automap_markers->GetCount()) {
-        srClass* object = *g_automap_markers->GetAt(0);
-        object->release();
-        g_automap_markers->Remove(object);
-    }
+    ClearAutomapMarkers();
     float left = g_automap_position.x - g_automap_zoom * g_float_half;
     srVector3T<float> point(g_automap_saved_camera.position.x, 1.0f,
                             g_automap_saved_camera.position.z);
@@ -1924,13 +1925,7 @@ void RenderAutomapMarkers(void)
         srVector3T<float> location;
         location = 0.0f;
         monster->m_pRep->GetLocation(&location);
-        for (int layer = 0; layer < g_automap_layers.GetCount(); ++layer) {
-            if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
-                layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0 &&
-                (*g_automap_layers.GetAt(layer))->getLocation().y < location.y) {
-                break;
-            }
-        }
+        FindAutomapLayerAtHeight(location.y);
         if (g_automap_show_all_monsters || detect_all ||
             (!monster->disabled && info->party_threat.sight_state == W8_SIGHT_SEEN)) {
             left = g_automap_position.x - g_automap_zoom * g_float_half;
@@ -1969,14 +1964,7 @@ void RenderAutomapMarkers(void)
         }
         srVector3T<float> location;
         item->GetSearchPosition(&location);
-        int layer = 0;
-        for (; layer < g_automap_layers.GetCount(); ++layer) {
-            if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
-                layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0 &&
-                (*g_automap_layers.GetAt(layer))->getLocation().y < location.y) {
-                break;
-            }
-        }
+        int layer = FindAutomapLayerAtHeight(location.y);
         if ((static_cast<W8ItemRep*>(item->m_pRep)->flags & W8_ITEM_ENTITY_NO_PICKUP) == 0 &&
             (detect_all ||
              (static_cast<W8ItemRep*>(item->m_pRep)->flags & W8_ITEM_ENTITY_RADAR_SEEN) != 0 ||
@@ -2012,8 +2000,7 @@ void RenderAutomapMarkers(void)
         for (unsigned int index = 0; index < count; ++index) {
             W8AutomapNote* note = *g_automap_notes->GetAt(index);
             int layer = note->layer + 1;
-            if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
-                layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0) {
+            if (HasAutomapLayer(layer)) {
                 (*g_automap_layers.GetAt(layer))->getLocationY();
             }
             left = g_automap_position.x - g_automap_zoom * g_float_half;
@@ -2191,8 +2178,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
             srVector3T<float> point;
             if (GetCursorPositionInViewport(&point) != 0) {
                 int layer = g_automap_layer + 1;
-                if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
-                    layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0) {
+                if (HasAutomapLayer(layer)) {
                     (*g_automap_layers.GetAt(layer))->getLocationY();
                 }
                 g_automap_editing_note->position.Set(

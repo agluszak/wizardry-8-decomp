@@ -490,6 +490,7 @@ public:
     virtual void AdjustPartyMemberRange(int amount) override;
     /* Descriptive name for the visible character-row refresh operation. */
     void RefreshVisibleRows();
+    void SynchronizeVisibleSelection();
     void SetSelectedRow(int selection);
 
     W8ControlSelection m_control;
@@ -751,6 +752,17 @@ void W8PartySelectionCharacterPanel::RefreshVisibleRows()
     }
 }
 
+void W8PartySelectionCharacterPanel::SynchronizeVisibleSelection()
+{
+    int selection = m_selected_row - g_party_selection_character_collection->first_visible;
+    if (selection < 0 || selection > 5) {
+        selection = -1;
+    }
+    m_control.SetSelected(selection);
+    m_control.m_selectionListener = this;
+    RefreshVisibleRows();
+}
+
 // FUNCTION: WIZ8 0x005bebc0
 W8PartySelectionCharacterPanel::W8PartySelectionCharacterPanel()
     : Controls(), m_range(0), m_selected_row(0)
@@ -767,13 +779,7 @@ W8PartySelectionCharacterPanel::W8PartySelectionCharacterPanel()
         top += 0x2a;
     }
 
-    int selection = m_selected_row - g_party_selection_character_collection->first_visible;
-    if (selection < 0 || selection > 5) {
-        selection = -1;
-    }
-    m_control.SetSelected(selection);
-    m_control.m_selectionListener = this;
-    RefreshVisibleRows();
+    SynchronizeVisibleSelection();
 }
 
 // FUNCTION: WIZ8 0x005bedf0
@@ -797,13 +803,7 @@ void W8PartySelectionCharacterPanel::OnRangeChanged(W8RangeControl* control)
     }
     g_party_selection_character_collection->first_visible = control->m_value;
     m_control.m_selectionListener = 0;
-    int selection = m_selected_row - g_party_selection_character_collection->first_visible;
-    if (selection < 0 || selection > 5) {
-        selection = -1;
-    }
-    m_control.SetSelected(selection);
-    m_control.m_selectionListener = this;
-    RefreshVisibleRows();
+    SynchronizeVisibleSelection();
 }
 
 // FUNCTION: WIZ8 0x005bef60
@@ -824,13 +824,7 @@ void W8PartySelectionCharacterPanel::SetSelectedRow(int selection)
     }
 
     m_control.m_selectionListener = 0;
-    visible = m_selected_row - g_party_selection_character_collection->first_visible;
-    if (visible < 0 || visible > 5) {
-        visible = -1;
-    }
-    m_control.SetSelected(visible);
-    m_control.m_selectionListener = this;
-    RefreshVisibleRows();
+    SynchronizeVisibleSelection();
 }
 
 // FUNCTION: WIZ8 0x005bf0c0

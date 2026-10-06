@@ -175,11 +175,7 @@ unsigned char OpenUseItemSelectView(int slot)
     CloseNpcDialogueIfActive();
     CloseMainGameOverlays();
     mode = g_settings.main_ui_mode;
-    if (mode == W8_MAIN_UI_MODE_RADAR) {
-        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, false);
-    } else {
-        SetViewportMode(GetMainGameViewportMode());
-    }
+    SetMainGameOverlayViewport(mode);
     g_use_item_select_return_mode = mode;
     RestoreSpellCastingRegions();
     RegionSetEnable(0x1a);
