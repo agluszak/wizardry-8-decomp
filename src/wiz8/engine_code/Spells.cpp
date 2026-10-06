@@ -388,20 +388,6 @@ void UpdateWorldSpellVisuals(W8World* world)
     }
 }
 
-/* No standalone retail body exists: the only default-construction site is
-   the inlined expansion inside W8SpellVisual::W8SpellVisual at 0x004ABBB0,
-   whose member-init order (value_0ac, value_0b0, the 28 light_lists, then
-   flag_378 before the vptr store) and emitter/scale loop match this body. */
-W8SpellEmitterHost::W8SpellEmitterHost() : value_0ac(0), value_0b0(0), billboard(0)
-{
-    int emitter;
-
-    for (emitter = 0; emitter < SPELL_NUM_CYCLES; ++emitter) {
-        emitters[emitter] = 0;
-        emitter_playback_scales[emitter] = 15.0f;
-    }
-}
-
 /* Copy the two proven host values and the billboard flag, clone every
    populated animation, and deep-copy all optional per-emitter light
    vectors. */
