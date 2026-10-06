@@ -405,14 +405,8 @@ void SetSkyEnabled(bool enabled)
         return;
     }
 
-    if (g_environment_object0 != 0) {
-        g_environment_object0->release();
-    }
-    if (g_environment_object1 != 0) {
-        g_environment_object1->release();
-    }
-    g_environment_object0 = 0;
-    g_environment_object1 = 0;
+    ReleaseRendererObject(g_environment_object0);
+    ReleaseRendererObject(g_environment_object1);
 
     EnvironmentColour direction;
     direction = 0.0;
@@ -744,14 +738,8 @@ void GetWorldLightValue(const W8World* world, EnvironmentColour* pLightValue)
 // FUNCTION: WIZ8 0x004826e0
 void ReleaseEnvironmentObjects(void)
 {
-    if (g_environment_object0 != 0) {
-        g_environment_object0->release();
-    }
-    if (g_environment_object1 != 0) {
-        g_environment_object1->release();
-    }
-    g_environment_object0 = 0;
-    g_environment_object1 = 0;
+    ReleaseRendererObject(g_environment_object0);
+    ReleaseRendererObject(g_environment_object1);
     g_environment_lights.Clear();
 }
 
