@@ -195,6 +195,15 @@ void AdvanceEnvironmentTime(int elapsed)
     }
 }
 
+static void UpdateEnvironmentClock()
+{
+    unsigned long now = GetTickCount();
+    unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
+    if (elapsed != 0) {
+        AdvanceEnvironmentTime(static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
+    }
+}
+
 /* Turn environment time progression on or off. Enabling it resets its
    elapsed-tick baseline and moves the world clock on by the game-clock
    multiplier's share of the time since that baseline. */
@@ -209,12 +218,7 @@ void SetEnvironmentTimeEnabled(bool enabled)
     g_environment_time_enabled = true;
     g_tick = GetTickCount();
     if (g_environment_time_enabled) {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
+        UpdateEnvironmentClock();
     }
 }
 
@@ -242,12 +246,7 @@ void UpdateEnvironment(void)
             RefreshEnvironment();
         }
     } else {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
+        UpdateEnvironmentClock();
     }
 }
 
@@ -264,8 +263,7 @@ static void ClampEnvironmentComponent(float& component)
     }
 }
 
-// FUNCTION: WIZ8 0x00482F90
-BOOLEAN ReadLightColourTable(int hFile)
+static BOOLEAN ReadEnvironmentColourData(int hFile, EnvironmentColour* colours)
 {
     unsigned char components[256 * 3];
     int index;
@@ -276,84 +274,63 @@ BOOLEAN ReadLightColourTable(int hFile)
     }
 
     for (index = 0; index < 256; ++index) {
-        g_environment_colours1[index].x = components[index * 3] * (1.0f / 255.0f);
-        g_environment_colours1[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
-        g_environment_colours1[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
-        ClampEnvironmentComponent(g_environment_colours1[index].x);
-        ClampEnvironmentComponent(g_environment_colours1[index].y);
-        ClampEnvironmentComponent(g_environment_colours1[index].z);
+        colours[index].x = components[index * 3] * (1.0f / 255.0f);
+        colours[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
+        colours[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
+        ClampEnvironmentComponent(colours[index].x);
+        ClampEnvironmentComponent(colours[index].y);
+        ClampEnvironmentComponent(colours[index].z);
     }
     return 1;
+}
+
+// FUNCTION: WIZ8 0x00482F90
+BOOLEAN ReadLightColourTable(int hFile)
+{
+    return ReadEnvironmentColourData(hFile, g_environment_colours1);
 }
 
 // FUNCTION: WIZ8 0x004830D0
 BOOLEAN ReadEnvironmentColourTable(int hFile)
 {
-    unsigned char components[256 * 3];
+    return ReadEnvironmentColourData(hFile, g_environment_colours0);
+}
+
+static void BuildEnvironmentColourData(EnvironmentColour* colours)
+{
     int index;
+    float value;
 
-    memset(components, 0xff, sizeof(components));
-    if (hFile == 0 || !FileRead(hFile, components, sizeof(components), 0)) {
-        return 0;
+    for (index = 0; index < 128; ++index) {
+        value = index * (1.0f / 127.0f);
+        colours[index].x = value;
+        colours[index].y = value;
+        colours[index].z = value;
+        ClampEnvironmentComponent(colours[index].x);
+        ClampEnvironmentComponent(colours[index].y);
+        ClampEnvironmentComponent(colours[index].z);
     }
-
-    for (index = 0; index < 256; ++index) {
-        g_environment_colours0[index].x = components[index * 3] * (1.0f / 255.0f);
-        g_environment_colours0[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
-        g_environment_colours0[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
-        ClampEnvironmentComponent(g_environment_colours0[index].x);
-        ClampEnvironmentComponent(g_environment_colours0[index].y);
-        ClampEnvironmentComponent(g_environment_colours0[index].z);
+    for (; index < 256; ++index) {
+        value = (255 - index) * (1.0f / 127.0f);
+        colours[index].x = value;
+        colours[index].y = value;
+        colours[index].z = value;
+        ClampEnvironmentComponent(colours[index].x);
+        ClampEnvironmentComponent(colours[index].y);
+        ClampEnvironmentComponent(colours[index].z);
     }
-    return 1;
 }
 
 // FUNCTION: WIZ8 0x00483210
 void BuildEnvironmentColourRamp(void)
 {
-    int index;
-    float value;
-
-    for (index = 0; index < 128; ++index) {
-        value = index * (1.0f / 127.0f);
-        g_environment_colours0[index] = value;
-        ClampEnvironmentComponent(g_environment_colours0[index].x);
-        ClampEnvironmentComponent(g_environment_colours0[index].y);
-        ClampEnvironmentComponent(g_environment_colours0[index].z);
-    }
-    for (; index < 256; ++index) {
-        value = (255 - index) * (1.0f / 127.0f);
-        g_environment_colours0[index] = value;
-        ClampEnvironmentComponent(g_environment_colours0[index].x);
-        ClampEnvironmentComponent(g_environment_colours0[index].y);
-        ClampEnvironmentComponent(g_environment_colours0[index].z);
-    }
+    BuildEnvironmentColourData(g_environment_colours0);
 }
 
 // FUNCTION: WIZ8 0x00483360
 void BuildLightColourRamp(void)
 {
-    int index;
-    float value;
-
-    for (index = 0; index < 128; ++index) {
-        value = index * (1.0f / 127.0f);
-        g_environment_colours1[index].x = value;
-        g_environment_colours1[index].y = value;
-        g_environment_colours1[index].z = value;
-        ClampEnvironmentComponent(g_environment_colours1[index].x);
-        ClampEnvironmentComponent(g_environment_colours1[index].y);
-        ClampEnvironmentComponent(g_environment_colours1[index].z);
-    }
-    for (; index < 256; ++index) {
-        value = (255 - index) * (1.0f / 127.0f);
-        g_environment_colours1[index].x = value;
-        g_environment_colours1[index].y = value;
-        g_environment_colours1[index].z = value;
-        ClampEnvironmentComponent(g_environment_colours1[index].x);
-        ClampEnvironmentComponent(g_environment_colours1[index].y);
-        ClampEnvironmentComponent(g_environment_colours1[index].z);
-    }
+    BuildEnvironmentColourData(g_environment_colours1);
 }
 
 /* Refresh the light direction from the day-phase table when the phase turns
@@ -362,12 +339,7 @@ void BuildLightColourRamp(void)
 void UpdateEnvironmentLight(void)
 {
     if (g_environment_time_enabled) {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
+        UpdateEnvironmentClock();
     }
     unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_light_phase)) {
@@ -476,12 +448,7 @@ int g_last_environment_colour_phase = -1;
 void RefreshEnvironment(void)
 {
     if (g_environment_time_enabled) {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
+        UpdateEnvironmentClock();
     }
     unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
@@ -978,18 +945,7 @@ void InitializeLevelEnvironment(void)
         }
     }
     if (g_environment_time_enabled) {
-        unsigned int now = GetTickCount();
-        unsigned int elapsed;
-
-        if (now < g_tick) {
-            elapsed = now - g_tick - 1;
-        } else {
-            elapsed = now - g_tick;
-        }
-        if (elapsed != 0) {
-            AdvanceEnvironmentTime(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
-        }
+        UpdateEnvironmentClock();
     }
     {
         unsigned int phase = (g_status.game_time_ms / 1000U << 8) / 0x15180;

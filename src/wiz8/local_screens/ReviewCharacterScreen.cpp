@@ -377,17 +377,12 @@ void DrawCampSpellPages(void)
 // FUNCTION: WIZ8 0x005B7790
 void DrawCampResistances(void)
 {
-    SGPRect saved_clip;
-    SGPRect clip;
     W8Character* character = g_review_character;
     const W8SpellRealmAnimation* animation;
     wchar_t* text;
     int index;
     int left;
     int top;
-    unsigned int filled;
-    unsigned int extra;
-    unsigned int missing;
     int width;
 
     DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x140, 0, 0, 0x136, 0, VO_BLT_SRCTRANSPARENCY, 0);
@@ -403,39 +398,8 @@ void DrawCampResistances(void)
         top = (index >> 1) * 28 + 0x35;
         DrawCatalogImage(FRAME_BUFFER, animation->image, 0, animation->initial_frame, left, top,
                          VO_BLT_SRCTRANSPARENCY, 0);
-        if (character->resistances[index].total >= character->resistances[index].base) {
-            filled = character->resistances[index].base;
-            extra = character->resistances[index].total - filled;
-            missing = 0;
-        } else {
-            filled = character->resistances[index].total;
-            extra = 0;
-            missing = character->resistances[index].base - filled;
-        }
-        GetClippingRect(&saved_clip);
-        clip.iTop = 0;
-        clip.iBottom = 0x1e0;
-        if (filled != 0) {
-            clip.iLeft = left + 0x18;
-            clip.iRight = left + 0x18 + filled;
-            SetClippingRect(&clip);
-            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 0, left + 0x18, top + 4,
-                                          VO_BLT_SRCTRANSPARENCY, 0);
-        }
-        if (extra != 0) {
-            clip.iLeft = left + 0x18 + filled;
-            clip.iRight = left + 0x18 + filled + extra;
-            SetClippingRect(&clip);
-            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 1, left + 0x18, top + 4,
-                                          VO_BLT_SRCTRANSPARENCY, 0);
-        } else if (missing != 0) {
-            clip.iLeft = left + 0x18 + filled;
-            clip.iRight = left + 0x18 + filled + missing;
-            SetClippingRect(&clip);
-            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 2, left + 0x18, top + 4,
-                                          VO_BLT_SRCTRANSPARENCY, 0);
-        }
-        SetClippingRect(&saved_clip);
+        DrawCampValueBar(character->resistances[index].total, character->resistances[index].base,
+                         left + 0x18, top + 4);
         width = StringPixLengthArg(g_wiz_text_font_secondary, 5, Wiz8ToSgpWideText(g_format_d),
                                    character->resistances[index].total);
         gprintf(left + 0x93 - width, top + 3, Wiz8ToSgpWideText(g_format_d),

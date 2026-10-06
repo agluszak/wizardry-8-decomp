@@ -312,6 +312,18 @@ PTR LockPrimarySurface(UINT32* pitch)
     return description.lpSurface;
 }
 
+static void RetireTransientRenderScenes()
+{
+    unsigned int active = g_active_page;
+    g_page_full_redraw[active ^ 1] = 0;
+    g_page_full_redraw[active] = 0;
+    g_dirty_tile_count = 0;
+    PurgeInactiveSceneInstances(g_scene_prerender0);
+    PurgeInactiveSceneInstances(g_scene_overlay0);
+    PurgeInactiveSceneInstances(g_scene_prerender1);
+    PurgeInactiveSceneInstances(g_scene_overlay1);
+}
+
 /* Clear the software-facing frame and retire every transient 2D overlay.
    The four scene walks are the same typed operation used during renderer
    bring-up; keeping the reset here avoids reproducing SurRender's node ABI at
@@ -320,7 +332,6 @@ PTR LockPrimarySurface(UINT32* pitch)
 void ResetVideoFrameState(void)
 {
     DDSURFACEDESC description;
-    unsigned int active;
 
     memset(&description, 0, sizeof(description));
     description.dwSize = sizeof(description);
@@ -329,14 +340,7 @@ void ResetVideoFrameState(void)
     DDUnlockSurface(g_primary_surface, NULL);
     memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
     memset(g_surface_nodes, 0, sizeof(g_surface_nodes));
-    active = g_active_page;
-    g_page_full_redraw[active ^ 1] = 0;
-    g_page_full_redraw[active] = 0;
-    g_dirty_tile_count = 0;
-    PurgeInactiveSceneInstances(g_scene_prerender0);
-    PurgeInactiveSceneInstances(g_scene_overlay0);
-    PurgeInactiveSceneInstances(g_scene_prerender1);
-    PurgeInactiveSceneInstances(g_scene_overlay1);
+    RetireTransientRenderScenes();
     InvalidateRegion(0, 0, 640, 480, 0);
 }
 
@@ -349,7 +353,6 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
                                      void* window_proc)
 {
     MEMORYSTATUS status;
-    unsigned int active;
 
     memset(&status, 0, sizeof(status));
     status.dwLength = sizeof(status);
@@ -391,14 +394,7 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
             OpenIcon(ghWindow);
             SetFocus(ghWindow);
             memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
-            active = g_active_page;
-            g_page_full_redraw[g_active_page ^ 1] = 0;
-            g_dirty_tile_count = 0;
-            g_page_full_redraw[active] = 0;
-            PurgeInactiveSceneInstances(g_scene_prerender0);
-            PurgeInactiveSceneInstances(g_scene_overlay0);
-            PurgeInactiveSceneInstances(g_scene_prerender1);
-            PurgeInactiveSceneInstances(g_scene_overlay1);
+            RetireTransientRenderScenes();
             InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
             SetRendererModePair();
         }
@@ -860,14 +856,7 @@ void VideoFullScreen(unsigned char enabled)
 void ResetTransientRenderScenes(void)
 {
     memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
-    unsigned int active = g_active_page;
-    g_page_full_redraw[active ^ 1] = 0;
-    g_page_full_redraw[active] = 0;
-    g_dirty_tile_count = 0;
-    PurgeInactiveSceneInstances(g_scene_prerender0);
-    PurgeInactiveSceneInstances(g_scene_overlay0);
-    PurgeInactiveSceneInstances(g_scene_prerender1);
-    PurgeInactiveSceneInstances(g_scene_overlay1);
+    RetireTransientRenderScenes();
     InvalidateRegion(0, 0, 640, 480, 0);
 }
 
@@ -877,14 +866,7 @@ void ResetTransientRenderScenes(void)
 void ClearVideoDirtyBlocks(void)
 {
     memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
-    unsigned int active = g_active_page;
-    g_page_full_redraw[active ^ 1] = 0;
-    g_page_full_redraw[active] = 0;
-    g_dirty_tile_count = 0;
-    PurgeInactiveSceneInstances(g_scene_prerender0);
-    PurgeInactiveSceneInstances(g_scene_overlay0);
-    PurgeInactiveSceneInstances(g_scene_prerender1);
-    PurgeInactiveSceneInstances(g_scene_overlay1);
+    RetireTransientRenderScenes();
     InvalidateRegion(0, 0, 640, 480, 1);
 }
 
@@ -928,13 +910,7 @@ unsigned char RestoreVideoManager(void)
             OpenIcon(ghWindow);
             SetFocus(ghWindow);
             memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
-            g_dirty_tile_count = 0;
-            g_page_full_redraw[g_active_page ^ 1] = 0;
-            g_page_full_redraw[g_active_page] = 0;
-            PurgeInactiveSceneInstances(g_scene_prerender0);
-            PurgeInactiveSceneInstances(g_scene_overlay0);
-            PurgeInactiveSceneInstances(g_scene_prerender1);
-            PurgeInactiveSceneInstances(g_scene_overlay1);
+            RetireTransientRenderScenes();
             InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
             SetRendererModePair();
         }

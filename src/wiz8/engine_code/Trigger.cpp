@@ -1259,6 +1259,50 @@ void W8TriggerEvent::Update()
     }
 }
 
+// FUNCTION: WIZ8 0x00444170
+int GetLocationVarIDByName(const char* name)
+{
+    int variable_count = g_location_variable_names.GetCount();
+    int variable_id;
+    char** variable_name;
+    int* variable_level;
+
+    for (variable_id = 0; variable_id < variable_count; ++variable_id) {
+        variable_name = g_location_variable_names.GetAt(variable_id);
+        if (_stricmp(*variable_name, name) == 0) {
+            variable_level = g_location_variable_levels.GetAt(variable_id);
+            if (*variable_level == g_status.current_level) {
+                return variable_id;
+            }
+        }
+    }
+    return -1;
+}
+
+/* Create a location variable for the current level unless one with this name
+   already exists. */
+// FUNCTION: WIZ8 0x00443dc0
+void CreateLocationVar(const char* name, int value)
+{
+    char* copy;
+
+    if (name == 0) {
+        srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1094, 0);
+    }
+    if (GetLocationVarIDByName(name) != -1) {
+        return;
+    }
+    copy = new char[strlen(name) + 1];
+    if (copy == 0) {
+        srAssertFail("pacVariableName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                     0x109c, 0);
+    }
+    strcpy(copy, name);
+    g_location_variable_names.Add(copy);
+    g_location_variable_values.Add(value);
+    g_location_variable_levels.Add(g_status.current_level);
+}
+
 /* A state-driven Prop has one location variable per animation slot.  Ensure
    the complete set exists for the loaded level and select slot zero as the
    initial active state. */
@@ -1273,44 +1317,13 @@ void InitializeStateDrivenPropVariables(Trigger* trigger)
     for (slot = 0; slot < static_cast<signed char>(trigger->m_pProp->Rep()->slots.GetCount());
          ++slot) {
         char name[132];
-        int variable_id;
 
         if (trigger->m_bRepType != W8_TRIGGER_REP_PROP) {
             srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
                          0x3ed, 0);
         }
         sprintf(name, "%s%d", trigger->m_pacStateToMod, slot);
-        /* `name` is a stack array; the assertion still names pacName. The
-           source pointer is already rejected at the top of this function.
-           Do not collapse the recovered test until a body comparison says
-           retail omitted it. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-compare"
-        if (name == 0) {
-#pragma clang diagnostic pop
-            srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1094,
-                         0);
-        }
-
-        variable_id = 0;
-        while (variable_id < g_location_variable_names.GetCount()) {
-            if (_stricmp(*g_location_variable_names.GetAt(variable_id), name) == 0 &&
-                *g_location_variable_levels.GetAt(variable_id) == g_status.current_level) {
-                break;
-            }
-            ++variable_id;
-        }
-        if (variable_id == g_location_variable_names.GetCount()) {
-            char* variable_name = new char[strlen(name) + 1];
-            if (variable_name == 0) {
-                srAssertFail("pacVariableName",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x109c, 0);
-            }
-            strcpy(variable_name, name);
-            g_location_variable_names.Add(variable_name);
-            g_location_variable_values.Add(slot == 0);
-            g_location_variable_levels.Add(g_status.current_level);
-        }
+        CreateLocationVar(name, slot == 0);
     }
 }
 
@@ -1320,17 +1333,8 @@ void InitializeStateDrivenPropVariables(Trigger* trigger)
 // FUNCTION: WIZ8 0x00444030
 void SetTriggerVariableByName(const char* name, int value)
 {
-    int count = g_location_variable_names.GetCount();
-    int index;
-
-    for (index = 0; index < count; ++index) {
-        if (_stricmp(*g_location_variable_names.GetAt(index), name) == 0 &&
-            *g_location_variable_levels.GetAt(index) == g_status.current_level) {
-            break;
-        }
-    }
-    if (index >= count) {
-        index = -1;
+    int index = GetLocationVarIDByName(name);
+    if (index == -1) {
         srAssertFail("iVar != BAD_INDEX", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                      0x10c9, 0);
     }
@@ -1937,26 +1941,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 
         if (trigger->m_pacStateToMod != 0 &&
             (initial_location_value == 0 || initial_location_value == 1)) {
-            int variable_id = 0;
-            while (variable_id < g_location_variable_names.GetCount()) {
-                if (_stricmp(*g_location_variable_names.GetAt(variable_id),
-                             trigger->m_pacStateToMod) == 0 &&
-                    *g_location_variable_levels.GetAt(variable_id) == g_status.current_level) {
-                    break;
-                }
-                ++variable_id;
-            }
-            if (variable_id == g_location_variable_names.GetCount()) {
-                char* variable_name = new char[strlen(trigger->m_pacStateToMod) + 1];
-                if (variable_name == 0) {
-                    srAssertFail("pacVariableName",
-                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x109c, 0);
-                }
-                strcpy(variable_name, trigger->m_pacStateToMod);
-                g_location_variable_names.Add(variable_name);
-                g_location_variable_values.Add(initial_location_value);
-                g_location_variable_levels.Add(g_status.current_level);
-            }
+            CreateLocationVar(trigger->m_pacStateToMod, initial_location_value);
         }
 
         int unused_value;
@@ -3859,80 +3844,12 @@ void DestroyAllWorldTriggers(W8World* world)
     }
 }
 
-// FUNCTION: WIZ8 0x00444170
-int GetLocationVarIDByName(const char* name)
-{
-    int variable_count = g_location_variable_names.GetCount();
-    int variable_id;
-    char** variable_name;
-    int* variable_level;
-
-    for (variable_id = 0; variable_id < variable_count; ++variable_id) {
-        variable_name = g_location_variable_names.GetAt(variable_id);
-        if (_stricmp(*variable_name, name) == 0) {
-            variable_level = g_location_variable_levels.GetAt(variable_id);
-            if (*variable_level == g_status.current_level) {
-                return variable_id;
-            }
-        }
-    }
-    return -1;
-}
-
-/* Create a location variable for the current level unless one with this name
-   already exists. */
-// FUNCTION: WIZ8 0x00443dc0
-void CreateLocationVar(const char* name, int value)
-{
-    int index;
-    int variable_count;
-    char* copy;
-
-    if (name == 0) {
-        srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1094, 0);
-    }
-    variable_count = g_location_variable_names.GetCount();
-    for (index = 0; index < variable_count; ++index) {
-        if (_stricmp(*g_location_variable_names.GetAt(index), name) == 0 &&
-            *g_location_variable_levels.GetAt(index) == g_status.current_level) {
-            break;
-        }
-    }
-    if (index == variable_count) {
-        index = -1;
-    }
-    if (index != -1) {
-        return;
-    }
-    copy = new char[strlen(name) + 1];
-    if (copy == 0) {
-        srAssertFail("pacVariableName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                     0x109c, 0);
-    }
-    strcpy(copy, name);
-    g_location_variable_names.Add(copy);
-    g_location_variable_values.Add(value);
-    g_location_variable_levels.Add(g_status.current_level);
-}
-
 /* The current level's value of the named location variable; asserts when the
    name is unknown. */
 // FUNCTION: WIZ8 0x004440d0
 int GetLocationVarValueByName(const char* name)
 {
-    int index;
-    int variable_count;
-
-    variable_count = g_location_variable_names.GetCount();
-    for (index = 0; index < variable_count; ++index) {
-        if (_stricmp(*g_location_variable_names.GetAt(index), name) == 0 &&
-            *g_location_variable_levels.GetAt(index) == g_status.current_level) {
-            break;
-        }
-    }
-    if (index == variable_count) {
-        index = -1;
-    }
+    int index = GetLocationVarIDByName(name);
     if (index == -1) {
         srAssertFail("iVar != BAD_INDEX", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                      0x10dd, 0);

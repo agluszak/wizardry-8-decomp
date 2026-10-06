@@ -777,16 +777,7 @@ void SetSoundEffectsVolume(unsigned char volume)
     }
     world = GetWorld();
     if (world != 0) {
-        SoundServiceRandom();
-        count = static_cast<int>(PLLength(world->plsAmbientSounds));
-        for (index = 0; index < count; ++index) {
-            W8AmbientSound* sound = GetWorldAmbientSound(world, index);
-            if (sound != 0) {
-                srVector3T<float> position;
-                GetCameraPosition(&position);
-                sound->UpdatePosition(&position);
-            }
-        }
+        RepositionAmbientSounds(world);
         UpdateAmbientSounds(world);
     }
 }

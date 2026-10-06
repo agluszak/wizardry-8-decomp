@@ -731,13 +731,9 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
 void UpdateWorldCursorPlacement(void)
 {
     srMatrix3T<float> rotation;
-    srMatrix3T<float> axis;
     srVector3T<float> camera(0.0f, 1.0f, 0.0f);
     srVector3T<float> forward;
     srVector3T<float> target;
-    srVector3T<float> first;
-    srVector3T<float> second;
-    srVector3T<float> third;
     W8WorldCursorState* cursor;
     float cosine;
     float sine;
@@ -746,11 +742,7 @@ void UpdateWorldCursorPlacement(void)
     if (g_gd_camera->m_yaw != g_double_zero) {
         cosine = static_cast<float>(cos(g_gd_camera->m_yaw));
         sine = static_cast<float>(sin(g_gd_camera->m_yaw));
-        first.Set(cosine, 0.0, sine);
-        second.Set(0.0, 1.0, 0.0);
-        third.Set(-sine, 0.0, cosine);
-        axis.SetRows(first, second, third);
-        rotation.MultiplyBy(axis);
+        rotation.RotateAboutY(sine, cosine);
     }
     GetCameraPosition(&camera);
     camera.y -= g_default_world_height;

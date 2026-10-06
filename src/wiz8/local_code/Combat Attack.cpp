@@ -1464,6 +1464,24 @@ void StartMonsterAttackCycle(W8MonsterInfo* monster_info, W8AttackMode action_de
     StartMonsterCycle(monster_info, cycle, W8_ANIMATION_PLAY_ONCE);
 }
 
+static void FlushAttackDamageReports(W8SpellEffectResult* report)
+{
+    while (report->reports.GetCount() > 0) {
+        W8SpellDamageReport* entry = report->reports.RemoveAt(0);
+        if (entry != NULL) {
+            if (entry->kind == 1) {
+                PostCharacterNotice(entry->value, g_format_s_bang,
+                                    gppStringList[g_condition_notices[0x49]]);
+            } else if (entry->kind == 3) {
+                ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", entry->text,
+                            gppStringList[g_condition_notices[0x49]]);
+            }
+            free(entry);
+        }
+    }
+    memset(report, 0, sizeof(*report));
+}
+
 /* Announce a character's attack on the combat log: the swings line, the
    damage notices, what the target suffered unless it died, and the casualty
    list - then wipe the record clean for the next attack. */
@@ -1472,7 +1490,6 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
 {
     W8MonsterInfo* monster_info;
     unsigned int* condition_turns;
-    W8SpellDamageReport* entry;
     unsigned short* notice;
     unsigned int condition;
 
@@ -1545,20 +1562,7 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
             }
         }
     }
-    while (report->reports.GetCount() > 0) {
-        entry = report->reports.RemoveAt(0);
-        if (entry != NULL) {
-            if (entry->kind == 1) {
-                PostCharacterNotice(entry->value, g_format_s_bang,
-                                    gppStringList[g_condition_notices[0x49]]);
-            } else if (entry->kind == 3) {
-                ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", entry->text,
-                            gppStringList[g_condition_notices[0x49]]);
-            }
-            free(entry);
-        }
-    }
-    memset(report, 0, sizeof(*report));
+    FlushAttackDamageReports(report);
 }
 
 static int GetCombatFumbleChance(W8PList* targets, int attack_score)
@@ -2020,7 +2024,6 @@ invalid_target:
 void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult* report)
 {
     unsigned int* condition_turns;
-    W8SpellDamageReport* entry;
     unsigned int condition;
 
     if (report->condition_counts[W8_CONDITION_DEAD] > 0) {
@@ -2090,20 +2093,7 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
             }
         }
     }
-    while (report->reports.GetCount() > 0) {
-        entry = report->reports.RemoveAt(0);
-        if (entry != NULL) {
-            if (entry->kind == 1) {
-                PostCharacterNotice(entry->value, g_format_s_bang,
-                                    gppStringList[g_condition_notices[0x49]]);
-            } else if (entry->kind == 3) {
-                ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", entry->text,
-                            gppStringList[g_condition_notices[0x49]]);
-            }
-            free(entry);
-        }
-    }
-    memset(report, 0, sizeof(*report));
+    FlushAttackDamageReports(report);
 }
 
 /* Begin one of the monster's attacks for the round: validate the state, rate

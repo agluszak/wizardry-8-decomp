@@ -968,20 +968,10 @@ void StartCharacterItemUse(int party_slot)
 // FUNCTION: WIZ8 0x004ffbd0
 int GetTotalCasterLevel(const W8Character* character, int spellbook, bool include_all)
 {
-    W8Profession profession = character->iProfession;
-    int total;
+    int total = GetProfessionCasterLevel(character, W8_PROFESSION_NONE);
     int other;
     int level;
 
-    if (profession == -1) {
-        srAssertFail("iProfession != -1", MAGIC_CPP, 3603, 0);
-    }
-    if (g_profession_magic_level_offsets[profession] == -255) {
-        total = -1;
-    } else {
-        total =
-            character->profession_levels[profession] + g_profession_magic_level_offsets[profession];
-    }
     if (total < 1 && !include_all) {
         return total;
     }
@@ -989,12 +979,9 @@ int GetTotalCasterLevel(const W8Character* character, int spellbook, bool includ
     for (other = 0; other < 15; ++other) {
         if (character->profession_levels[other] != 0 && other != character->iProfession &&
             (g_profession_spellbooks[other] & spellbook) != 0) {
-            if (g_profession_magic_level_offsets[other] != -255) {
-                level =
-                    character->profession_levels[other] + g_profession_magic_level_offsets[other];
-                if (level > 0) {
-                    total += level;
-                }
+            level = GetProfessionCasterLevel(character, static_cast<W8Profession>(other));
+            if (level > 0) {
+                total += level;
             }
         }
     }
@@ -1609,6 +1596,34 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
     return best_skill;
 }
 
+/* One cast's failure chance used by the cast rating and power-level choosers: the
+   chosen spellbook skill weighted four to one against the realm skill, priced
+   against the spell's cost band, plus the spell's level for every caster level
+   short of what it asks for, scaled by the caster's combat pace. Retail
+   carries this sequence in the rating and both choosers, with no out-of-line copy. */
+static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
+                                         unsigned int power_level)
+{
+    const W8SpellRuntimeRecord* record = &g_spell_records[spell_id];
+    W8Skill skill = GetBestSpellbookSkillForSpell(character, spell_id, true, true, power_level);
+    int party_slot = CharacterPointerToPartySlot(character);
+    unsigned int skill_figure = GetSpellCastingSkillLevel(character, skill, record->realm);
+    unsigned int chance;
+    unsigned char book;
+    int caster_level;
+    int shortfall;
+
+    chance = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
+    book = SpellbookMaskForSpell(spell_id);
+    caster_level = GetTotalCasterLevel(character, book, true);
+    shortfall = GetMinimumCasterLevelForSpell(spell_id) - caster_level - 1 + power_level;
+    if (shortfall > 0) {
+        chance += record->spell_level * shortfall;
+    }
+    ScaleByCombatPace(party_slot, &chance);
+    return chance;
+}
+
 /* How safe one whole cast is, as the spell screen's one-to-five rating (five
    for a sure cast). Two things spoil it: a spellbook skill short of what the
    spell's cost band asks for at that power level, which the plain
@@ -1623,32 +1638,15 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
 
    Power level eight is the request to cast as high as affordable rather than a
    level, so it has no rating of its own. The power-level choosers carry the
-   unbanded percentage inline (GetCastFailureChance) rather than calling this. */
+   unbanded percentage from GetCastFailureChance rather than calling this. */
 // FUNCTION: WIZ8 0x004ff4b0
 W8SpellCastRating GetSpellCastRating(W8Character* character, int spell_id, unsigned int power_level)
 {
-    W8Skill skill;
-    int party_slot;
-    unsigned int skill_figure;
-    unsigned int chance;
-    int shortfall;
-
     if (power_level == W8_SPELL_POWER_AS_AFFORDABLE) {
         return W8_CAST_RATING_AUTOMATIC;
     }
 
-    skill = GetBestSpellbookSkillForSpell(character, spell_id, true, true, power_level);
-    party_slot = CharacterPointerToPartySlot(character);
-    skill_figure = GetSpellCastingSkillLevel(character, skill, g_spell_records[spell_id].realm);
-    chance = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
-
-    shortfall = GetMinimumCasterLevelForSpell(spell_id) -
-                GetTotalCasterLevel(character, SpellbookMaskForSpell(spell_id), true) - 1 +
-                power_level;
-    if (shortfall > 0) {
-        chance += g_spell_records[spell_id].spell_level * shortfall;
-    }
-    ScaleByCombatPace(party_slot, &chance);
+    unsigned int chance = GetCastFailureChance(character, spell_id, power_level);
     if (chance == 0) {
         return W8_CAST_RATING_NO_FAILURE;
     }
@@ -1684,34 +1682,6 @@ enum { W8_SPELL_FAILURE_ACCEPTABLE = 10 };
    target is missing. The third takes hit points first and falls back to
    stamina only when they are already full, which is what separates it from the
    other two rather than making it a combination of them. */
-
-/* One cast's failure chance as the power-level choosers work it out: the
-   chosen spellbook skill weighted four to one against the realm skill, priced
-   against the spell's cost band, plus the spell's level for every caster level
-   short of what it asks for, scaled by the caster's combat pace. Retail
-   carries this sequence in both choosers and has no out-of-line copy. */
-static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
-                                         unsigned int power_level)
-{
-    const W8SpellRuntimeRecord* record = &g_spell_records[spell_id];
-    W8Skill skill = GetBestSpellbookSkillForSpell(character, spell_id, true, true, power_level);
-    int party_slot = CharacterPointerToPartySlot(character);
-    unsigned int skill_figure = GetSpellCastingSkillLevel(character, skill, record->realm);
-    unsigned int chance;
-    unsigned char book;
-    int caster_level;
-    int shortfall;
-
-    chance = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
-    book = SpellbookMaskForSpell(spell_id);
-    caster_level = GetTotalCasterLevel(character, book, true);
-    shortfall = GetMinimumCasterLevelForSpell(spell_id) - caster_level - 1 + power_level;
-    if (shortfall > 0) {
-        chance += record->spell_level * shortfall;
-    }
-    ScaleByCombatPace(party_slot, &chance);
-    return chance;
-}
 
 /* How hard to cast a spell that has to last a given number of turns. Each
    power level is priced at what it would really cost - the spell points for

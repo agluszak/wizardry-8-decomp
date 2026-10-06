@@ -648,11 +648,22 @@ enum W8MGSAction {
 void TryMGSActionKey(W8MGSAction command); /* 0x0056B4C0 */
 /* The action-key command gate and executor the dispatcher's 0x131..0x141
    cases and TryMGSActionKey share. */
-bool IsMGSActionKeyEnabled(short command);                                /* 0x0056AF80 */
-void RunMGSActionKey(short command);                                      /* 0x0056B270 */
-void LoadMainGameCursorResources(void);                                   /* 0x00568E10 */
-short GetMainGameViewportMode(void);                                      /* 0x005698C0 */
-void CloseMainGameOverlays(void);                                         /* 0x00569570 */
+bool IsMGSActionKeyEnabled(short command); /* 0x0056AF80 */
+void RunMGSActionKey(short command);       /* 0x0056B270 */
+void LoadMainGameCursorResources(void);    /* 0x00568E10 */
+short GetMainGameViewportMode(void);       /* 0x005698C0 */
+void CloseMainGameOverlays(void);          /* 0x00569570 */
+/* Overlay entry points share the radar-mode fallback. The caller captures and
+   stores its return mode before or after this operation as its own path requires. */
+inline void SetMainGameOverlayViewport(W8MainUiMode mode)
+{
+    if (mode == W8_MAIN_UI_MODE_RADAR) {
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, false);
+    } else {
+        SetViewportMode(GetMainGameViewportMode());
+    }
+}
+
 void SetRadarMapVisible(bool visible);                                    /* 0x00568EB0 */
 void SetActionPanelVisible(bool visible);                                 /* 0x00569120 */
 void OpenCharacterScreenForPartySlot(unsigned int party_slot, bool flag); /* 0x00560E10 */

@@ -294,6 +294,30 @@ bool HasAutomapLayer(int layer)
     return layer >= 0 && layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0;
 }
 
+/* The first live clip plane below a height, or the layer count when none
+   qualifies. Notes and world-marker placement share this walk. */
+static int FindAutomapLayerAtHeight(double height)
+{
+    int layer;
+    for (layer = 0; layer < g_automap_layers.GetCount(); ++layer) {
+        if (HasAutomapLayer(layer) && (*g_automap_layers.GetAt(layer))->getLocation().y < height) {
+            break;
+        }
+    }
+    return layer;
+}
+
+/* Transient markers release their renderer reference before unlinking the
+   pointer. Both the redraw and screen teardown use that order. */
+static void ClearAutomapMarkers()
+{
+    while (g_automap_markers->GetCount()) {
+        srClass* object = *g_automap_markers->GetAt(0);
+        object->release();
+        g_automap_markers->Remove(object);
+    }
+}
+
 /* Full-screen automap background: arm on left-down, dismiss on left-up. */
 // FUNCTION: WIZ8 0x00581790
 unsigned char AutomapBackgroundRegionEvent(const InputAtom* event, W8Region* region)
@@ -477,23 +501,30 @@ void AutomapZoomInButton(void)
     ZoomAutomapIn(&center);
 }
 
+/* Reset the zoom to the full explored span, recenter over the bounds and
+   restore the neutral button mode and cursor. */
+// FUNCTION: WIZ8 0x0057FE40
+void ResetAutomapZoom(void)
+{
+    g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+    srVector3T<float> position(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                               g_automap_bounds_max.y + g_automap_bounds_min.y,
+                               g_automap_bounds_min.z + g_automap_bounds_max.z);
+    position = position * 0.5;
+    position.y = g_automap_top_y;
+    SetAutomapCameraPoint(&position);
+    SetAutomapToolCursor(g_automap_tool);
+    SetAutomapButtonMode(0);
+}
+
 /* Mirror of the right-click zoom-out path: one step when the camera is below
-   the full top height, otherwise restore the full explored span. The one-step
-   arm inlines SetAutomapToolCursor the same way retail does. */
+   the full top height, otherwise restore the full explored span. */
 // FUNCTION: WIZ8 0x00583D10
 void AutomapZoomOutButton(void)
 {
     if (g_automap_position.y < g_automap_top_y) {
         if (g_automap_zoom_mode == 1) {
-            g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-            srVector3T<float> position(g_automap_bounds_min.x + g_automap_bounds_max.x,
-                                       g_automap_bounds_max.y + g_automap_bounds_min.y,
-                                       g_automap_bounds_min.z + g_automap_bounds_max.z);
-            position = position * 0.5;
-            position.y = g_automap_top_y;
-            SetAutomapCameraPoint(&position);
-            SetAutomapToolCursor(g_automap_tool);
-            SetAutomapButtonMode(0);
+            ResetAutomapZoom();
         } else {
             float ground_y = g_automap_position.y - g_automap_zoom;
             float height = g_automap_top_y - (g_automap_top_y - ground_y) * g_float_half;
@@ -512,15 +543,7 @@ void AutomapZoomOutButton(void)
                 SetAutomapCameraPoint(&g_automap_position);
                 SetAutomapToolCursor(g_automap_tool);
             } else {
-                g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-                srVector3T<float> position(g_automap_bounds_min.x + g_automap_bounds_max.x,
-                                           g_automap_bounds_max.y + g_automap_bounds_min.y,
-                                           g_automap_bounds_min.z + g_automap_bounds_max.z);
-                position = position * 0.5;
-                position.y = g_automap_top_y;
-                SetAutomapCameraPoint(&position);
-                SetAutomapToolCursor(g_automap_tool);
-                SetAutomapButtonMode(0);
+                ResetAutomapZoom();
             }
         }
     }
@@ -901,13 +924,7 @@ void AutomapScreenFrame(void)
             if (g_automap_tool == 0) {
                 if (g_automap_position.y < g_automap_top_y) {
                     if (g_automap_zoom_mode == 1) {
-                        g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-                        srVector3T<float> position =
-                            (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
-                        position.y = g_automap_top_y;
-                        SetAutomapCameraPoint(&position);
-                        SetAutomapToolCursor(g_automap_tool);
-                        SetAutomapButtonMode(0);
+                        ResetAutomapZoom();
                     } else {
                         float ground_y = g_automap_position.y - g_automap_zoom;
                         float height = g_automap_top_y - (g_automap_top_y - ground_y) * 0.5f;
@@ -1020,11 +1037,7 @@ unsigned char AutomapScreenLeave(int)
     }
     gfTrackMousePos = 0;
     ReleaseRendererObject(g_automap_surface);
-    while (g_automap_markers->GetCount()) {
-        srClass* object = *g_automap_markers->GetAt(0);
-        object->release();
-        g_automap_markers->Remove(object);
-    }
+    ClearAutomapMarkers();
     g_automap_party_marker->setParent(0, 1);
     for (int index = 0; index < 16; ++index) {
         delete g_automap_buttons[index];
@@ -1175,8 +1188,7 @@ void SetAutomapCameraPoint(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x00580F20
 void SetAutomapLayer(int layer)
 {
-    if (layer < 0 || g_automap_layers.GetCount() == 0 || g_automap_layers.GetCount() <= layer ||
-        *g_automap_layers.GetAt(layer) == 0) {
+    if (!HasAutomapLayer(layer)) {
         g_automap_near_clip = 1.0f;
     } else {
         float height = g_automap_position.y -
@@ -1198,22 +1210,6 @@ void SetAutomapLayer(int layer)
             g_automap_buttons[8]->SetEnabled(layer != 0);
         }
     }
-}
-
-/* Reset the zoom to the full explored span, recenter over the bounds and
-   restore the neutral button mode and cursor. */
-// FUNCTION: WIZ8 0x0057FE40
-void ResetAutomapZoom(void)
-{
-    g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-    srVector3T<float> position;
-    position.Set((g_automap_bounds_min.x + g_automap_bounds_max.x) * 0.5,
-                 (g_automap_bounds_min.y + g_automap_bounds_max.y) * 0.5,
-                 (g_automap_bounds_min.z + g_automap_bounds_max.z) * 0.5);
-    position.y = g_automap_top_y;
-    SetAutomapCameraPoint(&position);
-    SetAutomapToolCursor(g_automap_tool);
-    SetAutomapButtonMode(0);
 }
 
 /* Left-click zoom: drop a sight line onto the clicked point, halve the
@@ -1593,26 +1589,14 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
     }
     float floor_y;
     int layer = note->layer + 1;
-    if (layer < 0 || g_automap_layers.GetCount() == 0 || g_automap_layers.GetCount() <= layer ||
-        *g_automap_layers.GetAt(layer) == 0) {
+    if (!HasAutomapLayer(layer)) {
         floor_y = g_automap_grid_min.y;
     } else if (layer < g_automap_layers.GetCount()) {
         floor_y = static_cast<float>(g_automap_layers.data[layer]->getLocationY());
     } else {
         floor_y = static_cast<float>((*g_automap_layers.data)->getLocationY());
     }
-    int index = 0;
-    if (0 < g_automap_layers.GetCount()) {
-        do {
-            if (index >= 0 && g_automap_layers.GetCount() != 0 &&
-                index < g_automap_layers.GetCount() && *g_automap_layers.GetAt(index) != 0) {
-                if ((*g_automap_layers.GetAt(index))->getLocation().y < floor_y) {
-                    break;
-                }
-            }
-            ++index;
-        } while (index < g_automap_layers.GetCount());
-    }
+    int index = FindAutomapLayerAtHeight(floor_y);
     if (index - 1 == g_automap_layer) {
         float left = g_automap_position.x - g_automap_zoom * g_float_half;
         float bottom = g_automap_position.z - g_automap_zoom * g_float_half;
@@ -1758,8 +1742,7 @@ unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position)
     if (GetCursorPositionInViewport(&point) != 0) {
         int layer = g_automap_layer + 1;
         float height;
-        if (layer >= 0 && g_automap_layers.GetCount() != 0 && layer < g_automap_layers.GetCount() &&
-            g_automap_layers.data[layer] != 0) {
+        if (HasAutomapLayer(layer)) {
             height = static_cast<float>((*g_automap_layers.GetAt(layer))->getLocationY());
         } else {
             height = g_automap_grid_min.y;
@@ -1783,8 +1766,7 @@ W8AutomapNote* FindAutomapNoteUnderCursor(void)
 
     if (g_automap_page != 2 && GetCursorPositionInViewport(&point) != 0) {
         int layer = g_automap_layer + 1;
-        if (layer >= 0 && g_automap_layers.GetCount() != 0 && layer < g_automap_layers.GetCount() &&
-            *g_automap_layers.GetAt(layer) != 0) {
+        if (HasAutomapLayer(layer)) {
             (*g_automap_layers.GetAt(layer))->getLocationY();
         }
         float x = (point.x - g_float_half) * g_automap_zoom + g_automap_position.x;
@@ -1885,11 +1867,7 @@ void CreateAutomapMarkerSprites(void)
 void RenderAutomapMarkers(void)
 {
     bool detect_all = PartyHasCondition(0x40);
-    while (g_automap_markers->GetCount()) {
-        srClass* object = *g_automap_markers->GetAt(0);
-        object->release();
-        g_automap_markers->Remove(object);
-    }
+    ClearAutomapMarkers();
     float left = g_automap_position.x - g_automap_zoom * g_float_half;
     srVector3T<float> point(g_automap_saved_camera.position.x, 1.0f,
                             g_automap_saved_camera.position.z);
@@ -1924,13 +1902,7 @@ void RenderAutomapMarkers(void)
         srVector3T<float> location;
         location = 0.0f;
         monster->m_pRep->GetLocation(&location);
-        for (int layer = 0; layer < g_automap_layers.GetCount(); ++layer) {
-            if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
-                layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0 &&
-                (*g_automap_layers.GetAt(layer))->getLocation().y < location.y) {
-                break;
-            }
-        }
+        FindAutomapLayerAtHeight(location.y);
         if (g_automap_show_all_monsters || detect_all ||
             (!monster->disabled && info->party_threat.sight_state == W8_SIGHT_SEEN)) {
             left = g_automap_position.x - g_automap_zoom * g_float_half;
@@ -1969,14 +1941,7 @@ void RenderAutomapMarkers(void)
         }
         srVector3T<float> location;
         item->GetSearchPosition(&location);
-        int layer = 0;
-        for (; layer < g_automap_layers.GetCount(); ++layer) {
-            if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
-                layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0 &&
-                (*g_automap_layers.GetAt(layer))->getLocation().y < location.y) {
-                break;
-            }
-        }
+        int layer = FindAutomapLayerAtHeight(location.y);
         if ((static_cast<W8ItemRep*>(item->m_pRep)->flags & W8_ITEM_ENTITY_NO_PICKUP) == 0 &&
             (detect_all ||
              (static_cast<W8ItemRep*>(item->m_pRep)->flags & W8_ITEM_ENTITY_RADAR_SEEN) != 0 ||
@@ -2012,8 +1977,7 @@ void RenderAutomapMarkers(void)
         for (unsigned int index = 0; index < count; ++index) {
             W8AutomapNote* note = *g_automap_notes->GetAt(index);
             int layer = note->layer + 1;
-            if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
-                layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0) {
+            if (HasAutomapLayer(layer)) {
                 (*g_automap_layers.GetAt(layer))->getLocationY();
             }
             left = g_automap_position.x - g_automap_zoom * g_float_half;
@@ -2191,8 +2155,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
             srVector3T<float> point;
             if (GetCursorPositionInViewport(&point) != 0) {
                 int layer = g_automap_layer + 1;
-                if (layer >= 0 && g_automap_layers.GetCount() != 0 &&
-                    layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0) {
+                if (HasAutomapLayer(layer)) {
                     (*g_automap_layers.GetAt(layer))->getLocationY();
                 }
                 g_automap_editing_note->position.Set(
@@ -2281,12 +2244,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         /* Backspace zooms out one step, or all the way from the full view. */
         if (g_automap_position.y < g_automap_top_y) {
             if (g_automap_zoom_mode == 1) {
-                g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-                srVector3T<float> position = (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
-                position.y = g_automap_top_y;
-                SetAutomapCameraPoint(&position);
-                SetAutomapToolCursor(g_automap_tool);
-                SetAutomapButtonMode(0);
+                ResetAutomapZoom();
                 return 1;
             }
             float floor = g_automap_position.y - g_automap_zoom;
@@ -2323,17 +2281,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         RestoreAutomapCameraPosition();
         break;
     case 0x24: {
-        g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-        {
-            srVector3T<float> center(g_automap_bounds_min.x + g_automap_bounds_max.x,
-                                     g_automap_bounds_max.y + g_automap_bounds_min.y,
-                                     g_automap_bounds_min.z + g_automap_bounds_max.z);
-            srVector3T<float> position = center / 2.0;
-            position.y = g_automap_top_y;
-            SetAutomapCameraPoint(&position);
-        }
-        SetAutomapToolCursor(g_automap_tool);
-        SetAutomapButtonMode(0);
+        ResetAutomapZoom();
         return 1;
     }
     case 0x2d:
@@ -2364,17 +2312,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
             g_automap_redraw = true;
             g_automap_overlay_redraw = true;
             UpdateAutomapBounds();
-            g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-            {
-                srVector3T<float> center(g_automap_bounds_min.x + g_automap_bounds_max.x,
-                                         g_automap_bounds_max.y + g_automap_bounds_min.y,
-                                         g_automap_bounds_min.z + g_automap_bounds_max.z);
-                srVector3T<float> position = center / 2.0;
-                position.y = g_automap_top_y;
-                SetAutomapCameraPoint(&position);
-            }
-            SetAutomapToolCursor(g_automap_tool);
-            SetAutomapButtonMode(0);
+            ResetAutomapZoom();
             RenderAutomapFrame();
             return 1;
         }
