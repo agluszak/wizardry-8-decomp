@@ -147,15 +147,6 @@ bool W8Item::IsRadarBlipLit()
 // VTABLE: WIZ8 0x005ECD70 W8ItemRep
 // class W8ItemRep
 
-/* Inlined into both item construction paths. Retail leaves the mesh pointer
-   and bounds untouched until ReadFromFile; do not initialize them here. */
-W8ItemRep::W8ItemRep()
-{
-    flags = 0;
-    pulse_level = static_cast<float>(Random(20) * 0.05);
-    flags |= W8_ITEM_ENTITY_PULSE_INCREASING;
-}
-
 // FUNCTION: WIZ8 0x0049F120
 W8ItemRep::~W8ItemRep()
 {
