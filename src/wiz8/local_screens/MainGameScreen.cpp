@@ -1276,7 +1276,6 @@ void W8LockInteraction::AttemptForce()
 // FUNCTION: WIZ8 0x005871A0
 void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
 {
-    W8Character* character;
     int order[8];
     int slot;
     int pins;
@@ -1284,11 +1283,6 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
     int pin;
     unsigned int count;
     unsigned int chance;
-    unsigned int figure;
-    W8Skill book;
-    unsigned int realm;
-    int power;
-    int divisor;
     bool rolled;
     W8LockTumbler* tumbler;
     W8LockTumblerPanel* panel;
@@ -1351,39 +1345,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
             m_tumbler_panel->Invalidate(0);
         }
     }
-    slot = g_status.selected_character;
-    if (!IsPartySlotEligible(slot)) {
-        pins = -1;
-    } else {
-        character = &g_status.buffers.Char[slot];
-        if (!character->skills[W8_SKILL_LOCKS_TRAPS].active &&
-            character->skills[W8_SKILL_LOCKS_TRAPS].level == 0) {
-            pins = -1;
-        } else {
-            pins = character->skills[W8_SKILL_LOCKS_TRAPS].level;
-        }
-    }
-    panel = m_tumbler_panel;
-    for (i = 0; i < panel->m_tumbler_count; ++i) {
-        panel->m_tumblers[i]->SetEnabled(pins > -1);
-    }
-    character = &g_status.buffers.Char[g_status.selected_character];
-    figure = CanSelectedCharacterCastKnockKnock(character);
-    m_spell_button->SetEnabled(figure);
-    slot = g_status.selected_character;
-    pins = m_tumbler_count;
-    if (IsPartySlotEligible(slot) && g_status.buffers.Char[slot].stamina > 0x4f &&
-        g_status.buffers.Char[slot].attributes[W8_ATTRIBUTE_STRENGTH].effective > 0x32) {
-        divisor = pins - 1 + g_settings.difficulty;
-        ClampInteger(&divisor, 2, 8);
-        figure = (g_status.buffers.Char[slot].attributes[W8_ATTRIBUTE_STRENGTH].effective - 0x32) /
-                 IntegerPower(2, divisor - 2);
-    } else {
-        figure = 0xffffffff;
-    }
-    m_force_button->SetEnabled(static_cast<int>(figure) > -1);
-    m_info_panel->RefreshInfo();
-    m_action_panel->Invalidate(0);
+    RefreshLockInteractionControls();
     m_state = 7;
 }
 

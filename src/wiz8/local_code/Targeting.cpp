@@ -2987,20 +2987,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
 
     if (memcmp(block, target, sizeof(W8CombatSlot)) != 0) {
         if (context != W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
-            W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[actor];
-            if (entry->highlighted_monsters.GetCount() < 1) {
-                if (block->iType == W8_TARGET_KIND_MONSTER && block->iMonsterID != -1) {
-                    SetMonsterHighlight(actor, block->iMonsterID, false);
-                }
-                if (block->iType == W8_TARGET_KIND_GROUP && block->iGroupID != -1) {
-                    SetGroupHighlight(actor, block->iGroupID, false);
-                }
-            } else {
-                for (int index = 0; index < entry->highlighted_monsters.GetCount(); ++index) {
-                    SetMonsterHighlight(actor, *entry->highlighted_monsters.GetAt(index), false);
-                }
-                entry->highlighted_monsters.Clear();
-            }
+            ClearTargetHighlights(actor, block);
         }
         *block = *target;
         if (context != W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {

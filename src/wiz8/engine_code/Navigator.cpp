@@ -1833,22 +1833,7 @@ void W8Navigator::SetFacingToward(const srVector3T<float>* target)
 // FUNCTION: WIZ8 0x00456020
 void W8Navigator::SetPosition(const srVector3T<float>* position)
 {
-    if (position->x != movement.position.x || position->y != movement.position.y ||
-        position->z != movement.position.z) {
-        movement.position = *position;
-        srVector3T<double> widened;
-        widened.SetFromFloat(position);
-        node->setLocation(widened);
-        if (movement.location_id != 0 || this == g_startup_world) {
-            g_navigator_position_changed = true;
-        }
-        UpdateFacing(true);
-        if (movement.attachment != 0) {
-            *movement.attachment->path_positions = *position;
-            movement.attachment->path_length_origin = *movement.attachment->path_positions;
-            movement.attachment->segment_start = *movement.attachment->path_positions;
-        }
-    }
+    SetPositionInternal(position);
     position_dirty = true;
 }
 
