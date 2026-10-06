@@ -17,17 +17,6 @@ enum W8SpellVisualMode {
     W8_SPELL_VISUAL_CONE = 3
 };
 
-/* The 28 named bitmap cycles a spell visual carries, spelled by
-   Spells.cpp's own assertions: four groups of SPELL_CYCLES_PER_GROUP rows
-   indexed by g_spell_cycle_names. The cast's power level picks the row
-   within the group. */
-enum {
-    SPELL_CYCLE_FIRST = 0,
-    SPELL_CYCLE_LAST = 27,
-    SPELL_NUM_CYCLES = 28,
-    SPELL_CYCLES_PER_GROUP = 7
-};
-
 /* Engine Code\Spells.cpp's 0x1f8-byte GrCycle specialization.  Construction
    installs the primary 0x005ECF40 table and the ordinary W8Navigator secondary
    table at +0x18, then owns one 0x37c-byte emitter host at +0x1e0. */
