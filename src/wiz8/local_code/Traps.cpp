@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/Traps.h"
 #include "wiz8/integer_constants.h"
@@ -180,11 +181,11 @@ char HandleRecordModeKey(const InputAtom* input, void (*prompt)(void))
     wchar_t character;
     char* text;
 
-    if (gfKeyState[0x11] != 0) {
+    if (gfKeyState[VK_CONTROL] != 0) {
         return 0;
     }
     character = static_cast<wchar_t>(toupper(input->usParam));
-    if (input->usEvent != 2) {
+    if (input->usEvent != KEY_UP) {
         return 0;
     }
     if (character == 8) {
@@ -206,7 +207,7 @@ char HandleRecordModeKey(const InputAtom* input, void (*prompt)(void))
         return -1;
     } else {
         text = ConvertWideStringToString(&character);
-        if (gfKeyState[0x10] == 0 && gfKeyState[0x14] == 0 && *text >= 'A' && *text <= 'Z') {
+        if (gfKeyState[VK_SHIFT] == 0 && gfKeyState[0x14] == 0 && *text >= 'A' && *text <= 'Z') {
             *text += 0x20;
         }
         g_record_mode_line[g_record_mode_length] = *text;

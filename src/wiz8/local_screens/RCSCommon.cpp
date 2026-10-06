@@ -1246,7 +1246,7 @@ void RefreshCampItemActions(bool invalidate)
                 if (spell->spell_point_cost > g_review_character->iSPLeft[spell->realm]) {
                     break;
                 }
-                if (!SpellUsableNow(0x17, false)) {
+                if (!SpellUsableNow(W8_SPELL_IDENTIFY_ITEM, false)) {
                     break;
                 }
                 if (!g_status.item_in_cursor) {
@@ -1266,7 +1266,7 @@ void RefreshCampItemActions(bool invalidate)
                 if (spell->spell_point_cost > g_review_character->iSPLeft[spell->realm]) {
                     break;
                 }
-                control->SetEnabled(SpellUsableNow(0x3a, false));
+                control->SetEnabled(SpellUsableNow(W8_SPELL_REMOVE_CURSE, false));
                 continue;
             }
             control->SetEnabled(false);

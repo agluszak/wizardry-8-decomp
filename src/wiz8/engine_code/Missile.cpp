@@ -1,3 +1,5 @@
+#include "wiz8/engine_code/AnimRep.hpp"
+#include "wiz8/spell_ids.h"
 /*
  * Engine Code\Missile.cpp.
  *
@@ -720,7 +722,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
     if (missile != 0) {
         missile->m_pRep->pending_cycle = 0;
         missile->SetCycle(0);
-        missile->m_pRep->pending_behaviour = 3;
+        missile->m_pRep->pending_behaviour = W8_ANIMATION_NEVER_STOP;
         missile->m_pRep->pending_subcycle = 0;
         missile->m_pRep->subcycle = 0;
         rotation.SetIdentity();
@@ -1300,7 +1302,7 @@ void W8Missile::DetonateMissileSpell()
     ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_PLACE;
     target.point = position;
-    CastSpellFromSource(0x83, &source, &target, 1, 0, 0, false, 0, 0, 0, 0);
+    CastSpellFromSource(W8_SPELL_ROCKET_BLAST, &source, &target, 1, 0, 0, false, 0, 0, 0, 0);
 }
 
 /* Post "<source> hits <target>" to the notice box and colour the target's
@@ -1346,7 +1348,7 @@ void W8Missile::EnterImpactCycle()
             W8MissileRep* representation = m_pRep;
             srVector3T<float> position = representation->location;
             representation->pending_cycle = 1;
-            representation->pending_behaviour = 1;
+            representation->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
             impacting = true;
             if (explode_ground) {
                 representation->location.y = SettlePositionToGround(&position, 0);

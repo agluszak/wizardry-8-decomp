@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/stHash.hpp"
@@ -953,19 +954,19 @@ void AutomapScreenFrame(void)
         }
     }
     bool moved = false;
-    if (gfKeyState[0x25]) {
+    if (gfKeyState[VK_LEFT]) {
         g_automap_position.x -= g_float_thirty_five_hundredths * g_automap_zoom;
         moved = true;
     }
-    if (gfKeyState[0x27]) {
+    if (gfKeyState[VK_RIGHT]) {
         g_automap_position.x += g_float_thirty_five_hundredths * g_automap_zoom;
         moved = true;
     }
-    if (gfKeyState[0x26]) {
+    if (gfKeyState[VK_UP]) {
         g_automap_position.z += g_float_thirty_five_hundredths * g_automap_zoom;
         moved = true;
     }
-    if (gfKeyState[0x28]) {
+    if (gfKeyState[VK_DOWN]) {
         g_automap_position.z -= g_float_thirty_five_hundredths * g_automap_zoom;
         moved = true;
     }
@@ -2226,13 +2227,13 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
         g_automap_editing_note->text[last + 2] = 0;
         g_automap_redraw = true;
     } else {
-        if (input->usParam == 8) {
+        if (input->usParam == VK_BACK) {
             if (last != 0) {
                 g_automap_editing_note->text[last - 1] = L'_';
                 g_automap_editing_note->text[last] = 0;
             }
             g_automap_redraw = true;
-        } else if (input->usParam == 0xd) {
+        } else if (input->usParam == VK_RETURN) {
             g_automap_editing_note->text[last] = 0;
             if (wcslen(g_automap_editing_note->text) == 0) {
                 g_automap_notes->Remove(g_automap_editing_note);
@@ -2250,7 +2251,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
             }
             g_automap_editing_note = 0;
             g_automap_redraw = true;
-        } else if (input->usParam == 0x1b) {
+        } else if (input->usParam == VK_ESCAPE) {
             g_automap_notes->Remove(g_automap_editing_note);
             free(g_automap_editing_note->text);
             delete g_automap_editing_note;

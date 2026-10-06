@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/monster_cycles.h"
 #include "wiz8/conditions.h"
 #include "wiz8/fonts.h"
@@ -905,7 +906,7 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, bool announc
 // FUNCTION: WIZ8 0x0052beb0
 void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* attacker, bool quiet)
 {
-    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_GET_HIT, 1);
+    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_GET_HIT, W8_ANIMATION_PLAY_ONCE);
 
     if (monster_info->uiCondition[W8_CONDITION_ASLEEP] != 0 && !quiet &&
         Random(100) < static_cast<unsigned int>(

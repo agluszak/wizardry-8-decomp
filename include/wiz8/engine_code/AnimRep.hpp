@@ -24,6 +24,18 @@ enum W8AnimationFrameMethod {
     W8_ANIMATION_RANDOM_FRAME = 3
 };
 
+/* AdvanceAnimationFrame clamps PLAY_ONCE at an endpoint and repeats the other
+   two modes. MonsterQuery reports an endpoint as complete for REPEAT; the
+   NEVER_STOP mode completes only when playback stops. NEVER_STOP is named by
+   StartMonsterCycle's retail assertion. Representation and file fields stay
+   byte-sized; pending_behaviour uses 0xff for no queued change. */
+enum W8AnimationBehaviour {
+    W8_ANIMATION_PLAY_ONCE = 1,
+    W8_ANIMATION_REPEAT = 2,
+    W8_ANIMATION_NEVER_STOP = 3,
+    W8_ANIMATION_NO_PENDING_BEHAVIOUR = 0xff
+};
+
 /* The 2D instance has a different sixteen-byte block at the same class offset. */
 struct W8ModelInstance2DRenderState {
     unsigned long render_depth;
@@ -106,7 +118,7 @@ public:
     /* SetFrameMethod checks the retail DIR_FIRST..DIR_LAST range; endpoint
        behavior 1 wraps and 2 reverses in AdvanceAnimationFrame. */
     unsigned char frame_method;
-    unsigned char animation_behaviour;
+    unsigned char animation_behaviour; /* W8AnimationBehaviour */
     /* 0xff means no pending change. ApplyPendingCycle applies it to the
        selected representation, then clears the old object's slot. */
     unsigned char pending_behaviour;

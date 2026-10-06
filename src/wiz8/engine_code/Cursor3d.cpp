@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/world_cursor.h"
@@ -199,7 +200,7 @@ void InitializeWorldCursor(void)
             gp3DCursor->probe_offsets[6] = minimum;
             gp3DCursor->probe_offsets[7].Set(maximum.x, minimum.y, minimum.z);
             UpdateWorldCursorPlacement();
-            if (g_dev_mode && (gfKeyState[0x10] != 0 || gfKeyState[0x11] != 0)) {
+            if (g_dev_mode && (gfKeyState[VK_SHIFT] != 0 || gfKeyState[VK_CONTROL] != 0)) {
                 g_cursor_pick_latch = true;
             }
         }
@@ -348,7 +349,7 @@ void ApplyWorldCursorInput(void)
     gp3DCursor->input_delta.y = 0;
     gp3DCursor->input_delta.z = 0;
     if (g_dev_mode) {
-        if (gfKeyState[0x10] == 0 && gfKeyState[0x11] == 0) {
+        if (gfKeyState[VK_SHIFT] == 0 && gfKeyState[VK_CONTROL] == 0) {
             if (g_cursor_pick_latch) {
                 g_cursor_pick_latch = false;
             }
@@ -426,7 +427,7 @@ void ApplyWorldCursorInput(void)
             gp3DCursor->dragged_info->p3D->SetPositionInternal(&gp3DCursor->position);
             g_octree->UpdateMonsterLocation(gp3DCursor->dragged_info->location_id,
                                             &gp3DCursor->position);
-            if (gfKeyState[0x10] != 0) {
+            if (gfKeyState[VK_SHIFT] != 0) {
                 MonsterForwardReferencePosition(gp3DCursor->dragged_info->p3D, 1);
             }
         }

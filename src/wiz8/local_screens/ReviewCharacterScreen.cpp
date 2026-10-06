@@ -1,3 +1,5 @@
+#include <windows.h>
+#include "wiz8/spell_ids.h"
 #include "wiz8/conditions.h"
 #include "wiz8/sgp_text.h"
 #include "soundman.h"
@@ -470,14 +472,14 @@ unsigned char SpellListRegionHandler(const InputAtom* event, W8Region* region)
         g_camp_screen->selected_spell_row = row;
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm;
     }
-    if (event->usEvent > 0x100) {
-        if (event->usEvent == 0x400) {
+    if (event->usEvent > RIGHT_BUTTON_UP) {
+        if (event->usEvent == MOUSE_POS) {
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
                 g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_REALM_SPELLS_FIRST << realm;
             }
             return 0;
         }
-        if (event->usEvent == 0x800) {
+        if (event->usEvent == MOUSE_WHEEL) {
             delta = GetMouseWheelDeltaValue(event->usParam);
             if (delta > 0) {
                 for (count = delta; count != 0; --count) {
@@ -494,7 +496,7 @@ unsigned char SpellListRegionHandler(const InputAtom* event, W8Region* region)
         }
         return 0;
     }
-    if (event->usEvent == 0x100) {
+    if (event->usEvent == RIGHT_BUTTON_UP) {
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && row != -1) {
             OpenSpellInfoDialog(
                 g_camp_screen->learned_spells
@@ -502,12 +504,12 @@ unsigned char SpellListRegionHandler(const InputAtom* event, W8Region* region)
         }
         return 1;
     }
-    if (event->usEvent == 8) {
+    if (event->usEvent == LEFT_BUTTON_DOWN) {
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         return 1;
     }
-    if (event->usEvent != 0x10) {
-        if (event->usEvent != 0x80) {
+    if (event->usEvent != LEFT_BUTTON_UP) {
+        if (event->usEvent != RIGHT_BUTTON_DOWN) {
             return 0;
         }
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
@@ -1231,7 +1233,7 @@ W8CampItemRange::W8CampItemRange()
 void W8CampItemRange::OnRangeChanged(W8RangeControl*)
 {
     g_camp_screen->item_scroll = m_range->m_value << 1;
-    if (gfKeyState[0x11]) {
+    if (gfKeyState[VK_CONTROL]) {
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
         return;
     }
@@ -1487,8 +1489,8 @@ void CampScreenFrame(void)
                 if (g_status.game_started) {
                     SortPartyItemPool();
                 }
-            } else if (input.usParam == 'X' && gfKeyState[0x12] && !gfKeyState[0x11] &&
-                       !gfKeyState[0x10]) {
+            } else if (input.usParam == 'X' && gfKeyState[VK_MENU] && !gfKeyState[VK_CONTROL] &&
+                       !gfKeyState[VK_SHIFT]) {
                 ShowCampNoticeLine(gppStringList[0x832], OnQuitGameDialogClosed, true, true);
             }
         }
@@ -1588,7 +1590,7 @@ void DrawCampScreen(void)
     unsigned int index;
 
     NoOp();
-    if (!gfKeyState[0x11] && state->item_icons_drawn) {
+    if (!gfKeyState[VK_CONTROL] && state->item_icons_drawn) {
         state->redraw_flags |= W8_CAMP_REDRAW_ALL;
         state->item_icons_drawn = false;
     }
@@ -1636,7 +1638,7 @@ void DrawCampScreen(void)
         RefreshItemsTabPanel(false);
         RefreshCampSecondaryPanel(false);
         state->item_range->m_range->Redraw();
-        if (gfKeyState[0x11] && state->dialog == 0) {
+        if (gfKeyState[VK_CONTROL] && state->dialog == 0) {
             DrawCampItemIcons();
             state->item_icons_drawn = true;
         }
@@ -2049,7 +2051,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
     if (gated && !IsCampActionAllowed(giReviewCharSlot)) {
         return;
     }
-    if (gfKeyState[0x10] != 0) {
+    if (gfKeyState[VK_SHIFT] != 0) {
         TakeItemUnitToHand(item, slot_index, origin);
         return;
     }
@@ -2079,7 +2081,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
             result = CommitPartySlotItemUse(party_slot, row->pending_action_detail.item_use.item,
                                             &target);
         } else {
-            result = CommitPartySlotSpell(party_slot, 0x17, 8, &target);
+            result = CommitPartySlotSpell(party_slot, W8_SPELL_IDENTIFY_ITEM, 8, &target);
         }
         if (origin == W8_ITEM_ORIGIN_PARTY_POOL && reidentify &&
             old_pool_count != g_status.party_item_count) {
@@ -2329,7 +2331,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
         return;
     }
     g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ITEM_ACTIONS;
-    if (gfKeyState[0x11]) {
+    if (gfKeyState[VK_CONTROL]) {
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     } else {
         if (origin == W8_ITEM_ORIGIN_BACKPACK) {

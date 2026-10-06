@@ -1,3 +1,5 @@
+#include <windows.h>
+#include "wiz8/spell_ids.h"
 #include "wiz8/conditions.h"
 #include "line.h"
 #include "wiz8/integer_constants.h"
@@ -1445,11 +1447,11 @@ void SetNpcDialogueLayoutMode(W8NpcDialogueLayout value)
 static void RefreshNpcServiceAvailability(int party_slot)
 {
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
-        ->SetEnabled(CanCharacterCastSpell(&g_status.buffers.Char[party_slot], 3));
+        ->SetEnabled(CanCharacterCastSpell(&g_status.buffers.Char[party_slot], W8_SPELL_CHARM));
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
         ->W8Widget::Invalidate(true);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
-        ->SetEnabled(CanCharacterCastSpell(&g_status.buffers.Char[party_slot], 0x29));
+        ->SetEnabled(CanCharacterCastSpell(&g_status.buffers.Char[party_slot], W8_SPELL_MINDREAD));
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
         ->W8Widget::Invalidate(true);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])
@@ -1738,7 +1740,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
         if (word == 0 || word->keyword != W8_NOTICE_WORD_HOVERED) {
             return;
         }
-        if (gfKeyState[0x10] == 0) {
+        if (gfKeyState[VK_SHIFT] == 0) {
             ResetUsedNoticeWords(3, true);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
@@ -1751,7 +1753,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection(slot, gfKeyState[0x10] != 0 ? 1 : 0, 1);
+        UpdateNpcTradeSelection(slot, gfKeyState[VK_SHIFT] != 0 ? 1 : 0, 1);
         return;
     default:
         break;
@@ -1777,7 +1779,7 @@ void NpcDialogueTextBoxRightUp(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection(slot, gfKeyState[0x10] != 0 ? 1 : 0, 1);
+        UpdateNpcTradeSelection(slot, gfKeyState[VK_SHIFT] != 0 ? 1 : 0, 1);
         item = ResolveNpcTradeRow(slot, false, 0, 1);
         if (item == 0) {
             return;
@@ -1823,7 +1825,7 @@ void NpcDialogueTextBoxDoubleClick(int x, int y)
         if (word == 0) {
             return;
         }
-        if (gfKeyState[0x10] == 0) {
+        if (gfKeyState[VK_SHIFT] == 0) {
             ResetUsedNoticeWords(3, true);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
@@ -3696,7 +3698,7 @@ void RequestNpcSpellService3(void)
     gXStatus.fCampMode = true;
     CloseNpcDialogueMode1Layout();
     EndNpcDialogueSession(false);
-    BeginSpellCast(3, location, mode);
+    BeginSpellCast(W8_SPELL_CHARM, location, mode);
 }
 
 // FUNCTION: WIZ8 0x00573F10
@@ -3708,7 +3710,7 @@ void RequestNpcSpellService41(void)
     gXStatus.fCampMode = true;
     CloseNpcDialogueMode1Layout();
     EndNpcDialogueSession(false);
-    BeginSpellCast(0x29, location, mode);
+    BeginSpellCast(W8_SPELL_MINDREAD, location, mode);
 }
 
 // FUNCTION: WIZ8 0x00573F50
@@ -4091,7 +4093,7 @@ void HandleNpcDialogueKeyEvent(const InputAtom* event)
         return;
     }
     state = g_npc_interaction_state;
-    if (state->modal_dialog_open && event->usParam != 0x1b) {
+    if (state->modal_dialog_open && event->usParam != VK_ESCAPE) {
         return;
     }
     switch (event->usParam) {
@@ -4558,7 +4560,7 @@ void DrainNpcDialogueDeferralInput(void)
                                 gfRightButtonState);
     while (DequeueEvent(&input) == 1) {
         if (input.usEvent == KEY_DOWN) {
-            if (input.usParam == 0x1b) {
+            if (input.usParam == VK_ESCAPE) {
                 if (g_npc_interaction_state->dialogue_hidden == 0) {
                     if (!IsNpcScriptSessionActive()) {
                         switch (g_npc_interaction_state->dialogue_layout) {

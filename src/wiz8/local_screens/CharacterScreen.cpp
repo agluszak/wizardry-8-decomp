@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "soundman.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
@@ -771,15 +772,15 @@ void CharacterScreenFrame(void)
         W8CharacterScreen* screen = g_character_screen;
         screen->m_pages[screen->m_page_index]->HandleInput(&input);
         if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
-            if (input.usParam == 0xd || input.usParam == 0x27 || input.usParam == 0x4e) {
+            if (input.usParam == VK_RETURN || input.usParam == VK_RIGHT || input.usParam == 0x4e) {
                 screen->AdvancePage(true);
-            } else if (input.usParam == 0x1b) {
+            } else if (input.usParam == VK_ESCAPE) {
                 if (screen->m_mode == 1 && !screen->m_exit->m_enabled) {
                     RequestScreenTransition();
                 } else {
                     screen->ShowMessage(gppStringList[0xd3], 1, 2);
                 }
-            } else if ((input.usParam == 0x25 || input.usParam == 0x42) &&
+            } else if ((input.usParam == VK_LEFT || input.usParam == 0x42) &&
                        screen->m_page_index != 3) {
                 int index = screen->m_page_index - 1;
                 while (index >= 0 && !screen->m_page_enabled[index])

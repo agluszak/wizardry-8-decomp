@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 /*
  * Engine Code\Spells.cpp.
  *
@@ -646,7 +647,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
                          FormatString("Spell %s missing cycle of type %d", name, group));
         }
         (*visual)->host->billboard = false;
-        (*visual)->host->pending_behaviour = 1;
+        (*visual)->host->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
     }
 
     ResumeSharedGameTimers();
@@ -1091,7 +1092,7 @@ void SetTargetConeEnabled(bool enabled)
         if (g_target_cone_visual == 0) {
             g_target_cone_visual = CreateAttachedSpellEffect("TargetCone", 1, 0, 0, 0);
             if (g_target_cone_visual != 0) {
-                g_target_cone_visual->host->pending_behaviour = 3;
+                g_target_cone_visual->host->pending_behaviour = W8_ANIMATION_NEVER_STOP;
             }
         }
         return;

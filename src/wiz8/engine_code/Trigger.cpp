@@ -3293,7 +3293,7 @@ void Trigger::Run(int source)
                 ShowString(gppStringList[0x722]);
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
             } else {
-                int spell_id;
+                W8SpellId spell_id;
                 srVector3T<double> position = g_world->camera->getLocation();
 
                 if (action == 0x28) {

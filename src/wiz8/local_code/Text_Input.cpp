@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/cursor.h"
 #include "Font.h"
 #include "input.h"
@@ -542,10 +543,11 @@ unsigned int HandleTextInput(const InputAtom* input)
 {
     gfHorizontalKey = false;
     if (!gfTextInputMode || !gfEditingText || gpActive == 0 ||
-        (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) || input->usParam == 0x1b ||
-        input->usParam == 0x0d || input->usParam == 9 || (input->usKeyState & ALT_DOWN) != 0 ||
-        ((input->usKeyState & CTRL_DOWN) != 0 && input->usParam != 0x2e && input->usParam != 0x27 &&
-         input->usParam != 0x25) ||
+        (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) ||
+        input->usParam == VK_ESCAPE || input->usParam == VK_RETURN || input->usParam == VK_TAB ||
+        (input->usKeyState & ALT_DOWN) != 0 ||
+        ((input->usKeyState & CTRL_DOWN) != 0 && input->usParam != VK_DELETE &&
+         input->usParam != VK_RIGHT && input->usParam != VK_LEFT) ||
         (input->usParam > 0x6f && input->usParam < 0x7c)) {
         return 0;
     }

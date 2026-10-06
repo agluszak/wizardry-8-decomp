@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/conditions.h"
 #include "wiz8/monster_cycles.h"
 #include "wiz8/spell_ids.h"
@@ -2606,7 +2607,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             monster_info->spell_power_level = power;
             OrientMonsterTowardTarget(monster_info, false);
             monster_info->fSpellReleased = false;
-            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPELL, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPELL, W8_ANIMATION_PLAY_ONCE);
             result = 1;
             break;
         }
@@ -2674,7 +2675,7 @@ bool MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         AimMonsterBreathAtTarget(monster_info);
     }
     monster_info->pCombat->special_ready = false;
-    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL, 1);
+    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL, W8_ANIMATION_PLAY_ONCE);
     if (g_settings.verbose_combat_messages != 0) {
         ShowNoticef(9, L"%s %s!", GetMonsterName(monster_info, NULL, 0),
                     gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind]]);
@@ -2748,8 +2749,8 @@ int ExecuteMonsterSpecialAttack(W8MonsterInfo* monster_info, W8MonsterRecord* re
     if (g_special_attack_table[record->special_attack_kind][0] != 6) {
         monster_info->p3D->aim_set = false;
         PointCameraAtCombatTarget(&source, &monster_info->Target);
-        PopulateSpellTargetMarkers(0x77, 0, &source, &monster_info->Target, &monster_targets,
-                                   &char_targets, 0);
+        PopulateSpellTargetMarkers(W8_SPELL_SPECIAL_ATTACK_CONE, 0, &source, &monster_info->Target,
+                                   &monster_targets, &char_targets, 0);
         ProvokeListedMonsterGroups(&source, &monster_targets);
     }
     ResolveMonsterGroupAttack(record->special_attack_kind, &source, &monster_info->Target,
@@ -2775,7 +2776,7 @@ int ExecuteCharacterSpecialAttack(int party_slot)
     }
     g_combat_state->breath_visual->auto_release = true;
     SetTargetSourceToCharacter(party_slot, &source);
-    PopulateSpellTargetMarkers(0x77, 0, &source,
+    PopulateSpellTargetMarkers(W8_SPELL_SPECIAL_ATTACK_CONE, 0, &source,
                                &g_status.buffers.XChar[party_slot].target_out_of_combat,
                                &monster_targets, &char_targets, 0);
     ProvokeListedMonsterGroups(&source, &monster_targets);
@@ -2811,7 +2812,8 @@ bool CreateCharacterBreathEffect(int party_slot)
 
     SetTargetSourceToCharacter(party_slot, &source);
     target = &g_status.buffers.XChar[party_slot].target_out_of_combat;
-    PopulateSpellTargetMarkers(0x77, 0, &source, target, &monster_targets, &char_targets, 0);
+    PopulateSpellTargetMarkers(W8_SPELL_SPECIAL_ATTACK_CONE, 0, &source, target, &monster_targets,
+                               &char_targets, 0);
     if (monster_targets.GetCount() == 0) {
         PostCharacterNotice(party_slot,
                             FormatWideString(gppStringList[0x1b7],

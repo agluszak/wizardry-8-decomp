@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/DialogInterface.h"
+#include <windows.h>
 #include "vsurface.h"
 #include "wiz8/dialog_code/NpcDialog.h"
 #include "wiz8/engine_code/Video2.h"
@@ -217,7 +218,7 @@ bool W8NpcDialog::ProcessInput()
     while (DequeueEvent(&input) == TRUE) {
         if ((input.usEvent != KEY_DOWN && input.usEvent != KEY_REPEAT) ||
             static_cast<char>(HandleTextInput(&input)) == 0) {
-            if (input.usEvent == KEY_DOWN && input.usParam == 0xd &&
+            if (input.usEvent == KEY_DOWN && input.usParam == VK_RETURN &&
                 m_message->kind == W8_NPC_ENTRY_KEYWORD_INPUT) {
                 Get16BitStringFromField(m_input_field, m_input_text);
                 g_npc_dialog->m_keep_open = false;

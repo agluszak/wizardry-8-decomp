@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/monster_cycles.h"
 #include "wiz8/conditions.h"
 #include "wiz8/fonts.h"
@@ -1478,7 +1479,7 @@ void StartMonsterAttackCycle(W8MonsterInfo* monster_info, W8AttackMode action_de
         monster_info->fMissileReleased = false;
     }
     ResetCombatSlot(&g_combat_state->TargetHit);
-    StartMonsterCycle(monster_info, cycle, 1);
+    StartMonsterCycle(monster_info, cycle, W8_ANIMATION_PLAY_ONCE);
 }
 
 /* Announce a character's attack on the combat log: the swings line, the
@@ -1826,7 +1827,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
                     target_info->p3D->IsFacingMonster(monster_info->p3D) != 0 &&
                     !target_info->fMotionless) {
-                    StartMonsterCycle(target_info, W8_MONSTER_CYCLE_DODGE, 1);
+                    StartMonsterCycle(target_info, W8_MONSTER_CYCLE_DODGE, W8_ANIMATION_PLAY_ONCE);
                 }
             }
         } else {
@@ -4113,7 +4114,8 @@ int ResolveCharacterAttack(int party_slot)
                     }
                     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
                         monster_info->p3D->IsFacingPlayer() != 0 && !monster_info->fMotionless) {
-                        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_DODGE, 1);
+                        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_DODGE,
+                                          W8_ANIMATION_PLAY_ONCE);
                     }
                 }
             } else {

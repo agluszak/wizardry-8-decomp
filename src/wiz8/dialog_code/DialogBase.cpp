@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/cursor.h"
 #include "wiz8/sgp_text.h"
 #include "wiz8/engine_code/Video2.h"
@@ -221,7 +222,7 @@ bool W8DialogBase::ProcessInput()
             }
         } else if (input.usEvent == MOUSE_WHEEL) {
             OnMouseWheel(GetMouseWheelDeltaValue(input.usParam));
-        } else if (input.usEvent == KEY_DOWN && input.usParam == 0x1b) {
+        } else if (input.usEvent == KEY_DOWN && input.usParam == VK_ESCAPE) {
             m_keep_open = false;
         }
     }

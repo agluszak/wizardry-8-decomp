@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -564,7 +565,7 @@ void W8Prop::SetRepresentationActive(unsigned char active, bool update_animation
         return;
     }
 
-    if (Rep()->animation_behaviour == 1) {
+    if (Rep()->animation_behaviour == W8_ANIMATION_PLAY_ONCE) {
         if ((Rep()->frame_direction == W8_ANIMATION_FORWARD_COMPLETE &&
              Rep()->frame_method != W8_ANIMATION_PING_PONG) ||
             (Rep()->frame_direction != W8_ANIMATION_FORWARD_COMPLETE &&
@@ -577,7 +578,7 @@ void W8Prop::SetRepresentationActive(unsigned char active, bool update_animation
         Rep()->subcycle = Rep()->last_frame;
         return;
     }
-    if (Rep()->animation_behaviour == 2) {
+    if (Rep()->animation_behaviour == W8_ANIMATION_REPEAT) {
         if ((Rep()->frame_direction == W8_ANIMATION_FORWARD_COMPLETE &&
              Rep()->frame_method != W8_ANIMATION_PING_PONG) ||
             (Rep()->frame_direction != W8_ANIMATION_FORWARD_COMPLETE &&
@@ -604,7 +605,8 @@ void W8Prop::UpdatePropAnimation()
     unsigned int total;
     int frames;
 
-    if (rep->active == 0 && (rep->animation_behaviour != 1 || rep->animation_playing == 0) &&
+    if (rep->active == 0 &&
+        (rep->animation_behaviour != W8_ANIMATION_PLAY_ONCE || rep->animation_playing == 0) &&
         (flags & W8_PROP_ANIMATION_GEOMETRY_DIRTY) == 0) {
         return;
     }
@@ -721,7 +723,7 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
 
     if (behaviour == W8_ANIMATION_RANDOM_FRAME) {
         rep->subcycle = static_cast<unsigned char>(Random(total));
-    } else if (rep->animation_behaviour == 1) {
+    } else if (rep->animation_behaviour == W8_ANIMATION_PLAY_ONCE) {
         if (rep->frame_direction == W8_ANIMATION_FORWARD) {
             if (static_cast<int>(frame) + frames < end) {
                 rep->subcycle = static_cast<unsigned char>(frame + frames);
@@ -838,7 +840,7 @@ char W8Prop::NextAnimationValue()
     W8PropRepresentation* rep = Rep();
     char direction = rep->frame_direction;
 
-    if (rep->animation_behaviour == 1) {
+    if (rep->animation_behaviour == W8_ANIMATION_PLAY_ONCE) {
         if (direction == W8_ANIMATION_FORWARD) {
             if (rep->subcycle < rep->last_frame) {
                 return rep->subcycle + 1;
@@ -1298,7 +1300,7 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
             m_gd_prop->Initialize(instance, false, 0, Rep()->footstep_surface,
                                   Rep()->footstep_material);
         }
-        if (Rep()->animation_behaviour == 1) {
+        if (Rep()->animation_behaviour == W8_ANIMATION_PLAY_ONCE) {
             g_animated_prop_present = true;
         }
     }
@@ -1637,7 +1639,8 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
     this->frame_direction = W8_ANIMATION_FORWARD;
     this->animation_speed = animation->playback_scale;
     this->timer = GetTickCount();
-    if (this->animation_behaviour == 1 || this->animation_behaviour == 2) {
+    if (this->animation_behaviour == W8_ANIMATION_PLAY_ONCE ||
+        this->animation_behaviour == W8_ANIMATION_REPEAT) {
         this->animation_playing = 0;
         this->frame_direction = this->frame_method == W8_ANIMATION_PING_PONG
                                     ? W8_ANIMATION_REVERSE_COMPLETE

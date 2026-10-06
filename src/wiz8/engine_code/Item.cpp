@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/engine_code/Item.h"
 
 #include <math.h>
@@ -271,7 +272,7 @@ void W8Item::UpdateAnimation()
     if ((rep->flags & W8_ITEM_ENTITY_MESH_LOADED) == 0) {
         return;
     }
-    if ((rep->flags & W8_ITEM_ENTITY_ROTATE) != 0 && gfKeyState[0x11] == 0) {
+    if ((rep->flags & W8_ITEM_ENTITY_ROTATE) != 0 && gfKeyState[VK_CONTROL] == 0) {
         srMatrix3T<float> rotation;
         m_pRep->GetRotation(&rotation);
         double cosine = cos(-0.1963495375);

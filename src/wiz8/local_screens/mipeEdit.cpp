@@ -1,3 +1,4 @@
+#include <windows.h>
 /* Local Screens\mipeEdit.cpp — prop field editor of the debug MIPE panel.
 
    Editing is driven by a table of 0x18-byte W8MipeEditField descriptors:
@@ -119,7 +120,7 @@ void HandleMipeEditPropKey(unsigned short key)
             }
             len = wcslen(field->text);
             if (static_cast<int>(len) < 0x7e) {
-                if (key != 0x20 && gfKeyState[0x10] == 0 && (key < 0x30 || key > 0x39)) {
+                if (key != 0x20 && gfKeyState[VK_SHIFT] == 0 && (key < 0x30 || key > 0x39)) {
                     key += 0x20;
                 }
                 field->text[len] = key;

@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/spell_ids.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/integer_constants.h"
@@ -368,7 +369,7 @@ void UseHeldItemOnItem(W8ItemInstance* item)
         if (CanItemLeaveItsSlot(item)) {
             ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_ITEM;
-            if (CommitPartySlotSpell(giCasterCharSlot, 0x17, 8, &target) == 1) {
+            if (CommitPartySlotSpell(giCasterCharSlot, W8_SPELL_IDENTIFY_ITEM, 8, &target) == 1) {
                 OpenItemInfoDialog(item, 0);
                 if (!item->identified) {
                     QueueCharacterEvent(g_status.buffers.Char + giCasterCharSlot,
@@ -415,7 +416,7 @@ void TargetCharacterWithHeldItem(unsigned int uiTargetChar)
     ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_CHARACTER;
     target.iChar = uiTargetChar;
-    CommitPartySlotSpell(giCasterCharSlot, 0x3a, 8, &target);
+    CommitPartySlotSpell(giCasterCharSlot, W8_SPELL_REMOVE_CURSE, 8, &target);
     RebuildCampItemList();
     g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
@@ -777,7 +778,7 @@ void ToggleCampItemFilter(W8CampItemFilterButton tab)
     }
     g_camp_screen->item_scroll = 0;
     RebuildCampItemList();
-    if (!gfKeyState[0x11]) {
+    if (!gfKeyState[VK_CONTROL]) {
         g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL;
         return;
     }
@@ -812,15 +813,15 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
     if (item->iItemNo == -1 && !g_status.item_in_cursor) {
         PushButtonSoundScheme(0, true);
     }
-    if (event->usEvent < 0x81) {
-        if (event->usEvent == 0x80) {
+    if (event->usEvent < (RIGHT_BUTTON_DOWN + 1)) {
+        if (event->usEvent == RIGHT_BUTTON_DOWN) {
             region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
             return 1;
         }
-        if (event->usEvent == 8) {
+        if (event->usEvent == LEFT_BUTTON_DOWN) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         } else {
-            if (event->usEvent != 0x10) {
+            if (event->usEvent != LEFT_BUTTON_UP) {
                 return 0;
             }
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
@@ -836,14 +837,14 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
         DisableRegionHelpFlag(region);
         return 1;
     }
-    if (event->usEvent == 0x100) {
+    if (event->usEvent == RIGHT_BUTTON_UP) {
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->iItemNo != -1 &&
             g_camp_screen->item_action != W8_CAMP_ITEM_ACTION_IDENTIFY) {
             ShowCampItemInfo(item);
         }
         return 1;
     }
-    if (event->usEvent == 0x400) {
+    if (event->usEvent == MOUSE_POS) {
         if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
             if (item->iItemNo != -1 || g_status.item_in_cursor) {
                 g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST
@@ -883,17 +884,17 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
          !CanCharacterUseItem(g_review_character, g_status.item_in_hand.iItemNo))) {
         PushButtonSoundScheme(0, true);
     }
-    if (event->usEvent < 0x81) {
-        if (event->usEvent == 0x80) {
+    if (event->usEvent < (RIGHT_BUTTON_DOWN + 1)) {
+        if (event->usEvent == RIGHT_BUTTON_DOWN) {
             region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
             return 1;
         }
-        if (event->usEvent == 8) {
+        if (event->usEvent == LEFT_BUTTON_DOWN) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             DisableRegionHelpFlag(region);
             return 1;
         }
-        if (event->usEvent != 0x10) {
+        if (event->usEvent != LEFT_BUTTON_UP) {
             return 0;
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
@@ -918,8 +919,8 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
             return 1;
         }
     } else {
-        if (event->usEvent != 0x100) {
-            if (event->usEvent != 0x400) {
+        if (event->usEvent != RIGHT_BUTTON_UP) {
+            if (event->usEvent != MOUSE_POS) {
                 return 0;
             }
             if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
@@ -985,7 +986,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
         PushButtonSoundScheme(0, true);
     }
     if (event->usEvent < 0x101) {
-        if (event->usEvent == 0x100) {
+        if (event->usEvent == RIGHT_BUTTON_UP) {
             if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 &&
                 pool_index < g_status.party_item_count &&
                 g_camp_screen->item_action != W8_CAMP_ITEM_ACTION_IDENTIFY) {
@@ -993,13 +994,13 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
             }
             return 1;
         }
-        if (event->usEvent == 8) {
+        if (event->usEvent == LEFT_BUTTON_DOWN) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             DisableRegionHelpFlag(region);
             return 1;
         }
-        if (event->usEvent != 0x10) {
-            if (event->usEvent != 0x80) {
+        if (event->usEvent != LEFT_BUTTON_UP) {
+            if (event->usEvent != RIGHT_BUTTON_DOWN) {
                 return 0;
             }
             region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
@@ -1014,7 +1015,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
             return 1;
         }
     } else {
-        if (event->usEvent == 0x400) {
+        if (event->usEvent == MOUSE_POS) {
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
                 if (item->iItemNo != -1 || g_status.item_in_cursor) {
                     g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST
@@ -1033,7 +1034,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
             }
             return 0;
         }
-        if (event->usEvent != 0x800) {
+        if (event->usEvent != MOUSE_WHEEL) {
             return 0;
         }
         delta = GetMouseWheelDeltaValue(event->usParam);

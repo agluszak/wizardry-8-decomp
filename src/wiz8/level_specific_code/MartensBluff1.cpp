@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/level_specific_code/MartensBluff1.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/World.h"
@@ -256,7 +257,7 @@ bool MartensBluff1JDoorController(Trigger* pTrigger)
                                               position, 0.3f, 30.0f, true);
     }
     position = GetWorld()->camera->getLocation();
-    PointCastSpell(position, 0x25, 5);
+    PointCastSpell(position, W8_SPELL_FREEZE_FLESH, 5);
     state |= 0x10000000;
     SetTriggerVariableByName("DialState", state);
     return false;

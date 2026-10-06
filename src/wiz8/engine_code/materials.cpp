@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/sgp_text.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
@@ -1959,14 +1960,14 @@ void W8Octree::OctBuildOptions(char* stem)
                     DispatchMessageA(&message);
                 }
             }
-            if (atom.usEvent != 1) {
+            if (atom.usEvent != KEY_DOWN) {
                 continue;
             }
-            if (atom.usParam == 0x1b) {
+            if (atom.usParam == VK_ESCAPE) {
                 ShutdownWithErrorBox("Cancelled--Program exiting.\n");
                 goto accepted;
             }
-            if (atom.usParam == 0x0d) {
+            if (atom.usParam == VK_RETURN) {
                 break;
             }
             if (edit_mode == 0) {

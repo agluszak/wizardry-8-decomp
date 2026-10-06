@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/fonts.h"
 #include "wiz8/local_screens/mipe.h"
 
@@ -2055,7 +2056,7 @@ void EditMonsterGeneratorName(unsigned short key)
         }
     } else if ((((0x2f < key) && (key < 0x3a)) || ((0x40 < key) && (key < 0x5b))) &&
                (length < 0x1f)) {
-        if (gfKeyState[0x10] == 0) {
+        if (gfKeyState[VK_SHIFT] == 0) {
             key += 0x20;
         }
         name[length] = static_cast<char>(key);
@@ -2308,7 +2309,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
     }
     key = static_cast<unsigned short>(event->usParam);
     if (key == 0x1b) {
-        if (event->usEvent == 2 || event->usEvent == 4) {
+        if (event->usEvent == KEY_UP || event->usEvent == KEY_REPEAT) {
             g_mipe_count = 0;
             if (g_mipe_mode == 6) {
                 g_mipe_mode = 1;
@@ -2533,7 +2534,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
     if (event_type != 2 && event_type != 4) {
         return handled;
     }
-    if (gfKeyState[0x11] != 0) {
+    if (gfKeyState[VK_CONTROL] != 0) {
         if (key == 0x56) {
             HideWorldCursor();
             g_mipe_mode = 0xf;

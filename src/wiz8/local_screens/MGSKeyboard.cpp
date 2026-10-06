@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/fonts.h"
 #include <stdio.h>
 #include "wiz8/local_screens/MGSKeyboard.h"
@@ -236,7 +237,7 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
         return 1;
     }
     if (IsRecordModeActive()) {
-        if (gfKeyState[0x11] == 0 && HandleRecordModeKey(input, PromptRecordModeEntry) == 1) {
+        if (gfKeyState[VK_CONTROL] == 0 && HandleRecordModeKey(input, PromptRecordModeEntry) == 1) {
             ApplyRecordModeLine();
             return 1;
         }
