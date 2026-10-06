@@ -10,7 +10,7 @@
 // GLOBAL: WIZ8 0x005ecd4c
 const float g_monster_light_cycle_rate = 0.025f;
 // GLOBAL: WIZ8 0x005ec318
-const double g_double_005ec318 = 6.2831852;
+const double g_motion_full_turn_radians = 6.2831852;
 
 /* The light-deletion path emitted this vftable slot emission ahead of the
    class's authored bodies. */
@@ -114,7 +114,7 @@ void MonsterLight::Update(const srVector3T<float>* position)
     float elapsed = g_game_time_accumulator->GetElapsed() - m_start_time;
 
     if (m_fade_out) {
-        float fade = elapsed * g_float_005ebc3c;
+        float fade = elapsed * g_float_one_tenth;
         if (fade > g_float_one) {
             fade = g_float_one;
         }
@@ -123,8 +123,8 @@ void MonsterLight::Update(const srVector3T<float>* position)
         float cycle = elapsed * g_monster_light_cycle_rate;
         double whole = floor(cycle);
         float first_weight =
-            static_cast<float>(sin((cycle - whole) * g_double_005ec318) + g_float_one) *
-            g_float_005ebc7c;
+            static_cast<float>(sin((cycle - whole) * g_motion_full_turn_radians) + g_float_one) *
+            g_float_half;
         float second_weight = g_float_one - first_weight;
 
         diffuse.x = m_color_first.x * first_weight + m_color_second.x * second_weight;

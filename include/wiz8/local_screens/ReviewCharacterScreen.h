@@ -303,8 +303,8 @@ bool IsEquippableItemClass(W8ItemInstance* item); /* 0x005A6310 */
 
 /* 0x005A6620: begin the timed screen fade and run `callback` when it
    finishes; `fade_to_black` selects the alpha ramp. */
-void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), bool flag,
-                     char arg_6);
+void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callback)(void),
+                     bool fullscreen_scene_last, char render_each_tick);
 extern wchar_t g_format_s0[];
 unsigned char UpdateScreenFade(void);
 void BeginPartyDeath(void);

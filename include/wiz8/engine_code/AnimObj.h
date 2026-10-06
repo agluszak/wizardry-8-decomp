@@ -66,7 +66,7 @@ unsigned int AnimObjListCount(W8AnimObj* animation, signed char index);
 W8PathAI* AnimObjListEntry(W8AnimObj* animation, signed char list_index, signed char entry_index);
 unsigned char AnimationIsRunning(W8AnimObj* animation);
 unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, int load_all,
-                                  W8GrowableVector<stLight*>* light_list, int unused);
+                                  W8GrowableVector<stLight*>* light_list, int);
 srModelInstance* AnimObjDispatch(W8AnimObj* animation, signed char list_index, unsigned char value);
 srModelInstance* AnimObjDispatchList(W8AnimObj* animation, signed char list_index,
                                      signed char entry_index);

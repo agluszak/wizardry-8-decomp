@@ -25,11 +25,11 @@ unsigned short* g_region_id_list;
 unsigned short g_region_id_count;
 
 // GLOBAL: WIZ8 0x005ed034
-const float g_float_005ed034 = -0.009999999776482582f;
+const float g_region_boundary_tolerance = -0.009999999776482582f;
 // GLOBAL: WIZ8 0x005ed038
-const float g_float_005ed038 = 4000.0f;
+const float g_region_radius_limit = 4000.0f;
 // GLOBAL: WIZ8 0x005ec52c
-const float g_float_005ec52c = 3.0f;
+const float g_float_three = 3.0f;
 
 #define OCT_BUILD_PRE_TREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildPreTree.cpp"
 
@@ -1046,7 +1046,7 @@ unsigned short OctBuildPreTree::BuildRegions()
     int last_level = selected_depth - 1;
     float extent = spatial.m_extent;
     while (static_cast<int>(spatial.m_leaf_level) < last_level) {
-        float next_extent = extent * g_float_005ebc7c;
+        float next_extent = extent * g_float_half;
         if (fabs(spatial.m_region_grid_cell - extent) <
             fabs(spatial.m_region_grid_cell - next_extent)) {
             break;
@@ -1136,7 +1136,7 @@ void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* arg_spatial)
 
         if (contained_count != 0) {
             srVector3T<float>& center = m_psrvRegCenters[this->spatial.m_region_id_bound];
-            center = (arg_spatial->m_maximum + arg_spatial->m_minimum) * g_float_005ebc7c;
+            center = (arg_spatial->m_maximum + arg_spatial->m_minimum) * g_float_half;
 
             m_pulRegPaths[region_path_count++] = arg_spatial->m_node_index;
 
@@ -1292,7 +1292,7 @@ unsigned char OctBuildPreTree::MergeRegion(W8OctBuildNode* node, const int* cell
     srVector3T<float>& node_center = m_psrvRegCenters[node_region];
     srVector3T<float>& neighbor_center = m_psrvRegCenters[neighbor_region];
     float distance = (node_center - neighbor_center).Length();
-    if (!(distance < spatial.m_region_grid_cell * g_float_005ec52c)) {
+    if (!(distance < spatial.m_region_grid_cell * g_float_three)) {
         return 0;
     }
 
@@ -1499,7 +1499,7 @@ void OctBuildPreTree::ValidatePolygonRegions()
         float relative_x = polygon.position.x - spatial.m_minimum.x;
         int x = static_cast<int>(relative_x / spatial.m_region_grid_cell);
         short x_count = 1;
-        if (g_float_005ed034 < x * spatial.m_region_grid_cell - relative_x) {
+        if (g_region_boundary_tolerance < x * spatial.m_region_grid_cell - relative_x) {
             --x;
             x_count = 2;
         }
@@ -1507,7 +1507,7 @@ void OctBuildPreTree::ValidatePolygonRegions()
         float relative_y = polygon.position.y - spatial.m_minimum.y;
         int y = static_cast<int>(relative_y / spatial.m_region_grid_cell);
         short y_count = 1;
-        if (g_float_005ed034 < y * spatial.m_region_grid_cell - relative_y) {
+        if (g_region_boundary_tolerance < y * spatial.m_region_grid_cell - relative_y) {
             --y;
             y_count = 2;
         }
@@ -1515,7 +1515,7 @@ void OctBuildPreTree::ValidatePolygonRegions()
         float relative_z = polygon.position.z - spatial.m_minimum.z;
         int z = static_cast<int>(relative_z / spatial.m_region_grid_cell);
         short z_count = 1;
-        if (g_float_005ed034 < z * spatial.m_region_grid_cell - relative_z) {
+        if (g_region_boundary_tolerance < z * spatial.m_region_grid_cell - relative_z) {
             --z;
             z_count = 2;
         }
@@ -1882,9 +1882,9 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
 
     tree->m_spatial.m_depth = spatial.m_depth;
     tree->m_spatial.m_node_extent = spatial.m_node_extent;
-    tree->m_spatial.m_max_region_radius = spatial.m_max_region_radius < g_float_005ed038
+    tree->m_spatial.m_max_region_radius = spatial.m_max_region_radius < g_region_radius_limit
                                               ? spatial.m_max_region_radius
-                                              : g_float_005ed038;
+                                              : g_region_radius_limit;
     while (selected_depth < tree->m_spatial.m_depth) {
         ReportBuildStatus(6, "Collapsing tree by one level.\n");
         --tree->m_spatial.m_depth;

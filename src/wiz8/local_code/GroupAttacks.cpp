@@ -100,7 +100,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                                W8CombatSlot* pAttackerSlot, W8GrowableVector<int> char_targets,
                                W8GrowableVector<int> monster_targets)
 {
-    char announce;
+    bool announce;
     int iTarget;
     int iChar;
     int iMonsterID;
@@ -209,7 +209,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                         pSource, &target, g_special_attack_condition_table[special_attack_kind][i],
                         g_special_attack_realm_table[special_attack_kind], uiMinRoll, extra,
                         uiDamage, announce, announce, 0);
-                    if (!resolved && announce == 0) {
+                    if (!resolved && !announce) {
                         ++uiHits[i];
                     }
                     break;
@@ -222,8 +222,8 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
-                        DamageCharacter(iChar, uiDamage, 1);
-                        if (announce == 0) {
+                        DamageCharacter(iChar, uiDamage, true);
+                        if (!announce) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
                         }
@@ -243,7 +243,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                                 iChar, g_special_attack_realm_table[special_attack_kind], uiDamage,
                                 true);
                         }
-                        if (announce == 0) {
+                        if (!announce) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
                         }
@@ -259,7 +259,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                         AnnounceEffectResisted(&target);
                     } else {
                         FatigueCharacter(iChar, uiDamage, false, 0);
-                        if (announce == 0) {
+                        if (!announce) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
                         }
@@ -277,7 +277,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                         AnnounceEffectResisted(&target);
                     } else {
                         ApplyDamageToCharacter(iChar, uiDamage, false, announce, false, 0, false);
-                        if (announce == 0) {
+                        if (!announce) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
                         }
@@ -318,7 +318,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                         pSource, &target, g_special_attack_condition_table[special_attack_kind][i],
                         g_special_attack_realm_table[special_attack_kind], uiMinRoll, extra,
                         uiBound, announce, announce, 0);
-                    if (!resolved && announce == 0) {
+                    if (!resolved && !announce) {
                         ++uiHits[i];
                     }
                     break;
@@ -333,7 +333,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     } else {
                         ApplyDamageToMonster(monster_info, uiDamage, pSource, false, 1, 0, 0,
                                              false);
-                        if (announce == 0) {
+                        if (!announce) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
                         }
@@ -347,7 +347,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                                            uiMinRoll);
                     if (uiDamage != 0) {
                         monster_info->spell_points = monster_info->spell_points - (uiDamage >> 1);
-                        if (announce == 0) {
+                        if (!announce) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
                         }
@@ -365,7 +365,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                         AnnounceEffectResisted(&target);
                     } else {
                         FatigueMonster(monster_info, uiDamage, 0);
-                        if (announce == 0) {
+                        if (!announce) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
                         }
@@ -384,7 +384,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     } else {
                         ApplyDamageToMonster(monster_info, uiDamage, pSource, false, announce, 0, 0,
                                              false);
-                        if (announce == 0) {
+                        if (!announce) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
                         }
@@ -393,7 +393,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                 }
             }
         }
-        if (announce == 0) {
+        if (!announce) {
             if (uiHits[0] == 0) {
                 AppendToLastTextLine(gppStringList[0x1a5], -1);
             } else {

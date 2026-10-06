@@ -75,7 +75,7 @@ static_assert(sizeof(W8CameraShakeEffect) == 0x4c, "W8CameraShakeEffect_must_be_
    creates alongside it. Both are built lazily by the constructor. */
 extern W8Vector<W8CameraShakeEffect*>* g_shake_effects;
 extern W8GameTimer* g_shake_timer;
-extern const float g_float_005ecf9c;
+extern const float g_float_two_hundred_fifty;
 
 W8CameraShakeEffect* CreateCameraShakeEffect(float duration, bool preset, float intensity,
                                              float distance_cap, const srVector3T<float>* position);
@@ -194,7 +194,7 @@ W8_ASSERT_BASE_OFFSET(W8GrCycle, W8Navigator, navigation_mode, 0x18);
 
 /* 0x005EC128: hundredth-second scale shared by the monster and trigger
    durations. */
-extern const float g_float_005ec128;
+extern const float g_float_one_thousandth;
 
 W8GrCycle* FindFirstGrCycleByName(const char* name);
 unsigned char UnregisterGrCycle(W8GrCycle* cycle);

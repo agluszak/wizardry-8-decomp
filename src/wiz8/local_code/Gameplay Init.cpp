@@ -326,7 +326,7 @@ void ResetForNewGame(void)
         if (*id != 0xffffffff) {
             ReplaceOrCreateItem(&item, *id, true, true, true);
             item.stack_count = 1;
-            AddItemToParty(&item, 0, false);
+            AddItemToParty(&item, false, false);
         }
         ++id;
     } while (id < g_starting_item_ids + 6);
@@ -448,7 +448,7 @@ void ResetPartySlotRow(int slot)
 
     memset(row, 0, sizeof(W8PartySlotRow));
     row->fOccupied = true;
-    row->spell_id = 0;
+    row->spell_id = W8_SPELL_NONE;
     row->queued_action = 0xff;
     SetSlotAction(slot, W8_ACTION_ATTACK, -1);
 }

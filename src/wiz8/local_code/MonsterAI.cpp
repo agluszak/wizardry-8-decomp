@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/CombatHostility.h"
@@ -62,9 +63,6 @@
    rules treat those rows differently. */
 enum { W8_SPECIAL_ATTACK_EFFECT_SUMMON = 6 };
 
-/* The spell the AI casts when it wants a place rather than a target. */
-enum { W8_AI_SPELL_PLACE = 0x77 };
-
 /* Gates the out-of-combat check that gives a group whose leader is still up a
    nudge. Only UpdateMonsterGroups reads it. */
 // GLOBAL: WIZ8 0x0061CC10
@@ -101,14 +99,18 @@ int g_special_attack_table[32][2] = {
    in g_status. */
 // GLOBAL: WIZ8 0x00616D84
 int g_being_effect_slot_spells[12] = {
-    0x20, 0x21, 0x11, 0x14, 0x8, 0x28, 0x1a, 0x2d, 0x40, 0, 0, 0,
+    W8_SPELL_ARMORPLATE, W8_SPELL_CHAMELEON,    W8_SPELL_DETECT_SECRETS, W8_SPELL_ENCHANTED_BLADE,
+    W8_SPELL_LIGHT,      W8_SPELL_MAGIC_SCREEN, W8_SPELL_MISSILE_SHIELD, W8_SPELL_SHADOW_HOUND,
+    W8_SPELL_X_RAY,      W8_SPELL_NONE,         W8_SPELL_NONE,           W8_SPELL_NONE,
 };
 
 /* The combat-state spell per effect slot, walked against
    W8CombatState::effect_slots and the monster's combat_effects. */
 // GLOBAL: WIZ8 0x00616DB4
 int g_combat_effect_slot_spells[9] = {
-    0x31, 0x30, 0x4c, 0x51, 0x5d, 0x50, 0, 0, 0,
+    W8_SPELL_ARMORMELT, W8_SPELL_ACID_BOMB,   W8_SPELL_TOXIC_CLOUD,
+    W8_SPELL_FIRESTORM, W8_SPELL_DEATH_CLOUD, W8_SPELL_DRAINING_CLOUD,
+    W8_SPELL_NONE,      W8_SPELL_NONE,        W8_SPELL_NONE,
 };
 
 /* The same mapping for the second combat effect block, indexed against
@@ -118,8 +120,29 @@ int g_combat_effect_slot_spells[9] = {
    band that Magic.cpp's failure and power-level readers consume. */
 // GLOBAL: WIZ8 0x00616DD8
 int g_combat_effect_slot_spells_and_cast_success[23] = {
-    0x2, 0x35, 0x3b, 0x3e, 0,  0,  30,  40,  50,  58,  64,  70,
-    76,  81,   86,   90,   94, 97, 100, 102, 105, 107, 110,
+    W8_SPELL_BLESS,
+    W8_SPELL_ELEMENT_SHIELD,
+    W8_SPELL_SOUL_SHIELD,
+    W8_SPELL_RING_OF_FIRE,
+    W8_SPELL_NONE,
+    W8_SPELL_NONE,
+    30,
+    40,
+    50,
+    58,
+    64,
+    70,
+    76,
+    81,
+    86,
+    90,
+    94,
+    97,
+    100,
+    102,
+    105,
+    107,
+    110,
 };
 
 /* The per-slot weights ChooseMonsterSpell rolls against. */
@@ -129,7 +152,7 @@ static int g_spell_cast_weights[10] = {5, 5, 5, 10, 10, 10, 10, 15, 15, 15};
 /* 0x005EE768: 1500.0, the "close enough" distance for patrol points and heard
    noises. */
 // GLOBAL: WIZ8 0x005EE768
-extern const double g_double_005ee768 = 1500.0;
+extern const double g_double_fifteen_hundred = 1500.0;
 
 /* 0x005EE774: scales the record float into the group-engagement probe
    distance. */
@@ -215,7 +238,7 @@ void UpdateMonsterGroups(bool staggered)
             continue;
         }
         if (!monster_group->members_active) {
-            if (nearest_distance < WorldGetFarClip(GetWorld()) * g_float_005ec3b8) {
+            if (nearest_distance < WorldGetFarClip(GetWorld()) * g_float_one_and_a_half) {
                 LoadMonsterGroupMembers(monster_group);
             }
         }
@@ -319,7 +342,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
         record = GetMonsterDataForInfo(monster_info);
         best_range = 0;
         for (attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
-            if (RateMonsterAttack(monster_info, record, attack, 0, 0) ==
+            if (RateMonsterAttack(monster_info, record, attack, 0, false) ==
                     W8_MONSTER_ATTACK_OUT_OF_REACH &&
                 best_range < record->attacks[attack].range_category) {
                 best_range = record->attacks[attack].range_category;
@@ -327,7 +350,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
         }
         if (MonsterApproachStartupNavigator(
                 monster_info->p3D, CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) *
-                                       g_float_005ec390) == 0) {
+                                       g_float_nine_tenths) == 0) {
             return;
         }
         monster_group = GetMonsterGroupByListIndex(
@@ -402,7 +425,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
             (!monster_info->p3D->face_party || monster_info->pathing_cooldown != 0 ||
              mode != W8_RT_AI_FACE_DIRECTION || !monster_info->player_visibility.line_of_sight ||
              (monster_info->p3D->movement.position - g_startup_world->GetPosition()).Length() >=
-                 g_float_005ec2f8)) {
+                 g_float_five_thousand)) {
             monster_info->ai_mode &= ~W8_MONSTER_AI_REAPPLY_MODE;
         }
         if (decision <= W8_RT_AI_LINK_TO_PARTY || decision == W8_RT_AI_FOLLOW_LURE) {
@@ -440,7 +463,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
         srVector3T<float> delta;
 
         delta = monster->movement.position - g_startup_world->GetPosition();
-        if (delta.Length() < g_float_005ec2f8) {
+        if (delta.Length() < g_float_five_thousand) {
             srVector3T<float> camera;
             srVector3T<float> position;
 
@@ -463,7 +486,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 
             monster->GetPatrolPoint(&patrol);
             delta = patrol - monster->GetPosition();
-            if (delta.Length() >= g_double_005ee768) {
+            if (delta.Length() >= g_double_fifteen_hundred) {
                 *decision = monster_info->ai_mode;
                 return true;
             }
@@ -489,7 +512,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
             srVector3T<float> delta;
 
             delta = monster_info->heard_noise_position - monster->GetPosition();
-            if (delta.Length() < g_double_005ee768) {
+            if (delta.Length() < g_double_fifteen_hundred) {
                 monster_info->heard_noise_radius = 0;
             }
         }
@@ -526,9 +549,9 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 
                 mode = W8_RT_AI_FACE_DIRECTION;
                 angle = (Random(0x168) << 1) * g_camera_pi * g_inverse_full_turn_degrees;
-                monster->move_direction.x = static_cast<float>(cos(angle) * g_double_005ec150);
+                monster->move_direction.x = static_cast<float>(cos(angle) * g_double_five_hundred);
                 monster->move_direction.y = 0.0f;
-                monster->move_direction.z = static_cast<float>(sin(angle) * g_double_005ec150);
+                monster->move_direction.z = static_cast<float>(sin(angle) * g_double_five_hundred);
             } else {
                 mode = W8_RT_AI_IDLE;
             }
@@ -540,7 +563,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 
                 monster->GetPatrolPoint(&patrol);
                 delta = patrol - monster->GetPosition();
-                if (delta.Length() < g_double_005ee768) {
+                if (delta.Length() < g_double_fifteen_hundred) {
                     mode = W8_RT_AI_IDLE;
                 } else {
                     mode = W8_RT_AI_MOVE_TO_PATROL_POINT;
@@ -563,7 +586,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 mode = W8_RT_AI_MOVE_TO_PATROL_POINT;
                 monster->GetPatrolPoint(&patrol);
                 delta = patrol - monster->GetPosition();
-                if (delta.Length() >= g_double_005ee768) {
+                if (delta.Length() >= g_double_fifteen_hundred) {
                     break;
                 }
                 count = monster->vector.GetCount();
@@ -655,14 +678,14 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         }
         record = GetMonsterDataForInfo(monster_info);
         for (attack = 0; attack < 3; ++attack) {
-            if (RateMonsterAttack(monster_info, record, attack, 0, 0) == 3 &&
+            if (RateMonsterAttack(monster_info, record, attack, 0, false) == 3 &&
                 best_range < record->attacks[attack].range_category) {
                 best_range = record->attacks[attack].range_category;
             }
         }
         if (MonsterApproachStartupNavigator(
                 monster, CalcRangeDistance(static_cast<W8RangeCategory>(best_range)) *
-                             g_float_005ec390) == 1) {
+                             g_float_nine_tenths) == 1) {
             if (IsSightRangeOverridden()) {
                 monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                     0x315, MONSTER_AI_CPP, monster_info->monster_group_id, true));
@@ -848,7 +871,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         monster_info->action_kind =
             backs_off ? W8_MONSTER_ACTION_BACK_OFF : W8_MONSTER_ACTION_APPROACH;
     } else {
-        rating = RateMonsterBestAttack(monster_info, record, 0);
+        rating = RateMonsterBestAttack(monster_info, record, false);
         chance = record->flee_chance;
         if (chance != 0) {
             if (rating != 0) {
@@ -862,7 +885,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
                     ResetCombatSlot(&monster_info->Target);
                     monster_info->Target.iType = W8_TARGET_KIND_PLACE;
                     monster_info->Target.point = position;
-                } else if (!AimMonsterAtSpellTarget(monster_info, W8_AI_SPELL_PLACE)) {
+                } else if (!AimMonsterAtSpellTarget(monster_info, W8_SPELL_SPECIAL_ATTACK_CONE)) {
                     srAssertFail("fSuccess", MONSTER_AI_CPP, 1052, 0);
                 }
                 goto validate;
@@ -967,7 +990,7 @@ members:
             member->hp_current == 0 || member->highest_condition >= W8_CONDITION_BLIND) {
             continue;
         }
-        if (RateMonsterBestAttack(member, record, 0) == 0) {
+        if (RateMonsterBestAttack(member, record, false) == 0) {
             return true;
         }
         if (record->spell_chance != 0) {
@@ -1076,8 +1099,8 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, bool target_locked, bo
     bool scan_monsters = false;
     unsigned char avoided[8] = {0};
     unsigned char resisted[8] = {0};
-    bool hostile_only;
-    char disposition_needed;
+    bool friendly_targets;
+    W8Disposition disposition_needed;
 
     record = GetMonsterDataForInfo(monster_info);
     if (monster_info->pCombat->plsCombatActionList != 0 &&
@@ -1168,10 +1191,10 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, bool target_locked, bo
         }
     }
 targets_chosen:
-    hostile_only = monster_info->fInCombat && monster_info->pCombat->berserk;
-    disposition_needed = hostile_only + 1;
+    friendly_targets = monster_info->fInCombat && monster_info->pCombat->berserk;
+    disposition_needed = friendly_targets ? W8_DISPOSITION_FRIENDLY : W8_DISPOSITION_HOSTILE;
     for (attack = attack_lo; attack < attack_hi; ++attack) {
-        if (RateMonsterAttack(monster_info, record, attack, 1, hostile_only) != 0) {
+        if (RateMonsterAttack(monster_info, record, attack, 1, friendly_targets) != 0) {
             continue;
         }
         if (scan_chars && monster_info->player_visibility.los_flags[RangeCategoryUsesSightCondition(
@@ -1303,7 +1326,7 @@ bool ChooseRandomMonsterAction(W8MonsterInfo* monster_info, bool target_locked, 
 // FUNCTION: WIZ8 0x00532550
 bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, bool needs_target)
 {
-    if (spell_id == 0) {
+    if (spell_id == W8_SPELL_NONE) {
         return false;
     }
     if (g_spell_records[spell_id].monster_castable == 0) {
@@ -1315,7 +1338,7 @@ bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, bool need
     if (DispatchWorldCursorNodeCommand(monster_info, 4, 0) != 0) {
         return false;
     }
-    if (spell_id == 0x3c && monster_info->insanity_summon != -1) {
+    if (spell_id == W8_SPELL_SUMMON_ELEMENTAL && monster_info->elemental_summon != -1) {
         return false;
     }
     if (g_spell_records[spell_id].realm == W8_SPELL_REALM_FIRE && g_camera_sway_active) {
@@ -1429,46 +1452,46 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         }
     }
     switch (spell_id) {
-    case 1:
-    case 4:
-    case 5:
-    case 9:
-    case 10:
-    case 0x19:
-    case 0x1c:
-    case 0x24:
-    case 0x2a:
-    case 0x2b:
-    case 0x2f:
-    case 0x32:
-    case 0x34:
-    case 0x37:
-    case 0x39:
-    case 0x3c:
-    case 0x3f:
-    case 0x42:
-    case 0x46:
-    case 0x47:
-    case 0x4e:
-    case 0x4f:
-    case 0x53:
-    case 0x56:
-    case 0x57:
-    case 0x5a:
-    case 0x5b:
-    case 0x5c:
-    case 0x5e:
-    case 0x5f:
-    case 0x60:
-    case 0x61:
-    case 0x62:
-    case 0x63:
-    case 0x65:
-    case 0x77:
+    case W8_SPELL_ACID_SPLASH:
+    case W8_SPELL_FROST:
+    case W8_SPELL_ENERGY_BLAST:
+    case W8_SPELL_MAKE_WOUNDS:
+    case W8_SPELL_MIND_STAB:
+    case W8_SPELL_MAGIC_MISSILES:
+    case W8_SPELL_SHRILL_SOUND:
+    case W8_SPELL_FIREBALL:
+    case W8_SPELL_NOXIOUS_FUMES:
+    case W8_SPELL_PSIONIC_FIRE:
+    case W8_SPELL_WHIPPING_ROCKS:
+    case W8_SPELL_CRUSH:
+    case W8_SPELL_EGO_WHIP:
+    case W8_SPELL_FIRE_BOMB:
+    case W8_SPELL_ICEBALL:
+    case W8_SPELL_SUMMON_ELEMENTAL:
+    case W8_SPELL_WHIRLWIND:
+    case W8_SPELL_DEHYDRATE:
+    case W8_SPELL_INSTANT_DEATH:
+    case W8_SPELL_PSIONIC_BLAST:
+    case W8_SPELL_BLIZZARD:
+    case W8_SPELL_BOILING_BLOOD:
+    case W8_SPELL_LIGHTNING:
+    case W8_SPELL_PRISMIC_RAY:
+    case W8_SPELL_QUICKSAND:
+    case W8_SPELL_ASPHYXIATION:
+    case W8_SPELL_CEREBRAL_HEMORRHAGE:
+    case W8_SPELL_CONCUSSION:
+    case W8_SPELL_DEATH_WISH:
+    case W8_SPELL_EARTHQUAKE:
+    case W8_SPELL_FALLING_STARS:
+    case W8_SPELL_MIND_FLAY:
+    case W8_SPELL_NUCLEAR_BLAST:
+    case W8_SPELL_PRISMIC_CHAOS:
+    case W8_SPELL_TSUNAMI:
+    case W8_SPELL_SPECIAL_ATTACK_CONE:
         break;
-    case 2:
-    case 0x35:
-    case 0x3b:
+    case W8_SPELL_BLESS:
+    case W8_SPELL_ELEMENT_SHIELD:
+    case W8_SPELL_SOUL_SHIELD:
         if (!gXStatus.fCombatMode) {
             return true;
         }
@@ -1488,55 +1511,55 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
             }
         }
         return true;
-    case 6:
-    case 0x44:
+    case W8_SPELL_HEAL_WOUNDS:
+    case W8_SPELL_HEAL_ALL:
         if (hp == hp_max) {
             return false;
         }
         break;
-    case 7:
+    case W8_SPELL_ITCHING_SKIN:
         if (condition_turns[3] != 0) {
             return false;
         }
         break;
-    case 0xb:
-    case 0x25:
-    case 0x43:
+    case W8_SPELL_PARALYZE:
+    case W8_SPELL_FREEZE_FLESH:
+    case W8_SPELL_FREEZE_ALL:
         if (condition_turns[0x10] != 0) {
             return false;
         }
         break;
-    case 0xc:
+    case W8_SPELL_SLEEP:
         if (condition_turns[W8_CONDITION_ASLEEP] != 0) {
             return false;
         }
         break;
-    case 0xd:
-    case 0x2c:
+    case W8_SPELL_STAMINA:
+    case W8_SPELL_REST_ALL:
         if (stat == stat_max) {
             return false;
         }
         break;
-    case 0xe:
+    case W8_SPELL_TERROR:
         if (condition_turns[6] != 0) {
             return false;
         }
         break;
-    case 0xf:
+    case W8_SPELL_BLINDING_FLASH:
         if (condition_turns[0xc] != 0) {
             return false;
         }
         break;
-    case 0x10:
+    case W8_SPELL_CURE_LESSER_COND:
         if (condition_turns[3] == 0 && condition_turns[4] == 0 && condition_turns[6] == 0 &&
             condition_turns[W8_CONDITION_ASLEEP] == 0 && condition_turns[0xc] == 0) {
             return false;
         }
         break;
-    case 0x14:
-    case 0x1a:
-    case 0x20:
-    case 0x28:
+    case W8_SPELL_ENCHANTED_BLADE:
+    case W8_SPELL_MISSILE_SHIELD:
+    case W8_SPELL_ARMORPLATE:
+    case W8_SPELL_MAGIC_SCREEN:
         for (index = 0; index < 12; ++index) {
             if (spell_id == g_being_effect_slot_spells[index]) {
                 if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
@@ -1549,42 +1572,42 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                 }
             }
         }
-        if (spell_id == 0x14 && combat_slot->iType == W8_TARGET_KIND_MONSTER &&
+        if (spell_id == W8_SPELL_ENCHANTED_BLADE && combat_slot->iType == W8_TARGET_KIND_MONSTER &&
             0x3b < record->spell_chance) {
             return false;
         }
         break;
-    case 0x15:
+    case W8_SPELL_GUARDIAN_ANGEL:
         if (enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].turns != 0) {
             return false;
         }
         break;
-    case 0x1b:
+    case W8_SPELL_RAZOR_CLOAK:
         if (enchantments[W8_ENCHANTMENT_RAZOR_CLOAK].turns != 0) {
             return false;
         }
         break;
-    case 0x1d:
+    case W8_SPELL_SLOW:
         if (condition_turns[W8_CONDITION_SLOWED] != 0) {
             return false;
         }
         break;
-    case 0x1f:
+    case W8_SPELL_WEB:
         if (condition_turns[0xe] != 0) {
             return false;
         }
         break;
-    case 0x22:
+    case W8_SPELL_CURE_PARALYSIS:
         if (condition_turns[0x10] == 0) {
             return false;
         }
         break;
-    case 0x23:
+    case W8_SPELL_CURE_POISON:
         if (condition_turns[W8_CONDITION_POISONED] == 0) {
             return false;
         }
         break;
-    case 0x2e:
+    case W8_SPELL_SILENCE:
         if (condition_turns[W8_CONDITION_SILENCED] != 0) {
             return false;
         }
@@ -1628,12 +1651,12 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
             return false;
         }
         break;
-    case 0x30:
-    case 0x31:
-    case 0x4c:
-    case 0x50:
-    case 0x51:
-    case 0x5d:
+    case W8_SPELL_ACID_BOMB:
+    case W8_SPELL_ARMORMELT:
+    case W8_SPELL_TOXIC_CLOUD:
+    case W8_SPELL_DRAINING_CLOUD:
+    case W8_SPELL_FIRESTORM:
+    case W8_SPELL_DEATH_CLOUD:
         if (!gXStatus.fCombatMode) {
             return true;
         }
@@ -1653,32 +1676,32 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
             }
         }
         return true;
-    case 0x36:
+    case W8_SPELL_EYE_FOR_AN_EYE:
         if (enchantments[W8_ENCHANTMENT_EYE_FOR_AN_EYE].turns != 0) {
             return false;
         }
         break;
-    case 0x38:
+    case W8_SPELL_HASTE:
         if (enchantments[W8_ENCHANTMENT_HASTE].turns != 0) {
             return false;
         }
         break;
-    case 0x3d:
+    case W8_SPELL_SUPERMAN:
         if (enchantments[W8_ENCHANTMENT_SUPERMAN].turns != 0) {
             return false;
         }
         break;
-    case 0x41:
+    case W8_SPELL_BODY_OF_STONE:
         if (enchantments[W8_ENCHANTMENT_BODY_OF_STONE].turns != 0) {
             return false;
         }
         break;
-    case 0x45:
+    case W8_SPELL_HEX:
         if (condition_turns[9] != 0) {
             return false;
         }
         break;
-    case 0x48:
+    case W8_SPELL_PURIFY_AIR:
         if (!gXStatus.fCombatMode) {
             return false;
         }
@@ -1698,12 +1721,12 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
             }
         }
         return false;
-    case 0x4a:
+    case W8_SPELL_SANE_MIND:
         if (condition_turns[0xb] == 0 && condition_turns[W8_CONDITION_TURNCOAT] == 0) {
             return false;
         }
         break;
-    case 0x4d:
+    case W8_SPELL_BANISH:
         if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
             return false;
         }
@@ -1712,43 +1735,43 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
             return false;
         }
         break;
-    case 0x55:
+    case W8_SPELL_PANDEMONIUM:
         if (condition_turns[6] == 0) {
             return true;
         }
-    case 0x18:
+    case W8_SPELL_INSANITY:
         if (condition_turns[0xb] != 0) {
             return false;
         }
         break;
-    case 0x59:
+    case W8_SPELL_TURNCOAT:
         if (condition_turns[W8_CONDITION_TURNCOAT] != 0) {
             return false;
         }
         break;
-    case 3:
-    case 8:
-    case 0x11:
-    case 0x12:
-    case 0x13:
-    case 0x16:
-    case 0x17:
-    case 0x1e:
-    case 0x21:
-    case 0x26:
-    case 0x27:
-    case 0x29:
-    case 0x2d:
-    case 0x33:
-    case 0x3a:
-    case 0x3e:
-    case 0x40:
-    case 0x49:
-    case 0x4b:
-    case 0x52:
-    case 0x54:
-    case 0x58:
-    case 0x64:
+    case W8_SPELL_CHARM:
+    case W8_SPELL_LIGHT:
+    case W8_SPELL_DETECT_SECRETS:
+    case W8_SPELL_DIVINE_TRAP:
+    case W8_SPELL_DRACON_BREATH:
+    case W8_SPELL_HOLY_WATER:
+    case W8_SPELL_IDENTIFY_ITEM:
+    case W8_SPELL_SONIC_BOOM:
+    case W8_SPELL_CHAMELEON:
+    case W8_SPELL_HYPNOTIC_LURE:
+    case W8_SPELL_KNOCK_KNOCK:
+    case W8_SPELL_MINDREAD:
+    case W8_SPELL_SHADOW_HOUND:
+    case W8_SPELL_CURE_DISEASE:
+    case W8_SPELL_REMOVE_CURSE:
+    case W8_SPELL_RING_OF_FIRE:
+    case W8_SPELL_X_RAY:
+    case W8_SPELL_RETURN_TO_PORTAL:
+    case W8_SPELL_SET_PORTAL:
+    case W8_SPELL_LIFESTEAL:
+    case W8_SPELL_MIGHT_TO_MAGIC:
+    case W8_SPELL_RESURRECTION:
+    case W8_SPELL_RESTORATION:
     case 0x66:
     case 0x67:
     case 0x68:
@@ -1761,11 +1784,11 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
     case 0x6f:
     case 0x70:
     case 0x71:
-    case 0x72:
-    case 0x73:
-    case 0x74:
-    case 0x75:
-    case 0x76:
+    case W8_SPELL_RESTORE_HEALTH:
+    case W8_SPELL_RESTORE_MAGIC:
+    case W8_SPELL_SMELLING_SALTS:
+    case W8_SPELL_ROUT:
+    case W8_SPELL_BOILING_BLOOD_EXPLOSION:
     default:
         FormatDebugMessage(0, "WARNING: MonsterSpellTargetOK - unlisted spell %d(%ls)", spell_id,
                            g_spell_records[spell_id].display_name);
@@ -1860,7 +1883,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
     W8MonsterInfo* member;
     unsigned int index;
 
-    if (spell_id == W8_AI_SPELL_PLACE) {
+    if (spell_id == W8_SPELL_SPECIAL_ATTACK_CONE) {
         sight_kind = 3;
         monster_info->action_kind = W8_MONSTER_ACTION_SPECIAL_ATTACK;
     } else {
@@ -2101,7 +2124,7 @@ void CheckMonsterGroupsLeaveCombat(void)
             if (GetMonsterGroupEngagementState(group->group_id) && leader != 0 && leader->fActive) {
                 nearest = GetGroupNearestDistance(group);
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, true, &sight)) +
-                        GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
+                        GetMonsterCombatMoveRange(leader) * g_float_one_thousand;
                 minimum = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
                 if (reach <= minimum) {
                     reach = minimum;
@@ -2215,11 +2238,11 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, bool party_only,
     unsigned int index;
     W8MonsterInfo* other;
     W8VisibilityRecord* record;
-    char disposition;
+    W8Disposition disposition;
 
     if (within_reach) {
         reach = CalcRangeDistance(GetMonsterBestRangeCategory(monster_info, true, &sight)) +
-                GetMonsterCombatMoveRange(monster_info) * g_float_005ebc64;
+                GetMonsterCombatMoveRange(monster_info) * g_float_one_thousand;
         if (reach <= GetMonsterEngagementRange() + g_monster_engagement_range_floor) {
             reach = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
         }
@@ -2313,7 +2336,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, bool e
             return false;
         }
     } else {
-        CollectMonsterSpellTargets(monster_info, W8_AI_SPELL_PLACE, &targets);
+        CollectMonsterSpellTargets(monster_info, W8_SPELL_SPECIAL_ATTACK_CONE, &targets);
         if (targets.GetCount() == 0) {
             return false;
         }
@@ -2335,7 +2358,7 @@ bool AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterRecord* recor
         monster_info->Target.point = position;
         return true;
     }
-    return AimMonsterAtSpellTarget(monster_info, W8_AI_SPELL_PLACE);
+    return AimMonsterAtSpellTarget(monster_info, W8_SPELL_SPECIAL_ATTACK_CONE);
 }
 
 /* Whether the action a monster has settled on can actually be carried out. An
@@ -2371,7 +2394,7 @@ bool IsMonsterActionUsable(W8MonsterInfo* monster_info)
             W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
             return false;
         }
-        spell_id = W8_AI_SPELL_PLACE;
+        spell_id = W8_SPELL_SPECIAL_ATTACK_CONE;
         break;
     default:
         return false;
@@ -2708,7 +2731,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                 member->highest_condition < W8_CONDITION_DEAD &&
                 MonsterHasVisibleTarget(member, false, W8_VISIBLE_TARGET_NON_NEUTRAL, true)) {
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, true, &sight)) +
-                        GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
+                        GetMonsterCombatMoveRange(leader) * g_float_one_thousand;
                 minimum = GetMonsterEngagementRange() + g_monster_engagement_range_floor;
                 if (reach <= minimum) {
                     reach = minimum;

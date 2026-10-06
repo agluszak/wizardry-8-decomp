@@ -72,7 +72,7 @@ void RecountCombatMonsters(void)
    only matching non-zero factions fall through to the condition-thirteen
    presence test. */
 // FUNCTION: WIZ8 0x00546F80
-char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
+W8Disposition MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
 {
     W8MonsterRecord* first_record;
     W8MonsterRecord* second_record;
@@ -111,7 +111,7 @@ char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
    character carries condition thirteen the hostile and friendly bands swap;
    otherwise the monster's band is returned unchanged. */
 // FUNCTION: WIZ8 0x00546f10
-char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
+W8Disposition MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 {
     W8Disposition disposition;
 
@@ -134,7 +134,7 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 }
 
 // FUNCTION: WIZ8 0x00547010
-char CharacterVsCharacterDisposition(int first, int second)
+W8Disposition CharacterVsCharacterDisposition(int first, int second)
 {
     W8Character* characters = g_status.buffers.Char;
     unsigned int first_turns = characters[first].uiCondition[W8_CONDITION_TURNCOAT];
@@ -148,7 +148,7 @@ char CharacterVsCharacterDisposition(int first, int second)
 }
 
 // FUNCTION: WIZ8 0x00547080
-char GetOppositeDisposition(W8TargetSource* source)
+W8Disposition GetOppositeDisposition(W8TargetSource* source)
 {
     if (TargetSourceIsCharacter(source, 0)) {
         if (g_status.buffers.Char[source->iChar].uiCondition[W8_CONDITION_TURNCOAT] == 0) {
@@ -204,7 +204,7 @@ void ProvokeListedMonsterGroups(W8TargetSource* source, W8GrowableVector<int>* m
 // FUNCTION: WIZ8 0x005471d0
 void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
 {
-    char hostility = GetOppositeDisposition(source);
+    W8Disposition hostility = GetOppositeDisposition(source);
     if (hostility == 0 || !IsTargetStillPresent(target)) {
         return;
     }
@@ -291,13 +291,13 @@ bool CharacterActionTargetsEnemies(W8Character* character, W8ActionKind action_k
         item = detail->item_use.item;
         if (CanCharacterActivateItem(character, item)) {
             spell_id = g_item_records[item->iItemNo].spell_id;
-            if (spell_id != 0) {
+            if (spell_id != W8_SPELL_NONE) {
                 if (spell_id > 0x95) {
                     srAssertFail("iType < SPELL_COUNT",
                                  "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp",
                                  0x1c2, 0);
                 }
-                if (spell_id != 3 && spell_id != 0x29) {
+                if (spell_id != W8_SPELL_CHARM && spell_id != W8_SPELL_MINDREAD) {
                     target_type = GetSpellTargetType(spell_id, false);
                     if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
                         return true;
@@ -350,7 +350,7 @@ bool MonsterCanAimSpell(int spell_id)
         srAssertFail("iType < SPELL_COUNT",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp", 0x1c2, 0);
     }
-    if (spell_id != 3 && spell_id != 0x29) {
+    if (spell_id != W8_SPELL_CHARM && spell_id != W8_SPELL_MINDREAD) {
         W8SpellTargetType target_type = GetSpellTargetType(spell_id, false);
         if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
             return true;
@@ -440,7 +440,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, boo
 }
 
 // FUNCTION: WIZ8 0x005477d0
-void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
+void SetMonsterHostility(W8MonsterInfo* monster, W8Disposition hostility)
 {
     W8Disposition previous = monster->ubDisposition;
     if (previous == hostility || monster->p3D->hostility_preserved) {
@@ -789,7 +789,8 @@ int CharacterPrayAction(int party_slot)
             }
             break;
         case 6: {
-            const float range = CalcRangeDistance(g_spell_records[0x19].range_category);
+            const float range =
+                CalcRangeDistance(g_spell_records[W8_SPELL_MAGIC_MISSILES].range_category);
             in_range = 0;
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
@@ -891,7 +892,8 @@ int CharacterPrayAction(int party_slot)
         case 0xc:
             power_level >>= 1;
             {
-                const float range = CalcRangeDistance(g_spell_records[0x60].range_category);
+                const float range =
+                    CalcRangeDistance(g_spell_records[W8_SPELL_FALLING_STARS].range_category);
                 for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                     W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                     if (monster->fActive && monster->fInCombat &&

@@ -10,7 +10,7 @@
 #define OCT_BUILD_TREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildTree.cpp"
 
 // GLOBAL: WIZ8 0x005ec188
-const float g_float_005ec188 = 1.000100016593933f;
+const float g_octree_cell_extent_scale = 1.000100016593933f;
 
 // GLOBAL: WIZ8 0x00659a48
 W8GDSurface** g_oct_build_scratch;
@@ -103,7 +103,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
     unknown_b5[2] = 0;
     deepest_link_list = 0;
 
-    if (leaf_size < g_float_005ebc64) {
+    if (leaf_size < g_float_one_thousand) {
         ReportBuildStatus(7, "Leaf Size too small--try a larger leaf size!\n");
     }
     spatial.flags = 0;
@@ -115,7 +115,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
     spatial.m_depth = 0;
 
     if (minimum != 0 || maximum != 0) {
-        float half_leaf = leaf_size * g_float_005ebc7c;
+        float half_leaf = leaf_size * g_float_half;
         float* source_minimum = &minimum->x;
         float* source_maximum = &maximum->x;
         float* stored_minimum = &spatial.m_clipped_minimum.x;
@@ -137,7 +137,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
         if (extent_mode == 0) {
             spatial.m_node_extent = spatial.m_extent;
             while (leaf_size + leaf_size <= spatial.m_node_extent && spatial.m_depth < 6) {
-                spatial.m_node_extent *= g_float_005ebc7c;
+                spatial.m_node_extent *= g_float_half;
                 ++spatial.m_depth;
             }
         } else if (extent_mode == 1) {
@@ -157,7 +157,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
         } else {
             spatial.m_node_extent = spatial.m_extent;
             while (leaf_size + leaf_size <= spatial.m_node_extent && spatial.m_depth < 6) {
-                spatial.m_node_extent *= g_float_005ebc7c;
+                spatial.m_node_extent *= g_float_half;
                 ++spatial.m_depth;
             }
             if (extent_mode == 2) {
@@ -169,7 +169,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
             }
         }
 
-        spatial.m_cell_size = spatial.m_node_extent * g_float_005ec188;
+        spatial.m_cell_size = spatial.m_node_extent * g_octree_cell_extent_scale;
         spatial.m_maximum.Set(minimum->x + spatial.m_extent, minimum->y + spatial.m_extent,
                               minimum->z + spatial.m_extent);
         g_oct_build_scratch = static_cast<W8GDSurface**>(malloc(40000));
@@ -268,7 +268,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
         AppendLink(node, surface, static_cast<short>(mode));
         inserted = true;
     } else {
-        float half_extent = working->m_extent * g_float_005ebc7c;
+        float half_extent = working->m_extent * g_float_half;
         child.m_cell_size = working->m_cell_size;
         child.m_depth = working->m_depth + 1;
 

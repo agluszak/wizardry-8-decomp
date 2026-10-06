@@ -1225,7 +1225,7 @@ void AddCharacterStartingEquipment(W8Character* character)
             continue;
         }
         ReplaceOrCreateItem(&item, g_starting_equipment[set][slot], true, true, true);
-        AddItemToCharacter(character, &item, 1, 0, false);
+        AddItemToCharacter(character, &item, true, false, false);
     }
 
     switch (character->iProfession) {
@@ -1254,6 +1254,6 @@ void AddCharacterStartingEquipment(W8Character* character)
         RebuildEquipmentAndDerivedStats(character);
         return;
     }
-    AddItemToCharacter(character, &item, 1, 0, false);
+    AddItemToCharacter(character, &item, true, false, false);
     RebuildEquipmentAndDerivedStats(character);
 }

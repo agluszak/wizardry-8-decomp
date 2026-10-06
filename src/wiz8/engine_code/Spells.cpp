@@ -283,7 +283,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
             monster->GetAnimationBounds(&minimum, &maximum);
             position.x = monster_position.x;
-            position.y = monster_position.y + (maximum.y - minimum.y) * g_float_005ebc7c;
+            position.y = monster_position.y + (maximum.y - minimum.y) * g_float_half;
             position.z = monster_position.z;
             SetCyclePosition(&position);
         }
@@ -538,7 +538,7 @@ static int FindSpellCycleByName(const char* name)
    sound events, and SHAKE_FRAME rows attach camera-shake effects. */
 // FUNCTION: WIZ8 0x004ab580
 bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* name,
-                             W8SpellVisualMode group, W8SpellVisual** visual, int unused)
+                             W8SpellVisualMode group, W8SpellVisual** visual, int)
 {
     W8SpellVisual* shared = static_cast<W8SpellVisual*>(FindFirstGrCycleByName(name));
     if (shared != 0 && shared->mode == group) {
@@ -954,14 +954,14 @@ placed:
         visual->location_id = monster->location_id;
         monster->GetAnimationBounds(&minimum, &maximum);
         position = monster->GetPosition();
-        position.y += (maximum.y - minimum.y) * g_float_005ebc7c;
+        position.y += (maximum.y - minimum.y) * g_float_half;
         visual->SetCyclePosition(&position);
         height = maximum.y - minimum.y;
         width = maximum.x - minimum.x;
         if (height <= width) {
             height = width;
         }
-        visual->scale0 = height * g_float_005ec128;
+        visual->scale0 = height * g_float_one_thousandth;
     }
     return visual;
 }
@@ -1042,7 +1042,7 @@ W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, 
             if (height <= width) {
                 height = width;
             }
-            visual->scale0 = height * g_float_005ec128;
+            visual->scale0 = height * g_float_one_thousandth;
             if (!parent->GetSpellPosition(&position)) {
                 parent->GetMappedPosition(&position);
             }
@@ -1179,12 +1179,12 @@ W8SpellEmitterHost::~W8SpellEmitterHost()
 bool IsCombatEffectSlotSpell(int spell_id)
 {
     switch (spell_id) {
-    case 0x30:
-    case 0x31:
-    case 0x4c:
-    case 0x50:
-    case 0x51:
-    case 0x5d:
+    case W8_SPELL_ACID_BOMB:
+    case W8_SPELL_ARMORMELT:
+    case W8_SPELL_TOXIC_CLOUD:
+    case W8_SPELL_DRAINING_CLOUD:
+    case W8_SPELL_FIRESTORM:
+    case W8_SPELL_DEATH_CLOUD:
         return true;
     default:
         return false;
@@ -1539,9 +1539,9 @@ bool CanSpellBackfire(int spell_id)
         /* Hostile spells backfire except Banish (0x4d) and the two creature
            abilities Boiling Blood Explosion (0x76) and Rocket Blast (0x83). */
         switch (spell_id) {
-        case 77:
-        case 118:
-        case 131:
+        case W8_SPELL_BANISH:
+        case W8_SPELL_BOILING_BLOOD_EXPLOSION:
+        case W8_SPELL_ROCKET_BLAST:
             break;
         default:
             return true;
@@ -1555,20 +1555,20 @@ bool CanSpellBackfire(int spell_id)
            Paralysis (0x22), Rest All (0x2c), Haste (0x38), Remove Curse (0x3a)
            and Sane Mind (0x4a). */
         switch (spell_id) {
-        case 3:
-        case 13:
-        case 16:
-        case 34:
-        case 44:
-        case 56:
-        case 58:
-        case 74:
+        case W8_SPELL_CHARM:
+        case W8_SPELL_STAMINA:
+        case W8_SPELL_CURE_LESSER_COND:
+        case W8_SPELL_CURE_PARALYSIS:
+        case W8_SPELL_REST_ALL:
+        case W8_SPELL_HASTE:
+        case W8_SPELL_REMOVE_CURSE:
+        case W8_SPELL_SANE_MIND:
             return true;
         }
         break;
     case W8_TARGET_TYPE_LOCK_OR_TRAP:
         /* Only Knock Knock (0x27); Divine Trap (0x12) never backfires. */
-        return spell_id == 39;
+        return spell_id == W8_SPELL_KNOCK_KNOCK;
     case W8_TARGET_TYPE_POINT:
     case W8_TARGET_TYPE_ITEM:
     case W8_TARGET_TYPE_NONE:

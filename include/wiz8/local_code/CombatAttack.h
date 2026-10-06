@@ -61,8 +61,8 @@ int TargetArmorClassAtLocation(W8CombatSlot* target, W8AttackMode attack_mode, i
    target and apply the ones that take, reporting into `result` when one is
    given. */
 void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
-                           W8SpellEffectDefinition* definition, unsigned char announce,
-                           unsigned char verbose, W8SpellEffectResult* result);
+                           W8SpellEffectDefinition* definition, bool announce, bool verbose,
+                           W8SpellEffectResult* result);
 
 struct W8MonsterRecord;
 struct W8MonsterAttack;
@@ -90,14 +90,14 @@ enum {
 
 /* An attack the record does not carry, or carries with bad data, is not
    usable; otherwise the attack is usable when it can reach someone, judged as
-   though the monster were idle. `hostile_only` narrows the sweep to enemies.
+   though the monster were idle. `friendly_targets` selects friendly rather than hostile targets.
    RateMonsterBestAttack answers zero as soon as any attack is usable, one for a
    motionless monster, and otherwise the highest reason it saw. */
 unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                unsigned int attack, int unused, int hostile_only); /* 0x0053D4B0 */
+                                unsigned int attack, int, bool friendly_targets); /* 0x0053D4B0 */
 unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                    int hostile_only); /* 0x0053D450 */
-bool CanAnyHandReachTarget(int party_slot);            /* 0x0053D310 */
+                                    bool friendly_targets); /* 0x0053D450 */
+bool CanAnyHandReachTarget(int party_slot);                 /* 0x0053D310 */
 /* 0x0053D2A0: whether `hand` is in play and has a range category at all. */
 bool CanHandReachTarget(int party_slot, unsigned int hand);
 bool CanCharacterAttack(int party_slot); /* 0x00545850 */
@@ -134,10 +134,10 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report); /
 void ReportMonsterAttackResult(W8MonsterInfo* monster_info,
                                W8SpellEffectResult* report); /* 0x005412B0 */
 /* 0x00542720: the monster side of the attack-score pipeline - the attack's
-   own score plus modifier, mode, surprise, armour and attribute terms; arg_4
+   own score plus modifier, mode, surprise, armour and attribute terms; ignore_target_defenses
    selects the fumble-redirect variant. */
 int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack,
-                          W8AttackMode attack_mode, char arg_4);
+                          W8AttackMode attack_mode, char ignore_target_defenses);
 /* 0x00542960: roll the running monster attack's damage dice and reduce them
    by the target's damage reduction, reporting the dice count. */
 int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* attack,
@@ -153,14 +153,14 @@ void AnnounceAccidentalStrike(W8TargetSource* source, W8CombatSlot* target);
 /* Whether a character catches the incoming attack in time to turn toward it. */
 bool CharacterNoticesAttacker(int party_slot); /* 0x0053D590 */
 /* Begin one of the monster's attacks for the round. */
-char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record); /* 0x0053FEA0 */
+bool StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record); /* 0x0053FEA0 */
 /* 0x00545B20: bodyguard readiness for the selected protection target. */
 bool CanMonsterProtectTarget(W8MonsterInfo* monster_info);
 /* 0x00545AA0: the character counterpart of the same six checks. */
 bool CanCharacterAttackItsTarget(int party_slot);
 /* Build the monster attack announcement message and aim it at the target. */
 void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                           char arg_3); /* 0x00541630 */
+                           char target_changed); /* 0x00541630 */
 /* 0x00540170: resolve one queued swing of the monster's attack - rolls the
    hit and fumble-redirect chances, resolves guardian interception, picks the
    hit location, rolls penetration, applies damage and the struck target's
@@ -169,7 +169,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 /* Start one of the character's attacks for the round: validates the hand and
    target, rolls the swings, announces the attack and dispatches the missile or
    melee event. */
-char StartCharacterAttack(int party_slot, W8AttackMode attack_mode); /* 0x0053D870 */
+bool StartCharacterAttack(int party_slot, W8AttackMode attack_mode); /* 0x0053D870 */
 /* 0x0053E250: resolve one of the character's queued swings - plays the
    attack sound on the first pass, rolls fumble redirection and guardian
    interception, picks the hit location, rolls penetration, applies damage

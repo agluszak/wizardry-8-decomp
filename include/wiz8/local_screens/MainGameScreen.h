@@ -37,11 +37,11 @@ extern wchar_t g_format_s_paren_d[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 extern W8ScreenRect g_viewport_modes[];
-extern const float g_float_005ec258;
-extern const float g_float_005ec25c;
+extern const float g_float_one_fiftieth;
+extern const float g_float_half_turn_degrees;
 /* String-list ids naming each trap row; Traps.cpp indexes it with the
    trigger's trap type for the disarm/spring notices. */
-extern unsigned short g_value_0061e9ec[];
+extern unsigned short g_trap_name_string_ids[];
 #include "wiz8/layouts/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"
@@ -69,7 +69,7 @@ public:
     W8MainGameTextKeyHandler(Controls* panel, int left, int top, int right, int bottom,
                              int line_count, const unsigned short* line_string_ids,
                              unsigned int* region_set);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnMouseMove(int event) override;
     virtual void AdjustValue(int steps) override;
@@ -99,7 +99,7 @@ W8_ASSERT_BASE_END(W8MainGameTextKeyHandler, W8RangeListener, m_range, 0x34);
 class W8MainGameTextEntry : public W8TextControl {
 public:
     W8MainGameTextEntry(Controls* panel, int index);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;
@@ -184,7 +184,7 @@ static_assert(sizeof(W8MainGameStatusPanel) == 0x6c, "W8MainGameStatusPanel_size
 class W8NpcDialogueTextController : public Controls {
 public:
     W8NpcDialogueTextController(int panel_left, int panel_top, int panel_right, int panel_bottom,
-                                int render_target, int render_arg_1c, int render_arg_20,
+                                int catalog_object, int catalog_frame, int catalog_image,
                                 int margin_image, int line_image); /* 0x0055DE40 */
     virtual void Redraw() override;                                /* 0x0055DF80 */
     bool HandleScrollDownCommand(bool check_only);
@@ -302,9 +302,9 @@ public:
           m_listener(0)
     {
     }
-    virtual void Redraw(unsigned char full_redraw) override; /* 0x005854B0 */
-    virtual void OnMouseEnter(int event) override;           /* 0x00585610 */
-    virtual void OnMouseLeave(int event) override;           /* 0x00585650 */
+    virtual void Redraw(bool full_redraw) override; /* 0x005854B0 */
+    virtual void OnMouseEnter(int event) override;  /* 0x00585610 */
+    virtual void OnMouseLeave(int event) override;  /* 0x00585650 */
     /* Retail folds this with W8HorizontalRangeThumb::OnMouseEnter at 0x004F58C0. */
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override; /* 0x00585690 */

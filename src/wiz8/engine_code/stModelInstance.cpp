@@ -722,9 +722,9 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     mesh.vertex_materials[0][1] = 0;
                     mesh.poly_uv[1] = 0;
 
-                    double factor = g_double_005ebc30 / getScale().y * g_double_005ec8d8;
+                    double factor = g_double_one / getScale().y * g_double_fifteen_and_five_eighths;
                     float expand = static_cast<float>(
-                        (radius * getScale().y * g_double_005ec8d0 + g_double_005ebc30) * factor);
+                        (radius * getScale().y * g_double_one_thousandth + g_double_one) * factor);
                     srVector3T<float> offsets;
                     offsets = expand;
 
@@ -876,10 +876,10 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     }
     renderer.matrixMode(srGERD::MATRIX_MODELVIEW);
     renderer.pushMatrix();
-    renderer.translate(0.0, height * g_float_005ebc7c, 0.0);
+    renderer.translate(0.0, height * g_float_half, 0.0);
     height *= g_shadow_extrusion_pitch_scale;
-    if (height < g_float_005ebc7c) {
-        height = g_float_005ebc7c;
+    if (height < g_float_half) {
+        height = g_float_half;
     }
     double scale = height;
     renderer.scale(scale, scale, scale);

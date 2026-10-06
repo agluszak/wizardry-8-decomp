@@ -96,7 +96,7 @@ bool LoadPathAI(W8PathAI** output, int handle)
             FileRead(handle, &point->x, 4, 0);
             FileRead(handle, &point->y, 4, 0);
             FileRead(handle, &point->z, 4, 0);
-            *point *= g_double_005ec150;
+            *point *= g_double_five_hundred;
             PathAIAddPoint(path, point);
 
             FileRead(handle, &angle, 4, 0);
@@ -526,18 +526,19 @@ unsigned char PathAITick(W8PathAI* path, signed char direction)
         elapsed = now - path->last_update_tick;
         if (path->last_update_tick < now) {
             if (path->timed != 0) {
-                PathAIAdvanceNormalized(path, elapsed * g_float_005ec128);
+                PathAIAdvanceNormalized(path, elapsed * g_float_one_thousandth);
             } else {
                 point_count = static_cast<float>(path->nodes->GetCount());
                 PathAIAdvanceByDistance(path, path->total_length / point_count * path->speed *
-                                                  elapsed * g_float_005ec128);
+                                                  elapsed * g_float_one_thousandth);
             }
             path->last_update_tick = now;
             return 1;
         }
     } else {
         if (path->step_by_node == 0) {
-            amount = (now - path->last_update_tick) * g_float_005ec128 * direction * path->speed;
+            amount =
+                (now - path->last_update_tick) * g_float_one_thousandth * direction * path->speed;
         } else {
             amount = g_negative_one;
             if (direction > 0) {
@@ -583,10 +584,10 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
     }
     if (path->animated == 0) {
         if (path->discrete_mode == 0) {
-            index = static_cast<int>((path->nodes->GetCount() - 1) * path->position +
-                                     g_double_005ebe80);
+            index =
+                static_cast<int>((path->nodes->GetCount() - 1) * path->position + g_double_half);
         } else {
-            index = static_cast<int>(path->position + g_double_005ec3b0);
+            index = static_cast<int>(path->position + g_double_one_tenth);
         }
         if (index >= path->nodes->GetCount()) {
             index = path->nodes->GetCount() - 1;
@@ -615,7 +616,7 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
 }
 
 // GLOBAL: WIZ8 0x005EC1E8
-const double g_double_005ec1e8 = 2.0;
+const double g_quaternion_matrix_normalization = 2.0;
 
 /* FLT_EPSILON: the dot-product closeness bound at which the keyframe slerps
    fall back to a linear blend. */
@@ -656,7 +657,7 @@ void PathAIApply(W8PathAI* path, srNode* target)
             blend = path->interpolation_fraction;
             index = path->point_index;
         } else {
-            index = static_cast<int>(path->position + g_double_005ec3b0);
+            index = static_cast<int>(path->position + g_double_one_tenth);
             blend = -1.0f;
         }
         if (path->nodes->GetCount() - 1 <= index) {
@@ -734,7 +735,7 @@ float PathAIGetScale(W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a9750
-W8PathAI* CreateRecord(int unused)
+W8PathAI* CreateRecord(int)
 {
     W8PathAI* path;
 

@@ -27,25 +27,25 @@ struct W8Chunk {
 
     W8Chunk();
 
-    unsigned char OpenRead(char* path);
-    unsigned char OpenExistingRiff(char* path, unsigned int flags);
-    unsigned char OpenWrite(char* path);
-    unsigned char OpenReadWrite(char* path);
-    unsigned char OpenAppend(char* path);
+    bool OpenRead(char* path);
+    bool OpenExistingRiff(char* path, unsigned int flags);
+    bool OpenWrite(char* path);
+    bool OpenReadWrite(char* path);
+    bool OpenAppend(char* path);
     void Close();
-    unsigned char CopyCurrentChunkFrom(W8Chunk* source);
-    unsigned char SkipCurrentChunk();
-    unsigned char OpenGroup();
-    unsigned char ReleaseGroup();
+    bool CopyCurrentChunkFrom(W8Chunk* source);
+    bool SkipCurrentChunk();
+    bool OpenGroup();
+    bool ReleaseGroup();
     unsigned int CurrentChunkId();
     int CurrentChunkExtent();
     int ChunkCount();
-    unsigned char OpenChunk(unsigned int chunk_id, unsigned char grouped);
+    bool OpenChunk(unsigned int chunk_id, unsigned char grouped);
     unsigned char Read(void* buffer, unsigned int size, unsigned int* transferred);
     unsigned char Write(const void* buffer, unsigned int size, unsigned int* transferred);
     void RewindCurrentChunk();
     void SetCurrentChunkAtEnd();
-    unsigned char ReleaseCurrentChunk();
+    bool ReleaseCurrentChunk();
     unsigned char CurrentChunkAtEnd();
 };
 

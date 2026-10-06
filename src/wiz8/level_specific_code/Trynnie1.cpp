@@ -91,7 +91,7 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
     } else if (roll < 75) {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
             if (g_status.buffers.XChar[i].fOccupied) {
-                HealCharacter(i, 100, 0);
+                HealCharacter(i, 100, false);
             }
         }
         SoundPlay("Data\\Sound\\misc\\fountain_magic.wav", 0);
@@ -99,7 +99,7 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
     } else {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
             if (g_status.buffers.XChar[i].fOccupied) {
-                RestoreCharacterStamina(i, 100, 0);
+                RestoreCharacterStamina(i, 100, false);
             }
         }
     }

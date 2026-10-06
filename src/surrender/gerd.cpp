@@ -1532,7 +1532,7 @@ void srGERD::ortho(double left, double right, double bottom, double top, double 
 // FUNCTION: SURRENDER 0x100223A0
 void srGERD::rotate(double angle, const srVector3T<double>& axis)
 {
-    double length_sq = axis.x * axis.x + axis.y * axis.y + axis.z * axis.z;
+    double length_sq = axis.LengthSquared();
     if (length_sq != 0.0) {
         srMatrix4T<double> rotation;
         srVector3T<double> unit_axis;

@@ -47,9 +47,9 @@ bool OnRoachTriggerActivated(Trigger* trigger)
     if (!FindEntityByName("location_roach03", &positions[2], 0, 0)) {
         return false;
     }
-    positions[0].z += g_float_005ebc64;
-    positions[1].z += g_float_005ebc64;
-    positions[2].z += g_float_005ebc64;
+    positions[0].z += g_float_one_thousand;
+    positions[1].z += g_float_one_thousand;
+    positions[2].z += g_float_one_thousand;
     SpawnMonsters(0x138, 3, &positions[0], 1, false, false, false);
     SpawnMonsters(0x138, 3, &positions[1], 1, false, false, false);
     SpawnMonsters(0x138, 3, &positions[2], 1, false, false, false);

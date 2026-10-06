@@ -17,10 +17,10 @@ struct W8GameData;
 struct W8OctRegionVolume;
 
 void SetSceneAmbientLightWhite(srScene* scene);
-void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster);
-void AddMonsterToWorld(W8World* unused, W8Monster* monster);
-void AddItemToWorld(W8World* unused, W8Item* item);
-void RemoveItemFromWorld(W8World* unused, W8Item* item);
+void RemoveMonsterFromWorldList(W8World*, W8Monster* monster);
+void AddMonsterToWorld(W8World*, W8Monster* monster);
+void AddItemToWorld(W8World*, W8Item* item);
+void RemoveItemFromWorld(W8World*, W8Item* item);
 void SetModelInstanceChainExclusionMask(srModelInstance* node, int value);
 stModelInstance* DuplicateModelInstance(stModelInstance* instance);
 void ExpandBounds(srVector3T<float>* minimum, srVector3T<float>* maximum,
@@ -28,8 +28,8 @@ void ExpandBounds(srVector3T<float>* minimum, srVector3T<float>* maximum,
                   const srVector3T<float>* candidate_maximum);
 void UpdateWorldMonsters(W8World* world);
 void WorldUpdateProps(W8World* world);
-int WorldGetPropCount(W8World* unused);             /* 0x0046E600 */
-W8Prop* WorldGetPropAt(W8World* unused, int index); /* 0x0046E620 */
+int WorldGetPropCount(W8World*);             /* 0x0046E600 */
+W8Prop* WorldGetPropAt(W8World*, int index); /* 0x0046E620 */
 void SetWorldSceneMeshShaderLowBits(W8World* owner, int argument);
 void SetWorldSceneMeshShaderBit3(W8World* owner, int argument);
 void FinalizeStaticScene(srScene* scene);

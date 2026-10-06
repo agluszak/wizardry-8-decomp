@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/integer_constants.h"
 
@@ -238,7 +239,7 @@ void OpenSecondaryAttributeInfoDialog(unsigned int uiIndex)
 void IdentifyAndOpenItemInfo(W8ItemInstance* item)
 {
     if (CanItemLeaveItsSlot(item)) {
-        if (PartyAttemptsToIdentifyItem(item, 0) != 0 &&
+        if (PartyAttemptsToIdentifyItem(item, 0) &&
             g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_UNIDENTIFIED] != 0) {
             RebuildCampItemList();
             g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
@@ -282,7 +283,7 @@ void UseCampItem(W8ItemInstance* item)
 {
     unsigned short slot;
 
-    if (ValidateItemSpellUse(giReviewCharSlot, item, 0) != 0) {
+    if (ValidateItemSpellUse(giReviewCharSlot, item, 0)) {
         SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
         return;
     }
@@ -311,7 +312,7 @@ void UseCampItem(W8ItemInstance* item)
 void MergeItemStacksWithHeld(W8ItemInstance* item)
 {
     if (item->iItemNo != -1) {
-        if (MergeItems(g_review_character, item) != 0) {
+        if (MergeItems(g_review_character, item)) {
             RebuildCampItemList();
             g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
             SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
@@ -491,8 +492,8 @@ void SplitStackDialogResult(W8DialogBase* dialog)
             }
         }
         if (destination == 0 &&
-            (character == 0 || !AddItemToCharacter(character, &split, 0, 0, false)) &&
-            !AddItemToParty(&split, 0, false)) {
+            (character == 0 || !AddItemToCharacter(character, &split, false, false, false)) &&
+            !AddItemToParty(&split, false, false)) {
             ShowCampNoticeLine(gppStringList[0x915], 0, true, false);
             g_status.item_in_hand.stack_count = remaining;
             if (ResolvePendingCampCharacter(true) && DropItemInHand(0)) {
@@ -661,7 +662,7 @@ void UnequipBothHands(void)
     BindEquippedItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON);
     if (CanUnequipSlotItem(character, W8_EQUIP_SLOT_PRIMARY_WEAPON) &&
         CanUnequipSlotItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON)) {
-        SwapWeaponSetSlots(giReviewCharSlot, 0, true);
+        SwapWeaponSetSlots(giReviewCharSlot, false, true);
         g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT;
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;
@@ -791,7 +792,7 @@ void ToggleCampItemFilter(W8CampItemFilterButton tab)
 static void ShowCampItemInfo(W8ItemInstance* item)
 {
     g_camp_identifying_character = g_review_character;
-    if (CanItemLeaveItsSlot(item) && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
+    if (CanItemLeaveItsSlot(item) && PartyAttemptsToIdentifyItem(item, 0) &&
         g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_UNIDENTIFIED] != 0) {
         RebuildCampItemList();
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
@@ -1144,7 +1145,7 @@ void SetItemTooltip(W8ItemInstance* item, W8Region* region)
     wcscpy(g_camp_screen->text_buffer, name);
     record = g_item_records + item->iItemNo;
     if (record->category == W8_ITEM_CATEGORY_SPELL_SOURCE) {
-        if (record->spell_id == 0) {
+        if (record->spell_id == W8_SPELL_NONE) {
             srAssertFail("ubSpell != SPELL_NONE",
                          "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0xa7a, 0);
         }

@@ -31,7 +31,7 @@ bool g_shared_timer_flag0;
 bool g_level_motion_resume_pending;
 
 // GLOBAL: WIZ8 0x005ec0a8
-const float g_float_005ec0a8 = 10000.0f;
+const float g_float_ten_thousand = 10000.0f;
 
 // FUNCTION: WIZ8 0x00439bc0
 void PauseSharedGameTimers(void)
@@ -83,7 +83,7 @@ void ResumeSharedGameTimers(void)
     if (timer != 0) {
         timer->m_flags &= ~W8_TIMER_PAUSED;
         int sample = timer->ReadClock();
-        float duration = timer->m_duration_scale * timer->m_duration_seconds * g_float_005ec0a8;
+        float duration = timer->m_duration_scale * timer->m_duration_seconds * g_float_ten_thousand;
         int start = sample - timer->m_start;
         timer->m_start = start;
         timer->m_duration = static_cast<int>(duration);

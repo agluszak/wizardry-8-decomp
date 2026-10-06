@@ -98,8 +98,8 @@ void W8NormalTexcoordMapper::process(srVertexPipe& pipe)
     count = pipe.getVertexCount();
     srCore.getStatisticsManager()->statistics.texture_coordinate_operations += count;
     for (index = 0; index < count; ++index) {
-        coordinates[index].Set((normals[index].x + g_float_one) * g_float_005ebc7c,
-                               (normals[index].y + g_float_one) * g_float_005ebc7c);
+        coordinates[index].Set((normals[index].x + g_float_one) * g_float_half,
+                               (normals[index].y + g_float_one) * g_float_half);
     }
 }
 
@@ -227,11 +227,11 @@ static unsigned int g_progress_mark;
 static FILE* g_log_file;
 
 // GLOBAL: WIZ8 0x005ECBB0
-const float g_float_005ecbb0 = 268435456.0f;
+const float g_weld_grid_key_scale = 268435456.0f;
 // GLOBAL: WIZ8 0x005ECBB8
-const float g_float_005ecbb8 = 2.5f;
+const float g_weld_position_tolerance = 2.5f;
 // GLOBAL: WIZ8 0x005ECBBC
-const float g_float_005ecbbc = -0.995f;
+const float g_material_opposed_normal_threshold = -0.995f;
 
 static unsigned char PreprocessLevel(int handle, char* stem);
 /* The following helpers retain distinct retail call boundaries. Their source
@@ -411,7 +411,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
             }
             geometry.m_vertices = vertices;
             g_weld_stride_z = static_cast<unsigned int>(
-                (g_float_005ecbb0 / ((g_weld_max.x - g_weld_min.x) * g_float_005ecbb4)));
+                (g_weld_grid_key_scale / ((g_weld_max.x - g_weld_min.x) * g_float_two_hundredths)));
             g_weld_stride_y = static_cast<unsigned int>(sqrt(static_cast<double>(g_weld_stride_z)));
             g_weld_stride_x = static_cast<unsigned int>(sqrt(static_cast<double>(g_weld_stride_y)));
             ReportStartupMessage("Welding vertices and discarding redundant vertices.\n");
@@ -517,10 +517,10 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     ReportBuildStatus(6, message);
                     sprintf(message, "Width of Leaves: %f,  %f metres\n",
                             build_tree->spatial.m_node_extent,
-                            (build_tree->spatial.m_node_extent * g_float_005ebc60));
+                            (build_tree->spatial.m_node_extent * g_float_one_five_hundredth));
                     ReportBuildStatus(6, message);
                     sprintf(message, "Width of auto-generated regions: %f metres\n",
-                            (build_tree->spatial.m_region_grid_cell * g_float_005ebc60));
+                            (build_tree->spatial.m_region_grid_cell * g_float_one_five_hundredth));
                     g_oct_node_count = GetBuildNodeInstanceCount();
                     g_oct_max_objects = build_tree->deepest_link_list;
                     ReportBuildStatus(3, message);
@@ -535,13 +535,13 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     sprintf(message, "World Dimensions:\n\tX: %fm  \tY: %fm  \tZ: %fm\n",
                             ((build_tree->spatial.m_clipped_maximum.x -
                               build_tree->spatial.m_clipped_minimum.x) *
-                             g_float_005ebc60),
+                             g_float_one_five_hundredth),
                             ((build_tree->spatial.m_clipped_maximum.y -
                               build_tree->spatial.m_clipped_minimum.y) *
-                             g_float_005ebc60),
+                             g_float_one_five_hundredth),
                             ((build_tree->spatial.m_clipped_maximum.z -
                               build_tree->spatial.m_clipped_minimum.z) *
-                             g_float_005ebc60));
+                             g_float_one_five_hundredth));
                     ReportBuildStatus(6, message);
                     for (i = 0; i < level->num_switch_triggers; ++i) {
                         int slot =
@@ -1064,9 +1064,12 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
         vertex = index;
     }
     current = vertices + vertex;
-    cell_x = static_cast<unsigned int>(((current->position.x - g_weld_min.x) * g_float_005ecbb4));
-    cell_y = static_cast<unsigned int>(((current->position.y - g_weld_min.y) * g_float_005ecbb4));
-    cell_z = static_cast<unsigned int>(((current->position.z - g_weld_min.z) * g_float_005ecbb4));
+    cell_x =
+        static_cast<unsigned int>(((current->position.x - g_weld_min.x) * g_float_two_hundredths));
+    cell_y =
+        static_cast<unsigned int>(((current->position.y - g_weld_min.y) * g_float_two_hundredths));
+    cell_z =
+        static_cast<unsigned int>(((current->position.z - g_weld_min.z) * g_float_two_hundredths));
     key = cell_z * g_weld_stride_z + cell_y * g_weld_stride_y + cell_x * g_weld_stride_x;
     start_x = cell_x;
     if (cell_x != 0) {
@@ -1090,9 +1093,12 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
                     match_index = table->entries[slot].value - 1;
                     if (match_index >= 0 && !matched) {
                         candidate = vertices + match_index;
-                        if (fabs(current->position.x - candidate->position.x) < g_float_005ecbb8 &&
-                            fabs(current->position.y - candidate->position.y) < g_float_005ecbb8 &&
-                            fabs(current->position.z - candidate->position.z) < g_float_005ecbb8) {
+                        if (fabs(current->position.x - candidate->position.x) <
+                                g_weld_position_tolerance &&
+                            fabs(current->position.y - candidate->position.y) <
+                                g_weld_position_tolerance &&
+                            fabs(current->position.z - candidate->position.z) <
+                                g_weld_position_tolerance) {
                             if (link == 0xffffffff) {
                                 vertices[index].m_vertex_index = match_index;
                                 vertices[index].flags |= W8OctPreTreeVertex::EXCLUDED;
@@ -1204,11 +1210,11 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                 vertex_index[corner] = index;
                 polygon->vertices[corner] = vertices + index;
                 polygon->position.x =
-                    vertices[index].position.x * g_float_005ec410 + polygon->position.x;
+                    vertices[index].position.x * g_float_one_third + polygon->position.x;
                 polygon->position.y =
-                    vertices[index].position.y * g_float_005ec410 + polygon->position.y;
+                    vertices[index].position.y * g_float_one_third + polygon->position.y;
                 polygon->position.z =
-                    vertices[index].position.z * g_float_005ec410 + polygon->position.z;
+                    vertices[index].position.z * g_float_one_third + polygon->position.z;
             }
             polygon->degenerate = 0;
             if (vertex_index[0] == vertex_index[1] || vertex_index[0] == vertex_index[2] ||
@@ -1241,7 +1247,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                     offset = normal.z * current->position.z + normal.y * current->position.y +
                              normal.x * current->position.x + offset;
                 }
-                offset *= g_float_005ec1a8;
+                offset *= g_float_negative_one_third;
                 axis = 0;
                 largest = 0.0f;
                 polygon->plane.normal = normal;
@@ -1262,7 +1268,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                         if ((current->m_normal.z / length) * normal.z +
                                 (current->m_normal.y / length) * normal.y +
                                 (current->m_normal.x / length) * normal.x <
-                            g_float_005ecbbc) {
+                            g_material_opposed_normal_threshold) {
                             opposing = true;
                         }
                     }
@@ -1895,15 +1901,16 @@ void W8Octree::OctBuildOptions(char* stem)
                 sprintf(lines[2],
                         "(P)athing %s    (N)ode Spacing: %5.2fm    (H)ead Room:   %5.2fm"
                         "    (D)elete Percentage: %d",
-                        pathing_state, (g_option_path_node_spacing * g_float_005ebc60),
-                        (g_option_path_head_room * g_float_005ebc60), g_option_delete_percentage);
+                        pathing_state, (g_option_path_node_spacing * g_float_one_five_hundredth),
+                        (g_option_path_head_room * g_float_one_five_hundredth),
+                        g_option_delete_percentage);
             }
             sprintf(lines[3], "(R)ename Alphas %s    (M)esh Linking %s", rename_state, mesh_state);
             sprintf(lines[4],
                     "Min. Leaf (S)ize %5.2fm    Max. Leaf (C)ount %d    (A)uto Region"
                     " Size %5.2fm     ",
-                    (g_option_min_leaf_size * g_float_005ebc60), g_option_max_leaf_count,
-                    (g_option_auto_region_size * g_float_005ebc60));
+                    (g_option_min_leaf_size * g_float_one_five_hundredth), g_option_max_leaf_count,
+                    (g_option_auto_region_size * g_float_one_five_hundredth));
             sprintf(lines[5], "Hit ENTER to accept,  ESC to cancel and exit");
             if (edit_mode == 0) {
                 sprintf(lines[6], "                                            ");

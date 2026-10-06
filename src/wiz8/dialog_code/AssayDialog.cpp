@@ -430,7 +430,7 @@ bool W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x8d7], g_assay_entry_text, 10, 0xf, 0);
     }
-    if ((m_item->identified || m_item->spell_hint) && record->spell_id != 0) {
+    if ((m_item->identified || m_item->spell_hint) && record->spell_id != W8_SPELL_NONE) {
         if (record->equip_class == W8_ITEM_EQUIP_CLASS_INSTRUMENT ||
             record->equip_class == W8_ITEM_EQUIP_CLASS_GADGET ||
             record->equip_class == W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
@@ -557,7 +557,7 @@ bool W8AssayDialog::PopulateText()
     count = AppendAssayRequirements(record->skill_requirements, count);
     if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6 ||
         record->category == W8_ITEM_CATEGORY_CASTER_ITEM_8) {
-        if (record->spell_id == 0) {
+        if (record->spell_id == W8_SPELL_NONE) {
             srAssertFail("uiSpell != SPELL_NONE", ASSAY_DIALOG_CPP, 0x390, 0);
         }
         if (count != 0) {
@@ -629,11 +629,12 @@ void W8AssayDialog::Draw()
         W8DialogBase::Draw();
     }
     if (m_item_portrait_dirty) {
-        DrawCatalogImageAndInvalidate(-0xe,
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER,
                                       g_item_video_objects.GetOrCreateVideoObject(m_item->iItemNo),
-                                      0, 0, m_x + 0x45, m_y + 0xe, 2, 0);
+                                      0, 0, m_x + 0x45, m_y + 0xe, VO_BLT_SRCTRANSPARENCY, 0);
         if (!m_item->identified) {
-            DrawCatalogImageAndInvalidate(-0xe, 0x11b, 0, 0, m_x + 0x45, m_y + 0xe, 2, 0);
+            DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x11b, 0, 0, m_x + 0x45, m_y + 0xe,
+                                          VO_BLT_SRCTRANSPARENCY, 0);
         }
         m_item_portrait_dirty = false;
     }
@@ -644,7 +645,7 @@ void W8AssayDialog::Draw()
     }
     for (index = 0; index < W8_ASSAY_TEXT_BUFFER_COUNT; ++index) {
         if (m_text_buffers[index] != 0) {
-            m_text_buffers[index]->RenderToTarget(0, false, -0xe);
+            m_text_buffers[index]->RenderToTarget(0, false, FRAME_BUFFER);
         }
     }
     m_text_area.Draw(false);
@@ -957,11 +958,12 @@ bool W8AssayDialog::CreateTextBuffers()
     if (g_item_records[item->iItemNo].quantity_kind == W8_ITEM_QUANTITY_STACK &&
         item->stack_count > 1) {
         unsigned int unit_weight = GetItemUnitWeight(item);
-        text =
-            FormatWideString(g_assay_format_1f_1f_s, GetItemStackWeight(m_item) * g_float_005ed8b8,
-                             unit_weight * g_float_005ed8b8, gppStringList[0x117]);
+        text = FormatWideString(g_assay_format_1f_1f_s,
+                                GetItemStackWeight(m_item) * g_item_weight_display_scale,
+                                unit_weight * g_item_weight_display_scale, gppStringList[0x117]);
     } else {
-        text = FormatWideString(g_assay_format, GetItemUnitWeight(item) * g_float_005ed8b8);
+        text =
+            FormatWideString(g_assay_format, GetItemUnitWeight(item) * g_item_weight_display_scale);
     }
     m_text_buffers[4]->SetText(text, g_wiz_text_font_secondary);
     return true;

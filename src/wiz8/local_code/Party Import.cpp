@@ -1,3 +1,4 @@
+#include "wiz8/conditions.h"
 #include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/learned_spells.h"
@@ -316,7 +317,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     character->level_band_base = 0;
     status = imported->status;
     if (status == 2 || status == 3) {
-        character->uiCondition[W8_CONDITION_DEAD] = 9999;
+        character->uiCondition[W8_CONDITION_DEAD] = W8_CONDITION_INDEFINITE;
         character->highest_condition = W8_CONDITION_DEAD;
     } else {
         character->highest_condition = W8_CONDITION_NONE;
@@ -324,7 +325,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     character->enchantment_top = W8_ENCHANTMENT_NONE;
     ConvertAttribute(character, imported);
     GrantStartingSpells(character, imported);
-    for (skill_id = 0; skill_id < 0x29; ++skill_id) {
+    for (skill_id = 0; skill_id < W8_SKILL_COUNT; ++skill_id) {
         character->skills[skill_id].active = false;
         character->skills[skill_id].points =
             ConvertSkill(static_cast<W8Skill>(skill_id), character, imported);
@@ -572,10 +573,10 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                     }
                     ReplaceOrCreateItem(&item, item_index, true, true, true);
                     if (g_item_records[item_index].binds_on_equip == 0) {
-                        StoreItemWithCharacterOrParty(character, &item, 0, 0,
+                        StoreItemWithCharacterOrParty(character, &item, false, false,
                                                       static_cast<unsigned int>(slot == 0));
                     } else {
-                        AddItemToCharacter(character, &item, 0, 0, false);
+                        AddItemToCharacter(character, &item, false, false, false);
                     }
                 }
             }
@@ -612,9 +613,9 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                 item_index = FindItemByLegacyNumber(candidates[slot][best_index].item_number);
                 ReplaceOrCreateItem(&item, item_index, true, true, true);
                 if (g_item_records[item_index].binds_on_equip == 0) {
-                    StoreItemWithCharacterOrParty(character, &item, 0, 0, 1);
+                    StoreItemWithCharacterOrParty(character, &item, false, false, true);
                 } else {
-                    AddItemToCharacter(character, &item, 0, 0, false);
+                    AddItemToCharacter(character, &item, false, false, false);
                 }
                 --maximum[slot];
                 candidates[slot][best_index] = empty_item;
@@ -632,9 +633,9 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
             ReplaceOrCreateItem(&item, item_id, true, true, true);
             equip_slot = GetItemDefaultEquipSlot(item_id);
             if (equip_slot == W8_EQUIP_SLOT_NONE) {
-                if (FindCharacterItemByDatabaseKind(
-                        character, g_item_records[item_id].unidentified_name_index, 0, 2) == 0) {
-                    AddItemToCharacter(character, &item, 1, 0, false);
+                if (!FindCharacterItemByDatabaseKind(
+                        character, g_item_records[item_id].unidentified_name_index, 0, 2)) {
+                    AddItemToCharacter(character, &item, true, false, false);
                 }
             } else {
                 if (equip_slot == W8_EQUIP_SLOT_PRIMARY_WEAPON &&
@@ -642,7 +643,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                     equip_slot = W8_EQUIP_SLOT_SECONDARY_WEAPON;
                 }
                 if (character->EquippedItem[equip_slot].iItemNo == -1) {
-                    AddItemToCharacter(character, &item, 1, 0, false);
+                    AddItemToCharacter(character, &item, true, false, false);
                 }
             }
         }
@@ -665,7 +666,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
         }
         if (give != -1) {
             ReplaceOrCreateItem(&item, give, true, true, true);
-            AddItemToCharacter(character, &item, 1, 0, false);
+            AddItemToCharacter(character, &item, true, false, false);
         }
     }
     RebuildEquipmentAndDerivedStats(character);

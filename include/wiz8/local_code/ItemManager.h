@@ -27,7 +27,7 @@ unsigned char ReleaseItemLists(void);
 
 extern int g_world_item_cursor;
 
-void DropHeldItem(int arg_1);                             /* 0x004F7610 */
+void DropHeldItem(int);                                   /* 0x004F7610 */
 void UpdateNearbyWorldItems(void);                        /* 0x004F7480 */
 unsigned char AdvanceFallingWorldItem(W8WorldItem* item); /* 0x004F9240 */
 bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from,

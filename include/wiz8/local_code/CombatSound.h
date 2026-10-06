@@ -20,8 +20,8 @@ void PlayCombatSound(char* sound_name, unsigned int variant_count, bool store_ha
 char* GetMaterialImpactSound(int weapon_class, int target_material);
 /* 0x00549EF0: play the attacking hand's swing sound; retail callers pass a
    third argument the body never reads. */
-void MakePCAttackSound(W8CombatCharacterRow* row, const W8HandAttack* hand_attack,
-                       W8AttackMode arg_3, bool store_handle, int volume);
+void MakePCAttackSound(W8CombatCharacterRow* row, const W8HandAttack* hand_attack, W8AttackMode,
+                       bool store_handle, int volume);
 /* 0x00549F50: melee hit sound for a PC's paired weapon striking the target's
    armour at one location. */
 void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlot* target,

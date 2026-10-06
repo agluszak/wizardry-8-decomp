@@ -30,7 +30,7 @@ public:
           m_condition(0xff), m_ui_slot(ui_slot)
     {
     }
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;

@@ -22,17 +22,17 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/PolyPick.h"
 // GLOBAL: WIZ8 0x005ebc60
-const float g_float_005ebc60 = 0.0020000000949949026f;
+const float g_float_one_five_hundredth = 0.0020000000949949026f;
 // GLOBAL: WIZ8 0x005ec438
-const float g_float_005ec438 = 3.0517578125e-05f;
+const float g_particle_random_unit_scale = 3.0517578125e-05f;
 // GLOBAL: WIZ8 0x005ec8d0
-const double g_double_005ec8d0 = 0.001;
+const double g_double_one_thousandth = 0.001;
 // GLOBAL: WIZ8 0x005ecc38
-const float g_float_005ecc38 = -0.0010000000474974513f;
+const float g_particle_flutter_displacement_scale = -0.0010000000474974513f;
 // GLOBAL: WIZ8 0x005ecc3c
-const float g_float_005ecc3c = -1000.0f;
+const float g_particle_flutter_velocity_floor = -1000.0f;
 // GLOBAL: WIZ8 0x005ecc40
-const float g_float_005ecc40 = 0.00019174758926965296f;
+const float g_particle_flutter_angle_random_scale = 0.00019174758926965296f;
 
 // STRING: WIZ8 0x0060BF6C
 #define ST_PARTICLE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\stParticle.cpp"
@@ -454,7 +454,8 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
     if (speed_mode == W8_PARTICLE_SPEED_FIXED) {
         magnitude = initial_speed;
     } else if (speed_mode == W8_PARTICLE_SPEED_RANDOM) {
-        magnitude = (speed_max - speed_min) * (rand() & 0x7fff) * g_float_005ec438 + speed_min;
+        magnitude =
+            (speed_max - speed_min) * (rand() & 0x7fff) * g_particle_random_unit_scale + speed_min;
     }
     magnitude *= size_scale;
 
@@ -474,10 +475,11 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
         srVector3T<float> direction;
         direction.Set(g_float_zero, g_float_zero, magnitude);
 
-        double angle = ((rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c) * cone_pitch;
+        double angle =
+            ((rand() & 0x7fff) * g_particle_random_unit_scale - g_float_half) * cone_pitch;
         direction.RotateAboutX(sin(angle), cos(angle));
 
-        angle = ((rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c) * cone_yaw;
+        angle = ((rand() & 0x7fff) * g_particle_random_unit_scale - g_float_half) * cone_yaw;
         direction.RotateAboutY(sin(angle), cos(angle));
 
         srMatrix3T<float> rotation;
@@ -488,9 +490,9 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
 
     case W8_PARTICLE_DIRECTION_RANDOM: {
         srVector3T<float> direction;
-        direction.x = (rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
-        direction.y = (rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
-        direction.z = (rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
+        direction.x = (rand() & 0x7fff) * g_particle_random_unit_scale - g_float_half;
+        direction.y = (rand() & 0x7fff) * g_particle_random_unit_scale - g_float_half;
+        direction.z = (rand() & 0x7fff) * g_particle_random_unit_scale - g_float_half;
 
         direction.Normalize();
 
@@ -507,7 +509,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
     particle_positions[index] = location;
 
     if (m_pflFlutterAngle != 0) {
-        m_pflFlutterAngle[index] = (rand() & 0x7fff) * g_float_005ecc40;
+        m_pflFlutterAngle[index] = (rand() & 0x7fff) * g_particle_flutter_angle_random_scale;
     }
     if (texture_frames != 0) {
         texture_frames[index * 2]->SetFrame(0);
@@ -566,7 +568,8 @@ void stParticle::Update()
         getLocation(node_location);
 
         double elapsed = static_cast<double>(elapsed_ticks);
-        srVector3T<float> acceleration_step = this->acceleration * (elapsed * g_double_005ec8d0);
+        srVector3T<float> acceleration_step =
+            this->acceleration * (elapsed * g_double_one_thousandth);
 
         unsigned int index;
         for (index = 0; index < particle_count; ++index) {
@@ -584,7 +587,7 @@ void stParticle::Update()
                     continue;
                 }
                 if (expires_at - 500 < now) {
-                    float alpha = (expires_at - now) * g_float_005ebc60;
+                    float alpha = (expires_at - now) * g_float_one_five_hundredth;
                     unsigned int alpha_end = vertex + 4;
                     unsigned int alpha_index;
                     for (alpha_index = vertex; alpha_index < alpha_end; ++alpha_index) {
@@ -613,7 +616,7 @@ void stParticle::Update()
                 velocities[index] += acceleration_step;
             }
 
-            srVector3T<float> movement = velocities[index] * (elapsed * g_double_005ec8d0);
+            srVector3T<float> movement = velocities[index] * (elapsed * g_double_one_thousandth);
 
             srVector3T<float> candidate;
             candidate = particle_positions[index] + movement;
@@ -712,11 +715,14 @@ void stParticle::Update()
 // FUNCTION: WIZ8 0x0049A990
 void stParticle::InitializeParticlePosition(srVector3T<float>* output)
 {
-    output->x = (emission_maximum.x - emission_minimum.x) * (rand() & 0x7fff) * g_float_005ec438 +
+    output->x = (emission_maximum.x - emission_minimum.x) * (rand() & 0x7fff) *
+                    g_particle_random_unit_scale +
                 emission_minimum.x;
-    output->y = (emission_maximum.y - emission_minimum.y) * (rand() & 0x7fff) * g_float_005ec438 +
+    output->y = (emission_maximum.y - emission_minimum.y) * (rand() & 0x7fff) *
+                    g_particle_random_unit_scale +
                 emission_minimum.y;
-    output->z = (emission_maximum.z - emission_minimum.z) * (rand() & 0x7fff) * g_float_005ec438 +
+    output->z = (emission_maximum.z - emission_minimum.z) * (rand() & 0x7fff) *
+                    g_particle_random_unit_scale +
                 emission_minimum.z;
 
     *output *= size_scale;
@@ -791,7 +797,7 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
     view.vectors[1].w = 0.0f;
     view.vectors[2].w = 0.0f;
 
-    float normalization = static_cast<float>(g_double_005ebc30 / view.vectors[0].Length());
+    float normalization = static_cast<float>(g_double_one / view.vectors[0].Length());
     view.vectors[0] *= normalization;
     view.vectors[1] *= normalization;
     view.vectors[2] *= normalization;
@@ -833,11 +839,11 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
             position.Set(flutter, 0.0f, 0.0f);
 
             if (flutter_mode == W8_PARTICLE_FLUTTER_VELOCITY_SCALED) {
-                float scale = g_float_005ecc3c;
-                if (g_float_005ecc3c < velocities[particle_index].y) {
+                float scale = g_particle_flutter_velocity_floor;
+                if (g_particle_flutter_velocity_floor < velocities[particle_index].y) {
                     scale = velocities[particle_index].y;
                 }
-                position.x = scale * g_float_005ecc38 * flutter;
+                position.x = scale * g_particle_flutter_displacement_scale * flutter;
             }
 
             double angle = m_pflFlutterAngle[particle_index];

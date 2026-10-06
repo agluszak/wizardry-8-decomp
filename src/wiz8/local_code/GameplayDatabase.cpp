@@ -88,7 +88,7 @@ unsigned int g_spell_database_version;
 #define GAMEPLAY_DATABASE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayDatabase.cpp"
 
 // FUNCTION: WIZ8 0x0054a400
-unsigned char InitializeItemDatabase(void)
+bool InitializeItemDatabase(void)
 {
     char path[60];
     unsigned int index;
@@ -98,26 +98,26 @@ unsigned char InitializeItemDatabase(void)
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Items", "DBS");
     handle = FileOpen(path, 1, 0);
     if (!handle) {
-        return 0;
+        return false;
     }
     if (!FileRead(handle, &gXStatus.uiItemsInDatabase, 4, &transferred)) {
         FileClose(handle);
-        return 0;
+        return false;
     }
     g_item_records = static_cast<W8ItemDatabaseRecord*>(
         malloc(gXStatus.uiItemsInDatabase * sizeof(*g_item_records)));
     if (!g_item_records) {
-        return 0;
+        return false;
     }
     for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
         if (!FileRead(handle, &g_item_records[index], sizeof(g_item_records[index]),
                       &transferred)) {
             FileClose(handle);
-            return 0;
+            return false;
         }
     }
     FileClose(handle);
-    return 1;
+    return true;
 }
 
 /* ItemTables.DBS carries two arrays: category names, each a fixed 0x100-byte
@@ -126,7 +126,7 @@ unsigned char InitializeItemDatabase(void)
    reads are not, and the per-table allocation is cleared before its own null
    check rather than after; both are reproduced. */
 // FUNCTION: WIZ8 0x0054a510
-unsigned char InitializeItemTables(void)
+bool InitializeItemTables(void)
 {
     char path[60];
     unsigned int index;
@@ -136,17 +136,17 @@ unsigned char InitializeItemTables(void)
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "ItemTables", "DBS");
     handle = FileOpen(path, 1, 0);
     if (!handle) {
-        return 0;
+        return false;
     }
     if (!FileRead(handle, &gXStatus.uiItemTableCategories, 4, &transferred)) {
         FileClose(handle);
-        return 0;
+        return false;
     }
     if (gXStatus.uiItemTableCategories) {
         g_item_table_category_names =
             static_cast<char**>(malloc(gXStatus.uiItemTableCategories * 4));
         if (!g_item_table_category_names) {
-            return 0;
+            return false;
         }
         memset(g_item_table_category_names, 0, gXStatus.uiItemTableCategories * 4);
         for (index = 0; index < gXStatus.uiItemTableCategories; ++index) {
@@ -156,13 +156,13 @@ unsigned char InitializeItemTables(void)
     }
     if (!FileRead(handle, &gXStatus.uiItemTablesInDatabase, 4, &transferred)) {
         FileClose(handle);
-        return 0;
+        return false;
     }
     if (gXStatus.uiItemTablesInDatabase) {
         g_item_tables = static_cast<W8ItemTableRecord**>(
             malloc(gXStatus.uiItemTablesInDatabase * sizeof(*g_item_tables)));
         if (!g_item_tables) {
-            return 0;
+            return false;
         }
         memset(g_item_tables, 0, gXStatus.uiItemTablesInDatabase * sizeof(*g_item_tables));
         for (index = 0; index < gXStatus.uiItemTablesInDatabase; ++index) {
@@ -170,24 +170,24 @@ unsigned char InitializeItemTables(void)
                 static_cast<W8ItemTableRecord*>(malloc(sizeof(W8ItemTableRecord)));
             memset(g_item_tables[index], 0, sizeof(*g_item_tables[index]));
             if (!g_item_tables[index]) {
-                return 0;
+                return false;
             }
             if (!FileRead(handle, g_item_tables[index]->name, sizeof(*g_item_tables[index]),
                           &transferred)) {
                 FileClose(handle);
-                return 0;
+                return false;
             }
         }
     }
     FileClose(handle);
-    return 1;
+    return true;
 }
 
 /* Seeks straight to one record rather than holding the file open, and strips the
    four name fields afterwards. The failed seek leaves the handle open where
    every other failure closes it, as elsewhere in this unit. */
 // FUNCTION: WIZ8 0x0054a8a0
-unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRecord* record)
+bool LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRecord* record)
 {
     char path[60];
     unsigned int bytes_read;
@@ -200,21 +200,21 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
     handle = FileOpen(path, 1, 0);
     if (!handle) {
-        return 0;
+        return false;
     }
     if (!FileSeek(handle, uiMonsterIndex * sizeof(*record) + 4, 1)) {
-        return 0;
+        return false;
     }
     if (!FileRead(handle, record, sizeof(*record), &bytes_read)) {
         FileClose(handle);
-        return 0;
+        return false;
     }
     FileClose(handle);
     StripMonsterNameSuffix(record->name0);
     StripMonsterNameSuffix(record->name1);
     StripMonsterNameSuffix(record->name2);
     StripMonsterNameSuffix(record->name3);
-    return 1;
+    return true;
 }
 
 /* Unlike its fact and level siblings this one guards the free and then leaves
@@ -268,7 +268,7 @@ void DestroyItemTables(void)
    caller wants them - every record into one allocation handed back through the
    out-parameter. InitializeGame calls it with null just to publish the count. */
 // FUNCTION: WIZ8 0x0054a760
-unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
+bool LoadMonsterDatabase(W8MonsterRecord** records)
 {
     char path[60];
     unsigned int transferred;
@@ -279,29 +279,29 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
     handle = FileOpen(path, 1, 0);
     if (!handle) {
-        return 0;
+        return false;
     }
     if (!FileRead(handle, &gXStatus.uiMonstersInDatabase, 4, &transferred)) {
         FileClose(handle);
-        return 0;
+        return false;
     }
     if (records) {
         block = static_cast<W8MonsterRecord*>(
             malloc(gXStatus.uiMonstersInDatabase * sizeof(W8MonsterRecord)));
         if (!block) {
-            return 0;
+            return false;
         }
         for (index = 0; index < gXStatus.uiMonstersInDatabase; ++index) {
             if (!FileRead(handle, &block[index], sizeof(W8MonsterRecord), &transferred)) {
                 FileClose(handle);
                 free(block);
-                return 0;
+                return false;
             }
         }
         *records = block;
     }
     FileClose(handle);
-    return 1;
+    return true;
 }
 
 /* The range sibling of LoadMonsterDatabaseRecord, named by its own assertion at
@@ -310,8 +310,8 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
    offsets subtracted rather than from a record count. A failed seek leaves the
    handle open where every other failure closes it. */
 // FUNCTION: WIZ8 0x0054a9a0
-unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
-                                       W8MonsterRecord* records)
+bool LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
+                              W8MonsterRecord* records)
 {
     char path[60];
     unsigned int bytes_read;
@@ -326,19 +326,19 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
     handle = FileOpen(path, 1, 0);
     if (!handle) {
-        return 0;
+        return false;
     }
     if (!FileSeek(handle, uiStartIndex * sizeof(*records) + 4, 1)) {
-        return 0; /* retail: failed seek leaves the handle open */
+        return false; /* retail: failed seek leaves the handle open */
     }
     if (!FileRead(handle, records,
                   (uiEndIndex + 1) * sizeof(*records) - uiStartIndex * sizeof(*records),
                   &bytes_read)) {
         FileClose(handle);
-        return 0;
+        return false;
     }
     FileClose(handle);
-    return 1;
+    return true;
 }
 
 /* Retail emits this owning-list teardown out of line here and expands the same

@@ -414,7 +414,7 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
     ApplyEnvironmentColour(pWorld, intensity, &white);
     WorldSetFarClip(pWorld, pWorld->view_distance);
     distance_scale =
-        view_distance < g_octree_cell_scale ? g_environment_near_scale : g_float_005ec3b8;
+        view_distance < g_octree_cell_scale ? g_environment_near_scale : g_float_one_and_a_half;
     WorldSetRenderRange(pWorld, distance_scale * pWorld->view_distance);
     pWorld->environment_range_start = environment_range.x;
     pWorld->environment_range_end = environment_range.y;

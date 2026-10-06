@@ -28,13 +28,13 @@ bool QueueNpcCombatScript(void); /* 0x004ED710 */
    action pacing clock, and rolls the round counter forward until someone
    can act or the round ends. */
 void ScheduleCombatActor(void);
-int CheckCombatEnd(unsigned int arg_1); /* 0x004E9F90 */
-void AdvanceCombatRound(void);          /* 0x004E9B20 */
-void RollCombatSurprise(char arg_1);    /* 0x004ECF50 */
+int CheckCombatEnd(unsigned int end_if_no_hostiles);     /* 0x004E9F90 */
+void AdvanceCombatRound(void);                           /* 0x004E9B20 */
+void RollCombatSurprise(char party_cannot_be_surprised); /* 0x004ECF50 */
 /* 0x004E7090: enter combat mode; queues a friendly NPC's combat-entry script
    notice when one is still owed and declines while dialogue or a script event
    defers it. */
-unsigned char StartCombat(int surprise);
+bool StartCombat(int surprise);
 struct W8TargetSource;
 struct W8CombatSlot;
 union W8ActionDetailBlock;
@@ -65,12 +65,12 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info);
    returns the interrupt kind, or -1 when none fires. */
 int GetConditionInterrupt(W8TargetSource* source);
 /* 0x004EB980: the monster's breathe/special-attack action step. */
-char MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record);
+bool MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 /* 0x004EBA70: run the monster's committed special attack against its marker
    lists and every monster hostile to it; returns the action outcome code. */
 int ExecuteMonsterSpecialAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 /* 0x004EBCE0: the character's breathe/special-attack action step. */
-char CreateCharacterBreathEffect(int party_slot);
+bool CreateCharacterBreathEffect(int party_slot);
 /* 0x004EBFE0: the character's committed breath attack against the marker
    lists plus every hostile monster; returns the action outcome code. */
 int ExecuteCharacterSpecialAttack(int party_slot);
@@ -82,9 +82,9 @@ void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting
    context, in the two forms the target-refresh pass asks. */
-bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned char arg_3,
-                          unsigned char arg_4);
-unsigned char TryCharacterAction(int party_slot, W8ActionKind action, bool commit);
+bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, bool allow_missing_target,
+                          bool allow_equipment_changes);
+bool TryCharacterAction(int party_slot, W8ActionKind action, bool commit);
 void NotifyNearbyMonsters(int what);
 void CombatLog(const char* format, ...);
 void BeginCombatRound(void);
@@ -96,6 +96,6 @@ void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, bool alternate);
 void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, W8ActionKind action_kind, int action_detail);
 bool CanCharReBreathe(int party_slot);
-unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target); /* 0x004ECE00 */
-short GetCombatActionProgress(int* out_total);                      /* 0x004EC610 */
+bool TryPanicWoundedCharacter(const W8CombatSlot* target); /* 0x004ECE00 */
+short GetCombatActionProgress(int* out_total);             /* 0x004EC610 */
 extern wchar_t g_format_s_bang[];

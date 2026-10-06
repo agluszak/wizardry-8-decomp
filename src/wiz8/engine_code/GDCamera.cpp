@@ -433,7 +433,7 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
 {
     float lower_margin = -g_camera_vertical_margin;
     if (g_level_block->camera_mode == 1 || g_level_block->camera_mode == 2) {
-        lower_margin = -g_camera_vertical_margin * g_float_005ebc7c;
+        lower_margin = -g_camera_vertical_margin * g_float_half;
     }
 
     float angle_delta =
@@ -460,15 +460,15 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
         (static_cast<float>(fabs(angle_delta)) > g_camera_horizontal_margin ||
          pitch_delta >= g_camera_vertical_margin || pitch_delta <= lower_margin)) {
         if (static_cast<float>(fabs(angle_delta)) > g_camera_horizontal_margin) {
-            float correction = g_camera_horizontal_margin * g_float_005ebc7c;
+            float correction = g_camera_horizontal_margin * g_float_half;
             angle_delta += angle_delta >= 0.0f ? -correction : correction;
         }
         if (pitch_delta < g_camera_vertical_margin) {
-            float correction = g_camera_vertical_margin * g_float_005ebc7c;
+            float correction = g_camera_vertical_margin * g_float_half;
             pitch_delta += pitch_delta >= 0.0f ? -correction : correction;
         }
         if (pitch_delta > lower_margin) {
-            float correction = -lower_margin * g_float_005ebc7c;
+            float correction = -lower_margin * g_float_half;
             pitch_delta += pitch_delta >= 0.0f ? -correction : correction;
         }
 
@@ -613,7 +613,7 @@ void GDCamera::Update(float elapsed)
             float current_weight =
                 static_cast<float>(sin(phase * static_cast<double>(g_camera_half_period)));
             step = static_cast<float>(
-                fabs(((next_weight + current_weight) * elapsed) * g_double_005ebe80));
+                fabs(((next_weight + current_weight) * elapsed) * g_double_half));
         } else {
             step = elapsed;
         }
@@ -752,7 +752,7 @@ void GDCamera::ApplyPitchInput(float input)
     }
 
     float stopping_distance = m_pitch_velocity * g_camera_velocity_stop_scale *
-                              g_camera_velocity_factor * m_pitch_velocity * g_float_005ebc7c;
+                              g_camera_velocity_factor * m_pitch_velocity * g_float_half;
     if (m_pitch_velocity < g_float_zero) {
         stopping_distance = -stopping_distance;
     }
@@ -792,7 +792,7 @@ void GDCamera::BrakePitchAtLimit()
     }
     if (m_frame_elapsed <= braking_time) {
         float next_velocity = (g_float_one - m_frame_elapsed / braking_time) * m_pitch_velocity;
-        m_pitch += (next_velocity + m_pitch_velocity) * m_frame_elapsed * g_float_005ebc7c;
+        m_pitch += (next_velocity + m_pitch_velocity) * m_frame_elapsed * g_float_half;
         m_pitch_velocity = next_velocity;
     } else {
         if (m_pitch < g_float_zero) {

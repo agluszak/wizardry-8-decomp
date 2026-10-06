@@ -1,3 +1,4 @@
+#include "wiz8/monster_cycles.h"
 #include "wiz8/fonts.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/integer_constants.h"
@@ -834,7 +835,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (!monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle)) {
             return;
         }
-        StartMonsterCycle(monster_info, 0x14, 1);
+        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_GET_HIT, 1);
         return;
     case W8_FACT_QUEST_SAVANT_BOMB_DEACTIVATED:
         npc = GetNpcStateByKind(0x57);
@@ -1014,7 +1015,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         if (entry->fActive && entry->ubDisposition == W8_DISPOSITION_HOSTILE &&
             !entry->p3D->IsDying()) {
             TintHighlightedMonster(entry->p3D, W8_TARGET_HIGHLIGHT_NONE);
-            MonsterStartsDying(entry, 1);
+            MonsterStartsDying(entry, true);
         }
     }
 }

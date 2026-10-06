@@ -1,3 +1,5 @@
+#include "wiz8/monster_cycles.h"
+#include "wiz8/conditions.h"
 #include "wiz8/fonts.h"
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/integer_constants.h"
@@ -184,11 +186,11 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
 /* Stamina and realm spell-point constants the encodings keep as addressable
    storage rather than immediates. */
 // GLOBAL: WIZ8 0x005ed8b8
-const float g_float_005ed8b8 = 0.1f;
+const float g_item_weight_display_scale = 0.1f;
 // GLOBAL: WIZ8 0x005ec3f8
-const float g_float_005ec3f8 = 125.0f;
+const float g_float_one_hundred_twenty_five = 125.0f;
 // GLOBAL: WIZ8 0x005ecbb4
-const float g_float_005ecbb4 = 0.02f;
+const float g_float_two_hundredths = 0.02f;
 
 /* The eligibility window the party sweeps use, the same one GetRandomCharacter
    and AnyPartyMemberCanUseItem apply: highest_condition below death. */
@@ -200,14 +202,15 @@ enum { W8_RESTORE_EVERYTHING = -1 };
 /* Roll the dice once per eligible party member and apply the result to each of
    them. The roll is separate per character rather than shared. */
 // FUNCTION: WIZ8 0x0052a820
-void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* result, int arg_3)
+void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* result, int announce)
 {
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied &&
             g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) {
-            ApplyDamageToCharacter(party_slot, RollDice(dice), false, arg_3, false, result, false);
+            ApplyDamageToCharacter(party_slot, RollDice(dice), false, announce, false, result,
+                                   false);
         }
     }
 }
@@ -226,7 +229,7 @@ void HealPartyByDice(unsigned char count, unsigned char sides, short base)
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied) {
-            HealCharacter(party_slot, RollDice(&dice), 1);
+            HealCharacter(party_slot, RollDice(&dice), true);
         }
     }
 }
@@ -243,7 +246,7 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied) {
-            RestoreCharacterStamina(party_slot, RollDice(&dice), 0);
+            RestoreCharacterStamina(party_slot, RollDice(&dice), false);
         }
     }
 }
@@ -282,13 +285,13 @@ void RestoreCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, int am
    filter on the eligibility window - an unconscious character still loses
    points. */
 // FUNCTION: WIZ8 0x0052b550
-void DrainPartySpellPoints(int arg_1, int arg_2)
+void DrainPartySpellPoints(int amount, bool announce)
 {
     unsigned int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied) {
-            DrainCharacterSpellPoints(party_slot, arg_1, arg_2);
+            DrainCharacterSpellPoints(party_slot, amount, announce);
         }
     }
 }
@@ -440,7 +443,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
 /* Heal one monster. A monster that is already dead or already whole is left
    alone; healing it to full says so differently from healing it partway. */
 // FUNCTION: WIZ8 0x0052bfd0
-void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, char announce)
+void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, bool announce)
 {
     if (monster_info->hp_current == 0 ||
         monster_info->hp_current == static_cast<unsigned int>(monster_info->uiHPMax) ||
@@ -582,7 +585,7 @@ static int FatigueBandFromMissing(int missing_percent)
    hit points breaks the effects that only held while they were badly hurt -
    the deeper threshold breaks two more than the shallower one. */
 // FUNCTION: WIZ8 0x0052add0
-void HealCharacter(int party_slot, int amount, char announce)
+void HealCharacter(int party_slot, int amount, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     unsigned int hp_max;
@@ -633,7 +636,7 @@ void HealCharacter(int party_slot, int amount, char announce)
    their fatigue, and a change of band re-runs the armour class pass because
    fatigue feeds it. Enough stamina also shakes off exhaustion. */
 // FUNCTION: WIZ8 0x0052b1c0
-void RestoreCharacterStamina(int party_slot, int amount, char announce)
+void RestoreCharacterStamina(int party_slot, int amount, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     int stamina_max;
@@ -679,7 +682,7 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
    Each realm only gives up what it has, and each withdrawal is announced with
    that realm's name. */
 // FUNCTION: WIZ8 0x0052b590
-void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce)
+void DrainCharacterSpellPoints(int party_slot, unsigned int amount, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     unsigned int remaining = amount;
@@ -782,7 +785,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
    it, and a character with no protection against it is put under condition
    one. */
 // FUNCTION: WIZ8 0x0052b7e0
-void DamageCharacter(int party_slot, unsigned int damage, char announce)
+void DamageCharacter(int party_slot, unsigned int damage, bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -902,7 +905,7 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, bool announc
 // FUNCTION: WIZ8 0x0052beb0
 void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* attacker, bool quiet)
 {
-    StartMonsterCycle(monster_info, 0x14, 1);
+    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_GET_HIT, 1);
 
     if (monster_info->uiCondition[W8_CONDITION_ASLEEP] != 0 && !quiet &&
         Random(100) < static_cast<unsigned int>(
@@ -1147,7 +1150,7 @@ void CharacterDies(int party_slot)
 
     ++character->death_count;
     for (condition = 0; condition < W8_CONDITION_CLEARABLE_COUNT; ++condition) {
-        if (condition != 10 && character->uiCondition[condition] != 0) {
+        if (condition != W8_CONDITION_INFATUATED && character->uiCondition[condition] != 0) {
             RemoveCharacterCondition(party_slot, static_cast<W8Condition>(condition), false);
         }
     }
@@ -1253,8 +1256,8 @@ void RecalculateCharacterStamina(W8Character* character)
           character->attributes[W8_ATTRIBUTE_PIETY].effective +
           character->attributes[W8_ATTRIBUTE_VITALITY].effective) *
          (1.0f / 3.0f)) *
-            (character->uiExpLevel * g_float_005ed8b8 + g_environment_near_scale) +
-        g_double_005ebe80);
+            (character->uiExpLevel * g_item_weight_display_scale + g_environment_near_scale) +
+        g_double_half);
     character->uiStaminaMax = value;
     if (character->fatigue_penalty < value) {
         character->uiStaminaMax = value - character->fatigue_penalty;
@@ -1323,7 +1326,7 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
         }
     }
     for (index = 0; index < 4; ++index) {
-        realm_skills[index] = character->skills[0x18 + index].level;
+        realm_skills[index] = character->skills[W8_SKILL_SPELLBOOK_WIZARDRY + index].level;
     }
     qsort(realm_skills, 4, 4, CompareUnsignedDescending);
 
@@ -1336,11 +1339,12 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
     for (index = 0; index < 6; ++index) {
         int old = character->sp_max[index];
         unsigned int learned = character->skill_unlocks[0x1c + index];
-        int computed = static_cast<int>(((weighted + character->skills[0x1c + index].level * 3 +
-                                          character->attributes[W8_ATTRIBUTE_PIETY].effective) *
-                                         g_float_005ecbb4) *
-                                            (learned + character->uiExpLevel + 1) +
-                                        g_double_005ebe80);
+        int computed =
+            static_cast<int>(((weighted + character->skills[W8_SKILL_FIRE_MAGIC + index].level * 3 +
+                               character->attributes[W8_ATTRIBUTE_PIETY].effective) *
+                              g_float_two_hundredths) *
+                                 (learned + character->uiExpLevel + 1) +
+                             g_double_half);
         if (best < computed) {
             best = computed;
         }
@@ -1422,7 +1426,7 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
    slot, a monster target fatigues the monster spawned from its location
    id. */
 // FUNCTION: WIZ8 0x0052C500
-void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3)
+void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int)
 {
     if (op->iType == W8_TARGET_KIND_CHARACTER) {
         FatigueCharacter(op->iChar, amount, false, 0);

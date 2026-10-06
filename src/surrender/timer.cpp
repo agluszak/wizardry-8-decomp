@@ -89,7 +89,7 @@ char srTimer::osIdent[0x400];
 void* srTimer::RegKeyBase = 0;
 
 // FUNCTION: SURRENDER 0x100609F0
-srTimer::srTimer(int argument_0, int argument_1, int argument_2)
+srTimer::srTimer(int force_system_timer, int unused, int save_calibration)
 {
     m_frequency.lo = 0;
     m_frequency.hi = 0;
@@ -102,7 +102,7 @@ srTimer::srTimer(int argument_0, int argument_1, int argument_2)
     m_kernel32 = 0;
     m_read_tick = 0;
     setUnits(1000);
-    reset(argument_0, argument_1, argument_2);
+    reset(force_system_timer, unused, save_calibration);
 }
 
 /* Retail copies the two 0x400 strings and the 13-byte CPU signature with
@@ -219,7 +219,7 @@ int srTimer::getCPUIDSupport() const
 }
 
 // FUNCTION: SURRENDER 0x100610F0
-int srTimer::reset(int detect, int argument_1, int save)
+int srTimer::reset(int force_system_timer, int, int save_calibration)
 {
     SYSTEM_INFO system_info;
     GetSystemInfo(&system_info);
@@ -269,14 +269,14 @@ int srTimer::reset(int detect, int argument_1, int save)
     }
     if (system_info.wProcessorArchitecture != PROCESSOR_ARCHITECTURE_INTEL ||
         system_info.dwProcessorType == PROCESSOR_INTEL_386) {
-        detect = 1;
+        force_system_timer = 1;
     }
     if (getCPUIDSupport() == 0) {
-        detect = 1;
+        force_system_timer = 1;
     }
     srTimerConfig config;
     config.cpuid_support = getCPUIDSupport();
-    config.save = save;
+    config.save = save_calibration;
     config.unused = 0;
     config.cpu_count = m_cpu_count;
     strcpy(config.cpu_vendor, storage_class);
@@ -288,7 +288,7 @@ int srTimer::reset(int detect, int argument_1, int save)
     config.frequency.lo = 0;
     config.frequency.hi = 0;
     config.read_tick = 0;
-    config.use_stored = detect;
+    config.use_stored = force_system_timer;
     if (retrieve()) {
         config.frequency = m_frequency;
         config.cpu_max_id = m_cpu_max_id;
@@ -462,7 +462,7 @@ int srTimer::reset(int detect, int argument_1, int save)
             strcpy(m_ident, "Win32 GetTickCount() API");
         }
     }
-    if (save) {
+    if (save_calibration) {
         store();
     }
     if (m_read_tick != 0) {

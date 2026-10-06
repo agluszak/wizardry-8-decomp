@@ -31,8 +31,8 @@ extern unsigned char DispatchControlRegionEvent(const InputAtom* event,
 // VTABLE: WIZ8 0x005ed5a4
 struct Controls {
     Controls();
-    Controls(int left, int top, int right, int bottom, int render_target, int render_arg_1c,
-             int render_arg_20);
+    Controls(int left, int top, int right, int bottom, int catalog_object, int catalog_frame,
+             int catalog_image);
     ~Controls();
 
     virtual void SetEnabled(bool enable);
@@ -46,9 +46,9 @@ struct Controls {
     bool m_fLayoutDirty; /* 0x06 */
     unsigned char pad_07;
     W8ControlsRect m_bounds;        /* 0x08: widget rectangles are relative to its origin */
-    int m_renderTarget;             /* 0x18: -1 skips target-backed drawing */
-    int m_renderArg0;               /* 0x1c: forwarded with the target */
-    int m_renderArg1;               /* 0x20: forwarded with the target */
+    int m_catalogObject;            /* 0x18: -1 skips catalog-image drawing */
+    int m_catalogFrame;             /* 0x1c: frame within the catalog object */
+    int m_catalogImage;             /* 0x20: subimage within the frame */
     W8ControlsRect m_dirtyRect;     /* 0x24 */
     bool m_fWholeAreaDirty;         /* 0x34: set when a caller passes no rectangle */
     W8Vector<W8Widget*> m_controls; /* 0x38 */

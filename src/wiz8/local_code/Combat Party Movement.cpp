@@ -134,7 +134,7 @@ void ClearPendingPartyMovement(int excluded_party_slot)
     g_combat_state->uiNextPartyAction = W8_PARTY_ACTION_NONE;
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         if (party_slot != excluded_party_slot &&
-            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
+            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false)) {
             RefreshCombatTargetHighlights(party_slot,
                                           &g_status.buffers.XChar[party_slot].target_in_combat);
         }
@@ -233,9 +233,9 @@ float GetPartyMovementSpeed(void)
         speed = 1.5f;
     }
     if (GetPartyHasteSteps(&steps)) {
-        return (steps * g_movement_speed_step + speed) * g_float_005ec0a8;
+        return (steps * g_movement_speed_step + speed) * g_float_ten_thousand;
     }
-    return speed * g_float_005ec0a8;
+    return speed * g_float_ten_thousand;
 }
 
 /* Reconcile character turns after the party finishes moving. Characters that
@@ -253,7 +253,7 @@ void CompletePartyMovementTurns(void)
 
     unsigned int remaining = 100 - g_level_block->move_percent;
     if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_RUN) {
-        remaining = static_cast<unsigned int>(remaining * g_float_005ec3b8);
+        remaining = static_cast<unsigned int>(remaining * g_float_one_and_a_half);
     }
     remaining = remaining < 100 ? 100 - remaining : 0;
 

@@ -76,14 +76,14 @@ void LoadGameConfiguration(void)
 }
 
 // FUNCTION: WIZ8 0x0054b6d0
-unsigned char SaveGameConfiguration(void)
+bool SaveGameConfiguration(void)
 {
     W8Chunk file;
     char path[60];
 
     sprintf(path, "%s.%s", g_config_file_name, g_config_file_extension);
     if (!file.OpenWrite(path)) {
-        return 0;
+        return false;
     }
     file.OpenChunk(0x47464e43, 0);
     file.Write(&g_settings, sizeof(g_settings), 0);
@@ -95,5 +95,5 @@ unsigned char SaveGameConfiguration(void)
     g_mgs_keyboard->Save(file.m_hFile);
     file.ReleaseCurrentChunk();
     file.Close();
-    return 1;
+    return true;
 }

@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/fonts.h"
 #include "soundman.h"
 #include "wiz8/integer_constants.h"
@@ -100,7 +101,7 @@ int g_container_event_alt = g_first_remapped_event + 13;
 int g_container_event = g_first_remapped_event + 14;
 
 // GLOBAL: WIZ8 0x005ec124
-const float g_float_005ec124 = 64.0f;
+const float g_trigger_progress_limit = 64.0f;
 
 // FUNCTION: WIZ8 0x00443780
 Trigger* FindTriggerByName(const char* name)
@@ -498,7 +499,7 @@ bool Trigger::Save(int hFile)
             FileWrite(hFile, &action_flags, sizeof(action_flags), 0);
             if (m_lData1 != 0 && m_pEvent != 0 && g_timed_events.IndexOf(m_pEvent) != -1) {
                 float progress = m_pEvent->timer.GetProgress();
-                if (progress <= g_float_005ec124) {
+                if (progress <= g_trigger_progress_limit) {
                     progress_delay = static_cast<unsigned int>(m_pEvent->timer.GetProgress());
                 } else {
                     progress_delay = 64000;
@@ -656,7 +657,7 @@ bool Trigger::Load(int hFile, char version)
                         m_pEvent->timer.Restart();
                         m_pEvent->repeat = true;
                     }
-                    m_pEvent->timer.SetProgress(progress_delay * g_float_005ec128);
+                    m_pEvent->timer.SetProgress(progress_delay * g_float_one_thousandth);
                     if (g_timed_events.IndexOf(m_pEvent) == -1) {
                         g_timed_events.Add(m_pEvent);
                     }
@@ -953,7 +954,7 @@ void UpdateTimedTriggerEvents(void)
 void W8TriggerShakeEvent::Update()
 {
     if (effect == 0) {
-        float intensity = this->intensity / g_float_005ecf9c;
+        float intensity = this->intensity / g_float_two_hundred_fifty;
 
         if (intensity < g_float_one) {
             intensity = g_float_one;
@@ -999,9 +1000,9 @@ bool CreateTriggerShakeEvent(int intensity, float duration, float countdown_dura
         srAssertFail("m_pCountdown", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x12de,
                      0);
     }
-    pEvent->m_pCountdown->SetDuration(countdown_duration * g_float_005ec128);
+    pEvent->m_pCountdown->SetDuration(countdown_duration * g_float_one_thousandth);
     pEvent->m_pCountdown->Restart();
-    pEvent->timer.SetDuration(duration * g_float_005ec128);
+    pEvent->timer.SetDuration(duration * g_float_one_thousandth);
     pEvent->timer.Restart();
     pEvent->reverse = reverse;
     g_timed_events.Add(pEvent);
@@ -3296,13 +3297,13 @@ void Trigger::Run(int source)
                 srVector3T<double> position = g_world->camera->getLocation();
 
                 if (action == 0x28) {
-                    spell_id = 0x44;
+                    spell_id = W8_SPELL_HEAL_ALL;
                 } else if (action == 0x29) {
-                    spell_id = 0x45;
+                    spell_id = W8_SPELL_HEX;
                 } else if (action == 0x2a) {
-                    spell_id = 0x0c;
+                    spell_id = W8_SPELL_SLEEP;
                 } else {
-                    spell_id = 0x2a;
+                    spell_id = W8_SPELL_NOXIOUS_FUMES;
                 }
                 PointCastSpell(srVector3T<float>(static_cast<float>(position.x),
                                                  static_cast<float>(position.y),

@@ -57,7 +57,7 @@ extern const double g_inverse_full_turn_degrees = 1.0 / 360.0;
 
 /* 0x005ED7B8: camera distance inside which inactive world items are activated. */
 // GLOBAL: WIZ8 0x005ed7b8
-const float g_float_005ed7b8 = 20000.0f;
+const float g_item_camera_cull_distance = 20000.0f;
 
 /* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
 // GLOBAL: WIZ8 0x005ed7a8
@@ -832,7 +832,7 @@ void UpdateNearbyWorldItems(void)
             AdvanceFallingWorldItem(item);
         }
         if (!item->fActive) {
-            if (DistanceBetweenPoints(&item->position, &camera) < g_float_005ed7b8) {
+            if (DistanceBetweenPoints(&item->position, &camera) < g_item_camera_cull_distance) {
                 if (g_hide_invisible_items) {
                     if (item == 0) {
                         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3e6, 0);
@@ -847,7 +847,7 @@ void UpdateNearbyWorldItems(void)
             srVector3T<float> location;
 
             item->p3D->m_pRep->GetLocation(&location);
-            if (DistanceBetweenPoints(&location, &camera) > g_float_005ec360) {
+            if (DistanceBetweenPoints(&location, &camera) > g_float_twenty_five_thousand) {
                 DeactivateWorldItem(item);
             }
         }
@@ -862,16 +862,16 @@ void UpdateNearbyWorldItems(void)
    ground and lifted back up. When the spot is free the held instance becomes
    a world item; otherwise the refusal sound plays. */
 // FUNCTION: WIZ8 0x004F7610
-void DropHeldItem(int arg_1)
+void DropHeldItem(int)
 {
     srVector3T<float> cursor;
     GetCursorScaledPosition(&cursor);
-    cursor.y = (cursor.y - g_float_005ebc7c) * g_float_005ec390;
-    cursor.z = (cursor.z - g_float_005ebc7c) * g_float_005ec390;
+    cursor.y = (cursor.y - g_float_half) * g_float_nine_tenths;
+    cursor.z = (cursor.z - g_float_half) * g_float_nine_tenths;
 
-    double amplitude = g_throw_angle_amplitude * g_float_005ebcf8;
-    double pitch = amplitude * g_float_005ebc28 + amplitude * cursor.z * g_drop_item_pitch_scale;
-    float base = static_cast<float>(cos(pitch) * g_double_005ec030);
+    double amplitude = g_throw_angle_amplitude * g_float_inverse_half_turn_degrees;
+    double pitch = amplitude * g_float_five + amplitude * cursor.z * g_drop_item_pitch_scale;
+    float base = static_cast<float>(cos(pitch) * g_double_twenty_five_hundred);
     double yaw = amplitude * cursor.y * g_drop_item_yaw_scale;
 
     srVector3T<float> direction;
@@ -890,7 +890,7 @@ void DropHeldItem(int arg_1)
 
     srVector3T<float> delta = direction - camera;
     float distance_squared = delta.LengthSquared();
-    float distance = static_cast<float>(sqrt(distance_squared)) - g_float_005ec3f8;
+    float distance = static_cast<float>(sqrt(distance_squared)) - g_float_one_hundred_twenty_five;
     if (distance < g_float_zero) {
         distance = g_float_zero;
     }
@@ -900,7 +900,8 @@ void DropHeldItem(int arg_1)
     }
 
     srVector3T<float> position = camera + delta;
-    position.y = g_octree->SettleToGround(&position, 0, 1, 250.0f) + g_float_005ec3f8;
+    position.y =
+        g_octree->SettleToGround(&position, 0, 1, 250.0f) + g_float_one_hundred_twenty_five;
     if (FindNearbyFreePosition(250.0f, &position, true, true) != 0) {
         W8WorldItem* item = CreateWorldItem(&g_status.item_in_hand, &position,
                                             W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
@@ -1092,7 +1093,7 @@ static bool IsWorldItemMarkerVisible(W8WorldItem* item, const srVector3T<float>&
         item->p3D->m_pRep->GetLocation(&position);
         GetCameraPosition(&eye);
         srVector3T<float> delta = position - camera;
-        if (delta.Length() < static_cast<float>(g_double_005ec030)) {
+        if (delta.Length() < static_cast<float>(g_double_twenty_five_hundred)) {
             item->p3D->GetCachedLocalBounds(&lower, &upper);
             lower += position;
             upper += position;
@@ -1102,7 +1103,7 @@ static bool IsWorldItemMarkerVisible(W8WorldItem* item, const srVector3T<float>&
     return false;
 }
 
-/* Any live world item visible to the camera within g_double_005ec030, resuming
+/* Any live world item visible to the camera within g_double_twenty_five_hundred, resuming
    the scan at the last match. */
 // FUNCTION: WIZ8 0x004f8650
 bool AnyWorldItemVisible(void)
@@ -1178,8 +1179,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
         item->vertical_velocity = (ground - previous_y) / dt;
         probe.y = ground;
     } else {
-        item->vertical_velocity =
-            dt * g_navigator_gravity * g_float_005ebc7c + item->vertical_velocity;
+        item->vertical_velocity = dt * g_navigator_gravity * g_float_half + item->vertical_velocity;
         probe.y = probe.y - dt * item->vertical_velocity;
         if (probe.y < ground) {
             probe.y = ground;

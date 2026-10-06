@@ -1,3 +1,4 @@
+#include "wiz8/conditions.h"
 #include "line.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/MGSFormation.h"
@@ -206,12 +207,13 @@ void W8NpcTypedDialoguePanel::Redraw()
         return;
     }
     if (m_fDirty) {
-        if (m_renderTarget != -1) {
-            DrawCatalogImage(-14, m_renderTarget, m_renderArg0, m_renderArg1, m_bounds.left,
-                             m_bounds.top, 2, 0);
+        if (m_catalogObject != -1) {
+            DrawCatalogImage(FRAME_BUFFER, m_catalogObject, m_catalogFrame, m_catalogImage,
+                             m_bounds.left, m_bounds.top, VO_BLT_SRCTRANSPARENCY, 0);
         }
-        DrawCatalogImage(-14, 0x1a9, 0, 0x10, 0x1df,
-                         g_npc_interaction_state->where_is_query ? 0x19b : 0x18b, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0x1a9, 0, 0x10, 0x1df,
+                         g_npc_interaction_state->where_is_query ? 0x19b : 0x18b,
+                         VO_BLT_SRCTRANSPARENCY, 0);
         redrawn = 1;
     } else if (!m_fLayoutDirty) {
         return;
@@ -254,7 +256,7 @@ void W8NpcDialogueOptionsPanel::SetEnabled(bool enable)
 }
 
 /* Base redraw except the foreground catalog image is m_main_text_box_image rather than
-   m_renderArg1 while the expanded dialogue layout is up. */
+   m_catalogImage while the expanded dialogue layout is up. */
 // FUNCTION: WIZ8 0x0056BD30
 void W8NpcDialogueOptionsPanel::Redraw()
 {
@@ -264,13 +266,13 @@ void W8NpcDialogueOptionsPanel::Redraw()
         return;
     }
     if (m_fDirty) {
-        if (m_renderTarget != -1) {
-            DrawCatalogImage(-14, m_renderTarget, m_renderArg0,
+        if (m_catalogObject != -1) {
+            DrawCatalogImage(FRAME_BUFFER, m_catalogObject, m_catalogFrame,
                              g_npc_interaction_state->dialogue_layout ==
                                      W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX
                                  ? m_main_text_box_image
-                                 : m_renderArg1,
-                             m_bounds.left, m_bounds.top, 2, 0);
+                                 : m_catalogImage,
+                             m_bounds.left, m_bounds.top, VO_BLT_SRCTRANSPARENCY, 0);
         }
         redrawn = 1;
     } else if (!m_fLayoutDirty) {
@@ -553,7 +555,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
                         if (characters[slot].uiCondition[condition] != 0) {
                             RemoveCharacterCondition(slot, static_cast<W8Condition>(condition),
                                                      false);
-                            if (condition == 0x12) {
+                            if (condition == W8_CONDITION_DEAD) {
                                 characters[slot].hp_current = 10;
                             }
                         }
@@ -1251,7 +1253,7 @@ static void CloseActiveNpcDialogueLayout()
 }
 
 // FUNCTION: WIZ8 0x0056E800
-void EndNpcDialogueSession(bool param_1)
+void EndNpcDialogueSession(bool skip_exit_actions)
 {
     if (!gXStatus.fNpcDialogueMode) {
         return;
@@ -1262,7 +1264,7 @@ void EndNpcDialogueSession(bool param_1)
         return;
     }
     if (gXStatus.fCampMode) {
-        param_1 = true;
+        skip_exit_actions = true;
     }
     if (g_npc_interaction_state->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
@@ -1308,7 +1310,7 @@ void EndNpcDialogueSession(bool param_1)
     GetNpcMonsterInfo(g_npc_interaction_state->dialogue_npc);
     KillTextInputMode();
     ResumeMainGameWorld();
-    if (!param_1) {
+    if (!skip_exit_actions) {
         if (!g_npc_interaction_state->held_item_pending) {
             SetTargetCursor(W8_CURSOR_NONE);
         } else {
@@ -4597,7 +4599,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
                 if (g_npc_interaction_state->held_item_pending &&
                     g_npc_interaction_state->pending_item.iItemNo == item->iItemNo) {
                     g_npc_interaction_state->held_item_pending = false;
-                    AddItemToParty(&g_npc_interaction_state->pending_item, 1, false);
+                    AddItemToParty(&g_npc_interaction_state->pending_item, true, false);
                     ClearHeldItemDisplay();
                     return 0;
                 }
@@ -5127,12 +5129,12 @@ void ResolveNpcPickpocket(int party_slot)
         swprintf(text, gppStringList[0x74d], character->name, GetItemDisplayName(&item));
         for (slot = 0; slot < 8; ++slot) {
             if (character->backpack[slot].iItemNo == -1) {
-                AddItemToCharacter(character, &item, 0, 0, false);
+                AddItemToCharacter(character, &item, false, false, false);
                 DisplayNpcQuote(text, true);
                 return;
             }
         }
-        AddItemToParty(&item, 0, false);
+        AddItemToParty(&item, false, false);
         DisplayNpcQuote(text, true);
         return;
     case W8_PICKPOCKET_GOLD_TAKEN:

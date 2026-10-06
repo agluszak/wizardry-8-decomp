@@ -59,14 +59,14 @@ public:
         m_pressedSprite = -1;
     }
 
-    unsigned char MeasureText();
+    bool MeasureText();
     void GetTextOrigin(int* px, int* py);
     void Invalidate(bool immediate);
     virtual void SetEnabled(bool enabled) override;
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     void SetFlaggedRegionBounds(int left, int top, int right);
     virtual void AddLayoutFlags(unsigned int flags) override;
-    virtual void SetAlternateTextEnabled(unsigned char enabled) override;
+    virtual void SetAlternateTextEnabled(bool enabled) override;
     void RemoveLayoutFlags(unsigned int flags);
     virtual void EnableSecondaryState(bool immediate);
     virtual void DisableSecondaryState(bool immediate);
@@ -87,9 +87,9 @@ public:
     /* The state-5 controller persists two option bits by directly masking the
        controls' state words.  This is observed storage access, not an accessor
        API inferred for convenience. */
-    unsigned int m_stateFlags;            /* 0x34: paired state masks */
-    unsigned int m_layoutFlags;           /* 0x38: layout and input behavior masks */
-    unsigned char m_alternateTextEnabled; /* 0x3c: alternate text-selection flag */
+    unsigned int m_stateFlags;   /* 0x34: paired state masks */
+    unsigned int m_layoutFlags;  /* 0x38: layout and input behavior masks */
+    bool m_alternateTextEnabled; /* 0x3c: alternate text-selection flag */
     unsigned char pad_3d[3];
     int m_imageObject;
     int m_imageFrame;

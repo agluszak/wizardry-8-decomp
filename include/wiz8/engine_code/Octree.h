@@ -31,7 +31,7 @@ struct W8BoundingBox;
 
 /* The 0x30-byte ray state the octree line/probe walks share: a segment
    (start, end), a fixed-length march step (end-start scaled by
-   g_double_005ebc30 / length), the closest accepted hit distance at +0x24,
+   g_double_one / length), the closest accepted hit distance at +0x24,
    the segment length at +0x28 and a per-probe flag word at +0x2c.
    The default constructor at 0x004577C0 seeds +0x24 with the 0x60AD78EC
    "no hit" sentinel. The three segment-seeding bodies are distinct source
@@ -376,7 +376,7 @@ public:
        and the hit location id into `hit_location` (or -1/0). `excluded`
        skips one location id, `location` carries the in/out location id used
        for the pathing-probe set, `flags` masks navigator trace_mask, and
-       `noise_adjust` applies the g_float_005ebc3c/noise penalty. */
+       `noise_adjust` applies the g_float_one_tenth/noise penalty. */
     char ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>* to, int excluded,
                          int* hit_location, int location, unsigned int flags,
                          char noise_adjust); /* 0x004353F0 */

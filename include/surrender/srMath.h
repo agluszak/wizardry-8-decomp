@@ -1139,7 +1139,7 @@ template <class T> T srMatrix4T<T>::Det() const
 
 template <class T> void srMatrix4T<T>::AdjugateFrom(T* source)
 {
-    T* param_1 = &vectors[0].x;
+    T* components = &vectors[0].x;
     T fVar7 = source[6];
     T fVar1 = source[0];
     T fVar2 = source[1];
@@ -1160,37 +1160,37 @@ template <class T> void srMatrix4T<T>::AdjugateFrom(T* source)
     T fVar18 = fVar16 * fVar10 - fVar14 * fVar12;
     T fVar19 = fVar15 * fVar10 - fVar14 * fVar11;
 
-    param_1[0] = fVar19 * fVar8 + (fVar17 * fVar6 - fVar18 * fVar7);
+    components[0] = fVar19 * fVar8 + (fVar17 * fVar6 - fVar18 * fVar7);
     T fVar20 = fVar16 * fVar9 - fVar13 * fVar12;
     T fVar21 = fVar15 * fVar9 - fVar13 * fVar11;
-    param_1[4] = -(fVar21 * fVar8 + (fVar17 * fVar5 - fVar20 * fVar7));
+    components[4] = -(fVar21 * fVar8 + (fVar17 * fVar5 - fVar20 * fVar7));
     T fVar22 = fVar14 * fVar9 - fVar13 * fVar10;
-    param_1[8] = fVar22 * fVar8 + (fVar18 * fVar5 - fVar20 * fVar6);
-    param_1[12] = -(fVar22 * fVar7 + (fVar19 * fVar5 - fVar21 * fVar6));
-    param_1[1] = -(fVar19 * fVar4 + (fVar17 * fVar2 - fVar18 * fVar3));
-    param_1[5] = fVar21 * fVar4 + (fVar17 * fVar1 - fVar20 * fVar3);
-    param_1[9] = -(fVar22 * fVar4 + (fVar18 * fVar1 - fVar20 * fVar2));
-    param_1[13] = fVar22 * fVar3 + (fVar19 * fVar1 - fVar21 * fVar2);
+    components[8] = fVar22 * fVar8 + (fVar18 * fVar5 - fVar20 * fVar6);
+    components[12] = -(fVar22 * fVar7 + (fVar19 * fVar5 - fVar21 * fVar6));
+    components[1] = -(fVar19 * fVar4 + (fVar17 * fVar2 - fVar18 * fVar3));
+    components[5] = fVar21 * fVar4 + (fVar17 * fVar1 - fVar20 * fVar3);
+    components[9] = -(fVar22 * fVar4 + (fVar18 * fVar1 - fVar20 * fVar2));
+    components[13] = fVar22 * fVar3 + (fVar19 * fVar1 - fVar21 * fVar2);
     fVar19 = fVar16 * fVar7 - fVar15 * fVar8;
     fVar18 = fVar16 * fVar6 - fVar14 * fVar8;
     fVar17 = fVar15 * fVar6 - fVar14 * fVar7;
-    param_1[2] = fVar17 * fVar4 + (fVar19 * fVar2 - fVar18 * fVar3);
+    components[2] = fVar17 * fVar4 + (fVar19 * fVar2 - fVar18 * fVar3);
     fVar16 = fVar16 * fVar5 - fVar13 * fVar8;
     fVar15 = fVar15 * fVar5 - fVar13 * fVar7;
-    param_1[6] = -(fVar15 * fVar4 + (fVar19 * fVar1 - fVar16 * fVar3));
+    components[6] = -(fVar15 * fVar4 + (fVar19 * fVar1 - fVar16 * fVar3));
     fVar13 = fVar14 * fVar5 - fVar13 * fVar6;
-    param_1[10] = fVar13 * fVar4 + (fVar18 * fVar1 - fVar16 * fVar2);
-    param_1[14] = -(fVar13 * fVar3 + (fVar17 * fVar1 - fVar15 * fVar2));
+    components[10] = fVar13 * fVar4 + (fVar18 * fVar1 - fVar16 * fVar2);
+    components[14] = -(fVar13 * fVar3 + (fVar17 * fVar1 - fVar15 * fVar2));
     fVar15 = fVar12 * fVar7 - fVar11 * fVar8;
     fVar14 = fVar12 * fVar6 - fVar10 * fVar8;
     fVar13 = fVar11 * fVar6 - fVar10 * fVar7;
-    param_1[3] = -(fVar13 * fVar4 + (fVar15 * fVar2 - fVar14 * fVar3));
+    components[3] = -(fVar13 * fVar4 + (fVar15 * fVar2 - fVar14 * fVar3));
     fVar8 = fVar12 * fVar5 - fVar9 * fVar8;
     fVar7 = fVar11 * fVar5 - fVar9 * fVar7;
-    param_1[7] = fVar7 * fVar4 + (fVar15 * fVar1 - fVar8 * fVar3);
+    components[7] = fVar7 * fVar4 + (fVar15 * fVar1 - fVar8 * fVar3);
     fVar5 = fVar10 * fVar5 - fVar9 * fVar6;
-    param_1[11] = -(fVar5 * fVar4 + (fVar14 * fVar1 - fVar8 * fVar2));
-    param_1[15] = fVar5 * fVar3 + (fVar13 * fVar1 - fVar7 * fVar2);
+    components[11] = -(fVar5 * fVar4 + (fVar14 * fVar1 - fVar8 * fVar2));
+    components[15] = fVar5 * fVar3 + (fVar13 * fVar1 - fVar7 * fVar2);
 }
 
 /* Build the homogeneous transform whose upper 3x3 is `rotation` and whose
@@ -1216,12 +1216,11 @@ srMatrix4T<T>* srMatrix4T<T>::Set(const srMatrix3T<T>& rotation, const srVector3
    srMatrix4T::Invert calls, while stModelInstance.cpp expands it, so the
    definition is header-visible. */
 // FUNCTION: WIZ8 0x0049BD00
-inline float Det3(float param_1, float param_2, float param_3, float param_4, float param_5,
-                  float param_6, float param_7, float param_8, float param_9)
+inline float Det3(float m00, float m01, float m02, float m10, float m11, float m12, float m20,
+                  float m21, float m22)
 {
-    return (param_2 * param_6 - param_3 * param_5) * param_7 +
-           ((param_5 * param_9 - param_6 * param_8) * param_1 -
-            (param_2 * param_9 - param_3 * param_8) * param_4);
+    return (m01 * m12 - m02 * m11) * m20 +
+           ((m11 * m22 - m12 * m21) * m00 - (m01 * m22 - m02 * m21) * m10);
 }
 
 /* A 3×4 affine transform: three rows of (basis xyz, translation w). srNode

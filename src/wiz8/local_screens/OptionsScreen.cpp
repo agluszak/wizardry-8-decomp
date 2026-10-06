@@ -233,8 +233,8 @@ W8OptionsKeyboardPanel::W8OptionsKeyboardPanel(int panel)
 }
 W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel) : W8OptionsPanel(panel), m_panel(panel)
 {
-    m_renderTarget = 0xf7;
-    m_renderArg1 = 0;
+    m_catalogObject = 0xf7;
+    m_catalogImage = 0;
 }
 
 W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
@@ -603,9 +603,9 @@ W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned char save_
 }
 
 // FUNCTION: WIZ8 0x005a77b0
-void W8OptionsSaveRow::Redraw(unsigned char full_redraw)
+void W8OptionsSaveRow::Redraw(bool full_redraw)
 {
-    if (!m_active || (full_redraw == 0 && !m_dirty)) {
+    if (!m_active || (!full_redraw && !m_dirty)) {
         return;
     }
     W8TextControl::Redraw(full_redraw);
@@ -616,7 +616,7 @@ void W8OptionsSaveRow::Redraw(unsigned char full_redraw)
     int x = m_pPanel->m_bounds.left + m_left;
     int y = m_pPanel->m_bounds.top + m_top;
     if (m_save->screenshot.capture_result == 0) {
-        DrawCatalogImage(-14, 0xf6, 0, 0, x + 6, y + 6, 2, 0);
+        DrawCatalogImage(FRAME_BUFFER, 0xf6, 0, 0, x + 6, y + 6, VO_BLT_SRCTRANSPARENCY, 0);
     } else {
         srColorSurface* portrait = new srColorSurface(srPixelConvert::SURFACE_ARGB1555,
                                                       m_save->screenshot.pixels, 0x50, 0x3c, 0xa0);
@@ -690,19 +690,19 @@ void W8OptionsScreen::BeginSaveNameEdit(W8OptionsTextEditor::Listener* listener,
 }
 
 // FUNCTION: WIZ8 0x005a7c70
-void W8OptionsButton::Redraw(unsigned char full_redraw)
+void W8OptionsButton::Redraw(bool full_redraw)
 {
-    if (m_active && (full_redraw != 0 || m_dirty) && m_textBuffer.HasBuffer()) {
+    if (m_active && (full_redraw || m_dirty) && m_textBuffer.HasBuffer()) {
         if (m_enabled) {
             int font_state;
             if ((m_stateFlags & g_W8TextControlStatePressed) != 0) {
                 font_state = 13;
             } else {
-                font_state = m_alternateTextEnabled != 0 ? 14 : -1;
+                font_state = m_alternateTextEnabled ? 14 : -1;
             }
             m_textBuffer.SetFontStateIndex(font_state);
         }
-        m_textBuffer.RenderToTarget(0, full_redraw, -14);
+        m_textBuffer.RenderToTarget(0, full_redraw, FRAME_BUFFER);
         m_dirty = false;
     }
 }
@@ -711,7 +711,7 @@ void W8OptionsButton::Redraw(unsigned char full_redraw)
 void W8OptionsButton::OnMouseEnter(int event)
 {
     W8TextControl::OnMouseEnter(event);
-    SetAlternateTextEnabled(1);
+    SetAlternateTextEnabled(true);
     Invalidate(static_cast<unsigned char>(event));
 }
 
@@ -719,14 +719,14 @@ void W8OptionsButton::OnMouseEnter(int event)
 void W8OptionsButton::OnMouseLeave(int event)
 {
     W8TextControl::OnMouseLeave(event);
-    SetAlternateTextEnabled(0);
+    SetAlternateTextEnabled(false);
     Invalidate(static_cast<unsigned char>(event));
 }
 
 // FUNCTION: WIZ8 0x005a7db0
 void W8OptionsKeyButton::SetKey(unsigned short key)
 {
-    m_textBuffer.SetFontStateIndex(m_alternateTextEnabled != 0 ? 14 : -1);
+    m_textBuffer.SetFontStateIndex(m_alternateTextEnabled ? 14 : -1);
     if (key == VK_ESCAPE) {
         Invalidate(false);
         return;
@@ -1452,7 +1452,7 @@ void W8OptionsScreen::Redraw()
     if (m_redraw_pending) {
         ClearPrimarySurface();
         ClearSurfaceRect(0, 0, 640, 480);
-        DrawCatalogImageAndInvalidate(-14, 0xee, 0, 0, 0, 0, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0xee, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
         m_redraw_pending = false;
     }
     if (m_selected_panel != -1) {
@@ -1645,19 +1645,19 @@ void W8OptionsSlider::OnMouseMove(int event)
 }
 
 // FUNCTION: WIZ8 0x005a7f90
-void W8OptionsSlider::Redraw(unsigned char full_redraw)
+void W8OptionsSlider::Redraw(bool full_redraw)
 {
-    if (m_active && (full_redraw != 0 || m_dirty)) {
+    if (m_active && (full_redraw || m_dirty)) {
         W8HorizontalRangeThumb::Redraw(full_redraw);
         if (m_enabled && m_pixelPosition > 13) {
             int left = m_pPanel->m_bounds.left + m_left;
             int top = m_pPanel->m_bounds.top + m_top;
             unsigned short color = Get16BPPColor(0x00ff00);
             int end = m_pixelPosition < 74 ? m_pixelPosition - 1 : 73;
-            ColorFillVideoSurfaceArea(-14, left + 13, top + 7, left + end, top + 9, color);
+            ColorFillVideoSurfaceArea(FRAME_BUFFER, left + 13, top + 7, left + end, top + 9, color);
             if (m_pixelPosition > 83) {
-                ColorFillVideoSurfaceArea(-14, left + 83, top + 7, left + m_pixelPosition - 1,
-                                          top + 9, color);
+                ColorFillVideoSurfaceArea(FRAME_BUFFER, left + 83, top + 7,
+                                          left + m_pixelPosition - 1, top + 9, color);
             }
         }
     }
@@ -1752,11 +1752,12 @@ void W8OptionsPanel::AddChoices(int label, int count, const int* choices, int* v
 }
 
 // FUNCTION: WIZ8 0x005a7590
-void W8OptionsMenuButton::Redraw(unsigned char full_redraw)
+void W8OptionsMenuButton::Redraw(bool full_redraw)
 {
-    if ((full_redraw != 0 || m_dirty) && (m_stateFlags & g_W8TextControlStateSecondary) != 0 &&
+    if ((full_redraw || m_dirty) && (m_stateFlags & g_W8TextControlStateSecondary) != 0 &&
         m_item_id != -1) {
-        DrawCatalogImageAndInvalidate(-14, 0xf0, 0, m_item_id, 12, 15, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0xf0, 0, m_item_id, 12, 15,
+                                      VO_BLT_SRCTRANSPARENCY, 0);
     }
     W8TextControl::Redraw(full_redraw);
 }
@@ -1775,7 +1776,7 @@ void W8OptionsPanel::Redraw()
     Controls::Redraw();
     if (redraw_text) {
         for (int index = 0; index < m_text_buffers.GetCount(); ++index) {
-            (*m_text_buffers.GetAt(index))->RenderToTarget(0, true, -14);
+            (*m_text_buffers.GetAt(index))->RenderToTarget(0, true, FRAME_BUFFER);
         }
     }
 }
@@ -1785,7 +1786,7 @@ void W8OptionsMenuSet::Redraw()
 {
     if (m_fEnabled && (m_fDirty || m_fLayoutDirty)) {
         Controls::Redraw();
-        m_page_text->RenderToTarget(0, true, -14);
+        m_page_text->RenderToTarget(0, true, FRAME_BUFFER);
     }
 }
 

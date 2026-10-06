@@ -106,7 +106,7 @@ template <class T> class srVector4T;
 srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool additive);
 /* 0x00425190: build a 2D marker model instance over a texture. */
 stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width, double height,
-                                           bool keep_aspect, bool a5);
+                                           bool keep_aspect, bool overlay);
 /* 0x00426F80: render the world into a caller-owned color surface through a
    scissored viewport, then blit the locked frame buffer onto the target. */
 unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
@@ -119,15 +119,15 @@ struct W8ControlsRect;
    templates are its observed callers. */
 void SetFullscreenSceneLast(unsigned char value); /* 0x004298E0 */
 stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVector4T<float>* color,
-                                              bool a4);
+                                              bool fullscreen);
 /* 0x004253F0: the render-target sprite factory CreateSpriteFromSurface wraps; the
    radar overlay is created through it directly. */
-stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect* bounds, int a3,
-                                                int a4, char a5);
+stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect* bounds,
+                                                int square, int, char overlay);
 /* 0x004255C0: wrap the sprite-surface factory - image is a video surface
    handle (or a negative target id), rect an optional source rectangle. */
 stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsRect* rect, int mode,
-                                           int arg_4, int arg_5);
+                                           int unused, int overlay);
 /* 0x004257D0: position a 2D node without pixel snapping. */
 void Position2DNodeUnsnapped(srNode* node, int x, int y);
 /* 0x004264F0: write the display-state byte of a 2D model instance. */
@@ -289,7 +289,7 @@ void AssertFailureHandler(const char* expression, const char* file, long line, c
 unsigned char DisableCursorScene(void);
 unsigned char EnableCursorScene(void);
 void SetOverlayViewport(const int* value);
-void SetWorldModelPickingEnabled(char enabled);
+void SetWorldModelPickingEnabled(bool enabled);
 bool RendererBufferIsLockable(void);
 void SetRendererAutoFlipEnabled(bool enabled);
 bool HasEnoughFreeDiskSpace(void);

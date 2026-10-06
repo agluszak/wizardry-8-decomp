@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/local_code/Factions.h"
+
 #include "wiz8/layouts/targeting.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
@@ -27,7 +29,7 @@ void CloseFormationGap(W8MonsterInfo* monster_info, int party_slot,
    info's aim flag for the action's ranged-ness, and the band distance. A miss
    queues the slot's complaint event when `notify_failure` asks. */
 bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster_info,
-                                W8TargetingContext context, char notify_failure);
+                                W8TargetingContext context, bool notify_failure);
 /* Whether the front rank stands between two formation positions. */
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position); /* 0x0051B000 */
 /* Whether the monster's attack `attack` reaches the character in `party_slot`,
@@ -36,10 +38,10 @@ bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord*
                                    unsigned int attack, int party_slot); /* 0x0051A2F0 */
 bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                  unsigned int attack, W8MonsterInfo* target); /* 0x0051A510 */
-/* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
-   counts only those it is hostile to. */
+/* Whether the monster's attack reaches friendly or hostile targets. Berserk
+   monsters always use friendly targets. */
 bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
-                                char hostile_only); /* 0x00519C00 */
+                                bool friendly_targets); /* 0x00519C00 */
 /* The base missile speed a range category grants `source`, in world units. */
 float CalcRangeDistance(W8RangeCategory range_category, W8TargetSource* source); /* 0x0051AA30 */
 /* The sight-condition slot a range band needs the observer's sight flags
@@ -65,7 +67,7 @@ W8RangeCategory GetCharAttackRange(const W8Character* character, unsigned int ha
 /* 0x005199F0: the range category the slot's chosen action works at. */
 W8RangeCategory GetCharActionRange(int party_slot, int hand, W8TargetingContext context);
 bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
-                          char notify); /* 0x00519920 */
+                          bool notify); /* 0x00519920 */
 float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int kind);
 float GetGroundTargetRange(void);
 float GetMonsterEngagementRange(void); /* 0x0051B300 */
@@ -94,7 +96,7 @@ bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot,
                                 W8TargetingContext context);
 /* 0x0051B0A0: collect the party slots the slot could reach and strike under
    `relationship`, and pick one at random; -1 when none qualify. */
-int PickReachableSlotByDisposition(int party_slot, char relationship);
+int PickReachableSlotByDisposition(int party_slot, W8Disposition relationship);
 /* 0x0051B320: write `out` the offset from the monster's feet to the origin of
    its attack for `kind` - 1 the projectile muzzle, 3 the spell hand. */
 void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float>* out);

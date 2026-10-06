@@ -2,6 +2,7 @@
 #define WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 
 #include "wiz8/attack_modes.h"
+#include "wiz8/spell_ids.h"
 #include "wiz8/fact_state.h"
 #include <stddef.h>
 
@@ -146,10 +147,6 @@ enum W8SpellUsage {
     W8_SPELL_USAGE_COUNT = 5
 };
 
-/* SPELL_COUNT, named by the SpellUsableNow assertion that bounds its
-   argument: the number of rows in the spell database. */
-enum { W8_SPELL_COUNT = 0x96 };
-
 /* The range bands an attack or spell works at, and the one value that means it
    has no range at all. CalcRangeDistance is the one place the band and a
    world distance are related. */
@@ -171,10 +168,6 @@ enum {
     W8_SPELLBOOK_ALCHEMY = 4,
     W8_SPELLBOOK_PSIONICS = 8
 };
-
-/* No spell. The item database spells it with this in ubSpellNumber, which the
-   learn-from-item assertion names. */
-enum { W8_SPELL_NONE = 0 };
 
 /* Who or what a spell is cast on. The eleven values are the spell record's
    target_type domain; the interface names them through string ids 798-808,

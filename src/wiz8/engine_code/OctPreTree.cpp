@@ -26,15 +26,15 @@
    identical constants into one address. */
 static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
 // GLOBAL: WIZ8 0x005ebc28
-const float g_float_005ebc28 = 5.0f;
+const float g_float_five = 5.0f;
 // GLOBAL: WIZ8 0x005ebc70
-const double g_double_005ebc70 = 0.0001;
+const double g_double_one_ten_thousandth = 0.0001;
 // GLOBAL: WIZ8 0x005ebc90
-const float g_float_005ebc90 = 9.999999747378752e-05f;
+const float g_float_one_ten_thousandth = 9.999999747378752e-05f;
 // GLOBAL: WIZ8 0x005ec410
-const float g_float_005ec410 = 0.3333333432674408f;
+const float g_float_one_third = 0.3333333432674408f;
 // GLOBAL: WIZ8 0x005ec414
-const float g_float_005ec414 = 0.9998999834060669f;
+const float g_region_axis_alignment_threshold = 0.9998999834060669f;
 
 // GLOBAL: WIZ8 0x00659c74
 OctPreTree* g_oct_pre_tree = 0;
@@ -224,11 +224,11 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
                 srVector3T<float> contact;
                 if (g_float_one <= front) {
                     float back = SignedPlaneDistance(*plane, trace->end);
-                    if (g_float_005ebc28 <= back) {
+                    if (g_float_five <= back) {
                         continue;
                     }
                     back = -back;
-                    if (back < g_float_005ebc28) {
+                    if (back < g_float_five) {
                         continue;
                     }
                     front = front / (back + front) * trace->length;
@@ -414,7 +414,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
                           "WriteOctFile: Couldn't write Terminator after Mesh Prop Link Table.\n");
         return 0;
     }
-    if (pre_pathing != 0 && pre_pathing->WritePathNodes(file) == 0) {
+    if (pre_pathing != 0 && !pre_pathing->WritePathNodes(file)) {
         ReportBuildStatus(7, "WriteOctFile: Couldn't write Path Nodes.\n");
         return 0;
     }
@@ -1136,7 +1136,7 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
                 if (m_branches[node].region != key) {
                     ReportBuildStatus(7, "Region has wrong automesh.");
                 }
-                srVector3T<float> minimum(g_float_005ec3c0, 1e+06f, 1e+06f);
+                srVector3T<float> minimum(g_float_one_million, 1e+06f, 1e+06f);
                 srVector3T<float> maximum(-1e+06f, -1e+06f, -1e+06f);
                 for (unsigned long link = mesh; link != 0; link = records[link].m_next_link) {
                     W8OctSubmeshBuild* record = records + link;
@@ -1220,16 +1220,17 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
                 ReportStartupMessage(message);
             }
             unsigned int cell = static_cast<unsigned int>(x);
-            node.x = (x + g_float_005ebc7c) * m_region_cell + m_spatial.m_minimum.x;
+            node.x = (x + g_float_half) * m_region_cell + m_spatial.m_minimum.x;
             for (int z = 0; z < z_cells; ++z) {
-                node.z = (z + g_float_005ebc7c) * m_region_cell + m_spatial.m_minimum.z;
+                node.z = (z + g_float_half) * m_region_cell + m_spatial.m_minimum.z;
                 node.y = m_spatial.m_maximum.y;
                 while (SnapToGround(&node, 1)) {
                     m_lNumBlocks = 0;
                     m_lNumSupports = 0;
                     if (current_prop >= 0) {
                         float snapped = node.y;
-                        if (!SnapToGround(&node, 0) || g_float_005ec3f8 < fabsf(node.y - snapped)) {
+                        if (!SnapToGround(&node, 0) ||
+                            g_float_one_hundred_twenty_five < fabsf(node.y - snapped)) {
                             m_lSupports[m_lNumSupports] = current_prop;
                             ++m_lNumSupports;
                         }
@@ -1311,7 +1312,7 @@ char OctPreTree::PathNodeObstructed(const srVector3T<float>* node)
     float clearance = m_path_clearance;
     bounds_min.y = node->y + clearance * g_navigator_mode3_scale;
     bounds_max.y = bounds_min.y + clearance;
-    float half = m_region_cell * g_float_005ebc7c;
+    float half = m_region_cell * g_float_half;
     bounds_min.x = node->x - half;
     bounds_max.x = node->x + half;
     bounds_min.z = node->z - half;
@@ -1346,14 +1347,13 @@ char OctPreTree::PathNodeObstructed(const srVector3T<float>* node)
             if (out == 0) {
                 out = 1;
             } else if (current_prop != -1 ||
-                       fabsf(node->y - corner.y) <=
-                           clearance * static_cast<float>(g_double_005ebe80)) {
+                       fabsf(node->y - corner.y) <= clearance * static_cast<float>(g_double_half)) {
                 out = result;
                 if (current_prop >= 0) {
                     corner.y = bounds_min.y + g_world_scale;
                     probe = SnapToGround(&corner, 0);
-                    if (!probe || clearance * static_cast<float>(g_double_005ebe80) <
-                                      fabsf(node->y - corner.y)) {
+                    if (!probe ||
+                        clearance * static_cast<float>(g_double_half) < fabsf(node->y - corner.y)) {
                         for (int b = 0; b < m_lNumBlocks && result != 1; ++b) {
                             if (current_prop == m_lBlocks[b])
                                 result = 1;
@@ -1631,16 +1631,17 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
                 a.path = t->pathAI.pPaths[first];
                 b.path = t->pathAI.pPaths[last];
             }
-            if (g_float_005ebc7c < fabsf(a.path.position.x - b.path.position.x) ||
-                g_float_005ebc7c < fabsf(a.path.position.y - b.path.position.y) ||
-                g_float_005ebc7c < fabsf(a.path.position.z - b.path.position.z)) {
+            if (g_float_half < fabsf(a.path.position.x - b.path.position.x) ||
+                g_float_half < fabsf(a.path.position.y - b.path.position.y) ||
+                g_float_half < fabsf(a.path.position.z - b.path.position.z)) {
                 differ = true;
             }
             if (g_camera_snap_epsilon < fabsf(a.path.angle - b.path.angle) ||
                 g_camera_snap_epsilon < fabsf(a.path.axis.x - b.path.axis.x) ||
                 g_camera_snap_epsilon < fabsf(a.path.axis.y - b.path.axis.y) ||
                 g_camera_snap_epsilon < fabsf(a.path.axis.z - b.path.axis.z)) {
-                if (!(fabsf((b.path.angle + a.path.angle) - g_camera_half_pi) <= g_float_005ebc3c &&
+                if (!(fabsf((b.path.angle + a.path.angle) - g_camera_half_pi) <=
+                          g_float_one_tenth &&
                       fabsf(b.path.axis.x + a.path.axis.x) <= g_camera_snap_epsilon &&
                       fabsf(b.path.axis.y + a.path.axis.y) <= g_camera_snap_epsilon &&
                       fabsf(b.path.axis.z + a.path.axis.z) <= g_camera_snap_epsilon)) {
@@ -1668,7 +1669,7 @@ W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
             (&m_clipped_maximum.x)[axis] = (&source->m_clipped_maximum.x)[axis];
         }
         if (source->m_level_kind == 1) {
-            m_extent = source->m_extent * g_float_005ebc7c;
+            m_extent = source->m_extent * g_float_half;
             m_depth = source->m_depth + 1;
         } else {
             m_extent = source->m_extent;
@@ -1775,14 +1776,15 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
             (&maximum.x)[axis] < (&vertices[2].x)[axis]) {
             return 0;
         }
-        if (g_float_005ec414 < static_cast<float>(fabs((&plane_normal->x)[axis])) &&
+        if (g_region_axis_alignment_threshold <
+                static_cast<float>(fabs((&plane_normal->x)[axis])) &&
             (&minimum.x)[axis] <= (&vertices[0].x)[axis] &&
             (&vertices[0].x)[axis] <= (&maximum.x)[axis]) {
             near_axis = true;
         }
         (&plane_point.x)[axis] =
             ((&vertices[0].x)[axis] + (&vertices[1].x)[axis] + (&vertices[2].x)[axis]) *
-            g_float_005ec410;
+            g_float_one_third;
     }
 
     if (!near_axis) {
@@ -1828,7 +1830,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
             float face = side == 0 ? (&minimum.x)[face_axis] : (&maximum.x)[face_axis];
 
             for (short edge = 0; edge < 3; ++edge) {
-                if (static_cast<float>(g_double_005ebc70) <
+                if (static_cast<float>(g_double_one_ten_thousandth) <
                     static_cast<float>(fabs((&edge_delta[edge].x)[face_axis]))) {
                     float amount = (face - (&edge_start[edge].x)[face_axis]) /
                                    (&edge_delta[edge].x)[face_axis];
@@ -1857,7 +1859,8 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
                                         intersection[1].y - intersection[0].y);
                 short rectangle_axes[2] = {first_axis, second_axis};
                 for (short coordinate = 0; coordinate < 2; ++coordinate) {
-                    if (g_float_005ebc90 < static_cast<float>(fabs((&delta.x)[coordinate]))) {
+                    if (g_float_one_ten_thousandth <
+                        static_cast<float>(fabs((&delta.x)[coordinate]))) {
                         short other = coordinate == 0 ? 1 : 0;
                         for (short edge_side = 0; edge_side < 2; ++edge_side) {
                             float boundary = edge_side == 0

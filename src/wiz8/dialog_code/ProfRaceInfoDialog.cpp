@@ -117,8 +117,8 @@ void W8ProfRaceInfoDialogBase::Draw()
         m_scroll_bar.m_dirty = true;
         m_button.m_dirty = true;
         W8DialogBase::Draw();
-        DrawCatalogImageAndInvalidate(-0xe, m_uiTitleId, 0, m_uiSummaryId, m_x + 0xd, m_y + 0xd, 2,
-                                      0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, m_uiTitleId, 0, m_uiSummaryId, m_x + 0xd,
+                                      m_y + 0xd, VO_BLT_SRCTRANSPARENCY, 0);
         DrawTextLine(g_W8TextBufferAlignLeft, 0x25, 0xb, 0x147, 0x18, gppStringList[m_uiNameId],
                      g_options_detail_font);
         DrawTextLine(g_W8TextBufferAlignCenter, 0xd, 0x29, 0x8e, 0xc, gppStringList[m_uiHeadingId],
@@ -158,7 +158,7 @@ void W8ProfRaceInfoDialogBase::DrawTextLine(unsigned int layout_mode, int left, 
     bounds.bottom = bounds.top + height;
     buffer.SetLayoutBounds(&bounds, true, true);
     buffer.SetText(text, font);
-    buffer.RenderToTarget(0, false, -0xe);
+    buffer.RenderToTarget(0, false, FRAME_BUFFER);
 }
 
 // FUNCTION: WIZ8 0x005DEFB0
@@ -205,7 +205,7 @@ void W8ProfRaceInfoDialogBase::ScrollCallback(W8DialogScrollBar* scroll_bar,
         right = left + 0xaf;
         bottom = top + 0xb8;
         InvalidateRegion(left, top, right, bottom, 0);
-        BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
+        BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
         dialog->m_text_area.m_dirty = true;
     }
 }

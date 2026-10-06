@@ -67,13 +67,13 @@ enum W8NpcServiceFlag {
 
 W8Monster* GetNpcMonster(W8NpcState* npc);
 
-void ChooseNewGameStartLocation(int* level, int* entrance);                         /* 0x005092F0 */
-void SelectStartNpcGreeting(void);                                                  /* 0x00509560 */
-int SelectNewGameStartLevel(void);                                                  /* 0x00509750 */
-void BindNpcToMonster(unsigned char value, bool enabled, int location_id);          /* 0x00509CD0 */
-bool RecruitNpcIntoParty(W8NpcState* npc);                                          /* 0x0050B160 */
-int DismissNpcFromParty(int party_slot, int unused, bool skip_spawn, bool neutral); /* 0x0050B590 */
-void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character);              /* 0x0050DDC0 */
+void ChooseNewGameStartLocation(int* level, int* entrance);                  /* 0x005092F0 */
+void SelectStartNpcGreeting(void);                                           /* 0x00509560 */
+int SelectNewGameStartLevel(void);                                           /* 0x00509750 */
+void BindNpcToMonster(unsigned char value, bool enabled, int location_id);   /* 0x00509CD0 */
+bool RecruitNpcIntoParty(W8NpcState* npc);                                   /* 0x0050B160 */
+int DismissNpcFromParty(int party_slot, int, bool skip_spawn, bool neutral); /* 0x0050B590 */
+void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character);       /* 0x0050DDC0 */
 /* 0x0050B9B0: how many leading party slots are occupied. */
 unsigned char CountLeadingPartySlots(void);
 char GetNpcDisposition(W8NpcState* npc);           /* 0x0050A280 */
@@ -106,7 +106,7 @@ void ReleaseNpcStates(void); /* 0x005099D0 */
    reusing the slot of a released node when one is free. */
 W8NpcState* CreateNpcRuntimeNode(int npc_id);
 /* 0x0050AED0: expand the record's character block into a fresh character. */
-unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character);
+bool InitializeNpcCharacter(W8NpcState* npc, W8Character* character);
 /* 0x0050B9E0: copy the record's item table into the state's runtime arrays. */
 void InitializeNpcItemTable(W8NpcState* npc);
 
@@ -117,7 +117,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode);
    into the character's modifier block while the slot's flag_fe is set. */
 void ApplyBoundNpcPenalty(W8Character* character, W8GameplayModifierBlock* target);
 /* 0x0050C560: place or move the NPC's monster at the named world entity. */
-unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name);
+bool RestoreNpcMonster(W8NpcState* npc, const char* entity_name);
 /* 0x0050ABF0: the activation callback the rebinding installs on the level's
    NPC triggers. */
 void ResetNpcBindingsForParty(void);
@@ -160,22 +160,21 @@ void ClearNpcItemId(W8NpcState* npc, int item_id);
 W8NpcState* FindNpcStateByName(const char* name);
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
 const char* GetNpcDisplayName(W8NpcState* npc);
-void ReleaseNpcMonsterBinding(W8NpcState* npc, char level);                 /* 0x0050C440 */
-void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name); /* 0x0050C1C0 */
-unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id,
-                                    W8ItemInstance* out); /* 0x0050BA80 */
-void ReleaseNpcMonsterByKind(int kind);                   /* 0x0050C680 */
+void ReleaseNpcMonsterBinding(W8NpcState* npc, char level);                    /* 0x0050C440 */
+void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name);    /* 0x0050C1C0 */
+bool ClearNpcScheduledItem(W8NpcState* npc, int item_id, W8ItemInstance* out); /* 0x0050BA80 */
+void ReleaseNpcMonsterByKind(int kind);                                        /* 0x0050C680 */
 /* 0x0050DD50: record that the NPC has told the party the given fact. */
 void TellNpcFact(W8NpcState* npc, short fact);
 struct W8Chunk;
-unsigned char SaveNpcStates(W8Chunk* chunks);
+bool SaveNpcStates(W8Chunk* chunks);
 void LoadNpcStates(W8Chunk* chunks);
-unsigned char SaveNpcItemLists(int file);
-unsigned char LoadNpcItemLists(unsigned int file);
+bool SaveNpcItemLists(int file);
+bool LoadNpcItemLists(unsigned int file);
 char ScoreNpcTheft(W8Character* character, W8NpcState* npc, int item_id, int count);
 char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, int count);
 void UpdateNpcPartyMember(int party_slot);
-char QueueNpcDepartureEvents(int destination_level);
+bool QueueNpcDepartureEvents(int destination_level);
 
 /* 0x0050C9E0: test the NPC service bit for a region/service id. */
 bool NpcOffersService(W8NpcState* npc, unsigned int service_id);

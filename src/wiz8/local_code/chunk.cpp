@@ -49,14 +49,14 @@ unsigned char W8Chunk::Write(const void* buffer, unsigned int size, unsigned int
     return result;
 }
 
-unsigned char W8Chunk::OpenExistingRiff(char* path, unsigned int flags)
+bool W8Chunk::OpenExistingRiff(char* path, unsigned int flags)
 {
     if (m_hFile != 0) {
-        return 0;
+        return false;
     }
     m_hFile = FileOpen(path, flags, 0);
     if (m_hFile == 0) {
-        return 0;
+        return false;
     }
     m_fWriting = false;
     OpenChunk(0, 0);
@@ -65,39 +65,39 @@ unsigned char W8Chunk::OpenExistingRiff(char* path, unsigned int flags)
         srAssertFail("pHead", CHUNK_CPP, 0x1f0, 0);
     }
     if (head->chunk_id != W8_RIFF_CHUNK_ID) {
-        return 0;
+        return false;
     }
     OpenGroup();
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x0055c000
-unsigned char W8Chunk::OpenRead(char* path)
+bool W8Chunk::OpenRead(char* path)
 {
     return OpenExistingRiff(path, FILE_ACCESS_READ | FILE_OPEN_EXISTING);
 }
 
 // FUNCTION: WIZ8 0x0055be30
-unsigned char W8Chunk::OpenWrite(char* path)
+bool W8Chunk::OpenWrite(char* path)
 {
     if (m_hFile != 0) {
-        return 0;
+        return false;
     }
     m_hFile = FileOpen(path, FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS | FILE_TRUNCATE_EXISTING, 0);
     if (m_hFile == 0) {
-        return 0;
+        return false;
     }
     m_fWriting = true;
     OpenChunk(W8_RIFF_CHUNK_ID, 0);
     OpenGroup();
-    return 1;
+    return true;
 }
 
 /* Reopen an existing RIFF for append. Children are skipped under a temporary
    read so the file sits at the end of the group; the original child count is
    then pushed onto the write-side progress stack before writing is armed. */
 // FUNCTION: WIZ8 0x0055be80
-unsigned char W8Chunk::OpenAppend(char* path)
+bool W8Chunk::OpenAppend(char* path)
 {
     W8ChunkHead* head;
     int child_count;
@@ -106,7 +106,7 @@ unsigned char W8Chunk::OpenAppend(char* path)
     int distance;
 
     if (!OpenExistingRiff(path, FILE_ACCESS_READWRITE)) {
-        return 0;
+        return false;
     }
     child_count = m_group_counts.data[m_group_counts.GetCount() - 1];
     remaining = child_count;
@@ -128,11 +128,11 @@ unsigned char W8Chunk::OpenAppend(char* path)
     }
     m_group_progress.Add(child_count);
     m_fWriting = true;
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x0055c080
-unsigned char W8Chunk::OpenReadWrite(char* path)
+bool W8Chunk::OpenReadWrite(char* path)
 {
     return OpenExistingRiff(path, FILE_ACCESS_READWRITE | FILE_OPEN_EXISTING);
 }
@@ -167,7 +167,7 @@ void W8Chunk::Close()
 /* Materialize the source's active payload, reproduce its tag and grouping bit
    in this write stream, and finalize the copy as one complete chunk. */
 // FUNCTION: WIZ8 0x0055c1e0
-unsigned char W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
+bool W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
 {
     W8ChunkHead* source_head = source->m_heads.data[source->m_heads.GetCount() - 1];
     unsigned int transferred;
@@ -179,16 +179,16 @@ unsigned char W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
     }
     extent = source_head->extent;
     if (!m_fWriting) {
-        return 0;
+        return false;
     }
     contents = new unsigned char[extent];
     if (contents == 0) {
-        return 0;
+        return false;
     }
     source->Read(contents, extent, &transferred);
     if (extent != transferred) {
         delete[] contents;
-        return 0;
+        return false;
     }
     source_head = source->m_heads.data[source->m_heads.GetCount() - 1];
     if (source_head == 0) {
@@ -199,17 +199,17 @@ unsigned char W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
     if (extent != transferred) {
         delete[] contents;
         ReleaseCurrentChunk();
-        return 0;
+        return false;
     }
     ReleaseCurrentChunk();
     delete[] contents;
-    return 1;
+    return true;
 }
 
 /* Move past the unread remainder of the current head. Its absolute extent is
    combined with the active group's base offset and the current file position. */
 // FUNCTION: WIZ8 0x0055c390
-unsigned char W8Chunk::SkipCurrentChunk()
+bool W8Chunk::SkipCurrentChunk()
 {
     W8ChunkHead* head = m_heads.data[m_heads.GetCount() - 1];
     int position;
@@ -223,14 +223,14 @@ unsigned char W8Chunk::SkipCurrentChunk()
     if (distance != 0) {
         FileSeek(m_hFile, distance, FILE_SEEK_FROM_CURRENT);
     }
-    return 1;
+    return true;
 }
 
 /* A grouped chunk begins with its child count. Readers retain that count for
    the group walk. Writers mark the active head as grouped, reserve the count,
    and retain a zero completed-child counter until ReleaseGroup patches it. */
 // FUNCTION: WIZ8 0x0055c3f0
-unsigned char W8Chunk::OpenGroup()
+bool W8Chunk::OpenGroup()
 {
     unsigned int transferred;
 
@@ -239,7 +239,7 @@ unsigned char W8Chunk::OpenGroup()
 
         Read(&count, sizeof(count), &transferred);
         m_group_counts.Add(count);
-        return 1;
+        return true;
     } else {
         W8ChunkHead* head = m_heads.data[m_heads.GetCount() - 1];
         int position = FileGetPos(m_hFile);
@@ -254,18 +254,18 @@ unsigned char W8Chunk::OpenGroup()
         Write(&head->grouped, 1, &transferred);
         FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
         Write(&count, sizeof(count), &transferred);
-        return 1;
+        return true;
     }
 }
 
 /* Finish one grouped walk. Readers discard its retained child count. Writers
    patch the reserved word with the number of released children. */
 // FUNCTION: WIZ8 0x0055c5a0
-unsigned char W8Chunk::ReleaseGroup()
+bool W8Chunk::ReleaseGroup()
 {
     if (!m_fWriting) {
         m_group_counts.RemoveAt(m_group_counts.GetCount() - 1);
-        return 1;
+        return true;
     } else {
         unsigned int transferred;
         int position = FileGetPos(m_hFile);
@@ -275,7 +275,7 @@ unsigned char W8Chunk::ReleaseGroup()
         count = m_group_progress.RemoveAt(m_group_progress.GetCount() - 1);
         Write(&count, sizeof(count), &transferred);
         FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
-        return 1;
+        return true;
     }
 }
 
@@ -312,7 +312,7 @@ int W8Chunk::ChunkCount()
    read mode asks the stream to populate the header; write mode requires the
    caller to supply the tag. */
 // FUNCTION: WIZ8 0x0055c6d0
-unsigned char W8Chunk::OpenChunk(unsigned int chunk_id, unsigned char grouped)
+bool W8Chunk::OpenChunk(unsigned int chunk_id, unsigned char grouped)
 {
     W8ChunkHead* head = new W8ChunkHead;
     unsigned int transferred;
@@ -344,14 +344,14 @@ unsigned char W8Chunk::OpenChunk(unsigned int chunk_id, unsigned char grouped)
     }
     m_heads.Add(head);
     m_offsets.Add(FileGetPos(m_hFile));
-    return 1;
+    return true;
 }
 
 /* Remove the active header. Writers patch its extent in place; readers only
    discard the saved payload offset. A nested group advances its parent's
    completed-child count. */
 // FUNCTION: WIZ8 0x0055c930
-unsigned char W8Chunk::ReleaseCurrentChunk()
+bool W8Chunk::ReleaseCurrentChunk()
 {
     m_heads.RemoveAtAndDelete(m_heads.GetCount() - 1);
     if (m_fWriting) {
@@ -369,7 +369,7 @@ unsigned char W8Chunk::ReleaseCurrentChunk()
         m_group_progress.data[m_group_progress.GetCount() - 1] =
             m_group_progress.data[m_group_progress.GetCount() - 1] + 1;
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x0055cae0

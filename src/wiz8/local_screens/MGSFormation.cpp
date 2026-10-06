@@ -75,7 +75,7 @@ void ResetFormationCellControls(int cell);
 /* Draw each occupied slot's facing arrow and marching-order chip into the
    board image; the slot the board highlights gets the +1 frame of each. */
 // FUNCTION: WIZ8 0x005b1f40
-void DrawFormationSlotMarkers(int target)
+void DrawFormationSlotMarkers(UINT32 target)
 {
     int slot;
 
@@ -98,8 +98,8 @@ void DrawFormationSlotMarkers(int target)
             image += 1;
             order_image += 1;
         }
-        DrawCatalogImage(target, 0x9c, 0, image, left, top, 2, 0);
-        DrawCatalogImage(target, 0x9d, 0, order_image, left, top, 2, 0);
+        DrawCatalogImage(target, 0x9c, 0, image, left, top, VO_BLT_SRCTRANSPARENCY, 0);
+        DrawCatalogImage(target, 0x9d, 0, order_image, left, top, VO_BLT_SRCTRANSPARENCY, 0);
     }
 }
 
@@ -629,10 +629,10 @@ static void BeginFormationDrag(const InputAtom*)
     region = GetCatalogVideoObjectYOffset(0x9f) + static_cast<short>(sprite);
     video_object = GetCatalogVideoObjectHandle(0x9f, 0);
     SetMouseCursorFromVideoObject(video_object, region, 0x10, 0x10);
-    DrawCatalogImage(-0xd, 0xa0, 0,
+    DrawCatalogImage(MOUSE_BUFFER, 0xa0, 0,
                      static_cast<short>(
                          g_formation_cell_overlays[g_formation_drag_cell]->m_alternateNormalSprite),
-                     0, 0, 2, 0);
+                     0, 0, VO_BLT_SRCTRANSPARENCY, 0);
     WarpSystemCursor(point.x - 0x10, point.y - 0x10);
     RefreshMouseCursorTexture();
     gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
@@ -658,9 +658,9 @@ static void DropFormationSlot(int cell)
     }
     UpdateHeldItemCursor();
     UpdateFormationCells();
-    g_formation_cell_overlays[g_formation_drag_cell]->SetAlternateTextEnabled(0);
+    g_formation_cell_overlays[g_formation_drag_cell]->SetAlternateTextEnabled(false);
     if (cell != -1) {
-        g_formation_cell_overlays[cell]->SetAlternateTextEnabled(1);
+        g_formation_cell_overlays[cell]->SetAlternateTextEnabled(true);
         g_formation_active_cell = cell;
         g_level_block->formation_highlight_party_slot = g_formation_cell_slots[cell];
         RequestRedraw(1 << (g_level_block->formation_highlight_party_slot & 0x1f));

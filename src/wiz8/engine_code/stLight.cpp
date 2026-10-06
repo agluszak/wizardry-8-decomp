@@ -37,7 +37,7 @@ unsigned int g_light_update_flags = 1;
 /* rand() normalization to a 0..1 flicker probability; only Update
    uses it. */
 // GLOBAL: WIZ8 0x005ec1e4
-const float g_float_005ec1e4 = 3.0518509447574615e-05f;
+const float g_light_flicker_random_unit_scale = 3.0518509447574615e-05f;
 
 /* The parent-taking constructor never forwards the parent to srLight: the base
    runs with its own defaults and the node is linked afterwards, which is why
@@ -118,7 +118,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
     }
 
     if (!testFlag(FLAG_TERMINATE)) {
-        if (testFlag(FLAG_DISABLE) || fabs(intensity) <= g_double_005ebc70 ||
+        if (testFlag(FLAG_DISABLE) || fabs(intensity) <= g_double_one_ten_thousandth ||
             (g_light_update_flags & 1) == 0) {
             if (first_child_ != 0) {
                 first_child_->traverse(info);
@@ -266,10 +266,10 @@ void stLight::Update()
 
     unsigned long ticks = GetTickCount();
     W8PathAI* path = path_ai;
-    float seconds = ticks * g_float_005ec128;
+    float seconds = ticks * g_float_one_thousandth;
     stParametricLightDefinition* definition =
         static_cast<stParametricLightDefinition*>(m_definition);
-    if (definition->period < g_float_005ebc90) {
+    if (definition->period < g_float_one_ten_thousandth) {
         definition->period = 1.0f;
     }
     unsigned int mode = definition->flags & W8_PARAM_LIGHT_MODE_MASK;
@@ -344,7 +344,7 @@ void stLight::Update()
             }
         } else {
             int roll = rand();
-            if (roll * g_float_005ec1e4 < definition->flicker_chance) {
+            if (roll * g_light_flicker_random_unit_scale < definition->flicker_chance) {
                 if (testFlag(FLAG_DISABLE) == 0) {
                     setFlag(FLAG_DISABLE);
                     if (instance != 0) {

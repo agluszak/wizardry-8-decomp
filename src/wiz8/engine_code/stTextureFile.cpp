@@ -128,7 +128,7 @@ void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8Tg
 }
 
 // FUNCTION: WIZ8 0x0047C090
-srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
+srColorSurface* __stdcall LoadSurface(int handle, long*)
 {
     W8TgaHeader header;
     unsigned short width;

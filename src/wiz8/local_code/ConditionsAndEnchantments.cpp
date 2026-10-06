@@ -1,3 +1,5 @@
+#include "wiz8/monster_cycles.h"
+#include "wiz8/conditions.h"
 #include "wiz8/fonts.h"
 #include <string.h>
 
@@ -61,37 +63,37 @@ unsigned short g_condition_notices[128] = {
     0x3a1, 0x3a2, 0x3a3, 0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
 };
 // FUNCTION: WIZ8 0x005248a0
-unsigned char GetConditionRecordFlag(int party_slot, int condition)
+bool GetConditionRecordFlag(int party_slot, W8CharacterDependence dependence)
 {
-    return g_status.buffers.Char[party_slot].conditions[condition].active;
+    return g_status.buffers.Char[party_slot].conditions[dependence].active;
 }
 
 // FUNCTION: WIZ8 0x005248D0
 void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info)
 {
-    for (unsigned int slot_kind = 0; slot_kind < 2; ++slot_kind) {
+    for (unsigned int slot_kind = 0; slot_kind < W8_DEPENDENCE_COUNT; ++slot_kind) {
         bool cleared = false;
         if ((monster_info->condition_binding_mask & (1 << slot_kind)) != 0) {
             W8Condition condition;
             switch (slot_kind) {
-            case 0:
+            case W8_DEPENDENCE_SUMMON:
                 condition = W8_CONDITION_NONE;
                 break;
-            case 1:
+            case W8_DEPENDENCE_SWALLOWED:
                 condition = W8_CONDITION_MISSING;
                 break;
             }
             for (unsigned int party_slot = 0; party_slot < 8; ++party_slot) {
                 W8Character* character = &g_status.buffers.Char[party_slot];
                 W8CharacterConditionRecord* record = &character->conditions[slot_kind];
-                if ((condition == 0 || character->uiCondition[condition] != 0) &&
+                if ((condition == W8_CONDITION_NONE || character->uiCondition[condition] != 0) &&
                     record->level_acquired == g_status.current_level &&
                     record->source_monster == monster_info->location_id) {
                     cleared = true;
                     record->active = false;
                     record->level_acquired = 0;
                     record->source_monster = 0;
-                    if (condition != 0 && character->fInParty) {
+                    if (condition != W8_CONDITION_NONE && character->fInParty) {
                         RemoveCharacterCondition(party_slot, condition, true);
                     }
                 }
@@ -99,8 +101,8 @@ void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info)
             if (!cleared && slot_kind == 0) {
                 for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                     W8MonsterInfo* bound = MonsterGetScriptPartByLocationIndex(index);
-                    if (bound->insanity_summon == monster_info->location_id) {
-                        bound->insanity_summon = -1;
+                    if (bound->elemental_summon == monster_info->location_id) {
+                        bound->elemental_summon = -1;
                         break;
                     }
                 }
@@ -190,7 +192,7 @@ void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announ
         if (!can_rest && party_slot > -1 && party_slot < 8 && row->fOccupied &&
             character->hp_current != 0 && character->highest_condition < W8_CONDITION_TURNCOAT &&
             gXStatus.fCombatMode &&
-            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
+            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, false, false)) {
             RefreshCombatTargetHighlights(party_slot, &row->target_in_combat);
         }
     }
@@ -374,8 +376,8 @@ void ApplyCharacterCondition(int party_slot, W8EnchantmentSlot slot, int argumen
         enchantment->percent = static_cast<unsigned short>(percent);
         enchantment->turns = duration;
         if (slot == W8_ENCHANTMENT_GUARDIAN_ANGEL) {
-            enchantment->magnitude =
-                static_cast<short>(RollDice(&g_spell_records[0x15].effect_dice) * argument);
+            enchantment->magnitude = static_cast<short>(
+                RollDice(&g_spell_records[W8_SPELL_GUARDIAN_ANGEL].effect_dice) * argument);
             enchantment->magnitude =
                 static_cast<short>((static_cast<unsigned int>(enchantment->magnitude) * percent) /
                                    100) +
@@ -442,8 +444,8 @@ void TickCharacterCondition(unsigned int party_slot, W8Condition condition, unsi
 }
 
 // FUNCTION: WIZ8 0x00523C00
-void SetMonsterCondition(int location_id, W8Condition condition, int duration, int argument,
-                         W8TargetSource* target, char announce)
+void SetMonsterCondition(int location_id, W8Condition condition, int duration, int poison_strength,
+                         W8TargetSource* target, bool announce)
 {
     unsigned int list_index;
     W8MonsterInfo* monster_info;
@@ -456,12 +458,12 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
     int slot;
     bool handled;
 
-    if (argument != 0 && condition != W8_CONDITION_POISONED) {
+    if (poison_strength != 0 && condition != W8_CONDITION_POISONED) {
         srAssertFail("(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x220,
                      0);
     }
-    if (condition == W8_CONDITION_POISONED && argument == 0) {
+    if (condition == W8_CONDITION_POISONED && poison_strength == 0) {
         return;
     }
     switch (condition) {
@@ -549,9 +551,9 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
             monster_info->condition_target = *target;
         }
     }
-    if (static_cast<unsigned int>(argument) >
+    if (static_cast<unsigned int>(poison_strength) >
         static_cast<unsigned int>(monster_info->condition_argument)) {
-        monster_info->condition_argument = argument;
+        monster_info->condition_argument = poison_strength;
         handled = true;
     }
     RebuildMonsterDerivedStats(location_id);
@@ -565,13 +567,13 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
         MonsterStartsDying(monster_info, announce);
         return;
     }
-    if (announce != 0 && (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player)) {
+    if (announce && (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", name,
                     gppStringList[g_condition_notices[condition * 4 + 1]]);
     }
     if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle)) {
-        StartMonsterCycle(monster_info, 0x14, 1);
+        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_GET_HIT, 1);
     }
 }
 /* Clearing a monster's condition also re-derives its highest set condition
@@ -688,7 +690,8 @@ void TickMonsterCondition(int location_id, W8Condition condition, unsigned int m
    transitions. */
 // FUNCTION: WIZ8 0x00522FE0
 unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int duration,
-                                    int argument, char value_5, char value_6)
+                                    int poison_strength, char alternate_missing_notice,
+                                    char announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
@@ -701,12 +704,12 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x2a,
                      0);
     }
-    if (argument != 0 && condition != W8_CONDITION_POISONED) {
+    if (poison_strength != 0 && condition != W8_CONDITION_POISONED) {
         srAssertFail("(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x2d,
                      0);
     }
-    if (condition == W8_CONDITION_POISONED && argument == 0) {
+    if (condition == W8_CONDITION_POISONED && poison_strength == 0) {
         return 0;
     }
     if (condition == W8_CONDITION_DEAD && CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) &&
@@ -749,7 +752,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
         }
         break;
     case W8_CONDITION_INSANE:
-        if (duration == 9999) {
+        if (duration == W8_CONDITION_INDEFINITE) {
             break;
         }
         /* fall through */
@@ -779,8 +782,8 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
         handled = false;
     }
     if (static_cast<unsigned int>(character->condition_argument) <
-        static_cast<unsigned int>(argument)) {
-        character->condition_argument = argument;
+        static_cast<unsigned int>(poison_strength)) {
+        character->condition_argument = poison_strength;
     }
     RebuildConditionsAndDerivedStats(party_slot);
     if (!handled) {
@@ -795,8 +798,8 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
     if (old_highest != character->highest_condition) {
         QueueConditionChangeReaction(character);
     }
-    if (value_6 != 0) {
-        if (condition == W8_CONDITION_MISSING && value_5 != 0) {
+    if (announce != 0) {
+        if (condition == W8_CONDITION_MISSING && alternate_missing_notice != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x1d5]);
         } else {
             PostCharacterNotice(party_slot, L"%s!",
@@ -833,7 +836,7 @@ void CopyCharacterConditionsToTarget(const W8Character* character, const int* ta
                 argument = 0;
             }
             SetMonsterCondition(*target, static_cast<W8Condition>(condition), duration, argument,
-                                &target_block, 0);
+                                &target_block, false);
         }
     }
 }
@@ -923,7 +926,7 @@ void ApplyMonsterCondition(int location_id, W8EnchantmentSlot slot, int argument
         enchantment->percent = static_cast<unsigned short>(percent);
         enchantment->turns = duration;
         if (slot == W8_ENCHANTMENT_GUARDIAN_ANGEL) {
-            int roll = RollDice(&g_spell_records[0x15].effect_dice);
+            int roll = RollDice(&g_spell_records[W8_SPELL_GUARDIAN_ANGEL].effect_dice);
             enchantment->magnitude =
                 static_cast<short>(
                     (static_cast<unsigned int>(static_cast<unsigned short>(roll * argument)) *
@@ -1107,7 +1110,7 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
     if (party_slot >= 8) {
         srAssertFail("uiChar < MAX_CHARS", CONDITIONS_CPP, 0x447, 0);
     }
-    if (dependence_slot >= 2) {
+    if (dependence_slot >= W8_DEPENDENCE_COUNT) {
         srAssertFail("uiDependence < DEPEND_COND_COUNT", CONDITIONS_CPP, 0x448, 0);
     }
     if (monster_id == -1) {
@@ -1118,7 +1121,7 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
         MonsterGetIndexByLocationID(0x44b, CONDITIONS_CPP, monster_id, true));
     monster_info->condition_binding_mask =
         static_cast<unsigned char>(monster_info->condition_binding_mask | (1 << dependence_slot));
-    if (dependence_slot == 1) {
+    if (dependence_slot == W8_DEPENDENCE_SWALLOWED) {
         RetireMonsterGroupAndAllies(GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x455, CONDITIONS_CPP, monster_info->monster_group_id, true)));
     }

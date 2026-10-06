@@ -198,7 +198,8 @@ void DrawPartyMovementPanel(void)
         clip.iRight = 0x1b9;
         clip.iBottom = 0x1e0;
         SetClippingRect(&clip);
-        DrawCatalogImageAndInvalidate(-0xe, 0x96, 0, image, 0xc3, 0x144, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x96, 0, image, 0xc3, 0x144,
+                                      VO_BLT_SRCTRANSPARENCY, 0);
         SetClippingRect(&previous);
     }
     DrawPartyMovementGauge(right, image, panel_live, caption);
@@ -259,13 +260,13 @@ void DrawPartyMovementGauge(short right, short image, bool panel_live, int capti
         }
         return;
     }
-    DrawCatalogImageAndInvalidate(-0xe, 0x95, 0,
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x95, 0,
                                   g_party_movement_animation_frame + frame_base + frame,
-                                  right - 0xf, 0x142, 2, 0);
+                                  right - 0xf, 0x142, VO_BLT_SRCTRANSPARENCY, 0);
     InvalidateRegion(right - 0xf, 0x142, right - 1, 0x150, 0);
     if (caption != -1) {
         g_party_movement_caption->SetText(gppStringList[caption], g_wiz_text_font_secondary);
-        g_party_movement_caption->RenderToTarget(0, false, -0xe);
+        g_party_movement_caption->RenderToTarget(0, false, FRAME_BUFFER);
     }
 }
 
@@ -354,7 +355,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
         }
         amount = *frame_elapsed;
         if (g_status.search_mode != 0 || gXStatus.fCombatMode) {
-            amount = *real_elapsed * g_float_005ebc7c + amount;
+            amount = *real_elapsed * g_float_half + amount;
         }
         switch (character->load_category) {
         case 0:
@@ -380,7 +381,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
             multiplier += multiplier;
         }
         if (character->uiCondition[W8_CONDITION_DISEASED] != 0) {
-            multiplier *= g_float_005ec3b8;
+            multiplier *= g_float_one_and_a_half;
         }
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;
         if (row->movement_fatigue > g_position_height_epsilon) {

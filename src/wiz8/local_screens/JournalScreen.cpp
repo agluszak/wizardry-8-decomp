@@ -206,7 +206,7 @@ void DrawJournalLine(const wchar_t* text, int column, int y, int palette, bool c
         }
     }
     SetFont(g_journal_font);
-    SetFontDestBuffer(-14, left, y, left + right, y + 0x1e, 0);
+    SetFontDestBuffer(FRAME_BUFFER, left, y, left + right, y + 0x1e, 0);
     if (palette == 0) {
         SetFontObjectPalette16BPP(g_journal_font, g_journal_font_original_palette);
     } else if (palette == 1) {
@@ -232,7 +232,7 @@ void W8JournalPanel::Refresh()
         wchar_t page_text[20];
         swprintf(page_text, g_journal_page_format, g_journal_page + 1, page_count);
         m_page_text->SetText(page_text, g_options_detail_font);
-        DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x1b8, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
         DrawJournalLine(gppStringList[0x6db], 0, 0x19, 0, true);
         DrawJournalLine(gppStringList[0x6dc], 1, 0x19, 0, true);
 
@@ -267,7 +267,7 @@ void W8JournalPanel::Refresh()
         m_next->SetEnabled(false);
         m_previous->SetEnabled(false);
         m_page_text->SetText(g_journal_alternate_page, g_options_detail_font);
-        DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x1b8, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
         DrawJournalLine(gppStringList[0x6de], 0, 0x19, 0, true);
         DrawJournalLine(gppStringList[0x6df], 1, 0x19, 0, true);
 
@@ -356,7 +356,7 @@ void W8JournalPanel::Redraw()
 {
     if (m_fEnabled && (m_fDirty || m_fLayoutDirty)) {
         Controls::Redraw();
-        m_page_text->RenderToTarget(0, true, -14);
+        m_page_text->RenderToTarget(0, true, FRAME_BUFFER);
     }
 }
 
@@ -453,7 +453,7 @@ unsigned char JournalScreenEnter(void)
         }
     }
     g_journal_panel->Refresh();
-    DrawCatalogImageAndInvalidate(-14, 0x1b7, 0, 1, 0, 0x1b4, 2, 0);
+    DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x1b7, 0, 1, 0, 0x1b4, VO_BLT_SRCTRANSPARENCY, 0);
     return 1;
 }
 

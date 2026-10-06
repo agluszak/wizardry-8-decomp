@@ -1,3 +1,4 @@
+#include "vsurface.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/dialog_code/DialogTextEntry.h"
@@ -76,8 +77,8 @@ void W8DialogTextEntry::Draw(bool force)
         }
     }
     SetFontObjectPalette16BPP(m_font, palette);
-    SetFontDestBuffer(-14, m_pendingBounds.left, m_pendingBounds.top, m_pendingBounds.right,
-                      m_pendingBounds.bottom, 0);
+    SetFontDestBuffer(FRAME_BUFFER, m_pendingBounds.left, m_pendingBounds.top,
+                      m_pendingBounds.right, m_pendingBounds.bottom, 0);
     int y = GetVerticalPosition();
     wchar_t* line = copy;
     size_t span = wcscspn(line, g_W8LineBreakCharacters);
@@ -130,7 +131,7 @@ void W8DialogTextEntry::Draw(bool force)
 done:
     InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top, m_layoutBounds.right,
                      m_layoutBounds.bottom, 0);
-    SetFontDestBuffer(-14, 0, 0, 640, 480, 0);
+    SetFontDestBuffer(FRAME_BUFFER, 0, 0, 640, 480, 0);
     m_geometryDirty = false;
     delete[] copy;
 }

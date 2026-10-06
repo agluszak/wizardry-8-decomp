@@ -82,7 +82,7 @@ static_assert(sizeof(W8CharacterPageEntry) == 0x3c, "W8CharacterPageEntry_size")
    below all call it and SelectPage dispatches these primary slots. */
 class W8CharacterPage : public Controls {
 public:
-    W8CharacterPage(int render_target);                           /* 0x005AFD90 */
+    W8CharacterPage(int catalog_object);                          /* 0x005AFD90 */
     virtual ~W8CharacterPage();                                   /* 0x005AFE40 */
     virtual void Invalidate(const W8ControlsRect* rect) override; /* 0x005AFF50 */
     virtual void Redraw() override;                               /* 0x005AFF20 */
@@ -135,7 +135,7 @@ class W8CharacterStatsValue : public W8TextControl {
 public:
     W8CharacterStatsValue(Controls* owner, int x, int y,
                           const W8CharacterStatsRecord* default_record);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     virtual void OnRightButtonUp(int event) override;
     void SetRecord(const W8CharacterStatsRecord* record);
 

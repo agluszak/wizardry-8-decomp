@@ -96,8 +96,9 @@ bool g_world_mesh_update_enabled = true;
 // GLOBAL: WIZ8 0x00609c88
 float g_mesh_view_half_angle_degrees = 60.0f;
 
+/* Retail flag 0x10 sets this latch; no reader survives in the shipped image. */
 // GLOBAL: WIZ8 0x00609c8c
-bool g_flag_00609c8c = true;
+bool g_world_update_requested = true;
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
@@ -391,9 +392,9 @@ void DetachAllWorldItems(void)
 }
 
 // GLOBAL: WIZ8 0x005ec1f8
-const double g_double_005ec1f8 = 3.141592653589793;
+const double g_world_camera_pi = 3.141592653589793;
 // GLOBAL: WIZ8 0x005ebce8
-const double g_double_005ebce8 = 180.0;
+const double g_world_camera_half_turn_degrees = 180.0;
 // GLOBAL: WIZ8 0x00607d84
 static float g_camera_base_horizontal_fov = 85.0f;
 // GLOBAL: WIZ8 0x00607d88
@@ -415,17 +416,18 @@ void SetCameraSwayMode(srCamera* camera, int mode)
 
     if (mode != 0) {
         if (mode > 0) {
-            g_camera_base_horizontal_fov = static_cast<float>(
-                camera->getHorizontalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
+            g_camera_base_horizontal_fov =
+                static_cast<float>(camera->getHorizontalFOV() *
+                                   (g_world_camera_half_turn_degrees / g_world_camera_pi));
             g_camera_base_vertical_fov = static_cast<float>(
-                camera->getVerticalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
+                camera->getVerticalFOV() * (g_world_camera_half_turn_degrees / g_world_camera_pi));
             if (!g_camera_sway_active) {
                 g_camera_sway_horizontal_phase = 0.0f;
                 g_camera_sway_vertical_phase = 0.0f;
                 BeginCameraSway();
             }
         } else {
-            double radians = g_double_005ec1f8 * g_float_005ebcf8;
+            double radians = g_world_camera_pi * g_float_inverse_half_turn_degrees;
             camera->setViewPlane(radians * g_camera_base_horizontal_fov,
                                  radians * g_camera_base_vertical_fov);
             EndCameraSway();
@@ -445,7 +447,7 @@ void SetCameraSwayMode(srCamera* camera, int mode)
         g_camera_sway_vertical_phase -= 360.0f;
     }
 
-    double radians = g_double_005ec1f8 * g_float_005ebcf8;
+    double radians = g_world_camera_pi * g_float_inverse_half_turn_degrees;
     camera->setViewPlane(
         (sin(radians * g_camera_sway_horizontal_phase) * 0.75 + g_camera_base_horizontal_fov) *
             radians,
@@ -703,7 +705,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                     if (path->position >= path->nodes->GetCount() - g_float_one) {
                         UpdateCameraPathState(world, camera_path, 0);
                     }
-                } else if (path->position >= g_double_005ebc30) {
+                } else if (path->position >= g_double_one) {
                     UpdateCameraPathState(world, camera_path, 0);
                 }
             }
@@ -968,7 +970,7 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         WorldSetFarClip(world,
                         static_cast<float>(WorldGetFarClip(world)) + g_position_height_epsilon);
         scale = 2.0f;
-        if (WorldGetFarClip(world) >= g_float_005ec260) {
+        if (WorldGetFarClip(world) >= g_float_fifty_thousand) {
             scale = 1.5f;
         }
         WorldSetRenderRange(world, static_cast<float>(WorldGetFarClip(world)) * scale);
@@ -977,32 +979,31 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         WorldSetFarClip(world,
                         static_cast<float>(WorldGetFarClip(world)) - g_position_height_epsilon);
         scale = 2.0f;
-        if (WorldGetFarClip(world) >= g_float_005ec260) {
+        if (WorldGetFarClip(world) >= g_float_fifty_thousand) {
             scale = 1.5f;
         }
         WorldSetRenderRange(world, static_cast<float>(WorldGetFarClip(world)) * scale);
     }
     if ((flags & W8_WORLD_WIDEN_MESH_VIEW) != 0 &&
-        g_mesh_view_half_angle_degrees < g_float_005ec25c) {
-        g_mesh_view_half_angle_degrees += g_float_005ebc88;
+        g_mesh_view_half_angle_degrees < g_float_half_turn_degrees) {
+        g_mesh_view_half_angle_degrees += g_float_ten;
     }
-    if ((flags & W8_WORLD_NARROW_MESH_VIEW) != 0 &&
-        g_mesh_view_half_angle_degrees > g_float_005ebc88) {
-        g_mesh_view_half_angle_degrees -= g_float_005ebc88;
+    if ((flags & W8_WORLD_NARROW_MESH_VIEW) != 0 && g_mesh_view_half_angle_degrees > g_float_ten) {
+        g_mesh_view_half_angle_degrees -= g_float_ten;
     }
     if ((flags & 0x10) != 0) {
-        g_flag_00609c8c = true;
+        g_world_update_requested = true;
     }
     if ((flags & W8_WORLD_TOGGLE_LOADED) != 0) {
         world->m_loaded = !world->m_loaded;
     }
     if ((flags & W8_WORLD_INCREASE_ENVIRONMENT) != 0) {
         SetWorldEnvironmentIntensity(g_world,
-                                     GetWorldEnvironmentIntensity(g_world) + g_float_005ec258);
+                                     GetWorldEnvironmentIntensity(g_world) + g_float_one_fiftieth);
     }
     if ((flags & W8_WORLD_DECREASE_ENVIRONMENT) != 0) {
         SetWorldEnvironmentIntensity(g_world,
-                                     GetWorldEnvironmentIntensity(g_world) - g_float_005ec258);
+                                     GetWorldEnvironmentIntensity(g_world) - g_float_one_fiftieth);
     }
 }
 

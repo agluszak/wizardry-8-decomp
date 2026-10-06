@@ -327,7 +327,7 @@ extern W8LevelDataRecord* g_level_data;
    transitions; its target's +0 flags have 0x200 masked off at 0x0044FCD0. */
 extern unsigned int* g_level_flags;
 /* Teardown flag tested and cleared by ReleaseLevelData. */
-extern bool g_flag_00652dcc;
+extern bool g_level_data_teardown_flag;
 /* Read by the level-data reset and written by the GameData constructor in
    GDFileIO.cpp. */
 extern W8EnvironRecord* g_environ;

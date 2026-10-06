@@ -31,9 +31,9 @@
 // STRING: WIZ8 0x006081fc
 #define NAVIGATOR_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp"
 // GLOBAL: WIZ8 0x005ec2f8
-const float g_float_005ec2f8 = 5000.0f;
+const float g_float_five_thousand = 5000.0f;
 // GLOBAL: WIZ8 0x005ec030
-const double g_double_005ec030 = 2500.0;
+const double g_double_twenty_five_hundred = 2500.0;
 
 /* The world object the navigator notifies when it leaves a location, and
    the notification itself. 0x0042E880 sits outside every assertion-backed
@@ -51,8 +51,7 @@ W8GrowableVector<W8Navigator*> g_registered_navigators(5);
    crossing point into path_destination and over the first outside waypoint, moves
    path_position_index there, and clears flag 0x00400000. */
 // FUNCTION: WIZ8 0x004566C0
-unsigned char W8NavigatorAttachment::TruncatePathAtRadius(const srVector3T<float>* target,
-                                                          float radius)
+bool W8NavigatorAttachment::TruncatePathAtRadius(const srVector3T<float>* target, float radius)
 {
     unsigned int index = path_cursor;
     float distance = (path_positions[index] - *target).Length();
@@ -82,10 +81,10 @@ unsigned char W8NavigatorAttachment::TruncatePathAtRadius(const srVector3T<float
         path_positions[index] = path_destination;
         path_position_index = static_cast<unsigned short>(index);
         flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
-        return 1;
+        return true;
     }
     flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
-    return 0;
+    return false;
 }
 
 /* The stored route's total length, measured on first use from path_length_origin
@@ -593,7 +592,7 @@ void W8Navigator::GetVelocity(srVector3T<float>* velocity)
 }
 
 // FUNCTION: WIZ8 0x00454950
-unsigned char W8Navigator::UpdateTrackedPosition()
+bool W8Navigator::UpdateTrackedPosition()
 {
     float distance = (tracked_position - movement.position).Length();
 
@@ -869,7 +868,7 @@ const float g_navigator_linked_radius_scale = 4.0f;
 // GLOBAL: WIZ8 0x005ebcc8
 const float g_navigator_vertical_phase_step = 0.25f;
 // GLOBAL: WIZ8 0x005ec150
-extern const double g_double_005ec150 = 500.0;
+extern const double g_double_five_hundred = 500.0;
 // GLOBAL: WIZ8 0x006081ec
 float g_navigator_minimum_speed = 0.5f;
 // GLOBAL: WIZ8 0x006081f0
@@ -932,11 +931,11 @@ void W8Navigator::UpdateLinkedNavigator()
             goto follow_path;
         }
     }
-    if (UpdateLinkedPosition() != 0) {
+    if (UpdateLinkedPosition()) {
         return;
     }
 follow_path:
-    if (g_octree->pathing->PrepareLinkedNavigator(&movement) != 0) {
+    if (g_octree->pathing->PrepareLinkedNavigator(&movement)) {
         if (movement_stopped) {
             ClearMovementStopped();
         }
@@ -947,10 +946,10 @@ follow_path:
 }
 
 // FUNCTION: WIZ8 0x00454fe0
-unsigned char W8Navigator::UpdateLinkedPosition()
+bool W8Navigator::UpdateLinkedPosition()
 {
     if (linked_navigator == 0) {
-        return 0;
+        return false;
     }
     srVector3T<float> position;
     if (linked_navigator->movement_stopped) {
@@ -958,7 +957,7 @@ unsigned char W8Navigator::UpdateLinkedPosition()
                                             linked_navigator->movement.yaw,
                                             movement.collision_radius + movement.collision_radius,
                                             1, &position, true, false, false, 5, true) == 0) {
-            return 0;
+            return false;
         }
         SetMovementStopped();
     } else {
@@ -974,7 +973,7 @@ unsigned char W8Navigator::UpdateLinkedPosition()
     SetPosition(&position);
     g_octree->RegisterNavigatorCell(movement.location_id, &position);
     linked_update_time = 0;
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x00454440
@@ -1170,16 +1169,16 @@ void W8Navigator::SetVelocity(const srVector3T<float>* velocity)
 }
 
 // FUNCTION: WIZ8 0x00453540
-unsigned char W8Navigator::CheckNavigatorCollision(const srVector3T<float>* from,
-                                                   const srVector3T<float>* to)
+bool W8Navigator::CheckNavigatorCollision(const srVector3T<float>* from,
+                                          const srVector3T<float>* to)
 {
     W8Navigator* blocker =
         ResolveBlockingNavigator(from, const_cast<srVector3T<float>*>(to), false);
 
     if (blocker != 0 && OnCollision(blocker) && blocker->OnCollision(this)) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 /* Re-prime the attachment for a new movement segment: keep only the link flag
    bits, reseed the path cursors at one, copy source and destination into the
@@ -1252,8 +1251,7 @@ void W8NavigatorAttachment::GetNextPosition(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x00456830
-unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions(float distance,
-                                                               srVector3T<float>* position)
+bool W8NavigatorAttachment::AdvanceAlongPathPositions(float distance, srVector3T<float>* position)
 {
     srVector3T<float> local;
     srVector3T<float> delta;
@@ -1271,8 +1269,8 @@ unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions(float distance,
     flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
     delta = path_positions[path_cursor] - local;
     segment = delta.xz().Length();
-    if (segment < g_double_005ebc30 && path_cursor == path_position_index) {
-        return 0;
+    if (segment < g_double_one && path_cursor == path_position_index) {
+        return false;
     }
     if (segment < distance) {
         do {
@@ -1296,8 +1294,7 @@ unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions(float distance,
         on_path = false;
     } else {
         t = distance / segment;
-        *position =
-            local * static_cast<float>(g_double_005ebc30 - t) + path_positions[path_cursor] * t;
+        *position = local * static_cast<float>(g_double_one - t) + path_positions[path_cursor] * t;
     }
     if (path_cursor > 1) {
         for (position_cursor = 0; path_cursor + position_cursor <= path_position_index;
@@ -1314,7 +1311,7 @@ unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions(float distance,
 }
 
 // FUNCTION: WIZ8 0x00456CB0
-unsigned char W8NavigatorAttachment::CheckPositionHopHeight(const srVector3T<float>* position)
+bool W8NavigatorAttachment::CheckPositionHopHeight(const srVector3T<float>* position)
 {
     int base;
     int end;
@@ -1333,7 +1330,7 @@ unsigned char W8NavigatorAttachment::CheckPositionHopHeight(const srVector3T<flo
     }
     end = base + 1;
     if (path_position_index < end) {
-        return 0;
+        return false;
     }
     point = position->xz();
     from = path_positions[base].xz();
@@ -1349,7 +1346,7 @@ unsigned char W8NavigatorAttachment::CheckPositionHopHeight(const srVector3T<flo
 }
 
 // FUNCTION: WIZ8 0x00456DD0
-unsigned char W8NavigatorAttachment::CheckPredictedHopHeight(const srVector3T<float>* position)
+bool W8NavigatorAttachment::CheckPredictedHopHeight(const srVector3T<float>* position)
 {
     srVector2T<float> point;
     srVector2T<float> from;
@@ -1388,8 +1385,8 @@ unsigned char W8NavigatorAttachment::CheckPredictedHopHeight(const srVector3T<fl
 }
 
 // FUNCTION: WIZ8 0x00456F60
-unsigned char W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<float>* position,
-                                                                   float distance)
+bool W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<float>* position,
+                                                          float distance)
 {
     srVector2T<float> point;
     srVector2T<float> from;
@@ -1442,9 +1439,9 @@ unsigned char W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<fl
    direction toward the current waypoint into `direction`; one once the final
    waypoint is reached. */
 // FUNCTION: WIZ8 0x00457150
-unsigned char W8NavigatorAttachment::AdvancePositionWithDirection(srVector3T<float>* position,
-                                                                  float distance,
-                                                                  srVector3T<float>* direction)
+bool W8NavigatorAttachment::AdvancePositionWithDirection(srVector3T<float>* position,
+                                                         float distance,
+                                                         srVector3T<float>* direction)
 {
     while (path_cursor <= path_position_index) {
         if (distance <= g_double_zero) {
@@ -1454,14 +1451,14 @@ unsigned char W8NavigatorAttachment::AdvancePositionWithDirection(srVector3T<flo
         *direction = *waypoint - *position;
         float length = direction->Length();
         if (g_double_zero < length) {
-            float scale = static_cast<float>(g_double_005ebc30 / length);
+            float scale = static_cast<float>(g_double_one / length);
             *direction *= scale;
         }
         if (length <= distance) {
             *position = *waypoint;
             distance -= length;
             if (path_cursor == path_position_index) {
-                return 1;
+                return true;
             }
             ++path_cursor;
         } else {
@@ -1471,7 +1468,7 @@ unsigned char W8NavigatorAttachment::AdvancePositionWithDirection(srVector3T<flo
             distance = static_cast<float>(g_double_zero);
         }
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00452560
@@ -1676,17 +1673,17 @@ void W8Navigator::ResetMovementAndGroupState()
 }
 
 // FUNCTION: WIZ8 0x00453d20
-unsigned char W8Navigator::ConfigureMovement(float minimum, float maximum)
+bool W8Navigator::ConfigureMovement(float minimum, float maximum)
 {
     flags |= 0x20000000;
     movement.attachment->flags |= W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR;
     if (minimum > g_float_zero) {
         minimum_height = minimum;
     }
-    if (maximum > g_float_005ec2f8) {
+    if (maximum > g_float_five_thousand) {
         maximum_height = maximum;
     }
-    if (minimum_height + g_float_005ec2f8 < maximum_height) {
+    if (minimum_height + g_float_five_thousand < maximum_height) {
         movement.target_position = patrol_home;
         if (g_octree->PrepareNavigatorPatrol(&movement, minimum_height, maximum_height) != 0) {
             flags |= 6;
@@ -1707,11 +1704,11 @@ unsigned char W8Navigator::ConfigureMovement(float minimum, float maximum)
                     navigator->linked_update_time = 0;
                 }
             }
-            return 1;
+            return true;
         }
         flags &= 0xdffffff9;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00454170
@@ -2047,9 +2044,9 @@ void W8Navigator::UpdateNavigation(unsigned char skip_movement, bool slowed)
                                                         g_navigator_vertical_phase_step;
             phase -= static_cast<float>(floor(phase));
             movement.vertical_phase = phase;
-            movement.vertical_offset =
-                static_cast<float>(sin(phase * g_double_005ec318)) * movement.vertical_amplitude +
-                movement.vertical_base;
+            movement.vertical_offset = static_cast<float>(sin(phase * g_motion_full_turn_radians)) *
+                                           movement.vertical_amplitude +
+                                       movement.vertical_base;
         }
     }
 
@@ -2073,7 +2070,7 @@ void W8Navigator::UpdateNavigation(unsigned char skip_movement, bool slowed)
     if (g_combat_inactive == 0) {
         movement.movement_speed = g_settings.monster_movement_speed;
         if (slowed) {
-            movement.movement_speed *= g_float_005ebc7c;
+            movement.movement_speed *= g_float_half;
         }
     }
     if ((flags & 0x20000000) != 0 && (flags & 0xffffff) == 0) {
@@ -2271,8 +2268,8 @@ int W8Navigator::ResolveMovement()
     if ((movement.attachment->flags & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0) {
         float target_motion = (target->movement.position - target_last_position).Length();
 
-        if (target_motion > g_double_005ec030 ||
-            (target == g_startup_world && target_motion > g_double_005ec150)) {
+        if (target_motion > g_double_twenty_five_hundred ||
+            (target == g_startup_world && target_motion > g_double_five_hundred)) {
             target_last_position = target->movement.position;
 
             if (target->radius + radius + collision_margin <

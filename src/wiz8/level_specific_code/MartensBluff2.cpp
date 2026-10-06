@@ -470,9 +470,9 @@ void MartensBluff2MonsterCrusher(int command)
             crusher_upper.x = upper.x;
             g_crusher_excluded = 0;
             g_crusher_excluded_flag = false;
-            centre.Set((crusher_lower.x + crusher_upper.x) * g_double_005ebe80,
-                       (crusher_lower.y + crusher_upper.y) * g_double_005ebe80,
-                       (crusher_lower.z + crusher_upper.z) * g_double_005ebe80);
+            centre.Set((crusher_lower.x + crusher_upper.x) * g_double_half,
+                       (crusher_lower.y + crusher_upper.y) * g_double_half,
+                       (crusher_lower.z + crusher_upper.z) * g_double_half);
             if (command != 2) {
                 g_crusher_sound =
                     CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Hydraulics Squisher Loop.wav",
@@ -558,7 +558,7 @@ void MartensBluff2MonsterCrusher(int command)
                 position.x = left + radius;
                 monster->SetPositionInternal(&position);
             } else {
-                MonsterStartsDying(info, 1);
+                MonsterStartsDying(info, true);
                 if (info->monster_species == 0x183) {
                     AwardPartyExperience(10000, 0);
                 }

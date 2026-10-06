@@ -87,7 +87,7 @@ extern float g_material_emissive_override;
 
 unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* source,
                            srMaterialIFace** material, srTextureIFace** texture,
-                           srShader* render_flags, int positional_unused);
+                           srShader* render_flags, int);
 srTexture* LoadTextureFromFolder(const char* folder, const char* name, bool required);
 stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
                                    const W8MaterialRecord* source, bool required);

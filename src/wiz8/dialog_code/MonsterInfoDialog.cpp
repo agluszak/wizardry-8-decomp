@@ -149,7 +149,7 @@ bool W8MonsterInfoDialog::PopulateText()
         knowledge = GetBestPartySkillLevel(W8_SKILL_MYTHOLOGY, &best_party_slot);
         if (static_cast<int>(average_level) < monster_level) {
             float adjusted_knowledge =
-                knowledge - (monster_level - average_level) * g_float_005ec52c + g_float_005ebc7c;
+                knowledge - (monster_level - average_level) * g_float_three + g_float_half;
             if (adjusted_knowledge < g_float_zero) {
                 adjusted_knowledge = g_float_zero;
             }
@@ -186,7 +186,7 @@ bool W8MonsterInfoDialog::PopulateText()
         entry_text = gppStringList[0x13a];
     } else {
         int level_class =
-            static_cast<int>(monster_level / average_level * g_float_005ebc28 - g_float_005ec3b8);
+            static_cast<int>(monster_level / average_level * g_float_five - g_float_one_and_a_half);
         ClampInteger(&level_class, 0, 6);
         entry_text = FormatWideString(L"%d (%s)", monster_level,
                                       gppStringList[g_monster_level_name_ids[level_class]]);
@@ -435,7 +435,7 @@ bool W8MonsterInfoDialog::PopulateText()
         m_text_area.AddEntry(
             L"Range (Combat/Ground)",
             FormatWideString(
-                L"%5.2f / %5.2f M", combat_range * g_float_005ebc60,
+                L"%5.2f / %5.2f M", combat_range * g_float_one_five_hundredth,
                 (monster_info->p3D->GetPosition() - g_startup_world->GetPosition()).Length() *
                     g_world_cursor_scale),
             5, 0xf, 0);
@@ -484,7 +484,7 @@ void W8MonsterInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int firs
         right = left + 0x10e;
         bottom = top + 0xb9;
         InvalidateRegion(left, top, right, bottom, 0);
-        BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
+        BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
         dialog->m_text_area.m_dirty = true;
     }
 }

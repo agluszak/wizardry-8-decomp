@@ -953,7 +953,7 @@ void SelectUseItemLine(int iTextLine)
     SetTargetingMode(W8_TARGET_NEED_NONE);
     UpdateUseItemDetailPanel(g_use_item_list[iTextLine]);
     if (ValidateItemSpellUse(g_use_item_owner_index, g_use_item_list[iTextLine],
-                             SpellCastingNoticeClosed) != 0) {
+                             SpellCastingNoticeClosed)) {
         QueueCharacterEvent(&g_status.buffers.Char[g_use_item_owner_index], g_character_event_kind2,
                             0, g_character_event_flags_mask | g_character_event_no_flags,
                             g_character_event_full_volume);

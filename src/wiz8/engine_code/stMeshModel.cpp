@@ -225,9 +225,8 @@ void stMeshModel::CalculateLinkedBounds()
     }
 
     srVector3T<float> center;
-    center.Set((maximum.x + minimum.x) * g_double_005ebe80,
-               (maximum.y + minimum.y) * g_double_005ebe80,
-               (maximum.z + minimum.z) * g_double_005ebe80);
+    center.Set((maximum.x + minimum.x) * g_double_half, (maximum.y + minimum.y) * g_double_half,
+               (maximum.z + minimum.z) * g_double_half);
     float radius = static_cast<float>(sqrt((maximum.x - center.x) * (maximum.x - center.x) +
                                            (maximum.y - center.y) * (maximum.y - center.y) +
                                            (maximum.z - center.z) * (maximum.z - center.z)));

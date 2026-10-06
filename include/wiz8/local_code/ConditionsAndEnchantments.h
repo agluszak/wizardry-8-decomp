@@ -24,8 +24,8 @@ extern W8ConditionImmunity g_condition_immunities[3];
 extern unsigned short g_condition_notices[128];
 
 void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announce);
-void SetMonsterCondition(int location_id, W8Condition condition, int duration, int argument,
-                         W8TargetSource* target, char announce);
+void SetMonsterCondition(int location_id, W8Condition condition, int duration, int poison_strength,
+                         W8TargetSource* target, bool announce);
 void ClearMonsterCondition(int location_id, W8Condition condition);
 void ClearMonsterEnchantmentSlot(int location_id, W8EnchantmentSlot slot);
 void ClearCharacterEnchantmentSlot(int party_slot, W8EnchantmentSlot slot);
@@ -44,7 +44,7 @@ void ApplyCharacterCondition(int party_slot, W8EnchantmentSlot slot, int argumen
                              unsigned int duration, unsigned int percent);
 void ApplyMonsterCondition(int location_id, W8EnchantmentSlot slot, int argument,
                            unsigned int duration, unsigned int percent);
-unsigned char GetConditionRecordFlag(int party_slot, int condition);
+bool GetConditionRecordFlag(int party_slot, W8CharacterDependence dependence);
 /* 0x00524780: record a bound monster in a party member's condition record -
    the level the binding was made on and the monster's location id, with the
    record's flag byte raised. Slot one also retires the monster's group and
@@ -65,7 +65,8 @@ void RecomputeCharacterHighestCondition(int party_slot);
 void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info);
 
 unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int duration,
-                                    int argument, char value_5, char value_6);
+                                    int poison_strength, char alternate_missing_notice,
+                                    char announce);
 
 void RemoveConditionFromEveryone(W8Condition condition); /* 0x005244A0 */
 void RemoveConditionFromParty(W8Condition condition);    /* 0x005246C0 */

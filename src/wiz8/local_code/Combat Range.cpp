@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/character_skills.h"
@@ -67,7 +68,7 @@ int g_event_sight_blocked = g_first_remapped_event + 30;
 enum { W8_FORMATION_ROW_WIDTH = 3 };
 
 // GLOBAL: WIZ8 0x005ec35c
-const float g_float_005ec35c = 12500.0f;
+const float g_float_twelve_thousand_five_hundred = 12500.0f;
 
 /* The formation. Three party positions per row at 0x00687511, and each
    position's own row number at 0x00687525 with a twelve-byte stride. -1 marks
@@ -102,7 +103,8 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
                 (live_groups || MonsterVsCharDisposition(first, monster_info) == side)) {
                 for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
                     if (CanHandReachTarget(first, reach_hand) &&
-                        CanPartyMemberAimAtMonster(first, reach_hand, monster_info, category, 0)) {
+                        CanPartyMemberAimAtMonster(first, reach_hand, monster_info, category,
+                                                   false)) {
                         return true;
                     }
                 }
@@ -187,7 +189,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
         }
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         GetMonsterDataForInfo(monster_info);
-        return CanPartyMemberAimAtMonster(party_slot, hand, monster_info, context, 0);
+        return CanPartyMemberAimAtMonster(party_slot, hand, monster_info, context, false);
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         int target_slot = target->iChar;
@@ -212,13 +214,13 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
         GetCameraPosition(&camera_top);
         point = target->point;
         unsigned int spell_id = GetActionSpellLikeId(party_slot, context);
-        if (spell_id == 0) {
+        if (spell_id == W8_SPELL_NONE) {
             srAssertFail("uiSpell != SPELL_NONE", COMBAT_RANGE_CPP, 0xee, 0);
         }
         W8SpellTargetType target_type = GetSpellTargetType(spell_id, false);
         if (target_type == W8_TARGET_TYPE_CONE) {
             trace = false;
-            distance = g_float_005ec35c;
+            distance = g_float_twelve_thousand_five_hundred;
         } else {
             if (target_type != W8_TARGET_TYPE_RADIUS && target_type != W8_TARGET_TYPE_POINT) {
                 srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x101, 0);
@@ -227,7 +229,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
 
             trace = true;
             camera.y -= g_default_world_height;
-            point.y -= g_float_005ebc64;
+            point.y -= g_float_one_thousand;
             distance = CalcRangeDistance(g_spell_records[spell_id].range_category);
         }
         float dx = point.x - camera.x;
@@ -265,7 +267,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
    then has to pass the band distance to the monster. */
 // FUNCTION: WIZ8 0x005194e0
 bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster_info,
-                                W8TargetingContext context, char notify_failure)
+                                W8TargetingContext context, bool notify_failure)
 {
     W8ActionDetailBlock* detail_block;
     bool flag;
@@ -328,7 +330,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
             }
         }
         if (range == W8_RANGE_NONE) {
-            if (notify_failure != 0) {
+            if (notify_failure) {
                 QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range,
                                     0, g_character_event_no_flags, g_character_event_full_volume);
             }
@@ -336,7 +338,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
         }
     }
     if (!monster_info->party_threat.los_flags[flag]) {
-        if (notify_failure != 0) {
+        if (notify_failure) {
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_sight_blocked, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
@@ -344,7 +346,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     }
     if (CalcRangeDistance(static_cast<W8RangeCategory>(range)) <
         monster_info->p3D->GetDistanceToPlayer()) {
-        if (notify_failure != 0) {
+        if (notify_failure) {
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
@@ -407,7 +409,7 @@ bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot,
    The character becomes the source for the shared range test; a miss can
    queue the character's complaint event when `notify` asks for it. */
 // FUNCTION: WIZ8 0x00519920
-bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context, char notify)
+bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context, bool notify)
 {
     W8TargetSource source;
     W8MonsterGroup* group;
@@ -423,7 +425,7 @@ bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext conte
     }
     SetTargetSourceToCharacter(party_slot, &source);
     if (!IsTargetSourceInRangeOfGroup(&source, group, context)) {
-        if (notify != 0) {
+        if (notify) {
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
@@ -533,26 +535,26 @@ bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCatego
     return false;
 }
 
-/* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
-   counts only those it is hostile to. In combat with berserk set the
-   hostile filter is forced on. Party members and other monsters defer to the corresponding
+/* Whether the monster's attack `attack` reaches anyone at all; `friendly_targets`
+   selects the friendly disposition band rather than the hostile band. In
+   combat, berserk forces the friendly band. Party members and other monsters defer to the corresponding
    MonsterAttackReachesCharacter/Monster helpers. */
 // FUNCTION: WIZ8 0x00519c00
-bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack, char hostile_only)
+bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
+                                bool friendly_targets)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-    char disposition_needed;
+    W8Disposition disposition_needed;
     int party_slot;
     unsigned int index;
     unsigned int count;
     W8MonsterInfo* other;
 
     if (!monster_info->fInCombat || !monster_info->pCombat->berserk) {
-        disposition_needed = hostile_only;
+        disposition_needed = friendly_targets ? W8_DISPOSITION_FRIENDLY : W8_DISPOSITION_HOSTILE;
     } else {
-        disposition_needed = 1;
+        disposition_needed = W8_DISPOSITION_FRIENDLY;
     }
-    disposition_needed = static_cast<char>((disposition_needed != 0) + 1);
 
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8Character* character = &g_status.buffers.Char[party_slot];
@@ -1007,7 +1009,7 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
    them is picked at random, or -1 when nobody qualifies. The berserk and
    turncoat paths use it to pick a victim. */
 // FUNCTION: WIZ8 0x0051b0a0
-int PickReachableSlotByDisposition(int party_slot, char relationship)
+int PickReachableSlotByDisposition(int party_slot, W8Disposition relationship)
 {
     int candidates[8];
     int* next = candidates;
@@ -1043,13 +1045,13 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
 // FUNCTION: WIZ8 0x0051b300
 float GetMonsterEngagementRange(void)
 {
-    return g_float_005ec360;
+    return g_float_twenty_five_thousand;
 }
 
 // FUNCTION: WIZ8 0x0051b310
 float GetGroundTargetRange(void)
 {
-    return g_float_005ec35c;
+    return g_float_twelve_thousand_five_hundred;
 }
 
 /* Cache which origin points this monster can actually provide. Projectile

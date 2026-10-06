@@ -80,7 +80,7 @@ void MartensBluff1Setup(void)
     pTrigger = FindTriggerByName("MR101");
     if (pTrigger != 0 && (pTrigger->flags & W8_TRIGGER_POSITIONED) != 0) {
         pTrigger->GetPosition(&trigger_position);
-        if ((trigger_position - position).Length() < g_double_005ec150) {
+        if ((trigger_position - position).Length() < g_double_five_hundred) {
             FindTriggerByName("Lift2Marten2");
             if (GetLocationVarIDByName("LiftArrived") == -1) {
                 CreateLocationVar("LiftArrived", 1);

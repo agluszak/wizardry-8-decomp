@@ -414,14 +414,21 @@ public:
 
     explicit srClientSupport(srColorSurfaceIFace* arg_surface) : Base(arg_surface) {}
 
-    template <class A0, class A1> srClientSupport(A0 a0, A1 a1) : Base(a0, a1) {}
+    template <class A0, class A1>
+    srClientSupport(A0 first_argument, A1 second_argument) : Base(first_argument, second_argument)
+    {
+    }
 
-    template <class A0, class A1, class A2> srClientSupport(A0 a0, A1 a1, A2 a2) : Base(a0, a1, a2)
+    template <class A0, class A1, class A2>
+    srClientSupport(A0 first_argument, A1 second_argument, A2 third_argument)
+        : Base(first_argument, second_argument, third_argument)
     {
     }
 
     template <class A0, class A1, class A2, class A3, class A4>
-    srClientSupport(A0 a0, A1 a1, A2 a2, A3 a3, A4 a4) : Base(a0, a1, a2, a3, a4)
+    srClientSupport(A0 first_argument, A1 second_argument, A2 third_argument, A3 fourth_argument,
+                    A4 fifth_argument)
+        : Base(first_argument, second_argument, third_argument, fourth_argument, fifth_argument)
     {
     }
 
@@ -506,26 +513,31 @@ public:
        self-support constructions up to five arguments. They are templates so
        that a class-level dllexport of an instantiation whose Base lacks a
        given constructor does not instantiate a forwarding body for it. */
-    template <class A0> explicit srClassSupport(A0 a0) : Base(a0)
+    template <class A0> explicit srClassSupport(A0 first_argument) : Base(first_argument)
     {
         srRegistry* registry = srCore.getRegistry();
         registry->registerInstance(sGetClassNode(), this);
     }
 
-    template <class A0, class A1> srClassSupport(A0 a0, A1 a1) : Base(a0, a1)
+    template <class A0, class A1>
+    srClassSupport(A0 first_argument, A1 second_argument) : Base(first_argument, second_argument)
     {
         srRegistry* registry = srCore.getRegistry();
         registry->registerInstance(sGetClassNode(), this);
     }
 
-    template <class A0, class A1, class A2> srClassSupport(A0 a0, A1 a1, A2 a2) : Base(a0, a1, a2)
+    template <class A0, class A1, class A2>
+    srClassSupport(A0 first_argument, A1 second_argument, A2 third_argument)
+        : Base(first_argument, second_argument, third_argument)
     {
         srRegistry* registry = srCore.getRegistry();
         registry->registerInstance(sGetClassNode(), this);
     }
 
     template <class A0, class A1, class A2, class A3, class A4>
-    srClassSupport(A0 a0, A1 a1, A2 a2, A3 a3, A4 a4) : Base(a0, a1, a2, a3, a4)
+    srClassSupport(A0 first_argument, A1 second_argument, A2 third_argument, A3 fourth_argument,
+                   A4 fifth_argument)
+        : Base(first_argument, second_argument, third_argument, fourth_argument, fifth_argument)
     {
         srRegistry* registry = srCore.getRegistry();
         registry->registerInstance(sGetClassNode(), this);

@@ -1,3 +1,4 @@
+#include "wiz8/monster_cycles.h"
 #include "wiz8/fonts.h"
 #include <stdio.h>
 #include "wiz8/integer_constants.h"
@@ -131,7 +132,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->fMotionless = false;
     monster_info->ai_mode = W8_RT_AI_IDLE;
     monster_info->summoned = W8_MONSTER_SUMMON_NONE;
-    monster_info->insanity_summon = -1;
+    monster_info->elemental_summon = -1;
     monster_info->movement_watch_position.SetZero();
 
     if (PLAdoptAppend(record->unborn != 0 ? gXStatus.plsUnbornMonsterList : gXStatus.plsMonsterList,
@@ -328,16 +329,16 @@ void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
     if (!monster_info->fMotionless) {
         result = MonsterQuery(monster_info->p3D, W8_MONSTER_QUERY_CYCLE);
         if (result != 1 && result != 2 && monster_info->p3D->m_pRep->pending_cycle == -1) {
-            StartMonsterCycle(monster_info, 1, 3);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, 3);
         }
     }
 }
 
 // FUNCTION: WIZ8 0x004e4690
-void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message)
+void MonsterStartsDying(W8MonsterInfo* monster_info, bool display_message)
 {
     if (!monster_info->p3D->IsDying()) {
-        StartMonsterCycle(monster_info, 0x15, 1);
+        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_DIE, 1);
         DeactivateMonster(monster_info);
         RecordMonsterKill(monster_info, display_message);
         RemoveMonster(MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP,
@@ -351,7 +352,7 @@ void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message)
    sourced, and - unless the record opts out - land the faction hit and bank
    the kill count and experience for a monster that fought the party. */
 // FUNCTION: WIZ8 0x004E46F0
-void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
+void RecordMonsterKill(W8MonsterInfo* monster_info, bool announce)
 {
     int killer_party_slot = -1;
     if (monster_info == 0) {
@@ -365,7 +366,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
     if (record == 0) {
         record = static_cast<W8MonsterRecord*>(malloc(sizeof(W8MonsterRecord)));
         if (record != 0) {
-            if (LoadMonsterDatabaseRecord(monster_species, record) == 0) {
+            if (!LoadMonsterDatabaseRecord(monster_species, record)) {
                 free(record);
                 record = 0;
             } else {
@@ -389,7 +390,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
     } else {
         notice_channel = 9;
     }
-    if (announce != 0 && !monster_info->death_processed &&
+    if (announce && !monster_info->death_processed &&
         monster_info->party_threat.sight_state != W8_SIGHT_UNSEEN) {
         ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, 0),
                     gppStringList[g_condition_notices[0x49]]);
@@ -712,7 +713,7 @@ void ProcessMonstersAtCombatEnd(bool forced_cleanup)
             ReleaseMonsterConditionBindings(monster_info);
             if (!forced_cleanup) {
                 monster_info->death_processed = true;
-                MonsterStartsDying(monster_info, 1);
+                MonsterStartsDying(monster_info, true);
             }
         }
     }
@@ -876,7 +877,7 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, bool motionless)
         if (previous) {
             MonsterSetAnimating(monster, true);
             if (monster_info->p3D->m_pRep->pending_cycle == -1) {
-                StartMonsterCycle(monster_info, 1, 3);
+                StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, 3);
             }
         }
     } else if (!previous) {
@@ -1038,7 +1039,7 @@ void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int 
                 unsigned int chance = group->member_count * 20;
 
                 if (!gXStatus.fNpcDialogueMode && Random(chance) == 0) {
-                    StartMonsterCycle(monster_info, 2, 1);
+                    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPICE, 1);
                 }
             }
         }
@@ -1219,7 +1220,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         if (monster_info->p3D == 0) {
             srAssertFail("pMonsterInfo->p3D != NULL", MONSTER_MANAGER_CPP, 0x249, 0);
         }
-        monster_info->uiCondition[W8_CONDITION_DEAD] = 9999;
+        monster_info->uiCondition[W8_CONDITION_DEAD] = W8_CONDITION_INDEFINITE;
         monster_info->highest_condition = W8_CONDITION_DEAD;
         monster_info->hp_current = 0;
         monster_info->stamina = 0;
@@ -1534,7 +1535,7 @@ void ProcessMonsterManagerFrame(void)
                                slot to -1. W8_CYCLE_NONE is 0xff as int 255,
                                which a signed char never equals. */
                             if (monster_info->p3D->m_pRep->pending_cycle == -1) {
-                                StartMonsterCycle(monster_info, 1, 3);
+                                StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, 3);
                             }
                         } else if (MonsterIsAnimating(monster) != 0) {
                             MonsterSetAnimating(monster, false);
@@ -1662,8 +1663,8 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         health_knowledge = GetBestPartySkillLevel(W8_SKILL_MYTHOLOGY, &best_party_slot);
         if (static_cast<int>(average_party_level) < monster_level) {
             float adjusted_knowledge = health_knowledge -
-                                       (monster_level - average_party_level) * g_float_005ec52c +
-                                       g_float_005ebc7c;
+                                       (monster_level - average_party_level) * g_float_three +
+                                       g_float_half;
             if (adjusted_knowledge < g_float_zero) {
                 adjusted_knowledge = g_float_zero;
             }
@@ -1839,9 +1840,8 @@ void EvaluateCombatDifficulty(void)
     unsigned int party_power = 0;
     if (eligible_count > 0) {
         party_power = static_cast<unsigned int>(
-            party_levels /
-                pow(static_cast<double>(eligible_count) * g_float_005ebca0, g_double_005ebe80) +
-            g_double_005ebe80);
+            party_levels / pow(static_cast<double>(eligible_count) * g_float_six, g_double_half) +
+            g_double_half);
     }
     int relative_strength = static_cast<int>(party_power * 100 / threat_level) - 100;
     unsigned char difficulty;

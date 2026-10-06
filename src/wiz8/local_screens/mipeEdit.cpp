@@ -185,10 +185,10 @@ void HandleMipeEditPropKey(unsigned short key)
         } else {
             field = &fields[static_cast<int>(state->edit_selection)];
             if (field->type == 4) {
-                g_mipe_edit_accum = g_mipe_edit_accum * g_float_005ebc88 + (key - 0x30);
+                g_mipe_edit_accum = g_mipe_edit_accum * g_float_ten + (key - 0x30);
                 field->value = static_cast<int>(g_mipe_edit_accum);
             } else if (field->type == 1) {
-                g_mipe_edit_accum = g_mipe_edit_accum * g_float_005ebc88 + (key - 0x30);
+                g_mipe_edit_accum = g_mipe_edit_accum * g_float_ten + (key - 0x30);
                 if (g_mipe_edit_decimal < 0) {
                     field->float_value = g_mipe_edit_accum;
                 } else {

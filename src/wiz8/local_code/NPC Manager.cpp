@@ -1,3 +1,5 @@
+#include "wiz8/conditions.h"
+#include "wiz8/monster_cycles.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/integer_constants.h"
@@ -540,7 +542,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
             MonsterGetIndexByLocationID(0x6c7, NPC_MANAGER_CPP, group->leader_location_id, true));
         if (monster != 0) {
             CopyCharacterConditionsToTarget(npc->character, &monster->location_id);
-            if (monster->uiCondition[W8_CONDITION_UNCONSCIOUS] == 9999) {
+            if (monster->uiCondition[W8_CONDITION_UNCONSCIOUS] == W8_CONDITION_INDEFINITE) {
                 unsigned int stamina = static_cast<unsigned int>(npc->character->uiStaminaMax);
                 if (static_cast<unsigned int>(npc->character->stamina) < stamina) {
                     stamina = static_cast<unsigned int>(npc->character->stamina);
@@ -980,7 +982,7 @@ void ProcessNpcPendingEvents(void)
                                             g_character_event_full_volume);
                     }
                     SetCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,
-                                          9999, 0, 0, 1);
+                                          W8_CONDITION_INDEFINITE, 0, 0, 1);
                     g_status.infatuation_pending = false;
                     SetFact(W8_FACT_QUEST_KILL_ALSEDEXUS, 1, false);
                 }
@@ -1271,7 +1273,7 @@ void ReleaseNpcStates(void)
    state block followed by its 0x1862 character block when the NPC carries one.
    The per-state stock lists trail through the section's file handle. */
 // FUNCTION: WIZ8 0x00509F00
-unsigned char SaveNpcStates(W8Chunk* chunks)
+bool SaveNpcStates(W8Chunk* chunks)
 {
     unsigned char version = 3;
     W8NpcState* npc;
@@ -1302,7 +1304,7 @@ unsigned char SaveNpcStates(W8Chunk* chunks)
 /* The stock-list tail of the NPCT section: for every NPC state the entry
    count, then each 0x14-byte stock entry in list order. */
 // FUNCTION: WIZ8 0x0050AA10
-unsigned char SaveNpcItemLists(int file)
+bool SaveNpcItemLists(int file)
 {
     unsigned int written = 0;
     unsigned int item_count = 0;
@@ -1321,17 +1323,17 @@ unsigned char SaveNpcItemLists(int file)
             item_count = 0;
         }
         if (FileWrite(file, &item_count, 4, &written) == 0 || written != 4) {
-            return 0;
+            return false;
         }
         for (index = 0; index < item_count; ++index) {
             entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
             if (FileWrite(file, entry, sizeof(*entry), &written) == 0 ||
                 written != sizeof(*entry)) {
-                return 0;
+                return false;
             }
         }
     }
-    return 1;
+    return true;
 }
 
 /* The matching read side of the stock-list tail: each saved count clears the
@@ -1462,7 +1464,7 @@ void BindNpcToMonster(unsigned char npc_id, bool has_monster, int location_id)
    the name, profession and starting level, attributes, skills, known spells
    and worn/carried items, then the derived passes a level advance settles. */
 // FUNCTION: WIZ8 0x0050aed0
-unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
+bool InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
 {
     W8NpcDatabaseRecord* record = npc->record;
     W8NpcCharacterTemplate* source;
@@ -1470,7 +1472,7 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     int index;
 
     if (record->has_group == 0) {
-        return 0;
+        return false;
     }
     source = &record->character;
     memset(character, 0, sizeof(*character));
@@ -1532,7 +1534,7 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     for (index = 0; index < W8_SPELL_REALM_COUNT; ++index) {
         character->iSPLeft[index] = character->sp_max[index];
     }
-    return 1;
+    return true;
 }
 
 /* Copy the record's one-based item table into the state's runtime arrays: the
@@ -1685,7 +1687,7 @@ void LoadNpcStates(W8Chunk* chunks)
    entry count followed by each 0x14-byte entry appended to a fresh plist. A
    short FileRead or a failed allocation fails the whole pass. */
 // FUNCTION: WIZ8 0x0050AAF0
-unsigned char LoadNpcItemLists(unsigned int file)
+bool LoadNpcItemLists(unsigned int file)
 {
     unsigned int transferred = 0;
     unsigned int item_count = 0;
@@ -1699,7 +1701,7 @@ unsigned char LoadNpcItemLists(unsigned int file)
     for (npc_index = 0; npc_index < count; ++npc_index) {
         npc = *g_npc_states->GetAt(npc_index);
         if (FileRead(file, &item_count, 4, &transferred) == 0 || transferred != 4) {
-            return 0;
+            return false;
         }
         if (npc->items != 0) {
             ClearNpcItems(npc);
@@ -1711,17 +1713,17 @@ unsigned char LoadNpcItemLists(unsigned int file)
             for (index = 0; index < item_count; ++index) {
                 entry = new W8NpcItemEntry;
                 if (entry == 0) {
-                    return 0;
+                    return false;
                 }
                 if (FileRead(file, entry, sizeof(*entry), &transferred) == 0 ||
                     transferred != sizeof(*entry)) {
-                    return 0;
+                    return false;
                 }
                 PLAdoptAppend(npc->items, entry);
             }
         }
     }
-    return 1;
+    return true;
 }
 
 /* Hand back the NPC binding selected by a monster-list index, or null when
@@ -2063,7 +2065,7 @@ char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, i
 }
 
 // GLOBAL: WIZ8 0x005EC29C
-const float g_float_005ec29c = 0.7853981256484985f;
+const float g_targeting_quarter_pi = 0.7853981256484985f;
 
 /* Probe the navigator from the party eye at three height bands, reporting
    whether any band reaches. */
@@ -2075,7 +2077,7 @@ bool ProbeNpcPlacementNearParty(int /*party_slot*/, int /*mode*/, srVector3T<flo
 
     GetCameraPosition(&party_position);
     party_position.y -= g_default_world_height;
-    yaw = GetCameraYawRadians() + g_float_005ec29c;
+    yaw = GetCameraYawRadians() + g_targeting_quarter_pi;
     if (g_octree->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, true, false,
                                         true, 10, false) > 0) {
         return true;
@@ -2146,7 +2148,7 @@ void UpdateNpcEvents(void)
             index = MonsterGetIndexByLocationID(0xc17, NPC_MANAGER_CPP, group->leader_location_id,
                                                 true);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
-            MonsterStartsDying(monster_info, 1);
+            MonsterStartsDying(monster_info, true);
         }
         g_status.savant_hack_tick = 0;
         g_status.bela_cycle_tick = GetTickCount();
@@ -2158,7 +2160,7 @@ void UpdateNpcEvents(void)
             index = MonsterGetIndexByLocationID(0xc2f, NPC_MANAGER_CPP, group->leader_location_id,
                                                 true);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
-            StartMonsterCycle(monster_info, 0x10, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_LASH, 1);
             monster_info->p3D->SetCycleCallback(0x10, TriggerBelaVoice);
         }
         g_status.bela_cycle_tick = 0;
@@ -2363,7 +2365,7 @@ void ClearPendingNpcLevelFlags(void)
 
             if (npc->pending_restore && npc->binding_unavailable == 0 &&
                 npc->pending_restore_level == g_status.current_level) {
-                if (RestoreNpcMonster(npc, npc->restore_entity_name) != 0) {
+                if (RestoreNpcMonster(npc, npc->restore_entity_name)) {
                     npc->pending_restore = false;
                 }
             }
@@ -2450,7 +2452,7 @@ void ReleaseNpcMonsterByKind(int kind)
    byte matches, and asks CreateGroup to create it; with a live monster it
    repositions the Navigator subobject. */
 // FUNCTION: WIZ8 0x0050c560
-unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
+bool RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
 {
     srVector3T<float> position;
     srVector3T<float> copied;
@@ -2470,17 +2472,17 @@ unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
         }
         FreeIfNotNull(records);
         if (index == gXStatus.uiMonstersInDatabase) {
-            return 0;
+            return false;
         }
         if (!FindEntityByName(entity_name, &position, 0, 0)) {
-            return 0;
+            return false;
         }
         copied = position;
         CreateGroup(index, 1, &copied, true, false, true);
-        return 1;
+        return true;
     }
     if (!npc->is_present) {
-        return 0;
+        return false;
     }
     {
         unsigned int monster_index =
@@ -2488,13 +2490,13 @@ unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
 
         if (monster_info == 0) {
-            return 0;
+            return false;
         }
         if (!FindEntityByName(entity_name, &position, 0, 0)) {
-            return 0;
+            return false;
         }
         monster_info->p3D->SetPosition(&position);
-        return 1;
+        return true;
     }
 }
 
@@ -2710,7 +2712,7 @@ void RebindNpcLevelTriggers(void)
    item into `out` first - the scheduled-stock handoff the pickpocket and trade
    resolutions run. */
 // FUNCTION: WIZ8 0x0050BA80
-unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id, W8ItemInstance* out)
+bool ClearNpcScheduledItem(W8NpcState* npc, int item_id, W8ItemInstance* out)
 {
     if (npc == 0) {
         srAssertFail("pNPC", NPC_MANAGER_CPP, 0x7b7, 0);
@@ -2721,10 +2723,10 @@ unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id, W8ItemInstance
                 ReplaceOrCreateItem(out, npc->item_ids[index], true, true, false);
             }
             npc->item_ids[index] = -1;
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 static bool HasHealthyNpcPartner(unsigned char kind)
@@ -2752,7 +2754,7 @@ static bool HasHealthyNpcPartner(unsigned char kind)
    healthy partner does the same. Any queued event raises the travel-confirm
    message and resets the level data vectors. */
 // FUNCTION: WIZ8 0x0050DEC0
-char QueueNpcDepartureEvents(int destination_level)
+bool QueueNpcDepartureEvents(int destination_level)
 {
     bool queued = false;
 

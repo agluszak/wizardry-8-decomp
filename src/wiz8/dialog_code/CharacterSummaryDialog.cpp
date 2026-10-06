@@ -1,3 +1,4 @@
+#include "vsurface.h"
 #include "wiz8/dialog_code/CharacterSummaryDialog.h"
 #include "wiz8/integer_constants.h"
 
@@ -119,7 +120,7 @@ void W8CharacterSummaryDialog::Draw()
         W8DialogBase::Draw();
     }
     if (m_quote_text != 0) {
-        m_quote_text->RenderToTarget(0, false, -14);
+        m_quote_text->RenderToTarget(0, false, FRAME_BUFFER);
     }
     RenderPartyPortrait(m_character->portrait_index, m_x + 11, m_y + 11, 2, 1, 0);
     if (!m_portrait_clock_started) {

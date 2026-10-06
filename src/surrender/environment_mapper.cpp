@@ -29,9 +29,7 @@ void srEnvironmentMapper::process(srVertexPipe& pipe)
     srCore.getStatisticsManager()->statistics.texture_coordinate_operations += count;
     pipe.lazy_setup_mask |= 1 << srVertexProcessor::CHANNEL_ST0;
     for (unsigned long index = 0; index < count; ++index) {
-        float projection = directions[index].x * normals[index].x +
-                           directions[index].y * normals[index].y +
-                           directions[index].z * normals[index].z;
+        float projection = DotProduct(directions[index], normals[index]);
         projection = projection + projection;
         float rx = directions[index].x - normals[index].x * projection;
         float ry = directions[index].y - normals[index].y * projection;

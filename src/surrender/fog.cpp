@@ -52,9 +52,9 @@ int srFog::isActive(srVertexPipe& pipe)
     }
     if (density > 0.0f) {
         pipe.getEyeSpaceBoundingSphere(center, radius);
-        if ((radius <= (float)fog_start) &&
-            (center.x * center.x + center.y * center.y + center.z * center.z <
-             ((float)fog_start - radius) * ((float)fog_start - radius))) {
+        if ((radius <= static_cast<float>(fog_start)) &&
+            (center.LengthSquared() <
+             (static_cast<float>(fog_start) - radius) * (static_cast<float>(fog_start) - radius))) {
             return 0;
         }
         return 1;
@@ -91,9 +91,9 @@ void srFog::process(srVertexPipe& pipe)
         srVector3T<float> center;
         float radius;
         pipe.getEyeSpaceBoundingSphere(center, radius);
-        float limit = radius + (float)fog_end;
+        float limit = radius + static_cast<float>(fog_end);
         long count = (long)pipe.getVertexCount();
-        if (center.x * center.x + center.y * center.y + center.z * center.z <= limit * limit) {
+        if (center.LengthSquared() <= limit * limit) {
             if (fog_end == fog_start) {
                 scale = 1e+08f;
             } else {
@@ -101,12 +101,13 @@ void srFog::process(srVertexPipe& pipe)
             }
             const float* distances = pipe.getEyeSpaceDist();
             if (count != 0) {
-                if ((float)fog_start == 0.0f) {
+                if (static_cast<float>(fog_start) == 0.0f) {
                     if (values != distances) {
                         srVectorProcessor::memcopy(values, distances, count * 4);
                     }
                 } else {
-                    srVectorProcessor::add(values, -(float)fog_start, distances, count);
+                    srVectorProcessor::add(values, -static_cast<float>(fog_start), distances,
+                                           count);
                 }
                 if (scale != 1.0f) {
                     if (scale == 0.0f) {

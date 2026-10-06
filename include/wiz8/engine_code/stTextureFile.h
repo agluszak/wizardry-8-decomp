@@ -29,7 +29,7 @@ static_assert(sizeof(W8TgaHeader) == 20, "W8TgaHeader_must_be_20");
 /* Both loaders clean their own stack arguments. LoadSurface's second
    parameter is not dereferenced in the inspected body; the observed caller
    passes the address of a zeroed dword. */
-srColorSurface* __stdcall LoadSurface(int handle, long* unused_out);
+srColorSurface* __stdcall LoadSurface(int handle, long*);
 void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8TgaHeader* header);
 
 /* Wizardry's virtual-file-backed texture. SR.DLL exports a parallel

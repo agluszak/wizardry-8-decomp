@@ -86,10 +86,10 @@ public:
 class W8HorizontalRangeThumb : public W8Widget {
 public:
     W8HorizontalRangeThumb(Controls* panel, unsigned int region, int left, int top,
-                           int render_arg_0, int render_arg_1, int background_sprite,
+                           int catalog_object, int catalog_frame, int background_sprite,
                            int normal_thumb_sprite, int hovered_thumb_sprite,
                            int disabled_thumb_sprite);
-    virtual void Redraw(unsigned char full_redraw) override;
+    virtual void Redraw(bool full_redraw) override;
     void UpdatePixelPosition();
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;
@@ -98,8 +98,8 @@ public:
     virtual void OnMouseMove(int event) override;
 
 protected:
-    int m_renderArg0; /* 0x34 */
-    int m_renderArg1;
+    int m_catalogObject; /* 0x34 */
+    int m_catalogFrame;
     int m_backgroundSprite;
     int m_normalThumbSprite;
     int m_hoveredThumbSprite;

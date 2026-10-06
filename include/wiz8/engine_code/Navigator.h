@@ -127,31 +127,29 @@ struct W8NavigatorAttachment {
     /* Step `position` forward along the recorded route by the 2-D `distance`,
        consuming waypoints the step covers; returns zero once the route's last
        waypoint is reached. */
-    unsigned char AdvanceAlongPathPositions(float distance,
-                                            srVector3T<float>* position); /* 0x00456830 */
+    bool AdvanceAlongPathPositions(float distance, srVector3T<float>* position); /* 0x00456830 */
     /* Whether `position`'s plan-view distance to the hop leaving the current
        index stays under the path height interpolated along that segment. */
-    unsigned char CheckPositionHopHeight(const srVector3T<float>* position); /* 0x00456CB0 */
+    bool CheckPositionHopHeight(const srVector3T<float>* position); /* 0x00456CB0 */
     /* The two-segment form of the hop-height check used on predicted
        positions: the nearer of the current or following segment wins. */
-    unsigned char CheckPredictedHopHeight(const srVector3T<float>* position); /* 0x00456DD0 */
+    bool CheckPredictedHopHeight(const srVector3T<float>* position); /* 0x00456DD0 */
     /* Move `position` toward the route's next waypoint by up to `distance`,
        spilling into the following segment; returns nonzero once `distance`
        exceeded the remainder of the live segment. */
-    unsigned char AdvancePositionTowardWaypoint(srVector3T<float>* position,
-                                                float distance); /* 0x00456F60 */
+    bool AdvancePositionTowardWaypoint(srVector3T<float>* position,
+                                       float distance); /* 0x00456F60 */
     /* Trims the recorded route to end at the sphere of `radius` around
        `target`: walks stored positions while they stay inside, interpolates
        the boundary point into path_destination and the route slot, moves the end
        index there, and clears flag 0x400000. One when a boundary point was
        installed. */
-    unsigned char TruncatePathAtRadius(const srVector3T<float>* target,
-                                       float radius); /* 0x004566C0 */
+    bool TruncatePathAtRadius(const srVector3T<float>* target, float radius); /* 0x004566C0 */
     /* Advances `position` along the recorded route by `distance`, writing the
        unit direction toward the current waypoint into `direction`; one once
        the final waypoint is reached. */
-    unsigned char AdvancePositionWithDirection(srVector3T<float>* position, float distance,
-                                               srVector3T<float>* direction); /* 0x00457150 */
+    bool AdvancePositionWithDirection(srVector3T<float>* position, float distance,
+                                      srVector3T<float>* direction); /* 0x00457150 */
 };
 
 class W8Navigator;
@@ -291,8 +289,7 @@ public:
                                int location_id); /* 0x00453300 */
     /* Find the navigator occupying `to`; the move collides when both sides'
        OnCollision accept it. */
-    unsigned char CheckNavigatorCollision(const srVector3T<float>* from,
-                                          const srVector3T<float>* to);
+    bool CheckNavigatorCollision(const srVector3T<float>* from, const srVector3T<float>* to);
 
     /* No retail emission: the startup world and the copy constructor expand
        both setters in place. */
@@ -310,7 +307,7 @@ public:
     }
 
     srVector3T<float> GetPosition();
-    unsigned char UpdateTrackedPosition();                      /* 0x00454950 */
+    bool UpdateTrackedPosition();                               /* 0x00454950 */
     void UpdateNavigation(unsigned char value, bool condition); /* 0x004553A0 */
     void SetAngles(float angle);                                /* 0x004538F0 */
     void SetPitch(float pitch);                                 /* 0x00453940 */
@@ -356,18 +353,18 @@ public:
     /* Save the presence-gated movement state LoadMovementState
        consumes: the flag byte, then for an ungrouped navigator with flag
        0x20000000 set the height bounds, position and movement target. */
-    unsigned char LoadMovementState(unsigned int hFile);           /* 0x00454AD0 */
-    unsigned char SaveMovementState(unsigned int hFile);           /* 0x004549D0 */
-    void PropagateGroupPosition();                                 /* 0x00454C80 */
-    void UpdateAngles();                                           /* 0x00453990 */
-    unsigned char ConfigureMovement(float minimum, float maximum); /* 0x00453D20 */
+    unsigned char LoadMovementState(unsigned int hFile);  /* 0x00454AD0 */
+    unsigned char SaveMovementState(unsigned int hFile);  /* 0x004549D0 */
+    void PropagateGroupPosition();                        /* 0x00454C80 */
+    void UpdateAngles();                                  /* 0x00453990 */
+    bool ConfigureMovement(float minimum, float maximum); /* 0x00453D20 */
     unsigned char SetMovementTarget(const srVector3T<float>* target,
                                     bool propagate); /* 0x00454170 */
     srVector3T<float>* AdjustPosition(srVector3T<float>* result, const srVector3T<float>* current,
                                       const srVector3T<float>* previous); /* 0x00454440 */
     void UpdateFacing(bool immediate);                                    /* 0x00454780 */
     void UpdateLinkedNavigator();                                         /* 0x00454D70 */
-    unsigned char UpdateLinkedPosition();
+    bool UpdateLinkedPosition();
     void CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigators); /* 0x00455140 */
     int ResolveMovement();                                                   /* 0x00455CC0 */
     void ClearMovement();                                                    /* 0x004537E0 */

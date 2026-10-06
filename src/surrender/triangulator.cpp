@@ -124,11 +124,12 @@ int srTriangulator::satisfyConstraints(CircularList::ListIterator iterator)
 }
 
 // FUNCTION: SURRENDER 0x1003bee0
-int srTriangulator::sameSide(const srVector2T<float>& p1, const srVector2T<float>& p2,
-                             const srVector2T<float>& a, const srVector2T<float>& b)
+int srTriangulator::sameSide(const srVector2T<float>& first_point,
+                             const srVector2T<float>& second_point, const srVector2T<float>& a,
+                             const srVector2T<float>& b)
 {
-    float first = (p1.x - a.x) * (b.y - a.y) - (p1.y - a.y) * (b.x - a.x);
-    float second = (p2.x - a.x) * (b.y - a.y) - (p2.y - a.y) * (b.x - a.x);
+    float first = (first_point.x - a.x) * (b.y - a.y) - (first_point.y - a.y) * (b.x - a.x);
+    float second = (second_point.x - a.x) * (b.y - a.y) - (second_point.y - a.y) * (b.x - a.x);
     return first * second > 0.0f;
 }
 

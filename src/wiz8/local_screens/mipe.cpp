@@ -1153,7 +1153,7 @@ void HandleMonsterDebugKey(unsigned short key)
         monster = GetMonsterByLocationID(IListGetAt(&g_mipe_state->monster_ids, 0));
         if (monster != 0) {
             scale = monster->GetCurrentAnimationScale();
-            monster->SetCurrentAnimationScale(scale * g_float_005ebc7c);
+            monster->SetCurrentAnimationScale(scale * g_float_half);
             return;
         }
         break;
@@ -1277,7 +1277,7 @@ void AdjustMonsterSpeed(unsigned short key)
         break;
     case 0x4b:
         g_mipe_state->speed_step = g_mipe_state->speed_step - g_camera_transition_epsilon;
-        if (g_mipe_state->speed_step < static_cast<float>(g_double_005ec8d0)) {
+        if (g_mipe_state->speed_step < static_cast<float>(g_double_one_thousandth)) {
             g_mipe_state->speed_step = 0.001f;
         }
         break;
@@ -1286,7 +1286,7 @@ void AdjustMonsterSpeed(unsigned short key)
     }
     ShowMonsterSpeedStatus();
 speed_done:
-    if (path != 0 && PathAIGetScale(path) < g_float_005ebc90) {
+    if (path != 0 && PathAIGetScale(path) < g_float_one_ten_thousandth) {
         PathAISetScale(path, 0.0001f);
     }
 }

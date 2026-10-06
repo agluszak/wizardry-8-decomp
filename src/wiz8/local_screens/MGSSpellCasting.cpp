@@ -428,7 +428,7 @@ void SelectSpellCastingCharacter(int party_slot)
     if (GetAffordableSpellPowerLevel(party_slot) != 0) {
         int spell_id = g_status.buffers.XChar[party_slot].spell_id;
         SelectSpellCastingRealm(g_spell_records[spell_id].realm);
-        if (spell_id == 0x17) {
+        if (spell_id == W8_SPELL_IDENTIFY_ITEM) {
             gpSCSV->uiSpellIndex = -1;
             return;
         }
@@ -667,7 +667,7 @@ static void RebuildSpellCastingList(int spell_id)
             ++pass;
         } while (pass < 2);
     }
-    if (spell_id == 0 || selected == -1) {
+    if (spell_id == W8_SPELL_NONE || selected == -1) {
         ScrollTextBoxTo(0);
     } else {
         SelectSpellCastingListRow(selected);
@@ -1064,7 +1064,7 @@ static void PreviewSpellPowerPipHover(int power_level)
             spell_name = gpSCSV->power_controls[W8_SPELL_NAME_CONTROL];
             panel = gpSCSV->panels[2];
             ColorFillVideoSurfaceArea(
-                -0xe, spell_name->m_left + panel->m_bounds.left,
+                FRAME_BUFFER, spell_name->m_left + panel->m_bounds.left,
                 spell_name->m_top + panel->m_bounds.top, spell_name->m_right + panel->m_bounds.left,
                 spell_name->m_bottom + panel->m_bounds.top, Get16BPPColor(0x10101));
             spell_name->Invalidate(false);
@@ -1327,7 +1327,7 @@ static void SelectSpellCastingListRow(int index)
         SetSpellListLineColor(previous, -1);
     }
     spell_id = gpSCSV->uiSpells[gpSCSV->uiSpellIndex];
-    if (spell_id == 0) {
+    if (spell_id == W8_SPELL_NONE) {
         return;
     }
     color = gpSCSV->alt_colors[index];

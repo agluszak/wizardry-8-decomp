@@ -1095,7 +1095,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
    and marching-order entry, and fix the member counts and selection. Saving
    is only meaningful for NPC-bound slots; a failed save keeps the member. */
 // FUNCTION: WIZ8 0x004EF610
-unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
+bool RemoveCharacterFromParty(int party_slot, bool save_character_data)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -1107,11 +1107,11 @@ unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
     if (save_character_data) {
         RebuildCharacterModifierBlock(character);
         RecalculateCharacterDerivedStats(character);
-        if (SaveCharacter(character, g_status.buffers.XChar[party_slot].npc_index, true, 0) == 0) {
+        if (!SaveCharacter(character, g_status.buffers.XChar[party_slot].npc_index, true, 0)) {
             character->fInParty = true;
             RebuildCharacterModifierBlock(character);
             RecalculateCharacterDerivedStats(character);
-            return 0;
+            return false;
         }
     }
     g_status.buffers.XChar[party_slot].fOccupied = false;
@@ -1139,7 +1139,7 @@ unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
     if (g_status.selected_character == party_slot) {
         g_status.selected_character = GetNextCharacter(1, 1, -1);
     }
-    return 1;
+    return true;
 }
 
 /* Install a finished character record over a party slot: everything the old
@@ -1157,12 +1157,12 @@ unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* rec
 
     for (index = 0; index < 12; ++index) {
         if (character->EquippedItem[index].iItemNo != -1) {
-            AddItemToParty(&character->EquippedItem[index], 0, false);
+            AddItemToParty(&character->EquippedItem[index], false, false);
         }
     }
     for (index = 0; index < 8; ++index) {
         if (character->backpack[index].iItemNo != -1) {
-            AddItemToParty(&character->backpack[index], 0, false);
+            AddItemToParty(&character->backpack[index], false, false);
         }
     }
     RemoveCharacterFromParty(slot, false);

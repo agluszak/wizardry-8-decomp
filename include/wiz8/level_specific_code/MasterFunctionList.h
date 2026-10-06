@@ -1,7 +1,7 @@
 #pragma once
 
 extern bool g_npc_dialogue_closed;
-extern bool g_flag_652da5;
+extern bool g_sea_caves_slope_override_enabled;
 
 #include "wiz8/vector.h"
 

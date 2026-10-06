@@ -139,7 +139,7 @@ public:
     unsigned char PlayRepAnimation(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void SetAnimationDirection(W8AnimationDirection direction);
     void SetRepresentationActive(unsigned char active, bool update_animation);
-    bool CanBeUsedFrom(int arg_2, int arg_3, bool notify);
+    bool CanBeUsedFrom(int path_x, int path_z, bool notify);
     void SetActivationState(unsigned char value);
     /* Queues the signed byte as a short; -1 becomes the 0xffff sentinel. */
     void SetPendingAnimationSubcycle(char value);

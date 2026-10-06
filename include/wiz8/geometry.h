@@ -134,7 +134,7 @@ inline void SetPlaneFromThreePoints(W8Plane* plane, const srVector3T<float>* fir
                                   plane->normal.y * vertices[vertex_index].y +
                                   plane->normal.z * vertices[vertex_index].z;
     }
-    plane->w = (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
+    plane->w = (distances[0] + distances[1] + distances[2]) * g_float_negative_one_third;
 }
 
 /* Signed plane distance n·p + w. Independent TUs: 3d.cpp PointInsideFrustum
@@ -201,13 +201,13 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
         adjusted.v = -adjusted.v;
         adjusted.w = -adjusted.w;
     }
-    if (g_double_005ebc30 - dot <= g_slerp_epsilon) {
-        dot = g_double_005ebc30 - amount;
+    if (g_double_one - dot <= g_slerp_epsilon) {
+        dot = g_double_one - amount;
         b = amount;
     } else {
         angle = acos(dot);
         sine = sin(angle);
-        dot = sin((g_double_005ebc30 - amount) * angle) / sine;
+        dot = sin((g_double_one - amount) * angle) / sine;
         b = sin(angle * amount) / sine;
     }
     adjusted.v = dot * first.v + b * adjusted.v;
@@ -215,7 +215,7 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
     x = adjusted.v.x;
     y = adjusted.v.y;
     z = adjusted.v.z;
-    scale = g_double_005ec1e8 / (w * w + x * x + y * y + z * z);
+    scale = g_quaternion_matrix_normalization / (w * w + x * x + y * y + z * z);
     sx = scale * x;
     sy = scale * y;
     sz = scale * z;
@@ -228,15 +228,15 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
     yy = sy * y;
     yz = sy * z;
     zz = sz * z;
-    rotation->vectors[0].x = static_cast<float>(g_double_005ebc30 - (yy + zz));
+    rotation->vectors[0].x = static_cast<float>(g_double_one - (yy + zz));
     rotation->vectors[1].x = static_cast<float>(xy + zw);
     rotation->vectors[2].x = static_cast<float>(xz - yw);
     rotation->vectors[0].y = static_cast<float>(xy - zw);
-    rotation->vectors[1].y = static_cast<float>(g_double_005ebc30 - (xx + zz));
+    rotation->vectors[1].y = static_cast<float>(g_double_one - (xx + zz));
     rotation->vectors[2].y = static_cast<float>(yz + xw);
     rotation->vectors[0].z = static_cast<float>(xz + yw);
     rotation->vectors[1].z = static_cast<float>(yz - xw);
-    rotation->vectors[2].z = static_cast<float>(g_double_005ebc30 - (xx + yy));
+    rotation->vectors[2].z = static_cast<float>(g_double_one - (xx + yy));
 }
 
 void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surface);
