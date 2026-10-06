@@ -43,6 +43,8 @@ extern const float g_float_half_turn_degrees;
    trigger's trap type for the disarm/spring notices. */
 extern unsigned short g_trap_name_string_ids[];
 #include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
+#include "wiz8/local_screens/Screens.h"
 
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
@@ -555,7 +557,6 @@ void RequestLevelTransition(int level, int entry, unsigned char flag);
 extern bool g_build_level_links;
 extern int g_next_link_level;
 extern bool g_navigator_position_changed;
-void BeginLevelTransition(void); /* 0x005611A0 */
 void SetViewportMode(int mode);  /* 0x005618F0 */
 /* Apply a main-game UI mode (0=portraits, 1=formation, 2=radar): drop raised
    panels, optionally re-raise them from settings prefs, refresh tooltip and
@@ -619,6 +620,21 @@ unsigned char WorldViewRegionEvent(const InputAtom* event,
 unsigned char MonsterListRegionEvent(const InputAtom* event,
                                      struct W8Region* region); /* 0x00568100 */
 void SetMainGameMode(W8MainGameMode mode);                     /* 0x00568390 */
+
+/* Stage the level block's pending transition into the screen state and leave
+   modes 3/5/6, then hand the please-wait transition to the state machine.
+   Retail expands this at every caller; the compiler also retains the
+   0x005611A0 emission. */
+// FUNCTION: WIZ8 0x005611A0
+inline void BeginLevelTransition(void)
+{
+    g_pending_screen_state.mode = 3;
+    g_pending_screen_state.parameter = g_level_block->pending_level;
+    g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
+    SetMainGameMode(W8_MAIN_GAME_DEFAULT);
+    SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
+}
+
 void SetFormationBoardVisible(bool visible);                   /* 0x00569390 */
 void ToggleMainGamePause(void);                                /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and
