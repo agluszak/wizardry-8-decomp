@@ -20,6 +20,18 @@
    registers AltarBox and platformtrigger/01/02. The original file name is
    not anchored by an assertion path string. */
 
+static void SetRamTriggerEnabled(const char* name, bool enabled)
+{
+    Trigger* trigger = FindTriggerByName(name);
+    if (trigger != 0) {
+        if (enabled) {
+            trigger->flags |= W8_TRIGGER_ENABLED;
+        } else {
+            trigger->flags &= ~W8_TRIGGER_ENABLED;
+        }
+    }
+}
+
 /* "AltarBox": the first activation while the fact-0x14c gate is clear marks
    LezboDemonAppeared, spawns Al-Sedexus (0x124) at NP_Al-Sedexus and arms the
    trigger's follow-up action 0x1fc. */
@@ -56,8 +68,6 @@ bool RapaxMainFloorPlatform(Trigger* pTrigger)
     srVector3T<float> entity_position;
     srVector3T<float> position;
     W8WorldItem* world_item;
-    Trigger* ram_trigger;
-
     if (FindEntityByName("NP_CRobe", &entity_position, 0, 0)) {
         position = entity_position;
         world_item =
@@ -82,10 +92,7 @@ bool RapaxMainFloorPlatform(Trigger* pTrigger)
             ActivateItem(world_item);
         }
     }
-    ram_trigger = FindTriggerByName("RAM03");
-    if (ram_trigger != 0) {
-        ram_trigger->flags |= W8_TRIGGER_ENABLED;
-    }
+    SetRamTriggerEnabled("RAM03", true);
     return true;
 }
 
@@ -95,14 +102,8 @@ bool RapaxMainFloorPlatform01(Trigger* pTrigger)
 {
     Trigger* ram_trigger;
 
-    ram_trigger = FindTriggerByName("RAM03");
-    if (ram_trigger != 0) {
-        ram_trigger->flags &= ~W8_TRIGGER_ENABLED;
-    }
-    ram_trigger = FindTriggerByName("RAM07");
-    if (ram_trigger != 0) {
-        ram_trigger->flags |= W8_TRIGGER_ENABLED;
-    }
+    SetRamTriggerEnabled("RAM03", false);
+    SetRamTriggerEnabled("RAM07", true);
     return true;
 }
 
@@ -112,13 +113,7 @@ bool RapaxMainFloorPlatform02(Trigger* pTrigger)
 {
     Trigger* ram_trigger;
 
-    ram_trigger = FindTriggerByName("RAM07");
-    if (ram_trigger != 0) {
-        ram_trigger->flags &= ~W8_TRIGGER_ENABLED;
-    }
-    ram_trigger = FindTriggerByName("RAM11");
-    if (ram_trigger != 0) {
-        ram_trigger->flags |= W8_TRIGGER_ENABLED;
-    }
+    SetRamTriggerEnabled("RAM07", false);
+    SetRamTriggerEnabled("RAM11", true);
     return true;
 }
