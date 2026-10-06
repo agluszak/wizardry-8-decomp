@@ -29,6 +29,18 @@ static bool g_plate_contact;
 // GLOBAL: WIZ8 0x006834f9
 static bool g_plate_down;
 
+static void RunPlateTrigger(const char* name, W8AnimationDirection direction)
+{
+    Trigger* trigger = FindTriggerByName(name);
+    if (trigger != 0) {
+        trigger->Run(-1);
+        W8Prop* prop = trigger->GetProp();
+        if (prop != 0) {
+            prop->SetAnimationDirection(direction);
+        }
+    }
+}
+
 /* Level-load restore: binds the "plate" trigger's prop to the plate GDProp
    global and mirrors the saved PPlateDown variable into the latch flag,
    creating the variable when the level never wrote one. */
@@ -104,7 +116,6 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
 {
     srVector3T<float> minimum;
     srVector3T<float> maximum;
-    Trigger* pPlateTrigger;
     srVector3T<float> position;
 
     if (g_plate_prop == 0) {
@@ -122,22 +133,8 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
         if (g_plate_down) {
             return false;
         }
-        pPlateTrigger = FindTriggerByName("secretDoor-01");
-        if (pPlateTrigger != 0) {
-            pPlateTrigger->Run(-1);
-            W8Prop* prop = pPlateTrigger->GetProp();
-            if (prop != 0) {
-                prop->SetAnimationDirection(W8_ANIMATION_FORWARD);
-            }
-        }
-        pPlateTrigger = FindTriggerByName("plate");
-        if (pPlateTrigger != 0) {
-            pPlateTrigger->Run(-1);
-            W8Prop* prop = pPlateTrigger->GetProp();
-            if (prop != 0) {
-                prop->SetAnimationDirection(W8_ANIMATION_FORWARD);
-            }
-        }
+        RunPlateTrigger("secretDoor-01", W8_ANIMATION_FORWARD);
+        RunPlateTrigger("plate", W8_ANIMATION_FORWARD);
         g_plate_down = true;
         SetTriggerVariableByName("PPlateDown", 1);
         SoundPlay("Data\\Sound\\Ambients\\Door Stone Open.wav", 0);
@@ -147,22 +144,8 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
     if (!g_plate_down) {
         return false;
     }
-    pPlateTrigger = FindTriggerByName("secretDoor-01");
-    if (pPlateTrigger != 0) {
-        pPlateTrigger->Run(-1);
-        W8Prop* prop = pPlateTrigger->GetProp();
-        if (prop != 0) {
-            prop->SetAnimationDirection(W8_ANIMATION_REVERSE);
-        }
-    }
-    pPlateTrigger = FindTriggerByName("plate");
-    if (pPlateTrigger != 0) {
-        pPlateTrigger->Run(-1);
-        W8Prop* prop = pPlateTrigger->GetProp();
-        if (prop != 0) {
-            prop->SetAnimationDirection(W8_ANIMATION_REVERSE);
-        }
-    }
+    RunPlateTrigger("secretDoor-01", W8_ANIMATION_REVERSE);
+    RunPlateTrigger("plate", W8_ANIMATION_REVERSE);
     g_plate_down = false;
     SetTriggerVariableByName("PPlateDown", 0);
     SoundPlay("Data\\Sound\\Ambients\\Door Stone Close 01.wav", 0);
