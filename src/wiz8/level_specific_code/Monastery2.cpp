@@ -20,11 +20,19 @@
 
 #define MONASTERY2_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Monastery2.cpp"
 
+static void DisableBellTrigger(const char* name, int line)
+{
+    Trigger* pPropTrigger = FindTriggerByName(name);
+    if (pPropTrigger == 0) {
+        srAssertFail("pPropTrigger", MONASTERY2_CPP, line, 0);
+    }
+    pPropTrigger->flags &= ~W8_TRIGGER_ON;
+}
+
 // FUNCTION: WIZ8 0x004dc7a0
 bool Monastery2BellButton(Trigger* pTrigger)
 {
     W8Prop* prop;
-    Trigger* pPropTrigger;
     int slot;
 
     prop = FindPropByName(g_world, "dial1");
@@ -37,16 +45,8 @@ bool Monastery2BellButton(Trigger* pTrigger)
             return true;
         } else if (slot == 2) {
             SoundPlay("Data\\Sound\\Ambients\\Mon2Bell3.wav", 0);
-            pPropTrigger = FindTriggerByName("bellringswitch");
-            if (pPropTrigger == 0) {
-                srAssertFail("pPropTrigger", MONASTERY2_CPP, 0x21, 0);
-            }
-            pPropTrigger->flags &= ~W8_TRIGGER_ON;
-            pPropTrigger = FindTriggerByName("bell_button");
-            if (pPropTrigger == 0) {
-                srAssertFail("pPropTrigger", MONASTERY2_CPP, 0x24, 0);
-            }
-            pPropTrigger->flags &= ~W8_TRIGGER_ON;
+            DisableBellTrigger("bellringswitch", 0x21);
+            DisableBellTrigger("bell_button", 0x24);
             return true;
         }
     }
