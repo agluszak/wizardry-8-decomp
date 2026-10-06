@@ -329,7 +329,8 @@ unsigned char CreateOptionsDiskButton(void)
     if (g_options_disk_button == 0) {
         return 0;
     }
-    g_options_disk_button->Configure(g_options_disk_path, 3, 0, 1, 2, 2, MainGameOptionsDiskButton, false, MSYS_PRIORITY_HIGHEST, 0x41);
+    g_options_disk_button->Configure(g_options_disk_path, 3, 0, 1, 2, 2,
+                                     MainGameOptionsDiskButton, false, MSYS_PRIORITY_HIGHEST, 0x41);
     g_options_disk_button->SetPosition(g_options_disk_position.x, g_options_disk_position.y);
     g_options_disk_button->m_owner = 0;
     return 1;
@@ -493,9 +494,12 @@ unsigned char CreateRoofButtons(void)
     if (!AllocateDialogButtons(g_roof_buttons, 3)) {
         return 0;
     }
-    g_roof_buttons[0]->Configure(g_roof_buttons_path, 9, 0, 6, 3, 6, MainGameRoofButton0, true, MSYS_PRIORITY_HIGHEST, 0x38);
-    g_roof_buttons[1]->Configure(g_roof_buttons_path, 10, 1, 7, 4, 7, MainGameRoofButton1, true, MSYS_PRIORITY_HIGHEST, 0x39);
-    g_roof_buttons[2]->Configure(g_roof_buttons_path, 0xb, 2, 8, 5, 8, MainGameRoofButton2, true, MSYS_PRIORITY_HIGHEST, 0x3a);
+    g_roof_buttons[0]->Configure(g_roof_buttons_path, 9, 0, 6, 3, 6, MainGameRoofButton0, true,
+                                 MSYS_PRIORITY_HIGHEST, 0x38);
+    g_roof_buttons[1]->Configure(g_roof_buttons_path, 10, 1, 7, 4, 7, MainGameRoofButton1, true,
+                                 MSYS_PRIORITY_HIGHEST, 0x39);
+    g_roof_buttons[2]->Configure(g_roof_buttons_path, 0xb, 2, 8, 5, 8, MainGameRoofButton2, true,
+                                 MSYS_PRIORITY_HIGHEST, 0x3a);
     if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
         g_roof_buttons[0]->SetPressed(true);
     } else if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
