@@ -126,11 +126,3 @@ done:
     delete[] copy;
 }
 
-// FUNCTION: WIZ8 0x005d14b0
-void W8DialogTextEntry::SetSelected(bool selected)
-{
-    if (m_selected != selected) {
-        m_selected = selected;
-        m_geometryDirty = true;
-    }
-}
