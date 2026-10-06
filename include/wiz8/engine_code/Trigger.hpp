@@ -313,6 +313,15 @@ void InitializeStateDrivenPropVariables(Trigger* trigger);
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 
 Trigger* FindTriggerByName(const char* name);
+
+inline void RunNamedTrigger(const char* name, int source)
+{
+    Trigger* trigger = FindTriggerByName(name);
+    if (trigger != 0) {
+        trigger->Run(source);
+    }
+}
+
 W8TriggerActionData* ReadDoorTriggerActionData(int handle);
 /* The TRES save chunk: the world's triggers, their runtime states, and their
    action data. */

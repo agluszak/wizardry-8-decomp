@@ -327,20 +327,9 @@ void W8SpellInfoDialog::DrawLabels()
 // FUNCTION: WIZ8 0x005dc6c0
 void W8SpellInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry)
 {
-    int left;
-    int top;
-    int right;
-    int bottom;
     W8SpellInfoDialog* dialog = static_cast<W8SpellInfoDialog*>(scroll_bar->m_owner);
     if (dialog != 0) {
-        dialog->m_text_area.SetFirstVisibleLine(first_visible_entry);
-        left = dialog->m_x + 0x11;
-        top = dialog->m_y + 0x43;
-        right = left + 0x10e;
-        bottom = top + 0xb9;
-        InvalidateRegion(left, top, right, bottom, 0);
-        BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
-        dialog->m_text_area.m_dirty = true;
+        dialog->ScrollTextArea(dialog->m_text_area, first_visible_entry, 0x11, 0x43, 0x10e, 0xb9);
     }
 }
 

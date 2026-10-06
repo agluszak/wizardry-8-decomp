@@ -39,14 +39,6 @@ static W8IntervalGate* g_mt_gigas_alarm_gate;
 static void MtGigas2WireShock(void);
 static void MtGigas2UmpaniAlarm(int command);
 
-static void RunOptionalTrigger(const char* name)
-{
-    Trigger* trigger = FindTriggerByName(name);
-    if (trigger != 0) {
-        trigger->Run(-1);
-    }
-}
-
 /* Level-load restore. Recreates the wire-panel location variable (armed but
    untouched reads back -1), re-runs the three wire triggers when the panel
    was already solved, restarts a saved UmpaniAlarm countdown, and moves the
@@ -56,9 +48,9 @@ void MtGigas2Setup(void)
 {
     if (GetLocationVarIDByName("WirePanel") != -1) {
         if (GetLocationVarValueByName("WirePanel") == 3) {
-            RunOptionalTrigger("redwire");
-            RunOptionalTrigger("bluewire");
-            RunOptionalTrigger("yellowwire");
+            RunNamedTrigger("redwire", -1);
+            RunNamedTrigger("bluewire", -1);
+            RunNamedTrigger("yellowwire", -1);
         }
     } else {
         CreateLocationVar("WirePanel", -1);
@@ -77,7 +69,7 @@ void MtGigas2Setup(void)
         srVector3T<float> position;
 
         SetTriggerVariableByName("CODESgtRubbleTeleport", 1);
-        RunOptionalTrigger("door08");
+        RunNamedTrigger("door08", -1);
         SetFact(W8_FACT_UMISSION_MOVE_RUBBLE_COVERT, 0, false);
         npc = GetNpcStateByKind(0x29);
         if (npc != 0) {

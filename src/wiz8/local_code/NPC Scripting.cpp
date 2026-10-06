@@ -201,6 +201,15 @@ int FindNpcScriptItemQuote(int item_id, short* index, unsigned char* grants_item
     return -1;
 }
 
+static void ShowNpcScriptNoticeBubble(const wchar_t* text)
+{
+    SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
+    g_npc_scripting.voice_playing = false;
+    g_npc_scripting.message_duration_ms = 2000;
+    g_npc_scripting.last_tick = GetTickCount();
+    g_npc_scripting.message_started_at = GetTickCount();
+}
+
 /* Resolve an NPC-name, named-person, or region keyword to the quote id the
    speaker answers with; -1 when nothing applies. The record's alias mask
    selects which named persons this NPC will speak for. */
@@ -249,22 +258,11 @@ int FindNpcNameOrPlaceQuote(W8NpcState* npc, wchar_t* text)
 
 static void ShowConsumedItemQuote(wchar_t* text)
 {
-    char sound_path[128];
-    SOUNDPARMS sound_parms;
     if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
         RebuildNpcTradeItemList(false);
         return;
     }
-    SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
-    g_npc_scripting.voice_playing = false;
-    g_npc_scripting.message_duration_ms = 2000;
-    g_npc_scripting.last_tick = GetTickCount();
-    g_npc_scripting.message_started_at = GetTickCount();
-    memset(&sound_parms, 0xff, sizeof(SOUNDPARMS));
-    g_npc_scripting.quote_active = 1;
-    sprintf(sound_path, "Data\\Sound\\misc\\startgame.wav");
-    sound_parms.EOSCallback = 0;
-    SoundPlay(sound_path, &sound_parms);
+    DisplayNpcQuote(text, true);
     return;
 }
 
@@ -607,7 +605,6 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
     int index;
     unsigned char expected;
     char response_count;
-    W8MessageBoxLine* line;
 
     index = 0;
     if (entry->operand2 == 4 && entry->operand1 != 2) {
@@ -622,14 +619,7 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
         index += 2;
     }
     if (entry->operand2 == 4 && entry->operand1 != 2) {
-        line = new W8MessageBoxLine;
-        memset(line, 0, sizeof(W8MessageBoxLine));
-        line->quote_entry = entry;
-        line->type = W8_NPC_MSG_QUOTE_ENTRY;
-        line->quote_index = -1;
-        line->continuation_quote = 0;
-        line->npc = g_npc_scripting.npc;
-        g_npc_scripting.message_lines.Add(line);
+        QueueNpcQuoteEntry(entry, 0, false);
         return -2;
     }
     if (entry->operand1 == 2) {
@@ -649,18 +639,15 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
 static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
                              bool notice_only, bool force_npc_voice)
 {
-    W8MessageBoxLine* line;
     W8MonsterManagerEntry* entry;
     W8Monster* monster;
     int length;
     int quote_index;
     char voice_dir[12];
     SOUNDPARMS voice_parms;
-    SOUNDPARMS fallback_parms;
     char voice_path[128];
     char voice_stem[128];
     char npc_name[64];
-    char fallback_path[128];
     wchar_t display_text[2048];
     wchar_t plain_text[2048];
     wchar_t prefixed_text[2040];
@@ -725,37 +712,16 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
             if (g_empty_quote_text_index == 2) {
                 g_empty_quote_text_index = 0;
             }
-            SetNpcQuoteBubbleVisible(true, plain_text, 0, -1, 0x47);
-            g_npc_scripting.voice_playing = false;
-            g_npc_scripting.message_duration_ms = 2000;
-            g_npc_scripting.last_tick = GetTickCount();
-            g_npc_scripting.message_started_at = GetTickCount();
-            memset(&fallback_parms, 0xff, sizeof(fallback_parms));
-            g_npc_scripting.quote_active = 1;
-            sprintf(fallback_path, "Data\\Sound\\misc\\startgame.wav");
-            fallback_parms.EOSCallback = 0;
-            SoundPlay(fallback_path, &fallback_parms);
+            DisplayNpcQuote(plain_text, true);
             return;
         }
         if (CompareWideTextIgnoreAsciiCase(plain_text, L"UNKNOWN") == 0) {
             quote_index = Random(100) < 50 ? 0x1c : 0x1d;
-            line = new W8MessageBoxLine;
-            memset(line, 0, sizeof(W8MessageBoxLine));
-            line->quote_index = quote_index;
-            line->mark_pending = false;
-            line->suppress_entries = false;
-            line->npc = g_npc_scripting.npc;
-            g_npc_scripting.message_lines.Add(line);
+            QueueNpcScriptLine(quote_index, false, false, false);
             return;
         }
         if (CompareWideTextIgnoreAsciiCase(plain_text, L"CLASSIFIED") == 0) {
-            line = new W8MessageBoxLine;
-            memset(line, 0, sizeof(W8MessageBoxLine));
-            line->quote_index = 0x1e;
-            line->mark_pending = false;
-            line->suppress_entries = false;
-            line->npc = g_npc_scripting.npc;
-            g_npc_scripting.message_lines.Add(line);
+            QueueNpcScriptLine(0x1e, false, false, false);
             return;
         }
         if (CompareWideTextIgnoreAsciiCase(plain_text, L"SOUND") != 0 &&
@@ -1092,14 +1058,7 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                     }
                     break;
                 case W8_NPC_ENTRY_CLOSE_AND_RESUME:
-                    line = new W8MessageBoxLine;
-                    memset(line, 0, sizeof(W8MessageBoxLine));
-                    line->quote_index = -1;
-                    line->type = W8_NPC_MSG_CLOSE_RESUME_NPC;
-                    line->payload.text = 0;
-                    line->extra.text = 0;
-                    line->npc = g_npc_scripting.npc;
-                    g_npc_scripting.message_lines.Add(line);
+                    QueueNpcMessageLine(W8_NPC_MSG_CLOSE_RESUME_NPC, 0);
                     finished = true;
                     break;
                 case W8_NPC_ENTRY_KEYWORD_INPUT:
@@ -1138,14 +1097,7 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                     break;
                 case W8_NPC_ENTRY_PARTY_SPEAKER_EVENT: {
                     int event_type = entry->operand0;
-                    line = new W8MessageBoxLine;
-                    memset(line, 0, sizeof(W8MessageBoxLine));
-                    line->quote_index = -1;
-                    line->type = W8_NPC_MSG_PARTY_SPEAKER_EVENT;
-                    line->payload.argument = event_type;
-                    line->extra.text = 0;
-                    line->npc = g_npc_scripting.npc;
-                    g_npc_scripting.message_lines.Add(line);
+                    QueueNpcMessageLine(W8_NPC_MSG_PARTY_SPEAKER_EVENT, event_type);
                 } break;
                 case W8_NPC_ENTRY_PERSON_KEYWORD:
                     ApplyScriptedDialogueKeyword(entry->sub_entries->text,
@@ -1190,13 +1142,7 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
             return;
         }
         if (response >= 0) {
-            line = new W8MessageBoxLine;
-            memset(line, 0, sizeof(W8MessageBoxLine));
-            line->quote_index = response;
-            line->mark_pending = false;
-            line->suppress_entries = false;
-            line->npc = g_npc_scripting.npc;
-            g_npc_scripting.message_lines.Add(line);
+            QueueNpcScriptLine(response, false, false, false);
         }
         SpeakNpcSubquote(quote, g_npc_scripting.staging_restore.subquote_index, false,
                          force_npc_voice);
@@ -1205,13 +1151,8 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
             g_npc_scripting.npc->greeting_pending = false;
         }
         if (g_npc_scripting.staging_restore.subquote_index < quote->subquote_count) {
-            line = new W8MessageBoxLine;
-            memset(line, 0, sizeof(W8MessageBoxLine));
-            line->quote_index = g_npc_scripting.staging_restore.current_quote_index;
-            line->mark_pending = false;
-            line->suppress_entries = true;
-            line->npc = g_npc_scripting.npc;
-            g_npc_scripting.message_lines.InsertAt(0, line);
+            QueueNpcScriptLine(g_npc_scripting.staging_restore.current_quote_index, false, true,
+                               true);
         }
     }
 }
@@ -1224,12 +1165,9 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
 // FUNCTION: WIZ8 0x00526810
 void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
 {
-    W8MessageBoxLine* line;
     W8NpcState* target;
     W8ItemInstance item;
-    SOUNDPARMS sound_parms;
     char action_name[52];
-    char sound_path[128];
     wchar_t notice_text[200];
 
     switch (entry->kind) {
@@ -1249,13 +1187,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
                 } else {
                     BeginNpcScriptDialogue(target, 1);
                 }
-                line = new W8MessageBoxLine;
-                memset(line, 0, sizeof(W8MessageBoxLine));
-                line->quote_index = entry->operand0;
-                line->mark_pending = false;
-                line->suppress_entries = false;
-                line->npc = g_npc_scripting.npc;
-                g_npc_scripting.message_lines.Add(line);
+                QueueNpcScriptLine(entry->operand0, false, false, false);
                 if (target->is_grouped) {
                     SetNpcDialoguePanelVisible(0);
                 }
@@ -1277,13 +1209,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
                     BeginNpcScriptDialogue(target, 1);
                     SetNpcDialoguePanelVisible(0);
                 }
-                line = new W8MessageBoxLine;
-                memset(line, 0, sizeof(W8MessageBoxLine));
-                line->quote_index = entry->operand0;
-                line->mark_pending = false;
-                line->suppress_entries = false;
-                line->npc = g_npc_scripting.npc;
-                g_npc_scripting.message_lines.Add(line);
+                QueueNpcScriptLine(entry->operand0, false, false, false);
                 if (target->is_grouped) {
                     SetNpcDialoguePanelVisible(0);
                 }
@@ -1307,16 +1233,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
             SetItemCursor(0);
         } else {
             AddItemToPartyOrDrop(&item, false);
-            SetNpcQuoteBubbleVisible(true, notice_text, 0, -1, 0x47);
-            g_npc_scripting.voice_playing = false;
-            g_npc_scripting.message_duration_ms = 2000;
-            g_npc_scripting.last_tick = GetTickCount();
-            g_npc_scripting.message_started_at = GetTickCount();
-            memset(&sound_parms, 0xff, sizeof(sound_parms));
-            g_npc_scripting.quote_active = 1;
-            sprintf(sound_path, "Data\\Sound\\misc\\startgame.wav");
-            sound_parms.EOSCallback = 0;
-            SoundPlay(sound_path, &sound_parms);
+            DisplayNpcQuote(notice_text, true);
         }
         ClearNpcItemId(g_npc_scripting.npc, entry->operand0);
         if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
@@ -1330,16 +1247,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
         swprintf(notice_text, gppStringList[0x7e9], g_npc_scripting.npc->record->source_name,
                  entry->operand0);
         AddPartyGold(entry->operand0, false);
-        SetNpcQuoteBubbleVisible(true, notice_text, 0, -1, 0x47);
-        g_npc_scripting.voice_playing = false;
-        g_npc_scripting.message_duration_ms = 2000;
-        g_npc_scripting.last_tick = GetTickCount();
-        g_npc_scripting.message_started_at = GetTickCount();
-        g_npc_scripting.quote_active = 1;
-        memset(&sound_parms, 0xff, sizeof(sound_parms));
-        sprintf(sound_path, "Data\\Sound\\misc\\startgame.wav");
-        sound_parms.EOSCallback = 0;
-        SoundPlay(sound_path, &sound_parms);
+        DisplayNpcQuote(notice_text, true);
         break;
     case W8_NPC_ENTRY_GIVE_EXPERIENCE:
         AwardPartyExperience(entry->operand0, 0);
@@ -1484,14 +1392,7 @@ void ProcessMessageBoxQueue(void)
                                    static_cast<W8FactId>(line->quote_index)))) {
                     RunNpcScriptLine(0x12, false);
                     g_npc_interaction_state->script_busy = 0xff;
-                    W8MessageBoxLine* continuation = new W8MessageBoxLine;
-                    memset(continuation, 0, sizeof(W8MessageBoxLine));
-                    continuation->quote_index = -1;
-                    continuation->quote_entry = &quote->entries[index];
-                    continuation->type = W8_NPC_MSG_QUOTE_ENTRY;
-                    continuation->continuation_quote = line->quote_index;
-                    continuation->npc = g_npc_scripting.npc;
-                    g_npc_scripting.message_lines.InsertAt(0, continuation);
+                    QueueNpcQuoteEntry(&quote->entries[index], line->quote_index, true);
                     g_npc_scripting.message_lines.Remove(line);
                     delete line;
                     return;
@@ -1527,10 +1428,7 @@ void ProcessMessageBoxQueue(void)
             RecruitNpcIntoParty(npc);
         }
         EndNpcDialogueSession(false);
-        W8MessageBoxLine* continuation = new W8MessageBoxLine;
-        memset(continuation, 0, sizeof(W8MessageBoxLine));
-        continuation->npc = g_npc_scripting.npc;
-        g_npc_scripting.message_lines.Add(continuation);
+        QueueNpcScriptLine(0, false, false, false);
         break;
     }
     case W8_NPC_MSG_GROUP_ACTION: {
@@ -1600,11 +1498,7 @@ void ProcessMessageBoxQueue(void)
         g_npc_dialogue_closed = true;
         break;
     case W8_NPC_MSG_JOURNAL_QUOTE:
-        SetNpcQuoteBubbleVisible(true, gppStringList[0x74a], 0, -1, 0x47);
-        g_npc_scripting.voice_playing = false;
-        g_npc_scripting.message_duration_ms = 2000;
-        g_npc_scripting.last_tick = GetTickCount();
-        g_npc_scripting.message_started_at = GetTickCount();
+        ShowNpcScriptNoticeBubble(gppStringList[0x74a]);
         g_npc_scripting.quote_active = 1;
         SoundPlay((STR) "Data\\Sound\\Misc\\Journal Entry.wav",
                   0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
@@ -1847,10 +1741,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PILLARGATE_LURE: {
-        Trigger* trigger = FindTriggerByName("pillargate05");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("pillargate05", -1);
         npc = GetNpcStateByKind(0x3f);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
@@ -1859,10 +1750,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PILLARGATE_MADEUS: {
-        Trigger* trigger = FindTriggerByName("pillargate04");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("pillargate04", -1);
         npc = GetNpcStateByKind(0x3e);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
@@ -1871,10 +1759,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PILLARGATE_ASAIZ: {
-        Trigger* trigger = FindTriggerByName("pillargate01");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("pillargate01", -1);
         npc = GetNpcStateByKind(0x3d);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
@@ -2022,10 +1907,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_TRIGGER_FIX: {
-        Trigger* trigger = FindTriggerByName("triggerFix");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("triggerFix", -1);
         break;
     }
     case W8_NPC_MSG_ENDGAME_SCREEN:
@@ -2058,10 +1940,7 @@ void ProcessMessageBoxQueue(void)
         }
         break;
     case W8_NPC_MSG_PATH2_TRIGGER: {
-        Trigger* trigger = FindTriggerByName("Path2Trigger");
-        if (trigger != 0) {
-            trigger->Run(-1);
-        }
+        RunNamedTrigger("Path2Trigger", -1);
         break;
     }
     case W8_NPC_MSG_REMOVE_SHAMAN: {
@@ -2342,11 +2221,7 @@ void DisplayNpcQuote(const wchar_t* text, bool play_sound)
     char sound_path[128];
     SOUNDPARMS sound_parms;
 
-    SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
-    g_npc_scripting.voice_playing = false;
-    g_npc_scripting.message_duration_ms = 2000;
-    g_npc_scripting.last_tick = GetTickCount();
-    g_npc_scripting.message_started_at = GetTickCount();
+    ShowNpcScriptNoticeBubble(text);
     g_npc_scripting.quote_active = 1;
     if (play_sound) {
         memset(&sound_parms, 0xff, sizeof(SOUNDPARMS));
@@ -2636,7 +2511,6 @@ void BeginSedexusCapture(void)
 void ResolveSedexusCapture(void)
 {
     W8MonsterGroup* group;
-    Trigger* trigger;
     srVector3T<float> position;
     int location_id;
     unsigned int monster_list_index;
@@ -2661,14 +2535,8 @@ void ResolveSedexusCapture(void)
     SetScriptedSceneActive();
     g_npc_scripting.sedexus_release_pending = true;
     BeginWorldLightingFade(1000.0f);
-    trigger = FindTriggerByName("al-seduxusgate");
-    if (trigger != 0) {
-        trigger->Run(-1);
-    }
-    trigger = FindTriggerByName("templargate14");
-    if (trigger != 0) {
-        trigger->Run(-1);
-    }
+    RunNamedTrigger("al-seduxusgate", -1);
+    RunNamedTrigger("templargate14", -1);
 }
 // FUNCTION: WIZ8 0x0052A070
 bool IsSedexusCaptureActive(void)

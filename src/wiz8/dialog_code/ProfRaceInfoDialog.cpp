@@ -152,9 +152,7 @@ void W8ProfRaceInfoDialogBase::DrawTextLine(unsigned int layout_mode, int left, 
     bounds.right = bounds.left + width;
     bounds.top = m_y + top;
     bounds.bottom = bounds.top + height;
-    buffer.SetLayoutBounds(&bounds, true, true);
-    buffer.SetText(text, font);
-    buffer.RenderToTarget(0, false, FRAME_BUFFER);
+    buffer.RenderString(&bounds, text, font, false, FRAME_BUFFER);
 }
 
 // FUNCTION: WIZ8 0x005DEFB0
@@ -189,20 +187,9 @@ void W8ProfRaceInfoDialogBase::OnMouseWheel(int delta)
 void W8ProfRaceInfoDialogBase::ScrollCallback(W8DialogScrollBar* scroll_bar,
                                               int first_visible_entry)
 {
-    int left;
-    int top;
-    int right;
-    int bottom;
     W8ProfRaceInfoDialogBase* dialog = static_cast<W8ProfRaceInfoDialogBase*>(scroll_bar->m_owner);
     if (dialog != 0) {
-        dialog->m_text_area.SetFirstVisibleLine(first_visible_entry);
-        left = dialog->m_x + 0xa2;
-        top = dialog->m_y + 0x29;
-        right = left + 0xaf;
-        bottom = top + 0xb8;
-        InvalidateRegion(left, top, right, bottom, 0);
-        BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
-        dialog->m_text_area.m_dirty = true;
+        dialog->ScrollTextArea(dialog->m_text_area, first_visible_entry, 0xa2, 0x29, 0xaf, 0xb8);
     }
 }
 

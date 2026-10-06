@@ -183,12 +183,8 @@ bool W8SplitItemDialog::CreateButtons()
     } else if (static_cast<unsigned int>(m_mode) <= W8_ITEM_SPLIT_BUY) {
         count = 10;
     }
-    for (index = 0; index < count; ++index) {
-        m_buttons[index] = new W8DialogButton;
-        if (m_buttons[index] == 0) {
-            DestroyButtons();
-            return false;
-        }
+    if (!AllocateDialogButtons(m_buttons, count)) {
+        return false;
     }
     m_buttons[0]->Configure("Data\\Dialogs\\popup_splititem.sti", 0xc, 9, 10, 0xd, 0xb,
                             OnSplitDecrement, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,

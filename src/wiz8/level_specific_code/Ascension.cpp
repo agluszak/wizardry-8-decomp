@@ -108,11 +108,7 @@ unsigned char AscensionPeakInit(void)
             }
             if (GetFact(W8_FACT_TMISSION_MEET_ZANT_AT_AP) != 0 ||
                 GetFact(W8_FACT_UMISSION_MEET_AP_ASSIGN) != 0) {
-                Trigger* bodies = FindTriggerByName("Bodies");
-
-                if (bodies != 0) {
-                    bodies->Run(-1);
-                }
+                RunNamedTrigger("Bodies", -1);
             }
             CreateLocationVar("AP_All3Items", 1);
         }
@@ -168,11 +164,7 @@ unsigned char SpawnAlfieKnow(int)
 // FUNCTION: WIZ8 0x004DFBC0
 void AscensionAvalanche(bool command)
 {
-    Trigger* avalanche = FindTriggerByName("Avalanche");
-
-    if (avalanche != 0) {
-        avalanche->Run(-1);
-    }
+    RunNamedTrigger("Avalanche", -1);
     if (command) {
         srVector3T<float> position;
         srVector3T<float> trigger_position;
@@ -199,7 +191,6 @@ void AscensionAvalanche(bool command)
 // FUNCTION: WIZ8 0x004DFD70
 void AscensionLandShaker(int command)
 {
-    Trigger* shaker;
 
     if (command == -1) {
         return;
@@ -217,10 +208,7 @@ void AscensionLandShaker(int command)
     }
     delete g_avalanche_gate;
     g_avalanche_gate = 0;
-    shaker = FindTriggerByName("LandShaker");
-    if (shaker != 0) {
-        shaker->Run(-1);
-    }
+    RunNamedTrigger("LandShaker", -1);
     g_remove_current_master_function = true;
 }
 

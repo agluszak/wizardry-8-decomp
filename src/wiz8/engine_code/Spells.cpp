@@ -431,39 +431,8 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
         for (list_index = 0; list_index < other.light_lists[emitter].GetCount(); ++list_index) {
             W8GrowableVector<stLight*>* source_lights =
                 *other.light_lists[emitter].GetAt(list_index);
-            W8GrowableVector<stLight*>* copied_lights = 0;
-
-            if (source_lights != 0) {
-                int light_index;
-
-                copied_lights = new W8Vector<stLight*>;
-                if (copied_lights == 0) {
-                    srAssertFail("plsNewLights",
-                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x198,
-                                 "Out of memory creating monster light list");
-                }
-                for (light_index = 0; light_index < source_lights->GetCount(); ++light_index) {
-                    stLight* source_light = *source_lights->GetAt(light_index);
-                    float x = source_light->positionalX();
-                    float y = source_light->positionalY();
-                    float z = source_light->positionalZ();
-                    stLight* copied_light = new stLight;
-
-                    if (copied_light != 0) {
-                        *copied_light = *source_light;
-                    }
-                    if (copied_light == 0) {
-                        srAssertFail("pstNewLight",
-                                     "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x1a0,
-                                     "Out of memory creating monster light");
-                    }
-                    copied_light->ConfigureMonsterCopy();
-                    copied_light->setLocation(x, y, z);
-                    copied_light->setParent(0, 0);
-                    PLAdoptAppend(&g_world->transient_lights, copied_light);
-                    copied_lights->Add(copied_light);
-                }
-            }
+            W8GrowableVector<stLight*>* copied_lights = CloneAnimationLightList(
+                source_lights, "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x198, 0x1a0);
             light_lists[emitter].Add(copied_lights);
         }
     }

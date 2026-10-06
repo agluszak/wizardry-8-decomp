@@ -4,6 +4,8 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogButton.h"
+#include "wiz8/dialog_code/DialogTextArea.h"
+#include "wiz8/video_object_catalog.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 
 #include "wiz8/utility.h"
@@ -25,6 +27,19 @@ void W8DialogBase::CreateCloseButton(W8DialogButton& button, int left, int top)
                      W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     button.SetPosition(m_x + left, m_y + top);
     button.m_owner = this;
+}
+
+void W8DialogBase::ScrollTextArea(W8DialogTextArea& area, int first_visible_line, int left, int top,
+                                  int width, int height)
+{
+    area.SetFirstVisibleLine(first_visible_line);
+    left += m_x;
+    top += m_y;
+    int right = left + width;
+    int bottom = top + height;
+    InvalidateRegion(left, top, right, bottom, 0);
+    BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
+    area.m_dirty = true;
 }
 
 // FUNCTION: WIZ8 0x005dc7a0
