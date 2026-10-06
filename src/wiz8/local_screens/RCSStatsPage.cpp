@@ -11,6 +11,7 @@
    skills and final pages. */
 
 #include "wiz8/local_screens/RCSStatsPage.h"
+#include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
@@ -251,45 +252,7 @@ void DrawCampStatsPage(void)
                         ((0x7b - StringPixLength(label, g_wiz_text_font_secondary)) >> 1),
                     row_y - 0xa6 + g_camp_stats_origin_y, Wiz8ToSgpWideText(g_format_s), label);
             unsigned int effective = g_review_character->attributes[index].effective;
-            unsigned int base = g_review_character->attributes[index].base;
-            int gained;
-            int lost;
-            unsigned int shown;
-            if (effective < base) {
-                gained = 0;
-                lost = base - effective;
-                shown = effective;
-            } else {
-                gained = effective - base;
-                lost = 0;
-                shown = base;
-            }
-            SGPRect saved_clip;
-            GetClippingRect(&saved_clip);
-            SGPRect clip;
-            clip.iTop = 0;
-            clip.iBottom = 0x1e0;
-            if (shown != 0) {
-                clip.iLeft = 0x88;
-                clip.iRight = shown + 0x88;
-                SetClippingRect(&clip);
-                DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 0, 0x88, row_y,
-                                              VO_BLT_SRCTRANSPARENCY, 0);
-            }
-            if (gained != 0) {
-                clip.iLeft = shown + 0x88;
-                clip.iRight = gained + 0x88 + shown;
-                SetClippingRect(&clip);
-                DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 1, 0x88, row_y,
-                                              VO_BLT_SRCTRANSPARENCY, 0);
-            } else if (lost != 0) {
-                clip.iLeft = shown + 0x88;
-                clip.iRight = lost + 0x88 + shown;
-                SetClippingRect(&clip);
-                DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 2, 0x88, row_y,
-                                              VO_BLT_SRCTRANSPARENCY, 0);
-            }
-            SetClippingRect(&saved_clip);
+            DrawCampValueBar(effective, g_review_character->attributes[index].base, 0x88, row_y);
             swprintf(g_camp_screen->text_buffer, g_format_d, effective);
             gprintf(g_camp_stats_origin_x + 0x108 +
                         ((0x21 -
@@ -798,6 +761,19 @@ void DisableCampSkillRegions(void)
     RegionSetDisable(g_camp_skill_regions);
 }
 
+/* Unlike the gameplay best-skill query, the camp display includes every
+   occupied slot, regardless of health or conditions. Ties count as best. */
+static bool IsBestCampSkillLevel(W8Skill skill, unsigned int level)
+{
+    for (int slot = 0; slot < 8; ++slot) {
+        if (g_status.buffers.XChar[slot].fOccupied &&
+            level < g_status.buffers.Char[slot].skills[skill].level) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /* The skills page's full redraw: the two column panels, the five category
    headers, then every known skill's name and level with the base/current
    delta bar. */
@@ -895,14 +871,7 @@ void DrawCampSkillsPage(void)
                         palette = g_wiz_text_font_secondary_palette;
                     }
                 } else {
-                    bool best = true;
-                    for (int slot = 0; slot < 8; ++slot) {
-                        if (g_status.buffers.XChar[slot].fOccupied &&
-                            value->level < g_status.buffers.Char[slot].skills[skill].level) {
-                            best = false;
-                            break;
-                        }
-                    }
+                    bool best = IsBestCampSkillLevel(static_cast<W8Skill>(skill), value->level);
                     if (!best) {
                         palette = g_font_state_palettes[W8_FONT_PALETTE_GRAY];
                         if (value->active) {
@@ -977,15 +946,8 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
     if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && skill != -1) {
         bool best = false;
         if (g_status.game_started && g_review_character->skills[skill].level != 0) {
-            best = true;
-            for (int slot = 0; slot < 8; ++slot) {
-                if (g_status.buffers.XChar[slot].fOccupied &&
-                    g_review_character->skills[skill].level <
-                        g_status.buffers.Char[slot].skills[skill].level) {
-                    best = false;
-                    break;
-                }
-            }
+            best = IsBestCampSkillLevel(static_cast<W8Skill>(skill),
+                                        g_review_character->skills[skill].level);
         }
         W8SkillInfoDialog* dialog = new W8SkillInfoDialog(
             static_cast<W8Skill>(skill), best, !g_review_character->skills[skill].active,

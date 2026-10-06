@@ -3,6 +3,9 @@
 #include <stddef.h>
 
 #include "wiz8/regions.h"
+#include "wiz8/wiz8_windows.h"
+#include "wiz8/video_object_catalog.h"
+#include "vobject_blitters.h"
 
 struct Controls;
 class W8TextControl;
@@ -20,6 +23,50 @@ enum W8CampItemActionButton {
     W8_CAMP_ACTION_BUTTON_USE_ON_CHARACTER = 7,
     W8_CAMP_ACTION_BUTTON_COUNT = 8
 };
+
+/* Attribute and resistance bars use the same base/bonus/penalty strips and
+   invalidate every drawn segment. Skill bars have a different invalidation policy. */
+inline void DrawCampValueBar(unsigned int value, unsigned int base, int left, int top)
+{
+    unsigned int filled;
+    unsigned int extra;
+    unsigned int missing;
+    if (value < base) {
+        filled = value;
+        extra = 0;
+        missing = base - value;
+    } else {
+        filled = base;
+        extra = value - base;
+        missing = 0;
+    }
+    SGPRect saved_clip;
+    GetClippingRect(&saved_clip);
+    SGPRect clip;
+    clip.iTop = 0;
+    clip.iBottom = 0x1e0;
+    if (filled != 0) {
+        clip.iLeft = left;
+        clip.iRight = left + filled;
+        SetClippingRect(&clip);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 0, left, top, VO_BLT_SRCTRANSPARENCY,
+                                      0);
+    }
+    if (extra != 0) {
+        clip.iLeft = left + filled;
+        clip.iRight = left + filled + extra;
+        SetClippingRect(&clip);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 1, left, top, VO_BLT_SRCTRANSPARENCY,
+                                      0);
+    } else if (missing != 0) {
+        clip.iLeft = left + filled;
+        clip.iRight = left + filled + missing;
+        SetClippingRect(&clip);
+        DrawCatalogImageAndInvalidate(FRAME_BUFFER, 0x143, 0, 2, left, top, VO_BLT_SRCTRANSPARENCY,
+                                      0);
+    }
+    SetClippingRect(&saved_clip);
+}
 
 void DrawCampHeader(void);
 void DrawCampVitals(void);

@@ -47,24 +47,8 @@ void PauseSharedGameTimers(void)
     if (g_game_time_accumulator != 0 && (g_game_time_accumulator->m_flags & W8_TIMER_PAUSED) == 0) {
         unsigned short flags = g_game_time_accumulator->m_flags;
         g_game_time_accumulator->m_flags = flags | W8_TIMER_PAUSED;
-        if (g_game_time_accumulator->m_clock_mode != W8_TIMER_CLOCK_GAME) {
-            if ((flags & W8_TIMER_RAW_TIME) != 0) {
-                g_game_time_accumulator->m_start =
-                    g_game_time_accumulator->m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
-                    g_game_time_accumulator->m_start;
-            } else if (g_shared_timer_paused) {
-                g_game_time_accumulator->m_start =
-                    g_shared_timer_pause_time - g_game_time_accumulator->m_start;
-            } else {
-                g_game_time_accumulator->m_start =
-                    g_game_time_accumulator->m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
-                    g_shared_timer_pause_base - g_game_time_accumulator->m_start;
-            }
-        } else {
-            g_game_time_accumulator->m_start =
-                (g_status.game_time_days * 86400000 + g_status.game_time_ms) * 10 -
-                g_game_time_accumulator->m_start;
-        }
+        g_game_time_accumulator->m_start =
+            g_game_time_accumulator->ReadClock() - g_game_time_accumulator->m_start;
     }
 }
 

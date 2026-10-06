@@ -297,11 +297,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     gpSCSV->interact_id = W8_DIALOGUE_LAYOUT_UNSET;
     CloseMainGameOverlays();
     mode = g_settings.main_ui_mode;
-    if (mode == W8_MAIN_UI_MODE_RADAR) {
-        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, false);
-    } else {
-        SetViewportMode(GetMainGameViewportMode());
-    }
+    SetMainGameOverlayViewport(mode);
     gpSCSV->saved_game_mode = mode;
     CreateSpellCastingViewControls();
     RestoreSpellCastingRegions();

@@ -337,10 +337,6 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
 {
     srVector3T<float> camera;
     srMatrix3T<float> rotation;
-    srVector3T<float> first;
-    srVector3T<float> second;
-    srVector3T<float> third;
-    srMatrix3T<float> step;
     float angle;
     double cosine;
     double sine;
@@ -359,21 +355,13 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
     if (angle != 0.0) {
         cosine = cos(angle);
         sine = sin(angle);
-        third.Set(static_cast<float>(-sine), 0.0f, static_cast<float>(cosine));
-        second.Set(0.0, 1.0, 0.0);
-        first.Set(cosine, 0.0, sine);
-        step.SetRows(first, second, third);
-        rotation.MultiplyBy(step);
+        rotation.RotateAboutY(sine, cosine);
     }
     angle = -GetCameraPitchRadians();
     if (angle != 0.0) {
         cosine = cos(angle);
         sine = sin(angle);
-        third.Set(0.0f, static_cast<float>(sine), static_cast<float>(cosine));
-        second.Set(0.0, cosine, -sine);
-        first.Set(1.0, 0.0, 0.0);
-        step.SetRows(first, second, third);
-        rotation.MultiplyBy(step);
+        rotation.RotateAboutX(sine, cosine);
     }
     position->x = DotProduct(rotation.vectors[0], *position);
     position->y = DotProduct(rotation.vectors[1], *position);

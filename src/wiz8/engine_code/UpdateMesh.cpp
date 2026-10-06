@@ -65,13 +65,7 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
     work = rotation;
     angle = g_mesh_view_half_angle_degrees * g_mesh_view_degrees_to_radians;
     if (angle != 0.0) {
-        srVector3T<float> first;
-        srVector3T<float> second;
-        srVector3T<float> third;
-        srMatrix3T<float> yaw;
-        yaw.SetRows(*first.Set(cos(angle), 0.0, sin(angle)), *second.Set(0.0, 1.0, 0.0),
-                    *third.Set(-sin(angle), 0.0, cos(angle)));
-        work.MultiplyBy(yaw);
+        work.RotateAboutY(sin(angle), cos(angle));
     }
     direction = work.Transform(direction);
     long edge2_x = cam_x + static_cast<long>(direction.x / cell_size);
