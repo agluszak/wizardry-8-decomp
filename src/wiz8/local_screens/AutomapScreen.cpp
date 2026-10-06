@@ -485,7 +485,15 @@ void AutomapZoomOutButton(void)
 {
     if (g_automap_position.y < g_automap_top_y) {
         if (g_automap_zoom_mode == 1) {
-            ResetAutomapZoom();
+            g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+            srVector3T<float> position(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                                       g_automap_bounds_max.y + g_automap_bounds_min.y,
+                                       g_automap_bounds_min.z + g_automap_bounds_max.z);
+            position = position * 0.5;
+            position.y = g_automap_top_y;
+            SetAutomapCameraPoint(&position);
+            SetAutomapToolCursor(g_automap_tool);
+            SetAutomapButtonMode(0);
         } else {
             float ground_y = g_automap_position.y - g_automap_zoom;
             float height = g_automap_top_y - (g_automap_top_y - ground_y) * g_float_half;
@@ -504,7 +512,15 @@ void AutomapZoomOutButton(void)
                 SetAutomapCameraPoint(&g_automap_position);
                 SetAutomapToolCursor(g_automap_tool);
             } else {
-                ResetAutomapZoom();
+                g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+                srVector3T<float> position(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                                           g_automap_bounds_max.y + g_automap_bounds_min.y,
+                                           g_automap_bounds_min.z + g_automap_bounds_max.z);
+                position = position * 0.5;
+                position.y = g_automap_top_y;
+                SetAutomapCameraPoint(&position);
+                SetAutomapToolCursor(g_automap_tool);
+                SetAutomapButtonMode(0);
             }
         }
     }
@@ -2306,14 +2322,33 @@ unsigned char HandleAutomapKey(const InputAtom* input)
     case 0x23:
         RestoreAutomapCameraPosition();
         break;
-    case 0x24:
-        ResetAutomapZoom();
+    case 0x24: {
+        g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+        {
+            srVector3T<float> center(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                                     g_automap_bounds_max.y + g_automap_bounds_min.y,
+                                     g_automap_bounds_min.z + g_automap_bounds_max.z);
+            srVector3T<float> position = center / 2.0;
+            position.y = g_automap_top_y;
+            SetAutomapCameraPoint(&position);
+        }
+        SetAutomapToolCursor(g_automap_tool);
+        SetAutomapButtonMode(0);
         return 1;
+    }
     case 0x2d:
-        AutomapSelectNoteToolButton();
+        if (g_automap_tool == 2) {
+            return 1;
+        }
+        g_automap_tool = 2;
+        SetAutomapToolCursor(2);
         return 1;
     case 0x2e:
-        AutomapSelectEraseToolButton();
+        if (g_automap_tool == 3) {
+            return 1;
+        }
+        g_automap_tool = 3;
+        SetAutomapToolCursor(3);
         return 1;
     case 0x31:
     case 0x32:
@@ -2329,7 +2364,17 @@ unsigned char HandleAutomapKey(const InputAtom* input)
             g_automap_redraw = true;
             g_automap_overlay_redraw = true;
             UpdateAutomapBounds();
-            ResetAutomapZoom();
+            g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+            {
+                srVector3T<float> center(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                                         g_automap_bounds_max.y + g_automap_bounds_min.y,
+                                         g_automap_bounds_min.z + g_automap_bounds_max.z);
+                srVector3T<float> position = center / 2.0;
+                position.y = g_automap_top_y;
+                SetAutomapCameraPoint(&position);
+            }
+            SetAutomapToolCursor(g_automap_tool);
+            SetAutomapButtonMode(0);
             RenderAutomapFrame();
             return 1;
         }
