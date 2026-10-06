@@ -16,9 +16,15 @@ public:
     void Draw(bool force);
     /* Retail inlines this body at the 0x005D1E80/0x005D1ED0/0x005D20A0 call
        sites inside W8DialogTextArea and keeps the out-of-line copy at
-       0x005D14B0; see the same unresolved VC6 inlining pattern documented in
-       PC_Item.h. */
-    void SetSelected(bool selected);
+       0x005D14B0. */
+    // FUNCTION: WIZ8 0x005d14b0
+    void SetSelected(bool selected)
+    {
+        if (m_selected != selected) {
+            m_selected = selected;
+            m_geometryDirty = true;
+        }
+    }
 
 private:
     int DrawLine(wchar_t* line, size_t span, int prefix_remaining, int y);
