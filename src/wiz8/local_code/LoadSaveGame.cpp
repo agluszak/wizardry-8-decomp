@@ -2284,21 +2284,7 @@ bool LoadGame(const char* slot_name)
     int index;
     int box;
 
-    if (g_status.current_level != -1) {
-        UnloadLevel("");
-        SoundEmptyCache();
-    }
-    if (gXStatus.character_event_queue != 0) {
-        gXStatus.character_event_queue->DestroyAllEvents();
-    }
-    ResetMainGameScreenState();
-    ClearNpcMessageQueue();
-    ResetMainScreenStateBlock();
-    for (index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
-        g_spell_effects.RemoveAtAndDelete(index);
-    }
-    ReleaseAllTriggers();
-    ResetGameplayStatusBlock();
+    ResetLiveSessionForLoad();
     sprintf(path, "%s\\%s.%s", "Saves", slot_name, g_save_extension);
     if (_access("Saves\\CurrentGame.SAV", 2) != 0 && errno == EACCES) {
         _chmod("Saves\\CurrentGame.SAV", _S_IREAD | _S_IWRITE);

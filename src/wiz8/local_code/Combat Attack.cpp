@@ -1040,28 +1040,10 @@ int ChooseCharacterAttackHand(int party_slot)
 // FUNCTION: WIZ8 0x0053d680
 void PrepareCharacterAttacks(int party_slot)
 {
-    int best_hand = -1;
-    unsigned int best_attacks = 0;
-    int best_damage_bonus = -999;
+    int best_hand = ChooseCharacterAttackHand(party_slot);
     unsigned int hand;
     int value;
 
-    for (hand = 0; hand < W8_HAND_COUNT; ++hand) {
-        if (hand >= W8_HAND_COUNT) {
-            srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102,
-                         // reinterpret-ok: the assert message slot carries the failing hand index
-                         reinterpret_cast<const char*>(hand));
-        }
-        if (g_status.buffers.Char[party_slot].Hand[hand].in_play &&
-            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != W8_RANGE_NONE &&
-            (best_attacks < g_status.buffers.Char[party_slot].Hand[hand].attacks ||
-             (g_status.buffers.Char[party_slot].Hand[hand].attacks == best_attacks &&
-              g_status.buffers.Char[party_slot].Hand[hand].damage_bonus > best_damage_bonus))) {
-            best_attacks = g_status.buffers.Char[party_slot].Hand[hand].attacks;
-            best_hand = hand;
-            best_damage_bonus = g_status.buffers.Char[party_slot].Hand[hand].damage_bonus;
-        }
-    }
     if (best_hand == -1) {
         FormatDebugMessage(1, "ERROR: %ls is preparing attacks with when it's not possible!",
                            g_status.buffers.Char[party_slot].name);

@@ -3494,28 +3494,14 @@ void SetDisplayGamma(float value)
 // FUNCTION: WIZ8 0x00428830
 unsigned int MeasureNodeRenderWithoutPositionalOption(srNode* node)
 {
-    srGERD::Statistics statistics;
-    srNode::ProcessInfo process;
-
     if (g_gerd != 0 && g_gerd->isEnabled(srGERD::ENABLE_AUTO_FLIP)) {
         g_gerd->toggle(srGERD::ENABLE_AUTO_FLIP);
     }
-    g_gerd->flushRenderers();
-    g_gerd->resetStatistics();
-    g_gerd->beginFrame();
-    srNode::lockSceneGraph();
-    process.renderer = g_gerd;
-    g_world->camera->process(process, srNode::PROCESS_PUSH);
-    node->process(process, srNode::PROCESS_RENDER);
-    g_world->camera->process(process, srNode::PROCESS_POP);
-    srNode::unlockSceneGraph();
-    g_gerd->endFrame();
-    g_gerd->flushRenderers();
-    g_gerd->getStatistics(statistics);
+    unsigned int pixels_drawn = MeasureNodeRender(node);
     if (g_gerd != 0 && !g_gerd->isEnabled(srGERD::ENABLE_AUTO_FLIP)) {
         g_gerd->toggle(srGERD::ENABLE_AUTO_FLIP);
     }
-    return static_cast<unsigned int>(statistics.pixels_drawn);
+    return pixels_drawn;
 }
 
 /* Open the render-probe pass: force renderer option 4 off, reset the frame
