@@ -300,9 +300,7 @@ static void DischargeTrapSpell(srVector3T<float> point, int spell_id, unsigned i
         target.point = g_startup_world->GetPosition();
         eligible = 0;
         for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
-            if (g_status.buffers.XChar[index].fOccupied &&
-                g_status.buffers.Char[index].hp_current != 0 &&
-                g_status.buffers.Char[index].highest_condition < W8_CONDITION_DEAD) {
+            if (CanPartySlotParticipate(index)) {
                 targets.Add(index);
                 ++eligible;
             }

@@ -3199,8 +3199,7 @@ void BuildCharacterTargetList(int party_slot, int action, W8PList* out_list)
 {
     for (int i = 0; i < 8; i = i + 1) {
         W8PartySlotRow* row = &g_status.buffers.XChar[i];
-        W8Character* pc = &g_status.buffers.Char[i];
-        if (row->fOccupied && pc->hp_current != 0 && pc->highest_condition < W8_CONDITION_DEAD) {
+        if (CanPartySlotParticipate(i)) {
             if (i == party_slot) {
                 AppendCombatTargetEntry(out_list, W8_TARGET_KIND_CHARACTER, i, -1);
             } else {
@@ -3239,9 +3238,7 @@ void BuildMonsterTargetList(W8MonsterInfo* monster_info, W8MonsterRecord* record
                             unsigned int attack, W8PList* out_list)
 {
     for (int i = 0; i < 8; i = i + 1) {
-        W8PartySlotRow* row = &g_status.buffers.XChar[i];
-        W8Character* pc = &g_status.buffers.Char[i];
-        if (row->fOccupied && pc->hp_current != 0 && pc->highest_condition < W8_CONDITION_DEAD &&
+        if (CanPartySlotParticipate(i) &&
             (monster_info->Target.iType != W8_TARGET_KIND_CHARACTER ||
              monster_info->Target.iChar != i) &&
             MonsterAttackReachesCharacter(monster_info, record, attack, i)) {

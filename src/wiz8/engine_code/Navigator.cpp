@@ -702,23 +702,28 @@ unsigned char W8Navigator::LoadMovementState(unsigned int hFile)
     return 1;
 }
 
+void W8Navigator::CopyPathToGroup()
+{
+    linked_update_time = 0;
+    g_navigator_group.Clear();
+    CollectGroupNavigators(&g_navigator_group);
+    for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
+        W8Navigator* navigator = *g_navigator_group.GetAt(index);
+        navigator->movement.attachment->CopyPathFrom(movement.attachment);
+        navigator->patrol_home = patrol_home;
+        navigator->movement.attachment->flags &=
+            ~(W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR | W8_NAV_ATTACHMENT_FOLLOW_PATH);
+        navigator->linked_update_time = 0;
+    }
+}
+
 /* Push this navigator's path and position onto every navigator in its group,
    and let the whole group move again if this one may. */
 // FUNCTION: WIZ8 0x00454c80
 void W8Navigator::PropagateGroupPosition()
 {
     if (g_combat_inactive != 0) {
-        linked_update_time = 0;
-        g_navigator_group.Clear();
-        CollectGroupNavigators(&g_navigator_group);
-        for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
-            W8Navigator* navigator = *g_navigator_group.GetAt(index);
-            navigator->movement.attachment->CopyPathFrom(movement.attachment);
-            navigator->patrol_home = patrol_home;
-            navigator->movement.attachment->flags &=
-                ~(W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR | W8_NAV_ATTACHMENT_FOLLOW_PATH);
-            navigator->linked_update_time = 0;
-        }
+        CopyPathToGroup();
     }
     if (!movement_stopped) {
         /* Retail writes the zero the caller already proved; the store is dead
@@ -1692,17 +1697,7 @@ bool W8Navigator::ConfigureMovement(float minimum, float maximum)
             movement_target = movement.attachment->path_destination;
             movement.attachment->separation = 0.0f;
             if (g_combat_inactive != 0) {
-                linked_update_time = 0;
-                g_navigator_group.Clear();
-                CollectGroupNavigators(&g_navigator_group);
-                for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
-                    W8Navigator* navigator = *g_navigator_group.GetAt(index);
-                    navigator->movement.attachment->CopyPathFrom(movement.attachment);
-                    navigator->patrol_home = patrol_home;
-                    navigator->movement.attachment->flags &= ~(
-                        W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR | W8_NAV_ATTACHMENT_FOLLOW_PATH);
-                    navigator->linked_update_time = 0;
-                }
+                CopyPathToGroup();
             }
             return true;
         }
@@ -1743,17 +1738,7 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, bo
     if (!propagate && result != 0 && movement.attachment != 0 &&
         (movement.attachment->flags & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0 &&
         g_combat_inactive != 0) {
-        linked_update_time = 0;
-        g_navigator_group.Clear();
-        CollectGroupNavigators(&g_navigator_group);
-        for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
-            W8Navigator* navigator = *g_navigator_group.GetAt(index);
-            navigator->movement.attachment->CopyPathFrom(movement.attachment);
-            navigator->patrol_home = patrol_home;
-            navigator->movement.attachment->flags &=
-                ~(W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR | W8_NAV_ATTACHMENT_FOLLOW_PATH);
-            navigator->linked_update_time = 0;
-        }
+        CopyPathToGroup();
     }
     return result;
 }

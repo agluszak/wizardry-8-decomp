@@ -1809,8 +1809,7 @@ void EvaluateCombatDifficulty(void)
     for (slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (!row->fOccupied || character->hp_current == 0 ||
-            character->highest_condition >= W8_CONDITION_DEAD) {
+        if (!CanPartySlotParticipate(slot)) {
             continue;
         }
         bool count_character = true;

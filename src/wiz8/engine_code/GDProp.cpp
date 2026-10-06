@@ -536,6 +536,30 @@ void GDProp::ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim)
     }
 }
 
+/* Retail selects the face representation with the short-LOD bit. */
+void GDProp::AppendMeshFaces(W8LevelFileMesh* mesh, int vertex_base)
+{
+    if ((mesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) != 0) {
+        W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
+        for (int face = 0; face < mesh->num_faces; ++face) {
+            W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
+            ++m_surface_count;
+            surface->vertex_indices[0] = faces[face].vertex_indices[0] + vertex_base;
+            surface->vertex_indices[1] = faces[face].vertex_indices[1] + vertex_base;
+            surface->vertex_indices[2] = faces[face].vertex_indices[2] + vertex_base;
+        }
+    } else {
+        W8ReadMeshFace* faces = mesh->pstFaces;
+        for (int face = 0; face < mesh->num_faces; ++face) {
+            W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
+            ++m_surface_count;
+            surface->vertex_indices[0] = faces[face].vertices[0] + vertex_base;
+            surface->vertex_indices[1] = faces[face].vertices[1] + vertex_base;
+            surface->vertex_indices[2] = faces[face].vertices[2] + vertex_base;
+        }
+    }
+}
+
 /* Append one transform channel's geometry under the path record's affine
    transform: position and scale convert through the world scale (LOD meshes
    carry their own compression factor), the axis/angle supplies the rotation,
@@ -592,26 +616,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
                     ++m_vertex_count;
                 }
             }
-            /* Retail tests the short-LOD bit here for the face representation. */
-            if ((mesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) != 0) {
-                W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
-                for (int face = 0; face < mesh->num_faces; ++face) {
-                    W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
-                    ++m_surface_count;
-                    surface->vertex_indices[0] = faces[face].vertex_indices[0] + vertex_base;
-                    surface->vertex_indices[1] = faces[face].vertex_indices[1] + vertex_base;
-                    surface->vertex_indices[2] = faces[face].vertex_indices[2] + vertex_base;
-                }
-            } else {
-                W8ReadMeshFace* faces = mesh->pstFaces;
-                for (int face = 0; face < mesh->num_faces; ++face) {
-                    W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
-                    ++m_surface_count;
-                    surface->vertex_indices[0] = faces[face].vertices[0] + vertex_base;
-                    surface->vertex_indices[1] = faces[face].vertices[1] + vertex_base;
-                    surface->vertex_indices[2] = faces[face].vertices[2] + vertex_base;
-                }
-            }
+            AppendMeshFaces(mesh, vertex_base);
         }
     } else {
         int vertex_base = m_vertex_count;
@@ -620,25 +625,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
             m_pVertices[m_vertex_count] = matrix.TransformPoint(vertices[vertex]);
             ++m_vertex_count;
         }
-        if ((mesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) != 0) {
-            W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
-            for (int face = 0; face < mesh->num_faces; ++face) {
-                W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
-                ++m_surface_count;
-                surface->vertex_indices[0] = faces[face].vertex_indices[0] + vertex_base;
-                surface->vertex_indices[1] = faces[face].vertex_indices[1] + vertex_base;
-                surface->vertex_indices[2] = faces[face].vertex_indices[2] + vertex_base;
-            }
-        } else {
-            W8ReadMeshFace* faces = mesh->pstFaces;
-            for (int face = 0; face < mesh->num_faces; ++face) {
-                W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
-                ++m_surface_count;
-                surface->vertex_indices[0] = faces[face].vertices[0] + vertex_base;
-                surface->vertex_indices[1] = faces[face].vertices[1] + vertex_base;
-                surface->vertex_indices[2] = faces[face].vertices[2] + vertex_base;
-            }
-        }
+        AppendMeshFaces(mesh, vertex_base);
     }
 
     for (int index = surface_base; index < m_surface_count; ++index) {

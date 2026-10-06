@@ -104,17 +104,8 @@ int W8GameTimer::GetTime()
     return ReadClock();
 }
 
-// FUNCTION: WIZ8 0x00439550
-W8GameTimer::W8GameTimer()
+static void EnsureSharedGameTimer()
 {
-    m_clock_mode = W8_TIMER_CLOCK_SHARED;
-    m_flags = 0;
-    m_shared = 0;
-    m_start = 0;
-    m_end = 0;
-    m_duration_seconds = 0;
-    m_duration_scale = 1.0f;
-
     if (g_shared_timer == 0) {
         g_shared_timer_paused = false;
         g_shared_timer_flag0 = false;
@@ -124,12 +115,7 @@ W8GameTimer::W8GameTimer()
 
         g_shared_timer = timer;
         g_shared_timer_base = timer;
-        /* The original stores through the new pointer without a null check,
-           and the null-returning operator new makes that reachable; the port
-           keeps the shape. VC6 has no unsigned __int64 to double conversion -
-           C2520 - which is why the original splits the frequency into halves
-           and rejoins them at 2^32; the ternary re-evaluates its else arm,
-           which is what emits the second __aullshr. */
+        /* Retail dereferences the allocation without a null check. */
         timer->m_units_per_interval = 10000;
         {
             double frequency;
@@ -145,6 +131,20 @@ W8GameTimer::W8GameTimer()
         g_shared_timer_pause_base = 0;
         g_shared_timer_pause_time = 0;
     }
+}
+
+// FUNCTION: WIZ8 0x00439550
+W8GameTimer::W8GameTimer()
+{
+    m_clock_mode = W8_TIMER_CLOCK_SHARED;
+    m_flags = 0;
+    m_shared = 0;
+    m_start = 0;
+    m_end = 0;
+    m_duration_seconds = 0;
+    m_duration_scale = 1.0f;
+
+    EnsureSharedGameTimer();
     m_shared = g_shared_timer;
     ++g_shared_timer_refs;
 
@@ -168,19 +168,7 @@ W8GameTimer::W8GameTimer(float duration, unsigned char raw_time)
     m_duration_seconds = 0;
     m_duration_scale = 1.0f;
 
-    if (g_shared_timer == 0) {
-        g_shared_timer_paused = false;
-        g_shared_timer_flag0 = false;
-        g_level_motion_resume_pending = false;
-        srTimer* timer = new srTimer(0, 0, 1);
-        g_shared_timer = timer;
-        g_shared_timer_base = timer;
-        timer->m_units_per_interval = 10000;
-        timer->m_units_per_tick = timer->m_frequency != 0 ? 10000.0 / timer->m_frequency : 10000.0;
-        g_shared_timer_refs = 0;
-        g_shared_timer_pause_base = 0;
-        g_shared_timer_pause_time = 0;
-    }
+    EnsureSharedGameTimer();
     m_shared = g_shared_timer;
     ++g_shared_timer_refs;
     m_start = ReadClock();

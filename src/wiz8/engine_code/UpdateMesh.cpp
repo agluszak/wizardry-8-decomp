@@ -76,6 +76,23 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
                           count);
 }
 
+static bool AppendQuadRow(long left, long right, long max_x, long row, long* x_list, long* y_list,
+                          long* count)
+{
+    if (left > 0) {
+        --left;
+    }
+    if (right < max_x) {
+        ++right;
+    }
+    for (long x = left; x <= right; ++x) {
+        x_list[*count] = x;
+        y_list[*count] = row;
+        ++*count;
+    }
+    return left <= right;
+}
+
 /* Scans the upper half of a cell-space triangle: a flat top edge between
    (x1,y1) and (x2,y2) converging to the apex (x3,y3). Each emitted row is
    padded one cell outward on both sides. skip_boundary suppresses the first
@@ -129,17 +146,7 @@ static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long 
             if (skip_boundary && row == y1) {
                 continue;
             }
-            if (left > 0) {
-                --left;
-            }
-            if (right < max_x) {
-                ++right;
-            }
-            for (long x = left; x <= right; ++x) {
-                x_list[*count] = x;
-                y_list[*count] = row;
-                ++*count;
-            }
+            AppendQuadRow(left, right, max_x, row, x_list, y_list, count);
         }
         return;
     }
@@ -147,17 +154,7 @@ static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long 
         if (!skip_boundary || row != y1) {
             long right = static_cast<long>(right_edge);
             long left = static_cast<long>(left_edge);
-            if (left > 0) {
-                --left;
-            }
-            if (right < max_x) {
-                ++right;
-            }
-            for (long x = left; x <= right; ++x) {
-                x_list[*count] = x;
-                y_list[*count] = row;
-                ++*count;
-            }
+            AppendQuadRow(left, right, max_x, row, x_list, y_list, count);
         }
         left_edge += left_step;
         right_edge += right_step;
@@ -212,18 +209,7 @@ static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long 
                     continue;
                 }
             }
-            if (left > 0) {
-                --left;
-            }
-            if (right < max_x) {
-                ++right;
-            }
-            if (left <= right) {
-                for (long x = left; x <= right; ++x) {
-                    x_list[*count] = x;
-                    y_list[*count] = row;
-                    ++*count;
-                }
+            if (AppendQuadRow(left, right, max_x, row, x_list, y_list, count)) {
                 emitted = 1;
             }
         }
@@ -232,17 +218,7 @@ static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long 
     for (; row <= y3; ++row) {
         long right = static_cast<long>(right_edge);
         long left = static_cast<long>(left_edge);
-        if (left > 0) {
-            --left;
-        }
-        if (right < max_x) {
-            ++right;
-        }
-        for (long x = left; x <= right; ++x) {
-            x_list[*count] = x;
-            y_list[*count] = row;
-            ++*count;
-        }
+        AppendQuadRow(left, right, max_x, row, x_list, y_list, count);
         left_edge += left_step;
         right_edge += right_step;
         emitted = 1;

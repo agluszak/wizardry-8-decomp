@@ -565,20 +565,8 @@ void W8Prop::SetRepresentationActive(unsigned char active, bool update_animation
         return;
     }
 
-    if (Rep()->animation_behaviour == W8_ANIMATION_PLAY_ONCE) {
-        if ((Rep()->frame_direction == W8_ANIMATION_FORWARD_COMPLETE &&
-             Rep()->frame_method != W8_ANIMATION_PING_PONG) ||
-            (Rep()->frame_direction != W8_ANIMATION_FORWARD_COMPLETE &&
-             Rep()->frame_method == W8_ANIMATION_PING_PONG)) {
-            Rep()->frame_direction = W8_ANIMATION_FORWARD;
-            Rep()->subcycle = Rep()->first_frame;
-            return;
-        }
-        Rep()->frame_direction = W8_ANIMATION_REVERSE;
-        Rep()->subcycle = Rep()->last_frame;
-        return;
-    }
-    if (Rep()->animation_behaviour == W8_ANIMATION_REPEAT) {
+    if (Rep()->animation_behaviour == W8_ANIMATION_PLAY_ONCE ||
+        Rep()->animation_behaviour == W8_ANIMATION_REPEAT) {
         if ((Rep()->frame_direction == W8_ANIMATION_FORWARD_COMPLETE &&
              Rep()->frame_method != W8_ANIMATION_PING_PONG) ||
             (Rep()->frame_direction != W8_ANIMATION_FORWARD_COMPLETE &&

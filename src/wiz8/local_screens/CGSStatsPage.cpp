@@ -671,49 +671,39 @@ void W8CharacterStatsPage::OnRowValueChanged(W8CharacterStatsRow* row, int value
     Refresh();
 }
 
+void W8CharacterStatsPage::SetRowControlsActive(W8CharacterStatsRow* row, bool active)
+{
+    if (row == m_profession_row) {
+        m_profession_row->m_increment->SetActive(active);
+        m_race_row->m_increment->SetActive(active);
+        m_gender_row->m_increment->SetActive(active);
+    } else if (row == m_race_row) {
+        m_race_row->m_increment->SetActive(active);
+        m_gender_row->m_increment->SetActive(active);
+    } else {
+        m_gender_row->m_increment->SetActive(active);
+    }
+    for (int entry_index = 0; entry_index < m_entries.GetCount(); ++entry_index) {
+        m_entries.data[entry_index]->SetHelpActive(active);
+    }
+    for (int control_index = 0; control_index < 5; ++control_index) {
+        m_attribute_controls[control_index]->SetActive(active);
+    }
+}
+
 /* A row opened its record list: park the row and attribute controls so the
    list owns the input. */
 // FUNCTION: WIZ8 0x005ca8d0
 void W8CharacterStatsPage::OnRowExpanded(W8CharacterStatsRow* row)
 {
-    if (row == m_profession_row) {
-        m_profession_row->m_increment->SetActive(false);
-        m_race_row->m_increment->SetActive(false);
-        m_gender_row->m_increment->SetActive(false);
-    } else if (row == m_race_row) {
-        m_race_row->m_increment->SetActive(false);
-        m_gender_row->m_increment->SetActive(false);
-    } else {
-        m_gender_row->m_increment->SetActive(false);
-    }
-    for (int entry_index = 0; entry_index < m_entries.GetCount(); ++entry_index) {
-        m_entries.data[entry_index]->SetHelpActive(false);
-    }
-    for (int control_index = 0; control_index < 5; ++control_index) {
-        m_attribute_controls[control_index]->SetActive(false);
-    }
+    SetRowControlsActive(row, false);
 }
 
 /* The record list closed: restore the row and attribute controls. */
 // FUNCTION: WIZ8 0x005ca970
 void W8CharacterStatsPage::OnRowCollapsed(W8CharacterStatsRow* row)
 {
-    if (row == m_profession_row) {
-        m_profession_row->m_increment->SetActive(true);
-        m_race_row->m_increment->SetActive(true);
-        m_gender_row->m_increment->SetActive(true);
-    } else if (row == m_race_row) {
-        m_race_row->m_increment->SetActive(true);
-        m_gender_row->m_increment->SetActive(true);
-    } else {
-        m_gender_row->m_increment->SetActive(true);
-    }
-    for (int entry_index = 0; entry_index < m_entries.GetCount(); ++entry_index) {
-        m_entries.data[entry_index]->SetHelpActive(true);
-    }
-    for (int control_index = 0; control_index < 5; ++control_index) {
-        m_attribute_controls[control_index]->SetActive(true);
-    }
+    SetRowControlsActive(row, true);
     Invalidate(0);
 }
 

@@ -2054,8 +2054,13 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
     return SpellCastFatigueCost(spell_id, result);
 }
 
-/* The lure spell, and how far under the target the first of its two effects is
-   placed. */
+void W8SpellEffectEntry::AddVisual(W8SpellVisual* visual)
+{
+    if (visual != 0) {
+        visual->auto_release = false;
+        spell_visuals.Add(visual);
+    }
+}
 
 /* Put the lure's two effects a thousand units below the target. The target
    point itself moves down, so subsequent users see the lowered position.
@@ -2071,10 +2076,7 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, W8CombatSlot* tar
 
     effect = SpawnSpellEffect(&position, g_spell_records[W8_SPELL_HYPNOTIC_LURE].resource_name,
                               argument, 0, 0);
-    if (effect != 0) {
-        effect->auto_release = false;
-        owner->spell_visuals.Add(effect);
-    }
+    owner->AddVisual(effect);
 
     position = target->point;
     effect = SpawnSpellEffect(&position, "hyp_lure2", argument, 0, 0);
@@ -3059,10 +3061,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     visual = SpawnSpellEffect(&point, g_spell_records[spell_id].resource_name,
                                               power_level, 0, 0);
                 }
-                if (visual != 0) {
-                    visual->auto_release = false;
-                    owner->spell_visuals.Add(visual);
-                }
+                owner->AddVisual(visual);
                 break;
             case W8_TARGET_TYPE_CONE:
                 if (TargetSourceIsCharacter(source, 0)) {
@@ -3091,10 +3090,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                         visual = CreateAimedSpellEffect(g_spell_records[spell_id].resource_name,
                                                         power_level, &origin, &local_90, 0, 0);
                     }
-                    if (visual != 0) {
-                        visual->auto_release = false;
-                        owner->spell_visuals.Add(visual);
-                    }
+                    owner->AddVisual(visual);
                 }
                 break;
             case W8_TARGET_TYPE_POINT:
@@ -3107,10 +3103,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     point = target->point;
                     visual = SpawnSpellEffect(&point, g_spell_records[spell_id].resource_name,
                                               power_level, 0, 0);
-                    if (visual != 0) {
-                        visual->auto_release = false;
-                        owner->spell_visuals.Add(visual);
-                    }
+                    owner->AddVisual(visual);
                 }
                 break;
             case W8_TARGET_TYPE_CASTER:
@@ -3121,10 +3114,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                         monster = GetMonsterByLocationID(*monster_markers.GetAt(index));
                         visual = CreateMonsterSpellEffect(g_spell_records[spell_id].resource_name,
                                                           power_level, monster, 0, 0);
-                        if (visual != 0) {
-                            visual->auto_release = false;
-                            owner->spell_visuals.Add(visual);
-                        }
+                        owner->AddVisual(visual);
                     }
                     if (party_markers.GetCount() != 0) {
                         for (index = 0; index < party_markers.GetCount(); ++index) {
@@ -3141,10 +3131,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                 } else {
                     visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
                                                     power_level, 0, 0);
-                    if (visual != 0) {
-                        visual->auto_release = false;
-                        owner->spell_visuals.Add(visual);
-                    }
+                    owner->AddVisual(visual);
                 }
                 break;
             case W8_TARGET_TYPE_PARTY:
@@ -3161,37 +3148,25 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     visual = SpawnSpellEffect(&point,
                                               g_spell_records[W8_SPELL_NUCLEAR_BLAST].resource_name,
                                               power_level, 0, 0);
-                    if (visual != 0) {
-                        visual->auto_release = false;
-                        owner->spell_visuals.Add(visual);
-                    }
+                    owner->AddVisual(visual);
                     break;
                 }
                 for (index = 0; index < monster_markers.GetCount(); ++index) {
                     monster = GetMonsterByLocationID(*monster_markers.GetAt(index));
                     visual = CreateMonsterSpellEffect(g_spell_records[spell_id].resource_name,
                                                       power_level, monster, 0, 0);
-                    if (visual != 0) {
-                        visual->auto_release = false;
-                        owner->spell_visuals.Add(visual);
-                    }
+                    owner->AddVisual(visual);
                 }
                 if (party_markers.GetCount() != 0) {
                     visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
                                                     power_level, 0, 0);
-                    if (visual != 0) {
-                        visual->auto_release = false;
-                        owner->spell_visuals.Add(visual);
-                    }
+                    owner->AddVisual(visual);
                 }
                 break;
             case W8_TARGET_TYPE_LOCK_OR_TRAP:
                 visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
                                                 power_level, 0, 0);
-                if (visual != 0) {
-                    visual->auto_release = false;
-                    owner->spell_visuals.Add(visual);
-                }
+                owner->AddVisual(visual);
                 break;
             default:
                 SpawnCameraSpellEffect("Default", 0, 0, 0);
@@ -3349,9 +3324,7 @@ void RedirectBackfiredSpellTarget(W8TargetSource* source, W8CombatSlot* target)
         break;
     case W8_TARGET_KIND_PARTY:
         for (slot = 0; slot < 8; ++slot) {
-            if (g_status.buffers.XChar[slot].fOccupied &&
-                g_status.buffers.Char[slot].hp_current != 0 &&
-                g_status.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD) {
+            if (CanPartySlotParticipate(slot)) {
                 break;
             }
         }
@@ -4010,9 +3983,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     }
     if (marked && spell_id != W8_SPELL_HOLY_WATER && spell_id != W8_SPELL_BANISH) {
         for (slot = 0; slot < 8; ++slot) {
-            if (g_status.buffers.XChar[slot].fOccupied &&
-                g_status.buffers.Char[slot].hp_current != 0 &&
-                g_status.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD &&
+            if (CanPartySlotParticipate(slot) &&
                 (g_status.buffers.Char[slot].uiCondition[W8_CONDITION_TURNCOAT] == 0 ||
                  !MonsterCanAimSpell(spell_id) || static_cast<char>(side) == 3)) {
                 party_markers->Add(slot);

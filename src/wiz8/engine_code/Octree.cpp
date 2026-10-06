@@ -4875,6 +4875,19 @@ bool SphereNearBounds(const srVector3T<float>* point, float radius, const W8Boun
     return distance_squared < radius * radius;
 }
 
+unsigned int W8Octree::QueryNearbyLocations(const srVector3T<float>* position, float spacing,
+                                            unsigned long** candidates)
+{
+    float expand = spacing * g_monster_proximity_radius_scale;
+    srVector3T<float> low;
+    low.Set(position->x - expand, position->y - expand, position->z - expand);
+    srVector3T<float> high;
+    high.Set(expand + position->x, expand + position->y, expand + position->z);
+    *candidates = static_cast<unsigned long*>(operator new(0x400));
+    return static_cast<unsigned int>(
+        QueryObjects(candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1));
+}
+
 /* Lateral column offsets for the scatter search below: the inner loop walks
    three columns (0, +1, -1) per ring, or all five when more than ten
    positions are wanted. */
@@ -4912,15 +4925,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
     float neg_cos_step = -cos_step;
     unsigned int monsters = 0;
     if (proximity_check) {
-        float expand = spacing * g_monster_proximity_radius_scale;
-        srVector3T<float> low;
-        low.Set(position->x - expand, position->y - expand, position->z - expand);
-        srVector3T<float> high;
-        high.Set(expand + position->x, expand + position->y, expand + position->z);
-        candidates = static_cast<unsigned long*>(operator new(0x400));
-        monsters = static_cast<unsigned int>(QueryObjects(
-            &candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1)); /* c-style-cast-ok:
-            the shared query count field is stored unsigned */
+        monsters = QueryNearbyLocations(position, spacing, &candidates);
     }
     unsigned int ring = 0;
     do {
@@ -5050,15 +5055,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     }
     unsigned int monsters = 0;
     if (first_only) {
-        float expand = radius * g_monster_proximity_radius_scale;
-        srVector3T<float> low;
-        low.Set(source->x - expand, source->y - expand, source->z - expand);
-        srVector3T<float> high;
-        high.Set(expand + source->x, expand + source->y, expand + source->z);
-        candidates = static_cast<unsigned long*>(operator new(0x400));
-        monsters = static_cast<unsigned int>(QueryObjects(
-            &candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1)); /* c-style-cast-ok:
-            the shared query count field is stored unsigned */
+        monsters = QueryNearbyLocations(source, radius, &candidates);
     }
     int ring_upper = 0;
     if (-1 < mode) {

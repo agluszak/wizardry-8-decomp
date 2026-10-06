@@ -954,8 +954,7 @@ bool AnyPartyMemberCanUseItem(int item_id)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied && g_status.buffers.Char[slot].hp_current > 0 &&
-            g_status.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD) {
+        if (CanPartySlotParticipate(slot)) {
             if (CanCharacterUseItem(&g_status.buffers.Char[slot], item_id)) {
                 return true;
             }
