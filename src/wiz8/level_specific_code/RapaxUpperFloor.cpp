@@ -103,7 +103,6 @@ bool RapaxUpperFloorDoorDone(Trigger* pTrigger)
     srVector3T<float> entity_position;
     srVector3T<float> position;
     W8WorldItem* world_item;
-    Trigger* door;
     int item_id;
 
     if (GetLocationVarIDByName("TMakeTreasure") != -1) {
