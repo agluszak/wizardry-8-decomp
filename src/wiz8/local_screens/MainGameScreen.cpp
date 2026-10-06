@@ -3081,20 +3081,6 @@ static void OnEnterLevelDialogClosed(W8DialogBase* dialog)
     WorldSetCameraLocation(g_world, &g_trigger_camera);
 }
 
-/* Stage the level block's pending transition into the screen state and leave
-   modes 3/5/6, then hand the please-wait transition to the state machine.
-   Retail never calls this out-of-line; the same teardown is emitted inline at
-   the dialog callback and at RequestLevelTransition's unconfirmed path. */
-// FUNCTION: WIZ8 0x005611A0
-void BeginLevelTransition(void)
-{
-    g_pending_screen_state.mode = 3;
-    g_pending_screen_state.parameter = g_level_block->pending_level;
-    g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
-    SetMainGameMode(W8_MAIN_GAME_DEFAULT);
-    SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
-}
-
 // FUNCTION: WIZ8 0x00561330
 void TickAmbientFollowUpIdle(unsigned char input_handled)
 {
