@@ -1,3 +1,4 @@
+#include "wiz8/dialog_code/DialogInterface.h"
 #include "vsurface.h"
 #include "wiz8/dialog_code/CharacterSummaryDialog.h"
 #include "wiz8/integer_constants.h"
@@ -184,27 +185,11 @@ bool W8CharacterSummaryDialog::ProcessInput()
                             g_character_event_full_volume);
     }
     while (DequeueEvent(&input) == 1) {
-        switch (input.usEvent) {
-        case LEFT_BUTTON_DOWN:
-        case LEFT_BUTTON_REPEAT:
+        if (input.usEvent == LEFT_BUTTON_DOWN || input.usEvent == LEFT_BUTTON_REPEAT ||
+            input.usEvent == RIGHT_BUTTON_DOWN) {
             m_keep_open = false;
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case LEFT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_DOWN:
-            m_keep_open = false;
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        default:
+        }
+        if (!DispatchDialogMouseInput(input.usEvent, mouse.x, mouse.y)) {
             return HandleInputEvent(&input);
         }
     }

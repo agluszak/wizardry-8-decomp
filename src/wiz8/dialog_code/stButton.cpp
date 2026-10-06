@@ -190,14 +190,8 @@ W8DialogButton::W8DialogButton()
 // FUNCTION: WIZ8 0x005db260
 W8DialogButton::~W8DialogButton()
 {
-    if (m_image_handle != -1) {
-        UnloadButtonImage(m_image_handle);
-        m_image_handle = -1;
-    }
-    if (m_button_handle != -1) {
-        RemoveButton(m_button_handle);
-        m_button_handle = -1;
-    }
+    ReleaseDialogButtonImage(m_image_handle);
+    ReleaseDialogButtonHandle(m_button_handle);
 }
 
 #define STBUTTON_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\stButton.cpp"
@@ -227,10 +221,7 @@ bool W8DialogButton::ConfigureVObjButton(HVOBJECT object, int base_frame,
         m_dirty = true;
         return true;
     }
-    if (m_image_handle != -1) {
-        UnloadButtonImage(m_image_handle);
-        m_image_handle = -1;
-    }
+    ReleaseDialogButtonImage(m_image_handle);
     return false;
 }
 
@@ -291,10 +282,7 @@ bool W8DialogButton::Configure(const char* image_path, int gray_frame, int off_n
         m_dirty = true;
         return true;
     }
-    if (m_image_handle != -1) {
-        UnloadButtonImage(m_image_handle);
-        m_image_handle = -1;
-    }
+    ReleaseDialogButtonImage(m_image_handle);
     return false;
 }
 
@@ -305,8 +293,6 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
     W8DialogButtonCallback left_callback;
     W8DialogButtonCallback right_callback;
     W8DialogButtonCallback move_callback;
-    GUI_BUTTON* owned;
-    INT32 handle;
 
     if (button == 0) {
         srAssertFail("pButton", STBUTTON_CPP, 0x197, 0);
@@ -350,13 +336,8 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                                 button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
                                 self->press_armed = false;
                                 self->m_dirty = true;
-                                handle = self->m_button_handle;
-                                if (!self->m_left_toggles && handle >= 0 && handle < MAX_BUTTONS) {
-                                    owned = ButtonList[handle];
-                                    if (owned != 0 && (owned->uiFlags & BUTTON_CLICKED_ON) != 0) {
-                                        owned->uiFlags &= ~BUTTON_CLICKED_ON;
-                                        self->m_dirty = true;
-                                    }
+                                if (!self->m_left_toggles) {
+                                    self->SetPressed(false);
                                 }
                                 if (self->hover_silent) {
                                     return;

@@ -1,3 +1,4 @@
+#include "wiz8/dialog_code/DialogInterface.h"
 #include "vsurface.h"
 #include "wiz8/dialog_code/NpcDialog.h"
 #include "wiz8/engine_code/Video2.h"
@@ -166,19 +167,8 @@ int W8NpcDialog::CreateControls()
 void W8NpcDialog::DestroyControls()
 {
     W8DialogBase::DestroyControls();
-    int index;
-    for (index = 0; index < 3; ++index) {
-        if (m_buttons[index] != 0) {
-            delete m_buttons[index];
-            m_buttons[index] = 0;
-        }
-    }
-    for (index = 0; index < 2; ++index) {
-        if (m_text_buffers[index] != 0) {
-            delete m_text_buffers[index];
-            m_text_buffers[index] = 0;
-        }
-    }
+    DestroyDialogButtons(m_buttons, 3);
+    DestroyDialogTextBuffers(m_text_buffers, 2);
     if (m_message->kind == W8_NPC_ENTRY_KEYWORD_INPUT) {
         RemoveTextInputField(m_input_field);
     }
@@ -233,26 +223,7 @@ bool W8NpcDialog::ProcessInput()
                 g_npc_dialog->m_keep_open = false;
                 return true;
             }
-            unsigned short type;
-            switch (input.usEvent) {
-            case LEFT_BUTTON_DOWN:
-            case LEFT_BUTTON_REPEAT:
-                type = LEFT_BUTTON_DOWN;
-                break;
-            case LEFT_BUTTON_UP:
-                type = LEFT_BUTTON_UP;
-                break;
-            case RIGHT_BUTTON_DOWN:
-                type = RIGHT_BUTTON_DOWN;
-                break;
-            case RIGHT_BUTTON_UP:
-                type = RIGHT_BUTTON_UP;
-                break;
-            default:
-                continue;
-            }
-            MSYS_SGP_Mouse_Handler_Hook(type, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
+            DispatchDialogMouseInput(input.usEvent, mouse.x, mouse.y);
         }
     }
     return m_keep_open;

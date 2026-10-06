@@ -82,22 +82,14 @@ void W8ListBoxDialog::OkButtonCallback(GUI_BUTTON* button, INT32 reason)
     if (dialog == 0) {
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x34c, 0);
     }
-    if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
-            button->uiFlags |= BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-        }
-    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+    if (!(reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) &&
+        (reason & MSYS_CALLBACK_REASON_LBUTTON_UP)) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
             dialog->m_keep_open = false;
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
-    } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-        button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-    } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-        button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+    } else if (UpdateDialogArrowState(button, reason)) {
         dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }
@@ -109,23 +101,15 @@ void W8ListBoxDialog::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
     if (dialog == 0) {
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x36f, 0);
     }
-    if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
-            button->uiFlags |= BUTTON_CLICKED_ON;
-            dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-        }
-    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+    if (!(reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) &&
+        (reason & MSYS_CALLBACK_REASON_LBUTTON_UP)) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
             dialog->m_keep_open = false;
             dialog->SetCurrentLine(-1);
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
         }
-    } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-        button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-        dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
-    } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-        button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+    } else if (UpdateDialogArrowState(button, reason)) {
         dialog->m_dirty_flags |= W8_DIALOG_DIRTY_REDRAW;
     }
 }

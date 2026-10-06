@@ -366,9 +366,19 @@ static unsigned int g_lock_action_region_set;
 static W8LockInteraction* g_lock_interaction;
 /* 0x00586A70: the selected slot's effective power with spell 0x27. */
 int GetKnockKnockSpellPower(int slot);
+void CancelMouselook()
+{
+    if (g_mouselook_active) {
+        EnableCursorScene();
+        g_mouselook_active = false;
+        gfTrackMousePos = 0;
+    }
+}
+
 /* Open the lock interaction over a trigger, or re-raise its panels while one
    is suspended; outside those paths a random party member eats the trigger's
    event and the failure sound plays. */
+
 // FUNCTION: WIZ8 0x00587510
 int OpenLockInteraction(Trigger* trigger)
 {
@@ -996,17 +1006,7 @@ void W8LockInteraction::Process()
         m_state = 9;
     }
     if (m_state == 9) {
-        gXStatus.fLockInteractMode = false;
-        if (g_lock_interaction != 0) {
-            delete g_lock_interaction;
-        }
-        g_lock_interaction = 0;
-        ClearLevelMovementStopped();
-        SelectTextBox(0);
-        ApplyMainGameModeFlag(g_ui_mode_current, true);
-        RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
-        RequestRedrawCombatBar();
-        RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
+        EndLockInteractMode(0);
         return;
     }
     m_tumbler_panel->UpdateTumblerAnimation();
@@ -1049,14 +1049,7 @@ void W8LockInteraction::Process()
     case 6:
         m_state = 0;
         m_cancel_button->SetAlternateTextEnabled(false);
-        gXStatus.fLockInteractMode = false;
-        EnablePanels(0);
-        gXStatus.fLockInteract = true;
-        SelectTextBox(0);
-        ApplyMainGameModeFlag(g_ui_mode_current, true);
-        RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
-        RequestRedrawCombatBar();
-        RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
+        EndLockInteractMode(1);
         OpenUseItemSelectView(g_status.selected_character);
         return;
     case 7:
@@ -2147,17 +2140,7 @@ void W8MainGameScreen::Update()
         m_disarm_state = 10;
     }
     if (m_disarm_state == 10) {
-        gXStatus.fTrapInteractMode = false;
-        if (g_main_game_screen != 0) {
-            delete g_main_game_screen;
-        }
-        g_main_game_screen = 0;
-        ClearLevelMovementStopped();
-        SelectTextBox(0);
-        ApplyMainGameModeFlag(g_ui_mode_saved, true);
-        RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
-        RequestRedrawCombatBar();
-        RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
+        EndTrapInteractMode(0);
         return;
     }
 
@@ -2211,17 +2194,7 @@ void W8MainGameScreen::Update()
         panel->m_key_handler->m_range.EnableRegionSet(false);
         m_action_panel->EnableRegionSet(false);
         CompleteTrapDisarm(m_owner);
-        gXStatus.fTrapInteractMode = false;
-        if (g_main_game_screen != 0) {
-            delete g_main_game_screen;
-        }
-        g_main_game_screen = 0;
-        ClearLevelMovementStopped();
-        SelectTextBox(0);
-        ApplyMainGameModeFlag(g_ui_mode_saved, true);
-        RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
-        RequestRedrawCombatBar();
-        RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
+        EndTrapInteractMode(0);
         return;
     case 4:
         if (m_sound_handle != 0) {
@@ -2614,7 +2587,6 @@ void W8NpcDialogueTextController::Redraw()
     bool force;
     int height;
     int top;
-    int index;
 
     was_dirty = m_fDirty;
     if (m_fEnabled) {
@@ -2645,12 +2617,7 @@ void W8NpcDialogueTextController::Redraw()
             } else if (!force && !m_fLayoutDirty) {
                 return;
             }
-            for (index = 0; index < m_controls.GetCount(); ++index) {
-                if (ControlAt(index)->m_active) {
-                    ControlAt(index)->Redraw(force);
-                }
-            }
-            m_fLayoutDirty = false;
+            RedrawChildren(force);
             text_area.Draw(force);
         }
     }
@@ -2889,18 +2856,7 @@ void W8NpcDialogueTextController::SetTranscriptCategoryFilter(signed char catego
     text_area.SetCategoryFilter(category);
     Collapse();
     Expand();
-    if (static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])
-            ->scroll_height == 0xff) {
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_UP_BUTTON]->SetEnabled(
-            true);
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_DOWN_BUTTON]->SetEnabled(
-            true);
-    } else {
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_UP_BUTTON]->SetEnabled(
-            false);
-        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_DOWN_BUTTON]->SetEnabled(
-            false);
-    }
+    SyncNpcDialogueTranscriptScrollButtons();
 }
 
 // FUNCTION: WIZ8 0x0055E840
@@ -3261,11 +3217,7 @@ update_screen:
     ApplyPendingMouselook();
     ApplyPendingTooltip();
     if (IsMessageBoxActive() || g_modal_owner) {
-        if (g_mouselook_active) {
-            EnableCursorScene();
-            g_mouselook_active = false;
-            gfTrackMousePos = 0;
-        }
+        CancelMouselook();
         UpdateHeldItemCursor();
         if (!g_modal_owner) {
             ProcessMessageBoxInput();
@@ -3553,11 +3505,7 @@ unsigned char MainGameScreenLeave(int leaving)
 
     SetMainGameMode(W8_MAIN_GAME_DEFAULT);
 
-    if (g_mouselook_active) {
-        EnableCursorScene();
-        g_mouselook_active = false;
-        gfTrackMousePos = 0;
-    }
+    CancelMouselook();
     if (IsWorldCursorVisible()) {
         ToggleWorldCursor();
     }
@@ -3607,32 +3555,7 @@ unsigned char MainGameScreenLeave(int leaving)
         UpdateHeldItemCursor();
     }
 
-    if (g_level_block->formation_board_visible) {
-        SetFormationBoardVisible(false);
-    }
-
-    if (g_level_block->radar_map_visible) {
-        g_level_block->radar_map_visible = 0;
-        DisableRegionInput(0x62);
-        RegionSetDisable(0x12);
-        EnableRadarMap(false);
-        ReleaseRadarMap();
-        RequestRedraw(W8_MAIN_REDRAW_LAYOUT | W8_MAIN_REDRAW_PORTRAIT_PANEL);
-        if (g_radar_panel_shown) {
-            SetViewportMode(GetMainGameViewportMode());
-        }
-        g_radar_panel_shown = false;
-    }
-
-    if (g_level_block->action_panel_visible) {
-        g_level_block->action_panel_visible = 0;
-        DisableCombatRegions();
-        RequestRedraw(W8_MAIN_REDRAW_LAYOUT | W8_MAIN_REDRAW_PORTRAIT_PANEL);
-        if (g_action_panel_shown) {
-            SetViewportMode(GetMainGameViewportMode());
-        }
-        g_action_panel_shown = false;
-    }
+    CloseMainGameOverlays();
 
     if (static_cast<unsigned char>(leaving)) {
         if (g_status.current_level != -1) {
@@ -4514,6 +4437,37 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
                      g_level_block->dialogue_y + g_level_block->dialogue_height, 1);
 }
 
+static void BeginPortraitOverlay(unsigned int party_slot, int row_count, unsigned int width)
+{
+    g_level_block->highlight_row = 0;
+    DrawHighlightOverlay(party_slot, row_count, width);
+    if (g_level_block->highlight_graphic != 0) {
+        ClearNodeFlag(g_level_block->highlight_graphic);
+    }
+}
+
+static void DrawPortraitConditionRow(int condition, int text_x, int row_y, unsigned int width)
+{
+    DrawCatalogImage(FRAME_BUFFER, condition + 0xb6, 0, 0, text_x, row_y, VO_BLT_SRCTRANSPARENCY,
+                     0);
+    swprintf(g_level_block->text_paint_scratch, g_format_s,
+             gppStringList[g_condition_notices[condition * 4]]);
+    int text_width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
+    gprintf(((width >> 1) - text_width / 2) + 0x1a + text_x, row_y, Wiz8ToSgpWideText(g_format_s),
+            g_level_block->text_paint_scratch);
+}
+
+static void DrawPortraitEnchantmentRow(const W8Character* character, int slot, int text_x,
+                                       int row_y, unsigned int width)
+{
+    DrawCatalogImage(FRAME_BUFFER, slot + 0xc9, 0, 0, text_x, row_y, VO_BLT_SRCTRANSPARENCY, 0);
+    swprintf(g_level_block->text_paint_scratch, g_format_s_paren_d,
+             gppStringList[g_condition_notices[slot + 0x64]], character->enchantments[slot].power);
+    int text_width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
+    gprintf(((width >> 1) - text_width / 2) + 0x1a + text_x, row_y, Wiz8ToSgpWideText(g_format_s),
+            g_level_block->text_paint_scratch);
+}
+
 /* The portrait overlay's vitals content: "HP:"/"Stamina:" label rows then one
    icon row per spell realm, each "cur/max" value centered in the column right
    of the labels. Retail seeds the value-column width from the HP/stamina
@@ -4560,11 +4514,7 @@ void DrawPortraitVitalsOverlay(int party_slot)
         }
     }
 
-    g_level_block->highlight_row = 0;
-    DrawHighlightOverlay(party_slot, 8, value_width + label_width);
-    if (g_level_block->highlight_graphic != 0) {
-        ClearNodeFlag(g_level_block->highlight_graphic);
-    }
+    BeginPortraitOverlay(party_slot, 8, value_width + label_width);
 
     int text_width = g_level_block->dialogue_text_width;
     int text_x = g_level_block->dialogue_text_x;
@@ -4604,24 +4554,15 @@ void DrawPortraitVitalsOverlay(int party_slot)
     }
 }
 
-/* The portrait overlay's condition content: one row per active condition with
-   its status icon and notice name, drawn bottom-up. The count covers all
-   twenty condition slots while the measure and draw passes visit 0x13 down to
-   1 only, paired with the four-entry-strided g_condition_notices
-   names. */
-// FUNCTION: WIZ8 0x00564BA0
-void DrawPortraitConditionOverlay(int party_slot)
+static int MeasurePortraitConditions(const W8Character* character, unsigned int& max_width)
 {
-    W8Character* character = &g_status.buffers.Char[party_slot];
-
-    int condition = 0;
+    int condition;
     int row_count = 0;
     for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
         if (character->uiCondition[condition] != 0) {
             ++row_count;
         }
     }
-    unsigned int max_width = 0;
     for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
         if (character->uiCondition[condition] != 0) {
             swprintf(g_level_block->text_paint_scratch, g_format_s,
@@ -4634,24 +4575,55 @@ void DrawPortraitConditionOverlay(int party_slot)
         }
     }
 
-    g_level_block->highlight_row = 0;
-    DrawHighlightOverlay(party_slot, row_count, max_width + 0x1a);
-    if (g_level_block->highlight_graphic != 0) {
-        ClearNodeFlag(g_level_block->highlight_graphic);
+    return row_count;
+}
+
+static int MeasurePortraitEnchantments(const W8Character* character, unsigned int& max_width)
+{
+    int slot;
+    int row_count = 0;
+    for (slot = 0; slot < 8; ++slot) {
+        if (character->enchantments[slot].turns != 0) {
+            ++row_count;
+        }
     }
+    for (slot = 7; slot > 0; --slot) {
+        if (character->enchantments[slot].turns != 0) {
+            swprintf(g_level_block->text_paint_scratch, g_format_s_paren_d,
+                     gppStringList[g_condition_notices[slot + 0x64]],
+                     character->enchantments[slot].power);
+            int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
+            if (max_width < static_cast<unsigned int>(width)) {
+                width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
+                max_width = width;
+            }
+        }
+    }
+
+    return row_count;
+}
+
+/* The portrait overlay's condition content: one row per active condition with
+   its status icon and notice name, drawn bottom-up. The count covers all
+   twenty condition slots while the measure and draw passes visit 0x13 down to
+   1 only, paired with the four-entry-strided g_condition_notices
+   names. */
+// FUNCTION: WIZ8 0x00564BA0
+void DrawPortraitConditionOverlay(int party_slot)
+{
+    W8Character* character = &g_status.buffers.Char[party_slot];
+
+    unsigned int max_width = 0;
+    int row_count = MeasurePortraitConditions(character, max_width);
+
+    BeginPortraitOverlay(party_slot, row_count, max_width + 0x1a);
 
     int text_x = g_level_block->dialogue_text_x;
     int row_y = g_level_block->dialogue_row_y;
     int text_width = g_level_block->dialogue_text_width;
-    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
+    for (int condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
         if (character->uiCondition[condition] != 0) {
-            DrawCatalogImage(FRAME_BUFFER, condition + 0xb6, 0, 0, text_x, row_y,
-                             VO_BLT_SRCTRANSPARENCY, 0);
-            swprintf(g_level_block->text_paint_scratch, g_format_s,
-                     gppStringList[g_condition_notices[condition * 4]]);
-            int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-            gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch);
+            DrawPortraitConditionRow(condition, text_x, row_y, text_width - 0x1aU);
             row_y += 0x12;
         }
     }
@@ -4670,41 +4642,8 @@ void DrawPortraitStatusOverlay(int party_slot)
     int condition;
     int slot;
 
-    int condition_count = 0;
-    for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
-        if (character->uiCondition[condition] != 0) {
-            ++condition_count;
-        }
-    }
-    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
-        if (character->uiCondition[condition] != 0) {
-            swprintf(g_level_block->text_paint_scratch, g_format_s,
-                     gppStringList[g_condition_notices[condition * 4]]);
-            int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-            if (max_width < static_cast<unsigned int>(width)) {
-                width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-                max_width = width;
-            }
-        }
-    }
-    int enchantment_count = 0;
-    for (slot = 0; slot < 8; ++slot) {
-        if (character->enchantments[slot].turns != 0) {
-            ++enchantment_count;
-        }
-    }
-    for (slot = 7; slot > 0; --slot) {
-        if (character->enchantments[slot].turns != 0) {
-            swprintf(g_level_block->text_paint_scratch, g_format_s_paren_d,
-                     gppStringList[g_condition_notices[slot + 0x64]],
-                     character->enchantments[slot].power);
-            int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-            if (max_width < static_cast<unsigned int>(width)) {
-                width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-                max_width = width;
-            }
-        }
-    }
+    int condition_count = MeasurePortraitConditions(character, max_width);
+    int enchantment_count = MeasurePortraitEnchantments(character, max_width);
 
     int row_count = condition_count + enchantment_count;
     if (0x14 < row_count) {
@@ -4717,11 +4656,7 @@ void DrawPortraitStatusOverlay(int party_slot)
         }
     }
 
-    g_level_block->highlight_row = 0;
-    DrawHighlightOverlay(party_slot, row_count, max_width + 0x1a);
-    if (g_level_block->highlight_graphic != 0) {
-        ClearNodeFlag(g_level_block->highlight_graphic);
-    }
+    BeginPortraitOverlay(party_slot, row_count, max_width + 0x1a);
 
     int text_x = g_level_block->dialogue_text_x;
     int row_y = g_level_block->dialogue_row_y;
@@ -4729,13 +4664,7 @@ void DrawPortraitStatusOverlay(int party_slot)
     int rows_drawn = 0;
     for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
         if (character->uiCondition[condition] != 0) {
-            DrawCatalogImage(FRAME_BUFFER, condition + 0xb6, 0, 0, text_x, row_y,
-                             VO_BLT_SRCTRANSPARENCY, 0);
-            swprintf(g_level_block->text_paint_scratch, g_format_s,
-                     gppStringList[g_condition_notices[condition * 4]]);
-            int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-            gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch);
+            DrawPortraitConditionRow(condition, text_x, row_y, text_width);
             row_y += 0x12;
             ++rows_drawn;
         }
@@ -4750,14 +4679,7 @@ void DrawPortraitStatusOverlay(int party_slot)
             return;
         }
         if (character->enchantments[slot].turns != 0) {
-            DrawCatalogImage(FRAME_BUFFER, slot + 0xc9, 0, 0, text_x, row_y, VO_BLT_SRCTRANSPARENCY,
-                             0);
-            swprintf(g_level_block->text_paint_scratch, g_format_s_paren_d,
-                     gppStringList[g_condition_notices[slot + 0x64]],
-                     character->enchantments[slot].power);
-            int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-            gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch);
+            DrawPortraitEnchantmentRow(character, slot, text_x, row_y, text_width);
             row_y += 0x12;
             ++rows_drawn;
         }
@@ -4773,46 +4695,17 @@ void DrawPortraitEnchantmentOverlay(int party_slot)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
-    int slot = 0;
-    int row_count = 0;
-    for (slot = 0; slot < 8; ++slot) {
-        if (character->enchantments[slot].turns != 0) {
-            ++row_count;
-        }
-    }
     unsigned int max_width = 0;
-    for (slot = 7; slot > 0; --slot) {
-        if (character->enchantments[slot].turns != 0) {
-            swprintf(g_level_block->text_paint_scratch, g_format_s_paren_d,
-                     gppStringList[g_condition_notices[slot + 0x64]],
-                     character->enchantments[slot].power);
-            int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-            if (max_width < static_cast<unsigned int>(width)) {
-                width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-                max_width = width;
-            }
-        }
-    }
+    int row_count = MeasurePortraitEnchantments(character, max_width);
 
-    g_level_block->highlight_row = 0;
-    DrawHighlightOverlay(party_slot, row_count, max_width + 0x1a);
-    if (g_level_block->highlight_graphic != 0) {
-        ClearNodeFlag(g_level_block->highlight_graphic);
-    }
+    BeginPortraitOverlay(party_slot, row_count, max_width + 0x1a);
 
     int text_x = g_level_block->dialogue_text_x;
     int row_y = g_level_block->dialogue_row_y;
     int text_width = g_level_block->dialogue_text_width;
-    for (slot = 7; slot > 0; --slot) {
+    for (int slot = 7; slot > 0; --slot) {
         if (character->enchantments[slot].turns != 0) {
-            DrawCatalogImage(FRAME_BUFFER, slot + 0xc9, 0, 0, text_x, row_y, VO_BLT_SRCTRANSPARENCY,
-                             0);
-            swprintf(g_level_block->text_paint_scratch, g_format_s_paren_d,
-                     gppStringList[g_condition_notices[slot + 0x64]],
-                     character->enchantments[slot].power);
-            int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
-            gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
-                    Wiz8ToSgpWideText(g_format_s), g_level_block->text_paint_scratch);
+            DrawPortraitEnchantmentRow(character, slot, text_x, row_y, text_width - 0x1aU);
             row_y += 0x12;
         }
     }
@@ -5284,6 +5177,20 @@ void ClearPortraitRefreshSlot(int slot)
     }
 }
 
+/* Note what the pointer is hovering over. Moving to anything else restarts the
+   tooltip clock; staying put leaves it running, which is what makes the four
+   fields one tooltip rather than four settings. */
+// FUNCTION: WIZ8 0x00569c60
+void SetTooltipSubject(int kind, int subject)
+{
+    if (g_level_block->tooltip_kind != kind || g_level_block->tooltip_subject != subject) {
+        g_level_block->tooltip_pending = true;
+        g_level_block->tooltip_since = GetTickCount();
+        g_level_block->tooltip_subject = subject;
+        g_level_block->tooltip_kind = kind;
+    }
+}
+
 /* Apply a main-game UI mode: drop any raised formation/radar/action panels,
    optionally re-raise them from settings prefs, clear portrait refresh when
    entering portrait mode, refresh tooltip kind, and sync region/layout state. */
@@ -5292,29 +5199,13 @@ void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable)
 {
     unsigned int slot;
 
-    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS &&
-        (g_level_block->tooltip_kind != 4 || g_level_block->tooltip_subject != -1)) {
-        g_level_block->tooltip_pending = true;
-        g_level_block->tooltip_since = GetTickCount();
-        g_level_block->tooltip_subject = -1;
-        g_level_block->tooltip_kind = 4;
+    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+        SetTooltipSubject(4, -1);
     }
-    if (mode == W8_MAIN_UI_MODE_PORTRAITS &&
-        (g_level_block->tooltip_kind != 0 || g_level_block->tooltip_subject != -1)) {
-        g_level_block->tooltip_pending = true;
-        g_level_block->tooltip_since = GetTickCount();
-        g_level_block->tooltip_subject = -1;
-        g_level_block->tooltip_kind = 0;
+    if (mode == W8_MAIN_UI_MODE_PORTRAITS) {
+        SetTooltipSubject(0, -1);
     }
-    if (g_level_block->formation_board_visible) {
-        SetFormationBoardVisible(false);
-    }
-    if (g_level_block->radar_map_visible != 0) {
-        SetRadarMapVisible(false);
-    }
-    if (g_level_block->action_panel_visible != 0) {
-        SetActionPanelVisible(false);
-    }
+    CloseMainGameOverlays();
     if (!enable || gXStatus.fSpellCastMode ||
         (gXStatus.fNpcDialogueMode && !CanOpenNpcDialogue()) || gXStatus.fLockInteractMode ||
         gXStatus.fTrapInteractMode || gXStatus.fItemSelectMode) {
@@ -5784,13 +5675,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     g_level_block->portrait_right_hold_armed = false;
                     NoOp();
                     if (IsNpcDialogueCursorActive() == 0) {
-                        if (g_level_block->tooltip_kind != 0 ||
-                            g_level_block->tooltip_subject != slot) {
-                            g_level_block->tooltip_pending = true;
-                            g_level_block->tooltip_since = GetTickCount();
-                            g_level_block->tooltip_subject = slot;
-                            g_level_block->tooltip_kind = 0;
-                        }
+                        SetTooltipSubject(0, slot);
                         if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE) {
                             UpdateSlotMonsterHighlights(slot, true);
                             return 0;
@@ -5801,12 +5686,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 g_level_block->portrait_right_hold_armed = false;
                 NoOp();
                 if (IsNpcDialogueCursorActive() == 0) {
-                    if (g_level_block->tooltip_kind != 0 || g_level_block->tooltip_subject != -1) {
-                        g_level_block->tooltip_pending = true;
-                        g_level_block->tooltip_since = GetTickCount();
-                        g_level_block->tooltip_subject = -1;
-                        g_level_block->tooltip_kind = 0;
-                    }
+                    SetTooltipSubject(0, -1);
                     SetTargetCursor(GetTargetingCursorForState(0));
                     if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE) {
                         UpdateSlotMonsterHighlights(slot, false);
@@ -5844,17 +5724,19 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
     return 1;
 }
 
-/* Condition orb on a party portrait (help 25): press while highest_condition
-   is set arms the overlay slot; release and leave dismiss the hover plate;
-   enter drives tooltip kind 1 and region help. */
-// FUNCTION: WIZ8 0x005667A0
-unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* region)
+/* Both portrait orbs share this event policy. Member pointers retain their
+   distinct enum fields and reload the live overlay owner after callbacks. */
+template <class Effect>
+static unsigned char DispatchPortraitOrbRegionEvent(const InputAtom* event, W8Region* region,
+                                                    Effect W8Character::* effect, Effect none,
+                                                    int W8LevelRuntimeBlock::* selection,
+                                                    int tooltip_kind)
 {
     int slot = region->callback_id;
     W8Character* character = &g_status.buffers.Char[slot];
     unsigned int us_event;
 
-    if (character->highest_condition == W8_CONDITION_NONE) {
+    if ((character->*effect) == none) {
         PushButtonSoundScheme(0, true);
     }
 
@@ -5865,30 +5747,18 @@ unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* 
                 return 0;
             }
             if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-                if (g_level_block->tooltip_kind != 1 || g_level_block->tooltip_subject != -1) {
-                    g_level_block->tooltip_pending = true;
-                    g_level_block->tooltip_since = GetTickCount();
-                    g_level_block->tooltip_subject = -1;
-                    g_level_block->tooltip_kind = 1;
-                }
-                if (g_level_block->condition_orb_party_slot != -1) {
-                    g_level_block->condition_orb_party_slot = -1;
+                SetTooltipSubject(tooltip_kind, -1);
+                if ((g_level_block->*selection) != -1) {
+                    (g_level_block->*selection) = -1;
                     DismissHighlightOverlay();
                     RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
                 }
             } else {
                 if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                    if (character->highest_condition != W8_CONDITION_NONE) {
-                        if (g_level_block->tooltip_kind != 1 ||
-                            g_level_block->tooltip_subject != slot) {
-                            g_level_block->tooltip_pending = true;
-                            g_level_block->tooltip_since = GetTickCount();
-                            g_level_block->tooltip_subject = slot;
-                            g_level_block->tooltip_kind = 1;
-                        }
-                        if (gfLeftButtonState != 0 &&
-                            character->highest_condition != W8_CONDITION_NONE) {
-                            g_level_block->condition_orb_party_slot = slot;
+                    if ((character->*effect) != none) {
+                        SetTooltipSubject(tooltip_kind, slot);
+                        if (gfLeftButtonState != 0 && (character->*effect) != none) {
+                            (g_level_block->*selection) = slot;
                             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                                 g_level_block != 0) {
                                 RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
@@ -5904,21 +5774,32 @@ unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* 
             DisableRegionHelpFlag(region);
             return 0;
         }
-        if (g_level_block->condition_orb_party_slot == -1) {
+        if ((g_level_block->*selection) == -1) {
             return 1;
         }
-        g_level_block->condition_orb_party_slot = -1;
+        (g_level_block->*selection) = -1;
         DismissHighlightOverlay();
         RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
         return 1;
     }
 
-    if (character->highest_condition == W8_CONDITION_NONE) {
+    if ((character->*effect) == none) {
         return 1;
     }
-    g_level_block->condition_orb_party_slot = slot;
+    (g_level_block->*selection) = slot;
     RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
     return 1;
+}
+
+/* Condition orb on a party portrait (help 25): press while highest_condition
+   is set arms the overlay slot; release and leave dismiss the hover plate;
+   enter drives tooltip kind 1 and region help. */
+// FUNCTION: WIZ8 0x005667A0
+unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* region)
+{
+    return DispatchPortraitOrbRegionEvent(event, region, &W8Character::highest_condition,
+                                          W8_CONDITION_NONE,
+                                          &W8LevelRuntimeBlock::condition_orb_party_slot, 1);
 }
 
 /* Enchantment orb on a party portrait (help 26): near-clone of the condition
@@ -5926,75 +5807,9 @@ unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* 
 // FUNCTION: WIZ8 0x00566AE0
 unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event, W8Region* region)
 {
-    int slot = region->callback_id;
-    W8Character* character = &g_status.buffers.Char[slot];
-    unsigned int us_event;
-
-    if (character->enchantment_top == W8_ENCHANTMENT_NONE) {
-        PushButtonSoundScheme(0, true);
-    }
-
-    us_event = event->usEvent;
-    if (us_event != LEFT_BUTTON_DOWN) {
-        if (us_event != LEFT_BUTTON_UP) {
-            if (us_event != MOUSE_POS) {
-                return 0;
-            }
-            if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-                if (g_level_block->tooltip_kind != 2 || g_level_block->tooltip_subject != -1) {
-                    g_level_block->tooltip_pending = true;
-                    g_level_block->tooltip_since = GetTickCount();
-                    g_level_block->tooltip_subject = -1;
-                    g_level_block->tooltip_kind = 2;
-                }
-                if (g_level_block->enchantment_orb_party_slot != -1) {
-                    g_level_block->enchantment_orb_party_slot = -1;
-                    DismissHighlightOverlay();
-                    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
-                }
-            } else {
-                if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                    if (character->enchantment_top != W8_ENCHANTMENT_NONE) {
-                        if (g_level_block->tooltip_kind != 2 ||
-                            g_level_block->tooltip_subject != slot) {
-                            g_level_block->tooltip_pending = true;
-                            g_level_block->tooltip_since = GetTickCount();
-                            g_level_block->tooltip_subject = slot;
-                            g_level_block->tooltip_kind = 2;
-                        }
-                        if (gfLeftButtonState != 0 &&
-                            character->enchantment_top != W8_ENCHANTMENT_NONE) {
-                            g_level_block->enchantment_orb_party_slot = slot;
-                            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                                g_level_block != 0) {
-                                RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
-                            }
-                        }
-                        EnableRegionHelpFlag(region);
-                        return 0;
-                    }
-                } else {
-                    return 0;
-                }
-            }
-            DisableRegionHelpFlag(region);
-            return 0;
-        }
-        if (g_level_block->enchantment_orb_party_slot == -1) {
-            return 1;
-        }
-        g_level_block->enchantment_orb_party_slot = -1;
-        DismissHighlightOverlay();
-        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
-        return 1;
-    }
-
-    if (character->enchantment_top == W8_ENCHANTMENT_NONE) {
-        return 1;
-    }
-    g_level_block->enchantment_orb_party_slot = slot;
-    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
-    return 1;
+    return DispatchPortraitOrbRegionEvent(event, region, &W8Character::enchantment_top,
+                                          W8_ENCHANTMENT_NONE,
+                                          &W8LevelRuntimeBlock::enchantment_orb_party_slot, 2);
 }
 
 /* Help 28: portrait side bar — hover picks upper/lower weapon or assayable
@@ -6052,19 +5867,12 @@ unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event, W8Region* 
             return 0;
         }
         if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
-            if ((region->flags & W8_REGION_MOUSE_ENTER) != 0 &&
-                (PushButtonSoundScheme(0, true),
-                 g_level_block->tooltip_kind != 5 || g_level_block->tooltip_subject != slot)) {
-                g_level_block->tooltip_pending = true;
-                g_level_block->tooltip_since = GetTickCount();
-                g_level_block->tooltip_subject = slot;
-                g_level_block->tooltip_kind = 5;
+            if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+                PushButtonSoundScheme(0, true);
+                SetTooltipSubject(5, slot);
             }
-        } else if (g_level_block->tooltip_kind != 5 || g_level_block->tooltip_subject != -1) {
-            g_level_block->tooltip_pending = true;
-            g_level_block->tooltip_since = GetTickCount();
-            g_level_block->tooltip_subject = -1;
-            g_level_block->tooltip_kind = 5;
+        } else {
+            SetTooltipSubject(5, -1);
             return 0;
         }
         return 0;
@@ -6112,23 +5920,13 @@ unsigned char PortraitOverlayHoverRegionEvent(const InputAtom* event, W8Region* 
                     return 0;
                 }
                 PushButtonSoundScheme(0, true);
-                if (g_level_block->tooltip_kind != 4 || g_level_block->tooltip_subject != slot) {
-                    g_level_block->tooltip_pending = true;
-                    g_level_block->tooltip_since = GetTickCount();
-                    g_level_block->tooltip_subject = slot;
-                    g_level_block->tooltip_kind = 4;
-                }
+                SetTooltipSubject(4, slot);
                 if (gfLeftButtonState == 0) {
                     return 0;
                 }
                 g_level_block->portrait_overlay_party_slot = slot;
             } else {
-                if (g_level_block->tooltip_kind != 4 || g_level_block->tooltip_subject != -1) {
-                    g_level_block->tooltip_pending = true;
-                    g_level_block->tooltip_since = GetTickCount();
-                    g_level_block->tooltip_subject = -1;
-                    g_level_block->tooltip_kind = 4;
-                }
+                SetTooltipSubject(4, -1);
                 if (g_level_block->portrait_overlay_party_slot == -1) {
                     return 0;
                 }
@@ -6254,19 +6052,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
                         goto open_automap;
                     }
                 }
-                ClearSurfaceRect(g_level_block->dialogue_x, g_level_block->dialogue_y,
-                                 g_level_block->dialogue_x + g_level_block->dialogue_width,
-                                 g_level_block->dialogue_y + g_level_block->dialogue_height);
-                InvalidateRegion(g_level_block->dialogue_x, g_level_block->dialogue_y,
-                                 g_level_block->dialogue_x + g_level_block->dialogue_width,
-                                 g_level_block->dialogue_y + g_level_block->dialogue_height, 0);
-                if (g_level_block->dialogue_y <
-                    static_cast<unsigned int>(g_viewport_modes[g_level_block->camera_mode].top)) {
-                    RequestRedrawCombatBar();
-                }
-                if (g_level_block->dialogue_y + g_level_block->dialogue_height > 0x166) {
-                    RequestRedraw(W8_MAIN_REDRAW_TEXT_BOX);
-                }
+                ClearHighlightOverlayRegion();
             }
         open_automap:
             g_main_game_mode = W8_MAIN_GAME_DEFAULT;
@@ -6746,20 +6532,6 @@ bool LoadCurrentLevelData(void)
         UpdateHeldItemCursor();
     }
     return loaded;
-}
-
-/* Note what the pointer is hovering over. Moving to anything else restarts the
-   tooltip clock; staying put leaves it running, which is what makes the four
-   fields one tooltip rather than four settings. */
-// FUNCTION: WIZ8 0x00569c60
-void SetTooltipSubject(int kind, int subject)
-{
-    if (g_level_block->tooltip_kind != kind || g_level_block->tooltip_subject != subject) {
-        g_level_block->tooltip_pending = true;
-        g_level_block->tooltip_since = GetTickCount();
-        g_level_block->tooltip_subject = subject;
-        g_level_block->tooltip_kind = kind;
-    }
 }
 
 /* Put the seven combat regions into their inactive mode, and the eighth with
@@ -7786,35 +7558,13 @@ short GetMainGameViewportMode(void)
 void CloseMainGameOverlays(void)
 {
     if (g_level_block->formation_board_visible) {
-        g_level_block->formation_board_visible = false;
-        RegionSetDisable(0x13);
-        ReleaseFormationBoard();
-        RequestRedraw(W8_MAIN_REDRAW_LAYOUT | W8_MAIN_REDRAW_PORTRAIT_PANEL);
-        if (g_formation_panel_shown) {
-            SetViewportMode(GetMainGameViewportMode());
-        }
-        g_formation_panel_shown = false;
+        SetFormationBoardVisible(false);
     }
     if (g_level_block->radar_map_visible != 0) {
-        g_level_block->radar_map_visible = 0;
-        DisableRegionInput(0x62);
-        RegionSetDisable(0x12);
-        EnableRadarMap(false);
-        ReleaseRadarMap();
-        RequestRedraw(W8_MAIN_REDRAW_LAYOUT | W8_MAIN_REDRAW_PORTRAIT_PANEL);
-        if (g_radar_panel_shown) {
-            SetViewportMode(GetMainGameViewportMode());
-        }
-        g_radar_panel_shown = false;
+        SetRadarMapVisible(false);
     }
     if (g_level_block->action_panel_visible != 0) {
-        g_level_block->action_panel_visible = 0;
-        DisableCombatRegions();
-        RequestRedraw(W8_MAIN_REDRAW_LAYOUT | W8_MAIN_REDRAW_PORTRAIT_PANEL);
-        if (g_action_panel_shown) {
-            SetViewportMode(GetMainGameViewportMode());
-        }
-        g_action_panel_shown = false;
+        SetActionPanelVisible(false);
     }
 }
 

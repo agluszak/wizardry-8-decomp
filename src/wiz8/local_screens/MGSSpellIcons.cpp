@@ -81,17 +81,22 @@ unsigned char CreateSpellIconHudControls(void)
     return 1;
 }
 
+/* Strip rows are detached before destruction. Destruction can change the
+   live panel/count, so each iteration reads them again; slots stay dangling. */
+static void DestroyEffectIconRows(Controls*& panel, W8TextControl** rows, const unsigned int& count)
+{
+    for (unsigned int index = 0; index < count; ++index) {
+        panel->RemoveControl(rows[index]);
+        if (rows[index] != 0) {
+            delete rows[index];
+        }
+    }
+}
+
 static void ClearSpellIconHudRows()
 {
     unsigned int index;
-    if (g_spell_icon_count != 0) {
-        for (index = 0; index < g_spell_icon_count; ++index) {
-            g_spell_icon_strip->RemoveControl(g_spell_icon_rows[index]);
-            if (g_spell_icon_rows[index] != 0) {
-                delete g_spell_icon_rows[index];
-            }
-        }
-    }
+    DestroyEffectIconRows(g_spell_icon_strip, g_spell_icon_rows, g_spell_icon_count);
     for (index = 0; index < 0xc; ++index) {
         DisableRegionInput(0xd5 - index);
     }
@@ -251,27 +256,15 @@ void DestroyCombatEffectHudRows(void)
 {
     unsigned int index;
 
-    if (g_combat_effect_left_count != 0) {
-        for (index = 0; index < g_combat_effect_left_count; ++index) {
-            g_combat_effect_left_panel->RemoveControl(g_combat_effect_left_rows[index]);
-            if (g_combat_effect_left_rows[index] != 0) {
-                delete g_combat_effect_left_rows[index];
-            }
-        }
-    }
+    DestroyEffectIconRows(g_combat_effect_left_panel, g_combat_effect_left_rows,
+                          g_combat_effect_left_count);
     for (index = 0; index < 9; ++index) {
         DisableRegionInput(index + 0xd6);
     }
     g_combat_effect_left_count = 0;
 
-    if (g_combat_effect_right_count != 0) {
-        for (index = 0; index < g_combat_effect_right_count; ++index) {
-            g_combat_effect_right_panel->RemoveControl(g_combat_effect_right_rows[index]);
-            if (g_combat_effect_right_rows[index] != 0) {
-                delete g_combat_effect_right_rows[index];
-            }
-        }
-    }
+    DestroyEffectIconRows(g_combat_effect_right_panel, g_combat_effect_right_rows,
+                          g_combat_effect_right_count);
     for (index = 0; index < 6; ++index) {
         DisableRegionInput(0xe4 - index);
     }
@@ -326,40 +319,50 @@ void ShowPartyEffectIconHelp(int slot_index)
     ShowEffectIconHelp(&g_status.effect_slots[slot_index], true, 0x15c);
 }
 
-// FUNCTION: WIZ8 0x005AEEA0
-unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* region)
+static unsigned int FindActiveEffectSlotIndex(const W8EffectSlot* slots, unsigned int count,
+                                              unsigned int active_index)
 {
     unsigned int match = 0;
-    int slot_index = 0;
-    W8EffectSlot* slot;
-
-    PushButtonSoundScheme(0, true);
-    slot = g_status.effect_slots;
-    do {
-        if (slot->active) {
-            if (match == region->callback_id) {
-                break;
+    for (unsigned int index = 0; index < count; ++index) {
+        if (slots[index].active) {
+            if (match == active_index) {
+                return index;
             }
             ++match;
         }
-        ++slot;
-        ++slot_index;
-    } while (slot < &g_status.effect_slots[12]);
+    }
+    return count;
+}
 
-    if (slot_index != 12 && event->usEvent == MOUSE_POS) {
+/* All three effect strips use the same active-slot hover policy. The caller
+   retains the combat guard and sound setup before supplying its current slots. */
+static unsigned char DispatchEffectIconRegionEvent(const InputAtom* event, W8Region* region,
+                                                   const W8EffectSlot* slots, unsigned int count,
+                                                   void (*show_help)(int))
+{
+    unsigned int slot_index = FindActiveEffectSlotIndex(slots, count, region->callback_id);
+    if (slot_index != count && event->usEvent == MOUSE_POS) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            ShowPartyEffectIconHelp(slot_index);
+            show_help(slot_index);
             return 1;
         }
-        if (g_effect_icon_help_duration != g_status.effect_slots[slot_index].duration) {
-            ShowPartyEffectIconHelp(slot_index);
+        if (g_effect_icon_help_duration != slots[slot_index].duration) {
+            show_help(slot_index);
             ResetRegionHelp(false);
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x005AEEA0
+unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* region)
+{
+    PushButtonSoundScheme(0, true);
+    return DispatchEffectIconRegionEvent(event, region, g_status.effect_slots, 12,
+                                         ShowPartyEffectIconHelp);
 }
 
 /* Left combat-effect strip (nine slots at g_combat_state->effect_slots). */
@@ -382,41 +385,12 @@ void ShowCombatRightEffectIconHelp(int slot_index)
 // FUNCTION: WIZ8 0x005AF530
 unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* region)
 {
-    unsigned int match;
-    unsigned int slot_index;
-    W8EffectSlot* slot;
-
-    if (gXStatus.fCombatMode) {
-        PushButtonSoundScheme(0, true);
-        match = 0;
-        slot_index = 0;
-        slot = g_combat_state->effect_slots;
-        do {
-            if (slot->active) {
-                if (match == region->callback_id) {
-                    break;
-                }
-                ++match;
-            }
-            ++slot_index;
-            ++slot;
-        } while (slot_index < 9);
-
-        if (slot_index != 9 && event->usEvent == MOUSE_POS) {
-            if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-                return 1;
-            }
-            if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                ShowCombatLeftEffectIconHelp(slot_index);
-                return 1;
-            }
-            if (g_effect_icon_help_duration != g_combat_state->effect_slots[slot_index].duration) {
-                ShowCombatLeftEffectIconHelp(slot_index);
-                ResetRegionHelp(false);
-            }
-        }
+    if (!gXStatus.fCombatMode) {
+        return 0;
     }
-    return 0;
+    PushButtonSoundScheme(0, true);
+    return DispatchEffectIconRegionEvent(event, region, g_combat_state->effect_slots, 9,
+                                         ShowCombatLeftEffectIconHelp);
 }
 
 /* Right combat-effect strip (six slots at g_combat_state->effect_slots0). */
@@ -424,39 +398,10 @@ unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* 
 // FUNCTION: WIZ8 0x005AF5E0
 unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region* region)
 {
-    unsigned int match;
-    unsigned int slot_index;
-    W8EffectSlot* slot;
-
-    if (gXStatus.fCombatMode) {
-        PushButtonSoundScheme(0, true);
-        match = 0;
-        slot_index = 0;
-        slot = g_combat_state->effect_slots0;
-        do {
-            if (slot->active) {
-                if (match == region->callback_id) {
-                    break;
-                }
-                ++match;
-            }
-            ++slot_index;
-            ++slot;
-        } while (slot_index < 6);
-
-        if (slot_index != 6 && event->usEvent == MOUSE_POS) {
-            if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-                return 1;
-            }
-            if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                ShowCombatRightEffectIconHelp(slot_index);
-                return 1;
-            }
-            if (g_effect_icon_help_duration != g_combat_state->effect_slots0[slot_index].duration) {
-                ShowCombatRightEffectIconHelp(slot_index);
-                ResetRegionHelp(false);
-            }
-        }
+    if (!gXStatus.fCombatMode) {
+        return 0;
     }
-    return 0;
+    PushButtonSoundScheme(0, true);
+    return DispatchEffectIconRegionEvent(event, region, g_combat_state->effect_slots0, 6,
+                                         ShowCombatRightEffectIconHelp);
 }

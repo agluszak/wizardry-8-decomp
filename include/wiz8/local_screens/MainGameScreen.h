@@ -527,8 +527,9 @@ bool IsScreenIdle(void);
 bool IsModalOpen(void);
 
 void RequestRedraw(unsigned int mask);
-void ApplyMainGameRedrawFlags(void);           /* 0x00562E40 */
-void DrawMainGameScreen(void);                 /* 0x00562A80 */
+void ApplyMainGameRedrawFlags(void); /* 0x00562E40 */
+void DrawMainGameScreen(void);       /* 0x00562A80 */
+void CancelMouselook();
 void SetTooltipSubject(int kind, int subject); /* 0x00569C60 */
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);

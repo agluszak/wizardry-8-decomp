@@ -91,11 +91,7 @@ int W8ProfRaceInfoDialogBase::CreateControls()
                            m_text_area.GetLineHeight(), 0xb8);
     m_scroll_bar.m_owner = this;
 
-    m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                       DialogCloseButtonCallback, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                       W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
-    m_button.SetPosition(m_x + 0x14f, m_y + 0xe8);
-    m_button.m_owner = this;
+    CreateCloseButton(m_button, 0x14f, 0xe8);
     return 0;
 }
 

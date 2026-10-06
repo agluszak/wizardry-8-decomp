@@ -100,6 +100,7 @@ static W8WorldCursorNode* g_mipe_cube;
 static bool g_mipe_choose_group = true;
 
 int FindCategoryItemTable(unsigned int category, int ordinal);
+static void ShowMipeNamedCategory(W8PList* list, const unsigned short* name_ids);
 
 /* The MIPE toggle: leaving the panel restores the level flags and combat
    state and tears the editor state down; entering it clears combat flags,
@@ -383,6 +384,18 @@ void ShowMipeEditMenu(void)
     ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"2) Prop");
     ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"3) Item");
     ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"4) Move object(s)");
+}
+
+static void ShowMipeMonsterEditMenu()
+{
+    ResetEditorStatusLine(-1);
+    ShowNoticef(W8_FONT_PALETTE_PINK, L"Edit Monster");
+    ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"1) Slow <<");
+    ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"2) Fast >>");
+    ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"3) Set Speed");
+    ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"4) Assign Path");
+    ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"5) Next Cycle");
+    ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"6) Direction");
 }
 
 /* Mode-0xd menu: prop field-editing choices (locks & traps, treasure table). */
@@ -704,10 +717,7 @@ unsigned char HandleMipeMonsterCreateKey(unsigned short key)
     case 0x43:
         g_mipe_count = 1;
         g_mipe_mode = 6;
-        ResetEditorStatusLine(-1);
-        ShowNoticef(W8_FONT_PALETTE_PINK, L"Category: %s",
-                    gppStringList[g_special_category_name_ids[g_mipe_category & 0xff]]);
-        ShowMipeTableRows(list);
+        ShowMipeNamedCategory(list, g_special_category_name_ids);
         return 1;
     case 0x4f:
         ++g_mipe_state->creation_method;
@@ -756,6 +766,71 @@ static unsigned int FindMipeVisibleItem(int visible)
         }
     }
     return item_index;
+}
+
+/* Six-row picker navigation is shared by items, monsters, encounter tables
+   and treasure tables. A stationary Up still requests a redraw; exhausted
+   Down/Page Down and Page Up at the first page do not. */
+static bool MoveMipeTableSelection(unsigned short key)
+{
+    switch (key) {
+    case 0x26:
+        if (g_mipe_table_row == 0) {
+            if (g_mipe_table_base != 0) {
+                --g_mipe_table_base;
+            }
+        } else {
+            --g_mipe_table_row;
+        }
+        return true;
+    case 0x21:
+        if (g_mipe_table_base == 0) {
+            return false;
+        }
+        g_mipe_table_base -= 6;
+        if (g_mipe_table_base < 0) {
+            g_mipe_table_base = 0;
+        }
+        return true;
+    case 0x28:
+        if (g_mipe_table_row < 5 && g_mipe_table_base + g_mipe_table_row <
+                                        static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
+            ++g_mipe_table_row;
+            return true;
+        }
+        if (static_cast<int>(PLLength(g_mipe_category_list) - 1) <=
+            g_mipe_table_base + g_mipe_table_row) {
+            return false;
+        }
+        ++g_mipe_table_base;
+        return true;
+    case 0x22:
+        if (g_mipe_table_base + g_mipe_table_row <
+            static_cast<int>(PLLength(g_mipe_category_list) - 6)) {
+            g_mipe_table_base += 6;
+            return true;
+        }
+        if (static_cast<int>(PLLength(g_mipe_category_list)) <=
+            g_mipe_table_base + g_mipe_table_row) {
+            return false;
+        }
+        g_mipe_table_base += 6;
+        g_mipe_table_row = 0;
+        if (static_cast<int>(PLLength(g_mipe_category_list)) <= g_mipe_table_base) {
+            g_mipe_table_base = static_cast<int>(PLLength(g_mipe_category_list));
+            --g_mipe_table_base;
+        }
+        return true;
+    }
+    return false;
+}
+
+static void ShowMipeNamedCategory(W8PList* list, const unsigned short* name_ids)
+{
+    ResetEditorStatusLine(-1);
+    ShowNoticef(W8_FONT_PALETTE_PINK, L"Category: %s",
+                gppStringList[name_ids[g_mipe_category & 0xff]]);
+    ShowMipeTableRows(list);
 }
 
 static void RebuildMipeItemCategory(W8PList* list)
@@ -824,63 +899,21 @@ void HandleMipeItemCategoryKey(unsigned short key)
         g_mipe_table_base = 0;
         RebuildMipeItemCategory(list);
         break;
-    case 0x26:
-        if (g_mipe_table_row == 0) {
-            if (g_mipe_table_base != 0) {
-                --g_mipe_table_base;
-            }
-        } else {
-            --g_mipe_table_row;
-        }
-        break;
     case 0x21:
-        if (g_mipe_table_base == 0) {
-            return;
-        }
-        g_mipe_table_base -= 6;
-        if (g_mipe_table_base < 0) {
-            g_mipe_table_base = 0;
-        }
-        break;
-    case 0x28:
-        if (g_mipe_table_row < 5 && g_mipe_table_base + g_mipe_table_row <
-                                        static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
-            ++g_mipe_table_row;
-            break;
-        }
-        if (static_cast<int>(PLLength(g_mipe_category_list) - 1) <=
-            g_mipe_table_base + g_mipe_table_row) {
-            return;
-        }
-        ++g_mipe_table_base;
-        break;
-    case 0x20:
-        break;
     case 0x22:
-        if (static_cast<int>(PLLength(g_mipe_category_list) - 6) <=
-            g_mipe_table_base + g_mipe_table_row) {
-            if (static_cast<int>(PLLength(g_mipe_category_list)) <=
-                g_mipe_table_base + g_mipe_table_row) {
-                return;
-            }
-            g_mipe_table_base += 6;
-            g_mipe_table_row = 0;
-            if (static_cast<int>(PLLength(g_mipe_category_list)) <= g_mipe_table_base) {
-                g_mipe_table_base = static_cast<int>(PLLength(g_mipe_category_list));
-                --g_mipe_table_base;
-            }
-        } else {
-            g_mipe_table_base += 6;
+    case 0x26:
+    case 0x28:
+        if (MoveMipeTableSelection(key)) {
+            ShowMipeNamedCategory(g_mipe_category_list, g_equip_class_name_ids);
         }
+        return;
+    case 0x20:
         break;
     default:
         return;
     }
     list = g_mipe_category_list;
-    ResetEditorStatusLine(-1);
-    ShowNoticef(W8_FONT_PALETTE_PINK, L"Category: %s",
-                gppStringList[g_equip_class_name_ids[g_mipe_category & 0xff]]);
-    ShowMipeTableRows(list);
+    ShowMipeNamedCategory(list, g_equip_class_name_ids);
 }
 
 /* Mode-2 key handler: digits accumulate the count, Enter spawns that many of
@@ -920,10 +953,7 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
     case 0x43:
         g_mipe_count = 0;
         g_mipe_mode = 7;
-        ResetEditorStatusLine(-1);
-        ShowNoticef(W8_FONT_PALETTE_PINK, L"Category: %s",
-                    gppStringList[g_equip_class_name_ids[g_mipe_category & 0xff]]);
-        ShowMipeTableRows(list);
+        ShowMipeNamedCategory(list, g_equip_class_name_ids);
         return 1;
     case 8:
         g_mipe_count /= 10;
@@ -1063,75 +1093,21 @@ void HandleMipeMonsterCategoryKey(unsigned short key)
             RebuildMipeMonsterCategory(list);
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
         break;
-    case 0x26:
-        if (g_mipe_table_row == 0) {
-            if (g_mipe_table_base != 0) {
-                --g_mipe_table_base;
-            }
-        } else {
-            --g_mipe_table_row;
-        }
-        break;
     case 0x21:
-        if (g_mipe_table_base == 0) {
-            return;
-        }
-        g_mipe_table_base -= 6;
-        if (g_mipe_table_base < 0) {
-            g_mipe_table_base = 0;
-        }
-        ResetEditorStatusLine(-1);
-        ShowNoticef(W8_FONT_PALETTE_PINK, L"Category: %s",
-                    gppStringList[g_special_category_name_ids[g_mipe_category & 0xff]]);
-        ShowMipeTableRows(list);
-        return;
-    case 0x28:
-        if (g_mipe_table_row < 5 && g_mipe_table_base + g_mipe_table_row <
-                                        static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
-            ++g_mipe_table_row;
-            ResetEditorStatusLine(-1);
-            ShowNoticef(W8_FONT_PALETTE_PINK, L"Category: %s",
-                        gppStringList[g_special_category_name_ids[g_mipe_category & 0xff]]);
-            ShowMipeTableRows(list);
-            return;
-        }
-        if (static_cast<int>(PLLength(g_mipe_category_list) - 1) <=
-            g_mipe_table_base + g_mipe_table_row) {
-            return;
-        }
-        ++g_mipe_table_base;
-        break;
     case 0x22:
-        if (g_mipe_table_base + g_mipe_table_row <
-            static_cast<int>(PLLength(g_mipe_category_list) - 6)) {
-            g_mipe_table_base += 6;
-            ResetEditorStatusLine(-1);
-            ShowNoticef(W8_FONT_PALETTE_PINK, L"Category: %s",
-                        gppStringList[g_special_category_name_ids[g_mipe_category & 0xff]]);
-            ShowMipeTableRows(list);
-            return;
+    case 0x26:
+    case 0x28:
+        if (MoveMipeTableSelection(key)) {
+            ShowMipeNamedCategory(list, g_special_category_name_ids);
         }
-        if (static_cast<int>(PLLength(g_mipe_category_list)) <=
-            g_mipe_table_base + g_mipe_table_row) {
-            return;
-        }
-        g_mipe_table_base += 6;
-        g_mipe_table_row = 0;
-        if (static_cast<int>(PLLength(g_mipe_category_list)) <= g_mipe_table_base) {
-            g_mipe_table_base = static_cast<int>(PLLength(g_mipe_category_list));
-            --g_mipe_table_base;
-        }
-        break;
+        return;
     case 0x20:
         break;
     default:
         return;
     }
     list = g_mipe_category_list;
-    ResetEditorStatusLine(-1);
-    ShowNoticef(W8_FONT_PALETTE_PINK, L"Category: %s",
-                gppStringList[g_special_category_name_ids[g_mipe_category & 0xff]]);
-    ShowMipeTableRows(list);
+    ShowMipeNamedCategory(list, g_special_category_name_ids);
 }
 
 /* '1' halves the selected monster's animation scale, '2' doubles it, '3'
@@ -2006,35 +1982,13 @@ void HandleMipeGeneratorTableKey(unsigned short key)
         ShowMipeEncounterCategory();
         return;
     case 0x21:
-        if (g_mipe_table_base == 0) {
-            return;
-        }
-        g_mipe_table_base -= 6;
-        if (g_mipe_table_base < 0) {
-            g_mipe_table_base = 0;
-            ShowMipeEncounterCategory();
-            return;
-        }
-        ShowMipeEncounterCategory();
-        break;
     case 0x22:
-        if (g_mipe_table_base + g_mipe_table_row <
-            static_cast<int>(PLLength(g_mipe_category_list) - 6)) {
-            g_mipe_table_base += 6;
+    case 0x26:
+    case 0x28:
+        if (MoveMipeTableSelection(key)) {
             ShowMipeEncounterCategory();
-            return;
         }
-        if (static_cast<int>(PLLength(g_mipe_category_list)) <=
-            g_mipe_table_base + g_mipe_table_row) {
-            return;
-        }
-        g_mipe_table_base += 6;
-        g_mipe_table_row = 0;
-        if (static_cast<int>(PLLength(g_mipe_category_list)) <= g_mipe_table_base) {
-            g_mipe_table_base = static_cast<int>(PLLength(g_mipe_category_list)) - 1;
-        }
-        ShowMipeEncounterCategory();
-        break;
+        return;
     case 0x25:
         g_mipe_table_row = 0;
         g_mipe_table_base = 0;
@@ -2065,16 +2019,6 @@ void HandleMipeGeneratorTableKey(unsigned short key)
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
         ShowMipeEncounterCategory();
         return;
-    case 0x26:
-        if (g_mipe_table_row == 0) {
-            if (g_mipe_table_base != 0) {
-                --g_mipe_table_base;
-            }
-        } else {
-            --g_mipe_table_row;
-        }
-        ShowMipeEncounterCategory();
-        return;
     case 0x27:
         g_mipe_table_row = 0;
         g_mipe_table_base = 0;
@@ -2093,19 +2037,6 @@ void HandleMipeGeneratorTableKey(unsigned short key)
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
         ShowMipeEncounterCategory();
         return;
-    case 0x28:
-        if (g_mipe_table_row < 5 && g_mipe_table_base + g_mipe_table_row <
-                                        static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
-            ++g_mipe_table_row;
-            ShowMipeEncounterCategory();
-            return;
-        }
-        if (g_mipe_table_base + g_mipe_table_row <
-            static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
-            ++g_mipe_table_base;
-            ShowMipeEncounterCategory();
-            return;
-        }
     }
 }
 
@@ -2295,32 +2226,13 @@ void HandleMipeItemTableKey(unsigned short key)
         ShowMipeItemTableCategory();
         return;
     case 0x21:
-        if (g_mipe_table_base != 0) {
-            g_mipe_table_base -= 6;
-            if (g_mipe_table_base < 0) {
-                g_mipe_table_base = 0;
-            }
-            ShowMipeItemTableCategory();
-            return;
-        }
-        break;
     case 0x22:
-        if (g_mipe_table_base + g_mipe_table_row <
-            static_cast<int>(PLLength(g_mipe_category_list) - 6)) {
-            g_mipe_table_base += 6;
-            ShowMipeItemTableCategory();
-            return;
-        }
-        if (g_mipe_table_base + g_mipe_table_row <
-            static_cast<int>(PLLength(g_mipe_category_list))) {
-            g_mipe_table_base += 6;
-            g_mipe_table_row = 0;
-            if (static_cast<int>(PLLength(g_mipe_category_list)) <= g_mipe_table_base) {
-                g_mipe_table_base = static_cast<int>(PLLength(g_mipe_category_list)) - 1;
-            }
+    case 0x26:
+    case 0x28:
+        if (MoveMipeTableSelection(key)) {
             ShowMipeItemTableCategory();
         }
-        break;
+        return;
     case 0x25:
         wraps = 0;
         g_mipe_table_row = 0;
@@ -2345,16 +2257,6 @@ void HandleMipeItemTableKey(unsigned short key)
                 }
             }
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
-        ShowMipeItemTableCategory();
-        return;
-    case 0x26:
-        if (g_mipe_table_row == 0) {
-            if (g_mipe_table_base != 0) {
-                --g_mipe_table_base;
-            }
-        } else {
-            --g_mipe_table_row;
-        }
         ShowMipeItemTableCategory();
         return;
     case 0x27:
@@ -2382,19 +2284,6 @@ void HandleMipeItemTableKey(unsigned short key)
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
         ShowMipeItemTableCategory();
         return;
-    case 0x28:
-        if (g_mipe_table_row < 5 && g_mipe_table_base + g_mipe_table_row <
-                                        static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
-            ++g_mipe_table_row;
-            ShowMipeItemTableCategory();
-            return;
-        }
-        if (g_mipe_table_base + g_mipe_table_row <
-            static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
-            ++g_mipe_table_base;
-            ShowMipeItemTableCategory();
-            return;
-        }
     }
 }
 
@@ -2453,14 +2342,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                         ShowMipePropMenu();
                     } else if (g_mipe_mode == 3) {
                         g_mipe_mode = 8;
-                        ResetEditorStatusLine(-1);
-                        ShowNoticef(W8_FONT_PALETTE_PINK, L"Edit Monster");
-                        ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"1) Slow <<");
-                        ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"2) Fast >>");
-                        ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"3) Set Speed");
-                        ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"4) Assign Path");
-                        ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"5) Next Cycle");
-                        ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"6) Direction");
+                        ShowMipeMonsterEditMenu();
                     } else if (g_mipe_mode == 9) {
                         ShowWorldCursor();
                         g_mipe_mode = 0;
@@ -2470,14 +2352,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                             if (g_mipe_mode == 0xb) {
                                 g_mipe_mode = 8;
                                 g_mipe_state->selecting = 0;
-                                ResetEditorStatusLine(-1);
-                                ShowNoticef(W8_FONT_PALETTE_PINK, L"Edit Monster");
-                                ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"1) Slow <<");
-                                ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"2) Fast >>");
-                                ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"3) Set Speed");
-                                ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"4) Assign Path");
-                                ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"5) Next Cycle");
-                                ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"6) Direction");
+                                ShowMipeMonsterEditMenu();
                             } else if (g_mipe_mode == 0xc) {
                                 if (g_mipe_state->selecting == 0) {
                                     g_mipe_mode = 0;
@@ -2735,14 +2610,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
         if (key == 0x31) {
             g_mipe_count = 0;
             g_mipe_mode = 8;
-            ResetEditorStatusLine(-1);
-            ShowNoticef(W8_FONT_PALETTE_PINK, L"Edit Monster");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"1) Slow <<");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"2) Fast >>");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"3) Set Speed");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"4) Assign Path");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"5) Next Cycle");
-            ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"6) Direction");
+            ShowMipeMonsterEditMenu();
             g_debug_monster_cycle = true;
             return handled;
         }

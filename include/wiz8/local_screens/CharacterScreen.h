@@ -169,6 +169,7 @@ public:
     /* Descriptive names for the collapse operations expanded in row/page input. */
     void Collapse();
     void CollapseIfNotHovered();
+    void Invalidate();
     void BuildSubpanel();     /* 0x005c94e0 */
     void SetValue(int index); /* 0x005c96c0 */
 

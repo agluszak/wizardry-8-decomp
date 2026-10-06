@@ -158,9 +158,7 @@ void DrainInputEventQueue(void)
 // FUNCTION: WIZ8 0x0055D3F0
 void MGSKeyboard::Clear()
 {
-    for (int index = m_bindings.GetCount() - 1; index >= 0; --index) {
-        m_bindings.RemoveAtAndDelete(index);
-    }
+    m_bindings.RemoveAllAndDelete();
     m_command_index.Clear();
 }
 
@@ -715,8 +713,6 @@ void OpenKeyboardMenuForSlot(int slot)
 // FUNCTION: WIZ8 0x00592E60
 void CloseKeyboardMenu(void)
 {
-    int index;
-
     gXStatus.monster_manager_entries[g_selected_party_slot].keyboard_menu_open = false;
     g_level_block->keyboard_menu_open = false;
     g_level_block->combat_slot = -1;
@@ -738,16 +734,8 @@ void CloseKeyboardMenu(void)
                          g_keyboard_menu_panel->m_bounds.left + 0x52,
                          g_keyboard_menu_panel->m_bounds.top + 0x4a, 0);
     }
-    if (g_keyboard_menu_panel != 0) {
-        delete g_keyboard_menu_panel;
-        g_keyboard_menu_panel = 0;
-    }
-    for (index = 0; index < 13; ++index) {
-        if (g_keyboard_menu_rows[index] != 0) {
-            delete g_keyboard_menu_rows[index];
-            g_keyboard_menu_rows[index] = 0;
-        }
-    }
+    DestroyControlPanel(g_keyboard_menu_panel);
+    DestroyTextControls(g_keyboard_menu_rows, 13);
     RequestRedraw(1 << g_selected_party_slot);
 }
 
@@ -765,8 +753,6 @@ unsigned char BuildKeyboardMenu(void)
     short row;
     W8TextControl* control;
     short message;
-    int index;
-
     GetPartySlotMenuAnchor(g_selected_party_slot, &left, &top, &unused_4, &unused_5, &unused_6,
                            &unused_7, 0);
     left += 0x17;
@@ -788,16 +774,8 @@ unsigned char BuildKeyboardMenu(void)
                 g_keyboard_row_positions[row].y + 0x12, 0x89, 0, -1, -1, -1, -1, message + 6);
             g_keyboard_menu_rows[row] = control;
             if (control == 0) {
-                if (g_keyboard_menu_panel != 0) {
-                    delete g_keyboard_menu_panel;
-                    g_keyboard_menu_panel = 0;
-                }
-                for (index = 0; index < 13; ++index) {
-                    if (g_keyboard_menu_rows[index] != 0) {
-                        delete g_keyboard_menu_rows[index];
-                        g_keyboard_menu_rows[index] = 0;
-                    }
-                }
+                DestroyControlPanel(g_keyboard_menu_panel);
+                DestroyTextControls(g_keyboard_menu_rows, 13);
                 return 0;
             }
             AssignKeyboardMenuCallback(menu, item, control);

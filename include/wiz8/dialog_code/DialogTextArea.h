@@ -56,6 +56,9 @@ public:
     void SetFirstVisibleEntry(unsigned int index);
 
 private:
+    template <class Position>
+    unsigned int FindVisibleEntryAtLine(Position target, unsigned int spacing);
+
     W8ControlsRect m_bounds;                      /* 0x00: passed to entry construction */
     int m_font;                                   /* 0x10 */
     int m_first_visible_entry;                    /* 0x14 */

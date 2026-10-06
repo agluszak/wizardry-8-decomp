@@ -134,3 +134,15 @@ protected:
     wchar_t m_regionHelp[200]; /* 0xb8 */
 };
 static_assert(sizeof(W8HelpTextControl) == 0x248, "W8HelpTextControl_size");
+
+/* Separate panel-owned arrays retain their slots until each control has been
+   destroyed. Panel storage and region sets are released by the caller. */
+inline void DestroyTextControls(W8TextControl** controls, int count)
+{
+    for (int index = 0; index < count; ++index) {
+        if (controls[index] != 0) {
+            delete controls[index];
+            controls[index] = 0;
+        }
+    }
+}

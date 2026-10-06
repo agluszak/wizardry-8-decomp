@@ -44,6 +44,7 @@ private:
     /* 0x005E17A0: write a digit character at the caret position and re-parse
        the text into m_value, rejecting results above m_maximum. */
     void TypeDigit(wchar_t digit);
+    void NotifyValueChanged();
     /* 0x005E1840: VK_DELETE — remove the character right of the caret. */
     void DeleteForward();
     /* 0x005E18F0: VK_BACK — remove the character left of the caret. */
@@ -88,6 +89,8 @@ private:
     int GetVisibleLineCount();
     /* 0x005CCB80: select a text line and scroll it into the visible range. */
     void SetCurrentLine(int line);
+    void SetFirstVisibleLine(int line);
+    void ClearLines();
     /* 0x005CD2B0: keyboard handling for the visible text list. */
     bool HandleInputEvent(const InputAtom* input);
 
@@ -175,6 +178,8 @@ private:
     /* 0x005DA000: push the split into the text buffers and the numeric field. */
     void UpdateTextBuffers();
     /* 0x005DA180: keyboard handling for the plus/minus buttons and the field. */
+    void DecreaseAmount(int amount);
+    void IncreaseAmount(int amount);
     bool HandleInputEvent(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. */
@@ -236,6 +241,7 @@ private:
     bool IsItemSelected(int index);
     void SetItemSelected(int index, bool selected);
     void ToggleItem(int index, W8DialogButton* button);
+    static void ShowVisibleItemInfo(W8DialogButton* button, int row);
     /* Move every flagged item to the destination: -1 copies it into the shared
        party pool, any other value gives it to that party slot's character.
        Each successful transfer unlinks the item and its flag; a failure plays

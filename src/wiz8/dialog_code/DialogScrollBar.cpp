@@ -18,38 +18,14 @@ W8DialogScrollBar::~W8DialogScrollBar() {}
 // FUNCTION: WIZ8 0x005e0e00
 void W8DialogScrollBar::DestroyControls()
 {
-    if (m_up_button != -1) {
-        RemoveButton(m_up_button);
-        m_up_button = -1;
-    }
-    if (m_up_image != -1) {
-        UnloadButtonImage(m_up_image);
-        m_up_image = -1;
-    }
-    if (m_down_button != -1) {
-        RemoveButton(m_down_button);
-        m_down_button = -1;
-    }
-    if (m_down_image != -1) {
-        UnloadButtonImage(m_down_image);
-        m_down_image = -1;
-    }
-    if (m_thumb_button != -1) {
-        RemoveButton(m_thumb_button);
-        m_thumb_button = -1;
-    }
-    if (m_thumb_image != -1) {
-        UnloadButtonImage(m_thumb_image);
-        m_thumb_image = -1;
-    }
-    if (m_track_button != -1) {
-        RemoveButton(m_track_button);
-        m_track_button = -1;
-    }
-    if (m_track_image != -1) {
-        UnloadButtonImage(m_track_image);
-        m_track_image = -1;
-    }
+    ReleaseDialogButtonHandle(m_up_button);
+    ReleaseDialogButtonImage(m_up_image);
+    ReleaseDialogButtonHandle(m_down_button);
+    ReleaseDialogButtonImage(m_down_image);
+    ReleaseDialogButtonHandle(m_thumb_button);
+    ReleaseDialogButtonImage(m_thumb_image);
+    ReleaseDialogButtonHandle(m_track_button);
+    ReleaseDialogButtonImage(m_track_image);
     m_on_scroll = 0;
     m_initialized = false;
 }

@@ -56,6 +56,10 @@ public:
     virtual void ActivatePrimary(int) {}
     virtual void ActivateSecondary(int) {}
 
+protected:
+    void UpdateRegionBounds(int left, int top, int right, int bottom);
+
+public:
     /* Read from outside the class by Local Screens\RCSCommon.cpp, which is what
        keeps the three flags reachable rather than protected. */
     bool m_enabled; /* 0x04: interaction and enabled appearance */

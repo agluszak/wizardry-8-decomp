@@ -131,17 +131,8 @@ unsigned char CreateSubMenuButtons(void)
 {
     int index;
 
-    for (index = 0; index < 9; ++index) {
-        g_submenu_buttons[index] = new W8DialogButton;
-        if (g_submenu_buttons[index] == 0) {
-            for (index = 0; index < 9; ++index) {
-                if (g_submenu_buttons[index] != 0) {
-                    delete g_submenu_buttons[index];
-                    g_submenu_buttons[index] = 0;
-                }
-            }
-            return 0;
-        }
+    if (!AllocateDialogButtons(g_submenu_buttons, 9)) {
+        return 0;
     }
     g_submenu_buttons[0]->Configure(g_submenu_icons_path, 0x2b, 0x28, 0x29, 0x2a, 0x2c,
                                     SubMenuButtonPendingScreen, BUTTON_NO_CALLBACK, false,
@@ -399,16 +390,8 @@ static void SubMenuButtonToggleCombat(W8DialogButton* button)
 /* Delete the panel and its owned rows, including failed construction. */
 void DestroySubMenuPanel()
 {
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (int i = 0; i < 5; ++i) {
-        if (g_submenu_rows[i] != 0) {
-            delete g_submenu_rows[i];
-            g_submenu_rows[i] = 0;
-        }
-    }
+    DestroyControlPanel(gpSubMenuPanel);
+    DestroyTextControls(g_submenu_rows, 5);
 }
 
 /* Drop the combat-end notification and tear down the panel and its rows.

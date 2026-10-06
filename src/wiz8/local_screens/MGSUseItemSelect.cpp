@@ -393,6 +393,22 @@ void UpdateUseItemSelect(bool active)
     CommitSelectedItemUse();
 }
 
+// FUNCTION: WIZ8 0x0059D790
+static void UseItemSelectScrollUp(void)
+{
+    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
+                                   g_W8TextControlStateSecondary) != 0) {
+        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
+                                       g_W8TextControlStateSecondary) != 0) {
+            g_use_item_select_scroll_buttons[1]->DisableSecondaryState(false);
+            g_use_item_select_scroll_buttons[1]->Invalidate(false);
+        }
+        RebuildUseItemSelectList(0, 0);
+        return;
+    }
+    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
+}
+
 /* Keep the scroll buttons' enabled and secondary states in step with the
    list: a single-entry list locks both, combat shows the secondary-state
    paging instead of plain enabling. */
@@ -409,17 +425,7 @@ void UpdateUseItemScrollButtons(void)
                                        g_W8TextControlStateSecondary) == 0) {
             g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
             g_use_item_select_scroll_buttons[0]->Invalidate(false);
-            if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                           g_W8TextControlStateSecondary) != 0) {
-                if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                               g_W8TextControlStateSecondary) != 0) {
-                    g_use_item_select_scroll_buttons[1]->DisableSecondaryState(false);
-                    g_use_item_select_scroll_buttons[1]->Invalidate(false);
-                }
-                RebuildUseItemSelectList(0, 0);
-            } else {
-                g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
-            }
+            UseItemSelectScrollUp();
         }
         if (g_use_item_select_scroll_buttons[1]->m_enabled) {
             g_use_item_select_scroll_buttons[1]->SetEnabled(false);
@@ -435,22 +441,6 @@ void UpdateUseItemScrollButtons(void)
         g_use_item_select_scroll_buttons[0]->SetEnabled(true);
         g_use_item_select_scroll_buttons[0]->Invalidate(false);
     }
-}
-
-// FUNCTION: WIZ8 0x0059D790
-static void UseItemSelectScrollUp(void)
-{
-    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                       g_W8TextControlStateSecondary) != 0) {
-            g_use_item_select_scroll_buttons[1]->DisableSecondaryState(false);
-            g_use_item_select_scroll_buttons[1]->Invalidate(false);
-        }
-        RebuildUseItemSelectList(0, 0);
-        return;
-    }
-    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(false);
 }
 
 // FUNCTION: WIZ8 0x0059D7E0

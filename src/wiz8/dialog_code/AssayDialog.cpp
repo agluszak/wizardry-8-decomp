@@ -127,8 +127,6 @@ W8AssayDialog::~W8AssayDialog()
 // FUNCTION: WIZ8 0x005d7160
 int W8AssayDialog::CreateControls()
 {
-    int index;
-
     W8DialogBase::CreateControls();
     m_item_portrait_dirty = true;
     if (!PopulateText()) {
@@ -156,12 +154,7 @@ int W8AssayDialog::CreateControls()
             m_buttons[3]->SetPressed(true);
             return 0;
         }
-        for (index = 0; index < W8_ASSAY_BUTTON_COUNT; ++index) {
-            if (m_buttons[index] != 0) {
-                delete m_buttons[index];
-                m_buttons[index] = 0;
-            }
-        }
+        DestroyDialogButtons(m_buttons, W8_ASSAY_BUTTON_COUNT);
     }
     m_error = 7;
     return 7;
@@ -170,22 +163,10 @@ int W8AssayDialog::CreateControls()
 // FUNCTION: WIZ8 0x005d72b0
 void W8AssayDialog::DestroyControls()
 {
-    int index;
-
     W8DialogBase::DestroyControls();
     m_scroll_bar.DestroyControls();
-    for (index = 0; index < W8_ASSAY_BUTTON_COUNT; ++index) {
-        if (m_buttons[index] != 0) {
-            delete m_buttons[index];
-            m_buttons[index] = 0;
-        }
-    }
-    for (index = 0; index < W8_ASSAY_TEXT_BUFFER_COUNT; ++index) {
-        if (m_text_buffers[index] != 0) {
-            delete m_text_buffers[index];
-            m_text_buffers[index] = 0;
-        }
-    }
+    DestroyDialogButtons(m_buttons, W8_ASSAY_BUTTON_COUNT);
+    DestroyDialogTextBuffers(m_text_buffers, W8_ASSAY_TEXT_BUFFER_COUNT);
 }
 
 static int AppendAssayRequirements(const W8ItemRequirement* requirement, int count)
@@ -746,17 +727,8 @@ bool W8AssayDialog::PopulateRequirements()
     int frame;
     int tooltip_index;
 
-    for (index = 0; index < W8_ASSAY_BUTTON_COUNT; ++index) {
-        m_buttons[index] = new W8DialogButton;
-        if (m_buttons[index] == 0) {
-            for (index = 0; index < W8_ASSAY_BUTTON_COUNT; ++index) {
-                if (m_buttons[index] != 0) {
-                    delete m_buttons[index];
-                    m_buttons[index] = 0;
-                }
-            }
-            return false;
-        }
+    if (!AllocateDialogButtons(m_buttons, W8_ASSAY_BUTTON_COUNT)) {
+        return false;
     }
 
     m_buttons[0]->Configure("Data\\Dialogs\\popup_iteminfo.sti", BUTTON_NO_IMAGE, 1, 1, 1, 1,
@@ -940,12 +912,7 @@ bool W8AssayDialog::CreateTextBuffers()
             &bounds, gppStringList[g_assay_text_buffer_string_ids[index]],
             g_wiz_text_font_secondary, g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         if (m_text_buffers[index] == 0) {
-            for (index = 0; index < W8_ASSAY_TEXT_BUFFER_COUNT; ++index) {
-                if (m_text_buffers[index] != 0) {
-                    delete m_text_buffers[index];
-                    m_text_buffers[index] = 0;
-                }
-            }
+            DestroyDialogTextBuffers(m_text_buffers, W8_ASSAY_TEXT_BUFFER_COUNT);
             return false;
         }
     }

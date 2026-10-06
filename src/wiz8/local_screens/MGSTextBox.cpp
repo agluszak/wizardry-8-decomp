@@ -146,6 +146,29 @@ static int GetNextNoticeWord(int cursor, const wchar_t* text, W8NoticeWord* word
 /* Rebuild every stored line's word list from its string - used when the text
    box geometry or font metrics change and the per-word hit ranges must be
    recomputed without dropping the lines themselves. */
+void W8MessageStorageRecord::RebuildEntries()
+{
+    if (entries == 0) {
+        entries = PLCreate();
+    } else {
+        W8PList* list = entries;
+        int count = PLLength(list);
+        for (int index = 0; index < count; ++index) {
+            free(PLGet(list, index));
+        }
+        PListClear(list);
+    }
+    int cursor = 0;
+    W8NoticeWord word;
+    while ((cursor = GetNextNoticeWord(cursor, wString, &word)) != -1) {
+        W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
+        *stored = word;
+        stored->keyword = W8_NOTICE_WORD_NORMAL;
+        stored->redraw = false;
+        PLAdoptAppend(entries, stored);
+    }
+}
+
 // FUNCTION: WIZ8 0x0058FEE0
 void ResetMessageStorage(void)
 {
@@ -158,30 +181,7 @@ void ResetMessageStorage(void)
             if (record->wString == 0) {
                 continue;
             }
-            if (record->entries == 0) {
-                record->entries = PLCreate();
-            } else {
-                W8PList* entries = record->entries;
-                /* 0x0058FF14 tests the entry count signed and 0x0058FF2A
-                   compares the index signed. */
-                int count = PLLength(entries);
-                int entry;
-                for (entry = 0; entry < count; ++entry) {
-                    free(PLGet(entries, entry));
-                }
-                PListClear(entries);
-            }
-            {
-                int cursor = 0;
-                W8NoticeWord word;
-                while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
-                    W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
-                    *stored = word;
-                    stored->keyword = W8_NOTICE_WORD_NORMAL;
-                    stored->redraw = false;
-                    PLAdoptAppend(record->entries, stored);
-                }
-            }
+            record->RebuildEntries();
         }
     }
 }
@@ -266,25 +266,7 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
     if (record->wString) {
         wcscpy(record->wString, text);
         record->entries = 0;
-        if (!record->entries) {
-            record->entries = PLCreate();
-        } else {
-            W8PList* entries = record->entries;
-            int count = PLLength(entries);
-            for (int entry = 0; entry < count; ++entry) {
-                free(PLGet(entries, entry));
-            }
-            PListClear(entries);
-        }
-        int cursor = 0;
-        W8NoticeWord word;
-        while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
-            W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
-            *stored = word;
-            stored->keyword = W8_NOTICE_WORD_NORMAL;
-            stored->redraw = false;
-            PLAdoptAppend(record->entries, stored);
-        }
+        record->RebuildEntries();
     }
     record->font_palette = font_palette;
     record->highlight_color = 0xff;
@@ -1539,23 +1521,8 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
             return 1;
         }
 
-        unsigned int previous = g_level_block->text_lines[text_box];
-        if (previous == 0) {
-            return 1;
-        }
-        g_level_block->text_lines[text_box] = previous - 1;
-        unsigned int current = g_level_block->text_lines[text_box];
-        if (current == previous) {
-            return 1;
-        }
-        if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
-            g_level_block->dialogue_content_region = 0x5a;
-        }
-        if (g_level_block->text_lines[text_box] == 0) {
-            g_level_block->text_content_region = 0x56;
-            RedrawTextBox();
-            return 1;
-        }
+        ScrollTextBoxUp(1);
+        return 1;
     } else {
         if (us_event != RIGHT_BUTTON_UP && us_event != RIGHT_BUTTON_REPEAT) {
             if (us_event != MOUSE_POS) {
@@ -1578,27 +1545,8 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
             return 1;
         }
 
-        unsigned int previous = g_level_block->text_lines[text_box];
-        if (previous == 0) {
-            return 1;
-        }
-        if (previous < 7) {
-            g_level_block->text_lines[text_box] = 0;
-        } else {
-            g_level_block->text_lines[text_box] = previous - 7;
-        }
-        unsigned int current = g_level_block->text_lines[text_box];
-        if (current == previous) {
-            return 1;
-        }
-        if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
-            g_level_block->dialogue_content_region = 0x5a;
-        }
-        if (g_level_block->text_lines[text_box] == 0) {
-            g_level_block->text_content_region = 0x56;
-        }
+        ScrollTextBoxUp(7);
     }
-    RedrawTextBox();
     return 1;
 }
 
@@ -1661,26 +1609,7 @@ unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
         if (delta < 0) {
             ScrollTextBoxDown(-delta);
         } else {
-            short text_box = g_status.text_line_cursor;
-            unsigned int previous = g_level_block->text_lines[text_box];
-            if (previous != 0) {
-                unsigned int amount = static_cast<unsigned int>(delta);
-                if (previous < amount) {
-                    g_level_block->text_lines[text_box] = 0;
-                } else {
-                    g_level_block->text_lines[text_box] = previous - amount;
-                }
-                unsigned int current = g_level_block->text_lines[text_box];
-                if (current != previous) {
-                    if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
-                        g_level_block->dialogue_content_region = 0x5a;
-                    }
-                    if (g_level_block->text_lines[text_box] == 0) {
-                        g_level_block->text_content_region = 0x56;
-                    }
-                    RedrawTextBox();
-                }
-            }
+            ScrollTextBoxUp(delta);
         }
         if (!gXStatus.fNpcDialogueMode) {
             if (gXStatus.fItemSelectMode) {
@@ -2342,11 +2271,19 @@ void SetSelectedTextLine(int line, int index)
     SelectWrappedTextLine(line, index, g_level_block->selected_text_lines);
 }
 
+static void DrawNoticeWordOverlay(const W8MessageStorageRecord* line, W8NoticeWord* word, int x,
+                                  int y)
+{
+    wchar_t word_text[100];
+    memset(word_text, 0, sizeof(word_text));
+    wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
+    gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s), Wiz8ToSgpWideText(word_text));
+    word->redraw = false;
+}
+
 // FUNCTION: WIZ8 0x0058FFC0
 static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
 {
-    wchar_t word_text[100];
-
     if (line->entries == 0) {
         return;
     }
@@ -2358,11 +2295,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
                                           ? g_font_state_palettes[W8_FONT_PALETTE_BLUE]
                                           : g_font_state_palettes[W8_FONT_PALETTE_YELLOW];
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-            memset(word_text, 0, sizeof(word_text));
-            wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
-            gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s),
-                         Wiz8ToSgpWideText(word_text));
-            word->redraw = false;
+            DrawNoticeWordOverlay(line, word, x, y);
         }
         if (word->redraw) {
             unsigned short* palette;
@@ -2372,11 +2305,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
                 palette = g_level_block->palette;
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-            memset(word_text, 0, sizeof(word_text));
-            wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
-            gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s),
-                         Wiz8ToSgpWideText(word_text));
-            word->redraw = false;
+            DrawNoticeWordOverlay(line, word, x, y);
         }
     }
 }

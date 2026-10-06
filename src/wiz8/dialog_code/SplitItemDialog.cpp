@@ -1,3 +1,4 @@
+#include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 
 #include "wiz8/dialog_code/DialogButton.h"
@@ -109,20 +110,13 @@ W8SplitItemDialog::~W8SplitItemDialog()
 void W8SplitItemDialog::DestroyButtons()
 {
     int count;
-    int index;
-
     count = 0;
     if (m_mode == W8_ITEM_SPLIT_INVENTORY) {
         count = 8;
     } else if (static_cast<unsigned int>(m_mode) <= W8_ITEM_SPLIT_BUY) {
         count = 10;
     }
-    for (index = 0; index < count; ++index) {
-        if (m_buttons[index] != 0) {
-            delete m_buttons[index];
-            m_buttons[index] = 0;
-        }
-    }
+    DestroyDialogButtons(m_buttons, count);
 }
 
 /* Shared cleanup in failure paths and DestroyControls. The helper name
@@ -130,20 +124,13 @@ void W8SplitItemDialog::DestroyButtons()
 void W8SplitItemDialog::DestroyTextBuffers()
 {
     int count;
-    int index;
-
     count = 0;
     if (m_mode == W8_ITEM_SPLIT_INVENTORY) {
         count = 10;
     } else if (static_cast<unsigned int>(m_mode) <= W8_ITEM_SPLIT_BUY) {
         count = 14;
     }
-    for (index = 0; index < count; ++index) {
-        if (m_texts[index] != 0) {
-            delete m_texts[index];
-            m_texts[index] = 0;
-        }
-    }
+    DestroyDialogTextBuffers(m_texts, count);
 }
 
 // FUNCTION: WIZ8 0x005DD130
@@ -442,20 +429,8 @@ void W8SplitItemDialog::UpdateCostLabels()
 // FUNCTION: WIZ8 0x005DDE60
 void W8SplitItemDialog::UpdateArrowStates()
 {
-    if (split_count == 0) {
-        m_buttons[0]->SetEnabled(false);
-        m_buttons[0]->m_dirty = true;
-    } else if (!m_buttons[0]->IsEnabled()) {
-        m_buttons[0]->SetEnabled(true);
-        m_buttons[0]->m_dirty = true;
-    }
-    if (m_remaining == 0) {
-        m_buttons[1]->SetEnabled(false);
-        m_buttons[1]->m_dirty = true;
-    } else if (!m_buttons[1]->IsEnabled()) {
-        m_buttons[1]->SetEnabled(true);
-        m_buttons[1]->m_dirty = true;
-    }
+    m_buttons[0]->UpdateEnabledState(split_count != 0);
+    m_buttons[1]->UpdateEnabledState(m_remaining != 0);
 }
 
 // FUNCTION: WIZ8 0x005DDEE0
@@ -563,45 +538,7 @@ bool W8SplitItemDialog::HandleInputEvent(const InputAtom* input)
 // FUNCTION: WIZ8 0x005DE1B0
 bool W8SplitItemDialog::ProcessInput()
 {
-    POINT mouse;
-    InputAtom input;
-
-    SGPMouseGetPos(&mouse);
-    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
-    while (DequeueEvent(&input) == 1) {
-        switch (input.usEvent) {
-        case LEFT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case LEFT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_REPEAT, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case LEFT_BUTTON_UP:
-            if (m_active_input != 0) {
-                m_active_input->SetActive(false);
-            }
-            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        case RIGHT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_REPEAT, mouse.x, mouse.y, gfLeftButtonState,
-                                        gfRightButtonState);
-            break;
-        default:
-            HandleInputEvent(&input);
-            break;
-        }
-    }
+    ProcessNumericDialogInputEvents(this, m_active_input, &W8SplitItemDialog::HandleInputEvent);
     return m_keep_open;
 }
 

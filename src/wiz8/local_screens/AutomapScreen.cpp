@@ -267,6 +267,26 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id);
 stModelInstance2D* CreateAutomapMonsterMarker(int type);
 stModelInstance2D* CreateAutomapTextMarker(void);
 
+static void SetAutomapCursorImage(int tool)
+{
+    SetMouseCursorFromVideoObject(
+        GetCatalogVideoObjectHandle(tool + 0x14b, 0), GetCatalogVideoObjectYOffset(tool + 0x14b),
+        g_automap_cursor_offsets[tool].x, g_automap_cursor_offsets[tool].y);
+    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
+    RefreshMouseCursorTexture();
+}
+
+/* With no tool selected inside the map, use zoom-in only above the threshold.
+   Retail's FNSTSW/TEST 0x41 also selects zoom-out for an unordered zoom. */
+// FUNCTION: WIZ8 0x005820F0
+void SetAutomapToolCursor(int tool)
+{
+    if (g_automap_tool == 0 && g_automap_cursor_inside) {
+        tool = g_automap_zoom > g_float_twenty_five_thousand ? 1 : 4;
+    }
+    SetAutomapCursorImage(tool);
+}
+
 // FUNCTION: WIZ8 0x00581000
 bool HasAutomapLayer(int layer)
 {
@@ -512,12 +532,7 @@ void AutomapSelectNoteToolButton(void)
         return;
     }
     g_automap_tool = 2;
-    SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14d, 0),
-                                  GetCatalogVideoObjectYOffset(0x14d),
-                                  static_cast<short>(g_automap_cursor_offsets[2].x),
-                                  static_cast<short>(g_automap_cursor_offsets[2].y));
-    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-    RefreshMouseCursorTexture();
+    SetAutomapToolCursor(2);
 }
 
 // FUNCTION: WIZ8 0x00584020
@@ -527,12 +542,7 @@ void AutomapSelectEraseToolButton(void)
         return;
     }
     g_automap_tool = 3;
-    SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14e, 0),
-                                  GetCatalogVideoObjectYOffset(0x14e),
-                                  static_cast<short>(g_automap_cursor_offsets[3].x),
-                                  static_cast<short>(g_automap_cursor_offsets[3].y));
-    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-    RefreshMouseCursorTexture();
+    SetAutomapToolCursor(3);
 }
 
 // FUNCTION: WIZ8 0x00584080
@@ -826,13 +836,7 @@ void AutomapScreenFrame(void)
         if (!IsCursorInsideViewport()) {
             if (g_automap_cursor_inside) {
                 g_automap_cursor_inside = false;
-                SetMouseCursorFromVideoObject(
-                    GetCatalogVideoObjectHandle(g_automap_tool + 0x14b, 0),
-                    GetCatalogVideoObjectYOffset(g_automap_tool + 0x14b),
-                    g_automap_cursor_offsets[g_automap_tool].x,
-                    g_automap_cursor_offsets[g_automap_tool].y);
-                gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-                RefreshMouseCursorTexture();
+                SetAutomapToolCursor(g_automap_tool);
             }
             POINT point;
             SGPMouseGetPos(&point);
@@ -862,15 +866,7 @@ void AutomapScreenFrame(void)
         }
         if (!g_automap_cursor_inside) {
             g_automap_cursor_inside = true;
-            int cursor = g_automap_tool;
-            if (cursor == 0)
-                cursor = g_automap_zoom > 25000.0f ? 1 : 4;
-            SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(cursor + 0x14b, 0),
-                                          GetCatalogVideoObjectYOffset(cursor + 0x14b),
-                                          g_automap_cursor_offsets[cursor].x,
-                                          g_automap_cursor_offsets[cursor].y);
-            gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-            RefreshMouseCursorTexture();
+            SetAutomapToolCursor(g_automap_tool);
         }
         if (input.usEvent == LEFT_BUTTON_UP) {
             srVector3T<float> point;
@@ -1132,25 +1128,6 @@ void SetAutomapButtonMode(int update)
     g_automap_zoom_mode = update;
 }
 
-/* Show the mouse cursor for an automap tool. With no tool selected and the
-   cursor over the map, the zoom level picks the zoom-in or zoom-out cursor. */
-// FUNCTION: WIZ8 0x005820F0
-void SetAutomapToolCursor(int tool)
-{
-    if (g_automap_tool == 0 && g_automap_cursor_inside) {
-        if (g_automap_zoom <= g_float_twenty_five_thousand) {
-            tool = 4;
-        } else {
-            tool = 1;
-        }
-    }
-    SetMouseCursorFromVideoObject(
-        GetCatalogVideoObjectHandle(tool + 0x14b, 0), GetCatalogVideoObjectYOffset(tool + 0x14b),
-        g_automap_cursor_offsets[tool].x, g_automap_cursor_offsets[tool].y);
-    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-    RefreshMouseCursorTexture();
-}
-
 // GLOBAL: WIZ8 0x0064b914
 float g_automap_grid_cell_size = 2000.0f;
 // GLOBAL: WIZ8 0x0068f2b0
@@ -1249,16 +1226,7 @@ void ResetAutomapZoom(void)
                  (g_automap_bounds_min.z + g_automap_bounds_max.z) * 0.5);
     position.y = g_automap_top_y;
     SetAutomapCameraPoint(&position);
-    int tool = g_automap_tool;
-    if (g_automap_tool == 0 && g_automap_cursor_inside) {
-        tool = g_float_twenty_five_thousand < g_automap_zoom ? 1 : 4;
-    }
-    SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
-                                  GetCatalogVideoObjectYOffset(tool + 0x14b),
-                                  static_cast<short>(g_automap_cursor_offsets[tool].x),
-                                  static_cast<short>(g_automap_cursor_offsets[tool].y));
-    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-    RefreshMouseCursorTexture();
+    SetAutomapToolCursor(g_automap_tool);
     SetAutomapButtonMode(0);
 }
 
@@ -1303,16 +1271,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
     g_automap_zoom = height - ground;
     position.y = height;
     SetAutomapCameraPoint(&position);
-    int tool = g_automap_tool;
-    if (g_automap_tool == 0 && g_automap_cursor_inside) {
-        tool = g_float_twenty_five_thousand < g_automap_zoom ? 1 : 4;
-    }
-    SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
-                                  GetCatalogVideoObjectYOffset(tool + 0x14b),
-                                  static_cast<short>(g_automap_cursor_offsets[tool].x),
-                                  static_cast<short>(g_automap_cursor_offsets[tool].y));
-    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-    RefreshMouseCursorTexture();
+    SetAutomapToolCursor(g_automap_tool);
     return 1;
 }
 
@@ -1876,6 +1835,19 @@ static stTextureFile* LoadAutomapMarkerTexture(const char* path)
     return texture;
 }
 
+static void CreateAutomapMarkerSprite(const char* path, stModelInstance2D*& marker)
+{
+    stTextureFile* texture = LoadAutomapMarkerTexture(path);
+    srColorSurface* surface = texture->getSurface();
+    if (surface != 0) {
+        marker = CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
+                                         surface->getHeight() * g_viewport_y_scale, true, false);
+        static_cast<srMeshModel*>(marker->getModel())
+            ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
+        surface->setFilter(&srBSplineFilter);
+    }
+}
+
 /* Load the automap marker textures and build the party, monster and text
    marker sprites over them. */
 // FUNCTION: WIZ8 0x005822C0
@@ -1905,55 +1877,19 @@ void CreateAutomapMarkerSprites(void)
         }
     }
     if (g_automap_friendly_marker == 0) {
-        stTextureFile* texture =
-            LoadAutomapMarkerTexture("Data\\Automap\\map_monsterfriendly_a.tga");
-        srColorSurface* surface = texture->getSurface();
-        if (surface != 0) {
-            g_automap_friendly_marker =
-                CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
-                                        surface->getHeight() * g_viewport_y_scale, true, false);
-            static_cast<srMeshModel*>(g_automap_friendly_marker->getModel())
-                ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
-            surface->setFilter(&srBSplineFilter);
-        }
+        CreateAutomapMarkerSprite("Data\\Automap\\map_monsterfriendly_a.tga",
+                                  g_automap_friendly_marker);
     }
     if (g_automap_neutral_marker == 0) {
-        stTextureFile* texture =
-            LoadAutomapMarkerTexture("Data\\Automap\\map_monsterneutral_a.tga");
-        srColorSurface* surface = texture->getSurface();
-        if (surface != 0) {
-            g_automap_neutral_marker =
-                CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
-                                        surface->getHeight() * g_viewport_y_scale, true, false);
-            static_cast<srMeshModel*>(g_automap_neutral_marker->getModel())
-                ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
-            surface->setFilter(&srBSplineFilter);
-        }
+        CreateAutomapMarkerSprite("Data\\Automap\\map_monsterneutral_a.tga",
+                                  g_automap_neutral_marker);
     }
     if (g_automap_hostile_marker == 0) {
-        stTextureFile* texture =
-            LoadAutomapMarkerTexture("Data\\Automap\\map_monsterhostile_a.tga");
-        srColorSurface* surface = texture->getSurface();
-        if (surface != 0) {
-            g_automap_hostile_marker =
-                CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
-                                        surface->getHeight() * g_viewport_y_scale, true, false);
-            static_cast<srMeshModel*>(g_automap_hostile_marker->getModel())
-                ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
-            surface->setFilter(&srBSplineFilter);
-        }
+        CreateAutomapMarkerSprite("Data\\Automap\\map_monsterhostile_a.tga",
+                                  g_automap_hostile_marker);
     }
     if (g_automap_text_marker == 0) {
-        stTextureFile* texture = LoadAutomapMarkerTexture("Data\\Automap\\map_textmarker_a.tga");
-        srColorSurface* surface = texture->getSurface();
-        if (surface != 0) {
-            g_automap_text_marker =
-                CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
-                                        surface->getHeight() * g_viewport_y_scale, true, false);
-            static_cast<srMeshModel*>(g_automap_text_marker->getModel())
-                ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
-            surface->setFilter(&srBSplineFilter);
-        }
+        CreateAutomapMarkerSprite("Data\\Automap\\map_textmarker_a.tga", g_automap_text_marker);
     }
 }
 
@@ -2139,6 +2075,15 @@ void RenderAutomapMarkers(void)
     }
 }
 
+static void ScaleAutomapMarker(stModelInstance2D* marker, float factor)
+{
+    if (marker->GetScaledHeight() * factor < g_float_one) {
+        marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
+        factor = g_float_one / marker->GetScaledHeight();
+    }
+    marker->setScale(srVector3T<double>(factor, factor, factor));
+}
+
 /* Create a scaled automap blip for a world item by blitting its inventory icon
    into a scratch surface and wrapping it in a 2D brush. */
 // FUNCTION: WIZ8 0x005833E0
@@ -2175,13 +2120,7 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
     first.Set(0.0f, 0.0f, 0.25f, 1.0f);
     marker->SetGlowColors(&first, &second);
     marker->setRenderDepth(2000);
-    if (marker->GetScaledHeight() * factor < g_float_one) {
-        marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-        factor = g_float_one / marker->GetScaledHeight();
-        marker->setScale(srVector3T<double>(factor, factor, factor));
-        return marker;
-    }
-    marker->setScale(srVector3T<double>(factor, factor, factor));
+    ScaleAutomapMarker(marker, factor);
     return marker;
 }
 
@@ -2230,13 +2169,7 @@ stModelInstance2D* CreateAutomapMonsterMarker(int type)
        folds 0.44 * 0.85 into a single constant. */
     float factor = (g_float_one / (g_automap_zoom * 0.00004f)) * 0.44f;
     factor *= 0.85f;
-    if (marker->GetScaledHeight() * factor < g_float_one) {
-        marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-        factor = g_float_one / marker->GetScaledHeight();
-        marker->setScale(srVector3T<double>(factor, factor, factor));
-    } else {
-        marker->setScale(srVector3T<double>(factor, factor, factor));
-    }
+    ScaleAutomapMarker(marker, factor);
     return marker;
 }
 
@@ -2252,13 +2185,7 @@ stModelInstance2D* CreateAutomapTextMarker(void)
     *marker = *g_automap_text_marker;
     g_automap_markers->Add(marker);
     float factor = (g_float_one / (g_automap_zoom * 0.00004f)) * 0.44f * g_float_half;
-    if (marker->GetScaledHeight() * factor < g_float_one) {
-        marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-        factor = g_float_one / marker->GetScaledHeight();
-        marker->setScale(srVector3T<double>(factor, factor, factor));
-    } else {
-        marker->setScale(srVector3T<double>(factor, factor, factor));
-    }
+    ScaleAutomapMarker(marker, factor);
     marker->SetGlowEnabled(true);
     srVector4T<float> first;
     srVector4T<float> second;
@@ -2319,12 +2246,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
             }
             if (g_automap_tool != 0) {
                 g_automap_tool = 0;
-                SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14b, 0),
-                                              GetCatalogVideoObjectYOffset(0x14b),
-                                              static_cast<short>(g_automap_cursor_offsets[0].x),
-                                              static_cast<short>(g_automap_cursor_offsets[0].y));
-                gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-                RefreshMouseCursorTexture();
+                SetAutomapCursorImage(0);
             }
             g_automap_editing_note = 0;
             g_automap_redraw = true;
@@ -2339,12 +2261,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
             g_automap_redraw = true;
             if (g_automap_tool != 0) {
                 g_automap_tool = 0;
-                SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14b, 0),
-                                              GetCatalogVideoObjectYOffset(0x14b),
-                                              static_cast<short>(g_automap_cursor_offsets[0].x),
-                                              static_cast<short>(g_automap_cursor_offsets[0].y));
-                gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-                RefreshMouseCursorTexture();
+                SetAutomapCursorImage(0);
             }
         }
     }
@@ -2354,12 +2271,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
     }
     if (g_automap_tool != 0) {
         g_automap_tool = 0;
-        SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14b, 0),
-                                      GetCatalogVideoObjectYOffset(0x14b),
-                                      static_cast<short>(g_automap_cursor_offsets[0].x),
-                                      static_cast<short>(g_automap_cursor_offsets[0].y));
-        gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-        RefreshMouseCursorTexture();
+        SetAutomapCursorImage(0);
     }
     return 1;
 }
@@ -2378,7 +2290,6 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         RequestScreenTransition();
         return 1;
     }
-    int tool;
     switch (input->usParam) {
     case 8:
         /* Backspace zooms out one step, or all the way from the full view. */
@@ -2417,16 +2328,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
             return 1;
         }
         g_automap_tool = 0;
-        tool = 0;
-        if (g_automap_cursor_inside) {
-            tool = g_float_twenty_five_thousand < g_automap_zoom ? 1 : 4;
-        }
-        SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
-                                      GetCatalogVideoObjectYOffset(tool + 0x14b),
-                                      static_cast<short>(g_automap_cursor_offsets[tool].x),
-                                      static_cast<short>(g_automap_cursor_offsets[tool].y));
-        gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-        RefreshMouseCursorTexture();
+        SetAutomapToolCursor(0);
         return 1;
     case 0x20:
         AutomapCyclePageButton();
@@ -2453,21 +2355,14 @@ unsigned char HandleAutomapKey(const InputAtom* input)
             return 1;
         }
         g_automap_tool = 2;
-        tool = 0x14d;
-        goto set_tool_cursor;
+        SetAutomapToolCursor(2);
+        return 1;
     case 0x2e:
         if (g_automap_tool == 3) {
             return 1;
         }
         g_automap_tool = 3;
-        tool = 0x14e;
-    set_tool_cursor:
-        SetMouseCursorFromVideoObject(
-            GetCatalogVideoObjectHandle(tool, 0), GetCatalogVideoObjectYOffset(tool),
-            static_cast<short>(g_automap_cursor_offsets[g_automap_tool].x),
-            static_cast<short>(g_automap_cursor_offsets[g_automap_tool].y));
-        gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
-        RefreshMouseCursorTexture();
+        SetAutomapToolCursor(3);
         return 1;
     case 0x31:
     case 0x32:
