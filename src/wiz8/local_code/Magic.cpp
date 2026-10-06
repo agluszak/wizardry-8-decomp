@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/conditions.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/spell_ids.h"
@@ -536,7 +537,8 @@ void StartCharacterBreathAttack(int party_slot)
     }
     ChooseAction(party_slot, W8_ACTION_BREATHE, -1, 0, false, 1);
     AimAtTarget(party_slot, &row->breath_target, W8_TARGETING_CONTEXT_CURRENT);
-    if (IsSpellTargetStillValidIn(party_slot, 0x77, W8_TARGETING_CONTEXT_BREATH)) {
+    if (IsSpellTargetStillValidIn(party_slot, W8_SPELL_SPECIAL_ATTACK_CONE,
+                                  W8_TARGETING_CONTEXT_BREATH)) {
         StartBreathCycle(party_slot, false);
         return;
     }
@@ -824,8 +826,9 @@ void FinishSpellEffect(W8SpellEffectEntry* effect)
             SetTextBoxMode(1, -1);
         }
         target.point = position;
-        CastSpellFromSource(0x76, &effect->Source, &target, effect->definition.duration_scale,
-                            effect->definition.percent, 0, false, 0, 0, 0, 0);
+        CastSpellFromSource(W8_SPELL_BOILING_BLOOD_EXPLOSION, &effect->Source, &target,
+                            effect->definition.duration_scale, effect->definition.percent, 0, false,
+                            0, 0, 0, 0);
     }
 }
 
@@ -2107,7 +2110,7 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, W8CombatSlot* tar
     effect = SpawnSpellEffect(&position, "hyp_lure2", argument, 0, 0);
     if (effect != 0) {
         effect->auto_release = false;
-        effect->host->pending_behaviour = 3;
+        effect->host->pending_behaviour = W8_ANIMATION_NEVER_STOP;
         owner->spell_visuals.Add(effect);
     }
 }

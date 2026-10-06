@@ -2115,7 +2115,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
         chunks->Read(character, size, 0);
         if (character->record_version < 2 &&
             character->original_profession == W8_PROFESSION_FIGHTER &&
-            character->profession_levels[0] == 0) {
+            character->profession_levels[W8_PROFESSION_FIGHTER] == 0) {
             character->original_profession = character->iProfession;
         }
     }

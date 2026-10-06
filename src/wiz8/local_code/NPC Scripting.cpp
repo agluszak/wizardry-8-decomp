@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/conditions.h"
 #include "wiz8/monster_cycles.h"
 #include "wiz8/fonts.h"
@@ -1818,7 +1819,8 @@ void ProcessMessageBoxQueue(void)
                 0x968, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_location_id, true);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL,
+                              W8_ANIMATION_PLAY_ONCE);
             monster_info->p3D->SetCycleCallback(0x12, NpcScriptHenchmanDeparted);
         }
         ClearMainGameTargetState();
@@ -1915,7 +1917,8 @@ void ProcessMessageBoxQueue(void)
                 group->leader_location_id, true);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetCycleCallback(0x12, NpcScriptHenchmanArrives);
-            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL,
+                              W8_ANIMATION_PLAY_ONCE);
         }
         break;
     }
@@ -1979,7 +1982,7 @@ void ProcessMessageBoxQueue(void)
         npc = GetNpcStateByKind(0x84);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
-            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPECIAL, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPECIAL, W8_ANIMATION_PLAY_ONCE);
         }
         srVector3T<float> position;
         W8MonsterGroup* group;
@@ -1991,7 +1994,8 @@ void ProcessMessageBoxQueue(void)
             monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetPosition(&position);
             MonsterForwardReferencePosition(monster_info->p3D, 0);
-            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_SPECIAL,
+                              W8_ANIMATION_PLAY_ONCE);
         }
         npc = GetNpcStateByKind(0x8d);
         if (npc != 0) {
@@ -2042,7 +2046,7 @@ void ProcessMessageBoxQueue(void)
                 0xb2e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_location_id, true);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPELL, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPELL, W8_ANIMATION_PLAY_ONCE);
             monster_info->p3D->SetCycleCallback(0x19, NpcScriptSavantHackDone);
         }
         break;

@@ -759,7 +759,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
 static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*)
 {
     PushButtonSoundScheme(0, true);
-    if (event->usEvent != 0x800) {
+    if (event->usEvent != MOUSE_WHEEL) {
         return 0;
     }
     g_camp_screen->stats_range->m_range->AdjustValue(GetMouseWheelDeltaValue(event->usParam));

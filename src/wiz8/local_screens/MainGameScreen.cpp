@@ -1,3 +1,5 @@
+#include <windows.h>
+#include "wiz8/spell_ids.h"
 #include "wiz8/conditions.h"
 #include "wiz8/sgp_text.h"
 #include "line.h"
@@ -457,8 +459,8 @@ int OpenLockInteraction(Trigger* trigger)
     if (!IsPartySlotEligible(g_status.selected_character) || character->spell_learned[0x27] != 1) {
         can_cast = false;
     } else {
-        GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
-        can_cast = CanCharacterCastSpell(character, 0x27);
+        GetBestSpellbookSkillForSpell(character, W8_SPELL_KNOCK_KNOCK, true, false, 7);
+        can_cast = CanCharacterCastSpell(character, W8_SPELL_KNOCK_KNOCK);
     }
     g_lock_interaction->m_spell_button->SetEnabled(can_cast);
     if (!IsPartySlotEligible(g_status.selected_character) || character->stamina < 0x50 ||
@@ -519,14 +521,15 @@ void EndLockInteractMode(char suspend)
 static unsigned int CanSelectedCharacterCastKnockKnock(W8Character* character)
 {
     if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x27] == 1) {
-        unsigned int book = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
+        unsigned int book =
+            GetBestSpellbookSkillForSpell(character, W8_SPELL_KNOCK_KNOCK, true, false, 7);
         unsigned int realm =
             character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[W8_SPELL_KNOCK_KNOCK].realm]
                 .level;
         book = character->skills[book].level;
         int power = (book + realm * 4) / 5;
         if (power > -1) {
-            return CanCharacterCastSpell(character, 0x27);
+            return CanCharacterCastSpell(character, W8_SPELL_KNOCK_KNOCK);
         }
     }
     return 0;
@@ -848,7 +851,8 @@ void W8LockInfoPanel::RefreshInfo()
         m_text4->SetFontStateIndex(0);
         m_text4->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
-        W8Skill book_skill = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
+        W8Skill book_skill =
+            GetBestSpellbookSkillForSpell(character, W8_SPELL_KNOCK_KNOCK, true, false, 7);
         realm = character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[W8_SPELL_KNOCK_KNOCK].realm]
                     .level;
         book = character->skills[book_skill].level;
@@ -1030,10 +1034,10 @@ void W8LockInteraction::Process()
         m_state = 0;
         slot = g_status.selected_character;
         if (GetKnockKnockSpellPower(g_status.selected_character) > -1 &&
-            CanCharacterCastSpell(&g_status.buffers.Char[slot], 0x27)) {
+            CanCharacterCastSpell(&g_status.buffers.Char[slot], W8_SPELL_KNOCK_KNOCK)) {
             m_spell_button->SetAlternateTextEnabled(false);
             EndLockInteractMode(1);
-            BeginSpellCast(0x27, -1, -1);
+            BeginSpellCast(W8_SPELL_KNOCK_KNOCK, -1, -1);
             return;
         }
         break;
@@ -1078,7 +1082,7 @@ int GetKnockKnockSpellPower(int slot)
     if (character->spell_learned[0x27] != 1) {
         return -1;
     }
-    book = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
+    book = GetBestSpellbookSkillForSpell(character, W8_SPELL_KNOCK_KNOCK, true, false, 7);
     return GetSpellCastingSkillLevel(character, book, g_spell_records[W8_SPELL_KNOCK_KNOCK].realm);
 }
 
@@ -1237,11 +1241,13 @@ void W8LockInteraction::AttemptForce()
                 character->spell_learned[0x27] != 1) {
                 m_spell_button->SetEnabled(false);
             } else {
-                book = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
+                book =
+                    GetBestSpellbookSkillForSpell(character, W8_SPELL_KNOCK_KNOCK, true, false, 7);
                 power = GetSpellCastingSkillLevel(character, book,
                                                   g_spell_records[W8_SPELL_KNOCK_KNOCK].realm);
                 if (power > -1) {
-                    m_spell_button->SetEnabled(CanCharacterCastSpell(character, 0x27));
+                    m_spell_button->SetEnabled(
+                        CanCharacterCastSpell(character, W8_SPELL_KNOCK_KNOCK));
                 } else {
                     m_spell_button->SetEnabled(false);
                 }
@@ -1887,7 +1893,8 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
         m_text3->SetFontStateIndex(0);
         m_text3->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
-        W8Skill book_skill = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
+        W8Skill book_skill =
+            GetBestSpellbookSkillForSpell(character, W8_SPELL_KNOCK_KNOCK, true, false, 7);
         realm = character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[W8_SPELL_KNOCK_KNOCK].realm]
                     .level;
         book = character->skills[book_skill].level;
@@ -1896,7 +1903,8 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
                          g_wiz_text_font_secondary);
     }
     if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x12] == 1) {
-        W8Skill figure_skill = GetBestSpellbookSkillForSpell(character, 0x12, true, false, 7);
+        W8Skill figure_skill =
+            GetBestSpellbookSkillForSpell(character, W8_SPELL_DIVINE_TRAP, true, false, 7);
         figure = GetSpellCastingSkillLevel(character, figure_skill,
                                            g_spell_records[W8_SPELL_DIVINE_TRAP].realm);
         if (static_cast<int>(figure) >= 0) {
@@ -2249,11 +2257,12 @@ void W8MainGameScreen::RefreshActionPanel()
         can_cast = 0;
     } else {
         if (IsPartySlotEligible(slot) && character->spell_learned[0x27] == 1) {
-            GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
+            GetBestSpellbookSkillForSpell(character, W8_SPELL_KNOCK_KNOCK, true, false, 7);
         } else {
-            GetBestSpellbookSkillForSpell(character, 0x12, true, false, 7);
+            GetBestSpellbookSkillForSpell(character, W8_SPELL_DIVINE_TRAP, true, false, 7);
         }
-        can_cast = CanCharacterCastSpell(character, 0x27) || CanCharacterCastSpell(character, 0x12);
+        can_cast = CanCharacterCastSpell(character, W8_SPELL_KNOCK_KNOCK) ||
+                   CanCharacterCastSpell(character, W8_SPELL_DIVINE_TRAP);
     }
     m_action_controls[1]->SetEnabled(can_cast != 0);
     if (m_slot_attempted[slot] == 0) {
@@ -2364,7 +2373,7 @@ void W8MainGameScreen::CastTrapSpell()
     bool ready = false;
 
     if (IsPartySlotEligible(slot) && character->spell_learned[0x27] == 1) {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, true, false, 7);
+        book = GetBestSpellbookSkillForSpell(character, W8_SPELL_KNOCK_KNOCK, true, false, 7);
         figure =
             GetSpellCastingSkillLevel(character, book, g_spell_records[W8_SPELL_KNOCK_KNOCK].realm);
         if (static_cast<int>(figure) >= 0) {
@@ -2376,18 +2385,18 @@ void W8MainGameScreen::CastTrapSpell()
         if (!IsPartySlotEligible(slot) || character->spell_learned[0x12] != 1) {
             return;
         }
-        book = GetBestSpellbookSkillForSpell(character, 0x12, true, false, 7);
+        book = GetBestSpellbookSkillForSpell(character, W8_SPELL_DIVINE_TRAP, true, false, 7);
         figure =
             GetSpellCastingSkillLevel(character, book, g_spell_records[W8_SPELL_DIVINE_TRAP].realm);
         if (static_cast<int>(figure) < 0) {
             return;
         }
     }
-    if (!CanCharacterCastSpell(character, 0x27) &&
-        !CanCharacterCastSpell(&g_status.buffers.Char[slot], 0x12)) {
+    if (!CanCharacterCastSpell(character, W8_SPELL_KNOCK_KNOCK) &&
+        !CanCharacterCastSpell(&g_status.buffers.Char[slot], W8_SPELL_DIVINE_TRAP)) {
         return;
     }
-    spell = CanCharacterCastSpell(&g_status.buffers.Char[slot], 0x12) ? 0x12 : 0x27;
+    spell = CanCharacterCastSpell(&g_status.buffers.Char[slot], W8_SPELL_DIVINE_TRAP) ? 0x12 : 0x27;
     m_action_controls[1]->SetAlternateTextEnabled(false);
     BeginTrapTargetAction();
     BeginSpellCast(spell, -1, -1);
@@ -3346,7 +3355,7 @@ update_screen:
     if (!g_camera_path_active) {
         if (g_mouselook_active) {
             if (g_mouselook_left_held) {
-                if (!gfKeyState[0x10]) {
+                if (!gfKeyState[VK_SHIFT]) {
                     g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_FORWARD;
                 } else {
                     g_level_block->camera_motion_flags |=
@@ -5710,7 +5719,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && !targeting &&
             IsNpcDialogueCursorActive() == 0 && !gXStatus.scripted_scene) {
             g_level_block->portrait_right_hold_armed = false;
-            if (!g_status.item_in_cursor || gfKeyState[0x11]) {
+            if (!g_status.item_in_cursor || gfKeyState[VK_CONTROL]) {
                 OpenCharacterScreenForPartySlot(slot, false);
                 return 1;
             }
@@ -6172,14 +6181,14 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         if (g_level_block->highlighted_item != -1 && !gXStatus.fSpellCastMode &&
             !gXStatus.fNpcDialogueMode && !gXStatus.fItemSelectMode &&
             !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode &&
-            (g_settings.ctrl_right_click_info == 0 || gfKeyState[0x11] != 0)) {
+            (g_settings.ctrl_right_click_info == 0 || gfKeyState[VK_CONTROL] != 0)) {
             OpenMonsterInfoDialog(g_level_block->highlighted_item);
             return 1;
         }
         if (!g_status.item_in_cursor && g_level_block->selected_item != -1 &&
             !gXStatus.fSpellCastMode && !gXStatus.fNpcDialogueMode && !gXStatus.fItemSelectMode &&
             !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode &&
-            (g_settings.ctrl_right_click_info == 0 || gfKeyState[0x11] != 0)) {
+            (g_settings.ctrl_right_click_info == 0 || gfKeyState[VK_CONTROL] != 0)) {
             W8WorldItem* world_item = ItemInfo(ItemIndex(g_level_block->selected_item));
             PartyAttemptsToIdentifyItem(&world_item->item, 0);
             OpenAssayDialog(&world_item->item, -1);
@@ -6316,7 +6325,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         } else if (!g_combat_state->round_active && !gXStatus.fPartyMovementMode) {
             ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x7dd]);
             assign = false;
-        } else if (gfKeyState[0x10] != 0) {
+        } else if (gfKeyState[VK_SHIFT] != 0) {
             for (slot = 0; slot < 8; ++slot) {
                 if (g_status.buffers.XChar[slot].fOccupied &&
                     g_status.buffers.Char[slot].hp_current != 0) {

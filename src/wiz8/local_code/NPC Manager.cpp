@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/conditions.h"
 #include "wiz8/monster_cycles.h"
 #include "wiz8/fonts.h"
@@ -2160,7 +2161,7 @@ void UpdateNpcEvents(void)
             index = MonsterGetIndexByLocationID(0xc2f, NPC_MANAGER_CPP, group->leader_location_id,
                                                 true);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
-            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_LASH, 1);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_ATTACK_LASH, W8_ANIMATION_PLAY_ONCE);
             monster_info->p3D->SetCycleCallback(0x10, TriggerBelaVoice);
         }
         g_status.bela_cycle_tick = 0;

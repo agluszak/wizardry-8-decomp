@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/level_specific_code/Swamp.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/World.h"
@@ -65,7 +66,7 @@ bool SwampGasPlane(Trigger* pTrigger)
         return false;
     }
     position = GetWorld()->camera->getLocation();
-    PointCastSpell(position, 0x2a, 4);
+    PointCastSpell(position, W8_SPELL_NOXIOUS_FUMES, 4);
     return true;
 }
 
@@ -81,7 +82,7 @@ bool SwampFirePlane(Trigger* pTrigger)
         return false;
     }
     position = GetWorld()->camera->getLocation();
-    PointCastSpell(position, 0x24, 4);
+    PointCastSpell(position, W8_SPELL_FIREBALL, 4);
     return true;
 }
 

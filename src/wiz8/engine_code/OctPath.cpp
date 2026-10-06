@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/sgp_text.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/layouts/combat_state.h"
@@ -6053,10 +6054,10 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
                 }
             } while (DequeueEvent(&atom) == 0);
         }
-        if (atom.usEvent != 1) {
+        if (atom.usEvent != KEY_DOWN) {
             continue;
         }
-        if (atom.usParam == 0x1b) {
+        if (atom.usParam == VK_ESCAPE) {
             if (pending == 0) {
                 direction = 0;
                 break;
@@ -6065,7 +6066,7 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
             pending = 0;
             continue;
         }
-        if (atom.usParam == 0x0d) {
+        if (atom.usParam == VK_RETURN) {
             if (pending == 0) {
                 break;
             }

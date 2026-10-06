@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/level_specific_code/Monastery1.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/location_variables.h"
@@ -105,7 +106,7 @@ bool OnCoffinlidgActivated(Trigger* trigger)
     srVector3T<float> position;
 
     position = GetWorld()->camera->getLocation();
-    PointCastSpell(position, 0x2a, 3);
+    PointCastSpell(position, W8_SPELL_NOXIOUS_FUMES, 3);
     return true;
 }
 

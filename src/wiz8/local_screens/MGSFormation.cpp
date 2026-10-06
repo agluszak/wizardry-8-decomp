@@ -484,7 +484,7 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
             return 1;
         }
     }
-    if (event->usEvent < 0x41) {
+    if (event->usEvent < (LEFT_BUTTON_REPEAT + 1)) {
         if (event->usEvent == LEFT_BUTTON_REPEAT) {
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
                 ClockIsTicking(g_formation_drag_clock) == 0 && g_formation_drag_cell == -1 &&

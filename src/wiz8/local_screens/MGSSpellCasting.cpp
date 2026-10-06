@@ -1,3 +1,4 @@
+#include "wiz8/spell_ids.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/integer_constants.h"
 
@@ -446,7 +447,7 @@ void SelectSpellCastingCharacter(int party_slot)
         ResetEditorStatusLine(-1);
         return;
     }
-    RebuildSpellCastingList(0);
+    RebuildSpellCastingList(W8_SPELL_NONE);
 }
 
 /* Writes each realm's "current/max" spell-point caption and enables the realm
@@ -874,7 +875,7 @@ static void SelectSpellCastingRealm(W8SpellRealm realm)
         gpSCSV->realm_anim_frame = g_spell_realm_animations[gpSCSV->iSpellRealm].initial_frame;
         gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(false);
         gpSCSV->realm_anim_timer = SetCountdownClock(0x32);
-        RebuildSpellCastingList(0);
+        RebuildSpellCastingList(W8_SPELL_NONE);
         ClearSpellCastingChoice();
     }
     if (realm != W8_SPELL_REALM_NONE) {

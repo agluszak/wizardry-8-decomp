@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/GrCycle.h"
@@ -50,8 +51,8 @@ const float g_lod_level_two_exit_threshold = 0.699999988079071f;
    slot 9 returns; only the byte it writes at +0x70 is established here.
    Slots 0..8 are declared solely to place slot 9 at vtable offset 0x24, which
    is what the canonical virtual call uses. */
-#define BEHAVIOUR_FIRST 1
-#define BEHAVIOUR_LAST 3
+#define BEHAVIOUR_FIRST W8_ANIMATION_PLAY_ONCE
+#define BEHAVIOUR_LAST W8_ANIMATION_NEVER_STOP
 
 // VTABLE: WIZ8 0x005ece78 W8GrObject
 // VTABLE: WIZ8 0x005eceb8 W8Navigator
@@ -673,7 +674,7 @@ unsigned char W8GrCycle::ApplyPendingCycle()
                              "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x63e, 0);
             }
             current->animation_behaviour = behaviour;
-            representation->pending_behaviour = 0xff;
+            representation->pending_behaviour = W8_ANIMATION_NO_PENDING_BEHAVIOUR;
         }
 
         srVector3T<float> position = GetPosition();
@@ -776,7 +777,7 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
     W8AnimObj* animation = GetCurrentAnimation();
     unsigned char frame;
 
-    if (representation->animation_behaviour == 1) {
+    if (representation->animation_behaviour == W8_ANIMATION_PLAY_ONCE) {
         if (representation->frame_direction == W8_ANIMATION_FORWARD) {
             frame = representation->subcycle;
             if (frame < representation->last_frame) {

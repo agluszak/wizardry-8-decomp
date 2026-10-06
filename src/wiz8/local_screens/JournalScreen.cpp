@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/sgp_text.h"
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
@@ -483,12 +484,12 @@ void JournalScreenFrame(void)
     UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
         if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
-            if (input.usParam == 0x1b) {
+            if (input.usParam == VK_ESCAPE) {
                 RequestScreenTransition();
-            } else if (input.usParam == 0x25 && g_journal_page > 0) {
+            } else if (input.usParam == VK_LEFT && g_journal_page > 0) {
                 --g_journal_page;
                 g_journal_panel->Refresh();
-            } else if (input.usParam == 0x27 &&
+            } else if (input.usParam == VK_RIGHT &&
                        g_journal_page < (g_journal_entries->GetCount() - 1) / 12) {
                 ++g_journal_page;
                 g_journal_panel->Refresh();

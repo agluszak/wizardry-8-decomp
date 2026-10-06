@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/engine_code/AmbientSound.h"
@@ -327,7 +328,7 @@ W8World* CreateWorld()
 // FUNCTION: WIZ8 0x0044F400
 void UpdateWorlds(void)
 {
-    g_navigator_vertical_enabled = !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
+    g_navigator_vertical_enabled = !(gfKeyState[VK_CONTROL] != 0 && g_combat_state != 0 &&
                                      (g_combat_state->round_active || gXStatus.fPartyMovementMode));
 
     {

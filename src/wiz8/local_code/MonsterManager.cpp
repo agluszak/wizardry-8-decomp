@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/monster_cycles.h"
 #include "wiz8/fonts.h"
 #include <stdio.h>
@@ -84,7 +85,6 @@ void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 /* The two cycles that always start regardless of the pending one: 0x14 is the
    cycle a motionless monster is still allowed to enter, and 0x15 is death. */
 enum { W8_CYCLE_NONE = 0xff, W8_CYCLE_STOP = 0x14, W8_CYCLE_DEATH = 0x15 };
-enum { W8_BEHAVIOUR_NEVER_STOP = 3 };
 /* The character array the alternate-name form indexes, and the slot it uses. */
 
 // FUNCTION: WIZ8 0x004e3930
@@ -329,7 +329,7 @@ void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
     if (!monster_info->fMotionless) {
         result = MonsterQuery(monster_info->p3D, W8_MONSTER_QUERY_CYCLE);
         if (result != 1 && result != 2 && monster_info->p3D->m_pRep->pending_cycle == -1) {
-            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, 3);
+            StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, W8_ANIMATION_NEVER_STOP);
         }
     }
 }
@@ -338,7 +338,7 @@ void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
 void MonsterStartsDying(W8MonsterInfo* monster_info, bool display_message)
 {
     if (!monster_info->p3D->IsDying()) {
-        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_DIE, 1);
+        StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_DIE, W8_ANIMATION_PLAY_ONCE);
         DeactivateMonster(monster_info);
         RecordMonsterKill(monster_info, display_message);
         RemoveMonster(MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP,
@@ -877,7 +877,7 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, bool motionless)
         if (previous) {
             MonsterSetAnimating(monster, true);
             if (monster_info->p3D->m_pRep->pending_cycle == -1) {
-                StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, 3);
+                StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, W8_ANIMATION_NEVER_STOP);
             }
         }
     } else if (!previous) {
@@ -1039,7 +1039,7 @@ void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int 
                 unsigned int chance = group->member_count * 20;
 
                 if (!gXStatus.fNpcDialogueMode && Random(chance) == 0) {
-                    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPICE, 1);
+                    StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_SPICE, W8_ANIMATION_PLAY_ONCE);
                 }
             }
         }
@@ -1437,7 +1437,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
     const char* detail;
     int line;
 
-    if (static_cast<signed char>(behavior) == W8_BEHAVIOUR_NEVER_STOP &&
+    if (static_cast<signed char>(behavior) == W8_ANIMATION_NEVER_STOP &&
         !monster->IsCycleInterruptable(static_cast<signed char>(cycle))) {
         detail = "Trying to set a NEVER_STOP behaviour with an uninterruptable cycle!";
         line = 0x46f;
@@ -1535,7 +1535,8 @@ void ProcessMonsterManagerFrame(void)
                                slot to -1. W8_CYCLE_NONE is 0xff as int 255,
                                which a signed char never equals. */
                             if (monster_info->p3D->m_pRep->pending_cycle == -1) {
-                                StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE, 3);
+                                StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_IDLE,
+                                                  W8_ANIMATION_NEVER_STOP);
                             }
                         } else if (MonsterIsAnimating(monster) != 0) {
                             MonsterSetAnimating(monster, false);

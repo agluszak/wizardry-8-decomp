@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/CombatHostility.h"
@@ -1459,7 +1460,7 @@ void W8Monster::Update()
                         m_pRep->pending_cycle = 0x18;
                     }
                     m_pRep->frame_direction = W8_ANIMATION_FORWARD;
-                    m_pRep->pending_behaviour = 1;
+                    m_pRep->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
                     m_pRep->animation_playing = 1;
                     m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_subcycle = 0;
@@ -1473,7 +1474,7 @@ void W8Monster::Update()
                         talk_duration = Random(2000) + 2000;
                         m_pRep->pending_cycle = 0x18;
                         m_pRep->frame_direction = W8_ANIMATION_FORWARD;
-                        m_pRep->pending_behaviour = 1;
+                        m_pRep->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
                     } else {
                         m_pRep->pending_cycle = 1;
                     }
@@ -1488,7 +1489,7 @@ void W8Monster::Update()
                     m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                     m_pRep->animation_playing = 1;
                     m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-                    m_pRep->pending_behaviour = 3;
+                    m_pRep->pending_behaviour = W8_ANIMATION_NEVER_STOP;
                     m_pRep->pending_subcycle = 0;
                 }
                 break;
@@ -1505,12 +1506,12 @@ void W8Monster::Update()
                             values.RemoveAt(0);
                         }
                         if (!IsCycleSupported(3)) {
-                            m_pRep->pending_behaviour = 3;
+                            m_pRep->pending_behaviour = W8_ANIMATION_NEVER_STOP;
                             m_pRep->pending_cycle = 1;
                         } else {
                             m_pRep->pending_cycle = 3;
                             m_pRep->frame_direction = W8_ANIMATION_REVERSE;
-                            m_pRep->pending_behaviour = 1;
+                            m_pRep->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
                             m_pRep->pending_subcycle = static_cast<unsigned short>(
                                 Query(W8_MONSTER_QUERY_FRAME_COUNT) - 1);
                             runtime_flags |= W8_MONSTER_KEEP_FRAME_DIRECTION;
@@ -1526,12 +1527,12 @@ void W8Monster::Update()
                     (Query(W8_MONSTER_QUERY_AT_PLAYBACK_END) != 0 || wrapped)) {
                     flags &= ~0x100000;
                     if (!IsCycleSupported(3)) {
-                        m_pRep->pending_behaviour = 3;
+                        m_pRep->pending_behaviour = W8_ANIMATION_NEVER_STOP;
                         m_pRep->pending_cycle = 4;
                     } else {
                         m_pRep->pending_cycle = 3;
                         m_pRep->frame_direction = W8_ANIMATION_FORWARD;
-                        m_pRep->pending_behaviour = 1;
+                        m_pRep->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
                         m_pRep->pending_subcycle = 0;
                     }
                     m_pRep->animation_playing = 1;
@@ -1548,7 +1549,7 @@ void W8Monster::Update()
                     }
                     m_pRep->animation_playing = 1;
                     m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-                    m_pRep->pending_behaviour = 3;
+                    m_pRep->pending_behaviour = W8_ANIMATION_NEVER_STOP;
                     m_pRep->pending_subcycle = 0;
                 }
                 break;
@@ -1557,7 +1558,7 @@ void W8Monster::Update()
                     m_pRep->pending_cycle = 1;
                     m_pRep->animation_playing = 1;
                     m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-                    m_pRep->pending_behaviour = 3;
+                    m_pRep->pending_behaviour = W8_ANIMATION_NEVER_STOP;
                     m_pRep->pending_subcycle = 0;
                 }
                 break;
@@ -1571,7 +1572,7 @@ void W8Monster::Update()
 
     UpdateAttachedObjects();
     cycle = Query(W8_MONSTER_QUERY_CYCLE);
-    if (gfKeyState[0x11] && g_combat_state != 0 &&
+    if (gfKeyState[VK_CONTROL] && g_combat_state != 0 &&
         (g_combat_state->round_active || gXStatus.fPartyMovementMode) &&
         (cycle == W8_MONSTER_CYCLE_IDLE || cycle == W8_MONSTER_CYCLE_SPICE) &&
         (m_pRep->pending_cycle == -1 || m_pRep->pending_cycle == 1 || m_pRep->pending_cycle == 2) &&
@@ -2019,7 +2020,7 @@ void W8Monster::ProcessScript()
                         runtime_flags |= W8_MONSTER_KEEP_SUBCYCLE;
                         token = strtok(0, " \t");
                         if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
-                            m_pRep->pending_behaviour = 1;
+                            m_pRep->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
                             runtime_flags |= W8_MONSTER_SCRIPT_WAIT;
                             script_wait = MONSCR_CYCLE;
                         } else {
@@ -2078,7 +2079,7 @@ void W8Monster::ProcessScript()
                 break;
             }
             case MONSCR_DIE:
-                m_pRep->pending_behaviour = 1;
+                m_pRep->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
                 m_pRep->pending_cycle = 0x15;
                 m_pRep->animation_playing = 1;
                 m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
@@ -2843,7 +2844,7 @@ void W8Monster::StartTalking(bool animate_mouth)
         talk_start = GetTickCount();
         talk_duration = Random(2000) + 2000;
         m_pRep->pending_cycle = 0x18;
-        m_pRep->pending_behaviour = 1;
+        m_pRep->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
     }
 }
 
@@ -2864,7 +2865,7 @@ void W8Monster::StopTalking()
             }
         }
         if (m_pRep->current_cycle != 0x15) {
-            m_pRep->pending_behaviour = 3;
+            m_pRep->pending_behaviour = W8_ANIMATION_NEVER_STOP;
             m_pRep->pending_cycle = 1;
         }
     }
@@ -3816,7 +3817,7 @@ int W8Monster::Query(W8MonsterQueryKind query)
         break;
     case W8_MONSTER_QUERY_CYCLE_COMPLETE:
         result = 0;
-        if (m_pRep->animation_behaviour == 3) {
+        if (m_pRep->animation_behaviour == W8_ANIMATION_NEVER_STOP) {
             if (m_pRep->animation_playing == 0) {
                 result = 1;
             }
@@ -4058,7 +4059,7 @@ void W8Monster::UpdateShakeEvents(unsigned char previous_frame)
                     callback->saved_frame_method = m_pRep->frame_method;
                     particle->callback = callback;
 
-                    m_pRep->pending_behaviour = 3;
+                    m_pRep->pending_behaviour = W8_ANIMATION_NEVER_STOP;
                     if (animation->start_frame == animation->end_frame) {
                         m_pRep->SetFrameMethod(4);
                         m_pRep->frame_direction = W8_ANIMATION_FORWARD;

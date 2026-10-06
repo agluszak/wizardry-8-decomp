@@ -1,3 +1,4 @@
+#include <windows.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -1427,10 +1428,10 @@ void W8Octree::BuildRegionLinks(bool rebuild_all)
                     DispatchMessageA(&message);
                     InputAtom input;
                     if (DequeueEvent(&input) != 0 && input.usEvent == KEY_DOWN) {
-                        if (input.usParam == 0xd) {
+                        if (input.usParam == VK_RETURN) {
                             x_index += 2;
                             z_index = 0;
-                        } else if (input.usParam == 0x1b) {
+                        } else if (input.usParam == VK_ESCAPE) {
                             aborted = true;
                             if (g_build_level_links) {
                                 g_build_level_links = false;
