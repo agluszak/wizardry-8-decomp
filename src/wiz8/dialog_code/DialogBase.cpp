@@ -21,8 +21,8 @@ int g_live_dialog_count;
 void W8DialogBase::CreateCloseButton(W8DialogButton& button, int left, int top)
 {
     button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                     DialogCloseButtonCallback, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
-                     W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+                     DialogCloseButtonCallback, false, MSYS_PRIORITY_HIGHEST,
+                     W8_DIALOG_BUTTON_NO_TOOLTIP);
     button.SetPosition(m_x + left, m_y + top);
     button.m_owner = this;
 }
