@@ -83,20 +83,7 @@
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/video_object_catalog.h"
 
-/* Local Code\QuoteManager.cpp: the character-event subsystem — the event
-   descriptor table, the W8CharacterEvent/W8CharacterEventQueue classes, quote
-   text formatting and playback, and the portrait pose/reaction machinery.
-
-   Attribution evidence: no assertion path survives in this span, but the
-   2001-08-14 demo build embeds this TU's __FILE__ string
-   ("E:\Wizardry 8\Local Code\QuoteManager.c"), and that TU's demo string
-   cluster holds the quote-personality stems
-   ("Aggressive"/"Intellectual"/"Chaotic"/"Cunning"/"Eccentric"/"Kindly"/
-   "Laidback"), "Quote %d started for %S" and the
-   "Data\Quotes\PCs\%c_%s%d0.MSG" path the functions here reference. The
-   functions fill .text span 0x52C810-0x52FEE0, between the anchored
-   Health Stamina Mana.cpp tail (0x52C500, ApplyQueuedFatigue) and
-   Strings.cpp (0x52FF80). */
+/* TU attribution follows the demo __FILE__ and quote-personality strings. */
 
 /* Re-blit each active portrait quote bubble onto the game surface. Runs when
    the screen comes back from a modal view; slots whose character is dead or

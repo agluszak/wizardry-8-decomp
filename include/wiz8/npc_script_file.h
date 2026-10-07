@@ -3,26 +3,7 @@
 
 #include <stddef.h>
 
-/*
- * The NPC script (.nsf) file format loaded at 0x0055A480 and read one quote
- * record at a time by 0x0055A140. Its owning translation unit is an
- * attribution gap.
- *
- * Each file is a table of quote records. The quote audit at 0x00529660 walks
- * `Data\NPC Scripts\*.nsf` and reports every record as a "Long Quote" whose
- * `subquotes` it calls "subquote" lines. A record's `entries` are script-event
- * rows whose leading byte discriminates the kind (the dialogue owner at
- * 0x00576060 tests 0x13 and 0x05); entries carry `sub_entries` with their own
- * text.
- *
- * The recovered callers are ReloadNpcScriptResources (0x00524CA0), which loads
- * `Data\NPC Scripts\<name>.nsf` and stores the result on
- * W8NpcState::script_file, and the quote audit named above.
- *
- * The loader and the reader overwrite three record slots with the arrays they
- * allocate, so on-disk fields and runtime pointers share storage. Every offset
- * here is unaligned, which is what fixes the packing.
- */
+/* Packed NSF records replace on-disk array slots with runtime pointers. */
 
 /* Quote-entry opcodes with recovered consumers; unknown values remain unnamed. */
 typedef unsigned char W8NpcQuoteEntryKind;

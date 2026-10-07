@@ -168,19 +168,6 @@ static_assert(offsetof(stKeyframedLightDefinition, start_frame) == 0x50,
 static_assert(offsetof(stKeyframedLightDefinition, end_frame) == 0x54,
               "stKeyframedLightDefinition_end_frame_54");
 
-/*
- * stLight owns the 0x10006 registry identity, so the class that supplies it -
- * and the registerInstance/unregisterInstance pair that identity implies - is
- * srClassSupport rather than srLight itself. Both lifecycle bodies prove the
- * intermediate base directly: 0x0049C2C0 writes 0x005ECCA4/0x005ECC98 between
- * the srLight constructor and the 0x10006 registration and only then installs
- * stLight's own pair, and 0x0049C430 unwinds through the same two levels with
- * separate EH states.
- *
- * The default constructor stays implicit-shaped: the `new stLight` site inlined
- * at 0x004BF329 is nothing but a call to the base emission at 0x004CA8B0
- * followed by the two vptr stores, with no member initialisation at all.
- */
 // VTABLE: WIZ8 0x005ecc64 stLight
 // VTABLE: WIZ8 0x005ecc58 srVertexProcessor
 class stLight : public srClassSupport<stLight, srLight, false, 0x10006> {

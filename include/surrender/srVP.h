@@ -25,23 +25,7 @@ typedef srVector3T<float> srVector3;
 typedef srVector4T<float> srVector4;
 typedef srMatrix4T<float> srMatrix4;
 
-/* srDebugVP forwards each entry to the same slot of its wrapped srVP; its
-   vtable holds 167 slots (+0x000..+0x298) and every forwarder pushes the
-   index of its own signature string, which fixes each slot's overload.
-   VC6 does not emit same-named virtual overloads in declaration order:
-   each newly declared overload lands at the head of its name group's run,
-   so the slots of an overload set appear in reverse declaration order and
-   the declarations below are sequenced to reproduce the retail vtable.
-   The debug signature for _prefetch omits its third
-   word even though the checked debug, generic, AMD3DNow and KNI
-   implementations return with RET 0x0c. That argument stays an
-   address-qualified 32-bit scalar until its original type name and
-   signedness are recovered. Purity and member cv qualifiers are likewise not
-   asserted when the surviving evidence cannot distinguish them.
-   novtable like srDD: no ??_7srVP emission exists in retail, the table
-   initializer at 0x10064C40 stores no vftable, and both concrete
-   destructors (0x100658D0 generic, 0x1006FCA0 srDebugVP) store only their
-   own vftable. */
+/* VC6 orders virtual overloads in reverse declaration order. */
 class __declspec(novtable) srVP {
 public:
     /* The constructor's emitted helper at 0x10064C40 fills the two tables

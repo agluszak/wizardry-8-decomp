@@ -2,20 +2,6 @@
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 
-/* A one-slot polymorphic class at vtable 0x005EBCFC over the timer whose
-   destructor is 0x00439A00. Its whole teardown is the two instructions an
-   empty derived destructor emits: restore the class vtable, tail-jump to the
-   timer destructor.
-
-   The image also holds an adjustor form at 0x00421890 - the same body behind
-   `add ecx, 0xc4`. That body is W8LevelDataRecord's destructor: the record
-   embeds this class at +0xc4, and tearing the member down is the record
-   destructor's only work.
-   GDCamera's constructor is now the direct allocation witness for its 0x28
-   extent and the three-argument constructor below.
-
-   Nothing names the class, so it is qualified by its vtable address. */
-
 // FUNCTION: WIZ8 0x0043a4e0
 W8IntervalGate::W8IntervalGate() : W8GameTimer(1.0f, 0), m_finished(0) {}
 

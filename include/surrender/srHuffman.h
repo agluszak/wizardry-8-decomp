@@ -6,25 +6,6 @@
 #include "srHash.h"
 #include "srHeap.h"
 
-/* Nested Huffman types named by SR.DLL's mangled exports. Wizardry's only
-   consumers are BitArray::Load / Save in Engine Code\BitArray.cpp, which
-   compress the octree alpha-bit and prop-sun-bit indices (magic 0xDEADD00D).
-   Stack extents come from those Wiz8 frames and the SR constructors:
-   BitIStream 0x8c, BitOStream 0x54, Sampler 0x1c, Compressor 0x28,
-   Decompressor 0x51c.
-
-   Retail exports every defined member of each nested class, including the
-   private helpers (AAE access codes) and Sampler's copy
-   operations, so the classes are dllexport-ed when building the provider
-   (the same convention as srDebugDD). Members whose bodies sit here are the
-   ones Wiz8 never imports: compressSymbol is inlined by BitArray::Save, and
-   BitOStream's assignment is the private noncopyable-style no-op.
-
-   Sampler's prefix is the srHashTable<unsigned long, int> open hash. Save does
-   not call the imported ~Sampler (IAT 0x005eb768 is only an EH thunk); it
-   destroys the srArray<Symbol> member through the folded local teardown at
-   0x004701b0 and then destroys the hash member locally.
-   Compressor keeps the same hash prefix, mapping symbols to Node*. */
 class srHuffman {
 public:
     class
@@ -67,8 +48,6 @@ public:
         BitOStream(const BitOStream& stream);
         BitOStream& operator=(const BitOStream& stream);
 
-        /* ~BitOStream tail-calls flush(); the remaining helpers are never
-           inlined at retail call sites. */
         void flush();
         void flushByte();
         void flushBuffer();
@@ -128,14 +107,11 @@ public:
 
         SR_DLL_IMPORT Compressor(const Sampler& sampler);
         SR_DLL_IMPORT ~Compressor();
-        /* The assignment body contains a 0x28-byte memberwise copy. */
 
         SR_DLL_IMPORT void storeSymbolTable(BitOStream& stream);
         SR_DLL_IMPORT void buildSymbolTree();
         SR_DLL_IMPORT void collectSymbols(const Sampler& sampler);
 
-        /* Wiz8 does not import compressSymbol; Save inlines the hash walk and
-           the put here. */
         // FUNCTION: SURRENDER 0x10001430
         void compressSymbol(BitOStream& stream, unsigned long symbol)
         {

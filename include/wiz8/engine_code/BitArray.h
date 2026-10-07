@@ -1,20 +1,6 @@
 #ifndef WIZ8_ENGINE_CODE_BITARRAY_H
 #define WIZ8_ENGINE_CODE_BITARRAY_H
 
-/*
- * Engine Code\BitArray.cpp.
- *
- * A flat array of bits over a malloc'd run of 32-bit words, with a running
- * count of how many are set and a resumable cursor for walking them. The class
- * name and the index member's spelling are the assertions' own: "BitArray:
- * Couldn't allocate bit index." over assert(puiIndex).
- *
- * Every method is __thiscall, and the layout below is what they agree on.
- * The cursor is three separate members rather than one bit number because the
- * walk keeps the word index, the bit within the word, and the bit number of
- * the word's first bit, and advances them independently.
- */
-
 class BitArray {
 public:
     explicit BitArray(unsigned int bit_count); /* 0x0043ACC0 */

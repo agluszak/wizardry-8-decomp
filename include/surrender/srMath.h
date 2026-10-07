@@ -5,29 +5,11 @@
 #include <float.h>
 #include <math.h>
 
-/* srMeshModel::verify asserts srFinite(t.sortBias): scalar finite test over
-   the CRT predicate. */
 inline int srFinite(double value)
 {
     return _finite(value);
 }
 
-/*
- * Original SR.DLL exports establish the math types they explicitly name.
- * Non-export TEMPLATE names remain recomp selectors: equivalent four-byte
- * bodies alone do not distinguish float, integer or other argument types.
- * Layouts are fixed by the exported srBinIStream operators: vectors store adjacent
- * scalars, and matrices store three or four adjacent vector elements.
- *
- * The callable float bodies in Wiz8.exe are ordinary emissions of these
- * primary templates. They do not establish separately authored float
- * specializations.
- *
- * Array allocation is a class-wide contract, not a per-call shaping device.
- * The reviewed array-emission census for the vector value classes that declare
- * operator new[]/delete[] below routes through srHeap. Do not infer such an
- * operator for another type from one allocation site.
- */
 template <class T> class srMatrix3T;
 
 template <class T> class srVector2T {
@@ -63,8 +45,6 @@ public:
         return (T)sqrt(x * x + y * y);
     }
 
-    /* srMeshModel::verify asserts t.vUV[p][j][i].isValid(): every component
-       finite. */
     int isValid() const
     {
         return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y));
@@ -107,15 +87,9 @@ public:
 
 template <class T> class srVector3T {
 public:
-    /* Defined out of line so member arrays construct through
-       __ehvector_ctor with the emitted stub body as the element callback
-       (retail 0x1003BC90 over 0xc-byte elements); scalar construction
-       inlines the empty body away. */
     srVector3T<T>();
     srVector3T<T>(T source_0, T source_1, T source_2) : x(source_0), y(source_1), z(source_2) {}
 
-    /* Horizontal projection used by camera, navigation and pathing callers.
-       Returns a value; it does not alias the non-adjacent source components. */
     srVector2T<T> xz() const
     {
         return srVector2T<T>(x, z);
@@ -133,9 +107,7 @@ public:
 
     void SetZero();
     srVector3T<T>* Set(double source_0, double source_1, double source_2);
-    /* Cross-precision assign as a member template: it never suppresses the
-       implicit same-type copy, so srVector3T<double> assigns stay the trivial
-       rep movsd retail emits. */
+
     template <class U> srVector3T<T>& operator=(const srVector3T<U>& source)
     {
         x = (T)source.x;
@@ -152,15 +124,14 @@ public:
     }
     srVector3T<T>& operator+=(const srVector3T<T>& other);
     srVector3T<T>& operator-=(const srVector3T<T>& other);
-    /* Componentwise scale-assign: emitted out-of-line for the double
-       instantiation by the srNode column normalization paths. */
+
     srVector3T<T>& operator*=(const srVector3T<T>& other);
     srVector3T<T>& operator*=(double scalar);
     srVector3T<T>& operator/=(double scalar);
     bool operator==(const srVector3T<T>& other) const;
     T Length() const;
     T LengthSquared() const;
-    /* verify()'s unit-normal assert spells this lowercase form. */
+
     T length() const
     {
         return (T)sqrt(x * x + y * y + z * z);
@@ -176,8 +147,6 @@ public:
     srVector3T<T>* Unitize();
     srVector3T<T>& Transform(const srMatrix3T<T>& matrix);
 
-    /* srMeshModel::verify asserts t.vLoc[i].isValid()/t.DIG[p][i].isValid():
-       every component finite. */
     int isValid() const
     {
         return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y)) &&
@@ -295,9 +264,6 @@ template <class T> T srVector3T<T>::Length() const
     return (T)sqrt(x * x + y * y + z * z);
 }
 
-/* Squared length without sqrt. Independent TUs: Navigator UpdateLinkedNavigator
-   0x00454D70, Octree MarkVisibleRegions 0x004301C0, OctPath nearest-trigger
-   0x00463xxx. Original spelling unknown. */
 template <class T> T srVector3T<T>::LengthSquared() const
 {
     return x * x + y * y + z * z;
@@ -367,8 +333,6 @@ template <class T> T DotProduct(const srVector3T<T>& first, const srVector3T<T>&
     return first.x * second.x + first.y * second.y + first.z * second.z;
 }
 
-/* Ordinary edge×edge cross. OctPath GetPathSurfaceNormal 0x0045b730 expands
-   this; the Newell cyclic sum in the plane builders is a different helper. */
 template <class T>
 srVector3T<T> CrossProduct(const srVector3T<T>& first, const srVector3T<T>& second)
 {
@@ -397,8 +361,6 @@ template <class T> srVector3T<T> operator-(const srVector3T<T>& first, const srV
     return result;
 }
 
-/* Component negation: the slerp sign fix in PathAIApply 0x004AA520 and Prop
-   0x0044C830. Independent emission at 0x0044EE70. */
 template <class T> srVector3T<T> operator-(const srVector3T<T>& vector)
 {
     srVector3T<T> result;
@@ -408,8 +370,6 @@ template <class T> srVector3T<T> operator-(const srVector3T<T>& vector)
     return result;
 }
 
-/* Element equality: the same slerps gate interpolation on the two keyframe
-   rotations differing. Independent emission at 0x0044EC60. */
 template <class T> bool srVector3T<T>::operator==(const srVector3T<T>& other) const
 {
     return x == other.x && y == other.y && z == other.z;
@@ -424,8 +384,6 @@ template <class T> srVector3T<T> operator*(const srVector3T<T>& vector, double s
     return result;
 }
 
-/* Scalar-first form: the slerps in PathAIApply 0x004AA520 and Prop 0x0044C830
-   push scalar then vector, matching the independent emission at 0x0044EEB0. */
 template <class T> srVector3T<T> operator*(double scalar, const srVector3T<T>& vector)
 {
     srVector3T<T> result;
@@ -435,9 +393,6 @@ template <class T> srVector3T<T> operator*(double scalar, const srVector3T<T>& v
     return result;
 }
 
-/* Component product: the node scale composition and the generic processor's
-   vector and indexed-vector multiplication expand this operation. It is not
-   a dot product. */
 template <class T> srVector3T<T> operator*(const srVector3T<T>& first, const srVector3T<T>& second)
 {
     srVector3T<T> result;
@@ -459,13 +414,8 @@ template <class T> srVector3T<T> operator/(const srVector3T<T>& vector, double s
 
 template <class T> class srVector4T {
 public:
-    /* Defined out of line so member arrays construct through
-       __ehvector_ctor with the emitted body as the element callback;
-       scalar construction inlines the empty body away. */
     srVector4T<T>();
 
-    /* XYZ extraction shared by quaternion, plane, transformed-location and
-       colour consumers. Keep the double-argument setter's conversion path. */
     srVector3T<T> xyz() const
     {
         srVector3T<T> result;
@@ -483,8 +433,6 @@ public:
         srHeap.free(allocation);
     }
 
-    /* Preserve ordinary same-precision copies; conversion is componentwise
-       in the renderer's float/double matrix load and read paths. */
     template <class U> srVector4T<T>& operator=(const srVector4T<U>& source)
     {
         x = static_cast<T>(source.x);
@@ -496,8 +444,7 @@ public:
 
     srVector4T<T>* Set(T source_0, T source_1, T source_2, T source_3);
     T Length() const;
-    /* srMeshModel::verify asserts t.pEq[i].isValid()/t.DCG[p][i].isValid()/
-       t.SCG[p][i].isValid(): every component finite. */
+
     int isValid() const
     {
         return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y)) &&
@@ -570,9 +517,6 @@ template <class T> srVector4T<T>& srVector4T<T>::operator*=(double scalar)
     return *this;
 }
 
-/* Four-component counterparts of the vector operations above. The generic
-   processor's add/subtract/component-product loops at 0x100671D0,
-   0x10067290 and 0x10067230 expand these operations, including w. */
 template <class T> srVector4T<T> operator-(const srVector4T<T>& vector)
 {
     srVector4T<T> result;
@@ -666,7 +610,7 @@ public:
     srMatrix3T<T>* RotateAboutX(double sine, double cosine);
     srMatrix3T<T>* RotateAboutZ(double sine, double cosine);
     srMatrix3T<T>* RotateAroundAxis(double sine, double cosine, const srVector3T<T>& axis);
-    /* The single-angle overloads evaluate the trigonometry themselves. */
+
     srMatrix3T<T>* RotateAboutY(double angle);
     srMatrix3T<T>* RotateAboutX(double angle);
     srMatrix3T<T>* RotateAboutZ(double angle);
@@ -731,9 +675,6 @@ template <class T> void srMatrix3T<T>::SetIdentity()
     vectors[2] = srVector3T<T>((T)0, (T)0, (T)1);
 }
 
-/* Row-wise equality: the keyframe slerps compare the current and next
-   rotation records before interpolating. No retail out-of-line copy; every
-   site inlines the three vector compares. */
 template <class T> bool srMatrix3T<T>::operator==(const srMatrix3T<T>& other) const
 {
     return vectors[0] == other.vectors[0] && vectors[1] == other.vectors[1] &&
@@ -869,14 +810,6 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
     return this;
 }
 
-/* Row-wise matrix×vector: out.i = DotProduct(row_i, value). Independent TUs:
-   SoundEvent 0x004d5a10, Spells, Environment 0x00482a20, ReadLevel 0x004BD0D0,
-   OctPath, Trigger, stParticle, GrCycle, GDCamera GetForwardPoint 0x00478CE0.
-   Return-by-value Transform is the adopted ABI; operator* and void
-   Transform(in, out) were trialed and did not match the surrounding stores.
-   No Wiz8 COMDAT; header-visible inlining is the retail shape. Partial row-0
-   multiply-add vs DotProduct on rows 1/2 is inlining/scheduling, not a
-   different helper. */
 template <class T> srVector3T<T> srMatrix3T<T>::Transform(const srVector3T<T>& value) const
 {
     srVector3T<T> result;
@@ -886,9 +819,6 @@ template <class T> srVector3T<T> srMatrix3T<T>::Transform(const srVector3T<T>& v
     return result;
 }
 
-/* The transposed product: each result component is a column dot, so
-   result = M^T * value. Emitted standalone at 0x004ED950 for the Combat.cpp
-   breath-effect direction rotation. */
 template <class T>
 srVector3T<T> srMatrix3T<T>::TransformTransposed(const srVector3T<T>& value) const
 {
@@ -899,9 +829,6 @@ srVector3T<T> srMatrix3T<T>::TransformTransposed(const srVector3T<T>& value) con
     return result;
 }
 
-/* In-place vector×matrix: *this = matrix.Transform(*this). GetForwardPoint
-   0x00478CE0 overwrites m_direction this way. Same row DotProduct body
-   as srMatrix3T::Transform. */
 template <class T> srVector3T<T>& srVector3T<T>::Transform(const srMatrix3T<T>& matrix)
 {
     T x = DotProduct(matrix.vectors[0], *this);
@@ -986,9 +913,6 @@ public:
     srVector4T<T> vectors[4];
 };
 
-/* Three-operand row-major multiply: result.row_i.j = row_i · other.column_j.
-   Retail emits the float instantiation out-of-line for
-   srBounder::getChildBoundingBox. */
 template <class T>
 srMatrix4T<T>* srMatrix4T<T>::Multiply(const srMatrix4T<T>& other, srMatrix4T<T>& result)
 {
@@ -1036,10 +960,6 @@ template <class T> srMatrix4T<T>* srMatrix4T<T>::Inverse(srMatrix4T<T>& source)
     return this;
 }
 
-/* Affine point transform: dest.i = row_i.xyz·point + row_i.w. Independent
-   TUs: GDProp::Initialize 0x004b7060. Particle PrepareRenderer 0x00498DD0
-   and Update 0x00499FA0 use the four-component form (Transform) because
-   retail evaluates row 3. No Wiz8 COMDAT. */
 template <class T> srVector3T<T> srMatrix4T<T>::TransformPoint(const srVector3T<T>& point) const
 {
     srVector3T<T> result;
@@ -1052,9 +972,6 @@ template <class T> srVector3T<T> srMatrix4T<T>::TransformPoint(const srVector3T<
     return result;
 }
 
-/* Linear 3×3 of a 4×4: dest.i = row_i.xyz·direction, no translation.
-   Monster GetCycleMappedPosition 0x004C7960 adds owner position separately.
-   Distinct from TransformPoint, which adds row .w. */
 template <class T>
 srVector3T<T> srMatrix4T<T>::TransformDirection(const srVector3T<T>& direction) const
 {
@@ -1193,9 +1110,6 @@ template <class T> void srMatrix4T<T>::AdjugateFrom(T* source)
     components[15] = fVar5 * fVar3 + (fVar13 * fVar1 - fVar7 * fVar2);
 }
 
-/* Build the homogeneous transform whose upper 3x3 is `rotation` and whose
-   last column is `translation`; the bottom row is (0,0,0,1). Wiz8's
-   BakeInstanceVertexLighting calls this before bulk-transforming vertices. */
 // srMatrix4T<float>::Set
 template <class T>
 srMatrix4T<T>* srMatrix4T<T>::Set(const srMatrix3T<T>& rotation, const srVector3T<T>& translation)
@@ -1212,9 +1126,6 @@ srMatrix4T<T>* srMatrix4T<T>::Set(const srMatrix3T<T>& rotation, const srVector3
     return this;
 }
 
-/* Retail emits one standalone 3x3 determinant (0x0049BD00) that
-   srMatrix4T::Invert calls, while stModelInstance.cpp expands it, so the
-   definition is header-visible. */
 // FUNCTION: WIZ8 0x0049BD00
 inline float Det3(float m00, float m01, float m02, float m10, float m11, float m12, float m20,
                   float m21, float m22)
@@ -1223,19 +1134,8 @@ inline float Det3(float m00, float m01, float m02, float m10, float m11, float m
            ((m11 * m22 - m12 * m21) * m00 - (m01 * m22 - m02 * m21) * m10);
 }
 
-/* A 3×4 affine transform: three rows of (basis xyz, translation w). srNode
-   composes its authored local rotation/location/scale into this cached world
-   transform and exports getWorldSpaceMatrix overloads for both this type and
-   the homogeneous srMatrix4T expansion. Wiz8.exe itself only imports the
-   float 4x4 getter; the 4x3 form is the SurRender cache and SR.DLL API.
-   getWorldSpaceMatrix memcpy's the 12-float / 12-double cache; pushMultMatrix
-   expands the affine multiply itself. The only float member emissions in
-   Wiz8.exe are the translation/scale writes inside GDProp's
-   TransformMeshGeometry. */
 template <class T> class srMatrix4x3T {
 public:
-    /* sr.dll emits out-of-line copies at 0x10055710 for double and 0x10055770
-       for float; srNode's constructor calls both. */
     void SetIdentity();
     void SetRotation(const srMatrix3T<T>& rotation);
     srMatrix4x3T<T>* SetTranslation(const srVector3T<T>& translation);
@@ -1299,8 +1199,6 @@ template <class T> srMatrix4x3T<T>* srMatrix4x3T<T>::Scale(const srVector3T<T>& 
     return this;
 }
 
-/* Affine point transform: dest.i = row_i.xyz·point + row_i.w. The only Wiz8
-   emission is inlined inside GDProp::TransformMeshGeometry. */
 template <class T> srVector3T<T> srMatrix4x3T<T>::TransformPoint(const srVector3T<T>& point) const
 {
     srVector3T<T> result;
@@ -1323,10 +1221,6 @@ public:
 
 class srVector3i {
 public:
-    /* User-provided trivial constructor like srVector2T's: retail's
-       srArray<srVector3i>::setCapacity (0x100275B0) emits the new[]
-       result select and element-count bound after srHeap::allocate, which
-       only appears when the element type is not POD. */
     srVector3i() {}
 
     void* operator new[](unsigned int size)
@@ -1354,9 +1248,6 @@ public:
 
 static_assert(sizeof(srVector4i) == 0x10, "srVector4i_must_be_0x10");
 
-/* SurRender's quaternion value type. The exported srBinIStream extraction
-   operator (0x10031AF0) reads a scalar w followed by a 3-vector v, fixing the
-   member order below. */
 class srQuaternion {
 public:
     float w;

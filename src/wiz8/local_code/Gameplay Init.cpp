@@ -61,21 +61,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-/* Local Code\Gameplay Init.cpp: the gameplay initialization/reset subsystem -
-   the NPC/fact/level database loaders and destroyers, the status-buffer
-   allocators, and the new-game reset family (ResetForNewGame,
-   RunNewGameOpeningSequence, ResetGameplayStatusBlock, ResetTargetingState,
-   ResetGameplaySlot, ResetPartySlotRow, ResetGameplaySettings).
-
-   Attribution evidence: no assertion path survives in this span, but the
-   2001-08-14 demo build embeds this TU's __FILE__ string
-   ("E:\Wizardry 8\Local Code\Gameplay Init.cpp") in .data link order between
-   "Local Code\GameplayDatabase.cpp" and "Local Code\Configuration.cpp", and
-   these functions fill the matching .text span 0x54AAC0-0x54B560 between the
-   anchored GameplayDatabase.cpp tail (0x54A9A0, LoadMonsterDatabaseRange) and
-   Configuration.cpp (0x54B6D0, SaveGameConfiguration). The demo string cluster
-   for this TU is nearly empty - its loaders share the pooled
-   "SaveConfig: ERROR - FileOpen failed on file %s" literal. */
+/* TU attribution follows the 2001-08-14 demo __FILE__ and link-order evidence. */
 
 /* NPC.DBS records carry an optional sub-list, stored after the record when its
    leading count exceeds one and its 0x9D flag is clear: a count, then that many
@@ -269,12 +255,12 @@ void InitializeGameplayRuntimeObjects(void)
    The header is two dwords: an allocation count and the number of rows to read.
    They are not the same number, and the allocation is sized from the first while
    the loop runs over the second, which is what the original does.
- 
+
    Each row is preceded by 0x101 bytes the loader skips rather than reads. A
    failure anywhere stops the loop and drops the whole table, but the file is
    closed and the row count published either way - including on failure, where
    the count then describes a table that is no longer there. Preserved as found.
- 
+
    The assertion at Spells.cpp:1908 names the table s_pSpellTable, which is why
    this body treats the global as the table itself rather than as a cursor. */
 // FUNCTION: WIZ8 0x0054b080

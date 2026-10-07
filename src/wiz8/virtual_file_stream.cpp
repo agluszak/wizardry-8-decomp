@@ -9,26 +9,6 @@
 
 /* Original translation-unit ownership is unknown; surrounding anchors do not resolve it. */
 
-/* The SurRender-facing stream adapter that carries the SLF virtual file system
-   into the SR stream hierarchy. It is declared as what it is rather than as an
-   opaque prefix: the two vtables the constructor at 0x0047CBD0 installs are the
-   two this declaration produces; their reviewed symbols and slots live in
-   Ghidra rather than a parallel generated inventory.
-
-   Primary 0x005EC6A0, at offset 0, has vget imported from SR.DLL in slot 0 and
-   Read in slot 1 - the slot srBinIStream leaves pure. Secondary 0x005EC68C, the
-   virtual srBinStream base at +0x10, inherits getSize from SR.DLL in slot 1 and
-   overrides the destructor and the three seek/tell slots locally.
-
-   The observed constructor allocation is 0x20 bytes, as checked below.
-   The modeled srBinIStream base has vptr, vbptr and a virtual srBinStream
-   subobject placed last; that allocation does not establish unique callers.
-
-   The path normalization is the one Wiz8.exe reach of SurRender's srInlineString:
-   the retail body constructs three objects here and calls this TU's out-of-line
-   find/erase/insert to rewrite each '/' as '\\'. In this product only the
-   constructors and destructor expand inline; the remaining members are defined
-   out-of-line below. */
 // FUNCTION: WIZ8 0x0047CBD0
 W8VirtualFileBinIStream::W8VirtualFileBinIStream(const char* path) : m_hFile(0)
 {
@@ -78,20 +58,12 @@ srInlineString::srInlineString(const srInlineString& source, long begin, long en
     srHeap.free(temporary);
 }
 
-/* Retail expands this destructor at shallow sites and calls the emission
-   from deeper ones: insert's `*this =` tail and the EH unwind entries. Our
-   build splits the same way. */
 // FUNCTION: WIZ8 0x0047CDD0
 srInlineString::~srInlineString()
 {
     release();
 }
 
-/* Releases this object's contents and returns it to the empty state. The
-   destructor and copy assignment share it. Retail keeps only the destructor
-   emission above: operator='s expansion and the EH unwinders call the same
-   body, so whether retail spelled a separate release member is unprovable.
-   There is no independently retained retail address for release(). */
 void srInlineString::release()
 {
     if (data_ != inline_) {
@@ -100,10 +72,6 @@ void srInlineString::release()
     reset();
 }
 
-/* Releases this object's contents, then copies the source text. Where
-   srEXT_Unzip delegates to the (const char*) overload, this product's copy
-   releases first and copies inline - insert's tail calls the shared
-   emission and performs the copy without a second call. */
 srInlineString& srInlineString::operator=(const srInlineString& source)
 {
     release();
@@ -148,9 +116,6 @@ void srInlineString::erase(unsigned long begin, unsigned long end)
     }
 }
 
-/* Splices text into the content at position: prepend when 0, append at the
-   terminator, otherwise rebuild from the [0, position) and [position, size)
-   pieces through the substring constructor. */
 // FUNCTION: WIZ8 0x0047CF00
 void srInlineString::insert(const srInlineString& text, unsigned long position)
 {
@@ -189,8 +154,6 @@ srInlineString::srInlineString()
     reset();
 }
 
-/* Retail reset at 0x0047D290 has both calls and expanded uses. Original
-   declaration/visibility and the cause of the split remain unresolved. */
 void srInlineString::reset()
 {
     inline_[0] = '\0';
@@ -263,9 +226,6 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
     return 0;
 }
 
-/* The global opener's implicit default constructor, emitted for
-   g_virtual_file_stream_opener; it only installs the vtable. */
-
 // FUNCTION: WIZ8 0x0047CB30
 srBinIStream* W8VirtualFileStreamOpener::open(const char* path)
 {
@@ -284,8 +244,6 @@ W8VirtualFileStreamOpener g_virtual_file_stream_opener;
 /* MSVC PDB spelling uses overload ordinals, not parameter types. Retail
    secondary-vtable order is seek(2)=ulong, seek(1)=ulong+dir, tell. */
 
-/* Loads the image importers and routes their JPG/TGA reads through Wizardry's
-   SLF-aware virtual file stream, which is the bridge the real menu assets use. */
 // FUNCTION: WIZ8 0x0047d5f0
 void InitializeVirtualFileImageImporters(void)
 {

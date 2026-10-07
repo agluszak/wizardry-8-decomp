@@ -4,41 +4,18 @@
 
 #include "srHeap.h"
 
-/* SurRender's narrow string class: a 12-byte object whose first four bytes
-   double as the empty string's inline area. +0x04 holds the size including
-   the terminator (1 while empty) and +0x08 the data pointer, which equals the
-   object address exactly while the string is empty. Storage comes from
-   srHeap, not global operator new - the same vendor allocator split as the
-   SurRender container templates.
-
-   srInlineString is a provisional identifier: no decorated export or retail
-   string names the class.
-
-   Product variants have independently evidenced behavior. Wizardry and the
-   unzip extension retain their product-owned definitions; SurRender's
-   cross-TU expansions share the canonical provider definitions below. */
 struct srInlineString {
-    /* Empty-state construction shared by the provider translation units. */
+
     srInlineString();
     srInlineString(const char* source);
     srInlineString(const srInlineString& source);
     srInlineString(const srInlineString& source, long begin, long end);
     ~srInlineString();
 
-    /* Bare empty-state initialization without releasing storage - the helper
-       the provider emits at 0x10004150 and calls inside assignment/copy
-       expansions. */
     void init();
 
-    /* Empty-object reinitialization. In the Wiz8 unit the inline destructor
-       expansion keeps the release inline but emits a call to the reset
-       emission - the function retail lists at 0x0047D290. In the provider
-       unit reset itself releases non-inline storage (0x10012C80). */
     void reset();
 
-    /* Releases the object's contents and returns it to the empty state - the
-       operation the destructor and copy assignment share. In the Wiz8 unit
-       its only emitted form is the destructor body (0x0047CDD0). */
     void release();
 
     srInlineString& operator=(const char* source);
@@ -48,8 +25,7 @@ struct srInlineString {
     long find(const srInlineString& needle, unsigned long offset) const;
     void erase(unsigned long begin, unsigned long end);
     void insert(const srInlineString& text, unsigned long position);
-    /* Single-shot search-and-replace: the stream unit emits it at
-       0x10032B00 and loops it for separator normalization. */
+
     int replace(const srInlineString& needle, const srInlineString& replacement);
 
     char* data()
@@ -85,8 +61,7 @@ static_assert((sizeof(srInlineString) == 0x0c), "srInlineString_must_be_0x0c");
 srInlineString operator+(const srInlineString& left, const srInlineString& right);
 
 #if defined(SURRENDER_BUILD)
-/* Retail expands these methods across config, stream, string-table and
-   dynamic-library TUs and also retains standalone emissions. */
+
 inline srInlineString::srInlineString()
 {
     init();
@@ -106,8 +81,6 @@ inline srInlineString::srInlineString(const srInlineString& source)
     }
 }
 
-/* The same range constructor survives in Wiz8 and the unzip provider;
-   SurRender expands its temporary-buffer copy in insert and string splitting. */
 inline srInlineString::srInlineString(const srInlineString& source, long begin, long end)
 {
     init();
