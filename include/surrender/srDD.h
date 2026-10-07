@@ -165,11 +165,11 @@ public:
         unsigned long vertex_indices;
         unsigned long value_24;
     };
-    /* getTextureFormats / getWindowList fill {count, pointer} out-records;
+    /* getTextureFormats / getWindowList fill {pointer, count} out-records;
        GERD copies the pointed arrays into its own storage. */
     struct PixelFormatList {
-        long count;
         PixelFormat* formats;
+        long count;
     };
     /* getDisplayMode matches {width, height, depth} triples. */
     struct WindowInfo {
@@ -179,8 +179,8 @@ public:
     };
     static_assert(sizeof(WindowInfo) == 0x0c, "WindowInfo_must_be_0x0c");
     struct WindowInfoList {
-        long count;
         WindowInfo* entries;
+        long count;
     };
     /* srGERD::openWindowInternal forwards the requested backbuffer size and
        display-mode index; the device reports the back-buffer count in the

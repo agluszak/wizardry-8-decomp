@@ -1014,10 +1014,26 @@ static bool WaitWorldVisible(RuntimeCase& test)
     unsigned int visibility_started = GetTickCount();
     bool world_visible = false;
     while (GetTickCount() - visibility_started < 10000 && gfProgramIsRunning) {
-        RT_REQUIRE(test, test.wait_for_event(RUNTIME_WORLD_VIEWPORT_APPLIED, 5000));
+        RT_REQUIRE(test, test.wait_for_event(RUNTIME_WORLD_RENDER_END, 5000));
         RuntimeEvent events[512];
         unsigned long count = RuntimeCopyRecentEvents(events, 512);
+        bool world_started = false;
+        bool viewport_valid = false;
+        unsigned long initial_draw_calls = 0;
         for (unsigned long index = 0; index < count; ++index) {
+            if (events[index].kind == RUNTIME_WORLD_RENDER_BEGIN) {
+                world_started = true;
+                viewport_valid = false;
+                initial_draw_calls = events[index].world.draw_calls;
+            }
+            if (events[index].kind == RUNTIME_WORLD_RENDER_END && world_started && viewport_valid &&
+                events[index].world.visible_meshes > 0 &&
+                events[index].world.draw_calls > initial_draw_calls) {
+                test.observe("world_draw_calls",
+                             events[index].world.draw_calls - initial_draw_calls);
+                world_visible = true;
+                break;
+            }
             if (events[index].kind != RUNTIME_WORLD_VIEWPORT_APPLIED) {
                 continue;
             }
@@ -1027,17 +1043,14 @@ static bool WaitWorldVisible(RuntimeCase& test)
                 world.applied_viewport[3] >= world.renderer_size[1]) {
                 return test.fail("main-game-visible", "world-viewport-outside-screen");
             }
-            if (world.visible_meshes > 0) {
-                world_visible = true;
-                break;
-            }
+            viewport_valid = true;
         }
         if (world_visible) {
             break;
         }
     }
     if (!world_visible) {
-        return test.fail("main-game-visible", "no-visible-world-meshes");
+        return test.fail("main-game-visible", "no-world-draw-calls");
     }
     test.step("main-game-visible");
     return true;

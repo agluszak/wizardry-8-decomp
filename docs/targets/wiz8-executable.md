@@ -14,6 +14,7 @@ Build and open the recovered main menu from the staged retail tree with:
 
 ```sh
 uv run wiz8 build runtime
+uv run wiz8 build SURRENDER
 uv run wiz8 run
 ```
 
@@ -21,7 +22,7 @@ uv run wiz8 run
 control of the desktop. It assembles one writable tree under `build/runtime/wiz8` through the shared
 `stage_game` primitive: asset directories link to the immutable `gog-base` variant, the reviewed CFG
 files are copied in when absent, and the built `Wiz8Runtime.exe` is copied next to them so Wine
-resolves the game's DLLs from staged retail data, not from the build tree. Process output is
+uses the rebuilt `sr.dll` copied into the stage and the remaining DLLs from staged retail data. Process output is
 forwarded; when the in-process crash filter fires, the same result carries the MAP-symbolized crash
 report.
 
@@ -40,7 +41,7 @@ same recovered image under Wine's debugger with:
 uv run wiz8 debug
 ```
 
-`uv run wiz8 debug` uses the existing recomp; pass `--build` when a fresh runtime image is required.
+`uv run wiz8 debug` stages the existing recomp and rebuilt `sr.dll`; pass `--build` when a fresh runtime image is required.
 It stages the recomp under `build/runtime/debug`, clears stale wineserver state,
 starts Wine's GDB proxy on a free port, and connects system GDB with a deterministic stop policy
 (`SIGTRAP` stop/print, `SIGSEGV` pass, full backtrace, registers, shared libraries, code and stack).
@@ -63,11 +64,17 @@ a separate system-Wine runtime path. `PROTONPATH` and `WIZ8_UMU_RUN` remain expl
 overrides of the prepared tools.
 
 `uv run wiz8 runtime-test` uses the existing semantic-test image; pass `--build` to refresh it. It
-defaults to the private display and judges only `WIZ8_RUNTIME_TEST`; set
+builds SurRender as a dependency and snapshots the rebuilt `sr.dll` with the executable and MAP.
+Each scenario copies that renderer into its stage, replacing any old retail DLL link without
+modifying the prepared variant. The suite input digest includes the renderer bytes.
+The suite defaults to the private display and judges only `WIZ8_RUNTIME_TEST`; set
 `WIZ8_RUNTIME_DISPLAY=host` for visual debugging. Its controlled staging directory owns test config,
 saves, display, and audio policy. The native exception filter records every general-purpose register
 in-process and scans registers as well as stack words for recovered-image candidates; Python symbolizes them against `Wiz8RuntimeTest.map`. It never launches GDB or reruns a failed scenario. Off-screen Wine is configured to own its
-windows because Xvfb has no window manager.
+windows because Xvfb has no window manager. The native harness also paces frame starts to a minimum
+16 ms interval using wall-clock time. Xvfb does not pace presentation, and unrestricted frame rates
+can leave the retail motion integration below its displacement cutoff. The game retains its real
+timers and physics; movement, save/load, and renderer assertions are unchanged.
 Mouse and keyboard events traverse reconstructed SGP input and the recovered region callbacks.
 Exiting the runtime-test harness terminates only its dedicated Wine prefix. The harness stays
 attached to the game and returns its status instead of guessing its lifetime from Wine's desktop
@@ -80,7 +87,8 @@ separately owns primary source/input preparation; optional corpus variants stay 
 
 The comparison image permits `/FORCE:UNRESOLVED` for inspection during recovery. Both
 runnable products require complete native links: unresolved functions fail at the linker.
-Their build does not depend on the matching executable, source indexing, or generated traps.
+Their build does not depend on the matching executable or generated traps. Runtime-test builds
+refresh the source index for SurRender provider validation.
 VC6's `/MD` CRT library supplies its own floating-point marker and SEH chain symbol.
 Both runnable products link the shared exception filter; when a genuine runtime fault occurs it
 records the register file and candidate image addresses, which Python symbolizes through the

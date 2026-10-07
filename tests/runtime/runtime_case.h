@@ -15,6 +15,9 @@ struct GameplaySnapshot {
     float yaw;
     float input_motion;
     float world_motion;
+    float camera_scale;
+    srVector3T<float> motion_velocity;
+    unsigned int level_flags;
     W8ScreenId screen;
     W8ScreenId pending;
     bool combat;

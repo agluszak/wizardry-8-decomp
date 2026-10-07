@@ -1074,6 +1074,9 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
     data.viewport[3] = g_viewport.bottom;
     data.renderer_size[0] = g_gerd->getWidth();
     data.renderer_size[1] = g_gerd->getHeight();
+    srGERD::Statistics statistics;
+    g_gerd->getStatistics(statistics);
+    data.draw_calls = statistics.draw_calls;
     srVector3T<float> camera;
     GetCameraPosition(&camera);
     data.camera[0] = camera.x;
@@ -1193,7 +1196,7 @@ void RenderFrame(void)
             ResolvePickedProp(g_world);
         }
 #ifdef WIZ8_RUNTIME_TESTS
-        RuntimeObserveWorld(RUNTIME_WORLD_RENDER_END, world_observation);
+        RuntimeObserveWorld(RUNTIME_WORLD_RENDER_END, ObserveWorldRenderState());
 #endif
     }
 

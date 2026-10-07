@@ -16,6 +16,7 @@ from wiz8decomp.runtime import (
     _parse_runtime_observation,
     _parse_runtime_scenarios,
     _parse_wine_dump,
+    _pin_suite_executable,
     _run_runtime_batch,
     _run_runtime_scenario,
     _runtime_audio,
@@ -55,6 +56,7 @@ def _settings(tmp_path: Path) -> Settings:
         (work / "variants" / "gog-base" / name).mkdir(parents=True, exist_ok=True)
     (repo / "build" / "decomp").mkdir(parents=True)
     (repo / "build" / "decomp" / "Wiz8RuntimeTest.exe").write_bytes(b"semantic tests")
+    (repo / "build" / "decomp" / "sr.dll").write_bytes(b"rebuilt renderer")
     (repo / "config" / "runtime").mkdir(parents=True)
     (repo / "config" / "runtime" / "3DVideo.CFG").write_text("Software\n640\n480\n16\nAudio\n")
     (repo / "config" / "runtime" / "Wiz8.CFG.hex").write_text("00ff")
@@ -107,6 +109,40 @@ def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> N
     assert restaged.executable == result.executable
     assert (stage / "3DVideo.CFG").read_text() == "Software\n640\n480\n16\nAudio\n"
     assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
+
+
+def test_staging_rebuilt_renderer_replaces_retail_link_without_changing_retail(
+    tmp_path: Path,
+) -> None:
+    settings = _settings(tmp_path)
+    retail = settings.work_dir / "variants" / "gog-base" / "sr.dll"
+    retail.write_bytes(b"retail renderer")
+    executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
+    staged = stage_game(settings, name="runtime-test", executable=executable)
+    assert (staged.root / "sr.dll").is_symlink()
+
+    stage_game(
+        settings,
+        name="runtime-test",
+        executable=executable,
+        renderer_dll=settings.product_build_dir / "sr.dll",
+    )
+
+    assert not (staged.root / "sr.dll").is_symlink()
+    assert (staged.root / "sr.dll").read_bytes() == b"rebuilt renderer"
+    assert retail.read_bytes() == b"retail renderer"
+
+
+def test_suite_pins_renderer_and_includes_it_in_input_digest(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
+    stage = settings.runtime_stage("runtime-test")
+    pinned, first_digest = _pin_suite_executable(settings, executable, stage)
+    renderer = settings.product_build_dir / "sr.dll"
+    renderer.write_bytes(b"relinked renderer")
+    assert pinned.with_name("sr.dll").read_bytes() == b"rebuilt renderer"
+    _, second_digest = _pin_suite_executable(settings, executable, stage)
+    assert second_digest != first_digest
 
 
 def test_selected_glide_config_reaches_runtime_test_stage_and_display(

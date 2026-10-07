@@ -251,6 +251,7 @@ def _run_debugger_locked(
         settings,
         name=f"debug-{scenario}" if scenario is not None else "debug",
         executable=settings.product_build_dir / product_name,
+        renderer_dll=settings.product_build_dir / "sr.dll",
         objects=settings.recovered_objects_dir,
         reset_saves=scenario is not None,
     )

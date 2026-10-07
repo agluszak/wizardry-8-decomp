@@ -170,7 +170,8 @@ private:
             free = entries;
             if (this->buckets != 0 && old_bucket_count != 0) {
                 for (unsigned long bucket = 0; bucket < old_bucket_count; ++bucket) {
-                    for (NameEntry* entry = buckets[bucket]; entry != 0; entry = entry->next) {
+                    for (NameEntry* entry = this->buckets[bucket]; entry != 0;
+                         entry = entry->next) {
                         const char* name = entry->name;
                         NameEntry* reused = allocateEntry();
                         unsigned long new_bucket = bucketIndex(name);

@@ -49,11 +49,10 @@ void srCamera::processPush(srGERD* renderer)
     srMatrix4T<double> world;
     getWorldSpaceMatrix(world);
 
-    /* The view transform is the inverse world matrix with the translation
-       vector negated. */
+    /* The view transform reverses the inverse world matrix's Z row. */
     srMatrix4T<double> view;
     view.Inverse(world);
-    view.vectors[3] = -view.vectors[3];
+    view.vectors[2] = -view.vectors[2];
 
     renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
     renderer->pushMatrix();

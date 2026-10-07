@@ -32,8 +32,9 @@ public:
         long mipmap_level;
         /* Last mipmap level filled; iterated level <= last_level. */
         unsigned long last_level;
-        srColorSurfaceIFace* destinations[1];
+        srColorSurfaceIFace* destinations[12];
     };
+    static_assert(sizeof(MultiRequest) == 0x38, "srTextureIFace_MultiRequest_must_be_0x38");
     /* srGERD::setTextureSubImage packs the level-0 dimensions and the target
        mipmap level ahead of the clipped destination rect. */
     struct PartialRequest {
