@@ -58,14 +58,6 @@ def lint_command() -> None:
     cli.emit(lint(cli.settings()))
 
 
-def tidy_audit_command() -> None:
-    """Report the whole corpus under the non-gating clang-tidy audit profile."""
-    from .. import command_support as cli
-    from ..build import tidy_audit
-
-    cli.emit(tidy_audit(cli.settings()))
-
-
 def diagnostics_command(
     x64: Annotated[
         bool, typer.Option("--x64", help="Audit Windows pointer-width changes.")
@@ -447,7 +439,6 @@ def register(app: typer.Typer) -> None:
     app.command("prepare")(prepare_command)
     app.command("check")(check_command)
     app.command("lint")(lint_command)
-    app.command("tidy-audit")(tidy_audit_command)
     app.command("diagnostics")(diagnostics_command)
     app.command("build")(build_command)
     app.command("compare")(compare_command)
@@ -459,72 +450,14 @@ def register(app: typer.Typer) -> None:
     app.command("debug")(debug_command)
     app.add_typer(analyze_app, name="analyze")
     analyze_app.command("crash")(crash_report_command)
-    analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
     analyze_app.command("differential")(differential_command)
     analyze_app.command("freeze-oracle")(freeze_oracle_command)
     analyze_app.command("smoke")(smoke_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
-    analyze_app.command("scalar-facts")(scalar_facts_command)
-    analyze_app.command("scalar-evidence")(scalar_evidence_command)
     analyze_app.command("emissions")(emissions_command)
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
-
-
-def scalar_facts_command(
-    evidence: Annotated[
-        Path | None, typer.Option(help="Reviewed scalar-evidence-v1 claims.")
-    ] = None,
-    patch: Annotated[
-        bool, typer.Option(help="Emit a reviewable patch; never edit source.")
-    ] = False,
-    padding: Annotated[
-        bool,
-        typer.Option(help="Include layout-preserving explicit padding removal in the patch."),
-    ] = False,
-    propagate_enum: Annotated[
-        list[str] | None,
-        typer.Option(
-            help="Propagate an accepted source enum through pure local copies (repeatable)."
-        ),
-    ] = None,
-    boolean_expressions: Annotated[
-        bool, typer.Option(help="Simplify comparisons of established bool objects in the patch.")
-    ] = False,
-) -> None:
-    """Collect the complete configured corpus and solve shared type constraints."""
-    from .. import command_support as cli
-    from ..build import scalar_campaign
-
-    cli.emit(
-        scalar_campaign(
-            cli.settings(),
-            evidence=evidence,
-            patch=patch,
-            padding=padding,
-            propagate_enums=propagate_enum,
-            boolean_expressions=boolean_expressions,
-        )
-    )
-
-
-def scalar_evidence_command(
-    campaign: Annotated[
-        Path, typer.Option(help="Completed whole-program scalar campaign directory.")
-    ],
-    oracle: Annotated[
-        Path | None, typer.Option(help="Pinned source-oracle correspondences.")
-    ] = None,
-    exports: Annotated[
-        bool, typer.Option(help="Harvest already-paired canonical SurRender exports.")
-    ] = False,
-) -> None:
-    """Parse independent declaration contracts into shared scalar evidence."""
-    from .. import command_support as cli
-    from ..build import scalar_evidence_campaign
-
-    cli.emit(scalar_evidence_campaign(cli.settings(), campaign, oracle=oracle, exports=exports))
 
 
 def emissions_command(
@@ -696,13 +629,6 @@ def crash_report_command(
         )
 
     cli.emit(action())
-
-
-def inventory_command() -> None:
-    from .. import command_support as cli
-    from ..binary.inventory import inventory
-
-    cli.emit(inventory(cli.settings()))
 
 
 def trace_command(

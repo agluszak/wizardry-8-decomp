@@ -246,7 +246,7 @@ def extract_role(settings: Settings, role: str) -> dict[str, Any]:
             detail = "; ".join(verification["errors"])
             raise RuntimeError(
                 f"existing extraction failed verification for {role}: {detail}. "
-                "Run 'wiz8 corpus clean --stage extractions' to rebuild generated state."
+                "Remove the stale extracted tree and rerun extraction."
             )
         existing = _load_extraction_receipt(destination)
         write_generated_document(_extraction_receipt_path(settings, role), existing)
@@ -511,7 +511,7 @@ def materialize_variants(settings: Settings, *, only: list[str] | None = None) -
                 raise RuntimeError(
                     f"existing variant failed verification for {variant}: "
                     + "; ".join(verification["errors"])
-                    + ". Run 'wiz8 corpus clean --stage variants' to rebuild generated state."
+                    + ". Remove the stale variant directory and rerun materialization."
                 )
             receipt = load_generated_document(marker, VariantProvenance)
             write_generated_document(_variant_receipt_path(settings, variant), receipt)
@@ -568,31 +568,3 @@ def materialize_variants(settings: Settings, *, only: list[str] | None = None) -
     return output.model_dump(mode="json", by_alias=True)
 
 
-def variant_diff(settings: Settings) -> dict[str, Any]:
-    manifests: dict[str, dict[str, dict[str, Any]]] = {}
-    for path in sorted((settings.work_dir / "variants").glob("*/.wiz8-variant.json")):
-        document = load_generated_document(path, VariantProvenance)
-        data = document.model_dump(mode="json", by_alias=True)
-        manifests[document.variant] = {entry["path"].casefold(): entry for entry in data["files"]}
-    base = manifests.get("gog-base", {})
-    comparisons: dict[str, Any] = {}
-    for variant, files in sorted(manifests.items()):
-        if variant == "gog-base":
-            continue
-        comparisons[variant] = {
-            "added": sorted(entry["path"] for key, entry in files.items() if key not in base),
-            "removed": sorted(entry["path"] for key, entry in base.items() if key not in files),
-            "changed": sorted(
-                files[key]["path"]
-                for key in files.keys() & base.keys()
-                if files[key]["sha256"] != base[key]["sha256"]
-            ),
-            "identical": sum(
-                1
-                for key in files.keys() & base.keys()
-                if files[key]["sha256"] == base[key]["sha256"]
-            ),
-        }
-    result = {"schema": "wiz8.variant-diff", "base": "gog-base", "comparisons": comparisons}
-    atomic_json(settings.build_dir / "reports" / "variant-diff.json", result)
-    return result
