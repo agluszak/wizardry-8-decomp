@@ -441,7 +441,7 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
             break;
         case 0x13:
             if (GetConditionRecordFlag(CharacterPointerToPartySlot(character),
-                                       W8_DEPENDENCE_SWALLOWED) != 0) {
+                                       W8_DEPENDENCE_SWALLOWED)) {
                 W8MonsterInfo* bound;
                 if (character->conditions[W8_DEPENDENCE_SWALLOWED].level_acquired ==
                         g_status.current_level &&

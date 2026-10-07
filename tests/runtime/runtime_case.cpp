@@ -305,7 +305,11 @@ void CheckGameplayReadyOnGameThread(void* opaque)
     check->camera_x = camera.x;
     check->camera_y = camera.y;
     check->camera_z = camera.z;
-    check->timer_flags = g_game_time_accumulator != 0 ? g_game_time_accumulator->m_flags : 0;
+    unsigned short timer_flags = 0;
+    if (g_game_time_accumulator != 0) {
+        memcpy(&timer_flags, &g_game_time_accumulator->m_flags, sizeof(timer_flags));
+    }
+    check->timer_flags = timer_flags;
     check->timer_paused = g_shared_timer_paused;
     check->timer_d1 = g_shared_timer_flag0;
     check->timer_d2 = g_level_motion_resume_pending;

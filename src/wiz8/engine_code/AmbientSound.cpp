@@ -124,7 +124,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                                 match->fade_timer.SetDuration(g_float_one_and_a_half /
                                                               match->target_volume);
                                 match->fade_timer.Restart();
-                                match->fade_timer.m_flags &= ~W8_TIMER_PAUSED;
+                                match->fade_timer.m_flags.paused = false;
                                 match->fade_timer.m_start =
                                     match->fade_timer.GetTime() - match->fade_timer.m_start;
                                 match->fade_timer.SetDuration(-1.0f);
@@ -143,7 +143,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                             (volume_max * g_settings.sound_effects_volume) / 0x7f;
                         fade_timer.SetDuration(g_float_one_and_a_half / full_volume);
                         fade_timer.Restart();
-                        fade_timer.m_flags &= ~W8_TIMER_PAUSED;
+                        fade_timer.m_flags.paused = false;
                         fade_timer.m_start = fade_timer.GetTime() - fade_timer.m_start;
                         fade_timer.SetDuration(-1.0f);
                     }
@@ -194,7 +194,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                 target_volume = full_volume;
                 fade_timer.SetDuration(g_float_one_and_a_half / full_volume);
                 fade_timer.Restart();
-                fade_timer.m_flags &= ~W8_TIMER_PAUSED;
+                fade_timer.m_flags.paused = false;
                 fade_timer.m_start = fade_timer.GetTime() - fade_timer.m_start;
                 fade_timer.SetDuration(-1.0f);
             }
@@ -351,7 +351,7 @@ void W8AmbientSound::Service(bool entered)
         sound_handle = SoundPlay(config.wave_name, &parms);
         fade_timer.SetDuration(g_float_one_and_a_half / target_volume);
         fade_timer.Restart();
-        fade_timer.m_flags &= ~W8_TIMER_PAUSED;
+        fade_timer.m_flags.paused = false;
         fade_timer.m_start = fade_timer.GetTime() - fade_timer.m_start;
         fade_timer.SetDuration(-1.0f);
     }
@@ -377,17 +377,13 @@ W8AmbientSound* W8AmbientSound::FindNextMatching(const char* match_name, W8Ambie
             return 0;
         }
     }
-    if (index >= count) {
-        return 0;
-    }
-    do {
+    for (; index < count; ++index) {
         W8AmbientSound* candidate = GetWorldAmbientSound(g_world, index);
         if (candidate != 0 && candidate != this && candidate->shared != 0 &&
             _stricmp(candidate->config.wave_name, match_name) == 0) {
             return candidate;
         }
-        ++index;
-    } while (index < count);
+    }
     return 0;
 }
 
@@ -403,8 +399,8 @@ void W8AmbientSound::UpdateFade()
                     ++current_volume;
                 } else if (target_volume < current_volume) {
                     --current_volume;
-                } else if ((timer->m_flags & W8_TIMER_PAUSED) == 0) {
-                    timer->m_flags |= W8_TIMER_PAUSED;
+                } else if (!timer->m_flags.paused) {
+                    timer->m_flags.paused = true;
                     timer->m_start = timer->GetTime() - timer->m_start;
                 }
                 SoundSetVolume(sound_handle, current_volume);
@@ -628,8 +624,10 @@ unsigned char AddAmbientSound(W8World* world, const char* name, const W8AmbientS
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0047a950
-void PositionAmbientSoundByName(W8World* /* unused */, const char* name)
+/* The by-name script operations share one lookup and the same start/stop
+   steps; retail expands all of them, re-testing the found pointer after the
+   lookup has already dereferenced it. */
+static W8AmbientSound* FindAmbientSoundByName(const char* name)
 {
     int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
@@ -637,61 +635,56 @@ void PositionAmbientSoundByName(W8World* /* unused */, const char* name)
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound = GetWorldAmbientSound(g_world, index);
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
-            if (sound != 0) {
-                srVector3T<float> position;
-                GetCameraPosition(&position);
-                sound->stopped = 0;
-                sound->UpdatePosition(&position);
-            }
-            return;
+            return sound;
         }
+    }
+    return 0;
+}
+
+static void StartAmbientSoundAtCamera(W8AmbientSound* sound)
+{
+    srVector3T<float> position;
+    GetCameraPosition(&position);
+    sound->stopped = 0;
+    sound->UpdatePosition(&position);
+}
+
+static void StopAmbientSound(W8AmbientSound* sound)
+{
+    SoundStop(sound->sound_handle);
+    sound->in_range = 0;
+    sound->stopped = 1;
+    sound->sound_handle = -1;
+}
+
+// FUNCTION: WIZ8 0x0047a950
+void PositionAmbientSoundByName(W8World* /* unused */, const char* name)
+{
+    W8AmbientSound* sound = FindAmbientSoundByName(name);
+    if (sound != 0) {
+        StartAmbientSoundAtCamera(sound);
     }
 }
 
 // FUNCTION: WIZ8 0x0047a9e0
 void StopAmbientSoundByName(W8World* /* unused */, const char* name)
 {
-    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
-    int index;
-
-    for (index = 0; index < count; ++index) {
-        W8AmbientSound* sound = GetWorldAmbientSound(g_world, index);
-        if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
-            if (sound != 0) {
-                SoundStop(sound->sound_handle);
-                sound->in_range = 0;
-                sound->stopped = 1;
-                sound->sound_handle = -1;
-            }
-            return;
-        }
+    W8AmbientSound* sound = FindAmbientSoundByName(name);
+    if (sound != 0) {
+        StopAmbientSound(sound);
     }
 }
 
 // FUNCTION: WIZ8 0x0047aa70
 void ToggleAmbientSoundByName(W8World* /* unused */, const char* name)
 {
-    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
-    int index;
-
-    for (index = 0; index < count; ++index) {
-        W8AmbientSound* sound = GetWorldAmbientSound(g_world, index);
-        if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
-            if (sound != 0) {
-                if (sound->stopped != 0) {
-                    srVector3T<float> position;
-                    GetCameraPosition(&position);
-                    sound->stopped = 0;
-                    sound->UpdatePosition(&position);
-                    return;
-                }
-                SoundStop(sound->sound_handle);
-                sound->in_range = 0;
-                sound->stopped = 1;
-                sound->sound_handle = -1;
-            }
+    W8AmbientSound* sound = FindAmbientSoundByName(name);
+    if (sound != 0) {
+        if (sound->stopped != 0) {
+            StartAmbientSoundAtCamera(sound);
             return;
         }
+        StopAmbientSound(sound);
     }
 }
 

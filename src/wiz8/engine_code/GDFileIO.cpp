@@ -1174,14 +1174,10 @@ W8GameData::~W8GameData()
         delete active_trigger_bits;
     }
     if (m_ppNames != 0) {
-        if (m_iNumNames > 0) {
-            index = 0;
-            do {
-                if (m_ppNames[index] != 0) {
-                    free(m_ppNames[index]);
-                }
-                ++index;
-            } while (index < m_iNumNames);
+        for (index = 0; index < m_iNumNames; ++index) {
+            if (m_ppNames[index] != 0) {
+                free(m_ppNames[index]);
+            }
         }
         free(m_ppNames);
         m_iNumNames = 0;
@@ -1208,14 +1204,10 @@ W8GameData::~W8GameData()
     }
     m_iNumTriggers = 0;
     if (m_ppEnvirons != 0) {
-        if (m_iNumEnvirons > 0) {
-            index = 0;
-            do {
-                if (m_ppEnvirons[index] != 0) {
-                    delete m_ppEnvirons[index];
-                }
-                ++index;
-            } while (index < m_iNumEnvirons);
+        for (index = 0; index < m_iNumEnvirons; ++index) {
+            if (m_ppEnvirons[index] != 0) {
+                delete m_ppEnvirons[index];
+            }
         }
         free(m_ppEnvirons);
         m_ppEnvirons = 0;

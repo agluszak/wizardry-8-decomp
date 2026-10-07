@@ -23,6 +23,23 @@
    the clear path drops. ApplyPartyEffectSlots scales the amount at +0x05 by
    the percentage at +0x09 before accumulating it. */
 struct W8EffectSlot {
+    /* Every arming and clearing site stores active, effect_id, amount and
+       duration in this order and leaves percent untouched. */
+    void Activate(int effect, int magnitude, unsigned int lifetime)
+    {
+        active = true;
+        effect_id = effect;
+        amount = magnitude;
+        duration = lifetime;
+    }
+    void Reset()
+    {
+        active = false;
+        effect_id = 0;
+        amount = 0;
+        duration = 0;
+    }
+
     bool active;           /* 0x00 */
     int effect_id;         /* 0x01 */
     int amount;            /* 0x05: dword magnitude - ApplyCombatEffectSlot and the

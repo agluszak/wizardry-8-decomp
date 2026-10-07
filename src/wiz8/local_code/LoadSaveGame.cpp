@@ -1597,26 +1597,20 @@ bool MarkCurrentGameCharacterChunkConsumed(const char* path)
     W8Chunk chunk;
     char name[64];
     bool found = false;
-    int index = 0;
+    int index;
     int count;
 
     if (chunk.OpenReadWrite(const_cast<char*>("Saves\\CurrentGame.SAV")) != 0) {
         count = chunk.ChunkCount();
-        if (count > 0) {
-            do {
-                if (found) {
-                    break;
+        for (index = 0; index < count && !found; ++index) {
+            chunk.OpenChunk(0, 0);
+            if (chunk.CurrentChunkAtEnd() == 0 && chunk.CurrentChunkId() == W8_SAVE_TAG_CHAR) {
+                chunk.Read(name, 0x40, 0);
+                if (_stricmp(name, path) == 0) {
+                    chunk.SetCurrentChunkAtEnd();
+                    found = true;
                 }
-                chunk.OpenChunk(0, 0);
-                if (chunk.CurrentChunkAtEnd() == 0 && chunk.CurrentChunkId() == W8_SAVE_TAG_CHAR) {
-                    chunk.Read(name, 0x40, 0);
-                    if (_stricmp(name, path) == 0) {
-                        chunk.SetCurrentChunkAtEnd();
-                        found = true;
-                    }
-                }
-                ++index;
-            } while (index < count);
+            }
         }
         chunk.Close();
     }
@@ -1655,31 +1649,25 @@ bool LoadCharacterFromCurrentGame(const char* path, W8Character* character)
     char name[64];
     bool found = false;
     unsigned int size;
-    int index = 0;
+    int index;
     int count;
 
     if (chunk.OpenRead(const_cast<char*>("Saves\\CurrentGame.SAV")) != 0) {
         count = chunk.ChunkCount();
-        if (count > 0) {
-            do {
-                if (found) {
-                    break;
-                }
-                chunk.OpenChunk(0, 0);
-                if (chunk.CurrentChunkAtEnd() == 0 && chunk.CurrentChunkId() == W8_SAVE_TAG_CHAR) {
-                    chunk.Read(name, 0x40, 0);
-                    if (_stricmp(name, path) == 0) {
-                        memset(character, 0, sizeof(W8Character));
-                        chunk.Read(&size, 4, 0);
-                        if (size > W8_CHARACTER_SERIALIZED_SIZE) {
-                            srAssertFail("uiSize <= sizeof(*pPC)", LOADSAVEGAME_CPP, 0xba2, 0);
-                        }
-                        chunk.Read(character, size, 0);
-                        found = true;
+        for (index = 0; index < count && !found; ++index) {
+            chunk.OpenChunk(0, 0);
+            if (chunk.CurrentChunkAtEnd() == 0 && chunk.CurrentChunkId() == W8_SAVE_TAG_CHAR) {
+                chunk.Read(name, 0x40, 0);
+                if (_stricmp(name, path) == 0) {
+                    memset(character, 0, sizeof(W8Character));
+                    chunk.Read(&size, 4, 0);
+                    if (size > W8_CHARACTER_SERIALIZED_SIZE) {
+                        srAssertFail("uiSize <= sizeof(*pPC)", LOADSAVEGAME_CPP, 0xba2, 0);
                     }
+                    chunk.Read(character, size, 0);
+                    found = true;
                 }
-                ++index;
-            } while (index < count);
+            }
         }
         chunk.Close();
     }

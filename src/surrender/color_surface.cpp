@@ -955,10 +955,9 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
         srARGB* row_colors = new srARGB[width];
         unsigned char* row = (unsigned char*)row_colors;
         int* histogram = new int[0x100];
-        int* bin = histogram;
         int i;
-        for (i = 0x100; i != 0; --i) {
-            *bin++ = 0;
+        for (i = 0; i < 0x100; ++i) {
+            histogram[i] = 0;
         }
         for (long y = 0; y < height; ++y) {
             getPixelRow((unsigned long*)row, y, 0, width);
@@ -1522,13 +1521,9 @@ void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start,
         unsigned char* address = getAddress(x, y_start);
         switch (pixel_format.pixel_size) {
         case srPixelConvert::PIXEL_SIZE_8: {
-            unsigned long i = 0;
-            if (count != 0) {
-                do {
-                    buffer[i] = *address;
-                    ++i;
-                    address += pitch;
-                } while (i < count);
+            for (unsigned long i = 0; i < count; ++i) {
+                buffer[i] = *address;
+                address += pitch;
             }
             break;
         }
@@ -1592,13 +1587,9 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
         unsigned char* address = getAddress(x, y_start);
         switch (pixel_format.pixel_size) {
         case srPixelConvert::PIXEL_SIZE_8: {
-            unsigned long i = 0;
-            if (count != 0) {
-                do {
-                    *address = buffer[i];
-                    ++i;
-                    address += pitch;
-                } while (i < count);
+            for (unsigned long i = 0; i < count; ++i) {
+                *address = buffer[i];
+                address += pitch;
             }
             break;
         }
@@ -1652,19 +1643,15 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
 void srColorSurface::getPixels(unsigned long* pixels, const srVector2i* positions, long count)
 {
     unsigned char buffer[0x400];
-    long i = 0;
-    if (count > 0) {
-        do {
-            unsigned long chunk = count - i;
-            if (chunk > 0x100) {
-                chunk = 0x100;
-            }
-            getPixelsRaw(buffer, positions, chunk);
-            convertToARGB8888(pixels, buffer, chunk);
-            i += 0x100;
-            positions += 0x100;
-            pixels += 0x100;
-        } while (i < count);
+    for (long i = 0; i < count; i += 0x100) {
+        unsigned long chunk = count - i;
+        if (chunk > 0x100) {
+            chunk = 0x100;
+        }
+        getPixelsRaw(buffer, positions, chunk);
+        convertToARGB8888(pixels, buffer, chunk);
+        positions += 0x100;
+        pixels += 0x100;
     }
 }
 
@@ -1672,19 +1659,15 @@ void srColorSurface::getPixels(unsigned long* pixels, const srVector2i* position
 void srColorSurface::setPixels(const unsigned long* pixels, const srVector2i* positions, long count)
 {
     unsigned char buffer[0x400];
-    long i = 0;
-    if (count > 0) {
-        do {
-            unsigned long chunk = count - i;
-            if (chunk > 0x100) {
-                chunk = 0x100;
-            }
-            convertFromARGB8888(buffer, pixels, chunk);
-            setPixelsRaw(buffer, positions, chunk);
-            i += 0x100;
-            positions += 0x100;
-            pixels += 0x100;
-        } while (i < count);
+    for (long i = 0; i < count; i += 0x100) {
+        unsigned long chunk = count - i;
+        if (chunk > 0x100) {
+            chunk = 0x100;
+        }
+        convertFromARGB8888(buffer, pixels, chunk);
+        setPixelsRaw(buffer, positions, chunk);
+        positions += 0x100;
+        pixels += 0x100;
     }
 }
 

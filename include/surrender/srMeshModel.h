@@ -133,7 +133,7 @@ public:
     /* In-class inlines: srModeler::convert expands these bodies inside the
        srModeler TU. */
     // FUNCTION: SURRENDER 0x10041710 SYMBOL
-    // ?setDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+    // RECOMP: ?setDirty@srMeshModel@@QAEXW4e_flags@1@@Z
     void setDirty(e_flags flag)
     {
         unsigned long mask = 1 << flag;
@@ -146,13 +146,13 @@ public:
         }
     }
     // FUNCTION: SURRENDER 0x10041750 SYMBOL
-    // ?clearDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+    // RECOMP: ?clearDirty@srMeshModel@@QAEXW4e_flags@1@@Z
     void clearDirty(e_flags flag)
     {
         dirty_flags.set(flag, 0);
     }
     // FUNCTION: SURRENDER 0x10041770 SYMBOL
-    // ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
+    // RECOMP: ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
     int testDirty(e_flags flag) const
     {
         return (dirty_flags.value & (1 << flag)) != 0;

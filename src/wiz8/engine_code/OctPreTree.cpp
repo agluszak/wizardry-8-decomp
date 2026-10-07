@@ -1494,7 +1494,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
         GDProp* prop = *props->GetAt(id);
         if (prop->BoundsOverlap(minimum, maximum) != 0) {
             prop_hit = true;
-            if ((prop->m_flags & W8_GD_PROP_ALWAYS_BLOCKS_PATH) != 0)
+            if (prop->m_flags.always_blocks_path)
                 return 1;
             /* Dead in retail: current_prop was just set to -1 above and
                QueryObjects never republishes it, while support entries are
@@ -1550,7 +1550,7 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
                     props->Add(record->pStopMeshes + 1);
                     prop_number += 2;
                 } else {
-                    record->pStopMeshes[0].m_flags |= W8_GD_PROP_ALWAYS_BLOCKS_PATH;
+                    record->pStopMeshes[0].m_flags.always_blocks_path = true;
                     unsigned short last = 0xffff;
                     if (prop->anim_obj.num_transforms > 0) {
                         W8LevelFileTransform* t = prop->anim_obj.pTransforms;

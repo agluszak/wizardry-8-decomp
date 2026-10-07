@@ -6,6 +6,7 @@
 
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/targeting.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -178,6 +179,16 @@ static_assert(offsetof(W8XStatus, hostile_group_count) == 0x1a06,
 static_assert(sizeof(W8XStatus) == 0x1a0a, "W8XStatus_size");
 
 extern W8XStatus gXStatus;
+
+/* Drop any item drag in progress; the camp, use-item and main-game paths
+   all reset the four drag fields together. */
+inline void ClearItemDrag(void)
+{
+    gXStatus.item_drag_active = false;
+    gXStatus.dragged_item = 0;
+    gXStatus.dragged_item_origin = W8_ITEM_ORIGIN_NONE;
+    gXStatus.dragged_character_slot = -1;
+}
 
 /* Typed element access for the homogeneous gXStatus lists. */
 inline W8MonsterInfo* GetMonsterListEntry(int index)

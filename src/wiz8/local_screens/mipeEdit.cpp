@@ -43,8 +43,9 @@ static wchar_t g_mipe_key_names[][0x80] = {
     L"Gold Key",
 };
 
-/* The door-prop field table: nine bit flags packed into door_flags/extra_flags
-   plus the key id written to item by CommitMipeEditFields. */
+/* The door-prop field table: the nine W8DoorTriggerActionData bit fields
+   (labels Open .. Jammed) plus the key id written to item by
+   CommitMipeEditFields. */
 // GLOBAL: WIZ8 0x0064ed08
 static W8MipeEditField g_mipe_prop_fields[10] = {
     {5, 0, 0, 0, 0, 0.0f, 1}, {5, 1, 0, 0, 0, 0.0f, 1}, {5, 2, 0, 0, 0, 0.0f, 1},
@@ -257,7 +258,7 @@ static void DrawMipeEditFieldRow(W8MipeEditField* field, unsigned int palette, c
 }
 
 /* Packs the edited fields of variable set bVarSet back into a trigger's action
-   data: bits 0-7 of door_flags, bit 0 of extra_flags and the key id item. */
+   data: the nine door bit fields and the key id item. */
 // FUNCTION: WIZ8 0x005c4340
 void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet)
 {
@@ -268,32 +269,16 @@ void CommitMipeEditFields(W8TriggerActionData* data, signed char bVarSet)
     }
     fields = g_mipe_var_set_fields[static_cast<int>(bVarSet)];
     if (bVarSet == 0) {
-        static_cast<W8DoorTriggerActionData*>(data)->door_flags =
-            (static_cast<W8DoorTriggerActionData*>(data)->door_flags & ~1) | (fields[0].value & 1);
-        static_cast<W8DoorTriggerActionData*>(data)->door_flags =
-            (static_cast<W8DoorTriggerActionData*>(data)->door_flags & ~2) |
-            ((fields[1].value & 1) << 1);
-        static_cast<W8DoorTriggerActionData*>(data)->door_flags =
-            (static_cast<W8DoorTriggerActionData*>(data)->door_flags & ~4) |
-            ((fields[2].value & 1) << 2);
-        static_cast<W8DoorTriggerActionData*>(data)->door_flags =
-            (static_cast<W8DoorTriggerActionData*>(data)->door_flags & ~8) |
-            ((fields[3].value & 1) << 3);
-        static_cast<W8DoorTriggerActionData*>(data)->door_flags =
-            (static_cast<W8DoorTriggerActionData*>(data)->door_flags & ~0x10) |
-            ((fields[4].value & 1) << 4);
-        static_cast<W8DoorTriggerActionData*>(data)->door_flags =
-            (static_cast<W8DoorTriggerActionData*>(data)->door_flags & ~0x20) |
-            ((fields[5].value & 1) << 5);
-        static_cast<W8DoorTriggerActionData*>(data)->door_flags =
-            (static_cast<W8DoorTriggerActionData*>(data)->door_flags & ~0x40) |
-            ((fields[6].value & 1) << 6);
-        static_cast<W8DoorTriggerActionData*>(data)->door_flags =
-            (fields[7].value << 7) |
-            (static_cast<W8DoorTriggerActionData*>(data)->door_flags & 0x7f);
-        static_cast<W8DoorTriggerActionData*>(data)->extra_flags =
-            (static_cast<W8DoorTriggerActionData*>(data)->extra_flags & ~1) | (fields[8].value & 1);
-        static_cast<W8DoorTriggerActionData*>(data)->item =
-            static_cast<signed char>(fields[9].value);
+        W8DoorTriggerActionData* door = static_cast<W8DoorTriggerActionData*>(data);
+        door->open = (fields[0].value & 1) != 0;
+        door->lockable = (fields[1].value & 1) != 0;
+        door->locked = (fields[2].value & 1) != 0;
+        door->auto_locking = (fields[3].value & 1) != 0;
+        door->one_way = (fields[4].value & 1) != 0;
+        door->secret = (fields[5].value & 1) != 0;
+        door->found = (fields[6].value & 1) != 0;
+        door->jammable = (fields[7].value & 1) != 0;
+        door->jammed = (fields[8].value & 1) != 0;
+        door->item = static_cast<signed char>(fields[9].value);
     }
 }

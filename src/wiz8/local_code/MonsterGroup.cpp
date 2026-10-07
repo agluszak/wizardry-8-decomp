@@ -1567,28 +1567,10 @@ bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float
 // FUNCTION: WIZ8 0x00511670
 void ShowMonsterGroupInfoNotice(int group_id)
 {
-    W8MonsterGroup* group;
-    W8MonsterRecord* record;
-    const wchar_t* name;
-    unsigned int name_form;
-
-    group = GetMonsterGroupByListIndex(
+    W8MonsterGroup* group = GetMonsterGroupByListIndex(
         GetMonsterGroupIndexByID(0x801, MONSTER_GROUP_CPP, group_id, true));
-    if (group == 0) {
-        srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3eb, 0);
-        srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3bd, 0);
-    }
-    record = MonsterDBFromSpecies(group->monster_id);
-    name_form = group->member_count != W8_MONSTER_GROUP_SINGULAR;
-    if (record->record_id == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(g_status.monster_name_buffer, g_format_al_s,
-                 g_status.buffers.Char[g_status.sedexus_party_slot].name);
-        name = g_status.monster_name_buffer;
-    } else if (group->alternate_name) {
-        name = record->name0 + name_form * W8_MONSTER_NAME_STRIDE;
-    } else {
-        name = record->name2 + name_form * W8_MONSTER_NAME_STRIDE;
-    }
+    const wchar_t* name = GetMonsterGroupName(group);
+
     ShowNoticef(W8_FONT_PALETTE_BEIGE, g_format_d_s, group->member_count, name);
     if (!group->alternate_name) {
         ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x1c5]);

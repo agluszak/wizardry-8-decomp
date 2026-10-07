@@ -1615,7 +1615,7 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
     if (!HasAutomapLayer(layer)) {
         floor_y = g_automap_grid_min.y;
     } else if (layer < g_automap_layers.GetCount()) {
-        floor_y = static_cast<float>(g_automap_layers.data[layer]->getLocationY());
+        floor_y = static_cast<float>(g_automap_layers[layer]->getLocationY());
     } else {
         floor_y = static_cast<float>((*g_automap_layers.data)->getLocationY());
     }

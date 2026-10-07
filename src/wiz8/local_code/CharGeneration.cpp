@@ -876,30 +876,21 @@ void ResetSpellSelections(W8Character* character, W8CharacterCreationState* crea
 // FUNCTION: WIZ8 0x00558640
 int ComputeStartingEquipmentCost(W8Character* character)
 {
-    W8ItemInstance* item;
     int total;
     int count;
 
     total = 0;
     AddCharacterStartingEquipment(character);
-    item = character->EquippedItem;
-    count = 0xc;
-    do {
-        if (item->iItemNo != -1) {
-            total += GetItemStackValue(item);
+    for (count = 0; count < 0xc; ++count) {
+        if (character->EquippedItem[count].iItemNo != -1) {
+            total += GetItemStackValue(&character->EquippedItem[count]);
         }
-        ++item;
-        --count;
-    } while (count != 0);
-    item = character->backpack;
-    count = 8;
-    do {
-        if (item->iItemNo != -1) {
-            total += GetItemStackValue(item);
+    }
+    for (count = 0; count < 8; ++count) {
+        if (character->backpack[count].iItemNo != -1) {
+            total += GetItemStackValue(&character->backpack[count]);
         }
-        ++item;
-        --count;
-    } while (count != 0);
+    }
     EmptyAllCarriedItems(character);
     return total;
 }

@@ -778,24 +778,27 @@ bool W8TextControl::MeasureText()
 
 /* The 182-caller text-control constructor. The first six arguments construct
    the reviewed widget base, while the implicit W8TextBuffer constructor owns
-   the second EH state. The remaining positional values and the two measured
-   shorts are fixed by the constructor's direct stores and GetCatalogImageSize call;
-   their descriptive identities remain unknown. */
+   the second EH state. The image/sprite arguments are named for the fields
+   their direct stores initialize; note the alternate normal sprite precedes
+   the alternate pressed sprite in the argument list. Retail retains only this
+   constructor and the default one, so call-site argument patterns do not
+   establish overloads or default arguments. */
 // FUNCTION: WIZ8 0x004f4250
 W8TextControl::W8TextControl(Controls* panel, unsigned int region, int left, int top, int right,
-                             int bottom, int text_40, int text_44, int text_48, int text_4c,
-                             int text_54, int text_50, int text_58)
+                             int bottom, int image_object, int image_frame, int normal_sprite,
+                             int pressed_sprite, int alternate_normal_sprite,
+                             int alternate_pressed_sprite, int disabled_sprite)
     : W8Widget(panel, region, left, top, right, bottom)
 {
-    m_pressedSprite = text_4c;
-    m_alternatePressedSprite = text_50;
-    m_alternateNormalSprite = text_54;
+    m_pressedSprite = pressed_sprite;
+    m_alternatePressedSprite = alternate_pressed_sprite;
+    m_alternateNormalSprite = alternate_normal_sprite;
     m_stateFlags = 0;
     m_alternateTextEnabled = false;
-    m_imageObject = text_40;
-    m_imageFrame = text_44;
-    m_normalSprite = text_48;
-    m_disabledSprite = text_58;
+    m_imageObject = image_object;
+    m_imageFrame = image_frame;
+    m_normalSprite = normal_sprite;
+    m_disabledSprite = disabled_sprite;
     m_layoutFlags = 0;
     m_listener = 0;
     m_pressedTextOffset = 1;
@@ -1369,11 +1372,13 @@ protected:
 };
 
 W8RangeButton::W8RangeButton(Controls* panel, unsigned int region, int left, int top, int right,
-                             int bottom, int text_40, int text_44, int text_48, int text_4c,
-                             int text_54, int text_50, int text_58, short direction,
+                             int bottom, int image_object, int image_frame, int normal_sprite,
+                             int pressed_sprite, int alternate_normal_sprite,
+                             int alternate_pressed_sprite, int disabled_sprite, short direction,
                              W8RangeControl* range)
-    : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48, text_4c,
-                    text_54, text_50, text_58),
+    : W8TextControl(panel, region, left, top, right, bottom, image_object, image_frame,
+                    normal_sprite, pressed_sprite, alternate_normal_sprite,
+                    alternate_pressed_sprite, disabled_sprite),
       m_direction(direction), m_range(range)
 {
 }

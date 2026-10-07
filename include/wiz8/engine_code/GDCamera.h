@@ -2,6 +2,14 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/geometry.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/engine_code/World.h"
+
+/* Orientation limits shared by the inline setters and GDCamera.cpp. */
+extern const float g_camera_angle_period0;
+extern const float g_camera_angle_lower;
+extern const float g_camera_pitch_upper;
+extern const float g_camera_pitch_lower;
 
 class srNode;
 class srCamera;
@@ -42,13 +50,45 @@ public:
     unsigned char ComputeTrackingOrientation(const srVector3T<float>* target, float* angle,
                                              float* pitch); /* 0x00477180 */
     unsigned char BeginOrientationTransition(float target_pitch, float target_angle,
-                                             bool force);            /* 0x00477440 */
-    void Update(float elapsed);                                      /* 0x004776A0 */
-    void ApplyYawInput(float input);                                 /* 0x00477B90 */
-    void ApplyPitchInput(float input);                               /* 0x00477EB0 */
-    void BrakePitchAtLimit();                                        /* 0x00478290 */
-    void SetPitch(float pitch);                                      /* 0x004784C0 */
-    void SetYaw(float angle);                                        /* 0x00478720 */
+                                             bool force); /* 0x00477440 */
+    void Update(float elapsed);                           /* 0x004776A0 */
+    void ApplyYawInput(float input);                      /* 0x00477B90 */
+    void ApplyPitchInput(float input);                    /* 0x00477EB0 */
+    void BrakePitchAtLimit();                             /* 0x00478290 */
+    // FUNCTION: WIZ8 0x004784C0
+    void SetPitch(float pitch)
+    {
+        if (pitch > g_camera_pitch_upper) {
+            pitch = g_camera_pitch_upper;
+        }
+        if (pitch < g_camera_pitch_lower) {
+            pitch = g_camera_pitch_lower;
+        }
+        m_pitch = pitch;
+
+        m_pitch_rotation.SetIdentity();
+        if (pitch != g_double_zero) {
+            m_pitch_rotation.RotateAboutX(sin(pitch), cos(pitch));
+        }
+        MarkRendererReady();
+    }
+    // FUNCTION: WIZ8 0x00478720
+    void SetYaw(float angle)
+    {
+        while (angle > g_camera_angle_period0) {
+            angle -= g_camera_angle_period0;
+        }
+        while (angle < g_camera_angle_lower) {
+            angle += g_camera_angle_period0;
+        }
+        m_yaw = angle;
+
+        m_yaw_rotation.SetIdentity();
+        if (angle != g_double_zero) {
+            m_yaw_rotation.RotateAboutY(sin(angle), cos(angle));
+        }
+        MarkRendererReady();
+    }
     void SetOrientation(float angle, float pitch);                   /* 0x004788E0 */
     void GetRotationMatrix(srMatrix3T<float>* output);               /* 0x00478BD0 */
     void BeginLeveling();                                            /* 0x00478CC0 */

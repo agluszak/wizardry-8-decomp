@@ -385,8 +385,7 @@ bool ResolvePickedProp(W8World* world)
                 (g_combat_inactive ||
                  (trigger->m_pActionData != 0 &&
                   trigger->m_pActionData->type == W8_TRIGGER_PAYLOAD_DOOR &&
-                  (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->door_flags &
-                   W8_DOOR_OPEN) == 0)) &&
+                  !static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->open)) &&
                 representation->active != 0) {
                 srVector3T<float> minimum;
                 srVector3T<float> maximum;
@@ -898,8 +897,8 @@ bool W8Prop::CanBeUsedFrom(int path_x, int path_z, bool notify)
         action = 0;
     }
     if ((owner->lock_state.lock_type != 0 && owner->lock_state.device_state.completed == 0) ||
-        (static_cast<W8DoorTriggerActionData*>(action)->door_flags &
-         (W8_DOOR_OPEN | W8_DOOR_KEY_REQUIRED)) != 0) {
+        static_cast<W8DoorTriggerActionData*>(action)->open ||
+        static_cast<W8DoorTriggerActionData*>(action)->locked) {
         return false;
     }
     if (!m_gd_prop->ContainsPathCoordinate(static_cast<unsigned short>(path_x),
@@ -1806,7 +1805,7 @@ void W8Prop::CollectModelInstances(W8GrowableVector<stModelInstance*>* instances
                 continue;
             }
             int frame_count = AniMeshValue(mesh);
-            if (mesh->flags & W8_ANI_MESH_SINGLE_INSTANCE) {
+            if (mesh->flags.single_instance) {
                 instances->Add(GetAniMeshFrame(mesh, 0));
             } else {
                 for (int frame = 0; frame < frame_count; ++frame) {

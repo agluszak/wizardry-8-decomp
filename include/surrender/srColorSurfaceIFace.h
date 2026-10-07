@@ -112,7 +112,7 @@ public:
     SR_DLL_IMPORT long getGreenBits() const;
     SR_DLL_IMPORT int getHClampMode() const;
 // FUNCTION: SURRENDER 0x100598F0 SYMBOL
-// ?getHeight@srColorSurfaceIFace@@QBEJXZ
+// RECOMP: ?getHeight@srColorSurfaceIFace@@QBEJXZ
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif
@@ -121,7 +121,7 @@ public:
         return height;
     }
 // FUNCTION: SURRENDER 0x100599E0 SYMBOL
-// ?getPitch@srColorSurfaceIFace@@QBEJXZ
+// RECOMP: ?getPitch@srColorSurfaceIFace@@QBEJXZ
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif
@@ -130,7 +130,7 @@ public:
         return pitch;
     }
 // FUNCTION: SURRENDER 0x100599F0 SYMBOL
-// ?getPixelFormat@srColorSurfaceIFace@@QBEXAAUPixelFormat@srPixelConvert@@@Z
+// RECOMP: ?getPixelFormat@srColorSurfaceIFace@@QBEXAAUPixelFormat@srPixelConvert@@@Z
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif
@@ -140,7 +140,7 @@ public:
     }
     SR_DLL_IMPORT long getRedBits() const;
 // FUNCTION: SURRENDER 0x10059A10 SYMBOL
-// ?getSurfaceDesc@srColorSurfaceIFace@@QBEXAAUSurfaceDesc@1@@Z
+// RECOMP: ?getSurfaceDesc@srColorSurfaceIFace@@QBEXAAUSurfaceDesc@1@@Z
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif
@@ -155,7 +155,7 @@ public:
     }
     SR_DLL_IMPORT int getVClampMode() const;
 // FUNCTION: SURRENDER 0x10059A60 SYMBOL
-// ?getWidth@srColorSurfaceIFace@@QBEJXZ
+// RECOMP: ?getWidth@srColorSurfaceIFace@@QBEJXZ
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif
@@ -167,7 +167,7 @@ public:
     SR_DLL_IMPORT int isPaletted() const;
     SR_DLL_IMPORT void rotate180();
 // FUNCTION: SURRENDER 0x10059A90 SYMBOL
-// ?setFilter@srColorSurfaceIFace@@QAEXPAVsrFilter@@@Z
+// RECOMP: ?setFilter@srColorSurfaceIFace@@QAEXPAVsrFilter@@@Z
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif

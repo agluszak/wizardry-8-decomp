@@ -39,17 +39,20 @@ void DestroyLightVector(W8GrowableVector<stLight*>* vector); /* 0x004A8C50 */
 
 /* Live-list membership and ownership are independent: Trigger retains its
    effect and clears LIST_OWNS before the live updater can release it. */
-enum W8CameraShakeFlag {
-    W8_SHAKE_ACTIVE = 0x01u,
-    W8_SHAKE_LIST_OWNS = 0x02u,
-    W8_SHAKE_LIMIT_DISTANCE = 0x04u,
-    W8_SHAKE_QUADRATIC_FALLOFF = 0x08u,
-    W8_SHAKE_FADE_OUT = 0x10u,
-    W8_SHAKE_FADE_IN = 0x20u
-};
-
 class W8CameraShakeEffect {
 public:
+    struct Flags {
+        bool active : 1;
+        bool list_owns : 1;
+        bool limit_distance : 1;
+        bool quadratic_falloff : 1;
+        bool fade_out : 1;
+        bool fade_in : 1;
+        unsigned char reserved : 2;
+        unsigned char reserved_bytes[3];
+    };
+    static_assert(sizeof(Flags) == 4, "W8CameraShakeEffect_flags_size");
+
     W8CameraShakeEffect(float duration, bool preset, float intensity, float distance_cap,
                         const srVector3T<float>* position); /* 0x004ADED0 */
     W8CameraShakeEffect(const W8CameraShakeEffect& other);  /* 0x004AE000 */
@@ -57,7 +60,7 @@ public:
        reports how much it contributes this frame. */
     unsigned char Evaluate(const srVector3T<float>* position, float* out_amount);
 
-    unsigned int flags;         /* 0x00 */
+    Flags flags;                /* 0x00: runtime effect and list state */
     float intensity;            /* 0x04 */
     float distance_cap;         /* 0x08: radius for LIMIT_DISTANCE effects */
     srVector3T<float> position; /* 0x0c */

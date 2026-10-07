@@ -1473,7 +1473,6 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
     W8MonsterInfo* monster_info;
     unsigned int* condition_turns;
     W8SpellDamageReport* entry;
-    unsigned short* notice;
     unsigned int condition;
 
     if (report->condition_counts[W8_CONDITION_DEAD] > 0) {
@@ -1530,16 +1529,16 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
                     PostCharacterNotice(party_slot, gppStringList[0x25a], report->notice_values[5]);
                 }
             }
-            notice = g_condition_notices + 1;
-            for (condition = 0; notice < g_condition_notices + 0x51; notice += 4, ++condition) {
-                if (report->condition_counts[condition] > 0 && notice != g_condition_notices + 5 &&
-                    notice != g_condition_notices + 0x4d) {
+            for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
+                if (report->condition_counts[condition] > 0 && condition != W8_CONDITION_DRAINED &&
+                    condition != W8_CONDITION_MISSING) {
                     if (report->target.iType == W8_TARGET_KIND_MONSTER) {
                         ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!",
-                                    GetMonsterName(monster_info, NULL, 0), gppStringList[*notice]);
+                                    GetMonsterName(monster_info, NULL, 0),
+                                    gppStringList[g_condition_notices[condition].singular]);
                     } else if (report->target.iType == W8_TARGET_KIND_CHARACTER) {
                         PostCharacterNotice(report->target.iChar, g_format_s_bang,
-                                            gppStringList[*notice]);
+                                            gppStringList[g_condition_notices[condition].singular]);
                     }
                 }
             }
@@ -1550,10 +1549,10 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
         if (entry != NULL) {
             if (entry->kind == 1) {
                 PostCharacterNotice(entry->value, g_format_s_bang,
-                                    gppStringList[g_condition_notices[0x49]]);
+                                    gppStringList[g_condition_notices[W8_CONDITION_DEAD].singular]);
             } else if (entry->kind == 3) {
                 ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", entry->text,
-                            gppStringList[g_condition_notices[0x49]]);
+                            gppStringList[g_condition_notices[W8_CONDITION_DEAD].singular]);
             }
             free(entry);
         }
@@ -2073,18 +2072,17 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
                 if (report->condition_counts[condition] > 0 && condition != W8_CONDITION_DRAINED) {
                     if (condition == W8_CONDITION_MISSING) {
                         if (report->target.iType == W8_TARGET_KIND_CHARACTER &&
-                            GetConditionRecordFlag(report->target.iChar, W8_DEPENDENCE_SWALLOWED) !=
-                                0) {
+                            GetConditionRecordFlag(report->target.iChar, W8_DEPENDENCE_SWALLOWED)) {
                             PostCharacterNotice(report->target.iChar, g_format_s,
                                                 gppStringList[0x1d5]);
                         }
                     } else if (report->target.iType == W8_TARGET_KIND_MONSTER) {
                         ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!",
                                     GetMonsterName(monster_info, NULL, 0),
-                                    gppStringList[g_condition_notices[condition * 4 + 1]]);
+                                    gppStringList[g_condition_notices[condition].singular]);
                     } else if (report->target.iType == W8_TARGET_KIND_CHARACTER) {
                         PostCharacterNotice(report->target.iChar, g_format_s_bang,
-                                            gppStringList[g_condition_notices[condition * 4 + 1]]);
+                                            gppStringList[g_condition_notices[condition].singular]);
                     }
                 }
             }
@@ -2095,10 +2093,10 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
         if (entry != NULL) {
             if (entry->kind == 1) {
                 PostCharacterNotice(entry->value, g_format_s_bang,
-                                    gppStringList[g_condition_notices[0x49]]);
+                                    gppStringList[g_condition_notices[W8_CONDITION_DEAD].singular]);
             } else if (entry->kind == 3) {
                 ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", entry->text,
-                            gppStringList[g_condition_notices[0x49]]);
+                            gppStringList[g_condition_notices[W8_CONDITION_DEAD].singular]);
             }
             free(entry);
         }
@@ -2653,8 +2651,8 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, W8AttackMode attack_m
     int rolled = RollDice(&dice, dice_count);
     if (dice.count == 0) {
         *out_hit = 0;
-    } else if (rolled < (g_float_one - dice.count * g_facing_tolerance0) *
-                            (dice.sides * dice.count + dice.base) * dice_count) {
+    } else if (rolled <
+               (g_float_one - dice.count * g_facing_tolerance0) * dice.Maximum() * dice_count) {
         *out_hit = 0;
     } else {
         *out_hit = 1;
@@ -2981,7 +2979,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         if (target->iType == W8_TARGET_KIND_CHARACTER) {
                             PostCharacterNotice(
                                 target->iChar, L"%s!",
-                                gppStringList[g_condition_notices[W8_CONDITION_DEAD * 4 + 1]]);
+                                gppStringList[g_condition_notices[W8_CONDITION_DEAD].singular]);
                         }
                         if (accumulator != NULL) {
                             accumulator->condition_counts[W8_CONDITION_DEAD]++;

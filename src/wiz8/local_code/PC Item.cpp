@@ -2004,8 +2004,7 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, bool maximum_quantit
     item->iItemNo = item_id;
     const W8ItemDatabaseRecord* record = &g_item_records[item_id];
     if (record->quantity_kind != W8_ITEM_QUANTITY_NONE) {
-        int maximum = record->initial_quantity.sides * record->initial_quantity.count +
-                      record->initial_quantity.base;
+        int maximum = record->initial_quantity.Maximum();
         if (maximum >= 256) {
             srAssertFail("uiMAX_DICE(pMulti) < 256", PC_ITEM_CPP, 578, 0);
         }
@@ -2217,9 +2216,7 @@ bool ItemHasHiddenProperties(int item_id)
    dice taken at their maximum. */
 static int MaximumQuantity(int item_id)
 {
-    return g_item_records[item_id].initial_quantity.sides *
-               g_item_records[item_id].initial_quantity.count +
-           g_item_records[item_id].initial_quantity.base;
+    return g_item_records[item_id].initial_quantity.Maximum();
 }
 
 /* Add uses to one item, never past what it can hold. */
@@ -3285,49 +3282,41 @@ bool ValidateItemSpellUse(int character_index, W8ItemInstance* item,
     return false;
 }
 
-/* Whether the character carries an activatable service item - an identified
-   casting item whose record holds a service spell (0x03/0x29) - across the
+/* An identified casting item the character can activate whose record holds
+   a service spell (0x03/0x29). Every carried location applies this test. */
+static bool IsActivatableServiceItem(W8Character* character, W8ItemInstance* item)
+{
+    if (item->iItemNo != -1 && CanCharacterActivateItem(character, item)) {
+        const W8ItemDatabaseRecord* record = &g_item_records[item->iItemNo];
+        if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
+            record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
+            (record->spell_id == W8_SPELL_CHARM || record->spell_id == W8_SPELL_MINDREAD)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/* Whether the character carries an activatable service item across the
    backpack, equipment and the party pool. */
 // FUNCTION: WIZ8 0x00522D40
 bool CharacterHasServiceItem(W8Character* character)
 {
-    const W8ItemDatabaseRecord* record;
-    W8ItemInstance* item;
     unsigned int index;
 
-    item = character->backpack;
-    for (index = 0; index < 8; ++index, ++item) {
-        if (item->iItemNo != -1 && CanCharacterActivateItem(character, item)) {
-            record = &g_item_records[item->iItemNo];
-            if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
-                record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
-                (record->spell_id == W8_SPELL_CHARM || record->spell_id == W8_SPELL_MINDREAD)) {
-                return true;
-            }
+    for (index = 0; index < 8; ++index) {
+        if (IsActivatableServiceItem(character, &character->backpack[index])) {
+            return true;
         }
     }
-    item = character->EquippedItem;
-    for (index = 0; index < 0xc; ++index, ++item) {
-        if (item->iItemNo != -1 && CanCharacterActivateItem(character, item)) {
-            record = &g_item_records[item->iItemNo];
-            if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
-                record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
-                (record->spell_id == W8_SPELL_CHARM || record->spell_id == W8_SPELL_MINDREAD)) {
-                return true;
-            }
+    for (index = 0; index < 0xc; ++index) {
+        if (IsActivatableServiceItem(character, &character->EquippedItem[index])) {
+            return true;
         }
     }
-    if (g_status.party_item_count != 0) {
-        item = g_status.party_item_pool;
-        for (index = 0; index < g_status.party_item_count; ++index, ++item) {
-            if (item->iItemNo != -1 && CanCharacterActivateItem(character, item)) {
-                record = &g_item_records[item->iItemNo];
-                if (record->equip_class != W8_ITEM_EQUIP_CLASS_KEY &&
-                    record->equip_class != W8_ITEM_EQUIP_CLASS_OTHER && item->identified &&
-                    (record->spell_id == W8_SPELL_CHARM || record->spell_id == W8_SPELL_MINDREAD)) {
-                    return true;
-                }
-            }
+    for (index = 0; index < g_status.party_item_count; ++index) {
+        if (IsActivatableServiceItem(character, &g_status.party_item_pool[index])) {
+            return true;
         }
     }
     return false;

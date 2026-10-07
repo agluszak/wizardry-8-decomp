@@ -447,7 +447,6 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
                               unsigned int font_palette)
 {
     W8PortraitQuoteBubble* bubble;
-    W8PortraitQuoteBubble** slot;
     VSURFACE_DESC surface_desc;
     VSURFACE_DESC text_desc;
     VOBJECT_DESC object_desc;
@@ -644,19 +643,15 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         SetFontDestBuffer(FRAME_BUFFER, 0, 0, 0x280, 0x1e0, 0);
         SetFontForeground(2);
         if (quote_handle == -1 && bubble != 0) {
-            index = 0;
-            slot = g_portrait_quotes;
-            do {
-                if (*slot == 0) {
+            for (index = 0; index < 10; ++index) {
+                if (g_portrait_quotes[index] == 0) {
                     g_portrait_quotes[index] = bubble;
                     if (index != -1) {
                         g_current_portrait_quote = bubble;
                     }
                     return index;
                 }
-                ++slot;
-                ++index;
-            } while (slot < g_portrait_quotes + 10);
+            }
             return -1;
         }
         if (quote_handle == -1) {

@@ -122,7 +122,17 @@ struct W8CharacterEventQueue {
     void ProcessDeferredCharacterEvents();                                    /* 0x0052DDD0 */
     unsigned char TryAdjustQueuedEvent(W8CharacterEvent* entry);              /* 0x0052DC80 */
     bool IsMainQueueEmpty() const;                                            /* 0x0052E470 */
-    void CompleteActiveEvent(W8CharacterEvent* entry);
+    /* Unlink an active event, restart the follow-up clock for it, complete it
+       and delete it. Retail expands this body in the dispatch helpers as well
+       as retaining the emission. */
+    // FUNCTION: WIZ8 0x0052D8D0
+    void CompleteActiveEvent(W8CharacterEvent* entry)
+    {
+        active_events.Remove(entry);
+        RestartFollowUpClock(entry);
+        entry->Complete();
+        delete entry;
+    }
     void CompleteFirstActiveEvent();
     void RestartFollowUpClock(W8CharacterEvent* entry);
     /* Removes every queued event belonging to a character; active ones are

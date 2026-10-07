@@ -44,9 +44,8 @@ void PauseSharedGameTimers(void)
     g_shared_timer_pause_time =
         g_shared_timer->getUTime(srTimer::TIMER_READ_DEFAULT) - g_shared_timer_pause_base;
 
-    if (g_game_time_accumulator != 0 && (g_game_time_accumulator->m_flags & W8_TIMER_PAUSED) == 0) {
-        unsigned short flags = g_game_time_accumulator->m_flags;
-        g_game_time_accumulator->m_flags = flags | W8_TIMER_PAUSED;
+    if (g_game_time_accumulator != 0 && !g_game_time_accumulator->m_flags.paused) {
+        g_game_time_accumulator->m_flags.paused = true;
         g_game_time_accumulator->m_start =
             g_game_time_accumulator->ReadClock() - g_game_time_accumulator->m_start;
     }
@@ -65,7 +64,7 @@ void ResumeSharedGameTimers(void)
 
     W8GameTimeAccumulator* timer = g_game_time_accumulator;
     if (timer != 0) {
-        timer->m_flags &= ~W8_TIMER_PAUSED;
+        timer->m_flags.paused = false;
         int sample = timer->ReadClock();
         float duration = timer->m_duration_scale * timer->m_duration_seconds * g_float_ten_thousand;
         int start = sample - timer->m_start;
@@ -137,7 +136,7 @@ static void EnsureSharedGameTimer()
 W8GameTimer::W8GameTimer()
 {
     m_clock_mode = W8_TIMER_CLOCK_SHARED;
-    m_flags = 0;
+    m_flags = Flags();
     m_shared = 0;
     m_start = 0;
     m_end = 0;
@@ -161,7 +160,8 @@ W8GameTimer::W8GameTimer()
 W8GameTimer::W8GameTimer(float duration, unsigned char raw_time)
 {
     m_clock_mode = W8_TIMER_CLOCK_SHARED;
-    m_flags = raw_time ? W8_TIMER_RAW_TIME : 0;
+    m_flags = Flags();
+    m_flags.raw_time = raw_time != 0;
     m_shared = 0;
     m_start = 0;
     m_end = 0;
@@ -206,7 +206,7 @@ void W8GameTimer::SetDurationScale(float scale)
 {
     m_duration_scale = scale;
     if (scale < 0.5f) {
-        m_flags |= W8_TIMER_SLOW_SCALE;
+        m_flags.slow_scale = true;
     }
     float progress = GetProgress();
     m_duration = static_cast<int>(m_duration_seconds * m_duration_scale * 10000.0f);
@@ -216,7 +216,7 @@ void W8GameTimer::SetDurationScale(float scale)
 // FUNCTION: WIZ8 0x00439fe0
 void W8GameTimer::ResetDurationScale()
 {
-    m_flags &= ~W8_TIMER_SLOW_SCALE;
+    m_flags.slow_scale = false;
     m_duration_scale = 1.0f;
     float progress = GetProgress();
     m_duration = static_cast<int>(m_duration_seconds * m_duration_scale * 10000.0f);
@@ -238,9 +238,8 @@ float W8GameTimer::GetProgress()
         m_end = m_start + m_duration;
     }
 
-    if ((m_flags & W8_TIMER_PAUSED) == 0 &&
-        (!g_shared_timer_paused || (m_flags & W8_TIMER_RAW_TIME) != 0) && !g_shared_timer_flag0 &&
-        (!g_level_motion_resume_pending || (m_flags & W8_TIMER_RAW_TIME) != 0)) {
+    if (!m_flags.paused && (!g_shared_timer_paused || m_flags.raw_time) && !g_shared_timer_flag0 &&
+        (!g_level_motion_resume_pending || m_flags.raw_time)) {
         return progress;
     }
     return 0.0f;

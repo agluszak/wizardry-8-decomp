@@ -25,7 +25,7 @@ const float g_float_three_quarters = 0.75f;
 GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
                unsigned char footstep_surface, unsigned char footstep_material)
 {
-    m_flags = 0;
+    m_flags = Flags();
     m_path_handle = 0;
     m_prop_number = 0;
     m_vertex_count = 0;
@@ -127,9 +127,9 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
                         unsigned char footstep_surface, unsigned char footstep_material)
 {
     if (!attach) {
-        m_flags |= W8_GD_PROP_UNATTACHED;
+        m_flags.unattached = true;
     } else {
-        m_flags &= 0xffffu & ~W8_GD_PROP_UNATTACHED;
+        m_flags.unattached = false;
         m_prop_number = prop_number;
     }
 
@@ -223,8 +223,8 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
             if ((owner->lock_state.lock_type != 0 &&
                  owner->lock_state.device_state.completed == 0) ||
                 ((owner->flags & W8_TRIGGER_ENABLED) == 0 ||
-                 (static_cast<W8DoorTriggerActionData*>(action)->door_flags &
-                  (W8_DOOR_OPEN | W8_DOOR_KEY_REQUIRED)) != 0)) {
+                 static_cast<W8DoorTriggerActionData*>(action)->open ||
+                 static_cast<W8DoorTriggerActionData*>(action)->locked)) {
                 flags = W8_PATH_CELL_DOOR | W8_PATH_CELL_BLOCKED;
             }
             if (pathing != 0) {
@@ -254,17 +254,17 @@ void GDProp::BindTrigger(Trigger* owner)
     W8TriggerActionData* action = owner->m_pActionData;
     if (action != 0 && action->type == W8_TRIGGER_PAYLOAD_DOOR) {
         if (action != 0) {
-            m_flags |= W8_GD_PROP_DOOR;
+            m_flags.door = true;
             unsigned int path_flags = W8_PATH_CELL_DOOR;
             if ((owner->lock_state.lock_type == 0 ||
                  owner->lock_state.device_state.completed != 0) &&
                 (owner->flags & W8_TRIGGER_ENABLED) != 0 &&
-                (static_cast<W8DoorTriggerActionData*>(action)->door_flags &
-                 (W8_DOOR_OPEN | W8_DOOR_KEY_REQUIRED)) == 0) {
-                m_flags |= W8_GD_PROP_DOOR_USABLE;
+                !static_cast<W8DoorTriggerActionData*>(action)->open &&
+                !static_cast<W8DoorTriggerActionData*>(action)->locked) {
+                m_flags.door_usable = true;
             } else {
                 path_flags = W8_PATH_CELL_DOOR | W8_PATH_CELL_BLOCKED;
-                m_flags &= 0xffffu & ~W8_GD_PROP_DOOR_USABLE;
+                m_flags.door_usable = false;
             }
 
             W8PathingService* pathing = g_octree->pathing;

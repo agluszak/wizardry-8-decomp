@@ -77,7 +77,7 @@ bool RunMonGenSemanticTest(void)
     srand(1);
     generator.Reset();
     W8IntervalGate* timer = generator.m_pTimer;
-    bool reset = timer != 0 && timer->m_duration_seconds == 8.0f && (timer->m_flags & 2) == 0;
+    bool reset = timer != 0 && timer->m_duration_seconds == 8.0f && !timer->m_flags.one_shot;
     srand(1);
     generator.Reset();
     reset = reset && generator.m_pTimer == timer && timer->m_duration_seconds == 8.0f;

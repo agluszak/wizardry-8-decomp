@@ -1217,7 +1217,7 @@ void ChooseAction(int party_slot, W8ActionKind action, int detail, const W8Actio
             break;
         default:
             if (action != W8_ACTION_WALK && action != W8_ACTION_RUN) {
-                row->queued_action = static_cast<unsigned char>(action);
+                row->queued_action = static_cast<signed char>(action);
             }
         }
     }
@@ -2188,7 +2188,8 @@ void ExecuteCharacterAction(int party_slot)
         interrupt = GetConditionInterrupt(&source);
         if (interrupt != -1) {
             char relationship = 0;
-            PostCharacterNotice(party_slot, gppStringList[g_condition_notices[interrupt + 0x74]]);
+            PostCharacterNotice(party_slot,
+                                gppStringList[g_condition_interrupt_notices[interrupt]]);
             switch (interrupt) {
             case 0:
             case 1:
@@ -2440,7 +2441,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     interrupt = GetConditionInterrupt(&source);
     if (interrupt != -1) {
         ShowNoticef(W8_FONT_PALETTE_RUST, g_format_s_space_s, GetMonsterName(monster_info, NULL, 0),
-                    gppStringList[g_condition_notices[interrupt + 0x74]]);
+                    gppStringList[g_condition_interrupt_notices[interrupt]]);
         switch (interrupt) {
         case 0:
         case 1:

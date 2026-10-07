@@ -16,12 +16,19 @@ public:
     {
         return m_finished;
     }
+    /* Every waiter polls an unfinished gate before testing it again; the
+       level scripts and the camera's manual-input hold expand this body. */
+    bool PollFinished()
+    {
+        if (!IsFinished()) {
+            PollElapsedIntervals();
+        }
+        return IsFinished();
+    }
     BOOLEAN Load(int handle);
     BOOLEAN Save(int handle);
 
 private:
-    enum { ONE_SHOT = 2 };
-
     bool m_finished; /* 0x024 */
     unsigned char m_padding_025[3];
 };

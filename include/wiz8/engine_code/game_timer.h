@@ -18,15 +18,18 @@ void ResumeSharedGameTimers(void);
    shared srTimer; its separate raw-time flag controls pause adjustment. */
 enum W8TimerClock { W8_TIMER_CLOCK_SHARED = 0, W8_TIMER_CLOCK_GAME = 1 };
 
-enum W8GameTimerFlag {
-    W8_TIMER_RAW_TIME = 0x01,
-    W8_TIMER_PAUSED = 0x08,
-    /* Raised below half-speed, cleared only by ResetDurationScale. */
-    W8_TIMER_SLOW_SCALE = 0x10
-};
-
 class W8GameTimer {
 public:
+    struct Flags {
+        bool raw_time : 1;
+        bool one_shot : 1;
+        unsigned char reserved_low : 1;
+        bool paused : 1;
+        bool slow_scale : 1;
+        unsigned char reserved_high : 3;
+        unsigned char reserved_byte;
+    };
+
     W8GameTimer();
     W8GameTimer(float duration, unsigned char raw_time);
     virtual ~W8GameTimer();
@@ -38,7 +41,7 @@ public:
         default:
             break;
         }
-        if ((m_flags & W8_TIMER_RAW_TIME) == 0) {
+        if (!m_flags.raw_time) {
             if (g_shared_timer_paused) {
                 return g_shared_timer_pause_time;
             }
@@ -58,7 +61,7 @@ public:
     float GetElapsedSeconds();
 
     W8TimerClock m_clock_mode; /* 0x04: 1 reads the game clock */
-    unsigned short m_flags;    /* 0x08: bit 0 reads the timer raw */
+    Flags m_flags;             /* 0x08: runtime clock state; save/load uses progress and scale */
     srTimer* m_shared;         /* 0x0c */
     int m_start;               /* 0x10 */
     int m_end;                 /* 0x14: start + duration */
@@ -69,4 +72,5 @@ public:
 
 W8GameTimer* CreateGameTimer(float duration, unsigned char raw_time);
 
+static_assert(sizeof(W8GameTimer::Flags) == 2, "W8GameTimer_flags_size");
 static_assert(sizeof(W8GameTimer) == 0x24, "W8GameTimer_must_be_0x24");

@@ -360,11 +360,8 @@ void MartensBluff1Transporter(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (!g_transport_gate->IsFinished()) {
-        g_transport_gate->PollElapsedIntervals();
-        if (!g_transport_gate->IsFinished()) {
-            return;
-        }
+    if (!g_transport_gate->PollFinished()) {
+        return;
     }
     if (MartensBluff1TransportSpawn()) {
         g_transport_gate->Arm();

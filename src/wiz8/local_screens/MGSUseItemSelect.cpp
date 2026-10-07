@@ -248,10 +248,7 @@ void CloseUseItemSelectView(void)
         RequestRedrawCombatBar();
         RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
         ResumeMainGameWorld();
-        gXStatus.item_drag_active = false;
-        gXStatus.dragged_item = 0;
-        gXStatus.dragged_item_origin = W8_ITEM_ORIGIN_NONE;
-        gXStatus.dragged_character_slot = -1;
+        ClearItemDrag();
         if (gXStatus.fLockInteract && !IsScreenTransitionPending()) {
             OpenLockInteraction(0);
             return;
@@ -535,22 +532,20 @@ static void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
     UseItemSelectFilterToggle();
     g_use_item_list_count = 0;
     g_selected_use_item_line = -1;
-    pass = 0;
     if (mode != 0) {
-        do {
+        for (pass = 0; pass < 2; pass++) {
             for (i = 0; i < g_status.party_item_count; i++) {
                 if (!AppendUseItemListEntry(&g_status.party_item_pool[i], select, pass)) {
                     return;
                 }
             }
             ScrollTextBoxTo(0);
-            pass++;
-        } while (pass < 2);
+        }
         InvalidateUseItemSelectPanel();
         return;
     }
     character = &g_status.buffers.Char[slot];
-    do {
+    for (pass = 0; pass < 2; pass++) {
         for (i = 0; i < 12; i++) {
             if (!AppendUseItemListEntry(&character->EquippedItem[i], select, pass)) {
                 return;
@@ -561,8 +556,7 @@ static void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
                 return;
             }
         }
-        pass++;
-    } while (pass < 2);
+    }
     ScrollTextBoxTo(0);
     InvalidateUseItemSelectPanel();
 }

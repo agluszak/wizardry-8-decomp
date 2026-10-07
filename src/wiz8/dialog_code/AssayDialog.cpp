@@ -202,12 +202,10 @@ bool W8AssayDialog::PopulateText()
     const W8ItemDatabaseRecord* record;
     const wchar_t* text;
     unsigned short slot_mask;
-    const unsigned short* label;
     unsigned int bit;
     int index;
     int count;
     const W8ItemRequirement* requirement;
-    const unsigned short (*flag_names)[2];
     wchar_t modifier_text[0x100];
     char path[0x200];
     wchar_t description[0x7d0];
@@ -221,9 +219,8 @@ bool W8AssayDialog::PopulateText()
     record = &g_item_records[m_item->iItemNo];
     if (m_item->identified && record->damage_dice.count + record->damage_dice.base > 0) {
         if (!ItemHasSingledOutGenericName(m_item->iItemNo) || record->damage_dice.base == 0) {
-            text = FormatWideString(
-                L"%d - %d", record->damage_dice.base + record->damage_dice.count,
-                record->damage_dice.sides * record->damage_dice.count + record->damage_dice.base);
+            text = FormatWideString(L"%d - %d", record->damage_dice.Minimum(),
+                                    record->damage_dice.Maximum());
         } else {
             text = FormatWideString(L"%+d%%", record->damage_dice.base * 10);
         }
@@ -275,9 +272,7 @@ bool W8AssayDialog::PopulateText()
         m_text_area.AddEntry(gppStringList[0x8fd], text, 10, palette, 0);
     }
     count = 0;
-    bit = 0;
-    label = g_item_flag_name_ids;
-    do {
+    for (bit = 0; bit < 8; ++bit) {
         if ((1 << bit) == W8_ITEM_FLAG_TWO_HANDED &&
             (record->flags & W8_ITEM_FLAG_TWO_HANDED) != 0) {
             if (count == 0) {
@@ -285,13 +280,11 @@ bool W8AssayDialog::PopulateText()
             } else {
                 AppendAssayEntryText(g_comma_space);
             }
-            text = gppStringList[*label];
+            text = gppStringList[g_item_flag_name_ids[bit]];
             AppendAssayEntryText(text);
             ++count;
         }
-        ++label;
-        ++bit;
-    } while (label < g_item_flag_name_ids + 8);
+    }
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x913], g_assay_entry_text, 10, 0xf, 0);
     }
@@ -377,22 +370,18 @@ bool W8AssayDialog::PopulateText()
         m_text_area.AddEntry(gppStringList[0x8c8], text, 10, 0xf, 0);
     }
     count = 0;
-    bit = 0;
-    flag_names = g_attack_flag_name_ids;
-    do {
+    for (bit = 0; bit < 9; ++bit) {
         if ((record->attack_flags & (1 << bit)) != 0) {
             if (count == 0) {
                 wcscpy(g_assay_entry_text, &g_empty_wide_string);
             } else {
                 AppendAssayEntryText(g_comma_space);
             }
-            text = gppStringList[(*flag_names)[0]];
+            text = gppStringList[g_attack_flag_name_ids[bit][0]];
             AppendAssayEntryText(text);
             ++count;
         }
-        ++flag_names;
-        ++bit;
-    } while (flag_names < g_attack_flag_name_ids + 9);
+    }
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x8d7], g_assay_entry_text, 10, 0xf, 0);
     }
@@ -420,12 +409,10 @@ bool W8AssayDialog::PopulateText()
         }
         if (record->quantity_kind == W8_ITEM_QUANTITY_USES ||
             record->quantity_kind == W8_ITEM_QUANTITY_SHOTS) {
-            m_text_area.AddEntry(
-                gppStringList[g_quantity_kind_name_ids[record->quantity_kind]],
-                FormatWideString(g_format_d_slash_d, m_item->uses_or_charges,
-                                 record->initial_quantity.sides * record->initial_quantity.count +
-                                     record->initial_quantity.base),
-                10, 0xf, 0);
+            m_text_area.AddEntry(gppStringList[g_quantity_kind_name_ids[record->quantity_kind]],
+                                 FormatWideString(g_format_d_slash_d, m_item->uses_or_charges,
+                                                  record->initial_quantity.Maximum()),
+                                 10, 0xf, 0);
         }
         if (record->health_regen_bonus > 0) {
             m_text_area.AddEntry(gppStringList[0x8d9],

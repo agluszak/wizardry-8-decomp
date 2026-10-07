@@ -512,3 +512,40 @@ def test_oracle_extraction_rejects_mutable_revision(tmp_path):
 
     with pytest.raises(ValueError, match="immutable commit"):
         extract_declaration_oracle(tmp_path, {"revision": "main"}, tmp_path / "stage")
+
+
+def test_oracle_extraction_reads_non_colocated_jujutsu_store(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from wiz8decomp.source_oracle import extract_declaration_oracle
+
+    (tmp_path / ".jj").mkdir()
+    revision = "a" * 40
+    blob = "b" * 40
+    prefix = ["git", "--git-dir=/objects/git"]
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append(command)
+        assert kwargs["cwd"] == tmp_path
+        if command == ["jj", "git", "root"]:
+            return SimpleNamespace(stdout="/objects/git\n")
+        assert command[:2] == prefix
+        args = command[2:]
+        if args == ["rev-parse", revision + "^{commit}"]:
+            return SimpleNamespace(stdout=revision + "\n")
+        if args == ["ls-tree", "-r", "--name-only", revision, "released"]:
+            return SimpleNamespace(stdout="released/TIMER.H\n")
+        if args == ["show", revision + ":released/TIMER.H"]:
+            return SimpleNamespace(stdout=b"typedef unsigned int TIMER;\n")
+        assert args == ["rev-parse", revision + ":released/TIMER.H"]
+        return SimpleNamespace(stdout=blob + "\n")
+
+    monkeypatch.setattr("subprocess.run", run)
+    stage = tmp_path / "stage"
+    result = extract_declaration_oracle(
+        tmp_path, {"revision": revision, "source_root": "released"}, stage
+    )
+    assert (stage / "source/timer.h").read_bytes() == b"typedef unsigned int TIMER;\n"
+    assert result["files"]["source/timer.h"]["blob"] == blob
+    assert len(calls) == 5

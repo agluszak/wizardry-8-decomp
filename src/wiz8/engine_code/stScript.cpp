@@ -189,22 +189,15 @@ int stScript::FindLabelLine(const char* label) const
 // FUNCTION: WIZ8 0x004CF790
 int stScript::GetSourceLine(int line) const
 {
-    int count;
-    stScriptLine** entry_pointer;
     stScriptLine* entry;
 
     if (line < 0) {
         return -1;
     }
-    count = lines.GetCount();
-    if (line >= count) {
+    if (line >= lines.GetCount()) {
         return -1;
     }
-    entry_pointer = lines.data;
-    if (line < count) {
-        entry_pointer += line;
-    }
-    entry = *entry_pointer;
+    entry = *lines.GetAt(line);
     if (entry != 0) {
         return entry->source_line;
     }

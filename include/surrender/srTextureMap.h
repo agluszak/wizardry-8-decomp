@@ -16,7 +16,7 @@ public:
     srTextureMap(srColorSurfaceIFace* surface = 0);
 
     // FUNCTION: SURRENDER 0x10060770 SYMBOL
-    // ?sGetClassName@srTextureMap@@SAPBDXZ
+    // RECOMP: ?sGetClassName@srTextureMap@@SAPBDXZ
     static const char* sGetClassName()
     {
         return "srTextureMap";

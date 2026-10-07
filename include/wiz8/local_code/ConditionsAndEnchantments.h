@@ -21,7 +21,19 @@ struct W8ConditionImmunity {
 static_assert(sizeof(W8ConditionImmunity) == 0x52, "W8ConditionImmunity_size");
 
 extern W8ConditionImmunity g_condition_immunities[3];
-extern unsigned short g_condition_notices[128];
+/* String ids of one condition's notices (e.g. "Poisoned", "gets poisoned",
+   "get poisoned", "poison"). */
+struct W8ConditionNoticeIds {
+    unsigned short name;
+    unsigned short singular;
+    unsigned short plural;
+    unsigned short noun;
+};
+static_assert(sizeof(W8ConditionNoticeIds) == 8, "W8ConditionNoticeIds_size");
+
+extern W8ConditionNoticeIds g_condition_notices[25];
+extern unsigned short g_enchantment_notices[16];
+extern unsigned short g_condition_interrupt_notices[12];
 
 void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announce);
 void SetMonsterCondition(int location_id, W8Condition condition, int duration, int poison_strength,

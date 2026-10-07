@@ -10,7 +10,7 @@ public:
        The explicit virtual destructor supplies the modeled destruction interface. */
 
     // FUNCTION: SURRENDER 0x100032B0
-    // ??1srFilter@@UAE@XZ
+    // RECOMP: ??1srFilter@@UAE@XZ
     virtual ~srFilter() {}
 
     virtual const char* getName() const = 0;

@@ -182,10 +182,7 @@ void ControlLiftGate(int command)
         return;
     }
     if (g_lift_gate != 0) {
-        if (!g_lift_gate->IsFinished()) {
-            g_lift_gate->PollElapsedIntervals();
-        }
-        if (!g_lift_gate->IsFinished()) {
+        if (!g_lift_gate->PollFinished()) {
             progress = g_lift_gate->GetProgress();
         } else {
             progress = 1.0f;
@@ -257,10 +254,7 @@ void ControlCampAlarm(int command)
             g_master_functions->Add(ControlCampAlarm);
         }
     }
-    if (!g_mt_gigas_outer_alarm_gate->IsFinished()) {
-        g_mt_gigas_outer_alarm_gate->PollElapsedIntervals();
-    }
-    if (!g_mt_gigas_outer_alarm_gate->IsFinished()) {
+    if (!g_mt_gigas_outer_alarm_gate->PollFinished()) {
         return;
     }
     g_remove_current_master_function = true;

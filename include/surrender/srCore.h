@@ -48,7 +48,7 @@ public:
        direct [srCore + 0x170] read rather than an import thunk. The class
        dllexport still emits the exported standalone copy. */
     // FUNCTION: SURRENDER 0x10015730
-    // ?getMaterial@srCore@@QBEPAVsrMaterial@@XZ
+    // RECOMP: ?getMaterial@srCore@@QBEPAVsrMaterial@@XZ
     srMaterial* getMaterial() const
     {
         return material;
@@ -62,7 +62,7 @@ public:
        out-of-line accessor call. The class dllexport still emits the
        exported standalone copy. */
     // FUNCTION: SURRENDER 0x100156A0
-    // ?getScheduler@srCore@@QBEPAVsrScheduler@@XZ
+    // RECOMP: ?getScheduler@srCore@@QBEPAVsrScheduler@@XZ
     srScheduler* getScheduler() const
     {
         return scheduler;
@@ -71,7 +71,7 @@ public:
        the manager directly from srCore +0x28. The class dllexport still
        emits the exported standalone copy. */
     // FUNCTION: SURRENDER 0x100156B0
-    // ?getStatisticsManager@srCore@@QBEPAVsrStatisticsManager@@XZ
+    // RECOMP: ?getStatisticsManager@srCore@@QBEPAVsrStatisticsManager@@XZ
     srStatisticsManager* getStatisticsManager() const
     {
         return statistics_manager;
@@ -82,7 +82,7 @@ public:
        and recovered SR code read the pointer directly from srCore +0x08. The
        class dllexport still emits the exported standalone copy. */
     // FUNCTION: SURRENDER 0x100156C0
-    // ?getTimer@srCore@@QBEPAVsrVariableTimer@@XZ
+    // RECOMP: ?getTimer@srCore@@QBEPAVsrVariableTimer@@XZ
     srVariableTimer* getTimer() const
     {
         return timer;
@@ -100,7 +100,7 @@ public:
        exports a standalone copy. This is consistent with a header-visible
        definition; exact original annotation spelling is unresolved. */
     // FUNCTION: SURRENDER 0x10015760
-    // ?getRegistry@srCore@@QBEPAVsrRegistry@@XZ
+    // RECOMP: ?getRegistry@srCore@@QBEPAVsrRegistry@@XZ
     srRegistry* getRegistry() const
     {
         return registry_;

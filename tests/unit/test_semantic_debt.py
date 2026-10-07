@@ -174,3 +174,61 @@ def test_report_wires_surrender_scope_through_all_queues(tmp_path: Path, monkeyp
     assert report["address_named_members"][0]["references"] == 1
     assert report["summary"]["void_storage_members"] == 1
     assert report["unmapped_sources"][0]["source_file"] == "src/surrender/record.cpp"
+
+
+def test_identity_report_does_not_confuse_pairing_with_source_ownership(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from reccmp.compare import Compare
+    from reccmp.types import EntityType
+    from wiz8decomp import comparison, emissions, source_index
+    from wiz8decomp.reports.semantic_debt import _retail_identity_ownership
+
+    def entity(address, kind, **facts):
+        return SimpleNamespace(
+            orig=SimpleNamespace(facts=facts),
+            orig_addr=address,
+            recomp_addr=None,
+            entity_type=kind,
+        )
+
+    entities = [
+        entity(0x1000, EntityType.FUNCTION, name="known"),
+        entity(0x1010, EntityType.FUNCTION, name="unowned"),
+        entity(0x1020, EntityType.IMPORT, name="external"),
+        entity(0x1030, EntityType.DATA, seh_unwinds_orig=[]),
+        entity(0x1040, EntityType.VTABLE, name="Owner"),
+        entity(0x1050, EntityType.DATA, name="Owner vbtable"),
+        entity(0x1060, EntityType.FUNCTION, name="library", library=True),
+        entity(0x1070, EntityType.FUNCTION, name="folded"),
+    ]
+    engine = SimpleNamespace(
+        get_all=lambda: entities,
+        db=SimpleNamespace(
+            get_aliases=lambda _: [(entities[-1], SimpleNamespace(orig_addr=0x1000))]
+        ),
+    )
+    monkeypatch.setattr(Compare, "from_target", lambda _: engine)
+    monkeypatch.setattr(comparison, "comparison_target", lambda *_: None)
+    monkeypatch.setattr(
+        source_index,
+        "address_bound_identities",
+        lambda *_: {
+            0x1000: (SimpleNamespace(kind="definition", source_file="src/wiz8/owner.cpp"),),
+            0x1040: (SimpleNamespace(kind="vtable", source_file="include/wiz8/owner.h"),),
+        },
+    )
+    monkeypatch.setattr(
+        emissions,
+        "emission_inventory",
+        lambda *_: [SimpleNamespace(address=0x1050, type="global", source_files=())],
+    )
+    report = _retail_identity_ownership(tmp_path, "WIZ8")
+    assert report["classified"] == 7
+    assert report["without_recomp_pair"] == 8
+    assert report["unclassified"] == 1
+    assert report["unclassified_entities"][0]["address"] == "0x00001010"
+    assert report["buckets"]["recovered_authored_source"] == 1
+    assert report["buckets"]["compiler_generated"] == 3
+    assert report["buckets"]["icf_folded_sibling"] == 1
+    assert report["inventory_complete"] is False

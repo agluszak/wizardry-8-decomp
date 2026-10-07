@@ -2902,10 +2902,7 @@ void ResetMainGameScreenState(void)
         gXStatus.held_item_slot = static_cast<unsigned short>(unset);
         gXStatus.gameplay_timer->Restart();
         gXStatus.assay_professions_tab = true;
-        gXStatus.item_drag_active = false;
-        gXStatus.dragged_item = 0;
-        gXStatus.dragged_item_origin = W8_ITEM_ORIGIN_NONE;
-        gXStatus.dragged_character_slot = -1;
+        ClearItemDrag();
         ResetTargetingState();
     }
 }
@@ -2971,9 +2968,9 @@ unsigned char MainGameScreenEnter(void)
     }
     {
         W8GameTimer* timer = gXStatus.gameplay_timer;
-        if ((timer->m_flags & 8) != 0 || (g_shared_timer_paused && (timer->m_flags & 1) == 0) ||
+        if (timer->m_flags.paused || (g_shared_timer_paused && !timer->m_flags.raw_time) ||
             g_shared_timer_flag0) {
-            timer->m_flags &= ~8;
+            timer->m_flags.paused = false;
             timer->m_start = timer->GetTime() - timer->m_start;
             timer->SetDuration(-1.0f);
         }
@@ -2998,10 +2995,7 @@ unsigned char MainGameScreenEnter(void)
             OpenUseItemSelectView(gXStatus.dragged_character_slot);
             SelectCurrentUseItemLine();
         } else {
-            gXStatus.item_drag_active = false;
-            gXStatus.dragged_item = 0;
-            gXStatus.dragged_item_origin = W8_ITEM_ORIGIN_NONE;
-            gXStatus.dragged_character_slot = -1;
+            ClearItemDrag();
         }
     }
     if (!gXStatus.fCombatMode) {
@@ -3489,8 +3483,8 @@ unsigned char MainGameScreenLeave(int leaving)
     MoveTimer(1);
     SetEnvironmentTimeEnabled(false);
 
-    if ((gXStatus.gameplay_timer->m_flags & 8) == 0) {
-        gXStatus.gameplay_timer->m_flags |= 8;
+    if (!gXStatus.gameplay_timer->m_flags.paused) {
+        gXStatus.gameplay_timer->m_flags.paused = true;
         gXStatus.gameplay_timer->m_start =
             gXStatus.gameplay_timer->GetTime() - gXStatus.gameplay_timer->m_start;
     }
@@ -4403,7 +4397,7 @@ static void DrawPortraitConditionRow(int condition, int text_x, int row_y, unsig
     DrawCatalogImage(FRAME_BUFFER, condition + 0xb6, 0, 0, text_x, row_y, VO_BLT_SRCTRANSPARENCY,
                      0);
     swprintf(g_level_block->text_paint_scratch, g_format_s,
-             gppStringList[g_condition_notices[condition * 4]]);
+             gppStringList[g_condition_notices[condition].name]);
     int text_width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
     gprintf(((width >> 1) - text_width / 2) + 0x1a + text_x, row_y, Wiz8ToSgpWideText(g_format_s),
             g_level_block->text_paint_scratch);
@@ -4414,7 +4408,7 @@ static void DrawPortraitEnchantmentRow(const W8Character* character, int slot, i
 {
     DrawCatalogImage(FRAME_BUFFER, slot + 0xc9, 0, 0, text_x, row_y, VO_BLT_SRCTRANSPARENCY, 0);
     swprintf(g_level_block->text_paint_scratch, g_format_s_paren_d,
-             gppStringList[g_condition_notices[slot + 0x64]], character->enchantments[slot].power);
+             gppStringList[g_enchantment_notices[slot]], character->enchantments[slot].power);
     int text_width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
     gprintf(((width >> 1) - text_width / 2) + 0x1a + text_x, row_y, Wiz8ToSgpWideText(g_format_s),
             g_level_block->text_paint_scratch);
@@ -4518,7 +4512,7 @@ static int MeasurePortraitConditions(const W8Character* character, unsigned int&
     for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
         if (character->uiCondition[condition] != 0) {
             swprintf(g_level_block->text_paint_scratch, g_format_s,
-                     gppStringList[g_condition_notices[condition * 4]]);
+                     gppStringList[g_condition_notices[condition].name]);
             int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
             if (max_width < static_cast<unsigned int>(width)) {
                 width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
@@ -4542,7 +4536,7 @@ static int MeasurePortraitEnchantments(const W8Character* character, unsigned in
     for (slot = 7; slot > 0; --slot) {
         if (character->enchantments[slot].turns != 0) {
             swprintf(g_level_block->text_paint_scratch, g_format_s_paren_d,
-                     gppStringList[g_condition_notices[slot + 0x64]],
+                     gppStringList[g_enchantment_notices[slot]],
                      character->enchantments[slot].power);
             int width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
             if (max_width < static_cast<unsigned int>(width)) {
@@ -4558,8 +4552,8 @@ static int MeasurePortraitEnchantments(const W8Character* character, unsigned in
 /* The portrait overlay's condition content: one row per active condition with
    its status icon and notice name, drawn bottom-up. The count covers all
    twenty condition slots while the measure and draw passes visit 0x13 down to
-   1 only, paired with the four-entry-strided g_condition_notices
-   names. */
+   1 only, paired with the g_condition_notices
+   row names. */
 // FUNCTION: WIZ8 0x00564BA0
 void DrawPortraitConditionOverlay(int party_slot)
 {
@@ -5403,15 +5397,6 @@ void SyncMainGameModeRegions(void)
         g_level_block->refresh_party_panel = 1;
     }
     RequestRedrawCombatBar();
-}
-
-/* Clear whatever the screen was waiting on and hand the tenth reason to the
-   frame. */
-// FUNCTION: WIZ8 0x00565970
-void ClearScreenWait(void)
-{
-    g_pending_screen_state.mode = 0;
-    SetPendingScreenState(W8_SCREEN_OPTIONS);
 }
 
 /* Party portrait hit region: left-click selects / aims, right-hold opens camp,
@@ -6932,7 +6917,7 @@ void UpdateScreenOverlays(int frame)
    entry's submenu state. Command 0x10 re-checks the slot's queued action's
    own command. */
 // FUNCTION: WIZ8 0x0056af80
-bool IsMGSActionKeyEnabled(short command)
+bool IsMGSActionKeyEnabled(unsigned short command)
 {
     short state;
 
@@ -7061,7 +7046,7 @@ bool IsMGSActionKeyEnabled(short command)
    act - toggle the item or spell view, fire the recorded spell/item, choose
    the combat action, or dispatch the slot's queued action's own command. */
 // FUNCTION: WIZ8 0x0056b270
-void RunMGSActionKey(short command)
+void RunMGSActionKey(unsigned short command)
 {
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();

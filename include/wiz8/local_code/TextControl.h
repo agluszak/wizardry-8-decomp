@@ -37,8 +37,8 @@ public:
 
     W8TextControl();
     W8TextControl(Controls* panel, unsigned int region, int left, int top, int right, int bottom,
-                  int text_40, int text_44, int text_48, int text_4c, int text_54, int text_50,
-                  int text_58);
+                  int image_object, int image_frame, int normal_sprite, int pressed_sprite,
+                  int alternate_normal_sprite, int alternate_pressed_sprite, int disabled_sprite);
 
     void SetImage(int object, int frame = 0)
     {

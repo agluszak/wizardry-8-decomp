@@ -565,25 +565,25 @@ public:
     void setExclusionMask(unsigned long mask);
     /* The pipeline's single-stage mask branch inlines this exported getter. */
     // FUNCTION: SURRENDER 0x1001BB70 SYMBOL
-    // ?getMaxTextureStages@srGERD@@QBEJXZ
+    // RECOMP: ?getMaxTextureStages@srGERD@@QBEJXZ
     long getMaxTextureStages() const
     {
         return device.info.max_texture_stages;
     }
     // FUNCTION: SURRENDER 0x1001CF10 SYMBOL
-    // ?getMaxPickStackDepth@srGERD@@QBEJXZ
+    // RECOMP: ?getMaxPickStackDepth@srGERD@@QBEJXZ
     long getMaxPickStackDepth() const
     {
         return 0x20;
     }
     // FUNCTION: SURRENDER 0x1001CF20 SYMBOL
-    // ?getMaxModelviewStackDepth@srGERD@@QBEJXZ
+    // RECOMP: ?getMaxModelviewStackDepth@srGERD@@QBEJXZ
     long getMaxModelviewStackDepth() const
     {
         return 0x20;
     }
     // FUNCTION: SURRENDER 0x1001CF30 SYMBOL
-    // ?getMaxProjectionStackDepth@srGERD@@QBEJXZ
+    // RECOMP: ?getMaxProjectionStackDepth@srGERD@@QBEJXZ
     long getMaxProjectionStackDepth() const
     {
         return 0x20;
@@ -741,21 +741,21 @@ public:
     /* These ordinary methods are header-visible in Wiz8 call sites even
        though SR.DLL also exports out-of-line copies. */
     // FUNCTION: SURRENDER 0x1001BB80 SYMBOL
-    // ?isPickStackEmpty@srGERD@@QBEHXZ
+    // RECOMP: ?isPickStackEmpty@srGERD@@QBEHXZ
     int isPickStackEmpty() const
     {
         return pick.pick_depth == 0;
     }
 
     // FUNCTION: SURRENDER 0x1001BAE0 SYMBOL
-    // ?isEnabled@srGERD@@QBEHW4e_enable@1@@Z
+    // RECOMP: ?isEnabled@srGERD@@QBEHW4e_enable@1@@Z
     int isEnabled(e_enable option) const
     {
         return (enable_flags.value & (1UL << option)) != 0;
     }
 
     // FUNCTION: SURRENDER 0x1001BB90 SYMBOL
-    // ?setCullMode@srGERD@@QAEXW4e_cullMode@1@@Z
+    // RECOMP: ?setCullMode@srGERD@@QAEXW4e_cullMode@1@@Z
     void setCullMode(e_cullMode mode)
     {
         if (state.cull_mode != mode) {
@@ -767,7 +767,7 @@ public:
     /* Header inline that also emits the standalone retail 0x1001BB40 copy;
        drawSorted calls the emission while drawImmediate inlines it. */
     // FUNCTION: SURRENDER 0x1001BB40 SYMBOL
-    // ?setShader@srGERD@@QAEXABVsrShader@@@Z
+    // RECOMP: ?setShader@srGERD@@QAEXABVsrShader@@@Z
     void setShader(const srShader& shader)
     {
         if (this->shader.value != shader.value) {
@@ -777,7 +777,7 @@ public:
     }
 
     // FUNCTION: SURRENDER 0x1001BEF0 SYMBOL
-    // ?setVertexArrayMask@srGERD@@QAEXV?$srFlags@W4e_vertexArray@srRendererDefs@@@@@Z
+    // RECOMP: ?setVertexArrayMask@srGERD@@QAEXV?$srFlags@W4e_vertexArray@srRendererDefs@@@@@Z
     void setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray> mask)
     {
         vertex_arrays.mask = mask;
@@ -785,7 +785,7 @@ public:
     }
 
     // FUNCTION: SURRENDER 0x1001BEE0 SYMBOL
-    // ?getVertexArrayMask@srGERD@@QBE?AV?$srFlags@W4e_vertexArray@srRendererDefs@@@@XZ
+    // RECOMP: ?getVertexArrayMask@srGERD@@QBE?AV?$srFlags@W4e_vertexArray@srRendererDefs@@@@XZ
     srFlags<srRendererDefs::e_vertexArray> getVertexArrayMask() const
     {
         return vertex_arrays.mask;
@@ -802,7 +802,7 @@ public:
                        const void* values);
 
     // FUNCTION: SURRENDER 0x1001BFD0 SYMBOL
-    // ?setTexCoordPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXK@Z
+    // RECOMP: ?setTexCoordPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXK@Z
     void setTexCoordPointer(long components, srRendererDefs::e_type type, unsigned long stride,
                             const void* values, unsigned long layer)
     {
@@ -815,7 +815,7 @@ public:
     }
 
     // FUNCTION: SURRENDER 0x1001BE90 SYMBOL
-    // ?setVertexPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXJ@Z
+    // RECOMP: ?setVertexPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXJ@Z
     void setVertexPointer(long primitive, srRendererDefs::e_type type, unsigned long stride,
                           const void* values, long count)
     {
@@ -1335,7 +1335,7 @@ private:
    cache inlines it for the lookup probe and calls this emission when
    inserting. */
 // FUNCTION: SURRENDER 0x10027BF0 SYMBOL
-// ?srHashValue@@YAIABUTextureSetKey@Renderer@srGERD@@@Z
+// RECOMP: ?srHashValue@@YAIABUTextureSetKey@Renderer@srGERD@@@Z
 inline unsigned int srHashValue(const srGERD::Renderer::TextureSetKey& key)
 {
     // reinterpret-ok: the hash mixes the stored interface addresses.

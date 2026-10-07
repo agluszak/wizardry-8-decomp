@@ -833,7 +833,6 @@ void DrawCampItemPool(void)
     W8Character* character = g_review_character;
     unsigned int visible;
     unsigned int i;
-    unsigned int region_id;
     int left;
     int top;
     int right;
@@ -892,26 +891,20 @@ void DrawCampItemPool(void)
             DrawCatalogImage(FRAME_BUFFER, 0x115, 0, 0x30, left, top, VO_BLT_SRCTRANSPARENCY, 0);
         }
     }
-    i = state->item_list_count - state->item_scroll;
-    if (i < 8) {
-        region_id = i + 0x108;
-        do {
-            left = (i & 1) * 0x31 + 0x200;
-            top = (i >> 1) * 0x39 + 0xc0;
-            right = left + 0x2e;
-            bottom = top + 0x36;
-            if ((state->item_redraw_flags & (W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST << i)) != 0) {
-                InvalidateRegion(left, top, right, bottom, 0);
-                BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
-                if (state->hover_region == region_id && g_status.item_in_cursor &&
-                    state->item_action != W8_CAMP_ITEM_ACTION_MOVE) {
-                    DrawCatalogImage(FRAME_BUFFER, 0x115, 0, 0x30, left, top,
-                                     VO_BLT_SRCTRANSPARENCY, 0);
-                }
+    for (i = state->item_list_count - state->item_scroll; i < 8; ++i) {
+        left = (i & 1) * 0x31 + 0x200;
+        top = (i >> 1) * 0x39 + 0xc0;
+        right = left + 0x2e;
+        bottom = top + 0x36;
+        if ((state->item_redraw_flags & (W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST << i)) != 0) {
+            InvalidateRegion(left, top, right, bottom, 0);
+            BlitCatalogSurfaceRectTo16BPP(FRAME_BUFFER, left, top, right, bottom, 0x1b6, 0, 0);
+            if (state->hover_region == i + 0x108 && g_status.item_in_cursor &&
+                state->item_action != W8_CAMP_ITEM_ACTION_MOVE) {
+                DrawCatalogImage(FRAME_BUFFER, 0x115, 0, 0x30, left, top, VO_BLT_SRCTRANSPARENCY,
+                                 0);
             }
-            ++i;
-            ++region_id;
-        } while (region_id < 0x110);
+        }
     }
 }
 
@@ -1107,9 +1100,8 @@ void W8CampCharacterInfo::Redraw()
             W8Dice dice;
             GetCharacterHandDamageDice(g_review_character, hand, &dice);
             unsigned int damage_bonus = GetCharacterHandDamageBonus(g_review_character, hand);
-            unsigned int minimum = ((dice.base + dice.count) * (100 + damage_bonus) + 50) / 100;
-            unsigned int maximum =
-                ((dice.base + dice.count * dice.sides) * (100 + damage_bonus) + 50) / 100;
+            unsigned int minimum = (dice.Minimum() * (100 + damage_bonus) + 50) / 100;
+            unsigned int maximum = (dice.Maximum() * (100 + damage_bonus) + 50) / 100;
             if (minimum < 2)
                 minimum = 1;
             if (maximum < 2)
@@ -1126,10 +1118,9 @@ void W8CampCharacterInfo::Redraw()
             DrawRcsText(g_camp_screen->text_buffer, x, 0x3e, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             wcscpy(g_camp_screen->text_buffer, gppStringList[0x95c]);
-            wcscat(g_camp_screen->text_buffer, FormatWideString(L" %d, ", dice.base + dice.count));
+            wcscat(g_camp_screen->text_buffer, FormatWideString(L" %d, ", dice.Minimum()));
             wcscat(g_camp_screen->text_buffer, gppStringList[0x95b]);
-            wcscat(g_camp_screen->text_buffer,
-                   FormatWideString(L" %d, ", dice.base + dice.count * dice.sides));
+            wcscat(g_camp_screen->text_buffer, FormatWideString(L" %d, ", dice.Maximum()));
             wcscat(g_camp_screen->text_buffer, gppStringList[0x95a]);
             wcscat(g_camp_screen->text_buffer, FormatWideString(L" %+d%%", damage_bonus));
             m_values[hand + 2]->SetRegionHelp(g_camp_screen->text_buffer);
@@ -1301,10 +1292,7 @@ unsigned char CampScreenEnter(void)
         SoundPlay(s_general_magic_sound, 0);
         SetTargetingMode(W8_TARGET_NEED_ITEM);
     }
-    gXStatus.item_drag_active = false;
-    gXStatus.dragged_item = 0;
-    gXStatus.dragged_item_origin = W8_ITEM_ORIGIN_NONE;
-    gXStatus.dragged_character_slot = -1;
+    ClearItemDrag();
     if (!g_camp_screen) {
         g_camp_screen = static_cast<W8CampScreenState*>(malloc(sizeof(W8CampScreenState)));
         if (!g_camp_screen) {

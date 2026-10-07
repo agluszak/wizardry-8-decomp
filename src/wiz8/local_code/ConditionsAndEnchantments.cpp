@@ -48,21 +48,36 @@
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/game_status.h"
 
-/* Condition-to-notice word table. Only the first word of each four-word
-   stride is read, hence the multiplied index. */
+/* Notice string ids for each condition row: the status label, the singular
+   and plural "inflicted" verb phrases and the noun used by resistance and
+   immunity text. Rows past W8_CONDITION_MISSING are unused placeholders. */
 // GLOBAL: WIZ8 0x0061e570
-unsigned short g_condition_notices[128] = {
-    0x348, 0x349, 0x34a, 0x34b, 0x34c, 0x34d, 0x34e, 0x34f, 0x350, 0x351, 0x352, 0x353, 0x354,
-    0x355, 0x356, 0x357, 0x358, 0x359, 0x35a, 0x35b, 0x35c, 0x35d, 0x35e, 0x35f, 0x360, 0x361,
-    0x362, 0x363, 0x364, 0x365, 0x366, 0x367, 0x368, 0x369, 0x36a, 0x36b, 0x36c, 0x36d, 0x36e,
-    0x36f, 0x370, 0x371, 0x372, 0x373, 0x374, 0x375, 0x376, 0x377, 0x378, 0x379, 0x37a, 0x37b,
-    0x37c, 0x37d, 0x37e, 0x37f, 0x380, 0x381, 0x382, 0x383, 0x384, 0x385, 0x386, 0x387, 0x38c,
-    0x38d, 0x38e, 0x38f, 0x388, 0x389, 0x38a, 0x38b, 0x390, 0x391, 0x392, 0x393, 0x394, 0x395,
-    0x396, 0x397, 0x273, 0x65d, 0x65e, 0x65f, 0x660, 0x661, 0x662, 0x663, 0x664, 0x665, 0x666,
-    0x667, 0x668, 0x669, 0x66a, 0x66b, 0x66c, 0x66d, 0x66e, 0x66f, 0x398, 0x399, 0x39a, 0x39b,
-    0x39c, 0x39d, 0x39e, 0x39f, 0x273, 0x670, 0x671, 0x672, 0x673, 0x674, 0x675, 0x676, 0x3a0,
-    0x3a1, 0x3a2, 0x3a3, 0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
+W8ConditionNoticeIds g_condition_notices[25] = {
+    {0x348, 0x349, 0x34a, 0x34b}, {0x34c, 0x34d, 0x34e, 0x34f}, {0x350, 0x351, 0x352, 0x353},
+    {0x354, 0x355, 0x356, 0x357}, {0x358, 0x359, 0x35a, 0x35b}, {0x35c, 0x35d, 0x35e, 0x35f},
+    {0x360, 0x361, 0x362, 0x363}, {0x364, 0x365, 0x366, 0x367}, {0x368, 0x369, 0x36a, 0x36b},
+    {0x36c, 0x36d, 0x36e, 0x36f}, {0x370, 0x371, 0x372, 0x373}, {0x374, 0x375, 0x376, 0x377},
+    {0x378, 0x379, 0x37a, 0x37b}, {0x37c, 0x37d, 0x37e, 0x37f}, {0x380, 0x381, 0x382, 0x383},
+    {0x384, 0x385, 0x386, 0x387}, {0x38c, 0x38d, 0x38e, 0x38f}, {0x388, 0x389, 0x38a, 0x38b},
+    {0x390, 0x391, 0x392, 0x393}, {0x394, 0x395, 0x396, 0x397}, {0x273, 0x65d, 0x65e, 0x65f},
+    {0x660, 0x661, 0x662, 0x663}, {0x664, 0x665, 0x666, 0x667}, {0x668, 0x669, 0x66a, 0x66b},
+    {0x66c, 0x66d, 0x66e, 0x66f},
 };
+
+/* Enchantment-slot names, indexed by W8EnchantmentSlot. */
+// GLOBAL: WIZ8 0x0061e638
+unsigned short g_enchantment_notices[16] = {
+    0x398, 0x399, 0x39a, 0x39b, 0x39c, 0x39d, 0x39e, 0x39f,
+    0x273, 0x670, 0x671, 0x672, 0x673, 0x674, 0x675, 0x676,
+};
+
+/* Notices posted when a condition interrupts a character's action, indexed
+   by GetConditionInterrupt's result. */
+// GLOBAL: WIZ8 0x0061e658
+unsigned short g_condition_interrupt_notices[12] = {
+    0x3a0, 0x3a1, 0x3a2, 0x3a3, 0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
+};
+
 // FUNCTION: WIZ8 0x005248a0
 bool GetConditionRecordFlag(int party_slot, W8CharacterDependence dependence)
 {
@@ -159,7 +174,7 @@ void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announ
         }
         if (announce) {
             PostCharacterNotice(party_slot, gppStringList[0x243],
-                                gppStringList[g_condition_notices[condition * 4]]);
+                                gppStringList[g_condition_notices[condition].name]);
         }
         character->uiCondition[condition] = 0;
         RecomputeCharacterHighestCondition(party_slot);
@@ -574,7 +589,7 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
     if (announce && (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", name,
-                    gppStringList[g_condition_notices[condition * 4 + 1]]);
+                    gppStringList[g_condition_notices[condition].singular]);
     }
     if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle)) {
         StartMonsterCycle(monster_info, W8_MONSTER_CYCLE_GET_HIT, W8_ANIMATION_PLAY_ONCE);
@@ -610,7 +625,7 @@ void ClearMonsterCondition(int location_id, W8Condition condition)
         if (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player) {
             ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x244],
                         GetMonsterName(monster_info, 0, 0),
-                        gppStringList[g_condition_notices[condition * 4]]);
+                        gppStringList[g_condition_notices[condition].name]);
         }
         monster_info->uiCondition[condition] = 0;
         RefreshMonsterConditionState(monster_info);
@@ -719,7 +734,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
     }
     if (g_status.world_suspended) {
         PostCharacterNotice(party_slot, gppStringList[0x242],
-                            gppStringList[g_condition_notices[condition * 4]]);
+                            gppStringList[g_condition_notices[condition].name]);
         return 0;
     }
     switch (condition) {
@@ -790,7 +805,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
             PostCharacterNotice(party_slot, gppStringList[0x1d5]);
         } else {
             PostCharacterNotice(party_slot, L"%s!",
-                                gppStringList[g_condition_notices[condition * 4 + 1]]);
+                                gppStringList[g_condition_notices[condition].singular]);
         }
     }
     if ((party_slot < 0 || party_slot > 7 || !row->fOccupied || character->hp_current == 0 ||

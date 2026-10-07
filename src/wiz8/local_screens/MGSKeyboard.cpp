@@ -78,15 +78,12 @@ MGSKeyboard::~MGSKeyboard()
 int MGSKeyboard::FindBinding(W8MGSCommand command) const
 {
     int count = m_bindings.GetCount();
-    int index = 0;
-    if (count > 0) {
-        do {
-            MGSKeyBinding* binding = *m_bindings.GetAt(index);
-            if (binding->command == command) {
-                return index;
-            }
-            ++index;
-        } while (index < count);
+    int index;
+    for (index = 0; index < count; ++index) {
+        MGSKeyBinding* binding = *m_bindings.GetAt(index);
+        if (binding->command == command) {
+            return index;
+        }
     }
     return -1;
 }
@@ -95,16 +92,13 @@ int MGSKeyboard::FindBinding(W8MGSCommand command) const
 W8MGSCommand MGSKeyboard::FindCommandForEvent(const InputAtom* event) const
 {
     int count = m_bindings.GetCount();
-    int index = 0;
-    if (count > 0) {
-        do {
-            MGSKeyBinding* binding = *m_bindings.GetAt(index);
-            if (binding->active == event->usEvent && binding->modifiers == event->usKeyState &&
-                binding->key == event->usParam) {
-                return binding->command;
-            }
-            ++index;
-        } while (index < count);
+    int index;
+    for (index = 0; index < count; ++index) {
+        MGSKeyBinding* binding = *m_bindings.GetAt(index);
+        if (binding->active == event->usEvent && binding->modifiers == event->usKeyState &&
+            binding->key == event->usParam) {
+            return binding->command;
+        }
     }
     return W8_MGS_COMMAND_NONE;
 }

@@ -572,18 +572,12 @@ int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc)
 void FreeStringTable(void)
 {
     if (gppStringList != 0) {
-        int index = 0;
-        wchar_t** table = gppStringList;
-        if (giStringListLen > 0) {
-            do {
-                if (table[index] != 0) {
-                    free(table[index]);
-                    table = gppStringList;
-                }
-                ++index;
-            } while (index < giStringListLen);
+        for (int index = 0; index < giStringListLen; ++index) {
+            if (gppStringList[index] != 0) {
+                free(gppStringList[index]);
+            }
         }
-        free(table);
+        free(gppStringList);
         gppStringList = 0;
         giStringListLen = 0;
     }

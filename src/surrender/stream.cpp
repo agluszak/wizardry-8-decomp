@@ -436,78 +436,54 @@ srBinIStream& operator>>(srBinIStream& stream, srQuaternion& value)
 // FUNCTION: SURRENDER 0x10031B20
 srBinIStream& operator>>(srBinIStream& stream, srMatrix2T<float>& value)
 {
-    srVector2T<float>* vector = value.vectors;
-    long index = 2;
-    do {
-        stream >> *vector;
-        ++vector;
-        --index;
-    } while (index != 0);
+    for (int index = 0; index < 2; ++index) {
+        stream >> value.vectors[index];
+    }
     return stream;
 }
 
 // FUNCTION: SURRENDER 0x10031B50
 srBinIStream& operator>>(srBinIStream& stream, srMatrix3T<float>& value)
 {
-    srVector3T<float>* vector = value.vectors;
-    long index = 3;
-    do {
-        stream >> *vector;
-        ++vector;
-        --index;
-    } while (index != 0);
+    for (int index = 0; index < 3; ++index) {
+        stream >> value.vectors[index];
+    }
     return stream;
 }
 
 // FUNCTION: SURRENDER 0x10031B80
 srBinIStream& operator>>(srBinIStream& stream, srMatrix4T<float>& value)
 {
-    srVector4T<float>* vector = value.vectors;
-    long index = 4;
-    do {
-        stream >> *vector;
-        ++vector;
-        --index;
-    } while (index != 0);
+    for (int index = 0; index < 4; ++index) {
+        stream >> value.vectors[index];
+    }
     return stream;
 }
 
 // FUNCTION: SURRENDER 0x10031BB0
 srBinIStream& operator>>(srBinIStream& stream, srMatrix2T<double>& value)
 {
-    srVector2T<double>* vector = value.vectors;
-    long index = 2;
-    do {
-        stream >> *vector;
-        ++vector;
-        --index;
-    } while (index != 0);
+    for (int index = 0; index < 2; ++index) {
+        stream >> value.vectors[index];
+    }
     return stream;
 }
 
 // FUNCTION: SURRENDER 0x10031BE0
 srBinIStream& operator>>(srBinIStream& stream, srMatrix3T<double>& value)
 {
-    srVector3T<double>* vector = value.vectors;
-    long index = 3;
-    do {
-        stream >> *vector;
-        ++vector;
-        --index;
-    } while (index != 0);
+    for (int index = 0; index < 3; ++index) {
+        stream >> value.vectors[index];
+    }
     return stream;
 }
 
 // FUNCTION: SURRENDER 0x10031C10
 srBinIStream& operator>>(srBinIStream& stream, srMatrix4T<double>& value)
 {
-    srVector4T<double>* vector = value.vectors;
-    long index = 4;
-    do {
-        stream >> *vector;
-        ++vector;
-        --index;
-    } while (index != 0);
+    for (int index = 0; index < 4; ++index) {
+        stream >> value.vectors[index];
+    }
     return stream;
 }
 

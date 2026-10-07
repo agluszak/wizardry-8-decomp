@@ -51,6 +51,8 @@ extern unsigned short g_trap_name_string_ids[];
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/local_code/Gameloop.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/dialog_code/DialogTextArea.h"
 
 #include <cstddef>
@@ -588,7 +590,15 @@ void OpenAutomapScreen(void);                        /* 0x00561480 */
 /* Clear one slot's pending portrait refresh while the screen is not in
    portrait mode, and disable that slot's portrait region set. */
 void ClearPortraitRefreshSlot(int slot); /* 0x00561DB0 */
-void ClearScreenWait(void);              /* 0x00565970 */
+/* Clear whatever the screen was waiting on and open the options screen.
+   The main-menu Options region expands this body; the keyboard path calls
+   the retained emission. */
+// FUNCTION: WIZ8 0x00565970
+inline void ClearScreenWait(void)
+{
+    g_pending_screen_state.mode = 0;
+    SetPendingScreenState(W8_SCREEN_OPTIONS);
+}
 /* Portrait condition / enchantment orbs (help 25 / 26): hold opens the
    mode-6 hover overlay; leave and release tear it down. */
 unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event,
@@ -648,11 +658,11 @@ enum W8MGSAction {
 void TryMGSActionKey(W8MGSAction command); /* 0x0056B4C0 */
 /* The action-key command gate and executor the dispatcher's 0x131..0x141
    cases and TryMGSActionKey share. */
-bool IsMGSActionKeyEnabled(short command); /* 0x0056AF80 */
-void RunMGSActionKey(short command);       /* 0x0056B270 */
-void LoadMainGameCursorResources(void);    /* 0x00568E10 */
-short GetMainGameViewportMode(void);       /* 0x005698C0 */
-void CloseMainGameOverlays(void);          /* 0x00569570 */
+bool IsMGSActionKeyEnabled(unsigned short command); /* 0x0056AF80 */
+void RunMGSActionKey(unsigned short command);       /* 0x0056B270 */
+void LoadMainGameCursorResources(void);             /* 0x00568E10 */
+short GetMainGameViewportMode(void);                /* 0x005698C0 */
+void CloseMainGameOverlays(void);                   /* 0x00569570 */
 /* Overlay entry points share the radar-mode fallback. The caller captures and
    stores its return mode before or after this operation as its own path requires. */
 inline void SetMainGameOverlayViewport(W8MainUiMode mode)

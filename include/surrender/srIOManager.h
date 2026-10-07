@@ -200,7 +200,7 @@ public:
     /* Retail exports the standalone copy while folding the single store into
        every throw site. */
     // FUNCTION: SURRENDER 0x1002CB00
-    // ??0Error@srIOManager@@QAE@PBD@Z
+    // RECOMP: ??0Error@srIOManager@@QAE@PBD@Z
     Error(const char* description)
     {
         this->description = description;
@@ -224,7 +224,7 @@ public:
     virtual const char* getTypeName() const = 0;
 
     // FUNCTION: SURRENDER 0x1002CC50
-    // ??1Importer@srIOManager@@UAE@XZ
+    // RECOMP: ??1Importer@srIOManager@@UAE@XZ
     virtual ~Importer() {}
 
     /* The emitted bodies are consistent with ordinary memberwise copying. */
@@ -247,7 +247,7 @@ public:
     virtual const char* getTypeName() const = 0;
 
     // FUNCTION: SURRENDER 0x1002CC60
-    // ??1Exporter@srIOManager@@UAE@XZ
+    // RECOMP: ??1Exporter@srIOManager@@UAE@XZ
     virtual ~Exporter() {}
 
     /* The emitted bodies are consistent with ordinary memberwise copying. */

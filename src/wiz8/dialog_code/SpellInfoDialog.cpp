@@ -202,15 +202,13 @@ bool W8SpellInfoDialog::PopulateText()
                                                   gppStringList[0x121]),
                                  10, 0xf, 0);
         } else {
-            m_text_area.AddEntry(
-                gppStringList[0x120],
-                FormatWideString(g_format_d_d_s,
-                                 record->effect_dice.count +
-                                     static_cast<int>(record->effect_dice.base),
-                                 record->effect_dice.sides * record->effect_dice.count +
-                                     static_cast<int>(record->effect_dice.base),
-                                 gppStringList[0x121]),
-                10, 0xf, 0);
+            m_text_area.AddEntry(gppStringList[0x120],
+                                 FormatWideString(g_format_d_d_s,
+                                                  record->effect_dice.count +
+                                                      static_cast<int>(record->effect_dice.base),
+                                                  record->effect_dice.Maximum(),
+                                                  gppStringList[0x121]),
+                                 10, 0xf, 0);
         }
     }
 

@@ -93,7 +93,7 @@ void srGERD::TexturePool::release(Texture* texture)
 }
 
 // FUNCTION: SURRENDER 0x10019A00 SYMBOL
-// ??0MatrixStack@srGERD@@QAE@XZ
+// RECOMP: ??0MatrixStack@srGERD@@QAE@XZ
 srGERD::MatrixStack::MatrixStack() : depth(0) {}
 
 // FUNCTION: SURRENDER 0x10019320
@@ -1776,7 +1776,7 @@ public:
     LockSurface(srGERD* gerd, const srPixelConvert::PixelFormat& format);
     // 0x1001F610
     virtual ~LockSurface() override;
-    // 0x1001F780
+    // FUNCTION: SURRENDER 0x1001F780
     static const char* sGetClassName()
     {
         return "srGERD::Surface";
@@ -3121,17 +3121,11 @@ srGERD::Texture* srGERD::findLowestPriority()
         if (texture->device.priority < lowest ||
             (texture->device.priority == lowest && texture->device.last_use < last_use)) {
             int bound = 0;
-            if (device.info.max_texture_stages != 0) {
-                Texture** slot = texture_slots;
-                unsigned long stage = 0;
-                do {
-                    if (*slot == texture) {
-                        bound = 1;
-                        break;
-                    }
-                    ++stage;
-                    ++slot;
-                } while (stage < device.info.max_texture_stages);
+            for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
+                if (texture_slots[stage] == texture) {
+                    bound = 1;
+                    break;
+                }
             }
             if (bound == 0) {
                 lowest = texture->device.priority;
@@ -3406,9 +3400,15 @@ void srGERD::initDDInfo()
     device.info.texture_max_dim = 0x100;
     device.info.unknown_10_ = 1.0f;
     device.info.unknown_14_ = 65536.0f;
-    for (long i = 0; i < 9; i++) {
-        sprintf(device.info.text[i], "Unknown");
-    }
+    sprintf(device.info.text[0], "Unknown");
+    sprintf(device.info.text[1], "Unknown");
+    sprintf(device.info.text[2], "Unknown");
+    sprintf(device.info.text[3], "Unknown");
+    sprintf(device.info.text[4], "Unknown");
+    sprintf(device.info.text[5], "Unknown");
+    sprintf(device.info.text[6], "Unknown");
+    sprintf(device.info.text[7], "Unknown");
+    sprintf(device.info.text[8], "Unknown");
     getDD()->getInfo(device.info);
     if (device.info.max_texture_stages > 2) {
         device.info.max_texture_stages = 2;
@@ -4103,15 +4103,11 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
             texture_iface[0] = 0;
             texture_iface[1] = 0;
             shader = srShader();
-            if (device.info.max_texture_stages != 0) {
-                unsigned long stage = 0;
-                do {
-                    texture_parms[stage].mipmap_bias = 0.0f;
-                    texture_parms[stage].packed = 0x1a1;
-                    texture_parms[stage].mipmap_bias = -1234567.0f;
-                    setTexture(0, stage);
-                    stage++;
-                } while (stage < device.info.max_texture_stages);
+            for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
+                texture_parms[stage].mipmap_bias = 0.0f;
+                texture_parms[stage].packed = 0x1a1;
+                texture_parms[stage].mipmap_bias = -1234567.0f;
+                setTexture(0, stage);
             }
             invalidatePalette();
             state.scissor.left = 0;

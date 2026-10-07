@@ -25,9 +25,10 @@ import re
 import subprocess
 import tempfile
 from collections import defaultdict
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
+
+from .subprocesses import git_prefix
 
 MARKER_KINDS = (
     "FUNCTION",
@@ -66,19 +67,9 @@ _DECLARATOR = re.compile(r"([A-Za-z_]\w*(?:::[A-Za-z_]\w*)*)\s*(?:\(|=|;|\[)")
 Identity = tuple[str, str, int]
 
 
-@lru_cache(maxsize=8)
-def _git_prefix(repo_dir: Path) -> tuple[str, ...]:
-    if (repo_dir / ".jj").is_dir():
-        root = subprocess.run(
-            ["jj", "git", "root"], cwd=repo_dir, capture_output=True, text=True, check=True
-        ).stdout.strip()
-        return ("git", f"--git-dir={root}")
-    return ("git",)
-
-
 def _git(repo_dir: Path, *args: str) -> str:
     return subprocess.run(
-        [*_git_prefix(repo_dir), *args],
+        [*git_prefix(repo_dir), *args],
         cwd=repo_dir,
         capture_output=True,
         text=True,
@@ -194,7 +185,7 @@ def _tree_sources(repo_dir: Path, revision: str | None) -> dict[str, str]:
         return {}
     oids = sorted(set(files.values()))
     output = subprocess.run(
-        [*_git_prefix(repo_dir), "cat-file", "--batch"],
+        [*git_prefix(repo_dir), "cat-file", "--batch"],
         cwd=repo_dir,
         input=("\n".join(oids) + "\n").encode(),
         capture_output=True,

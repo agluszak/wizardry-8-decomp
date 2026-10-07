@@ -128,19 +128,15 @@ void UpdateGameClock(int elapsed)
             }
             W8Character* character = &g_status.buffers.Char[slot];
             int i;
-            W8ItemInstance* item = character->EquippedItem;
-            for (i = 0xc; i != 0; --i) {
-                if (item->iItemNo == 0x266) {
-                    AddItemUses(item, uses);
+            for (i = 0; i < 0xc; ++i) {
+                if (character->EquippedItem[i].iItemNo == 0x266) {
+                    AddItemUses(&character->EquippedItem[i], uses);
                 }
-                ++item;
             }
-            item = character->backpack;
-            for (i = 8; i != 0; --i) {
-                if (item->iItemNo == 0x266) {
-                    AddItemUses(item, uses);
+            for (i = 0; i < 8; ++i) {
+                if (character->backpack[i].iItemNo == 0x266) {
+                    AddItemUses(&character->backpack[i], uses);
                 }
-                ++item;
             }
         }
         for (unsigned int index = 0; index < g_status.party_item_count; ++index) {
@@ -398,7 +394,7 @@ void ResolveSurpriseWake(void)
                 static_cast<int>(character->attributes[W8_ATTRIBUTE_SENSES].effective * 0x46 / 100);
             if (roll < 1) {
                 PostCharacterNotice(slot, gppStringList[0x243],
-                                    gppStringList[g_condition_notices[60]]);
+                                    gppStringList[g_condition_notices[W8_CONDITION_ASLEEP].name]);
             } else {
                 SetCharacterCondition(slot, W8_CONDITION_ASLEEP, roll / 0x1e + 1, 0, 0, 0);
             }
@@ -528,7 +524,7 @@ void AdvanceTimedEffects(unsigned int minutes)
         if (g_status.buffers.XChar[slot].fOccupied &&
             (character->highest_condition < W8_CONDITION_DEAD ||
              (character->uiCondition[W8_CONDITION_DEAD] == 0 &&
-              GetConditionRecordFlag(slot, W8_DEPENDENCE_SWALLOWED) != 0))) {
+              GetConditionRecordFlag(slot, W8_DEPENDENCE_SWALLOWED)))) {
             GameTurnsPassedChar(slot, minutes);
         }
     }
@@ -1360,7 +1356,7 @@ void UpdatePartyStamina(int ticks)
         W8Character* character = &g_status.buffers.Char[slot];
         if (character->highest_condition >= W8_CONDITION_DEAD &&
             (character->uiCondition[W8_CONDITION_DEAD] != 0 ||
-             GetConditionRecordFlag(slot, W8_DEPENDENCE_SWALLOWED) == 0)) {
+             !GetConditionRecordFlag(slot, W8_DEPENDENCE_SWALLOWED))) {
             continue;
         }
         if (g_status.party_fatigued &&

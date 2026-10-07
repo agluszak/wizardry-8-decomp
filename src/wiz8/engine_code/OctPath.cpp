@@ -1100,8 +1100,7 @@ bool W8PathingService::TestAttachmentHopDoor(W8NavigatorAttachment* attachment)
                 if (action_data == 0 || action_data->type != W8_TRIGGER_PAYLOAD_DOOR) {
                     action_data = 0;
                 }
-                if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags &
-                     W8_DOOR_OPEN) == 0) {
+                if (!static_cast<W8DoorTriggerActionData*>(action_data)->open) {
                     return true;
                 }
             }
@@ -1664,24 +1663,20 @@ unsigned short W8PathingService::RecursePatrolLinks(unsigned short waypoint)
         }
     }
     m_visited_path_nodes->Set(waypoint);
-    if (count != 0) {
-        unsigned int index = 0;
-        do {
-            unsigned short next = m_pEdges[links[index]].destination;
-            if (m_ulNumWayPoints <= static_cast<unsigned int>(next)) {
-                srAssertFail("usNextNode < m_ulNumWayPoints", OCTPATH_CPP, 0x1e0f,
-                             "Waypoint index out of range (2)");
-            }
-            if (((m_patrol_distance < costs[index]) || (g_patrol_cost_limit < costs[index])) &&
-                (m_patrol_min < distance)) {
-                return next;
-            }
-            unsigned short found = RecursePatrolLinks(next);
-            if (found != 0) {
-                return found;
-            }
-            ++index;
-        } while (index < count);
+    for (unsigned int index = 0; index < count; ++index) {
+        unsigned short next = m_pEdges[links[index]].destination;
+        if (m_ulNumWayPoints <= static_cast<unsigned int>(next)) {
+            srAssertFail("usNextNode < m_ulNumWayPoints", OCTPATH_CPP, 0x1e0f,
+                         "Waypoint index out of range (2)");
+        }
+        if (((m_patrol_distance < costs[index]) || (g_patrol_cost_limit < costs[index])) &&
+            (m_patrol_min < distance)) {
+            return next;
+        }
+        unsigned short found = RecursePatrolLinks(next);
+        if (found != 0) {
+            return found;
+        }
     }
     return 0;
 }
@@ -5580,8 +5575,8 @@ bool W8PathingService::PreparePathVisualization(const srVector3T<float>* source,
         best_alignment = -1.0f;
         best_waypoint = 0;
         float distance = 0.0f;
-        int probe_count = 25;
-        do {
+        int probe_count;
+        for (probe_count = 0; probe_count < 25; ++probe_count) {
             srVector3T<float> probe;
             unsigned short probe_waypoint;
 
@@ -5601,8 +5596,7 @@ bool W8PathingService::PreparePathVisualization(const srVector3T<float>* source,
                     best_waypoint = probe_waypoint;
                 }
             }
-            --probe_count;
-        } while (probe_count != 0);
+        }
 
         if (best_alignment > g_path_direct_alignment_threshold) {
             destination_waypoint = best_waypoint;
@@ -6181,7 +6175,6 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
 unsigned int W8PathingService::FindPathHandle(const char* path_name, W8PathGridBounds* path_bounds,
                                               W8PathVerticalRange* path_range)
 {
-    GDPropCondPaths* path;
     unsigned int index;
     unsigned int lookup_index;
     unsigned short value;
@@ -6190,17 +6183,15 @@ unsigned int W8PathingService::FindPathHandle(const char* path_name, W8PathGridB
     if (path_name == 0 || *path_name == 0 || m_pCondPaths == 0 || m_ulNumCondPaths == 0) {
         return 0;
     }
-    index = 0;
-    path = m_pCondPaths;
-    do {
-        if (strcmp(path_name, path->name) == 0) {
+    for (index = 0; index < static_cast<unsigned int>(m_ulNumCondPaths); ++index) {
+        if (strcmp(path_name, m_pCondPaths[index].name) == 0) {
             path_bounds->min_z = 0xffff;
             path_bounds->min_x = 0xffff;
             path_bounds->max_z = 0;
             path_bounds->max_x = 0;
             path_range->minimum = 1e+08f;
             path_range->maximum = -1e+08f;
-            lookup_index = path->lookup_index;
+            lookup_index = m_pCondPaths[index].lookup_index;
             while (m_pulCondLookup[lookup_index] != 0) {
                 unsigned int key_index = m_pulCondLookup[lookup_index];
                 while (m_pulCondNodeKeys[key_index] != 0) {
@@ -6230,11 +6221,9 @@ unsigned int W8PathingService::FindPathHandle(const char* path_name, W8PathGridB
                 }
                 ++lookup_index;
             }
-            return path->lookup_index;
+            return m_pCondPaths[index].lookup_index;
         }
-        ++index;
-        ++path;
-    } while (index < static_cast<unsigned int>(m_ulNumCondPaths));
+    }
     return 0;
 }
 
@@ -6769,7 +6758,7 @@ void W8PathParameters::SteerFromPathStart(W8NavigatorMovementState* movement, bo
     if (!HandleObstacleAhead()) {
         if (PredictNavigatorCollision()) {
             movement->attachment->flags |= W8_NAV_ATTACHMENT_COLLISION_PREDICTED;
-        } else if (alternate == 0 && SteerAroundLeader(true)) {
+        } else if (!alternate && SteerAroundLeader(true)) {
             AccumulateGroupRepulsion();
             IntegrateSteering();
             return;
@@ -6778,7 +6767,7 @@ void W8PathParameters::SteerFromPathStart(W8NavigatorMovementState* movement, bo
             AccumulateSeekForce();
         }
     }
-    if (alternate == 0) {
+    if (!alternate) {
         AccumulateGroupRepulsion();
     }
     IntegrateSteering();
@@ -6809,7 +6798,7 @@ bool W8PathParameters::SteerAlongPath(W8NavigatorMovementState* movement, bool a
             movement->attachment->flags |= W8_NAV_ATTACHMENT_COLLISION_PREDICTED;
             goto steered;
         }
-        if (alternate == 0 && SteerAroundLeader(true)) {
+        if (!alternate && SteerAroundLeader(true)) {
             AccumulateGroupRepulsion();
             IntegrateSteering();
             return false;
@@ -6818,7 +6807,7 @@ bool W8PathParameters::SteerAlongPath(W8NavigatorMovementState* movement, bool a
         AccumulateSeekForce();
     }
 steered:
-    if (alternate == 0) {
+    if (!alternate) {
         AccumulateGroupRepulsion();
     }
     IntegrateSteering();

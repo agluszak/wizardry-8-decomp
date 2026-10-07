@@ -97,14 +97,14 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int sour
             tiles[index++] = texture;
         }
     }
-    texture_coordinates[0] = 0.0f;
-    texture_coordinates[1] = 0.0f;
-    texture_coordinates[2] = 1.0f;
-    texture_coordinates[3] = 0.0f;
-    texture_coordinates[4] = 0.0f;
-    texture_coordinates[5] = 1.0f;
-    texture_coordinates[6] = 1.0f;
-    texture_coordinates[7] = 1.0f;
+    texture_coordinates[0][0] = 0.0f;
+    texture_coordinates[0][1] = 0.0f;
+    texture_coordinates[1][0] = 1.0f;
+    texture_coordinates[1][1] = 0.0f;
+    texture_coordinates[2][0] = 0.0f;
+    texture_coordinates[2][1] = 1.0f;
+    texture_coordinates[3][0] = 1.0f;
+    texture_coordinates[3][1] = 1.0f;
 }
 
 // FUNCTION: WIZ8 0x0047DFF0
@@ -162,7 +162,7 @@ void stSurface2D::DrawTiles(srGERD* renderer)
     srShader shader;
     shader.value = shader_bits;
     renderer->setShader(shader);
-    renderer->setTexCoordPointer(2, srRendererDefs::TYPE_FLOAT, 8, texture_coordinates, 0);
+    renderer->setTexCoordPointer(2, srRendererDefs::TYPE_FLOAT, 8, texture_coordinates[0], 0);
     renderer->setAntiAlias(srGERD::ANTIALIAS_NONE);
 
     for (row = 0; row != rows; ++row) {
@@ -199,16 +199,12 @@ void stSurface2D::DrawTiles(srGERD* renderer)
 // FUNCTION: WIZ8 0x0047E560
 void stSurface2D::setScale(float new_scale)
 {
-    float* coordinate = texture_coordinates;
     float factor = g_float_one / tile_size;
     float delta = (new_scale - scale) * factor;
-    int row;
-    int column;
 
-    for (row = 4; row != 0; --row) {
-        for (column = 2; column != 0; --column) {
-            *coordinate += delta;
-            ++coordinate;
+    for (int corner = 0; corner < 4; ++corner) {
+        for (int axis = 0; axis < 2; ++axis) {
+            texture_coordinates[corner][axis] += delta;
         }
     }
     scale = new_scale;

@@ -530,30 +530,27 @@ unsigned char PrePathing::CreateAutomapNodes(W8LevelFile* level)
     }
     SetAutomapGridCellSize(AutomapLevelIsLarge() ? 4000.0f : 2000.0f);
     int created = 0;
-    unsigned int i = 1;
-    if (1 < static_cast<unsigned int>(path_node_count)) {
-        do {
-            int percent = static_cast<int>(i * 100.0f / path_node_count);
-            if (last_percent < percent) {
-                sprintf(message, "Creating Automap Nodes:  %d%% Complete:  %d Nodes created  \r",
-                        percent, created);
-                ReportStartupMessage(message);
-                last_percent = percent;
-            }
-            W8PrePathNode* node = path_node_list[i];
-            srVector3T<float> position;
-            position.Set((node->cell & 0xffff) * grid_scale,
-                         (node->level_flags & W8_PATH_CELL_HEIGHT_MASK) * span,
-                         (node->cell >> 0x10) * grid_scale);
-            unsigned int key = AutomapNodeKey(&position);
-            if (used_keys.FindNextEntry(&key, -1) == -1) {
-                node_keys.Add(key);
-                unsigned char present = 1;
-                used_keys.Insert(&key, &present);
-                ++created;
-            }
-            ++i;
-        } while (i < static_cast<unsigned int>(path_node_count));
+    unsigned int i;
+    for (i = 1; i < static_cast<unsigned int>(path_node_count); ++i) {
+        int percent = static_cast<int>(i * 100.0f / path_node_count);
+        if (last_percent < percent) {
+            sprintf(message, "Creating Automap Nodes:  %d%% Complete:  %d Nodes created  \r",
+                    percent, created);
+            ReportStartupMessage(message);
+            last_percent = percent;
+        }
+        W8PrePathNode* node = path_node_list[i];
+        srVector3T<float> position;
+        position.Set((node->cell & 0xffff) * grid_scale,
+                     (node->level_flags & W8_PATH_CELL_HEIGHT_MASK) * span,
+                     (node->cell >> 0x10) * grid_scale);
+        unsigned int key = AutomapNodeKey(&position);
+        if (used_keys.FindNextEntry(&key, -1) == -1) {
+            node_keys.Add(key);
+            unsigned char present = 1;
+            used_keys.Insert(&key, &present);
+            ++created;
+        }
     }
     used_keys.Clear();
     level->num_automap_nodes = node_keys.GetCount();
@@ -669,7 +666,7 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
         }
         if (ppCondPaths[i] != 0) {
             if ((pProp->num_stop_meshes == 1) &&
-                ((pProp->pStopMeshes[0].m_flags & W8_GD_PROP_ALWAYS_BLOCKS_PATH) != 0)) {
+                (pProp->pStopMeshes[0].m_flags.always_blocks_path)) {
                 aiLookup[m_ulNumCondFrames + 1] = aiLookup[m_ulNumCondFrames];
                 ausFrames[m_ulNumCondFrames] = pProp->pStopMeshes[0].last_frame;
                 ++m_ulNumCondFrames;

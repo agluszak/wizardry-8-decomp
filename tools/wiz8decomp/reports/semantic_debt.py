@@ -931,9 +931,105 @@ def semantic_name_opportunity_report(repository: Path) -> dict[str, Any]:
     }
 
 
+def _retail_identity_ownership(repository: Path, target: str) -> dict[str, Any]:
+    """Classify reccmp's existing identities, independently of rebuild pairing.
+
+    This does not discover retail objects or infer an owner from a nearby
+    address. Catalog coverage and body/extent coverage need separate review.
+    """
+    from collections import Counter
+
+    from reccmp.compare import Compare
+    from reccmp.types import EntityType, ImageId
+
+    from ..comparison import comparison_target
+    from ..emissions import emission_inventory
+    from ..source_index import address_bound_identities
+
+    engine = Compare.from_target(comparison_target(repository, target))
+    bindings = address_bound_identities(repository, target)
+    emissions = {row.address: row for row in emission_inventory(repository, target)}
+    aliases = {
+        entity.orig_addr: canonical.orig_addr
+        for entity, canonical in engine.db.get_aliases(ImageId.ORIG)
+    }
+    rows = []
+    for entity in engine.get_all():
+        if entity.orig is None:
+            continue
+        address = entity.orig_addr
+        if address is None:
+            continue
+        facts = entity.orig.facts
+        identities = bindings.get(address, ())
+        emission = emissions.get(address)
+        bucket = None
+        basis = None
+        if address in aliases:
+            bucket, basis = "icf_folded_sibling", "native reccmp alias"
+        elif entity.entity_type == EntityType.IMPORT:
+            bucket, basis = "external_abi", "retail PE import"
+        elif entity.entity_type in (EntityType.IMPORT_THUNK, EntityType.THUNK, EntityType.VTORDISP):
+            bucket, basis = "thunk", "native reccmp thunk classification"
+        elif facts.get("library") or any(
+            identity.kind == "library" or identity.source_file.startswith("src/sgp/")
+            for identity in identities
+        ):
+            bucket, basis = "library_owned", "library metadata or component source binding"
+        elif emission is not None:
+            bucket = (
+                "template_inline_emission" if emission.type == "template" else "compiler_generated"
+            )
+            basis = "reviewed compiler emission inventory"
+        elif (
+            entity.entity_type == EntityType.LABEL
+            and str(facts.get("name") or "").startswith(("__Unwind", "__ehhandler"))
+            or entity.entity_type == EntityType.DATA
+            and "seh_unwinds_orig" in facts
+        ):
+            bucket, basis = "compiler_generated", "native reccmp exception metadata"
+        elif entity.entity_type == EntityType.VTABLE and any(
+            identity.kind == "vtable" for identity in identities
+        ):
+            bucket, basis = "compiler_generated", "source-bound class vtable"
+        elif any(identity.kind in ("definition", "global") for identity in identities):
+            bucket, basis = "recovered_authored_source", "explicit source address binding"
+        elif entity.entity_type in (EntityType.STRING, EntityType.WIDECHAR, EntityType.FLOAT):
+            bucket, basis = "compiler_generated", "native reccmp literal classification"
+        rows.append(
+            {
+                "address": f"0x{address:08x}",
+                "entity_type": EntityType(entity.entity_type).name if entity.entity_type else None,
+                "name": facts.get("name") or facts.get("source_name"),
+                "bucket": bucket,
+                "basis": basis,
+                "paired": entity.recomp_addr is not None,
+                "source_files": sorted(
+                    {identity.source_file for identity in identities}
+                    | set(emission.source_files if emission else ())
+                ),
+            }
+        )
+    counts = Counter(row["bucket"] for row in rows if row["bucket"] is not None)
+    unresolved = [row for row in rows if row["bucket"] is None]
+    return {
+        "scope": "existing native reccmp catalog; not a retail object-discovery or byte-coverage proof",
+        "inventory_complete": False,
+        "entities": len(rows),
+        "classified": len(rows) - len(unresolved),
+        "unclassified": len(unresolved),
+        "without_recomp_pair": sum(not row["paired"] for row in rows),
+        "buckets": dict(sorted(counts.items())),
+        "unclassified_entities": unresolved,
+        "identities": rows,
+    }
+
+
 def semantic_debt_report(
     repository: Path,
     target: str = "WIZ8",
+    *,
+    retail_identities: bool = False,
 ) -> dict[str, Any]:
     """Return a read-only recovery queue; none of its rows are validation failures."""
 
@@ -1012,7 +1108,9 @@ def semantic_debt_report(
     from .portability import portability_queues
 
     portability = portability_queues(repository, index)
+    ownership = _retail_identity_ownership(repository, target) if retail_identities else None
     return {
+        **({"retail_identity_ownership": ownership} if ownership is not None else {}),
         "schema": "wiz8.semantic-debt-v2",
         "non_gating": True,
         "summary": {

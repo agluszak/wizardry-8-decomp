@@ -250,11 +250,8 @@ void ArnikaWarningSound(int command)
         g_warning_gate = new W8IntervalGate(30.0f, false, true);
         return;
     }
-    if (!g_warning_gate->IsFinished()) {
-        g_warning_gate->PollElapsedIntervals();
-        if (!g_warning_gate->IsFinished()) {
-            return;
-        }
+    if (!g_warning_gate->PollFinished()) {
+        return;
     }
     g_remove_current_master_function = true;
     g_warning_loop->Stop();

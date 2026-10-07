@@ -65,13 +65,13 @@ public:
        marks keep the header bodies for that folding while still emitting the
        exported standalone copies. */
     // FUNCTION: SURRENDER 0x10062340
-    // ?getCPUIdent@srTimer@@QBEPBDXZ
+    // RECOMP: ?getCPUIdent@srTimer@@QBEPBDXZ
     const char* getCPUIdent() const
     {
         return m_cpu_ident;
     }
     // FUNCTION: SURRENDER 0x10062330
-    // ?getCPUCount@srTimer@@QBEKXZ
+    // RECOMP: ?getCPUCount@srTimer@@QBEKXZ
     unsigned long getCPUCount() const
     {
         return m_cpu_count;
@@ -84,26 +84,26 @@ public:
     int getFeature(long feature) const;
     int getCPUIDSupport() const;
     // FUNCTION: SURRENDER 0x100623B0
-    // ?getFPUSupport@srTimer@@QBEHXZ
+    // RECOMP: ?getFPUSupport@srTimer@@QBEHXZ
     int getFPUSupport() const
     {
         return m_cpu_features & (1UL << CPU_FEATURE_FPU);
     }
     // FUNCTION: SURRENDER 0x100623D0
-    // ?getMMXSupport@srTimer@@QBEHXZ
+    // RECOMP: ?getMMXSupport@srTimer@@QBEHXZ
     int getMMXSupport() const
     {
         return m_cpu_features >> CPU_FEATURE_MMX & 1;
     }
     // FUNCTION: SURRENDER 0x100623C0
-    // ?getRDTSCSupport@srTimer@@QBEHXZ
+    // RECOMP: ?getRDTSCSupport@srTimer@@QBEHXZ
     int getRDTSCSupport() const
     {
         return m_cpu_features >> CPU_FEATURE_RDTSC & 1;
     }
     void getFreq(srQuadWord& out) const;
     // FUNCTION: SURRENDER 0x100621E0
-    // ?getFreqf@srTimer@@QBENXZ
+    // RECOMP: ?getFreqf@srTimer@@QBENXZ
     double getFreqf() const
     {
         return m_frequency.lo * 1e-06 + m_frequency.hi * 4294.967296;
@@ -116,7 +116,7 @@ public:
        out-of-line emission, so the original header carried this body. The
        member dllexport emits the exported standalone copy. */
     // FUNCTION: SURRENDER 0x10062750
-    // ?fastThreads@srTimer@@QAEHXZ
+    // RECOMP: ?fastThreads@srTimer@@QAEHXZ
     int fastThreads()
     {
         if (osThreadState == -1) {
