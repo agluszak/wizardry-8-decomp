@@ -4,10 +4,8 @@ from typing import Annotated
 
 import typer
 
-from ..pipeline import PipelineStage
-
 app = typer.Typer(
-    help="Scan, extract, materialize, verify, and clean the local corpus.",
+    help="Scan, extract, and materialize the local corpus.",
     no_args_is_help=True,
 )
 
@@ -53,24 +51,3 @@ def materialize_command() -> None:
     cli.emit(materialize_variants(cli.settings()))
 
 
-@app.command("verify")
-def verify_command() -> None:
-    """Rehash generated trees and verify every complete stage recipe."""
-    from .. import command_support as cli
-    from ..pipeline import verify_pipeline
-
-    result = verify_pipeline(cli.settings())
-    cli.emit(result)
-    if not result["ok"]:
-        raise typer.Exit(1)
-
-
-@app.command("clean")
-def clean_command(
-    stage: Annotated[PipelineStage, typer.Option("--stage", help="Generated stage to remove.")],
-) -> None:
-    """Remove one explicit generated stage and its downstream derived evidence."""
-    from .. import command_support as cli
-    from ..pipeline import clean_pipeline
-
-    cli.emit(clean_pipeline(cli.settings(), stage))

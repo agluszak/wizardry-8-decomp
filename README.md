@@ -141,7 +141,6 @@ Common development commands:
 | `uv run wiz8 ghidra asm 0xADDRESS...` | Inspect annotated retail assembly. |
 | `uv run wiz8 check` | Run the fast repository checks. |
 | `uv run wiz8 lint` | Compile recovered C++ with the structural diagnostics lane. |
-| `uv run wiz8 tidy-audit` | Report the whole corpus under the non-gating clang-tidy audit profile. |
 
 Use `uv run wiz8 --help` for the complete command set. CI runs `wiz8 check` and `wiz8 lint` as separate gates; run those directly when needed locally.
 
