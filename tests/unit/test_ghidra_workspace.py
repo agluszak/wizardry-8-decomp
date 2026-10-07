@@ -151,7 +151,7 @@ def test_existing_program_refuses_known_stale_reviewed_seed(
     monkeypatch.setattr(workspace, "seed_record", lambda *_args, **_kwargs: current)
     monkeypatch.setattr(workspace, "_program_hash", lambda *_args: "binary-hash")
 
-    with pytest.raises(RuntimeError, match="run `uv run wiz8 doctor`"):
+    with pytest.raises(RuntimeError, match="reviewed seed provenance is stale"):
         workspace.restore_seed(settings, object())
 
 

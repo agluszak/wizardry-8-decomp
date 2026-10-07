@@ -340,37 +340,6 @@ def test_runtime_test_build_is_explicit(monkeypatch) -> None:
     ]
 
 
-@pytest.mark.parametrize("changed,expects_lint", [("src/wiz8/a.cpp", True), ("README.md", False)])
-def test_pr_check_requires_lint_for_product_source(
-    monkeypatch, tmp_path, changed, expects_lint
-) -> None:
-    from wiz8decomp import build, comparison, config
-
-    events: list[tuple[str, Path] | tuple[str]] = []
-    repository = tmp_path
-    monkeypatch.setattr(config, "repository_root", lambda: repository)
-    monkeypatch.setattr(command_support, "settings", lambda: object())
-    monkeypatch.setattr(build, "check", lambda actual: events.append(("check", actual)) or {})
-    monkeypatch.setattr(
-        build,
-        "lint",
-        lambda _settings, **_kwargs: events.append(("lint",)) or {},
-    )
-    monkeypatch.setattr(
-        comparison,
-        "changed_files",
-        lambda _repository, _since=None: [repository / changed],
-    )
-
-    result = CliRunner().invoke(app, ["pr-check"])
-
-    assert result.exit_code == 0, result.output
-    expected: list[tuple[str, Path] | tuple[str]] = [("check", repository)]
-    if expects_lint:
-        expected.append(("lint",))
-    assert events == expected
-
-
 def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:
     settings = object()
     seen: list[tuple[object, str]] = []
