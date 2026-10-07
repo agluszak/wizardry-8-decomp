@@ -122,11 +122,3 @@ def validate_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, obje
     return {"ok": not failures, "checks": checks, "failure_count": len(failures)}
 
 
-def require_valid_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, object]:
-    report = validate_repository(repo_dir, program)
-    if not report["ok"]:
-        checks = report["checks"]
-        assert isinstance(checks, list)
-        messages = [str(check["error"]) for check in checks if not check["ok"]]
-        raise ValueError("repository validation failed: " + "; ".join(messages))
-    return report

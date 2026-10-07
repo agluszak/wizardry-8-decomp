@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..config import Settings
 from ..provenance import ProvenanceError, validate_provenance
 from .io import parse_hex, read_table
 
@@ -45,26 +44,3 @@ def validate_claim_rows(
     return len(claims)
 
 
-def validate_claims_against_ghidra(settings: Settings, program: str = "wiz8") -> dict[str, int]:
-    """Resolve only the claimed function entries against the live reviewed program."""
-
-    from ..ghidra.inspect import validate_function_entries
-
-    claims = load_claims(settings.repo_dir, program)
-    path = settings.repo_dir / "evidence/reviewed" / program / "claims.csv"
-    addresses = {
-        parse_hex(claim["entity_key"], field="entity_key", path=path) or 0
-        for claim in claims
-        if claim["entity_kind"].strip() == "function"
-    }
-    audit = validate_function_entries(settings, addresses)
-    missing = {int(value, 16) for value in audit["missing"]}
-    if missing:
-        unresolved = [
-            claim["claim_id"]
-            for claim in claims
-            if claim["entity_kind"].strip() == "function"
-            and (parse_hex(claim["entity_key"], field="entity_key", path=path) or 0) in missing
-        ]
-        raise ValueError("claims do not resolve to live Ghidra functions: " + ", ".join(unresolved))
-    return {"function": sum(claim["entity_kind"].strip() == "function" for claim in claims)}

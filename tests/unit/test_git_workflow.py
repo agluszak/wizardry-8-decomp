@@ -4,7 +4,6 @@ import pytest
 from wiz8decomp.cast_lint import baseline_diff
 from wiz8decomp.clang_tidy_lines import redundant_cast_line_filter
 from wiz8decomp.comparison import changed_files, changed_source_files
-from wiz8decomp.dynamic import _repository_revision
 from wiz8decomp.repository import tracked_paths
 from wiz8decomp.source_oracle import extract_declaration_oracle
 
@@ -63,7 +62,6 @@ def test_git_selection_includes_committed_staged_and_unstaged_changes(repository
     base, diff = baseline_diff(repository)
     assert base == git(repository, "rev-parse", "origin/main")
     assert "+working();" in diff and "+staged();" in diff
-    assert _repository_revision(repository) == git(repository, "rev-parse", "HEAD")
 
 
 def test_git_line_filter_includes_staged_and_working_lines(repository):

@@ -272,7 +272,7 @@ def construction_vtable_attachments(
 
 
 def _canonical_matching_binary(repo_dir: Path, work_dir: Path) -> Path:
-    """Same binary path pattern as ``commands.vtables._canonical_binary``."""
+    """Resolve the canonical matching binary from the variant configuration."""
 
     import yaml
 
