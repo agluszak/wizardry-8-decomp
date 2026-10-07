@@ -104,26 +104,6 @@ def added_line_filter(diff: str) -> str:
     return ";".join(encoded)
 
 
-def _jj_changed_line_filter(repository: Path) -> str | None:
-    if not (repository / ".jj").exists():
-        return None
-    result = _run(
-        [
-            "jj",
-            "diff",
-            "--from",
-            "main@origin",
-            "--git",
-            "--",
-            *SCOPES,
-        ],
-        cwd=repository,
-    )
-    if result.returncode != 0:
-        return None
-    return added_line_filter(result.stdout)
-
-
 def _git_changed_line_filter(repository: Path) -> str | None:
     if not (repository / ".git").exists():
         return None
@@ -162,17 +142,7 @@ def _git_changed_line_filter(repository: Path) -> str | None:
 
 
 def redundant_cast_line_filter(repository: Path) -> str:
-    """Resolve the plugin filter for this checkout.
-
-    An explicit environment value wins, including `*` for a full-corpus audit.
-    Otherwise prefer Jujutsu, then Git. Missing VCS information yields an empty
-    filter so the check stays quiet instead of auditing the whole corpus.
-    """
-
+    """Use the explicit filter or added Git lines since the main branch."""
     if FILTER_ENV in os.environ:
         return os.environ[FILTER_ENV]
-    for resolver in (_jj_changed_line_filter, _git_changed_line_filter):
-        resolved = resolver(repository)
-        if resolved is not None:
-            return resolved
-    return ""
+    return _git_changed_line_filter(repository) or ""

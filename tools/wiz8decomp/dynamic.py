@@ -657,7 +657,7 @@ class Sandbox:
 
 def _repository_revision(repo: Path) -> str:
     completed = subprocess.run(
-        ["jj", "log", "-r", "@", "--no-graph", "-T", "commit_id"],
+        ["git", "rev-parse", "HEAD"],
         cwd=repo,
         capture_output=True,
         text=True,

@@ -63,6 +63,6 @@ A failing gate is normally a source/model/tooling defect to fix, not a reason to
 
 ## Repository state
 
-Use the provided checkout and preserve unrelated work. Do not commit extracted trees, live Ghidra projects or build products. Only reviewed GZF checkpoints listed in `vendor/ghidra/exports/manifest.json` may be tracked.
+Use Git for history, branches and publication. Use the provided checkout and preserve unrelated work. Do not commit extracted trees, live Ghidra projects or build products. Only reviewed GZF checkpoints listed in `vendor/ghidra/exports/manifest.json` may be tracked.
 
 Ghidra commands reject live analysis state whose reviewed checkpoint provenance is stale or untracked. Checkpoint handling is documented in [Ghidra checkpoints](docs/ghidra-checkpoints.md).
