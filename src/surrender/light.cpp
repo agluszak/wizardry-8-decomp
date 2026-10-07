@@ -18,7 +18,6 @@
 
 // FUNCTION: SURRENDER 0x1004DDA0
 srLight::srLight(srNode* parent, e_preset preset)
-    : srClassSupport<srLight, srIlluminator, false, 0x1220>(static_cast<srNode*>(0))
 {
     enable_flags = 0;
     derived_flags = 0;
@@ -267,8 +266,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
                 if ((enable_flags & (1UL << srLight::ENABLE_RANGE_FAR)) != 0) {
                     if ((enable_flags & (1UL << srLight::ENABLE_BOUNDING_SPHERE)) != 0) {
                         srVector3T<float> origin(0.0f, 0.0f, 0.0f);
-                        if (renderer->testBoundingSphere(
-                                origin, safe_range + static_cast<float>(far_end)) == 0) {
+                        if (renderer->testBoundingSphere(origin, safe_range + far_end) == 0) {
                             derived_flags &= ~srLight::DERIVED_ACTIVE;
                         }
                     }
