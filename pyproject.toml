@@ -60,7 +60,7 @@ exclude = [
 typeCheckingMode = "basic"
 
 [tool.uv.sources]
-reccmp = { git = "https://github.com/agluszak/reccmp", rev = "635990d8a8d225acc592abf213afe219f1927141" }
+reccmp = { git = "https://github.com/agluszak/reccmp", rev = "6f51001f6ac80d7ad4b165887305be3af4d0dcb1" }
 
 [tool.hatch.metadata]
 allow-direct-references = true

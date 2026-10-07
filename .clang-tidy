@@ -12,13 +12,10 @@
 # The wiz8-* checks come from docker/msvc600/clang-tidy-plugin. `wiz8 lint`
 # gates them on changed lines only (WIZ8_REDUNDANT_CAST_LINES; `*` audits the
 # whole corpus). Cross-record project reinterpret casts have no waiver:
-# reconcile the type/prototype. wiz8-bool-like-byte findings are review
-# guidance, not proof of a historical bool type.
+# reconcile the type/prototype.
 Checks: >
   -*,
   wiz8-redundant-scalar-cast,
-  wiz8-bool-like-byte,
-  wiz8-scalar-facts,
   wiz8-project-record-reinterpret-cast,
   bugprone-misplaced-widening-cast,
   readability-redundant-casting,

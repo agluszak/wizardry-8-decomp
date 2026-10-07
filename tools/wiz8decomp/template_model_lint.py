@@ -6,26 +6,14 @@ import re
 from pathlib import Path
 from typing import Any
 
-_SOURCE_ROOTS = ("src/wiz8", "include/wiz8", "src/surrender", "include/surrender")
-_CPP_SUFFIXES = {".cc", ".cpp", ".cxx", ".h", ".hpp"}
+from .source_text import RECOVERED_ROOTS, mask_cpp_noise, source_files
 
-_NOISE = re.compile(
-    r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
-    re.DOTALL,
-)
 _EXPLICIT_SPECIALIZATION = re.compile(r"(?m)^[ \t]*template[ \t\r\n]*<[ \t\r\n]*>[ \t\r\n]*")
 _EXPLICIT_INSTANTIATION = re.compile(r"(?m)^[ \t]*(?:extern[ \t]+)?template[ \t]+(?![ \t]*<)")
 
 
 class TemplateModelError(RuntimeError):
     """Recovered source contains an unjustified explicit template construct."""
-
-
-def _mask_cpp_noise(source: str) -> str:
-    def mask(match: re.Match[str]) -> str:
-        return "".join("\n" if char == "\n" else " " for char in match.group())
-
-    return _NOISE.sub(mask, source)
 
 
 def _snippet(source: str, offset: int) -> str:
@@ -43,26 +31,18 @@ def _violation(relative: str, source: str, offset: int, kind: str) -> dict[str, 
 
 def _template_model_violations(repository: Path) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
-    for root_name in _SOURCE_ROOTS:
-        root = repository / root_name
-        if not root.is_dir():
-            continue
-        for path in sorted(root.rglob("*")):
-            if not path.is_file() or path.suffix.lower() not in _CPP_SUFFIXES:
-                continue
-            relative = path.relative_to(repository).as_posix()
-            source = path.read_text(encoding="utf-8", errors="ignore")
-            masked = _mask_cpp_noise(source)
+    for path in source_files(repository):
+        relative = path.relative_to(repository).as_posix()
+        source = path.read_text(encoding="utf-8", errors="ignore")
+        masked = mask_cpp_noise(source)
 
-            for match in _EXPLICIT_SPECIALIZATION.finditer(masked):
-                violations.append(
-                    _violation(relative, source, match.start(), "explicit-specialization")
-                )
+        for match in _EXPLICIT_SPECIALIZATION.finditer(masked):
+            violations.append(
+                _violation(relative, source, match.start(), "explicit-specialization")
+            )
 
-            for match in _EXPLICIT_INSTANTIATION.finditer(masked):
-                violations.append(
-                    _violation(relative, source, match.start(), "explicit-instantiation")
-                )
+        for match in _EXPLICIT_INSTANTIATION.finditer(masked):
+            violations.append(_violation(relative, source, match.start(), "explicit-instantiation"))
 
     return violations
 
@@ -83,6 +63,6 @@ def validate_template_model(repository: Path) -> dict[str, Any]:
     return {
         "ok": True,
         "gate": "template-source-model",
-        "roots": list(_SOURCE_ROOTS),
+        "roots": list(RECOVERED_ROOTS),
         "exceptions": [],
     }

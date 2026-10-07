@@ -257,7 +257,9 @@ separate warning policy.
 
 The same compiler projection produces `build/source-index.json`, which is the
 canonical machine-readable view of declarations, definitions, linkage and
-header ownership used by repository gates.
+header ownership used by repository gates. GLOBAL ownership checks use its
+compiler-bound marker anchors and storage sizes, including internal and static-local
+objects. They do not infer C++ types or extents from spelling or size assertions.
 Cross-target namespace separation belongs to that index/tooling layer; this
 document owns only the source-model rules, not compile-database plumbing.
 

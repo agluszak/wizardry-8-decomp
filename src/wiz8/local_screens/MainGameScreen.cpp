@@ -260,16 +260,6 @@ wchar_t g_format_s[] = L"%s";
 // GLOBAL: WIZ8 0x00648170
 static wchar_t g_format_d_s_paren_d_slash_d_slash_d[] = L"%d %s (%d/%d/%d)";
 
-#pragma bss_seg(".data")
-// GLOBAL: WIZ8 0x00647f84
-static int g_monster_list_right = 0;
-#pragma bss_seg()
-
-#pragma bss_seg(".data")
-// GLOBAL: WIZ8 0x00647f88
-static int g_monster_list_bottom = 0;
-#pragma bss_seg()
-
 // GLOBAL: WIZ8 0x006481b4
 wchar_t g_format_s_colon_s_paren_d[] = L"%s: %s (%d)";
 
@@ -4052,8 +4042,8 @@ void RedrawCombatMonsterList(void)
     }
     if (live_row_count != static_cast<unsigned int>(g_level_block->group_list_rows) ||
         max_text_width != static_cast<unsigned int>(g_level_block->group_list_width)) {
-        g_monster_list_right = max_text_width + 0xfa;
-        g_monster_list_bottom = row_y;
+        g_main_game_invalidate_rects[17].right = max_text_width + 0xfa;
+        g_main_game_invalidate_rects[17].bottom = row_y;
         if (live_row_count == 0) {
             DisableRegionInput(0xe5);
         } else {
@@ -4897,13 +4887,6 @@ void RequestLevelTransition(int level, int entry, unsigned char flag)
     BeginLevelTransition();
 }
 
-/* The preceding dword has no retail references; its purpose is unresolved. */
-// GLOBAL: WIZ8 0x00647f40
-static int g_unresolved_viewport_value = -1;
-
-// GLOBAL: WIZ8 0x00647f44
-static W8ScreenRect g_active_viewport;
-
 /* Switch the 3D view to another viewport mode: resize the view region to the
    inclusive rectangle and hand the renderer the exclusive one. */
 // FUNCTION: WIZ8 0x005618f0
@@ -4916,9 +4899,12 @@ void SetViewportMode(int mode)
     }
     rect = &g_viewport_modes[mode];
     SetRegionBounds(0xe6, rect->left, rect->top, rect->right - 1, rect->bottom - 1);
-    g_active_viewport = *rect;
-    SetViewport(g_active_viewport.left, g_active_viewport.top, g_active_viewport.right,
-                g_active_viewport.bottom);
+    W8MainGameInvalidateRect& viewport = g_main_game_invalidate_rects[15];
+    viewport.left = rect->left;
+    viewport.top = rect->top;
+    viewport.right = rect->right;
+    viewport.bottom = rect->bottom;
+    SetViewport(viewport.left, viewport.top, viewport.right, viewport.bottom);
     g_level_block->camera_mode = mode;
 }
 

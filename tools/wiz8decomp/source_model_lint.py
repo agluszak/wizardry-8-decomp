@@ -11,15 +11,10 @@ from .source_index import (
     declarations_by_semantic_key,
     load_source_index,
 )
+from .source_text import RECOVERED_ROOTS, mask_cpp_noise, source_files
 
-_RECOVERED_ROOTS = ("src/wiz8", "include/wiz8", "src/surrender", "include/surrender")
-_CPP_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _MARKER_ONLY_KINDS = frozenset({"LIBRARY"})
 
-_NOISE = re.compile(
-    r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
-    re.DOTALL,
-)
 _PROJECT_TYPE = (
     r"(?:W8|sr|st)[A-Z][A-Za-z0-9_]*"
     r"(?:\s*<[^;{}()\n]*>)?"
@@ -78,32 +73,11 @@ class SourceModelGateError(RuntimeError):
     """Recovered source contains compiler lowering or type-model escape hatches."""
 
 
-def _mask_cpp_noise(source: str) -> str:
-    def mask(match: re.Match[str]) -> str:
-        return "".join("\n" if char == "\n" else " " for char in match.group())
-
-    return _NOISE.sub(mask, source)
-
-
-def _source_files(repository: Path, roots: tuple[str, ...] = _RECOVERED_ROOTS) -> list[Path]:
-    files: list[Path] = []
-    for root_name in roots:
-        root = repository / root_name
-        if not root.is_dir():
-            continue
-        files.extend(
-            path
-            for path in root.rglob("*")
-            if path.is_file() and path.suffix.casefold() in _CPP_SUFFIXES
-        )
-    return sorted(set(files))
-
-
 def _inline_control_violations(repository: Path) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
-    for path in _source_files(repository, _RECOVERED_ROOTS):
+    for path in source_files(repository, RECOVERED_ROOTS):
         source = path.read_text(encoding="utf-8", errors="ignore")
-        masked = _mask_cpp_noise(source)
+        masked = mask_cpp_noise(source)
         for kind, pattern in _INLINE_CONTROLS:
             for match in pattern.finditer(masked):
                 violations.append(
@@ -133,9 +107,9 @@ def _project_typed_names(masked: str) -> tuple[set[str], set[str]]:
 
 def _typed_raw_offset_violations(repository: Path) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
-    for path in _source_files(repository):
+    for path in source_files(repository):
         source = path.read_text(encoding="utf-8", errors="ignore")
-        masked = _mask_cpp_noise(source)
+        masked = mask_cpp_noise(source)
         pointers, references = _project_typed_names(masked)
         for pattern in (_REINTERPRET_RAW_OFFSET, _C_STYLE_RAW_OFFSET):
             for match in pattern.finditer(masked):
@@ -160,9 +134,9 @@ def _typed_raw_offset_violations(repository: Path) -> list[dict[str, Any]]:
 
 def _callable_cast_violations(repository: Path) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
-    for path in _source_files(repository):
+    for path in source_files(repository):
         source = path.read_text(encoding="utf-8", errors="ignore")
-        masked = _mask_cpp_noise(source)
+        masked = mask_cpp_noise(source)
         for match in _INLINE_FUNCTION_POINTER_CAST.finditer(masked):
             violations.append(
                 {
@@ -216,9 +190,9 @@ def _address_suffixed_callable_violations(repository: Path) -> list[dict[str, An
 
 def _scalar_delete_violations(repository: Path) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
-    for path in _source_files(repository):
+    for path in source_files(repository):
         source = path.read_text(encoding="utf-8", errors="ignore")
-        masked = _mask_cpp_noise(source)
+        masked = mask_cpp_noise(source)
         array_allocated = {match.group("name") for match in _ARRAY_ALLOCATION.finditer(masked)}
         for match in _SCALAR_DELETE.finditer(masked):
             if match.group("name") not in array_allocated:

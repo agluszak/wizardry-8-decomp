@@ -16,6 +16,7 @@ from reccmp.project.detect import RecCmpProject
 from reccmp.tools.decomplint import DecomplintTarget, check_aliases, lint_all_targets
 
 from .source_index import try_load_source_index
+from .source_text import source_files
 
 # Many recovered translation units preserve reviewed source/link ordering that is
 # not monotonically increasing by address. reccmp's generic order advice cannot
@@ -31,7 +32,6 @@ ALLOWED_ALERTS = frozenset(
     }
 )
 
-_SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx", ".inl"})
 _FOLDED_MARKER = re.compile(
     r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL|STUB):"
     r"\s+\S+\s+0x[0-9a-f]+\s+FOLDED(?:\s|$)",
@@ -44,18 +44,12 @@ def _folded_source_markers(repository: Path) -> list[str]:
     """Return source locations that turn retail ICF into source identity."""
 
     problems: list[str] = []
-    for root_name in ("src", "include"):
-        root = repository / root_name
-        if not root.is_dir():
-            continue
-        for path in sorted(root.rglob("*")):
-            if path.suffix.lower() not in _SOURCE_SUFFIXES:
-                continue
-            for line_number, line in enumerate(
-                path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
-            ):
-                if _FOLDED_MARKER.match(line):
-                    problems.append(f"{path.relative_to(repository)}:{line_number}")
+    for path in source_files(repository, ("src", "include")):
+        for line_number, line in enumerate(
+            path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
+        ):
+            if _FOLDED_MARKER.match(line):
+                problems.append(f"{path.relative_to(repository)}:{line_number}")
     return problems
 
 
@@ -63,18 +57,12 @@ def _identity_alias_annotations(repository: Path) -> list[str]:
     """Reject the retired source-identity alias escape hatch."""
 
     problems: list[str] = []
-    for root_name in ("src", "include"):
-        root = repository / root_name
-        if not root.is_dir():
-            continue
-        for path in sorted(root.rglob("*")):
-            if path.suffix.lower() not in _SOURCE_SUFFIXES:
-                continue
-            for line_number, line in enumerate(
-                path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
-            ):
-                if _IDENTITY_ALIAS_ANNOTATION.search(line):
-                    problems.append(f"{path.relative_to(repository)}:{line_number}")
+    for path in source_files(repository, ("src", "include")):
+        for line_number, line in enumerate(
+            path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
+        ):
+            if _IDENTITY_ALIAS_ANNOTATION.search(line):
+                problems.append(f"{path.relative_to(repository)}:{line_number}")
     return problems
 
 

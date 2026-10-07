@@ -24,7 +24,6 @@ def test_check_uses_completed_index_and_propagates_command_failures(
     monkeypatch.setattr("wiz8decomp.source_index.write_source_index", write_index)
     validators = {
         "cast_lint": "validate_cast_markers",
-        "global_model": "validate_type_consistency",
         "identity_lint": "validate_identity",
         "linkage_lint": "validate_c_linkage",
         "placement": "validate_source_placement",

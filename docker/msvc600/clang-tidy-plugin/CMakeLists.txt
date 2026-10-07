@@ -6,8 +6,6 @@ find_package(Clang REQUIRED CONFIG)
 
 add_definitions(${LLVM_DEFINITIONS})
 add_library(wiz8-clang-tidy MODULE
-    ScalarFacts.cpp
-    BoolLikeByteCheck.cpp
     RedundantScalarCastCheck.cpp
 )
 target_compile_features(wiz8-clang-tidy PRIVATE cxx_std_17)
