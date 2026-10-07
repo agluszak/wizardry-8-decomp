@@ -55,6 +55,58 @@ def test_review_does_not_attach_to_a_same_named_type_at_another_owner(tmp_path: 
     assert result["layout_candidates"][0]["review"] is None
 
 
+def test_layout_assertions_bind_unique_visible_compiler_owner(tmp_path: Path):
+    config = tmp_path / "config/pre-portability.json"
+    config.parent.mkdir()
+    config.write_text(
+        json.dumps(
+            {
+                "layouts": [
+                    {
+                        "record": "Record",
+                        "source_file": "include/wiz8/record.h",
+                        "classification": "disk-format",
+                    }
+                ]
+            }
+        )
+    )
+    source = tmp_path / "src/wiz8/read.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        'static_assert(sizeof(Record) == 8, "size");\nstatic_assert(sizeof(unsigned int) == 4, "width");\n'
+    )
+    record = {
+        "qualified_name": "Record",
+        "source_file": "include/wiz8/record.h",
+        "line": 5,
+        "fields": [],
+    }
+    result = portability_queues(
+        tmp_path,
+        {
+            "classes": [record],
+            "unit_dependencies": {"src/wiz8/read.cpp": ["include/wiz8/record.h"]},
+        },
+    )
+    assert len(result["layout_candidates"]) == 1
+    row = result["layout_candidates"][0]
+    assert row["source_file"] == "include/wiz8/record.h"
+    assert row["classification"] == "disk-format"
+    assert row["assertion_location"] == "src/wiz8/read.cpp:1"
+    ambiguous = {**record, "source_file": "include/wiz8/other.h"}
+    result = portability_queues(
+        tmp_path,
+        {
+            "classes": [record, ambiguous],
+            "unit_dependencies": {
+                "src/wiz8/read.cpp": ["include/wiz8/record.h", "include/wiz8/other.h"]
+            },
+        },
+    )
+    assert result["layout_candidates"][0]["classification"] == "unclassified"
+
+
 def test_pointer_fields_are_candidates_and_duplicate_tu_observations_are_deduplicated(
     tmp_path: Path,
 ):

@@ -43,6 +43,8 @@ bool YawChanged(const GameplaySnapshot& now, void* context)
 
 struct QuickSaveCheck {
     int slot;
+    bool existed[3];
+    WIN32_FILE_ATTRIBUTE_DATA before[3];
 };
 
 bool QuickSaveWritten(const GameplaySnapshot& now, void* context)
@@ -51,7 +53,12 @@ bool QuickSaveWritten(const GameplaySnapshot& now, void* context)
     for (int slot = 1; slot <= 3; ++slot) {
         char path[64];
         sprintf(path, "Saves\\Quick %d.SAV", slot);
-        if (GetFileAttributesA(path) != static_cast<DWORD>(-1)) {
+        WIN32_FILE_ATTRIBUTE_DATA current;
+        if (GetFileAttributesExA(path, GetFileExInfoStandard, &current) &&
+            (current.nFileSizeLow != 0 || current.nFileSizeHigh != 0) &&
+            (!check->existed[slot - 1] ||
+             CompareFileTime(&current.ftLastWriteTime, &check->before[slot - 1].ftLastWriteTime) !=
+                 0)) {
             check->slot = slot;
             return true;
         }
@@ -169,15 +176,21 @@ bool QuickSave(RuntimeCase& test, RuntimeCheckpoint& out)
         return false;
     }
     out.quick_slot = -1;
+    QuickSaveCheck check;
+    check.slot = -1;
+    for (int slot = 1; slot <= 3; ++slot) {
+        char path[64];
+        sprintf(path, "Saves\\Quick %d.SAV", slot);
+        check.existed[slot - 1] =
+            GetFileAttributesExA(path, GetFileExInfoStandard, &check.before[slot - 1]) != 0;
+    }
     // Keep the key down until a game frame sees it; a down/up pair sent in
     // one batch can both pass between frames on the CI runner.
     HeldCommand held(test, W8_MGS_COMMAND_QUICK_SAVE);
     if (!held.begin()) {
         return false;
     }
-    QuickSaveCheck check;
-    check.slot = -1;
-    test.expected("a Saves\\Quick 1..3.SAV file");
+    test.expected("a new or rewritten, nonempty Saves\\Quick 1..3.SAV file");
     if (!test.wait_until("quick-save-written", 5000, QuickSaveWritten, &check, &held)) {
         return false;
     }

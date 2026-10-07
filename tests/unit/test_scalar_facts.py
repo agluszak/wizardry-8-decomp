@@ -1362,6 +1362,38 @@ def record_rows(*fields, size=96, align=32, pack=0, natural=96):
     return rows
 
 
+def test_conditional_record_declarations_keep_their_shared_fields(scalar, tmp_path):
+    # Provider/client macros put the record declaration at different source
+    # locations while its members retain the same identity and layout.
+    facts = read(
+        scalar,
+        tmp_path,
+        "REC\tprovider\tinclude/surrender/test.h\t10\tRecord\t32\t32\t32\t0",
+        "REC\tclient\tinclude/surrender/test.h\t12\tRecord\t32\t32\t32\t0",
+        "RF\tprovider\tshared:value\tvalue\t0\t32\t32\tint",
+        "RF\tclient\tshared:value\tvalue\t0\t32\t32\tint",
+    )
+    _, fields, divergent = scalar._record_index(facts)
+    assert divergent == set()
+    assert fields["provider"] == fields["client"]
+    facts.record_fields.add(("client", "shared:value", "value", "0", "32", "8", "int"))
+    assert scalar._record_index(facts)[2] == {"client"}
+
+
+def test_record_replay_availability_is_separate_from_compiled_layout(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        "REC\tr\tinclude/interface.h\t1\tInterface\t32\t32\t32\t0",
+        "REC\tr\tinclude/interface.h\t1\tInterface\t32\t32\tunknown\t0",
+    )
+    records, _, divergent = scalar._record_index(facts)
+    assert divergent == set()
+    assert records["r"][6] == "unknown"
+    facts.records.add(("r", "include/interface.h", "1", "Interface", "64", "32", "64", "0"))
+    assert scalar._record_index(facts)[2] == {"r"}
+
+
 def test_padding_removal_requires_unchanged_layout_and_no_use(scalar, tmp_path):
     source = "struct Record {\n    char tag;\n    char padding_1[3]; // +0x01\n    int value;\n};\n"
     (tmp_path / "test.cpp").write_text(source)

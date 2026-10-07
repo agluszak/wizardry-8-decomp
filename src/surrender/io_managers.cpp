@@ -104,7 +104,7 @@ void srIOManager::removeImporter(Importer* importer)
     if (importer == 0) {
         return;
     }
-    Registration* node;
+    ImporterRegistration* node;
     while ((node = importers.find(importer)) != 0) {
         delete[] node->extension;
         importers.erase(node);
@@ -117,7 +117,7 @@ void srIOManager::removeExporter(Exporter* exporter)
     if (exporter == 0) {
         return;
     }
-    Registration* node;
+    ExporterRegistration* node;
     while ((node = exporters.find(exporter)) != 0) {
         delete[] node->extension;
         exporters.erase(node);
@@ -129,7 +129,7 @@ void srIOManager::dump()
 {
     srPrintf("extension   importer\n");
     srPrintf("-----------------------------------------------------------------\n");
-    Registration* node = importers.first;
+    ImporterRegistration* node = importers.first;
     while (node != importers.sentinel) {
         srPrintf("%-8s    '%s'\n", node->extension, node->importer->getTypeName());
         node = node->next;
@@ -138,10 +138,11 @@ void srIOManager::dump()
     srPrintf("total %d instances\n", importers.count);
     srPrintf("extension   exporter\n");
     srPrintf("-----------------------------------------------------------------\n");
-    node = exporters.first;
-    while (node != exporters.sentinel) {
-        srPrintf("%-8s    '%s'\n", node->extension, node->exporter->getTypeName());
-        node = node->next;
+    ExporterRegistration* exporter_node = exporters.first;
+    while (exporter_node != exporters.sentinel) {
+        srPrintf("%-8s    '%s'\n", exporter_node->extension,
+                 exporter_node->exporter->getTypeName());
+        exporter_node = exporter_node->next;
     }
     srPrintf("-----------------------------------------------------------------\n");
     srPrintf("total %d instances\n", exporters.count);
@@ -186,9 +187,10 @@ void srIOManager::Exporter::removeFromExporters(srIOManager* manager)
 }
 
 // FUNCTION: SURRENDER 0x1002D300
-void srIOManager::ImporterList::insert(Registration* position, char* extension, Importer* importer)
+void srIOManager::ImporterList::insert(ImporterRegistration* position, char* extension,
+                                       Importer* importer)
 {
-    Registration* node = new Registration();
+    ImporterRegistration* node = new ImporterRegistration();
     node->extension = extension;
     node->importer = importer;
     node->next = position;
@@ -205,9 +207,10 @@ void srIOManager::ImporterList::insert(Registration* position, char* extension, 
 }
 
 // FUNCTION: SURRENDER 0x1002D360
-void srIOManager::ExporterList::insert(Registration* position, char* extension, Exporter* exporter)
+void srIOManager::ExporterList::insert(ExporterRegistration* position, char* extension,
+                                       Exporter* exporter)
 {
-    Registration* node = new Registration();
+    ExporterRegistration* node = new ExporterRegistration();
     node->extension = extension;
     node->exporter = exporter;
     node->next = position;

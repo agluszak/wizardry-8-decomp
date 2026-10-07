@@ -16,7 +16,8 @@
    virtual-base sub-table. */
 // VTABLE: SURRENDER 0x100770B8 srVertexProcessor
 // VTABLE: SURRENDER 0x100770C4 srLight
-class SR_DLL_EXPORT srLight : public srClassSupport<srLight, srIlluminator, false, 0x1220> {
+class SR_DLL_IMPORT SR_DLL_EXPORT srLight
+    : public srClassSupport<srLight, srIlluminator, false, 0x1220> {
 public:
     enum e_preset { PRESET_DIRECTIONAL = 0, PRESET_POINT = 1, PRESET_SPOT = 2 };
     /* enable/disable/isEnabled take these as bit indices into +0x194.
@@ -43,9 +44,9 @@ public:
        constructor - the out-of-line 0x004CA8B0 emission and the copies
        inlined into 0x0049C2C0 - reaches this one as srLight(0, 1), so both
        parameters carry those defaults here. */
-    SR_DLL_IMPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POINT);
+    srLight(srNode* parent = 0, e_preset preset = PRESET_POINT);
 
-    SR_DLL_IMPORT srLight& operator=(const srLight& other);
+    srLight& operator=(const srLight& other);
 
     /* Pushed as the literal at 0x00606E48 wherever the registry chain runs,
        never called through SR.DLL's import table, so this level's name is
@@ -58,7 +59,7 @@ public:
         return "srLight";
     }
 
-    virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
+    virtual void dump(std::ostream& stream) override;
 
 public:
     /* Wiz8 expands this empty derived level inline; SR.DLL's standalone
@@ -69,41 +70,40 @@ public:
 #endif
 
 public:
-    virtual SR_DLL_IMPORT void traverse(srNode::TraverseInfo& info) override;
-    virtual SR_DLL_IMPORT void process(const srNode::ProcessInfo& info,
-                                       srNode::e_processType type) override;
-    virtual SR_DLL_IMPORT int isActive(srVertexPipe& pipe) override;
-    virtual SR_DLL_IMPORT void process(srVertexPipe& pipe) override;
+    virtual void traverse(srNode::TraverseInfo& info) override;
+    virtual void process(const srNode::ProcessInfo& info, srNode::e_processType type) override;
+    virtual int isActive(srVertexPipe& pipe) override;
+    virtual void process(srVertexPipe& pipe) override;
 
 public:
-    SR_DLL_IMPORT void setLinearAttenuation(float range, float attenuation);
-    SR_DLL_IMPORT void disable(e_enable option);
-    SR_DLL_IMPORT void enable(e_enable option);
-    SR_DLL_IMPORT int isEnabled(e_enable option) const;
-    SR_DLL_IMPORT srVector3T<float> getAmbient() const;
-    SR_DLL_IMPORT srVector3T<float> getDiffuse() const;
-    SR_DLL_IMPORT float getIntensity() const;
-    SR_DLL_IMPORT srVector3T<float> getSpecular() const;
-    SR_DLL_IMPORT float getSpotAngle() const;
-    SR_DLL_IMPORT srVector3T<float> getSpotDirection() const;
-    SR_DLL_IMPORT float getSpotExponent() const;
-    SR_DLL_IMPORT void setAmbient(const srVector3T<float>& color);
-    SR_DLL_IMPORT void setDiffuse(const srVector3T<float>& color);
-    SR_DLL_IMPORT void setIntensity(float intensity);
-    SR_DLL_IMPORT void setSpecular(const srVector3T<float>& color);
-    SR_DLL_IMPORT void setSpotAngle(float angle);
-    SR_DLL_IMPORT void setSpotDirection(const srVector3T<float>& direction);
-    SR_DLL_IMPORT void setSpotExponent(float exponent);
-    SR_DLL_IMPORT void setAttenuationModel(e_attenuationModel model);
-    SR_DLL_IMPORT e_attenuationModel getAttenuationModel() const;
-    SR_DLL_IMPORT void setAttenuation(const srVector3T<float>& attenuation);
-    SR_DLL_IMPORT srVector3T<float> getAttenuation() const;
-    SR_DLL_IMPORT void getFarAttenuationRange(double& start, double& end) const;
-    SR_DLL_IMPORT void getNearAttenuationRange(double& start, double& end) const;
-    SR_DLL_IMPORT void setFarAttenuationRange(double start, double end);
-    SR_DLL_IMPORT void setNearAttenuationRange(double start, double end);
-    SR_DLL_IMPORT void setSafeRange(float range);
-    SR_DLL_IMPORT float getSafeRange() const;
+    void setLinearAttenuation(float range, float attenuation);
+    void disable(e_enable option);
+    void enable(e_enable option);
+    int isEnabled(e_enable option) const;
+    srVector3T<float> getAmbient() const;
+    srVector3T<float> getDiffuse() const;
+    float getIntensity() const;
+    srVector3T<float> getSpecular() const;
+    float getSpotAngle() const;
+    srVector3T<float> getSpotDirection() const;
+    float getSpotExponent() const;
+    void setAmbient(const srVector3T<float>& color);
+    void setDiffuse(const srVector3T<float>& color);
+    void setIntensity(float intensity);
+    void setSpecular(const srVector3T<float>& color);
+    void setSpotAngle(float angle);
+    void setSpotDirection(const srVector3T<float>& direction);
+    void setSpotExponent(float exponent);
+    void setAttenuationModel(e_attenuationModel model);
+    e_attenuationModel getAttenuationModel() const;
+    void setAttenuation(const srVector3T<float>& attenuation);
+    srVector3T<float> getAttenuation() const;
+    void getFarAttenuationRange(double& start, double& end) const;
+    void getNearAttenuationRange(double& start, double& end) const;
+    void setFarAttenuationRange(double start, double end);
+    void setNearAttenuationRange(double start, double end);
+    void setSafeRange(float range);
+    float getSafeRange() const;
 
     e_attenuationModel attenuation_model; /* 0x150 */
     double near_start;                    /* 0x158 */

@@ -28,51 +28,23 @@ canonical inputs, and Wizardry writes its configuration back into its own
 directory. Running from a variant tree would therefore modify the canonical
 input through the shared inode. The sandbox is a real copy for that reason.
 
-```sh
-export WIZ8_DYNAMIC_DIR="$WIZ8_WORK_DIR/dynamic"
-mkdir -p "$WIZ8_DYNAMIC_DIR"
-cp -a "$WIZ8_WORK_DIR/variants/gog-base" "$WIZ8_DYNAMIC_DIR/game"
-WINEPREFIX="$WIZ8_DYNAMIC_DIR/prefix" wine wineboot -u
-```
+Use the runtime staging owner (`runtime.stage_game`) to copy the selected executable,
+its matching MAP and the prepared game inputs into a dedicated game directory; apply
+`runtime.apply_product_video_config` to that stage. Use the prepared umu/GE-Proton
+runtime selected by `wiz8 prepare runtime`, rather than initializing a prefix with
+host Wine. The tracer configures that same runtime and records the actual runner,
+Proton distribution and wineserver in its provenance.
 
-Two pieces of configuration decide whether the game gets past bring-up, and the
-recovered `WinMain` says why. It refuses to start without a video
-configuration - `if (!FileExists(GetVideoConfigFileName()))` spawns
-`3DSetup.EXE`, which needs MFC and is not present - so the shipped
-configuration has to be in place before the first run:
-
-```sh
-cp "$WIZ8_WORK_DIR/variants/gog-base/__support/app/"{3DVideo.CFG,Wiz8.CFG} \
-   "$WIZ8_DYNAMIC_DIR/game/"
-```
-
-The shipped `3DVideo.CFG` selects `Glide2x`, which under a headless X server
-fails with *Could not open video output device* - the trace shows the failure
-as `InitializeStandardGamingPlatform` followed immediately by `ShutdownHandler`. SurRender ships
-`srDD_Software.dll` beside its hardware drivers, and selecting it is what makes
-the boot path complete:
-
-```
-Software
-800
-600
-16
-Miles Fast 2D Positional Audio
-```
-
-(The file is CRLF-terminated. The first line is the SurRender device, the next
-three are width, height and depth.)
-
-Finally the display. The game asks for the mode named in that file, and a mode
-change fails on a virtual X server whose screen is something else, so the
-server is created at the same geometry:
-
-```sh
-Xvfb :99 -screen 0 800x600x16 -nolisten tcp &
-export WIZ8_DYNAMIC_DISPLAY=:99
-```
-
-Nothing here touches the desktop: the game renders into the virtual server.
+Set `WIZ8_DYNAMIC_DIR` to the directory containing the staged `game` and dedicated
+`prefix`. Set `WIZ8_DYNAMIC_DISPLAY` to an existing isolated display, or provision
+one through `runtime.runtime_display`, using
+`runtime.runtime_video_screen_geometry(settings)` for the configured display
+size and depth. Configure the dedicated prefix with
+`runtime.configure_wine_window_management(..., private_display=True)` before
+launching on that display. The product smoke launches `/WINDOW`, which
+avoids a fullscreen mode change on virtual displays. Video and audio settings
+still come from the staged product configuration; use the checked-in configuration
+selected by `WIZ8_RUNTIME_VIDEO_CONFIG` when reproducing runtime checks.
 
 ## Running
 

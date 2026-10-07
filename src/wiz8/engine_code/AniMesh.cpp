@@ -162,7 +162,8 @@ unsigned char LoadAniMeshFromInfo(W8ReadLevelInfo* info, W8AniMesh* mesh, unsign
         return 0;
     strcpy(mesh->bitmap_directory, info->bitmap_folder);
     mesh->world = info->world;
-    mesh->flags = W8AniMesh::State();
+    W8AniMesh::State initial_flags = {false, false, false, false, false, false, 0};
+    mesh->flags = initial_flags;
     mesh->last_used = 0;
     if (info->mesh_filename != 0)
         strcpy(mesh->filename, info->mesh_filename);

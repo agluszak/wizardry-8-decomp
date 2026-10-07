@@ -460,8 +460,21 @@ def test_smoke_requires_observed_exit(
         return subprocess.CompletedProcess(command, 0)
 
     monkeypatch.setattr(dynamic.subprocess, "run", run)
+    monkeypatch.setattr(
+        dynamic,
+        "_trace_environment",
+        lambda *_: {
+            "WINEPREFIX": str(tmp_path / "prefix"),
+            "WIZ8_UMU_WINESERVER": "/prepared/wineserver",
+            "WIZ8_UMU_RUN": "/prepared/umu-run",
+            "PROTONPATH": "/prepared/GE",
+        },
+    )
+    monkeypatch.setattr(dynamic, "require_umu_runner", lambda _: "/prepared/umu-run")
     sandbox = dynamic.Sandbox(tmp_path, tmp_path / "prefix", ":99")
     result = dynamic.run_smoke(tmp_path, sandbox, port=4242)
+    assert result["provenance"]["arguments"] == ["/WINDOW"]
+    assert dynamic.WineGdbProxy.call_args.kwargs["arguments"] == ("/WINDOW",)
     assert result["requirements"]["process_exited"] is expected
     assert result["affirmative"] is expected
     assert result["timed_out"] is timeout
@@ -500,15 +513,21 @@ def test_capture_cleans_script_and_scopes_shutdown(
 
     monkeypatch.setattr(dynamic.subprocess, "run", run)
     sandbox = dynamic.Sandbox(tmp_path, tmp_path / "prefix", ":99")
+    environment = {"WINEPREFIX": str(sandbox.prefix), "WIZ8_UMU_WINESERVER": "/prepared/wineserver"}
+    monkeypatch.setattr(dynamic, "require_umu_runner", lambda _: "/prepared/umu-run")
     if failure == "timeout":
-        assert dynamic._capture(sandbox, "game.exe", script, 4242, 1) == (
+        assert dynamic._capture(sandbox, "game.exe", script, 4242, 1, environment=environment) == (
             "EVENT partial\nerror\n",
             None,
         )
     else:
         with pytest.raises((RuntimeError, OSError), match=failure):
-            dynamic._capture(sandbox, "game.exe", script, 4242, 1)
-    assert shutdown == [(["wineserver", "-k"], str(sandbox.prefix))]
+            dynamic._capture(sandbox, "game.exe", script, 4242, 1, environment=environment)
+    assert shutdown == [(["/prepared/wineserver", "-k"], str(sandbox.prefix))]
+    assert dynamic.WineGdbProxy.call_args.kwargs["launch_command"] == (
+        "/prepared/umu-run",
+        "winedbg.exe",
+    )
     proxy.close.assert_called_once()
     assert not script.exists()
 
@@ -520,9 +539,18 @@ def test_trace_retains_capture_completion_state(tmp_path, monkeypatch, returncod
     (tmp_path / "Wiz8.exe").touch()
     monkeypatch.setattr(dynamic.shutil, "which", lambda _: "/bin/tool")
     monkeypatch.setattr(dynamic, "trace_plan", lambda *_: [])
-    monkeypatch.setattr(dynamic, "_capture", lambda *_: ("TRACE_READY\n", returncode))
+    monkeypatch.setattr(dynamic, "_capture", lambda *_, **__: ("TRACE_READY\n", returncode))
     monkeypatch.setattr(dynamic, "_provenance", lambda *_: {})
     sandbox = dynamic.Sandbox(tmp_path, tmp_path / "prefix", ":99")
+    monkeypatch.setattr(
+        dynamic,
+        "_trace_environment",
+        lambda *_: {
+            "WIZ8_UMU_WINESERVER": "/prepared/wineserver",
+            "WIZ8_UMU_RUN": "/prepared/umu-run",
+            "PROTONPATH": "/prepared/GE",
+        },
+    )
     result = dynamic.run_trace(tmp_path, sandbox, "screens", port=4242)
     assert result["started"] is True
     assert result["capture_returncode"] == returncode

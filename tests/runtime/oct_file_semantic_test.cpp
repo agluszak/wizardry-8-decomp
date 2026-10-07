@@ -445,12 +445,10 @@ static unsigned char CheckCondNodes(OctPreTree* tree)
     memset(preprops, 0, sizeof(preprops));
     preprops[0].num_stop_meshes = 10;
     preprops[0].first_prop_number = 0;
-    /* GDPreProp's zeroing ctor is unrecovered in this image; zeroed storage
-       reproduces it for the one field the body reads. */
-    preprops[0].pStopMeshes = static_cast<GDPreProp*>(calloc(10, sizeof(GDPreProp)));
+    preprops[0].pStopMeshes = new GDPreProp[10];
     preprops[1].num_stop_meshes = 8;
     preprops[1].first_prop_number = 10;
-    preprops[1].pStopMeshes = static_cast<GDPreProp*>(calloc(8, sizeof(GDPreProp)));
+    preprops[1].pStopMeshes = new GDPreProp[8];
     if (preprops[0].pStopMeshes == 0 || preprops[1].pStopMeshes == 0) {
         return 0;
     }

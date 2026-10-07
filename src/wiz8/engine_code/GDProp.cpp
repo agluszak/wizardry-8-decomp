@@ -25,7 +25,8 @@ const float g_float_three_quarters = 0.75f;
 GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
                unsigned char footstep_surface, unsigned char footstep_material)
 {
-    m_flags = Flags();
+    Flags initial_flags = {false, false, false, false, 0, 0};
+    m_flags = initial_flags;
     m_path_handle = 0;
     m_prop_number = 0;
     m_vertex_count = 0;

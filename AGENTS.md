@@ -5,13 +5,16 @@ toolchain.
 
 ## Current stage
 
-Initial bring-up is over. Nearly all authored functions are paired and the primary task is now
-**systematic reduction of paired retail/recomp mismatches**. Work by shared source-model cause:
+The recovered executable links into runnable products. The primary task is
+**semantic-model, binary-structure and behavioral auditing**, including systematic classification
+and reduction of paired retail/recomp mismatches. Work by shared source-model cause:
 types/layouts, ABI, ownership, globals, classes/templates/lifecycle, constants, floating-point
 semantics and control flow. Do not treat thousands of remaining differences as independent functions.
 
 A comparison is evidence about the current model, not an objective function. A clean decompilation
 does not prove equivalence or original spelling, and a differing decompilation does not prove a bug.
+Completion requires no unclassified evidence-backed defect. Unproven field meanings and
+compiler emission gaps remain explicit; naming every field is not a completion criterion.
 
 ## Evidence and source fidelity
 

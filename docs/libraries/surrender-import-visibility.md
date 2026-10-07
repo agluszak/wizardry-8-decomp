@@ -38,7 +38,7 @@ Mixed headers are audited declaration by declaration. `srPixelConvert` has one k
 
 Class-wide import is still correct where the consumer evidence reaches that far. `srTimer`, for example, is constructed by Wizardry and its imported virtual surface participates in the client-local vtable emission. `srMaterialIFace` imports compiler-generated destructor/assignment symbols in addition to its named method, so reducing it to a single member annotation would lose class ABI information.
 
-`srBinIStream` uses member-level imports and inline constructor/destructor bodies; the repository gate rejects restoring its blanket class import. Only `srDebugVP` remains transitional while its dedicated recovery is outstanding.
+`srBinIStream` uses member-level imports and inline constructor/destructor bodies; the repository gate rejects restoring its blanket class import. `srDebugVP` is provider-only and has no consumer import annotation.
 
 `srModelInstance` also uses member-level imports. Wiz8 imports its constructor, assignment,
 destructor and listed virtual members, plus `setExclusionMask`, but does not import `model()`.

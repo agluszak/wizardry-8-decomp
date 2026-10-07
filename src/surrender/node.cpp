@@ -427,12 +427,6 @@ srNode* srNode::getNext() const
     return next_sibling_;
 }
 
-// FUNCTION: SURRENDER 0x10051A40
-srNode* srNode::getParent() const
-{
-    return parent_;
-}
-
 // FUNCTION: SURRENDER 0x10051A50
 srNode* srNode::getPrev() const
 {
@@ -612,12 +606,6 @@ double srNode::getLocationZ() const
 srVector3T<double> srNode::getLocation() const
 {
     return location;
-}
-
-// FUNCTION: SURRENDER 0x10053DD0
-void srNode::getLocation(srVector3T<double>& location) const
-{
-    location = this->location;
 }
 
 // FUNCTION: SURRENDER 0x10053DF0

@@ -48,28 +48,35 @@ protected:
     SR_DLL_IMPORT void removeExporter(Exporter* exporter);
 
 private:
-    struct Registration {
-        Registration()
-        {
-            extension = 0;
-        }
+    /* Retail's importer/exporter paths allocate and traverse separate lists.
+       No registration changes kind or shares a lifetime with the other list.
+       Keep each payload typed; the exact private source spelling is unknown. */
+    struct ImporterRegistration {
+        ImporterRegistration() : extension(0) {}
 
         char* extension;
-        union {
-            Importer* importer;
-            Exporter* exporter;
-        };
-        Registration* next;
-        Registration* previous;
+        Importer* importer;
+        ImporterRegistration* next;
+        ImporterRegistration* previous;
     };
 
-    static_assert(sizeof(Registration) == 0x10, "srIOManager_Registration_must_be_0x10");
+    struct ExporterRegistration {
+        ExporterRegistration() : extension(0) {}
+
+        char* extension;
+        Exporter* exporter;
+        ExporterRegistration* next;
+        ExporterRegistration* previous;
+    };
+
+    static_assert(sizeof(ImporterRegistration) == 0x10, "srIOManager_ImporterRegistration_size");
+    static_assert(sizeof(ExporterRegistration) == 0x10, "srIOManager_ExporterRegistration_size");
 
     /* addImporter/addExporter call two identical insert bodies (0x1002D300/
        0x1002D360) as __thiscall on the {count, first, sentinel} triple at
        +0x04/+0x10: two distinct typed list objects, not flat fields. */
     struct ImporterList {
-        ImporterList() : first(new Registration()), sentinel(first)
+        ImporterList() : first(new ImporterRegistration()), sentinel(first)
         {
             first->next = 0;
             first->previous = 0;
@@ -86,7 +93,7 @@ private:
 
         /* The list owns registration nodes. Extension strings are released
            by removeImporter/removeExporter before unlinking, as in retail. */
-        void erase(Registration* node)
+        void erase(ImporterRegistration* node)
         {
             if (node == first) {
                 first = node->next;
@@ -103,7 +110,7 @@ private:
 
         Importer* find(const char* extension) const
         {
-            for (Registration* node = first; node != sentinel; node = node->next) {
+            for (ImporterRegistration* node = first; node != sentinel; node = node->next) {
                 if (strcmp(node->extension, extension) == 0) {
                     return node->importer;
                 }
@@ -111,9 +118,9 @@ private:
             return 0;
         }
 
-        Registration* find(Importer* entry) const
+        ImporterRegistration* find(Importer* entry) const
         {
-            for (Registration* node = first; node != sentinel; node = node->next) {
+            for (ImporterRegistration* node = first; node != sentinel; node = node->next) {
                 if (node->importer == entry) {
                     return node;
                 }
@@ -122,13 +129,13 @@ private:
         }
 
         unsigned long count;
-        Registration* first;
-        Registration* sentinel;
-        void insert(Registration* position, char* extension, Importer* importer);
+        ImporterRegistration* first;
+        ImporterRegistration* sentinel;
+        void insert(ImporterRegistration* position, char* extension, Importer* importer);
     };
 
     struct ExporterList {
-        ExporterList() : first(new Registration()), sentinel(first)
+        ExporterList() : first(new ExporterRegistration()), sentinel(first)
         {
             first->next = 0;
             first->previous = 0;
@@ -145,7 +152,7 @@ private:
 
         /* The list owns registration nodes. Extension strings are released
            by removeImporter/removeExporter before unlinking, as in retail. */
-        void erase(Registration* node)
+        void erase(ExporterRegistration* node)
         {
             if (node == first) {
                 first = node->next;
@@ -162,7 +169,7 @@ private:
 
         Exporter* find(const char* extension) const
         {
-            for (Registration* node = first; node != sentinel; node = node->next) {
+            for (ExporterRegistration* node = first; node != sentinel; node = node->next) {
                 if (strcmp(node->extension, extension) == 0) {
                     return node->exporter;
                 }
@@ -170,9 +177,9 @@ private:
             return 0;
         }
 
-        Registration* find(Exporter* entry) const
+        ExporterRegistration* find(Exporter* entry) const
         {
-            for (Registration* node = first; node != sentinel; node = node->next) {
+            for (ExporterRegistration* node = first; node != sentinel; node = node->next) {
                 if (node->exporter == entry) {
                     return node;
                 }
@@ -181,9 +188,9 @@ private:
         }
 
         unsigned long count;
-        Registration* first;
-        Registration* sentinel;
-        void insert(Registration* position, char* extension, Exporter* exporter);
+        ExporterRegistration* first;
+        ExporterRegistration* sentinel;
+        void insert(ExporterRegistration* position, char* extension, Exporter* exporter);
     };
 
     ImporterList importers;

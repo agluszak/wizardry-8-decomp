@@ -179,6 +179,7 @@ def test_report_wires_surrender_scope_through_all_queues(tmp_path: Path, monkeyp
 def test_identity_report_does_not_confuse_pairing_with_source_ownership(tmp_path, monkeypatch):
     from types import SimpleNamespace
 
+    from reccmp.analysis import crt_startup
     from reccmp.compare import Compare
     from reccmp.types import EntityType
     from wiz8decomp import comparison, emissions, source_index
@@ -192,6 +193,7 @@ def test_identity_report_does_not_confuse_pairing_with_source_ownership(tmp_path
             entity_type=kind,
         )
 
+    monkeypatch.setattr(crt_startup, "iter_crt_array_ranges", lambda *_: ())
     entities = [
         entity(0x1000, EntityType.FUNCTION, name="known"),
         entity(0x1010, EntityType.FUNCTION, name="unowned"),
@@ -231,4 +233,55 @@ def test_identity_report_does_not_confuse_pairing_with_source_ownership(tmp_path
     assert report["buckets"]["recovered_authored_source"] == 1
     assert report["buckets"]["compiler_generated"] == 3
     assert report["buckets"]["icf_folded_sibling"] == 1
+    assert report["inventory_complete"] is False
+
+
+def test_crt_boundary_ownership_requires_pair_alignment_and_zero_bytes(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from reccmp.analysis import crt_startup
+    from reccmp.compare import Compare
+    from reccmp.types import EntityType
+    from wiz8decomp import comparison, emissions, source_index
+    from wiz8decomp.reports.semantic_debt import _retail_identity_ownership
+
+    addresses = (0x1000, 0x1010, 0x1020, 0x1030, 0x1041, 0x1050, 0x1060)
+    entities = [
+        SimpleNamespace(
+            orig=SimpleNamespace(facts={"name": "sentinel"}),
+            orig_addr=address,
+            recomp_addr=None,
+            entity_type=EntityType.DATA,
+        )
+        for address in addresses
+    ]
+    engine = SimpleNamespace(
+        get_all=lambda: entities,
+        db=SimpleNamespace(get_aliases=lambda _: ()),
+        orig_bin=SimpleNamespace(
+            read=lambda address, _: b"\1\0\0\0" if address == 0x1030 else b"\0" * 4
+        ),
+    )
+    monkeypatch.setattr(Compare, "from_target", lambda _: engine)
+    monkeypatch.setattr(comparison, "comparison_target", lambda *_: None)
+    monkeypatch.setattr(source_index, "address_bound_identities", lambda *_: {})
+    monkeypatch.setattr(emissions, "emission_inventory", lambda *_: ())
+    monkeypatch.setattr(
+        crt_startup,
+        "iter_crt_array_ranges",
+        lambda *_: (
+            (None, range(0x1000, 0x1010)),
+            (None, range(0x1020, 0x1030)),
+            (None, range(0x1041, 0x1050)),
+            (None, range(0x1060, 0x1050)),
+        ),
+    )
+    report = _retail_identity_ownership(tmp_path, "WIZ8")
+    assert report["buckets"] == {"library_owned": 3}
+    assert {row["address"] for row in report["unclassified_entities"]} == {
+        "0x00001030",
+        "0x00001041",
+        "0x00001050",
+        "0x00001060",
+    }
     assert report["inventory_complete"] is False

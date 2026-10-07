@@ -26,12 +26,16 @@ AUDITED_CLASS_IMPORTS = {
     "Client",  # nested srModel::Client: Wiz8 imports its ctor/dtor and virtuals
     "srBSplineFilter",
     "srBellFilter",
+    "srBinIStream",  # virtual-file construction imports both interface vtables
+    "srBinIMStream",  # BitArray imports the virtual-base destructor closure
+    "srBinOMStream",  # BitArray's stack stream imports its virtual-base destructor closure
     "srBinStream",
     "srBoxFilter",
     "srCamera",
     "srClipPlane",
     "srFilter",
     "srGERD",
+    "srLight",  # retail imports both light vtables and unwind destruction
     "srMaterial",
     "srMaterialIFace",
     "srModel",
@@ -43,13 +47,6 @@ AUDITED_CLASS_IMPORTS = {
     "srTimer",
     "srTriangleFilter",
     "srVariableTimer",
-}
-
-# srBinIStream now uses member imports and inline lifecycle bodies. Only the
-# outstanding srDebugVP recovery may still remove its blanket annotation;
-# no new class may be added here merely to make the test pass.
-TRANSITIONAL_CLASS_IMPORTS = {
-    "srDebugVP",
 }
 
 # Provider exports alone are specifically not consumer-import evidence.
@@ -67,6 +64,7 @@ PROVIDER_ONLY_HEADERS = {
     "srBinIAsyncStream.h",
     "srBounder.h",
     "srDebugDD.h",
+    "srDebugVP.h",
     "srEnvironmentMapper.h",
     "srExponentTable.h",
     "srMemoryPool.h",
@@ -125,9 +123,7 @@ def test_class_wide_surrender_imports_match_audited_surface() -> None:
 
     provider_only = sorted(observed & PROVIDER_ONLY_CLASSES)
     missing = sorted(AUDITED_CLASS_IMPORTS - observed)
-    unexpected = sorted(
-        observed - AUDITED_CLASS_IMPORTS - TRANSITIONAL_CLASS_IMPORTS - PROVIDER_ONLY_CLASSES
-    )
+    unexpected = sorted(observed - AUDITED_CLASS_IMPORTS - PROVIDER_ONLY_CLASSES)
 
     errors = []
     if provider_only:

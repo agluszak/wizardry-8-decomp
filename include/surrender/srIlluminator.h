@@ -17,14 +17,13 @@
 class SR_DLL_EXPORT srIlluminator : public srClassSupport<srIlluminator, srNode, false, 0x1200>,
                                     public srVertexProcessor {
 public:
+    using srVertexProcessor::process;
     SR_DLL_IMPORT srIlluminator(srNode* parent = 0);
 
     SR_DLL_IMPORT srIlluminator& operator=(const srIlluminator& other);
     static SR_DLL_IMPORT const char* sGetClassName();
     virtual SR_DLL_IMPORT void traverse(TraverseInfo& info) override;
     virtual SR_DLL_IMPORT void process(const ProcessInfo& info, e_processType type) override;
-    virtual int isActive(srVertexPipe& pipe) override = 0;
-    virtual void process(srVertexPipe& pipe) override = 0;
     SR_DLL_IMPORT unsigned long getGroupMask() const;
     SR_DLL_IMPORT void setGroupMask(unsigned long mask);
 

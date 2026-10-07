@@ -209,8 +209,7 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
 {
     if (g_oct_mesh_default_material == 0) {
         g_oct_mesh_default_material = new stMaterial;
-        *static_cast<srMaterial*>(g_oct_mesh_default_material) =
-            *static_cast<srMaterial*>(materials[0]);
+        g_oct_mesh_default_material->srMaterialIFace::operator=(*materials[0]);
         g_oct_mesh_default_texture = textures[0];
         delete g_oct_mesh_default_shader;
         g_oct_mesh_default_shader = new srShader;

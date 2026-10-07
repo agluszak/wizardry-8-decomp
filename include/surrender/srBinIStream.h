@@ -13,39 +13,34 @@
 // with its own vread, and Wizardry's virtual-file adapter with its.
 /* The provider exports the full member surface including the lifecycle bodies
    and both vftables (??_7srBinIStream@@6B0@@ and {for `srBinStream'}), so the
-   declaration is dllexport under SURRENDER_BUILD. Consumers keep novtable: they only
-   import the member surface and expand the inline lifecycle locally. */
+   declaration imports the class for consumers and exports it for the provider.
+   Retail virtual-file construction writes both imported interface vtables;
+   inline lifecycle also retains imported exception-unwind destruction. */
 // VTABLE: SURRENDER 0x100769FC srBinStream
 // VTABLE: SURRENDER 0x10076A10 srBinIStream
 // class srBinIStream
-class
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#else
-    __declspec(novtable)
-#endif
-    srBinIStream : public virtual srBinStream {
+class SR_DLL_IMPORT SR_DLL_EXPORT srBinIStream : public virtual srBinStream {
 public:
     /* The reconstruction leaves provider lifecycle implicit. Wiz8 keeps the
        header-visible default/destructor and imports copy/assignment emissions. */
 
 #if !defined(SURRENDER_BUILD)
     srBinIStream() {}
-    SR_DLL_IMPORT srBinIStream(const srBinIStream& stream);
+    srBinIStream(const srBinIStream& stream);
     virtual ~srBinIStream() override {}
-    SR_DLL_IMPORT srBinIStream& operator=(const srBinIStream& stream);
+    srBinIStream& operator=(const srBinIStream& stream);
 #endif
 
-    SR_DLL_IMPORT unsigned short getChar();
-    SR_DLL_IMPORT unsigned long getDWord();
-    SR_DLL_IMPORT double getDouble();
-    SR_DLL_IMPORT float getFloat();
-    SR_DLL_IMPORT srQuadWord getQuadWord();
-    SR_DLL_IMPORT unsigned short getWord();
-    SR_DLL_IMPORT srBinIStream& read(void* destination, unsigned long size);
+    unsigned short getChar();
+    unsigned long getDWord();
+    double getDouble();
+    float getFloat();
+    srQuadWord getQuadWord();
+    unsigned short getWord();
+    srBinIStream& read(void* destination, unsigned long size);
 
 protected:
-    virtual SR_DLL_IMPORT unsigned short vget();
+    virtual unsigned short vget();
 
 private:
     virtual unsigned long vread(void* destination, unsigned long size) = 0;
@@ -82,21 +77,20 @@ srBinIStream& operator>>(srBinIStream& stream, srMatrix2T<double>& value);
 srBinIStream& operator>>(srBinIStream& stream, srMatrix3T<double>& value);
 srBinIStream& operator>>(srBinIStream& stream, srMatrix4T<double>& value);
 
-// No known consumer imports the srBinIMStream vftable, so the consumer side
-// stays member-level; every declared member below is imported by Wiz8.exe or
-// srEXT_Unzip.
+// BitArray::Load imports the compiler-generated virtual-base destructor closure.
+// Class import preserves that closure while the empty inline destructor leaves
+// ordinary directional-stream teardown visible to the consumer.
 // VTABLE: SURRENDER 0x10076B80 srBinStream
 // VTABLE: SURRENDER 0x10076B94 srBinIStream
 // class srBinIMStream
-class
 #if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
+class SR_DLL_EXPORT srBinIMStream
 #else
-    __declspec(novtable)
+class __declspec(novtable) SR_DLL_IMPORT srBinIMStream
 #endif
-    srBinIMStream : public srBinIStream {
+    : public srBinIStream {
 public:
-    SR_DLL_IMPORT srBinIMStream(const void* data, unsigned long size);
+    srBinIMStream(const void* data, unsigned long size);
 
     /* The emitted bodies are consistent with ordinary memberwise copying. */
 
@@ -107,14 +101,13 @@ public:
     virtual ~srBinIMStream() override {}
 #endif
 
-    virtual SR_DLL_IMPORT unsigned long getSize() override;
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position,
-                                            srBinStream::e_seekDir direction) override;
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
-    virtual SR_DLL_IMPORT unsigned long tell() override;
+    virtual unsigned long getSize() override;
+    virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
+    virtual srBinStream& seek(unsigned long position) override;
+    virtual unsigned long tell() override;
 
 private:
-    virtual SR_DLL_IMPORT unsigned long vread(void* destination, unsigned long size) override;
+    virtual unsigned long vread(void* destination, unsigned long size) override;
 
     const unsigned char* data;
     unsigned long size;

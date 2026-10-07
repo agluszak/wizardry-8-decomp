@@ -875,12 +875,6 @@ srClass* srClass::instance()
     return vInstance();
 }
 
-// FUNCTION: SURRENDER 0x1000E860
-srClass* srClass::clone()
-{
-    return vClone();
-}
-
 // FUNCTION: SURRENDER 0x1000E870
 const char* srClass::sGetClassName()
 {
@@ -933,14 +927,7 @@ srRegistry::~srRegistry()
         class_index = 0;
         valid = 0;
     }
-    /* Retail drains the lock once more before destroying the section, all
-       under one null check (0x1000EB66-0x1000EB7E): getAccess/releaseAccess
-       complete before DeleteCriticalSection runs. */
-    if (critical_section != 0) {
-        critical_section->getAccess();
-        critical_section->releaseAccess();
-        delete critical_section;
-    }
+    delete critical_section;
 }
 
 // FUNCTION: SURRENDER 0x1000EBD0

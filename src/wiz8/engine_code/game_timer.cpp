@@ -135,8 +135,9 @@ static void EnsureSharedGameTimer()
 // FUNCTION: WIZ8 0x00439550
 W8GameTimer::W8GameTimer()
 {
+    Flags initial_flags = {false, false, 0, false, false, 0, 0};
     m_clock_mode = W8_TIMER_CLOCK_SHARED;
-    m_flags = Flags();
+    m_flags = initial_flags;
     m_shared = 0;
     m_start = 0;
     m_end = 0;
@@ -159,8 +160,9 @@ W8GameTimer::W8GameTimer()
 // FUNCTION: WIZ8 0x004397f0
 W8GameTimer::W8GameTimer(float duration, unsigned char raw_time)
 {
+    Flags initial_flags = {false, false, 0, false, false, 0, 0};
     m_clock_mode = W8_TIMER_CLOCK_SHARED;
-    m_flags = Flags();
+    m_flags = initial_flags;
     m_flags.raw_time = raw_time != 0;
     m_shared = 0;
     m_start = 0;

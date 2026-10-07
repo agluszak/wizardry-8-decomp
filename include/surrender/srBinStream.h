@@ -26,7 +26,9 @@ public:
         char state;
     };
 
-    virtual ~srBinStream();
+    // FUNCTION: SURRENDER 0x1002E950 SYMBOL
+    // RECOMP: ??1srBinStream@@UAE@XZ
+    virtual ~srBinStream() {}
     virtual unsigned long getSize();
     virtual srBinStream& seek(unsigned long position, e_seekDir direction) = 0;
     virtual srBinStream& seek(unsigned long position) = 0;

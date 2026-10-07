@@ -20,9 +20,11 @@ from typing import Any
 from reccmp.source.records import SourceMarker
 
 from .binary.linker_map import LinkerMap, MapSymbol, demangle_names
+from .config import load_settings
 from .debug.session import WineGdbProxy, allocate_port
 from .emissions import Emission, emission_inventory
 from .paths import json_hash, sha256_file
+from .runtime import configure_runtime_environment, require_umu_runner
 from .subprocesses import tool_version
 
 EVENT = re.compile(r"^EVENT\s+(?P<kind>\S+)\s+(?P<name>\S+)\s+(?P<address>[0-9a-f]{8})\s*$")
@@ -45,7 +47,7 @@ SCENARIO_ARGUMENTS: dict[str, tuple[str, ...]] = {
     BRING_UP: (),
     SCREENS: (),
     LOAD: ("/LOAD",),
-    SMOKE: (),
+    SMOKE: ("/WINDOW",),
 }
 
 # The first event of the steady state a scenario's claim ends at: the
@@ -298,8 +300,8 @@ def rebase_plan(
 
     Two builds put the same function at different addresses; the comparison
     is by name, so each build's plan resolves the reviewed identity through
-    its own linker map. Points the rebuilt image does not carry (unrecovered
-    functions) cannot be watched and are reported, not silently dropped."""
+    its own linker map. Missing standalone emissions cannot be watched and
+    are reported, not silently dropped."""
 
     functions = _trace_functions(repo)
     semantic_ids = {
@@ -691,23 +693,26 @@ def _capture(
     port: int,
     seconds: int,
     arguments: tuple[str, ...] = (),
+    *,
+    environment: dict[str, str],
 ) -> tuple[str, int | None]:
     """Capture one debugger batch; a missing return code denotes timeout."""
     proxy = WineGdbProxy(
         sandbox.game_dir / executable,
         sandbox.game_dir,
-        sandbox.environment(),
+        environment,
         port=port,
         arguments=arguments,
         inferior_path=sandbox.windows_path(executable),
         start_timeout=60,
+        launch_command=(require_umu_runner(environment), "winedbg.exe"),
     )
     try:
         proxy.start()
         completed = subprocess.run(
             ["gdb", "-q", "-batch", "-x", str(script)],
             cwd=sandbox.game_dir,
-            env=sandbox.environment(),
+            env=environment,
             capture_output=True,
             text=True,
             timeout=seconds,
@@ -722,13 +727,22 @@ def _capture(
         finally:
             try:
                 subprocess.run(
-                    ["wineserver", "-k"],
+                    [environment["WIZ8_UMU_WINESERVER"], "-k"],
                     cwd=sandbox.game_dir,
-                    env=sandbox.environment(),
+                    env=environment,
                     check=False,
+                    timeout=30,
                 )
             finally:
                 script.unlink(missing_ok=True)
+
+
+def _trace_environment(repo: Path, sandbox: Sandbox) -> dict[str, str]:
+    settings = load_settings(repository=repo)
+    assert settings is not None
+    environment = sandbox.environment()
+    configure_runtime_environment(settings, environment)
+    return environment
 
 
 def _provenance(
@@ -742,6 +756,7 @@ def _provenance(
     unwatched: list[str],
 ) -> dict[str, Any]:
     image = sandbox.game_dir / executable
+    environment = _trace_environment(repo, sandbox)
     provenance: dict[str, Any] = {
         "executable": executable,
         "executable_sha256": sha256_file(image),
@@ -751,7 +766,12 @@ def _provenance(
         "trace_plan_sha256": plan_hash,
         "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
         "repository_revision": _repository_revision(repo),
-        "wine": tool_version("wine", ("--version",)),
+        "wine": tool_version(
+            str(Path(environment["PROTONPATH"]) / "files/bin/wine"), ("--version",)
+        ),
+        "runner": environment["WIZ8_UMU_RUN"],
+        "proton": environment["PROTONPATH"],
+        "wineserver": environment["WIZ8_UMU_WINESERVER"],
         "gdb": tool_version("gdb", ("--version",)),
         "timeout_seconds": seconds,
         "proxy_port": selected_port,
@@ -778,7 +798,7 @@ def run_trace(
 ) -> dict[str, Any]:
     """Run one scenario under the debugger and return its event stream."""
 
-    for tool in ("winedbg", "wineserver", "gdb"):
+    for tool in ("gdb",):
         if shutil.which(tool) is None:
             raise ValueError(f"{tool} is not on PATH; the dynamic oracle needs it")
     if not (sandbox.game_dir / executable).is_file():
@@ -824,7 +844,13 @@ def run_trace(
     script.write_text(gdb_script(points, selected_port, actions=actions), encoding="utf-8")
 
     output, returncode = _capture(
-        sandbox, executable, script, selected_port, seconds, tuple(launch_arguments)
+        sandbox,
+        executable,
+        script,
+        selected_port,
+        seconds,
+        tuple(launch_arguments),
+        environment=_trace_environment(repo, sandbox),
     )
 
     events = parse_events(output)
@@ -867,7 +893,7 @@ def run_smoke(
     it queues the confirming Return. A gesture that never lands leaves the
     run at the timeout - `exited` stays false rather than guessing."""
 
-    for tool in ("winedbg", "wineserver", "gdb", "xdotool"):
+    for tool in ("gdb", "xdotool"):
         if shutil.which(tool) is None:
             raise ValueError(f"{tool} is not on PATH; the smoke test needs it")
     if not (sandbox.game_dir / executable).is_file():
@@ -903,7 +929,15 @@ def run_smoke(
         gdb_script(points, selected_port, actions=actions, observe_exit=True), encoding="utf-8"
     )
 
-    output, returncode = _capture(sandbox, executable, script, selected_port, seconds)
+    output, returncode = _capture(
+        sandbox,
+        executable,
+        script,
+        selected_port,
+        seconds,
+        SCENARIO_ARGUMENTS[SMOKE],
+        environment=_trace_environment(repo, sandbox),
+    )
     timed_out = returncode is None
     finished = returncode == 0 and NORMAL_EXIT in output.splitlines()
 
@@ -911,6 +945,7 @@ def run_smoke(
     provenance = _provenance(
         repo, sandbox, executable, link_map, plan_hash, seconds, selected_port, unwatched
     )
+    provenance["arguments"] = list(SCENARIO_ARGUMENTS[SMOKE])
     reached = {event.name for event in events}
     requirements = {
         "started": READY in output,

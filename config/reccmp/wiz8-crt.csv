@@ -1,0 +1,5 @@
+address|symbol|name|type|size
+005ff000|___xc_a|___xc_a|global|4
+005ff42c|___xc_z|___xc_z|global|4
+005ff430|___xi_a|___xi_a|global|4
+005ff434|___xi_z|___xi_z|global|4

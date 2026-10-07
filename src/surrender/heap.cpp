@@ -31,12 +31,7 @@ srHeap::srHeap()
 srHeap::~srHeap()
 {
     freeAll();
-    srCriticalSection* section = critical_section;
-    if (section != 0) {
-        section->getAccess();
-        section->releaseAccess();
-        delete section;
-    }
+    delete critical_section;
 }
 
 // FUNCTION: SURRENDER 0x10035A90

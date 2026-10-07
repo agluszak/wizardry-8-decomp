@@ -11,6 +11,8 @@ public:
 
     ~srCriticalSection()
     {
+        EnterCriticalSection(&critical_section);
+        LeaveCriticalSection(&critical_section);
         DeleteCriticalSection(&critical_section);
     }
 

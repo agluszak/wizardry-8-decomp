@@ -816,12 +816,6 @@ void srVertexPipe::getEyeSpaceBoundingSphere(srVector3T<float>& center, float& r
     radius = input->eye_radius;
 }
 
-// FUNCTION: SURRENDER 0x1002C4B0
-unsigned long srVertexPipe::getVertexCount() const
-{
-    return vertex_count;
-}
-
 // FUNCTION: SURRENDER 0x1002C4C0
 const srVertexProcessor::MaterialInfo& srVertexPipe::getMaterialInfo() const
 {
@@ -832,12 +826,6 @@ const srVertexProcessor::MaterialInfo& srVertexPipe::getMaterialInfo() const
 srFlags<srVertexProcessor::e_channel> srVertexPipe::getChannelMask() const
 {
     return srFlags<srVertexProcessor::e_channel>(channel_mask);
-}
-
-// FUNCTION: SURRENDER 0x1002C4E0
-int srVertexPipe::isChannelAvailable(srVertexProcessor::e_channel channel) const
-{
-    return ((1u << channel) & channel_mask) != 0;
 }
 
 // FUNCTION: SURRENDER 0x1002C500
@@ -869,16 +857,6 @@ const float* srVertexPipe::getDepthCue()
         setupDepthCue();
     }
     return scratch->depth_cue + sub_batch_offset;
-}
-
-// FUNCTION: SURRENDER 0x1002C5C0
-const srVector3T<float>* srVertexPipe::getEyeSpaceNormal()
-{
-    Scratch* scratch = this->scratch;
-    if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_NORMALS) == 0) {
-        setupEyeSpaceNormal();
-    }
-    return scratch->normals + sub_batch_offset;
 }
 
 // FUNCTION: SURRENDER 0x1002C5F0
@@ -951,18 +929,6 @@ srVector4T<float>* srVertexPipe::getSpecular()
         setupSpecular();
     }
     return vertex_array->specular + batch_base + sub_batch_offset;
-}
-
-// FUNCTION: SURRENDER 0x1002C780
-srVector2T<float>* srVertexPipe::getST(unsigned long index, int create)
-{
-    srCore.getStatisticsManager()->statistics.texture_coordinate_operations += vertex_count;
-    if ((create == 0) &&
-        ((lazy_setup_mask & (1 << (index + srVertexProcessor::CHANNEL_ST0))) == 0)) {
-        setupST(index);
-    }
-    lazy_setup_mask |= 1 << (index + srVertexProcessor::CHANNEL_ST0);
-    return (&vertex_array->st0)[index] + batch_base + sub_batch_offset;
 }
 
 // FUNCTION: SURRENDER 0x1002C7F0

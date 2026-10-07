@@ -24,6 +24,11 @@ class SR_DLL_IMPORT SR_DLL_EXPORT srClipPlane
 public:
     typedef srClientSupport<srClipPlane, 0x1500> ClientType;
 
+#if !defined(SURRENDER_BUILD)
+    srClipPlane& operator=(const srClipPlane& other);
+    virtual ~srClipPlane() override;
+#endif
+
     /* Dump prints +0x148 as a decimal "Clip type"; no name table. Wizardry
        always writes 0. */
     enum e_clip { CLIP_POSITIONAL_0 = 0 };

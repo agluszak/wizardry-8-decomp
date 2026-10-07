@@ -939,6 +939,7 @@ def _retail_identity_ownership(repository: Path, target: str) -> dict[str, Any]:
     """
     from collections import Counter
 
+    from reccmp.analysis.crt_startup import iter_crt_array_ranges
     from reccmp.compare import Compare
     from reccmp.types import EntityType, ImageId
 
@@ -952,6 +953,16 @@ def _retail_identity_ownership(repository: Path, target: str) -> dict[str, Any]:
     aliases = {
         entity.orig_addr: canonical.orig_addr
         for entity, canonical in engine.db.get_aliases(ImageId.ORIG)
+    }
+    # The native CRT owner recognizes the explicitly named boundary pairs.
+    # Require a forward, word-aligned range and zero sentinel bytes; this
+    # classifies those words, not the entries or their initialization order.
+    crt_boundaries = {
+        address
+        for _, span in iter_crt_array_ranges(engine.db, ImageId.ORIG)
+        if span.start < span.stop and span.start % 4 == 0 and span.stop % 4 == 0
+        for address in (span.start, span.stop)
+        if engine.orig_bin.read(address, 4) == b"\0" * 4
     }
     rows = []
     for entity in engine.get_all():
@@ -976,6 +987,8 @@ def _retail_identity_ownership(repository: Path, target: str) -> dict[str, Any]:
             for identity in identities
         ):
             bucket, basis = "library_owned", "library metadata or component source binding"
+        elif entity.entity_type == EntityType.DATA and address in crt_boundaries:
+            bucket, basis = "library_owned", "native CRT boundary pair and zero sentinel"
         elif emission is not None:
             bucket = (
                 "template_inline_emission" if emission.type == "template" else "compiler_generated"

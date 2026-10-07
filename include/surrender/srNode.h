@@ -112,7 +112,12 @@ public:
     SR_DLL_IMPORT long getFullPathLength() const;
     SR_DLL_IMPORT long getHierarchyLevel() const;
     SR_DLL_IMPORT srNode* getNext() const;
-    SR_DLL_IMPORT srNode* getParent() const;
+    // FUNCTION: SURRENDER 0x10051A40 SYMBOL
+    // RECOMP: ?getParent@srNode@@QBEPAV1@XZ
+    srNode* getParent() const
+    {
+        return parent_;
+    }
     SR_DLL_IMPORT srNode* getPrev() const;
     SR_DLL_IMPORT int isChildOf(const srNode& node) const;
     SR_DLL_IMPORT int isParentOf(const srNode& node) const;
@@ -124,7 +129,12 @@ public:
     SR_DLL_IMPORT double getDistance(const srNode& node) const;
     SR_DLL_IMPORT srVector3T<double> getLocation() const;
     SR_DLL_IMPORT void getLocation(srVector3T<float>& location) const;
-    SR_DLL_IMPORT void getLocation(srVector3T<double>& location) const;
+    // FUNCTION: SURRENDER 0x10053DD0 SYMBOL
+    // RECOMP: ?getLocation@srNode@@QBEXAAV?$srVector3T@N@@@Z
+    void getLocation(srVector3T<double>& location) const
+    {
+        location = this->location;
+    }
     SR_DLL_IMPORT double getLocationX() const;
     SR_DLL_IMPORT double getLocationY() const;
     SR_DLL_IMPORT double getLocationZ() const;

@@ -57,35 +57,33 @@ private:
 // VTABLE: SURRENDER 0x10076BB0 srBinStream
 // VTABLE: SURRENDER 0x10076BC4 srBinOStream
 // class srBinOMStream
-class
 #if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
+class SR_DLL_EXPORT srBinOMStream
 #else
-    __declspec(novtable)
+class __declspec(novtable) SR_DLL_IMPORT srBinOMStream
 #endif
-    srBinOMStream : public srBinOStream {
+    : public srBinOStream {
 public:
-    SR_DLL_IMPORT srBinOMStream();
+    srBinOMStream();
     /* Copy construction and destruction are consistent with ordinary member
        lifecycle. The default constructor initializes stream state. */
 
     /* Assignment performs memberwise copying; srArray owns buffer reallocation. */
 
 #if !defined(SURRENDER_BUILD)
-    SR_DLL_IMPORT srBinOMStream(const srBinOMStream& stream);
-    virtual SR_DLL_IMPORT ~srBinOMStream() override;
-    SR_DLL_IMPORT srBinOMStream& operator=(const srBinOMStream& stream);
+    srBinOMStream(const srBinOMStream& stream);
+    virtual ~srBinOMStream() override {}
+    srBinOMStream& operator=(const srBinOMStream& stream);
 #endif
 
-    SR_DLL_IMPORT void* getPtr();
-    virtual SR_DLL_IMPORT unsigned long getSize() override;
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position,
-                                            srBinStream::e_seekDir direction) override;
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
-    virtual SR_DLL_IMPORT unsigned long tell() override;
+    void* getPtr();
+    virtual unsigned long getSize() override;
+    virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
+    virtual srBinStream& seek(unsigned long position) override;
+    virtual unsigned long tell() override;
 
 private:
-    virtual SR_DLL_IMPORT unsigned long vwrite(const void* source, unsigned long size) override;
+    virtual unsigned long vwrite(const void* source, unsigned long size) override;
 
     srArray<unsigned char> buffer;
     unsigned long position0;

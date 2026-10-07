@@ -266,8 +266,8 @@ static_assert(sizeof(srRuntimeClass) == 0x0c, "srRuntimeClass_must_be_0x0c");
    missing handwritten vtable write. */
 /* Retail exports include protected construction/destruction, private statics
    and copy operations. The reconstruction uses class-level export; original
-   special-member and annotation spelling is unresolved. clone remains
-   declaration-only pending recovery; its body tail-dispatches through slot 7. */
+   special-member and annotation spelling is unresolved. clone dispatches
+   through the virtual clone slot 7. */
 class __declspec(novtable)
 #if defined(SURRENDER_BUILD)
 __declspec(dllexport)
@@ -308,7 +308,12 @@ public:
        onto it, as instance is onto vInstance. */
     virtual srClass* vClone() = 0;
 
-    SR_DLL_IMPORT srClass* clone();
+    // FUNCTION: SURRENDER 0x1000E860 SYMBOL
+    // RECOMP: ?clone@srClass@@QAEPAV1@XZ
+    srClass* clone()
+    {
+        return vClone();
+    }
     SR_DLL_IMPORT srClass* instance();
     SR_DLL_IMPORT int release() const;
     SR_DLL_IMPORT void addReference() const;

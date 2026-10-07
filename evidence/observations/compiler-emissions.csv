@@ -360,7 +360,7 @@ SURRENDER|1002ec50||ReadJob scalar deleting destructor|synthetic|src/surrender/f
 SURRENDER|1002ed90||base subobject destructor emission (vtable restore)|synthetic|src/surrender/file_stream.cpp|legacy-marker|base subobject destructor emission (vtable restore)|false
 SURRENDER|1002edc0||??0srBinIAsyncStream@@QAE@ABV0@@Z|synthetic|include/surrender/srBinIAsyncStream.h|legacy-marker|??0srBinIAsyncStream@@QAE@ABV0@@Z|true
 SURRENDER|1002ee70||srBinIAsyncStream::`vbase destructor'|synthetic|include/surrender/srBinIAsyncStream.h|legacy-marker|srBinIAsyncStream::`vbase destructor'|false
-SURRENDER|1002eec0||srBinIAsyncStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinIAsyncStream.h|Retail 1002eec0: deleting flags select array destruction with stride 0x34 and vbase destructor 1002ee70; receiver adjustment -0x24; conditional operator delete.|srBinIAsyncStream vector deleting destructor for virtual stream base|false
+SURRENDER|1002eec0||srBinIAsyncStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinIAsyncStream.h|Retail 1002eec0: deleting flags select array destruction with stride 0x34 and vbase destructor 1002ee70; receiver adjustment -0x24; conditional operator delete.|??_EsrBinIAsyncStream@@UAEPAXI@Z|true
 SURRENDER|1002ef30||srBinIStream::~srBinIStream|synthetic|include/surrender/srBinIStream.h|legacy-marker|srBinIStream::~srBinIStream|false
 SURRENDER|1002f430||??0srBinFStream@@QAE@ABV0@@Z|synthetic|include/surrender/srBinFStream.h|legacy-marker|??0srBinFStream@@QAE@ABV0@@Z|true
 SURRENDER|1002f530||srBinFStream::operator=|synthetic|include/surrender/srBinFStream.h|legacy-marker|srBinFStream::operator=|false
@@ -368,28 +368,28 @@ SURRENDER|1002f5f0||srBinFStream::`vbase destructor'|synthetic|include/surrender
 SURRENDER|1002f640||srBinFStream::`vector deleting destructor'|synthetic|src/surrender/file_stream.cpp|legacy-marker|srBinFStream::`vector deleting destructor'|false
 SURRENDER|1002f8d0||??0srBinIFStream@@QAE@ABV0@@Z|synthetic|include/surrender/srBinFStream.h|legacy-marker|??0srBinIFStream@@QAE@ABV0@@Z|true
 SURRENDER|1002fa20||srBinIFStream::operator=|synthetic|include/surrender/srBinFStream.h|legacy-marker|srBinIFStream::operator=|false
-SURRENDER|1002fb90||srBinIFStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinFStream.h|Retail 1002fb90: deleting flags select array destruction with stride 0x34 and vbase destructor 1002e460; receiver adjustment -0x24; conditional operator delete.|srBinIFStream vector deleting destructor for virtual stream base|false
+SURRENDER|1002fb90||srBinIFStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinFStream.h|Retail 1002fb90: deleting flags select array destruction with stride 0x34 and vbase destructor 1002e460; receiver adjustment -0x24; conditional operator delete.|??_EsrBinIFStream@@UAEPAXI@Z|true
 SURRENDER|1002ff00||??0srBinIOFStream@@QAE@ABV0@@Z|synthetic|include/surrender/srBinFStream.h|legacy-marker|??0srBinIOFStream@@QAE@ABV0@@Z|true
 SURRENDER|10030070||srBinIOFStream::operator=|synthetic|include/surrender/srBinFStream.h|legacy-marker|srBinIOFStream::operator=|false
 SURRENDER|100301e0||srBinIOFStream::~srBinIOFStream (vtordisp adjustor thunk)|synthetic|include/surrender/srBinFStream.h|legacy-marker|srBinIOFStream::~srBinIOFStream (vtordisp adjustor thunk)|false
 SURRENDER|100301f0||srBinIOFStream::`vbase destructor'|synthetic|include/surrender/srBinFStream.h|legacy-marker|srBinIOFStream::`vbase destructor'|false
-SURRENDER|10030240||srBinIOFStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinFStream.h|Retail 10030240: deleting flags select array destruction with stride 0x3c and vbase destructor 100301f0; receiver adjustment -0x2c; conditional operator delete.|srBinIOFStream vector deleting destructor for virtual stream base|false
+SURRENDER|10030240||srBinIOFStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinFStream.h|Retail 10030240: deleting flags select array destruction with stride 0x3c and vbase destructor 100301f0; receiver adjustment -0x2c; conditional operator delete.|??_EsrBinIOFStream@@UAEPAXI@Z|true
 SURRENDER|100302b0||srBinOStream::~srBinOStream|synthetic|include/surrender/srBinOStream.h|legacy-marker|srBinOStream::~srBinOStream|false
 SURRENDER|100305d0||srBinOFStream::srBinOFStream|synthetic|include/surrender/srBinFStream.h|legacy-marker|srBinOFStream::srBinOFStream|false
 SURRENDER|10030760||srBinOFStream::operator=|synthetic|include/surrender/srBinFStream.h|legacy-marker|srBinOFStream::operator=|false
 SURRENDER|100308c0||srBinOFStream::~srBinOFStream|synthetic|include/surrender/srBinFStream.h|legacy-marker|srBinOFStream::~srBinOFStream|false
-SURRENDER|10030900||srBinOFStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinFStream.h|Retail 10030900: deleting flags select array destruction with stride 0x3c and vbase destructor 1002d640; receiver adjustment -0x08; conditional operator delete.|srBinOFStream vector deleting destructor for virtual stream base|false
+SURRENDER|10030900||srBinOFStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinFStream.h|Retail 10030900: deleting flags select array destruction with stride 0x3c and vbase destructor 1002d640; receiver adjustment -0x08; conditional operator delete.|??_EsrBinOFStream@@UAEPAXI@Z|true
 SURRENDER|10030bb0||??0srBinIMStream@@QAE@ABV0@@Z|synthetic|include/surrender/srBinIStream.h|legacy-marker|??0srBinIMStream@@QAE@ABV0@@Z|true
 SURRENDER|10030c50||srBinIMStream::operator=|synthetic|include/surrender/srBinIStream.h|legacy-marker|srBinIMStream::operator=|false
 SURRENDER|10030ce0||srBinIMStream::~srBinIMStream|synthetic|include/surrender/srBinIStream.h|legacy-marker|srBinIMStream::~srBinIMStream|false
 SURRENDER|10030cf0||srBinIMStream::`vbase destructor'|synthetic|include/surrender/srBinIStream.h|legacy-marker|srBinIMStream::`vbase destructor'|false
-SURRENDER|10030d40||srBinIMStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinIStream.h|Retail 10030d40: deleting flags select array destruction with stride 0x28 and vbase destructor 10030cf0; receiver adjustment -0x18; conditional operator delete.|srBinIMStream vector deleting destructor for virtual stream base|false
+SURRENDER|10030d40||srBinIMStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinIStream.h|Retail 10030d40: deleting flags select array destruction with stride 0x28 and vbase destructor 10030cf0; receiver adjustment -0x18; conditional operator delete.|??_EsrBinIMStream@@UAEPAXI@Z|true
 SURRENDER|10031100||srArray<T>::release emission|template|src/surrender/stream.cpp|legacy-marker|srArray<T>::release emission|false
 SURRENDER|10031120||srBinOMStream::srBinOMStream(const srBinOMStream&)|synthetic|include/surrender/srBinOStream.h|legacy-marker|srBinOMStream::srBinOMStream(const srBinOMStream&)|false
 SURRENDER|10031250||srBinOMStream::operator=|synthetic|include/surrender/srBinOStream.h|legacy-marker|srBinOMStream::operator=|false
 SURRENDER|10031330||srBinOMStream::~srBinOMStream|synthetic|include/surrender/srBinOStream.h|legacy-marker|srBinOMStream::~srBinOMStream|false
 SURRENDER|10031380||srBinOMStream::`vbase destructor'|synthetic|include/surrender/srBinOStream.h|legacy-marker|srBinOMStream::`vbase destructor'|false
-SURRENDER|100313d0||srBinOMStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinOStream.h|Retail 100313d0: deleting flags select array destruction with stride 0x2c and vbase destructor 10031380; receiver adjustment -0x1c; conditional operator delete.|srBinOMStream vector deleting destructor for virtual stream base|false
+SURRENDER|100313d0||srBinOMStream vector deleting destructor for virtual stream base|synthetic|include/surrender/srBinOStream.h|Retail 100313d0: deleting flags select array destruction with stride 0x2c and vbase destructor 10031380; receiver adjustment -0x1c; conditional operator delete.|??_EsrBinOMStream@@UAEPAXI@Z|true
 SURRENDER|10031c40||srBinIStream::srBinIStream()|synthetic|include/surrender/srBinIStream.h|legacy-marker|srBinIStream::srBinIStream()|false
 SURRENDER|10031c80||srBinIStream::srBinIStream(const srBinIStream&)|synthetic|include/surrender/srBinIStream.h|legacy-marker|srBinIStream::srBinIStream(const srBinIStream&)|false
 SURRENDER|10031ce0||srBinIStream::operator=|synthetic|include/surrender/srBinIStream.h|legacy-marker|srBinIStream::operator=|false
@@ -661,11 +661,11 @@ SURRENDER|1004b490||std::_Winit global atexit registrar|synthetic|src/surrender/
 SURRENDER|1004b4b0||srClassSupport<srBounder,srNode,0,5632>::`scalar deleting destructor'|synthetic|src/surrender/bounder.cpp|legacy-marker|srClassSupport<srBounder,srNode,0,5632>::`scalar deleting destructor'|false
 SURRENDER|1004b4d0||srMatrix4T<float>::Multiply|template|include/surrender/srMath.h|legacy-marker|srMatrix4T<float>::Multiply|false
 SURRENDER|1004bca0||srFog::operator=|synthetic|include/surrender/srFog.h|legacy-marker|srFog::operator=|false
-SURRENDER|1004bdf0||srClassSupport<srIlluminator,srNode,0,4608>::getClassID|template|src/surrender/fog.cpp|legacy-marker|srClassSupport<srIlluminator,srNode,0,4608>::getClassID|false
-SURRENDER|1004be00||srClassSupport<srIlluminator,srNode,0,4608>::getClassName|template|src/surrender/fog.cpp|legacy-marker|srClassSupport<srIlluminator,srNode,0,4608>::getClassName|false
-SURRENDER|1004be10||srClassSupport<srIlluminator,srNode,0,4608>::getClassNode|template|src/surrender/fog.cpp|legacy-marker|srClassSupport<srIlluminator,srNode,0,4608>::getClassNode|false
-SURRENDER|1004bea0||srClientSupport<srFog, 0x1210>::vClone|template|src/surrender/fog.cpp|legacy-marker|srClientSupport<srFog, 0x1210>::vClone|false
-SURRENDER|1004bec0||srClientSupport<srFog, 0x1210>::~srClientSupport|template|src/surrender/fog.cpp|legacy-marker|srClientSupport<srFog, 0x1210>::~srClientSupport|false
+SURRENDER|1004bdf0||srClassSupport<srFog,srIlluminator,0,4624>::getClassID|template|src/surrender/fog.cpp|Retail class ID 0x1210, srFog assignment in clone, and support-phase construction/destruction establish the fog registry layer above srIlluminator.|srClassSupport<srFog,srIlluminator,0,4624>::getClassID|false
+SURRENDER|1004be00||srClassSupport<srFog,srIlluminator,0,4624>::getClassName|template|src/surrender/fog.cpp|Retail class ID 0x1210, srFog assignment in clone, and support-phase construction/destruction establish the fog registry layer above srIlluminator.|srClassSupport<srFog,srIlluminator,0,4624>::getClassName|false
+SURRENDER|1004be10||srClassSupport<srFog,srIlluminator,0,4624>::getClassNode|template|src/surrender/fog.cpp|Retail class ID 0x1210, srFog assignment in clone, and support-phase construction/destruction establish the fog registry layer above srIlluminator.|srClassSupport<srFog,srIlluminator,0,4624>::getClassNode|false
+SURRENDER|1004bea0||srClassSupport<srFog,srIlluminator,0,4624>::vClone|template|src/surrender/fog.cpp|Retail class ID 0x1210, srFog assignment in clone, and support-phase construction/destruction establish the fog registry layer above srIlluminator.|srClassSupport<srFog,srIlluminator,0,4624>::vClone|false
+SURRENDER|1004bec0||srClassSupport<srFog,srIlluminator,0,4624>::~srClassSupport|template|src/surrender/fog.cpp|Retail class ID 0x1210, srFog assignment in clone, and support-phase construction/destruction establish the fog registry layer above srIlluminator.|srClassSupport<srFog,srIlluminator,0,4624>::~srClassSupport|false
 SURRENDER|1004c040||srClassSupport<srIlluminator,srNode,0,4608>::getClassID|template|src/surrender/fog.cpp|legacy-marker|srClassSupport<srIlluminator,srNode,0,4608>::getClassID|false
 SURRENDER|1004c060||srClassSupport<srIlluminator,srNode,0,4608>::getClassNode|template|src/surrender/fog.cpp|legacy-marker|srClassSupport<srIlluminator,srNode,0,4608>::getClassNode|false
 SURRENDER|1004c0c0||srClassSupport<srIlluminator, srNode, false, 0x1200>::vClone|template|src/surrender/fog.cpp|legacy-marker|srClassSupport<srIlluminator, srNode, false, 0x1200>::vClone|false
@@ -678,7 +678,7 @@ SURRENDER|1004c5b0||std::_Winit global static-init block|synthetic|src/surrender
 SURRENDER|1004c5c0||std::_Winit global atexit registrar|synthetic|src/surrender/fog.cpp|legacy-marker|std::_Winit global atexit registrar|false
 SURRENDER|1004c5e0||srClassSupport<srIlluminator,srNode,0,4608>::`scalar deleting destructor'|synthetic|src/surrender/fog.cpp|legacy-marker|srClassSupport<srIlluminator,srNode,0,4608>::`scalar deleting destructor'|false
 SURRENDER|1004c600||srClientSupport<srIlluminator, 0x1200>::~srClientSupport|template|src/surrender/fog.cpp|legacy-marker|srClientSupport<srIlluminator, 0x1200>::~srClientSupport|false
-SURRENDER|1004c6c0||srClientSupport<srFog, 0x1210> scalar deleting destructor|synthetic|src/surrender/fog.cpp|legacy-marker|srClientSupport<srFog, 0x1210> scalar deleting destructor|false
+SURRENDER|1004c6c0||srClassSupport<srFog,srIlluminator,0,4624>::`scalar deleting destructor'|synthetic|src/surrender/fog.cpp|Retail class ID 0x1210, srFog assignment in clone, and support-phase construction/destruction establish the fog registry layer above srIlluminator.|srClassSupport<srFog,srIlluminator,0,4624>::`scalar deleting destructor'|false
 SURRENDER|1004c6e0||srIlluminator::~srIlluminator|synthetic|include/surrender/srIlluminator.h|legacy-marker|srIlluminator::~srIlluminator|false
 SURRENDER|1004c7c0||srFog::`vector deleting destructor'`adjustor{312}'|synthetic|src/surrender/illuminator.cpp|legacy-marker|srFog::`vector deleting destructor'`adjustor{312}'|false
 SURRENDER|1004cb10||srVertexProcessor subobject destructor emission (vtable restore)|synthetic|src/surrender/illuminator.cpp|legacy-marker|srVertexProcessor subobject destructor emission (vtable restore)|false
@@ -917,7 +917,7 @@ WIZ8|004219a0||operator-<float>(srVector3T<float> const &,srVector3T<float> cons
 WIZ8|004219f0||srMatrix3T<float>::SetRows|template|include/surrender/srMath.h|legacy-marker|srMatrix3T<float>::SetRows|false
 WIZ8|00421a40||srMatrix3T<float>::MultiplyBy|template|include/surrender/srMath.h|legacy-marker|srMatrix3T<float>::MultiplyBy|false
 WIZ8|004229c0||RenderFrame (tail-jump thunk)|synthetic|src/wiz8/engine_code/Video2.cpp|legacy-marker|RenderFrame (tail-jump thunk)|false
-WIZ8|00423e50||srMaterial::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/Video2.cpp|legacy-marker|srMaterial::`scalar deleting destructor'|false
+WIZ8|00423e50||material imported-destructor and srHeap deallocation wrapper|synthetic|src/wiz8/engine_code/Video2.cpp|Retail calls imported srMaterial destructor and conditionally srHeap deallocation. Selector identifies the matching consumer emission, not original template spelling.|srClientSupport<srMaterial,8720>::`scalar deleting destructor'|false
 WIZ8|00423e80||srCamera::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/Video2.cpp|legacy-marker|srCamera::`scalar deleting destructor'|false
 WIZ8|00423eb0||srScene::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/Video2.cpp|legacy-marker|srScene::`scalar deleting destructor'|false
 WIZ8|00423ee0||srModeler::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/Video2.cpp|legacy-marker|srModeler::`scalar deleting destructor'|false
@@ -929,35 +929,35 @@ WIZ8|004258b0||srVector3T<float>::SetSaturated|template|include/surrender/srMath
 WIZ8|00429a40||srClientSupport<srColorSurface,12560>::getClassID|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srColorSurface,12560>::getClassID|false
 WIZ8|00429a50||srClientSupport<srColorSurface,12560>::getClassName|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srColorSurface,12560>::getClassName|false
 WIZ8|00429a60||srClientSupport<srColorSurface,12560>::getClassNode|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srColorSurface,12560>::getClassNode|false
-WIZ8|00429ad0||srClientSupport<srColorSurface,12560>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srColorSurface,12560>::clone|false
+WIZ8|00429ad0||srClientSupport<srColorSurface,12560>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srColorSurface,12560>::vClone|false
 WIZ8|00429b00||srPtr<T>::retained emission|template|include/surrender/srPtr.h;src/wiz8/engine_code/Video2.cpp|legacy-marker|srPtr assignment emission: release the held interface, addref and store the new one|false
 WIZ8|00429b30||srClientSupport<srMeshModel,8208>::getClassID|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMeshModel,8208>::getClassID|false
 WIZ8|00429b40||srClientSupport<srMeshModel,8208>::getClassName|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMeshModel,8208>::getClassName|false
 WIZ8|00429b50||srClientSupport<srMeshModel,8208>::getClassNode|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMeshModel,8208>::getClassNode|false
-WIZ8|00429bc0||srClientSupport<srMeshModel,8208>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMeshModel,8208>::clone|false
+WIZ8|00429bc0||srClientSupport<srMeshModel,8208>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMeshModel,8208>::vClone|false
 WIZ8|00429be0||srClientSupport<srTextureMap,8465>::getClassID|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srTextureMap,8465>::getClassID|false
 WIZ8|00429bf0||srClientSupport<srTextureMap,8465>::getClassName|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srTextureMap,8465>::getClassName|false
 WIZ8|00429c00||srClientSupport<srTextureMap,8465>::getClassNode|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srTextureMap,8465>::getClassNode|false
-WIZ8|00429ca0||srClientSupport<srTextureMap,8465>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srTextureMap,8465>::clone|false
+WIZ8|00429ca0||srClientSupport<srTextureMap,8465>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srTextureMap,8465>::vClone|false
 WIZ8|00429cc0||srClientSupport<srMaterial,8720>::getClassID|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMaterial,8720>::getClassID|false
 WIZ8|00429cd0||srClientSupport<srMaterial,8720>::getClassName|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMaterial,8720>::getClassName|false
 WIZ8|00429ce0||srClientSupport<srMaterial,8720>::getClassNode|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMaterial,8720>::getClassNode|false
-WIZ8|00429d50||srClientSupport<srMaterial,8720>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMaterial,8720>::clone|false
+WIZ8|00429d50||srClientSupport<srMaterial,8720>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMaterial,8720>::vClone|false
 WIZ8|00429d70||srClientSupport<srMaterial,8720>::srClientSupport|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMaterial,8720>::srClientSupport|false
 WIZ8|00429e80||srClassSupport<srMaterialIFace,srClass,1,8704>::getClassID|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClassSupport<srMaterialIFace,srClass,1,8704>::getClassID|false
-WIZ8|00429ee0||srClassSupport<srMaterialIFace,srClass,1,8704>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClassSupport<srMaterialIFace,srClass,1,8704>::clone|false
+WIZ8|00429ee0||srClassSupport<srMaterialIFace,srClass,1,8704>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClassSupport<srMaterialIFace,srClass,1,8704>::vClone|false
 WIZ8|00429f00||material class-support destructor (0x2210 and 0x2200 registry layers)|template|include/surrender/srTypeRegistry.h|Retail restores both support vtables, unregisters each node through imported unregisterInstance, then calls srClass::~srClass; exact template spelling is not established.|material class-support destructor (0x2210 and 0x2200 registry layers)|false
 WIZ8|0042a010||srClientSupport<srCamera,5120>::getClassID|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srCamera,5120>::getClassID|false
 WIZ8|0042a020||srClientSupport<srCamera,5120>::getClassName|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srCamera,5120>::getClassName|false
 WIZ8|0042a030||srClientSupport<srCamera,5120>::getClassNode|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srCamera,5120>::getClassNode|false
-WIZ8|0042a0a0||srClientSupport<srCamera,5120>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srCamera,5120>::clone|false
+WIZ8|0042a0a0||srClientSupport<srCamera,5120>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srCamera,5120>::vClone|false
 WIZ8|0042a0c0||srClientSupport<srScene,4112>::getClassID|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srScene,4112>::getClassID|false
 WIZ8|0042a0d0||srClientSupport<srScene,4112>::getClassName|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srScene,4112>::getClassName|false
 WIZ8|0042a0e0||srClientSupport<srScene,4112>::getClassNode|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srScene,4112>::getClassNode|false
-WIZ8|0042a150||srClientSupport<srScene,4112>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srScene,4112>::clone|false
+WIZ8|0042a150||srClientSupport<srScene,4112>::clone|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srScene,4112>::vClone|false
 WIZ8|0042a170||srClassSupport<srMaterialIFace,srClass,1,8704>::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClassSupport<srMaterialIFace,srClass,1,8704>::`scalar deleting destructor'|false
 WIZ8|0042a1a0||srClassSupport<srMaterialIFace,srClass,1,8704>::~srClassSupport|template|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClassSupport<srMaterialIFace,srClass,1,8704>::~srClassSupport|false
-WIZ8|0042a230||srClientSupport<srMaterial,8720>::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/Video2.cpp|legacy-marker|srClientSupport<srMaterial,8720>::`scalar deleting destructor'|false
+WIZ8|0042a230||material support-layer deleting destructor (0x2210 and 0x2200)|synthetic|src/wiz8/engine_code/Video2.cpp|Calls 0x00429f00, which unregisters both support layers before srClass destruction; this is not the imported srMaterial client destructor.|material support-layer deleting destructor (0x2210 and 0x2200)|false
 WIZ8|0042a260||W8Vector<T>::W8Vector|template|include/wiz8/vector.h|legacy-marker|W8Vector<srClass*>::W8Vector|false
 WIZ8|0042a2c0||W8Vector<T>::~W8Vector|template|include/wiz8/vector.h|legacy-marker|W8Vector::~W8Vector|false
 WIZ8|0042a2e0||W8GrowableVector<T>::`scalar deleting destructor'|synthetic|include/wiz8/vector.h|legacy-marker|W8GrowableVector<srClass*>::`scalar deleting destructor'|false
@@ -1163,12 +1163,12 @@ WIZ8|004817e0||srVector4T<float>::Set (double arguments; no source caller retain
 WIZ8|00481860||srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassID|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassID|false
 WIZ8|00481870||srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassName|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassName|false
 WIZ8|00481880||srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassNode|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassNode|false
-WIZ8|00481920||srClassSupport<stModelInstance,srModelInstance,0,65540>::clone|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance,srModelInstance,0,65540>::clone|false
+WIZ8|00481920||srClassSupport<stModelInstance,srModelInstance,0,65540>::clone|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance,srModelInstance,0,65540>::vClone|false
 WIZ8|00481940||srClassSupport<stModelInstance,srModelInstance,0,65540>::~srClassSupport<stModelInstance,srModelInstance,0,65540>|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance,srModelInstance,0,65540>::~srClassSupport<stModelInstance,srModelInstance,0,65540>|false
 WIZ8|00481a40||srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassID|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassID|false
 WIZ8|00481a50||srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassName|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassName|false
 WIZ8|00481a60||srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassNode|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassNode|false
-WIZ8|00481b00||srClassSupport<stModelInstance2D,srModelInstance,0,65541>::clone|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance2D,srModelInstance,0,65541>::clone|false
+WIZ8|00481b00||srClassSupport<stModelInstance2D,srModelInstance,0,65541>::clone|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance2D,srModelInstance,0,65541>::vClone|false
 WIZ8|00481b20||srClassSupport<stModelInstance2D,srModelInstance,0,65541>::~srClassSupport<stModelInstance2D,srModelInstance,0,65541>|template|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance2D,srModelInstance,0,65541>::~srClassSupport<stModelInstance2D,srModelInstance,0,65541>|false
 WIZ8|00481c20||srClassSupport<stModelInstance,srModelInstance,0,65540>::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance,srModelInstance,0,65540>::`scalar deleting destructor'|false
 WIZ8|00481c50||srClassSupport<stModelInstance2D,srModelInstance,0,65541>::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/stModelInstance.cpp|legacy-marker|srClassSupport<stModelInstance2D,srModelInstance,0,65541>::`scalar deleting destructor'|false
@@ -3079,3 +3079,4 @@ WIZ8|005ea340||Unwind@005ea340|synthetic||legacy-marker|Unwind@005ea340|false
 WIZ8|005ea34b||Unwind@005ea34b|synthetic||legacy-marker|Unwind@005ea34b|false
 WIZ8|005ea356||Unwind@005ea356|synthetic||legacy-marker|Unwind@005ea356|false
 WIZ8|005ea370||Unwind@005ea370|synthetic||legacy-marker|Unwind@005ea370|false
+SURRENDER|1004c210||srFog::srFog (implicit copy constructor)|synthetic|include/surrender/srFog.h|Retail constructs the 0x1210 support layer, assigns srFog there, then copies the fog members before installing final vtables.|??0srFog@@QAE@ABV0@@Z|true

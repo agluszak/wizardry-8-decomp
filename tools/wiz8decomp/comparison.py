@@ -514,6 +514,7 @@ def compare_selected(
 
     header_emissions: dict[int, Any] = {}
     internal_emissions: dict[int, Any] = {}
+    inline_emissions: dict[int, Any] = {}
     template_emissions: set[int] = set()
     unlinked_addresses = {
         address
@@ -559,17 +560,49 @@ def compare_selected(
             and row["outcome"] == "unpaired"
             and row.get("recomp") is None
         }
-        if internal_candidates:
+        index = (
+            load_source_index(repository)
+            if internal_candidates
+            or any(
+                marker.declaration is not None
+                and getattr(marker.declaration, "owning_class", None) is not None
+                for address, marker in model.items()
+                if address in unlinked_addresses
+            )
+            else {}
+        )
+        class_ranges: dict[tuple[str, str], list[tuple[int, int]]] = {}
+        for record in index.get("classes", []):
+            if record["target"] == target.upper():
+                class_ranges.setdefault(
+                    (record["qualified_name"], record["source_file"]), []
+                ).append((record["line"], record["end_line"]))
+        inline_candidates = {
+            address: model[address]
+            for address in unlinked_addresses & model.keys()
+            if (declaration := model[address].declaration) is not None
+            and declaration.is_definition
+            and (owner := getattr(declaration, "owning_class", None)) is not None
+            and any(
+                start <= declaration.line <= declaration.end_line <= end
+                for start, end in class_ranges.get((owner, declaration.source_file), [])
+            )
+            and (row := rows.get(address)) is not None
+            and row["outcome"] == "unpaired"
+            and row.get("recomp") is None
+        }
+        candidates = internal_candidates | inline_candidates
+        if candidates:
             from .paths import sha256_file
 
-            digests = load_source_index(repository).get("source_digests", {})
-            internal_candidates = {
+            digests = index.get("source_digests", {})
+            candidates = {
                 address: marker
-                for address, marker in internal_candidates.items()
+                for address, marker in candidates.items()
                 if digests.get(marker.source_file)
                 and sha256_file(repository / marker.source_file) == digests[marker.source_file]
             }
-        if internal_candidates:
+        if candidates:
             # Reuse reccmp's complete PDB catalog, including unmatched procedures.
             # An emitted function with broken line pairing remains a hard failure.
             engine = Compare.from_target(recmp_target)
@@ -578,10 +611,20 @@ def compare_selected(
                 for entity in engine.db.get_all()
                 if (symbol := entity.fact(ImageId.RECOMP, "symbol")) is not None
             }
+            non_emissions = {
+                address: marker
+                for address, marker in candidates.items()
+                if marker.declaration is not None and marker.declaration.semantic_id not in symbols
+            }
             internal_emissions = {
                 address: marker
-                for address, marker in internal_candidates.items()
-                if marker.declaration is not None and marker.declaration.semantic_id not in symbols
+                for address, marker in non_emissions.items()
+                if address in internal_candidates
+            }
+            inline_emissions = {
+                address: marker
+                for address, marker in non_emissions.items()
+                if address in inline_candidates and address not in header_emissions
             }
     if classify_template_emissions and unlinked_addresses:
         from .emissions import emission_inventory
@@ -610,6 +653,17 @@ def compare_selected(
                     "source_file": marker.source_file,
                 }
             )
+        elif address in inline_emissions:
+            marker = inline_emissions[address]
+            assert row is not None
+            emission = _function_row(repository, target, row)
+            emission.update(
+                name=marker.name,
+                outcome="inline-non-emission",
+                reason="in-class definition has no standalone PDB procedure; no independent body comparison",
+                source_file=marker.source_file,
+            )
+            functions.append(emission)
         elif address in internal_emissions:
             marker = internal_emissions[address]
             assert row is not None
@@ -650,6 +704,7 @@ def compare_selected(
             for outcome in (
                 *_OUTCOMES,
                 "header-emission",
+                "inline-non-emission",
                 "internal-non-emission",
                 "template-non-emission",
                 "missing",
@@ -765,6 +820,12 @@ def compare_vtables(repository: Path, target: str, class_filter: str | None) -> 
                         "status": slot.status.value,
                         "original": _slot_text(slot.orig, slot.orig_raw),
                         "recompiled": _slot_text(slot.recomp, slot.recomp_raw),
+                        "original_address": f"0x{slot.orig_raw:08x}"
+                        if slot.orig_raw is not None
+                        else None,
+                        "recompiled_address": f"0x{slot.recomp_raw:08x}"
+                        if slot.recomp_raw is not None
+                        else None,
                     }
                     for slot in comparison.slots
                     if slot.status != SlotStatus.MATCH

@@ -3,6 +3,7 @@ targets:
     filename: Wiz8.exe
     data-sources:
       - config/reccmp/wiz8-msvc-runtime.csv
+      - config/reccmp/wiz8-crt.csv
       - config/reccmp/wiz8-zlib.csv
       - build/generated/reccmp/wiz8-emissions.csv
     source-root:
@@ -34,6 +35,7 @@ targets:
     filename: sr.dll
     data-sources:
       - config/reccmp/surrender-libraries.csv
+      - config/reccmp/surrender-crt.csv
       - build/generated/reccmp/surrender-emissions.csv
     source-root:
       - src/surrender

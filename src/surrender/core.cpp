@@ -294,9 +294,7 @@ srTexture* srCore::getTexture() const
     return texture;
 }
 
-/* The provider's process-wide core object; its constructor body is still
-   unrecovered, so the definition intentionally leaves that reference
-   unresolved like the other first-party gaps. */
+/* The provider's process-wide core object. */
 // GLOBAL: SURRENDER 0x100A45F8
 class srCore srCore;
 

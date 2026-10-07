@@ -46,44 +46,11 @@ MonsterLight::MonsterLight(srNode* parent, bool cycle_color, float range,
    colour-cycle settings, but starts a fresh visible interval at the copied
    node's parent. */
 // FUNCTION: WIZ8 0x0049D660
-MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
+MonsterLight::MonsterLight(const MonsterLight& other)
+    : srLight(other), m_vertical_offset(other.m_vertical_offset),
+      m_color_first(other.m_color_first), m_color_second(other.m_color_second),
+      m_cycle_color(other.m_cycle_color), m_fade_out(false)
 {
-    srLight::operator=(other);
-    attenuation_model = other.attenuation_model;
-    near_start = other.near_start;
-    near_end = other.near_end;
-    far_start = other.far_start;
-    far_end = other.far_end;
-    scaled_near_start = other.scaled_near_start;
-    scaled_far_end = other.scaled_far_end;
-    near_attenuation = other.near_attenuation;
-    far_attenuation = other.far_attenuation;
-    opengl_attenuation = other.opengl_attenuation;
-    enable_flags = other.enable_flags;
-    ambient = other.ambient;
-    diffuse = other.diffuse;
-    specular = other.specular;
-    spot_direction = other.spot_direction;
-    spot_angle = other.spot_angle;
-    spot_exponent = other.spot_exponent;
-    intensity = other.intensity;
-    safe_range = other.safe_range;
-    scaled_ambient = other.scaled_ambient;
-    scaled_diffuse = other.scaled_diffuse;
-    scaled_specular = other.scaled_specular;
-    spot_direction_eye = other.spot_direction_eye;
-    spot_cutoff = other.spot_cutoff;
-    attenuation_range = other.attenuation_range;
-    derived_flags = other.derived_flags;
-    channel_mask = other.channel_mask;
-
-    m_vertical_offset = other.m_vertical_offset;
-    m_color_first = other.m_color_first;
-    m_color_second = other.m_color_second;
-    m_start_time = other.m_start_time;
-    m_cycle_color = other.m_cycle_color;
-    m_fade_out = false;
-
     setParent(other.getParent(), 1);
     intensity = 1.0f;
     setFlag(srNode::FLAG_DISABLE);

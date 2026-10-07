@@ -71,8 +71,10 @@ tails are retained archive/editor residue rather than part of the runtime format
 `ReadOctFile` at `0x0042bc10` is identified directly by its diagnostics. Its current section
 inventory includes the header, pre-regions, octree nodes and leaves, leaf grid, polygon and
 region lists, triggers, submeshes, mesh/prop/particle link and lookup tables, alpha bits, and
-prop-sun bits. Those sections remain separately untyped; the name is an anchor for the next
-map-format pass rather than a claim that the large `.OCT` layout is complete.
+prop-sun bits. The canonical declarations and loaders live in `Octree.h`,
+`OctPreTree.h`, `OctPath.h` and their source owners. The `oct-file` runtime case
+checks the reconstructed loader. Unknown field meanings and historical-version
+coverage remain explicit; typed declarations alone do not prove the complete format.
 
 ## Cosmic Forge override blobs
 
@@ -309,3 +311,19 @@ timestamps, so a cache duration is derived from it. That byte is not a field of 
 index one of the five-byte attribute array at `+0x0d1`, which `ConvertMonsterAttribute` at
 `0x004e5d00` reads through an index it bounds-checks against five. Which attribute it is, and
 why that attribute sets a cache duration, are both unresolved.
+
+## WGD and processed game-data records
+
+`W8GameData::ReadWGDList` at `0x00447660` reads a `0x1c`-byte face
+header, a `0x18`-byte face tail and, for conditional faces, a `0x44`-byte
+group/name extension. Retail read sizes are explicit at `0x00447AD1`,
+`0x00447B16` and `0x00447B3C`. These are disk records, distinct from the
+runtime surfaces and interface arrays built from them. The three canonical
+records live in `src/wiz8/engine_code/GDFileIO.cpp`.
+
+`ReadProcessedGameData` at `0x00449240` and `WriteGameData` at
+`0x0044AA40` transfer the `0x68`-byte `W8ProcessedGameDataHeader`.
+It contains version, bounds and bank counts, followed by `0x24` reserved
+bytes; its bank pointers belong to the live `W8GameData`, not this header.
+The WGD golden fixture exercises the primary face representation. It does
+not establish coverage of every conditional or historical processed file.
