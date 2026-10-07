@@ -1,16 +1,4 @@
-"""Check recovered source placement against original binary TU ownership.
-
-The source index owns the current physical placement of a recovered function.
-The translation-unit layout owns the original translation unit the retail
-binary attributed to that address. This gate compares the two and fails only
-when the binary evidence is strong enough to place the function: a direct
-anchor, a hard hull, or a uniquely projected cross-build anchor. Advisory
-``cross-build-similar`` attributions are reported but never enforced.
-
-The gate runs against the reviewed assertion anchors by default, so it stays
-fast and Ghidra-independent; ``live=True`` uses the richer live cross-build
-layout when a checkout has the project open.
-"""
+"""Check recovered source placement against original binary TU ownership."""
 
 from __future__ import annotations
 

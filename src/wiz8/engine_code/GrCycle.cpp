@@ -45,19 +45,12 @@ const float g_lod_level_zero_exit_threshold = 0.30000001192092896f;
 // GLOBAL: WIZ8 0x005ec5c4
 const float g_lod_level_two_exit_threshold = 0.699999988079071f;
 
-/* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
-   canonical assertion at line 1598; the body bounds-checks against 1 and 3, so
-   the enum runs 1..3. The stored-to object is whatever GrCycle's primary vtable
-   slot 9 returns; only the byte it writes at +0x70 is established here.
-   Slots 0..8 are declared solely to place slot 9 at vtable offset 0x24, which
-   is what the canonical virtual call uses. */
 #define BEHAVIOUR_FIRST W8_ANIMATION_PLAY_ONCE
 #define BEHAVIOUR_LAST W8_ANIMATION_NEVER_STOP
 
 // VTABLE: WIZ8 0x005ece78 W8GrObject
 // VTABLE: WIZ8 0x005eceb8 W8Navigator
 // class W8GrCycle
-
 // GLOBAL: WIZ8 0x005ecf98
 const float g_camera_shake_tick_seconds = 0.02500000037252903f;
 // GLOBAL: WIZ8 0x005ecf9c
@@ -1292,19 +1285,15 @@ void W8GrCycle::SubmitTargetValue()
 static W8GrowableVector<char*> g_grcycle_names;
 // VTABLE: WIZ8 0x005ecedc
 // class W8GrowableVector<W8GrCycle*>
-
 // GLOBAL: WIZ8 0x0065be00
 static W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 
 // VTABLE: WIZ8 0x005eced8
 // class W8GrowableVector<W8CameraShakeEffect*>
-
 // VTABLE: WIZ8 0x005eced4
 // class W8Vector<W8CameraShakeEffect*>
-
 // VTABLE: WIZ8 0x005ececc
 // class W8Vector<W8GrCycleParticleAttachment*>
-
 // FUNCTION: WIZ8 0x004a8430
 void W8GrCycle::SetSubCycle(unsigned char subcycle)
 {

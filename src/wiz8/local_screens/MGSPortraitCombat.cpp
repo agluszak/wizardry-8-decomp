@@ -1,12 +1,4 @@
-/* Local Screens\MGSPortraitCombat.cpp: the portrait combat sub-menu. The
-   demo's __FILE__ path sits in .data between "Local Screens\MGSKeyboard.cpp"
-   and "Local Screens\MGSButtons.cpp", matching this unit's retail .text
-   span between the proved MGSKeyboard hull and MGSButtons' anchored start
-   at 0x005963E0. Its demo literal cluster carries the sub-menu icon paths
-   (icons_submenu, icon_combat_toggle, attack_confirm, combat_stop,
-   cont_start/toggle/pending, main_roof_buttons, main_layout_arrows,
-   options_disk) and the "Failed submenu building" diagnostic, matching the
-   const tables and path globals emitted below. */
+
 
 #include "wiz8/local_screens/MGSPortraitCombat.h"
 

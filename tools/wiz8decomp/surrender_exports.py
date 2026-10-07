@@ -1,22 +1,4 @@
-"""Check ``src/surrender/sr.def`` against the reviewed retail export evidence.
-
-The provider DEF pins the original 2059 exports and their ordinals. Member
-``dllexport`` declarations may additionally emit implicit special members;
-PR validation compares that compiler debt against the merge-base build. The reviewed export table
-(``evidence/snapshots/surrender-abi/exports.csv``, ``sr.dll`` rows of the
-gog-base program) therefore bounds what sr.def may say:
-
-- an entry whose decorated name is not a retail export is an addition, not an
-  established export;
-- a ``DATA`` keyword is required exactly where the evidence row describes data
-  (``*-data`` members, vftables, vbtables, RTTI records, literals);
-- a pinned ``@ordinal`` must agree with the retail ordinal.
-
-Loss runs the other way: a retail export whose address is bound by a
-SURRENDER source marker is part of the recovered provider surface, so its
-name must stay in sr.def. Marker kinds all count - an exported vtable or a
-compiler emission is still an established export.
-"""
+"""Check ``src/surrender/sr.def`` against the reviewed retail export evidence."""
 
 from __future__ import annotations
 

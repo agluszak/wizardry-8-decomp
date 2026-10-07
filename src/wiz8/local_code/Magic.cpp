@@ -1502,18 +1502,6 @@ unsigned int GetSpellCastingSkillLevel(const W8Character* character, W8Skill spe
            5;
 }
 
-/* Which spellbook skill of the spell's own books the character is best at, and
-   - when the caller asks - which of those they have actually unlocked. The
-   unlocked one wins only when it is not already the best; otherwise the plain
-   best stands.
-
-   The choice matters because the two answers price the cast differently, so
-   picking the unlocked one is followed by working out what the cast would cost
-   at that skill and abandoning it when the answer comes to nothing. A spell
-   with no skill behind it at all is an error that names the spell.
-
-   The alchemy shortcut ahead of all of it: a character the alchemy-exempting
-   field marks is answered with the fixed skill outright. */
 // FUNCTION: WIZ8 0x004ff7f0
 W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool pricing,
                                       bool prefer_unlocked, unsigned int power_level)

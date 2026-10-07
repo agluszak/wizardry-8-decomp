@@ -3,6 +3,7 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "DirectDraw Calls.h"
 #include <stdio.h>
@@ -18,34 +19,15 @@
 
 extern void SetClippingRect(SGPRect* clip);
 extern void GetClippingRect(SGPRect* clip);
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Video Surface SGP Module
-//
 // Second Revision: Dec 10, 1996, Andrew Emmons
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Defines
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-//
 // This define is sent to CreateList SGP function. It dynamically re-sizes if
 // the list gets larger
-//
 
 #define DEFAULT_NUM_REGIONS 5
 #define DEFAULT_VIDEO_SURFACE_LIST_SIZE 10
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // LOCAL functions
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 BOOLEAN UpdateBackupSurface(HVSURFACE hVSurface);
 BOOLEAN ClipReleatedSrcAndDestRectangles(HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface,
@@ -57,12 +39,7 @@ BOOLEAN BltVSurfaceUsingDD(HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, UINT
 BOOLEAN GetVSurfaceRect(HVSURFACE hVSurface, RECT* pRect);
 
 void DeletePrimaryVideoSurfaces();
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // LOCAL global variables
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct VSURFACE_NODE {
     HVSURFACE hVSurface;
@@ -122,12 +99,7 @@ HVSURFACE ghBackBuffer = NULL;
 HVSURFACE ghFrameBuffer = NULL;
 // GLOBAL: WIZ8 0x00650de0
 HVSURFACE ghMouseBuffer = NULL;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Video Surface Manager functions
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // FUNCTION: WIZ8 0x00402970
 BOOLEAN InitializeVideoSurfaceManager()
@@ -185,10 +157,7 @@ BOOLEAN ShutdownVideoSurfaceManager()
 BOOLEAN RestoreVideoSurfaces()
 {
     VSURFACE_NODE* curr;
-
-    //
     // Loop through Video Surfaces and Restore
-    //
     curr = gpVSurfaceTail;
     while (curr) {
         if (!RestoreVideoSurface(curr->hVSurface)) {
@@ -253,10 +222,7 @@ BOOLEAN AddStandardVideoSurface(VSURFACE_DESC* pVSurfaceDesc, UINT32* puiIndex)
 BYTE* LockVideoSurface(UINT32 uiVSurface, UINT32* puiPitch)
 {
     VSURFACE_NODE* curr;
-
-    //
     // Check if given backbuffer or primary buffer
-    //
 
     if (uiVSurface == FRAME_BUFFER) {
         return (BYTE*)LockPrimarySurface(puiPitch);
@@ -265,10 +231,7 @@ BYTE* LockVideoSurface(UINT32 uiVSurface, UINT32* puiPitch)
     if (uiVSurface == MOUSE_BUFFER) {
         return (BYTE*)LockMouseBuffer(puiPitch);
     }
-
-    //
     // Otherwise, use list
-    //
 
     curr = gpVSurfaceHead;
     while (curr) {
@@ -280,10 +243,7 @@ BYTE* LockVideoSurface(UINT32 uiVSurface, UINT32* puiPitch)
     if (!curr) {
         return FALSE;
     }
-
-    //
     // Lock buffer
-    //
 
     return LockVideoSurfaceBuffer(curr->hVSurface, puiPitch);
 }
@@ -292,10 +252,7 @@ BYTE* LockVideoSurface(UINT32 uiVSurface, UINT32* puiPitch)
 void UnLockVideoSurface(UINT32 uiVSurface)
 {
     VSURFACE_NODE* curr;
-
-    //
     // Check if given backbuffer or primary buffer
-    //
 
     if (uiVSurface == FRAME_BUFFER) {
         UnlockPrimarySurface();
@@ -317,10 +274,7 @@ void UnLockVideoSurface(UINT32 uiVSurface)
     if (!curr) {
         return;
     }
-
-    //
     // unlock buffer
-    //
 
     UnLockVideoSurfaceBuffer(curr->hVSurface);
 }
@@ -329,19 +283,13 @@ void UnLockVideoSurface(UINT32 uiVSurface)
 BOOLEAN SetVideoSurfaceTransparency(UINT32 uiIndex, COLORVAL TransColor)
 {
     HVSURFACE hVSurface;
-
-    //
     // Get Video Surface
-    //
 
 #ifdef _DEBUG
     gubVSDebugCode = DEBUGSTR_SETVIDEOSURFACETRANSPARENCY;
 #endif
     CHECKF(GetVideoSurface(&hVSurface, uiIndex));
-
-    //
     // Set transparency
-    //
 
     SetVideoSurfaceTransparencyColor(hVSurface, TransColor);
 
@@ -395,14 +343,8 @@ BOOLEAN SetPrimaryVideoSurfaces()
 
     // Delete surfaces if they exist
     DeletePrimaryVideoSurfaces();
-
-    //
     // Get Primary surface
-    //
-
-    //
     // Get frame buffer surface
-    //
 
     pSurface = GetFrameBufferObject();
     CHECKF(pSurface != NULL);
@@ -416,9 +358,7 @@ BOOLEAN SetPrimaryVideoSurfaces()
 // FUNCTION: WIZ8 0x00402e60
 void DeletePrimaryVideoSurfaces()
 {
-    //
     // If globals are not null, delete them
-    //
 
     if (ghPrimary != NULL) {
         DeleteVideoSurface(ghPrimary);
@@ -440,15 +380,10 @@ void DeletePrimaryVideoSurfaces()
         ghMouseBuffer = NULL;
     }
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Given an index to the dest and src vobject contained in our private VSurface list
 // Based on flags, blit accordingly
 // There are two types, a BltFast and a Blt. BltFast is 10% faster, uses no
 // clipping lists
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // FUNCTION: WIZ8 0x00402ed0
 BOOLEAN BltVideoSurface(UINT32 uiDestVSurface, UINT32 uiSrcVSurface, UINT16 usRegionIndex,
@@ -477,12 +412,7 @@ BOOLEAN BltVideoSurface(UINT32 uiDestVSurface, UINT32 uiSrcVSurface, UINT16 usRe
     }
     return TRUE;
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Fills an rectangular area with a specified color value.
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // FUNCTION: WIZ8 0x00402fa0
 BOOLEAN ColorFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iDestY1,
@@ -501,10 +431,7 @@ BOOLEAN ColorFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iD
 
     BltFx.ColorFill = Color16BPP;
     BltFx.DestRegion = 0;
-
-    //
     // Clip fill region coords
-    //
 
     GetClippingRect(&Clip);
 
@@ -542,12 +469,7 @@ BOOLEAN ColorFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iD
 
     return (FillSurfaceRect(hDestVSurface, &BltFx));
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Fills an rectangular area with a specified image value.
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // FUNCTION: WIZ8 0x00403150
 BOOLEAN ImageFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iDestY1,
@@ -595,10 +517,7 @@ BOOLEAN ImageFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iD
 
     if ((hblits == 0) || (wblits == 0))
         return (FALSE);
-
-    //
     // Clip fill region coords
-    //
 
     GetClippingRect(&OldClip);
 
@@ -650,12 +569,7 @@ BOOLEAN ImageFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iD
     SetClippingRect(&OldClip);
     return (TRUE);
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Video Surface Manipulation Functions
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // FUNCTION: WIZ8 0x004033d0
 HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
@@ -681,31 +595,18 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
 
     //Clear the memory
     memset(&SurfaceDescription, 0, sizeof(DDSURFACEDESC));
-
-    //
     // Get Direct Draw Object
-    //
 
     lpDD2Object = GetDirectDraw2Object();
-
-    //
     // The description structure contains memory usage flag
-    //
     fMemUsage = VSURFACE_SYSTEM_MEM_USAGE;
-
-    //
     // Check creation options
-    //
 
     do {
-        //
         // Check if creating from file
-        //
 
         if (VSurfaceDesc->fCreateFlags & VSURFACE_CREATE_FROMFILE) {
-            //
             // Create himage object from file
-            //
 
             hImage = CreateImage(VSurfaceDesc->ImageFile, IMAGE_ALLIMAGEDATA);
 
@@ -713,38 +614,26 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
                 DbgMessage(TOPIC_VIDEOSURFACE, DBG_LEVEL_2, "Invalid Image Filename given");
                 return (NULL);
             }
-
-            //
             // Set values from himage
-            //
             usHeight = hImage->usHeight;
             usWidth = hImage->usWidth;
             ubBitDepth = hImage->ubBitDepth;
             break;
         }
-
-        //
         // If here, no special options given,
         // Set values from given description structure
-        //
 
         usHeight = VSurfaceDesc->usHeight;
         usWidth = VSurfaceDesc->usWidth;
         ubBitDepth = VSurfaceDesc->ubBitDepth;
 
     } while (FALSE);
-
-    //
     // Assertions
-    //
 
     Assert(usHeight > 0);
     Assert(usWidth > 0);
-
-    //
     // Setup Direct Draw Description
     // First do Pixel Format
-    //
 
     memset(&PixelFormat, 0, sizeof(PixelFormat));
     PixelFormat.dwSize = sizeof(DDPIXELFORMAT);
@@ -761,10 +650,7 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
 
         PixelFormat.dwFlags = DDPF_RGB;
         PixelFormat.dwRGBBitCount = 16;
-
-        //
         // Get current Pixel Format from DirectDraw
-        //
 
         // We're using pixel formats too -- DB/Wiz
 
@@ -781,20 +667,14 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
         break;
 
     default:
-
-        //
         // If Here, an invalid format was given
-        //
 
         DbgMessage(TOPIC_VIDEOSURFACE, DBG_LEVEL_2, "Invalid BPP value, can only be 8 or 16.");
         return (FALSE);
     }
 
     SurfaceDescription.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
-
-    //
     // Do memory description, based on specified flags
-    //
 
     do {
         if (fMemUsage & VSURFACE_DEFAULT_MEM_USAGE) {
@@ -810,33 +690,21 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
             SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
             break;
         }
-
-        //
         // Once here, no mem flags were given, use default
-        //
 
         SurfaceDescription.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
 
     } while (FALSE);
-
-    //
     // Set other, common structure elements
-    //
 
     SurfaceDescription.dwSize = sizeof(DDSURFACEDESC);
     SurfaceDescription.dwWidth = usWidth;
     SurfaceDescription.dwHeight = usHeight;
     SurfaceDescription.ddpfPixelFormat = PixelFormat;
-
-    //
     // Create Surface
-    //
 
     DDCreateSurface(lpDD2Object, &SurfaceDescription, &lpDDS, &lpDDS2);
-
-    //
     // Allocate memory for Video Surface data and initialize
-    //
 
     hVSurface = (HVSURFACE)MemAlloc(sizeof(SGPVSurface));
     memset(hVSurface, 0, sizeof(SGPVSurface));
@@ -855,22 +723,14 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
     hVSurface->RegionList = CreateList(DEFAULT_NUM_REGIONS, sizeof(VSURFACE_REGION));
     hVSurface->fFlags = 0;
     hVSurface->pClipper = NULL;
-
-    //
     // Determine memory and other attributes of newly created surface
-    //
 
     DDGetSurfaceDescription(lpDDS2, &SurfaceDescription);
-
-    //
     // Fail if create tried for video but it's in system
-    //
 
     if (VSurfaceDesc->fCreateFlags & VSURFACE_VIDEO_MEM_USAGE &&
         SurfaceDescription.ddsCaps.dwCaps & DDSCAPS_SYSTEMMEMORY) {
-        //
         // Return failure due to not in video
-        //
 
         DbgMessage(TOPIC_VIDEOSURFACE, DBG_LEVEL_2,
                    String("Failed to create Video Surface in video memory"));
@@ -878,26 +738,17 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
         MemFree(hVSurface);
         return (NULL);
     }
-
-    //
     // Look for system memory
-    //
 
     if (SurfaceDescription.ddsCaps.dwCaps & DDSCAPS_SYSTEMMEMORY) {
         hVSurface->fFlags |= VSURFACE_SYSTEM_MEM_USAGE;
     }
-
-    //
     // Look for video memory
-    //
 
     if (SurfaceDescription.ddsCaps.dwCaps & DDSCAPS_VIDEOMEMORY) {
         hVSurface->fFlags |= VSURFACE_VIDEO_MEM_USAGE;
     }
-
-    //
     // If in video memory, create backup surface
-    //
 
     if (hVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE) {
         SurfaceDescription.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
@@ -906,24 +757,15 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
         SurfaceDescription.dwWidth = usWidth;
         SurfaceDescription.dwHeight = usHeight;
         SurfaceDescription.ddpfPixelFormat = PixelFormat;
-
-        //
         // Create Surface
-        //
 
         DDCreateSurface(lpDD2Object, &SurfaceDescription, &lpDDS, &lpDDS2);
-
-        //
         // Save surface to backup
-        //
 
         hVSurface->pSavedSurfaceData1 = lpDDS;
         hVSurface->pSavedSurfaceData = lpDDS2;
     }
-
-    //
     // Initialize surface with hImage , if given
-    //
 
     if (VSurfaceDesc->fCreateFlags & VSURFACE_CREATE_FROMFILE) {
         tempRect.iLeft = 0;
@@ -931,25 +773,16 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
         tempRect.iRight = hImage->usWidth - 1;
         tempRect.iBottom = hImage->usHeight - 1;
         SetVideoSurfaceDataFromHImage(hVSurface, hImage, 0, 0, &tempRect);
-
-        //
         // Set palette from himage
-        //
 
         if (hImage->ubBitDepth == 8) {
             SetVideoSurfacePalette(hVSurface, hImage->pPalette);
         }
-
-        //
         // Delete himage object
-        //
 
         DestroyImage(hImage);
     }
-
-    //
     // All is well
-    //
 
     hVSurface->usHeight = usHeight;
     hVSurface->usWidth = usWidth;
@@ -961,12 +794,7 @@ HVSURFACE CreateVideoSurface(VSURFACE_DESC* VSurfaceDesc)
 
     return (hVSurface);
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Called when surface is lost, for the most part called by utility functions
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 BOOLEAN RestoreVideoSurface(HVSURFACE hVSurface)
 {
@@ -975,29 +803,19 @@ BOOLEAN RestoreVideoSurface(HVSURFACE hVSurface)
     RECT aRect;
 
     Assert(hVSurface != NULL);
-
-    //
     // Restore is only for VIDEO MEMORY - should check if VIDEO and QUIT if not
-    //
 
     if (!(hVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE)) {
-        //
         // No second surfaace has been allocated, return failure
-        //
 
         DbgMessage(TOPIC_VIDEOSURFACE, DBG_LEVEL_2,
                    String("Failed to restore Video Surface surface"));
         return (FALSE);
     }
-
-    //
     // Check for valid secondary surface
-    //
 
     if (hVSurface->pSavedSurfaceData1 == NULL) {
-        //
         // No secondary surface available
-        //
 
         DbgMessage(TOPIC_VIDEOSURFACE, DBG_LEVEL_2,
                    String("Failure in retoring- no secondary surface found"));
@@ -1327,9 +1145,7 @@ BOOLEAN DeleteVideoSurface(HVSURFACE hVSurface)
 }
 
 // ********************************************************
-//
 // Clipper manipulation functions
-//
 // ********************************************************
 
 BOOLEAN SetClipList(HVSURFACE hVSurface, SGPRect* RegionData, UINT16 usNumRegions)
@@ -1396,9 +1212,7 @@ BOOLEAN SetClipList(HVSURFACE hVSurface, SGPRect* RegionData, UINT16 usNumRegion
 }
 
 // ********************************************************
-//
 // Region manipulation functions
-//
 // ********************************************************
 
 BOOLEAN GetVSurfaceRegion(HVSURFACE hVSurface, UINT16 usIndex, VSURFACE_REGION* aRegion)
@@ -1426,9 +1240,7 @@ BOOLEAN GetVSurfaceRect(HVSURFACE hVSurface, RECT* pRect)
 }
 
 // *******************************************************************
-//
 // Blitting Functions
-//
 // *******************************************************************
 
 // Blt  will use DD Blt or BltFast depending on flags.
@@ -1646,9 +1458,7 @@ BOOLEAN BltVideoSurfaceToVideoSurface(HVSURFACE hDestVSurface, HVSURFACE hSrcVSu
 }
 
 // ******************************************************************************************
-//
 // UTILITY FUNCTIONS
-//
 // ******************************************************************************************
 
 // Blt to backup buffer
@@ -1677,9 +1487,7 @@ BOOLEAN UpdateBackupSurface(HVSURFACE hVSurface)
 }
 
 // *****************************************************************************
-//
 // Private DirectDraw manipulation functions
-//
 // *****************************************************************************
 
 // FUNCTION: WIZ8 0x004044c0
@@ -1943,10 +1751,7 @@ BOOLEAN InternalShadowVideoSurfaceRect(UINT32 uiDestVSurface, INT32 X1, INT32 Y1
 
     // CLIP IT!
     // FIRST GET SURFACE
-
-    //
     // Get Video Surface
-    //
 #ifdef _DEBUG
     gubVSDebugCode = DEBUGSTR_SHADOWVIDEOSURFACERECT;
 #endif

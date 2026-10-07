@@ -307,13 +307,10 @@ const char* g_monster_script_commands[MONSCR_COUNT] = {"GOTO",
 
 // VTABLE: WIZ8 0x005ecdac
 // class W8GrowableVector<float>
-
 // VTABLE: WIZ8 0x005ecdc8
 // class W8GrowableVector<srVector3T<float> >
-
 // VTABLE: WIZ8 0x005ed200
 // class W8MonsterRep
-
 /* Read the text-side monster representation. A named representation is shared
    by cloning its first live cycle; otherwise the MLS file supplies scalar
    movement settings, visual flags, sound/shake events, skin stages, lights,
@@ -1141,7 +1138,6 @@ W8AnimRepBase* W8MonsterRep::Clone()
 // VTABLE: WIZ8 0x005ed22c W8GrObject
 // VTABLE: WIZ8 0x005ed218 W8Navigator
 // class W8Monster
-
 /* cvdump preserves a terminal space in this generated thunk's demangled name;
    the explicit name reference must preserve it too. */
 
@@ -3103,11 +3099,6 @@ void W8Monster::ApplyRemovalStateEffects()
     }
 }
 
-/* Engine Code\Monster.cpp. CYCLE_NUM_UNIQUE and the method name both come from
-   the canonical assertion at line 960, whose message reads
-   "GetNumSubsPerCycle() -> Invalid cycle num.". The element count and stride
-   agree with the reviewed constructor: 27 entries of 0x10 bytes at 0xAC ends at
-   0x25C, exactly where Monster's second vector array begins. */
 // FUNCTION: WIZ8 0x004bfab0
 unsigned char W8MonsterRep::GetNumSubsPerCycle(signed char bCycle)
 {
@@ -3821,10 +3812,8 @@ static int g_spell_index;
 
 // VTABLE: WIZ8 0x005ed288
 // class W8MonsterShakeCallback
-
 // VTABLE: WIZ8 0x005ed290
 // class W8MonsterShakeCallbackBase
-
 /* Cycle 25 launches either the queued spell visual or the monster's pending
    spell action when its animation crosses the configured frame. The cast's
    return is the stamina charge passed directly to FatigueMonster, establishing

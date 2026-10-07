@@ -1,28 +1,4 @@
-"""Create typed vftable Structures and apply them at known vtable addresses.
-
-For each source-index class with a ``vtable_address``, read the retail slot
-targets, build per-slot ``FunctionDefinition`` types from the preferred slot
-ABI contract, and install a namespace-safe Structure under ``/wiz8/vftables/``
-whose fields are pointers to those definitions. Class ``vfptr``/``vptr``
-fields are retargeted to pointers of that Structure when present.
-
-Slot FunctionDefinitions prefer a source-backed declaration (source-index
-``FUNCTION`` at the slot target, or a live callee whose signature source is
-already ``IMPORTED``/``USER_DEFINED``) over cloning an analysis-only
-implementation signature. When no declaration is available the FD falls back
-to ``FunctionDefinitionDataType(function, False)``.
-
-Primary and source-index ``base_vtables`` (for-clause / secondary base) with
-census extents are typed. Slot ``this`` for a secondary table is the Base
-subobject (or a proven Derived ComponentOffset), not the Derived implementation
-body. Unmarked construction-phase tables that share a census construction family
-with a marked table of the same class are typed as ``Class_vftable_ctor`` /
-``Class_vftable_for_Base_ctor`` and never retarget the complete-object ``vfptr``.
-Secondary ``vfptr`` fields are installed as Derived-specific subobject views
-under ``/wiz8/subobjects`` when the unique incoming-ECX offset is known.
-Confirmed vbtables that a lifecycle function installs alongside a marked
-vftable are typed under ``/wiz8/vbtables``.
-"""
+"""Create typed vftable Structures and apply them at known vtable addresses."""
 
 from __future__ import annotations
 

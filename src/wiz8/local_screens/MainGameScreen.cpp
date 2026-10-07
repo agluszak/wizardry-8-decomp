@@ -148,14 +148,6 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 
-/*
- * Local Screens\MainGameScreen.cpp.
- *
- * The screen the game is played on. Its frame coordinates input, dialogs,
- * world updates and drawing. Other units request UI updates through the
- * level runtime block's redraw word.
- */
-
 /* Every redraw request checks the screen state first, so a request made from
    another screen is simply dropped. */
 

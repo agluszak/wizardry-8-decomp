@@ -1,30 +1,4 @@
-"""Translation-unit layout derived from source-location evidence in the image.
-
-The reviewed assertion table used to be the sole anchor source. Ghidra also
-holds the original ``__FILE__``-style source-path strings and the code that
-references them; a string reference from a function is a direct anchor for that
-translation unit whether it feeds an assertion, an allocation macro or any other
-diagnostic. This module collects those anchors, builds the conservative hard
-hulls over them, and exposes one resolver for the report projections, recovery
-context and source placement.
-
-Only absolute paths below a known Wizardry source root anchor a translation
-unit. Header paths (including relative ``..\\Engine Code\\Include\\*.hpp``
-spellings) are header-origin inline code and are reported separately, never as
-unit anchors. A function referencing two distinct ``.cpp`` paths is
-``inlined-or-conflicting`` rather than silently assigned one unit.
-
-The layout records the project's contiguous-TU invariant: ordinary non-COMDAT
-functions emitted by one translation unit occupy one contiguous ``.text``
-contribution, so the convex hull of a unit's direct anchors is hard-owned while
-everything outside every hull stays an explicit gap. Hulls of distinct units
-must not overlap; an overlap is a model contradiction, not something to paper
-over.
-
-Cross-build projection only extends a hard hull when the body match is unique.
-The mnemonic-similarity fallback stays advisory: it can name a likely owner for
-one function, but it never shrinks or grows an interval.
-"""
+"""Translation-unit layout derived from source-location evidence in the image."""
 
 from __future__ import annotations
 

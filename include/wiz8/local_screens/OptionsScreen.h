@@ -430,14 +430,6 @@ static_assert(sizeof(W8OptionsMenuSet) == 0x60, "W8OptionsMenuSet_must_be_0x60")
 /* Retail secondary vftable 0x005eefe4 places W8TextControl::Listener at +0x4c. */
 W8_ASSERT_BASE_END(W8OptionsMenuSet, W8TextControl::Listener, m_pMenuSet, 0x4c);
 
-/* Local Screens\OptionsScreen.cpp owns the state-10 controller.  Its source
-   identity is established by the m_pMenuSet assertion at 0x005A8F14; the
-   0x64-byte allocation at 0x005A9B50, constructor/destructor pair
-   0x005A9090/0x005A9200, and the three callback-table receivers establish the
-   object extent and bases.  The constructor establishes the ordinary pointer
-   vector at +0x0c, the selected panel index at +0x20, and the controls owner
-   at +0x24; the remaining panel objects stay positional until their types are
-   recovered. */
 // VTABLE: WIZ8 0x005ef008 W8ControlSelectionListener
 // VTABLE: WIZ8 0x005ef000 W8TextControl::Listener
 // VTABLE: WIZ8 0x005eeffc W8DialogCloseListener

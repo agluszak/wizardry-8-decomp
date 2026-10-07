@@ -32,15 +32,6 @@ static srHeapBuffer<srVector3T<float> >* g_vertex_scratch;
 // VTABLE: WIZ8 0x005ec89c srClassSupport<srModelInstance, class srNode, 0, 4352>
 // VTABLE: WIZ8 0x005ec88c srModel::Client
 // class srClassSupport<stModelInstance2D, class srModelInstance, 0, 65541>
-
-/*
- * Engine Code\stModelInstance.cpp.
- *
- * Two model-instance classes, a 3D one and a 2D one, whose registry ids are
- * adjacent. Only their class registry slots are recovered; the interval this
- * unit bounds still holds the rest.
- */
-
 /* Find the animated texture assigned to polygons whose runtime name begins
    with "mouth". Damage-stage instances use the stage-specific texture table;
    ordinary instances use the mesh's active polygon texture table. */

@@ -3,23 +3,16 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "VObject.h"
 
 // JA2
-
-//**************************************************************************
-//
 // Filename :	debug.c
-//
 //	Purpose :	debug manager implementation
-//
 // Modification history :
-//
 //		xxxxx96:LH				- Creation
 //		xxnov96:HJH				- made it work
-//
-//**************************************************************************
 
 // Because we're in a library, define SGP_DEBUG here - the client may not always
 // use the code to write text, because the header switches on the define
@@ -70,21 +63,11 @@ UINT8 gbTmpDebugString[8][MAX_MSG_LENGTH2];
 UINT8 gubStringIndex = 0;
 
 #ifdef SGP_DEBUG
-
-//**************************************************************************
-//
 //				Defines
-//
-//**************************************************************************
 
 #define BUFSIZE 100
 #define TIMER_TIMEOUT 1000
-
-//**************************************************************************
-//
 //				Variables
-//
-//**************************************************************************
 
 UINT16 TOPIC_MEMORY_MANAGER = INVALID_TOPIC;
 UINT16 TOPIC_FILE_MANAGER = INVALID_TOPIC;
@@ -127,26 +110,13 @@ STRING512 gpcDebugLogFileName;
 #ifdef __cplusplus
 }
 #endif
-
-//**************************************************************************
-//
 //				Functions
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // DbgGetLogFileName
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		xxjun98:CJC		-> creation
-//
-//**************************************************************************
+
 BOOLEAN DbgGetLogFileName(STRING512 pcName)
 {
     // use the provided buffer to get the directory name, then tack on
@@ -166,20 +136,11 @@ BOOLEAN DbgGetLogFileName(STRING512 pcName)
 
     return (TRUE);
 }
-
-//**************************************************************************
-//
 // DbgInitialize
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		xxnov96:HJH		-> creation
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404b00
 BOOLEAN DbgInitialize(void)
@@ -206,38 +167,21 @@ BOOLEAN DbgInitialize(void)
 
     return (TRUE);
 }
-
-//**************************************************************************
-//
 // DbgShutdown
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		xxnov96:HJH		-> creation
-//
-//**************************************************************************
 
 void DbgShutdown(void)
 {
     DbgMessageReal((UINT16)(-1), CLIENT_SHUTDOWN, 0, "SGP Going Down");
 }
-
-//**************************************************************************
-//
 // DbgTopicRegistration
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		June 97: BR		-> creation
-//
-//**************************************************************************
 
 void DbgTopicRegistration(UINT8 ubCmd, UINT16* usTopicID, CHAR8* zMessage)
 {
@@ -278,27 +222,17 @@ void DbgTopicRegistration(UINT8 ubCmd, UINT16* usTopicID, CHAR8* zMessage)
 
 // *************************************************************************
 // Clear the debug txt file out to prevent it from getting huge
-//
-//
 // *************************************************************************
 
 void RemoveDebugText(void)
 {
     DeleteFile(gpcDebugLogFileName);
 }
-
-//**************************************************************************
-//
 // DbgClearAllTopics
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		June 97: BR		-> creation
-//
-//**************************************************************************
 
 void DbgClearAllTopics(void)
 {
@@ -312,20 +246,11 @@ void DbgClearAllTopics(void)
         }
     }
 }
-
-//**************************************************************************
-//
 // DbgMessageReal
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		xxnov96:HJH		-> creation
-//
-//**************************************************************************
 
 void DbgMessageReal(UINT16 uiTopicId, UINT8 uiCommand, UINT8 uiDebugLevel, CHAR* strMessage)
 {
@@ -348,40 +273,17 @@ void DbgMessageReal(UINT16 uiTopicId, UINT8 uiCommand, UINT8 uiDebugLevel, CHAR*
 #endif
     }
 }
-
-//**************************************************************************
-//
 // DbgSetDebugLevel
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		11nov96:HJH		-> creation
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // DbgFailedAssertion
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		xxnov96:HJH		-> creation
-//
-//**************************************************************************
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Wiz8 compatible debug messaging
 
 void _DebugMessage(UINT8* pString, UINT32 uiLineNum, UINT8* pSourceFile)
@@ -390,25 +292,16 @@ void _DebugMessage(UINT8* pString, UINT32 uiLineNum, UINT8* pSourceFile)
 #ifndef _NO_DEBUG_TXT
     FILE* DebugFile;
 #endif
-
-    //
     // Build the output string
-    //
 
     sprintf((char*)ubOutputString, "{ %ld } %s [Line %d in %s]\n", GetTickCount(), pString,
             uiLineNum, pSourceFile);
-
-    //
     // Output to debugger
-    //
 
     if (gfRecordToDebugger) {
         OutputDebugString((char*)ubOutputString);
     }
-
-    //
     // Record to file if required
-    //
 
 #ifndef _NO_DEBUG_TXT
     if (gfRecordToFile) {
@@ -420,7 +313,6 @@ void _DebugMessage(UINT8* pString, UINT32 uiLineNum, UINT8* pSourceFile)
 #endif
 }
 
-//////////////////////////////////////////////////////////////////////
 // This func is used by Assert()
 void _Null(void) {}
 

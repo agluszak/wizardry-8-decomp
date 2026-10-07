@@ -4,26 +4,15 @@
    Drop the commented-out precompiled-header block.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
-//**************************************************************************
-//
 // Filename :	MemMan.cpp
-//
 //	Purpose :	function definitions for the memory manager
-//
 // Modification history :
-//
 //		11sep96:HJH	- Creation
 //    29may97:ARM - Fix & improve MemDebugCounter handling, logging of
 //                    MemAlloc/MemFree, and reporting of any errors
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 //				Includes
-//
-//**************************************************************************
 
 #include "types.h"
 #include <windows.h>
@@ -40,12 +29,7 @@
 #ifdef _DEBUG
 //#define DEBUG_MEM_LEAKS // turns on tracking of every MemAlloc and MemFree!
 #endif
-
-//**************************************************************************
-//
 //				Variables
-//
-//**************************************************************************
 
 #ifdef EXTREME_MEMORY_DEBUGGING
 typedef struct MEMORY_NODE {
@@ -73,34 +57,15 @@ UINT32 guiMemFreed = 0;
 UINT32 MemDebugCounter = 0;
 // GLOBAL: WIZ8 0x00650e04
 BOOLEAN fMemManagerInit = FALSE;
-
-//**************************************************************************
-//
 //				Function Prototypes
-//
-//**************************************************************************
 
 void DebugPrint(void);
-
-//**************************************************************************
-//
 //				Functions
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // MemInit
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		12sep96:HJH		-> modified for use by Wizardry
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404ba0
 BOOLEAN InitializeMemoryManager(void)
@@ -122,34 +87,18 @@ BOOLEAN InitializeMemoryManager(void)
 
     return (TRUE);
 }
-
-//**************************************************************************
-//
 // MemDebug
-//
 //		To set whether or not we should print debug info.
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		12sep96:HJH		-> modified for use by Wizardry
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // MemShutdown
-//
 //		Shuts down the memory manager.
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		12sep96:HJH		-> modified for use by Wizardry
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404bc0
 void ShutdownMemoryManager(void)
@@ -301,20 +250,11 @@ PTR MemReallocReal(PTR ptr, UINT32 uiSize, const char* pcFile, INT32 iLine)
 }
 
 #endif
-
-//**************************************************************************
-//
 // MemGetFree
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		??sep96:HJH		-> modified for use by Wizardry
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404bd0
 UINT32 MemGetFree(void)
@@ -326,34 +266,16 @@ UINT32 MemGetFree(void)
 
     return (ms.dwAvailPhys);
 }
-
-//**************************************************************************
-//
 // MemGetTotalSystem
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		May98:HJH		-> Carter
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // MemCheckPool
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		23sep96:HJH		-> modified for use by Wizardry
-//
-//**************************************************************************
 
 #ifdef EXTREME_MEMORY_DEBUGGING
 

@@ -1,34 +1,4 @@
-"""Reject conflicting or placeholder C++ identities for recovered functions.
-
-The canonical model is one address, one function identity per binary: one
-name, one normalized prototype and one calling convention. A duplicate appears
-when an address-qualified declaration and a FUNCTION marker (or two
-declarations) name the same address differently.
-
-A recovered function body is also an identity claim. Once a body exists it
-must no longer use the address-derived ``Function123ABC`` placeholder form.
-Declaration-only placeholders remain valid for unresolved callees.
-
-Each reccmp target links its own image, so claims are grouped by
-(target, address): `0x10001000` in srEXT_JPEGImporter.dll and the same RVA in
-srEXT_Unzip.dll are unrelated functions, not a collision.
-
-Names are compared by their last ``::`` component so a class-qualified method
-matches its marker. Prototypes are compared by the Clang semantic id (the
-VC6-mangled name), which folds calling convention, return type and parameter
-types together;
-the declarations carry it in the source index. Overloads of a method are exempt from the cross -
-    declaration comparison because their qualified name does not include the parameter list; only free functions are compared by
-qualified name. Function-template primaries and specializations that share a free-function name
-with an address-owned ordinary overload are distinct overloads, not consumer redeclarations.
-Linker ICF never creates a source alias: retail folding is a linked-image fact,
-not a source-identity fact. A genuinely different consumer ABI declaration may
-use the narrow ``abi-prototype-ok:`` waiver for the prototype-consistency
-check; that waiver does not create another address identity.
-
-The scan reads the source index for markers and declarations, then re-reads the
-files only to resolve address comments and narrowly scoped ABI prototype waivers.
-"""
+"""Reject conflicting or placeholder C++ identities for recovered functions."""
 
 from __future__ import annotations
 

@@ -312,18 +312,6 @@ unsigned char DispatchControlRegionEvent(const InputAtom* event, W8Region* regio
     return 0;
 }
 
-/*
- * Rebinds the widget to a region: stores it, gives it the widget's rectangle
- * translated by the owner's origin, and then puts it in one of two modes
- * depending on the flag at +0x05 that the teardown clears.
- *
- * The bounds are only pushed when the widget has an owner, but the mode is set
- * regardless, and the second test re-reads the field rather than reusing the
- * argument - so passing -1 leaves the widget with no region and skips both.
- * The rectangle is read a word at a time here while the constructor stores it
- * a dword at a time, which is what fixes the fields as ints whose low halves
- * are all the region is given.
- */
 // FUNCTION: WIZ8 0x004f4020
 void W8Widget::SetRegion(unsigned int region)
 {

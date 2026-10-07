@@ -1,15 +1,4 @@
-"""The single owner of VC6 linker MAP parsing and address resolution.
-
-A MAP file carries three related inventories: the public symbol table, the
-section table, and the per-source line records. Runtime crash analysis and the
-GDB debugger both need to turn an address into a symbol, its displacement and
-its source line, so they share this module instead of carrying two parsers.
-
-Resolution is section-aware when the MAP carries a section table (the real
-build does) and falls back to symbol adjacency for the minimal fixtures some
-tests use. Demangling is batched through `binary.demangle`; a name that is not
-decorated, or that the demangler rejects, keeps its decorated spelling.
-"""
+"""The single owner of VC6 linker MAP parsing and address resolution."""
 
 from __future__ import annotations
 

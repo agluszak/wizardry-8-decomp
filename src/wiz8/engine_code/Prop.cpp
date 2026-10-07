@@ -43,19 +43,6 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "random.h"
 
-/* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four
-   owned members, and each release names the shape of what it owns:
-
-     +0x14  delete through vtable slot 0 with the deleting flag - a class with
-            a virtual destructor
-     +0x20  a null check and a bare operator delete - the owned name string
-     +0x28  the same virtual-destructor shape as +0x14
-     +0x38  its destructor called directly and then operator delete - a class
-            with a non-virtual destructor
-
-   FindPropByName independently proves that +0x20 is the owned prop name.
-   Unresolved members and the gaps between them remain positional. */
-
 /* Reset before the world Prop update; set when a Prop whose animation
    behaviour is 1 rebuilds its pathing geometry.  GameData keeps the world
    updating while it is set. */
@@ -66,13 +53,10 @@ bool g_animated_prop_present;
 
 // VTABLE: WIZ8 0x005ec1e0
 // class W8Prop
-
 // VTABLE: WIZ8 0x005ec1c8
 // class W8PropRepresentation
-
 // VTABLE: WIZ8 0x005ec1d0
 // class W8Vector<W8PropAnimationSegment*>
-
 /* Prop::Prop() - GrObject base, then m_pRep / m_pTimer and two identity
    rotation bases.  Retail expands PropRep after the AnimRep constructor:
    scalar field stores, the capacity-5 slot vector, then the PropRep vtable. */

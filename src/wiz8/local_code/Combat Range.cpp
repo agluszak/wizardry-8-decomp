@@ -49,14 +49,6 @@
 // GLOBAL: WIZ8 0x0068C518
 int g_event_sight_blocked = g_first_remapped_event + 30;
 
-/*
- * Local Code\Combat Range.cpp.
- *
- * How far apart two combatants are, and which of the attacks either of them
- * has will reach that far. Range is carried as a category rather than a
- * distance; CalcRangeDistance is the one place the two are related.
- */
-
 #define COMBAT_RANGE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Range.cpp"
 
 /* The range categories are W8RangeCategory, declared with the spell record

@@ -56,14 +56,6 @@
 #include "Font.h"
 #include "vsurface.h"
 
-/*
- * Local Screens\RCSCommon.cpp.
- *
- * Two panels the review-character screens share. Each owns a Controls object
- * and one widget inside it, and each has the same pair of bodies: one that
- * redraws the panel and one that tears both down.
- */
-
 // GLOBAL: WIZ8 0x0069c3c4
 Controls* g_level_up_panel;
 // GLOBAL: WIZ8 0x0069c3c8

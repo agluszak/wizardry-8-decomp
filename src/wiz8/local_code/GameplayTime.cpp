@@ -65,14 +65,6 @@
 
 #define GAMEPLAYTIME_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayTime.cpp"
 
-/*
- * Local Code\GameplayTime.cpp.
- *
- * The character's out-of-combat regeneration rates, derived from the pool
- * ceilings, and the per-monster aging cycle tick at 0x00503990 - moved here
- * from Sight.cpp: the retail body pushes this file's path string.
- */
-
 static void BeginPartyCamping()
 {
     if (gXStatus.world_update_blocked) {

@@ -173,4 +173,3 @@ def semantic_names_command() -> None:
     settings = cli.settings()
     warn_if_source_index_may_be_stale(settings.repo_dir, "WIZ8")
     cli.emit(semantic_name_opportunity_report(settings.repo_dir))
-

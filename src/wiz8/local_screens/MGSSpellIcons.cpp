@@ -21,12 +21,6 @@
 // GLOBAL: WIZ8 0x0069c260
 static unsigned int g_effect_icon_help_duration;
 
-/* Local Screens\MGSSpellIcons.cpp. The vector destructor emission at
-   0x005B1B70 is the last one before the compiler's MGSSpellIcons.cpp to
-   RCSCommon.cpp boundary at 0x005B1B90; the matching scalar deleting
-   destructors are emitted on the RCSCommon side. The iSpellIcon assertion
-   path at 0x005AEC70 names this TU. */
-
 // GLOBAL: WIZ8 0x0069C25C
 unsigned int g_spell_icon_count;
 /* Child spell-icon text controls under g_spell_icon_strip. */

@@ -30,23 +30,6 @@ struct W8MonsterRep;
 
 #include "wiz8/monster_cycles.h"
 
-/* W8Monster::runtime_flags bits, named from their recovered readers and writers:
-   - KEEP_FRAME_DIRECTION: the next SetCycle keeps the queued frame direction
-     (a reversed cycle) instead of resetting it to forward.
-   - TEXTURE_CHECKED / ANIMATED_TEXTURE: the cached result of probing the
-     current cycle's model for an animated texture; SetCycle drops the cache.
-   - SCALING_Y: UpdateRepresentation applies and decays scale_y.
-   - KEEP_SUBCYCLE: the next SetCycle keeps the current subcycle rather than
-     picking a random one; a script CYCLE command sets it.
-   - SCRIPT_WAIT: a blocking script CYCLE is playing; pending-cycle requests
-     and the manager's AI pass leave the monster alone until it ends.
-   - PARKED: the monster was moved out of the scene (script DISAPPEAR, a
-     henchman leaving); the manager's AI pass skips it.
-   - REMOVE_AFTER_FADE: the manager removes the monster once its fade ends.
-   - REMOVE_NOW: the manager removes the monster on its next frame; group
-     leader election skips it.
-   - FADED_OUT: a fade-out finished; the shadow, attachments and damage
-     numbers stay hidden until the next fade-in. */
 enum W8MonsterFlag {
     W8_MONSTER_KEEP_FRAME_DIRECTION = 0x1,
     W8_MONSTER_TEXTURE_CHECKED = 0x2,

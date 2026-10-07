@@ -223,17 +223,6 @@ void W8Octree::UpdateCameraVisibility()
     }
 }
 
-/* Rebuild the sector-to-mesh visibility state, then publish this frame's
-   visible regions to the meshes, props and particles.
-
-   The reset pass only runs after a level load or a resumed update. It walks
-   the meshes, records each one's sector mapping, drops the visible flags, and
-   hides every prop and particle before clearing the previous frame's sets.
-
-   The frame pass clears the new sets, projects the camera through the octree,
-   publishes the union of the previous and current region sets, and finally
-   diffs the two frames so only the meshes, props and particles that changed
-   state are touched. */
 // FUNCTION: WIZ8 0x004304a0
 void W8Octree::UpdateVisibility()
 {
@@ -2141,18 +2130,6 @@ bool W8Octree::SnapToGround(srVector3T<float>* position, char mode)
     return hit;
 }
 
-/* Whether one point can see another, and where the line stops if it cannot.
-
-   Both of these walk the same cell line. A line inside one or two cells probes
-   those directly; anything longer builds a walk and steps it, advancing the
-   driving axis every iteration and each minor axis whenever its accumulator
-   goes negative - and probing after every one of those advances, so a blocker
-   in a diagonally-crossed cell is not stepped over. The walk stops at the first
-   blocker.
-
-   HasLineOfSight answers the question and lets the caller fall back to a prop
-   trace; TraceLineOfSight additionally reports where the line was stopped and
-   distinguishes a world hit from a prop hit by the sign of its answer. */
 // FUNCTION: WIZ8 0x00434b60
 bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* to,
                               bool allow_fallback)

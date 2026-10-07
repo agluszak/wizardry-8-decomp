@@ -54,13 +54,6 @@
 
 #include "soundman.h"
 
-/*
- * Local Code\GameplayCode.cpp.
- *
- * The derived character numbers - experience goals, level bands and the party
- * headcounts the rest of the game asks about.
- */
-
 #define GAMEPLAY_CODE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayCode.cpp"
 
 /* How much one level in a profession is worth towards physical combat

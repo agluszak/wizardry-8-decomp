@@ -169,6 +169,5 @@ uses the same prepared umu + GE-Proton runtime and Glide2x configuration as loca
 More detailed developer documentation:
 
 - [Repository policy and task workflows](AGENTS.md)
-- [Evidence and artifact policy](docs/evidence-policy.md)
 - [Wizardry evidence and provenance model](docs/wiz8-evidence-model.md)
 - [Runtime/build target](docs/targets/wiz8-executable.md)

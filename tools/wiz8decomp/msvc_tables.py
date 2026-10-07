@@ -1,18 +1,4 @@
-"""Static MSVC vftable/vbtable census for VC6-era PE images.
-
-Discovery and confirmation are intentionally separate. The PE relocation directory
-is the complete index of absolute pointers materialized by code, so code references
-into ``.rdata`` define the candidate universe and, crucially, every possible table
-boundary. A vftable is a run of relocated pointers into executable sections; a
-vbtable is a run of small aligned unrelocated displacements. A structural table is
-only confirmed when code also installs its address into memory.
-
-For binaries that export MSVC table symbols, ``??_7`` (vftable) and ``??_8``
-(vbtable) provide an independent positive-label oracle. They validate detector
-recall without teaching the detector where those tables are. Wiz8.exe exports no
-such symbols, so its census remains binary-structural and can additionally be
-checked against reviewed ``VTABLE: WIZ8`` source markers.
-"""
+"""Static MSVC vftable/vbtable census for VC6-era PE images."""
 
 from __future__ import annotations
 

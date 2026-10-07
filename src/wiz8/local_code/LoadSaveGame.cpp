@@ -94,12 +94,6 @@
 #include "wiz8/cursor.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 
-/* Local Code\LoadSaveGame.cpp. The unit is established by its own assertions:
-   evidence/observations/wiz8/assertions.csv places line 870 at 0x00512E80 and
-   line 3507 at 0x00516580, with the line numbers rising with the address, so
-   the bodies below sit inside the interval rather than being assigned to it by
-   subsystem guesswork. */
-
 /* The attribute word this gate tests is a Windows attribute word, so the two
    constants come from windows.h and are not restated here. Ghidra labels the
    pair with the vendored SFI release's SGP names, which number those bits
@@ -1517,13 +1511,13 @@ bool SaveGameExists(void)
    file name is the character's own wide name with a CHR extension, and the
    record is written as a four-byte length followed by that many bytes, which is
    the pair LoadCharacter reads back.
- 
+
    The two directory spellings do not share a sprintf the way LoadCharacter's do:
    with characters loose, the NPC path is copied whole because the name already
    carries no directory, while the other two arms format one. An existing
    read-only file has its attribute cleared first, and a failure to clear it is
    treated exactly like a failure to open.
- 
+
    Failure reporting has two shapes. With report_failure set the caller gets the
    save-failed notice and the continuation is dropped; without it the
    continuation runs instead. Either way the answer is failure. */

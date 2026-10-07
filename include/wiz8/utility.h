@@ -14,11 +14,6 @@ void ProcessMessageBoxInput(void);
 
 template <class T> class srVector3T;
 
-/* Local Code\UtilityFunctions.cpp. Same four-int layout as W8ControlsRect and
-   the same storage width as SGPRect, but field names and call boundaries stay
-   separate: UnionScreenRects / InvalidateScreenRects consume this type, while SGP
-   invalidation takes either scalars or SGPRect. No merge without a direct
-   cross-API bridge. */
 struct W8ScreenRect {
     int left;
     int top;

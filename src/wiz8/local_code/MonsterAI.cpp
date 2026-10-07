@@ -48,15 +48,6 @@
 #include <string.h>
 #include "wiz8/engine_code/GameData.h"
 
-/*
- * Local Code\MonsterAI.cpp.
- *
- * What a monster decides to do. Each monster's combat state owns a queue of
- * decided actions; the bodies here build entries for it, run the per-monster
- * decision over every live monster, and answer the questions the decision
- * itself asks about targets.
- */
-
 #define MONSTER_AI_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterAI.cpp"
 
 /* The special-attack table row value that marks a summon; flee and control

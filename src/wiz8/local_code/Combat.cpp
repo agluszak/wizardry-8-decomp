@@ -100,13 +100,6 @@ W8CombatState* g_combat_state;
 /* 0x006850B4: the once-per-combat difficulty evaluation result - 0 easy,
    1 normal, 2 hard; picks the combat music and gates the victory event. */
 
-/*
- * Local Code\Combat.cpp.
- *
- * The round bookkeeping: who is engaged, what each slot has chosen to do, and
- * the running list of characters who died this round.
- */
-
 /* 0x00524A10 */
 
 /* 0x00547940 */

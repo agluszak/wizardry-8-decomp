@@ -1,14 +1,5 @@
 #include "wiz8/conditions.h"
 #include "wiz8/sgp_text.h"
-/* Local Screens\RCSStatsPage.cpp - the review character screen's stats pages.
-
-   Retail retains no path string for this unit; the official demo carries two
-   "E:\Wizardry 8\Local Screens\RCSStatsPage.cpp" anchors at demo 0x005CE490
-   and 0x005CE640 (line 3376), matching retail 0x005C5240 and 0x005C53C0. The
-   unit occupies the retail span between mipeEdit.cpp (0x005C4340) and
-   CGSSpellsPage.cpp (0x005C87B0): the camp stats page and its condition /
-   equipment effect list, the camp skills page, and the character screen's
-   skills and final pages. */
 
 #include "wiz8/local_screens/RCSStatsPage.h"
 #include "wiz8/local_screens/RCSCommon.h"
@@ -967,7 +958,6 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
 // VTABLE: WIZ8 0x005ef578 W8ControlSelectionListener
 // VTABLE: WIZ8 0x005ef570 W8TextControl::Listener
 // class W8CharacterPersonalityPage
-
 // FUNCTION: WIZ8 0x005c6460
 void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
                                               W8CharacterCreationState* creation_state, int mode)
@@ -1322,7 +1312,6 @@ W8CharacterPersonalityPage* CreateCharacterPersonalityPage()
 // VTABLE: WIZ8 0x005ef5c8 W8CharacterPage
 // VTABLE: WIZ8 0x005ef5c0 W8CharacterPageEntryListener
 // class W8CharacterSkillsPage
-
 // FUNCTION: WIZ8 0x005c7580
 void W8CharacterSkillsPage::SetCharacter(W8Character* character,
                                          W8CharacterCreationState* creation_state, int mode)

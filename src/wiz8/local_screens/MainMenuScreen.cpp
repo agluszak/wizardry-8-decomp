@@ -33,13 +33,6 @@
 
 #include <wchar.h>
 
-/*
- * Local Screens\MainMenuScreen.cpp.
- *
- * The unit is named by the assertion in its entry handler. Its six static
- * regions share the global RegionManager catalog and screen-state dispatcher.
- */
-
 /* The screen's own state. */
 // GLOBAL: WIZ8 0x0069c4ba
 bool g_main_menu_has_save_games;

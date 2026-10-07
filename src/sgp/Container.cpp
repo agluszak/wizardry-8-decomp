@@ -3,16 +3,12 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
-//*****************************************************************************
-//
 // Filename : Container.c
-//
 // Purpose : Function definition for the Container
-//
 // Modification History :
 // 25 nov 96 TS creation
-//
 // 19 Dec 97 AM Replace all memcpy() with memmove(), since overlap possibilities
 //							abound (and there were already bugs in do_copy() for ordered lists)
 //							While the memcpy() was working in _DEBUG mode, it was failing
@@ -23,7 +19,6 @@
 // 1998	KM Detached all references to this file from JA2 as it caused a lot of hard to debug
 //         crashes.  The VOBJECT/VSURFACE lists are now self-maintained and no longer use the
 //				 this crap.  DON'T USE THIS -- NO MATTER WHAT!!!
-//*****************************************************************************
 
 #include "types.h"
 #include <stdlib.h>
@@ -34,13 +29,8 @@
 #include "Debug.h"
 #include "Container.h"
 #include <iostream.h>
-
-//*****************************************************************************
-//
 // Defines and typedefs
-//
-//
-//*****************************************************************************
+
 #define STRICT
 
 typedef struct StackHeaderTag {
@@ -76,11 +66,7 @@ typedef struct test {
     char* p;
 
 } TEST;
-
-//*****************************************************************************
-//
 // CreateStack
-//
 // Parameter List : num_items - estimated number
 //									of items in stack
 //									siz_each - size of each item
@@ -88,8 +74,6 @@ typedef struct test {
 //							 pointer to allocated memory
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
 
 // FUNCTION: WIZ8 0x00405970
 HSTACK CreateStack(UINT32 uiNum_items, UINT32 uiSiz_each)
@@ -122,11 +106,7 @@ HSTACK CreateStack(UINT32 uiNum_items, UINT32 uiSiz_each)
 
     return hStack;
 }
-
-//*****************************************************************************
-//
 // CreateList
-//
 // Parameter List : num_items - estimated number
 //									of items in ordered list
 //									siz_each - size of each item
@@ -134,8 +114,7 @@ HSTACK CreateStack(UINT32 uiNum_items, UINT32 uiSiz_each)
 //							 pointer to allocated memory
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 // FUNCTION: WIZ8 0x004059b0
 HLIST CreateList(UINT32 uiNum_items, UINT32 uiSiz_each)
 {
@@ -172,22 +151,15 @@ HLIST CreateList(UINT32 uiNum_items, UINT32 uiSiz_each)
 
     return hList;
 }
-
-//*****************************************************************************
-//
 // push
-//
 // Parameter List : void * - pointer to stack
 //									container
 //									data - data to add to stack
-//
 // Return Value	BOOLEAN true if push ok
 //							 else	false
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 // FUNCTION: WIZ8 0x00405a00
 HSTACK Push(HSTACK hStack, void* pdata)
 {
@@ -233,21 +205,14 @@ HSTACK Push(HSTACK hStack, void* pdata)
     //return push succeeded
     return hStack;
 }
-//*****************************************************************************
-//
 // pop
-//
 // Parameter List : void * - pointer to stack
 //									container
-//
-//
 // Return Value : void * - pointer to stack
 //								after pushing element
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 // FUNCTION: WIZ8 0x00405a70
 BOOLEAN Pop(HSTACK hStack, void* pdata)
 {
@@ -288,19 +253,12 @@ BOOLEAN Pop(HSTACK hStack, void* pdata)
     pTemp_cont->uiTotal_items--;
     return TRUE;
 }
-//*****************************************************************************
-//
 // PeekStack
-//
 // Parameter List : void * - buffer to hold data
-//
-//
 // Return Value : TRUE if stack not empty
-//
 // Modification History :
 // Apr 14 2000 SCT -> Created
-//
-//*****************************************************************************
+
 // FUNCTION: WIZ8 0x00405ac0
 BOOLEAN PeekStack(HSTACK hStack, void* pdata)
 {
@@ -340,18 +298,12 @@ BOOLEAN PeekStack(HSTACK hStack, void* pdata)
     memmove(pdata, pvoid, uiSize_of_each);
     return TRUE;
 }
-//*****************************************************************************
-//
 // DeleteStack
-//
 // Parameter List : pointer to memory
-//
 // Return Value	: BOOLEAN
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 // FUNCTION: WIZ8 0x00405b00
 BOOLEAN DeleteStack(HSTACK hStack)
 {
@@ -363,18 +315,12 @@ BOOLEAN DeleteStack(HSTACK hStack)
     MemFree(hStack);
     return TRUE;
 }
-//*****************************************************************************
-//
 // DeleteList
-//
 // Parameter List : pointer to memory
-//
 // Return Value	: BOOLEAN
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 BOOLEAN DeleteList(HLIST hList)
 {
     if (hList == NULL) {
@@ -385,18 +331,11 @@ BOOLEAN DeleteList(HLIST hList)
     MemFree(hList);
     return TRUE;
 }
-//*****************************************************************************
-//
 // InitializeContainers
-//
 // Parameter List : none
-//
 // Return Value	: void
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
 
 void InitializeContainers(void)
 {
@@ -406,19 +345,11 @@ void InitializeContainers(void)
     RegisterDebugTopic(TOPIC_QUEUE_CONTAINERS, "Queue Container");
     RegisterDebugTopic(TOPIC_ORDLIST_CONTAINERS, "Ordered List Container");
 }
-
-//*****************************************************************************
-//
 // ShutdownContainers
-//
 // Parameter List : none
-//
 // Return Value	: void
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
 
 void ShutdownContainers(void)
 {
@@ -427,22 +358,15 @@ void ShutdownContainers(void)
     UnRegisterDebugTopic(TOPIC_QUEUE_CONTAINERS, "Queue Container");
     UnRegisterDebugTopic(TOPIC_ORDLIST_CONTAINERS, "Ordered List Container");
 }
-//*****************************************************************************
-//
 // PeekList - gets the specified item in the list without
 // actually deleting it.
-//
 // Parameter List : hList - pointer to list
 //									container
 //									data - data where list element is stored
-//
 // Return Value	BOOLEAN
-//
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 // FUNCTION: WIZ8 0x00405b20
 BOOLEAN PeekList(HLIST hList, void* pdata, UINT32 uiPos)
 {
@@ -487,25 +411,17 @@ BOOLEAN PeekList(HLIST hList, void* pdata, UINT32 uiPos)
 
     return TRUE;
 }
-
-//*****************************************************************************
-//
 // StoreListNode - Stores the contents of a list node with the given parameter.
 //									Unlike SwapListNode(), this does NOT swap previous contents
 //									back into the pdata buffer!
-//
 // Parameter List : hList - pointer to list container
 //									pdata - pointer to data to be stored
 //									uiPos - List position into which to store.
-//
 // Return Value	BOOLEAN - TRUE if successful, FALSE if function fails.
-//
-//
 // Modification History :
 //	Added to SGP by Alex Meduna for use with Wiz8. Oct 31 '97.
 //		- This function is nearly identical to the SwapListNode() function.
-//
-//*****************************************************************************
+
 // FUNCTION: WIZ8 0x00405b90
 BOOLEAN StoreListNode(HLIST hList, void* pdata, UINT32 uiPos)
 {
@@ -550,20 +466,12 @@ BOOLEAN StoreListNode(HLIST hList, void* pdata, UINT32 uiPos)
 
     return TRUE;
 }
-
-//*****************************************************************************
-//
 // do_copy
-//
 // Parameter List : pointer to mem, source offset, dest offset, size
-//
 // Return Value	BOOLEAN
-//
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 BOOLEAN do_copy(void* pmem_void, UINT32 uiSourceOfst, UINT32 uiDestOfst, UINT32 uiSize)
 {
     BYTE* pOffsetSrc;
@@ -589,19 +497,12 @@ BOOLEAN do_copy(void* pmem_void, UINT32 uiSourceOfst, UINT32 uiDestOfst, UINT32 
     memmove(pvoid_dest, pvoid_src, uiSize);
     return TRUE;
 }
-//*****************************************************************************
-//
 // StackSize
-//
 // Parameter List : pointer to stack
-//
 // Return Value	UINT32 stack size
-//
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 // FUNCTION: WIZ8 0x00405c00
 UINT32 StackSize(HSTACK hStack)
 {
@@ -613,19 +514,12 @@ UINT32 StackSize(HSTACK hStack)
     pTemp_cont = (StackHeader*)hStack;
     return pTemp_cont->uiTotal_items;
 }
-//*****************************************************************************
-//
 // ListSize
-//
 // Parameter List : pointer to queue
-//
 // Return Value	UINT32 list size
-//
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 UINT32 ListSize(HLIST hList)
 {
     ListHeader* pTemp_cont;
@@ -636,22 +530,16 @@ UINT32 ListSize(HLIST hList)
     pTemp_cont = (ListHeader*)hList;
     return pTemp_cont->uiTotal_items;
 }
-//*****************************************************************************
-//
 // AddtoList
-//
 // Parameter List : HCONTAINER - handle to list
 //									container
 //									data - data to add to queue
 //									position - position after which data is to added
-//
 // Return Value	BOOLEAN true if push ok
 //							 else	false
-//
 // Modification History :
 // Nov 26th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
+
 // FUNCTION: WIZ8 0x00405c10
 HLIST AddtoList(HLIST hList, void* pdata, UINT32 uiPos)
 {

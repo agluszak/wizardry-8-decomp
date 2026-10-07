@@ -1,31 +1,4 @@
-"""Header ownership classification against the compiler-backed source index.
-
-Every header under ``include/wiz8`` gets an inferred role:
-
-- ``shared-layout``: ``include/wiz8/layouts/**`` and headers that declare no
-  functions or globals — packed records, enums and shared-state ``extern``s.
-- ``header-implementation``: the header emits the code itself — inline or
-  template definitions the index records inside a header.
-- ``tu-interface``: resolved declarations belong to one original TU.
-- ``multi-tu``: declarations resolve to several original TUs; allowed only
-  when ``allowed-multi-tu-headers`` covers the resolved set.
-- ``provisional-interface``: every resolved declaration lives in an
-  unmapped source file; inferred, never persisted.
-- ``unresolved``: no declaration resolves to an implementation or a retail
-  placement.
-
-Ownership comes from the compiler-backed source index: the
-``header_declarations`` projection names each entity a header declares by
-``semantic_id``; merged declaration/variable records provide the defining
-file; markers bind ``semantic_id`` to a retail address the assertion layout
-places. No textual C++ parsing participates — ``#include`` directives are the
-only line-level fact read.
-
-``src/wiz8/header_architecture.json`` (``wiz8.header-architecture-v2``)
-holds only human decisions: ``proven-original-headers`` records
-assertion-evidenced original filenames and ``allowed-multi-tu-headers``
-permits named headers to combine named original TUs.
-"""
+"""Header ownership classification against the compiler-backed source index."""
 
 from __future__ import annotations
 

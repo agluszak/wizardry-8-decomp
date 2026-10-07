@@ -1,21 +1,4 @@
-"""Higher-level analysis for the structural MSVC table census.
-
-This layer deliberately consumes the binary-only census instead of participating
-in discovery. It adds three kinds of evidence that are useful for class recovery
-but are not required to decide where a table starts:
-
-* receiver provenance: whether a vfptr/vbptr store is derived from incoming ECX
-  (the x86 this-register for __thiscall), including dynamic virtual-base stores;
-* construction families: multiple table transitions written by one function to
-  the same incoming-ECX-derived receiver;
-* slot resolution: import thunks, _purecall, exported local symbols, or ordinary
-  local bodies.
-
-``incoming-ecx`` is deliberately a provenance label rather than a claim that the
-containing function has already been proved to be a C++ member. None of these
-labels are allowed to make a structural candidate disappear. A failed provenance
-trace stays ``unknown`` rather than becoming negative evidence.
-"""
+"""Higher-level analysis for the structural MSVC table census."""
 
 from __future__ import annotations
 

@@ -1,15 +1,4 @@
-"""Reject compiler-emission artifacts promoted to authored template source.
-
-A concrete retail template body proves an instantiation happened. It does not
-prove that the original source contained an explicit specialization or explicit
-instantiation. Those constructs are therefore forbidden in recovered
-Wizardry/SurRender source unless this gate itself carries a narrow,
-source-oracle-backed exception.
-
-There is intentionally no source comment waiver. Adding an exception changes
-the reviewed source-model policy instead of letting a local matching tweak
-silently redefine the authored template.
-"""
+"""Reject compiler-emission artifacts promoted to authored template source."""
 
 from __future__ import annotations
 

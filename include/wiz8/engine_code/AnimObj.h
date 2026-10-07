@@ -11,14 +11,6 @@ class stLight;
 template <class T> class W8GrowableVector;
 class srModelInstance;
 
-/*
- * Engine Code\AnimObj.cpp.
- *
- * The allocator at 0x004A01A0 clears the complete 0x4c-byte record.  The
- * assertion name `pao` and the owning source path establish the AnimObj
- * identity. Leading serialized bytes are named from load/clone/dispatch
- * consumers; remaining bytes stay positional until those uses are recovered.
- */
 struct W8AnimObj {
     unsigned char group_count;       /* 0x00: mesh/list group count, max 3 */
     unsigned char animation_playing; /* 0x01: copied onto monster/prop animation_playing */

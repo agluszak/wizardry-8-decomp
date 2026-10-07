@@ -68,13 +68,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- * Engine Code\Trigger.cpp.
- *
- * Trigger owns the action state reconstructed by the level loader and drives
- * it from Run. Its registry support is the ordinary srClassSupport template.
- */
-
 // GLOBAL: WIZ8 0x006599B8
 static W8GrowableVector<W8TriggerEvent*> g_timed_events;
 
@@ -767,7 +760,6 @@ bool LoadTriggerActionData(int handle)
 
 // VTABLE: WIZ8 0x005ec12c
 // class W8TriggerEvent
-
 W8TriggerEvent::W8TriggerEvent()
     : action(-1), timer(), m_pCountdown(0), trigger(0), repeat(0), completed(0)
 {
@@ -790,7 +782,6 @@ static_assert(sizeof(W8TriggerShakeEvent) == 0x44, "W8TriggerShakeEvent_must_be_
 
 // VTABLE: WIZ8 0x005ec140
 // class W8TriggerShakeEvent
-
 /* Retail ICF folds this class's deleting destructor onto W8TriggerEvent's
    retained body at 0x00440980; there is no distinct retail emission to mark. */
 
@@ -1242,7 +1233,6 @@ void SetTriggerVariableByName(const char* name, int value)
 
 // VTABLE: WIZ8 0x005ec138
 // class W8TriggerActionData
-
 W8TriggerActionData::W8TriggerActionData() : type(W8_TRIGGER_PAYLOAD_NONE) {}
 
 // FUNCTION: WIZ8 0x00445ee0
@@ -1253,13 +1243,10 @@ W8TriggerActionData::~W8TriggerActionData() {}
    common destructor, then scalar operator delete when requested. */
 // VTABLE: WIZ8 0x005ec148
 // class W8EnvironmentTriggerActionData
-
 // VTABLE: WIZ8 0x005ec134
 // class W8DoorTriggerActionData
-
 // VTABLE: WIZ8 0x005ec158
 // class W8StringTriggerActionData
-
 // FUNCTION: WIZ8 0x00443750
 W8StringTriggerActionData::~W8StringTriggerActionData()
 {
@@ -1967,7 +1954,6 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 
 // VTABLE: WIZ8 0x005ec0e4
 // class Trigger
-
 // FUNCTION: WIZ8 0x00441750
 void Trigger::GetPosition(srVector3T<float>* position) const
 {
@@ -1995,7 +1981,6 @@ bool Trigger::RequiresItem()
 
 // VTABLE: WIZ8 0x005ec104
 // class srClassSupport<Trigger,srClass,1,65544>
-
 // FUNCTION: WIZ8 0x0043ba10
 Trigger::Trigger()
 {

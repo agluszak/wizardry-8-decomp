@@ -3,24 +3,13 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Include the importer declaration to preserve its C linkage in C++ mode, 2026-10-04.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
-//**************************************************************************
-//
 // Filename :	impTGA.c
-//
 //	Purpose :	.tga file importer
-//
 // Modification history :
-//
 //		20nov96:HJH				- Creation
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 //				Includes
-//
-//**************************************************************************
 
 #include "types.h"
 #include "Fileman.h"
@@ -31,24 +20,9 @@
 #include "string.h"
 #include "debug.h"
 #include "video2.h"
-
-//**************************************************************************
-//
 //				Defines
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 //				Typedefs
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 //				Function Prototypes
-//
-//**************************************************************************
 
 BOOLEAN ReadUncompColMapImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
                               UINT16 fContents);
@@ -59,12 +33,7 @@ BOOLEAN ReadRLEColMapImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiC
 BOOLEAN ReadRLERGBImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
                         UINT16 fContents);
 //BOOLEAN	ConvertTGAToSystemBPPFormat( HIMAGE hImage );
-
-//**************************************************************************
-//
 //				Function Definitions
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00414c60
 BOOLEAN LoadTGAFileToImage(HIMAGE hImage, UINT16 fContents)
@@ -111,40 +80,22 @@ end:
     FileClose(hFile);
     return (fReturnVal);
 }
-
-//**************************************************************************
-//
 // ReadUncompColMapImage
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		20nov96:HJH		-> creation
-//
-//**************************************************************************
 
 BOOLEAN ReadUncompColMapImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
                               UINT16 fContents)
 {
     return (FALSE);
 }
-
-//**************************************************************************
-//
 // ReadUncompRGBImage
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		20nov96:HJH		-> creation
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00414d70
 BOOLEAN ReadUncompRGBImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
@@ -306,154 +257,25 @@ freeEnd:
     MemFree(pBMData);
     return (FALSE);
 }
-
-//**************************************************************************
-//
 // ReadRLEColMapImage
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		20nov96:HJH		-> creation
-//
-//**************************************************************************
 
 BOOLEAN ReadRLEColMapImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
                            UINT16 fContents)
 {
     return (FALSE);
 }
-
-//**************************************************************************
-//
 // ReadRLERGBImage
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		20nov96:HJH		-> creation
-//
-//**************************************************************************
 
 BOOLEAN ReadRLERGBImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
                         UINT16 fContents)
 {
     return (FALSE);
 }
-
-/*
-BOOLEAN	ConvertTGAToSystemBPPFormat( HIMAGE hImage )
-{
-	UINT16		usX, usY;
-	UINT16		Old16BPPValue;
-	UINT16		*pData;
-	UINT16		usR, usG, usB;
-	float			scale_val;
-	UINT32		uiRBitMask;
-	UINT32		uiGBitMask;
-	UINT32		uiBBitMask;
-	UINT8			ubRNewShift;
-	UINT8			ubGNewShift;
-	UINT8			ubBNewShift;
-	UINT8			ubScaleR;
-	UINT8			ubScaleB;
-	UINT8			ubScaleG;
-
-	// Basic algorithm for coonverting to different rgb distributions
-
-	// Get current Pixel Format from DirectDraw
-	CHECKF( GetPrimaryRGBDistributionMasks( &uiRBitMask, &uiGBitMask, &uiBBitMask ) );
-
-	// Only convert if different
-	if ( uiRBitMask == 0x7c00 && uiGBitMask == 0x3e0 && uiBBitMask == 0x1f )
-	{
-		return( TRUE );
-	}
-
-	// Default values
-	ubScaleR			= 0;
-	ubScaleG			= 0;
-	ubScaleB			= 0;
-	ubRNewShift   = 10;
-	ubGNewShift   = 5;
-	ubBNewShift   = 0;
-
-	// Determine values
-  switch( uiBBitMask )
-  {
-		case 0x3f: // 0000000000111111 pixel mask for blue
-
-			// 5-5-6
-			ubRNewShift = 11;
-			ubGNewShift = 6;
-			ubScaleB		= 1;
-			break;
-
-    case 0x1f: // 0000000000011111 pixel mask for blue
-			switch( uiGBitMask )
-      {
-				case 0x7e0: // 0000011111100000 pixel mask for green
-
-	        // 5-6-5
-					ubRNewShift = 11;
-					ubScaleG    = 1;
-					break;
-
-        case 0x3e0: // 0000001111100000 pixel mask for green
-
-					switch( uiRBitMask )
-          {
-						case 0xfc00: // 1111110000000000 pixel mask for red
-
-							// 6-5-5
-							ubScaleR	= 1;
-							break;
-          }
-          break;
-      }
-      break;
-  }
-
-	pData = hImage->pui16BPPPalette;
-	usX = 0;
-	do
-	{
-
-		usY = 0;
-
-		do
-		{
-
-			// Get Old 5,5,5 value
-			Old16BPPValue = hImage->p16BPPData[ usX * hImage->usWidth + usY ];
-
-			// Get component r,g,b values AT 5 5 5
-			usR = ( Old16BPPValue & 0x7c00 ) >> 10;
-			usG = ( Old16BPPValue & 0x3e0 ) >> 5;
-			usB = Old16BPPValue & 0x1f;
-
-			// Scale accordingly
-			usR = usR << ubScaleR;
-			usG = usG << ubScaleG;
-			usB = usB << ubScaleB;
-
-			hImage->p16BPPData[ usX * hImage->usWidth + usY ] = ((UINT16) ( ( usR << ubRNewShift | usG << ubGNewShift ) | usB  ) );
-
-			usY++;
-
-		} while( usY < hImage->usWidth );
-
-		usX++;
-
-	} while( usX < hImage->usHeight );
-
-	return( TRUE );
-
-}
-*/
