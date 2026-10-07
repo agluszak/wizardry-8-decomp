@@ -43,8 +43,6 @@ public:
     void setByteOrder(e_byteOrder byte_order);
     void setState(e_state state);
 
-    /* The emitted bodies are consistent with ordinary memberwise copying. */
-
 protected:
     srBinStream();
 

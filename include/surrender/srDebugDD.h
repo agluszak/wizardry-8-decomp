@@ -5,9 +5,6 @@
 class srGERD;
 
 // VTABLE: SURRENDER 0x100765f0 srDebugDD
-/* Provider-side debug wrapper. Exports include copy construction, assignment
-   and the vtable; no known consumer imports them. Copy bodies are consistent
-   with ordinary memberwise copying; original declaration spelling is unresolved. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -15,7 +12,6 @@ class
     srDebugDD : public srDD {
 public:
     srDebugDD(srDD* device);
-    /* Destruction is consistent with base-only cleanup; the reconstruction leaves it implicit. */
 
     /* The copy constructor stores the vtable last; the assignment
        does not. */

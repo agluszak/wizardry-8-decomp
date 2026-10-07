@@ -31,7 +31,6 @@ class
     srCore {
 public:
     SR_DLL_IMPORT srCore();
-    /* The exported assignment is consistent with whole-object memberwise copying. */
 
     SR_DLL_IMPORT void dump(std::ostream& stream);
     SR_DLL_IMPORT const char* getBuildTime() const;

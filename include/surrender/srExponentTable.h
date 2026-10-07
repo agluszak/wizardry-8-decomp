@@ -11,7 +11,6 @@ class
     srExponentTable {
 public:
     srExponentTable(float exponent = 1.0f);
-    /* The exported assignment is consistent with whole-object memberwise copying. */
 
     float getExponent() const;
     float getValue(float x) const;
@@ -39,8 +38,6 @@ public:
     static void freeUnused();
 
     void release();
-
-    /* The exported assignment is consistent with whole-object memberwise copying. */
 
 protected:
     /* The ??_F default-constructor closures (0x10003160 base, 0x100031A0

@@ -8,7 +8,6 @@
 class SR_DLL_EXPORT srMutex {
 public:
     srMutex();
-    /* The copy bodies are consistent with ordinary memberwise copying. */
 
     virtual ~srMutex();
 

@@ -1,25 +1,4 @@
-"""Decode the SurRender export tables into an original-ABI class surface.
-
-`sr.dll` exports far more than Wizardry imports, and every exported name is a
-decorated MSVC symbol: it states the class, the member, whether the member is
-virtual, static or an adjustor thunk, and - for an exported vftable - which base
-subobject that vftable belongs to. That is declaration-side evidence about a
-library the game links, which the evidence policy explicitly prefers over
-recovering the library's own bodies, so nothing here disassembles SurRender.
-
-Signatures come from `llvm-undname`, a maintained implementation of the MSVC
-grammar, rather than from anything written here. The local parser only extracts
-the structural facts a signature string does not expose as fields - kind, access,
-virtuality, adjustor-thunk status and calling convention - and the two are
-cross-checked: `wiz8 surrender-abi` reports any row whose structural class name
-is absent from the demangled text. Anything the local parser cannot decode is
-recorded with ``parse_status`` set rather than guessed at.
-
-Where the two overlap the demangler wins. A vftable's base subobject is read from
-the demangled signature because the decorated form uses back-references
-(``??_7X@@6B0@@`` names ``X`` itself, not a base called ``0``) and unexpanded
-template arguments.
-"""
+"""Decode SurRender exports and virtual tables into ABI snapshots."""
 
 from __future__ import annotations
 
@@ -61,7 +40,6 @@ def _publish_snapshot(settings: Settings, outputs: dict[str, str], update_snapsh
     if update_snapshot:
         for filename, value in outputs.items():
             atomic_write(snapshot_dir / filename, value)
-        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
     snapshot_fresh = all(
         (snapshot_dir / filename).is_file()
         and (snapshot_dir / filename).read_text(encoding="utf-8") == outputs[filename]
@@ -416,56 +394,6 @@ def decode_vbtable(
         entries.append(value)
         cursor += 4
     return entries
-
-
-def _snapshot_readme() -> str:
-    return """# SurRender export-ABI snapshot
-
-Every exported symbol of every SurRender module in the corpus, with its decorated name decoded
-into structural facts. Tracked because reproduction needs the proprietary binaries.
-
-The producer is `wiz8decomp.surrender_abi`. Normal runs write the same CSV under
-`build/reports/surrender-abi/` and fail when it differs from this snapshot:
-
-```sh
-uv run wiz8 surrender-abi                  # verify against the snapshot
-uv run wiz8 surrender-abi --update-snapshot
-```
-
-This is declaration evidence about linked library code, not recovery of it: the rows come from
-export tables, never from disassembling a SurRender body.
-
-`kind` distinguishes constructors, destructors, vftables, vbtables and ordinary members.
-`virtuality` separates `virtual` from `non-virtual` and `static`, and `adjustor_thunk` marks the
-compiler-generated entries that exist only to shift `this` onto a secondary base - so the columns
-together describe the polymorphism ABI without reading a single instruction.
-
-`vftable_base` is the base subobject an exported vftable belongs to, taken from the demangled
-signature rather than the decorated name, which uses back-references and unexpanded templates.
-An empty value on a `vftable` row means the primary vftable; a non-empty value names the base, which
-makes the inheritance edges of the library explicit.
-
-`parse_status` is `ok` only when the whole structural prefix decoded. `template-scope` marks names
-whose owning class is itself a template, where the scope chain is reported best-effort.
-
-`vftable-slots.csv` and `vbtable-entries.csv` read the tables `exports.csv` names. A vftable export
-is a data address, so its slots are read out of the module rather than disassembled: each slot holds
-an absolute address the loader fixes up, which puts it in the relocation directory, and each points
-into an executable section. The first address failing either test, or the start of another exported
-symbol, ends the run. `resolution` is `exported` when the slot's target is itself an exported
-symbol, whose name and signature then fill `target_name` and `target_signature`, and `internal`
-when it is a method the library does not export - recorded as unresolved rather than guessed.
-
-A vbtable holds displacements rather than addresses, so none of its entries is relocated and the
-first relocated slot ends that run instead. Entry zero is the offset from the vbptr back to the
-vbtable; the rest locate each virtual base within the object, which is what a derived declaration
-needs in order to inherit virtually and still match.
-
-`subobject` on either table is the base a secondary table belongs to, empty for a primary.
-
-Modules with byte-identical payloads across variants are recorded once, under the canonical
-variant; `wiz8 surrender-abi` reports the aliases it collapsed.
-"""
 
 
 def _representative_modules(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, str]]:

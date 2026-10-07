@@ -113,9 +113,6 @@ public:
         return "srTextureIFace";
     }
 
-    /* No state beyond srClassSupport is modeled; lifecycle bodies are consistent
-       with ordinary base-only operations. */
-
     /* Slot 8. Slot 6 is srClass::vInstance; slot 7 is clone. srTextureFile's
        17-slot vftable (0 through 16) is this interface exactly. */
     virtual unsigned long getTextureFrameHandle() = 0;

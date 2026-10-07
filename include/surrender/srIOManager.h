@@ -4,9 +4,6 @@
 
 #include <string.h>
 
-/* Provider exports include copy construction, assignment and the vftable. The
-   reconstruction uses class-level export and memberwise copying; original
-   declaration spelling is unresolved. */
 // VTABLE: SURRENDER 0x10076960
 // class srIOManager
 class
@@ -234,8 +231,6 @@ public:
     // RECOMP: ??1Importer@srIOManager@@UAE@XZ
     virtual ~Importer() {}
 
-    /* The emitted bodies are consistent with ordinary memberwise copying. */
-
 protected:
     SR_DLL_IMPORT void addToImporters(srIOManager* manager, const char* extension);
     SR_DLL_IMPORT void addToImporters(srIOManager* manager, srIOManager::Importer* importer,
@@ -256,8 +251,6 @@ public:
     // FUNCTION: SURRENDER 0x1002CC60
     // RECOMP: ??1Exporter@srIOManager@@UAE@XZ
     virtual ~Exporter() {}
-
-    /* The emitted bodies are consistent with ordinary memberwise copying. */
 
 protected:
     SR_DLL_IMPORT void addToExporters(srIOManager* manager, const char* extension);

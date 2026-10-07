@@ -215,9 +215,6 @@ public:
     }
 };
 
-/* Retail exports include the vtable, protected construction/destruction and
-   copy operations. The reconstruction uses class-level export; original
-   special-member and annotation spelling is unresolved. */
 // VTABLE: SURRENDER 0x100754E4 srRuntimeClass
 // class srRuntimeClass
 class
@@ -237,8 +234,6 @@ public:
     static SR_DLL_IMPORT srRegistry::ClassNode* sGetClassNode();
     static SR_DLL_IMPORT long getTotalInstances(int exact);
     static SR_DLL_IMPORT void dumpNames(std::ostream& stream, int indent);
-
-    /* Copy bodies contain memberwise copying followed by a vptr store. */
 
     SR_DLL_IMPORT void setName(const char* name);
     SR_DLL_IMPORT const char* getName() const;
@@ -264,10 +259,7 @@ static_assert(sizeof(srRuntimeClass) == 0x0c, "srRuntimeClass_must_be_0x0c");
    vtable; they leave the srRuntimeClass construction vtable in place until a
    concrete derived class installs its own. That is MSVC's novtable ABI, not a
    missing handwritten vtable write. */
-/* Retail exports include protected construction/destruction, private statics
-   and copy operations. The reconstruction uses class-level export; original
-   special-member and annotation spelling is unresolved. clone dispatches
-   through the virtual clone slot 7. */
+
 class __declspec(novtable)
 #if defined(SURRENDER_BUILD)
 __declspec(dllexport)
