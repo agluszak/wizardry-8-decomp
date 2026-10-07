@@ -292,32 +292,6 @@ def test_lint_selection_refreshes_stale_source_index(tmp_path: Path, monkeypatch
     assert dependent == []
 
 
-def test_product_inputs_names_stale_extraction_recipe(tmp_path: Path, monkeypatch) -> None:
-    from wiz8decomp import doctor
-
-    settings = _settings(tmp_path)
-    extracted = settings.work_dir / "extracted" / "gog-base"
-    extracted.mkdir(parents=True)
-    (extracted / ".wiz8-extraction.json").write_text("{}", encoding="utf-8")
-    monkeypatch.setattr(
-        "wiz8decomp.build.prepared_mount_ready",
-        lambda _mount: True,
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.extract.variants.verify_extraction",
-        lambda *_args, **_kwargs: {
-            "ok": False,
-            "errors": ["receipt implementation_revision differs from the current recipe"],
-        },
-    )
-    result = doctor._product_inputs_check(settings)
-    assert result["ok"] is True
-    assert result["status"] == "stale-recipe"
-    assert "gog-media" in (result["detail"] or "")
-    assert "corpus clean --stage extractions" in (result["detail"] or "")
-    assert "corpus extract gog-media" in (result["detail"] or "")
-
-
 def test_product_build_uses_product_only_vc6_image(tmp_path: Path) -> None:
     product = build.ContainerBuild.from_settings(_settings(tmp_path))
     assert product.image == build.VC6_PRODUCT_IMAGE

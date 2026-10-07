@@ -4,15 +4,9 @@ Reviewed GZF checkpoints exist to share reviewed analysis state between checkout
 
 ## Freshness
 
-After moving to a revision whose reviewed checkpoint may have changed, run:
+The checkout records which reviewed GZF initialized the live project. Ghidra commands check that provenance when they open the program and refuse stale, legacy or untracked live state. Matching binary hashes, function counts or timestamps are not proof that two analyses are identical.
 
-```sh
-uv run wiz8 doctor
-```
-
-The checkout records which reviewed GZF initialized the live project. If the tracked checkpoint changes, `doctor` reports the live project as stale. Legacy or otherwise unproven live state is reported as unknown/untracked. Matching binary hashes, function counts or timestamps are not proof that two analyses are identical.
-
-`doctor` never overwrites Ghidra state.
+If the tracked checkpoint changed, reconcile valuable live work or replace the live project with the current reviewed seed before continuing.
 
 ## Restore
 

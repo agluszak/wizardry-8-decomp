@@ -684,15 +684,6 @@ def _full_lint_change(repository: Path, path: Path) -> bool:
     return relative.startswith("src/sgp/") and path.suffix.casefold() in _LINT_HEADER_SUFFIXES
 
 
-def lint_required(repository: Path, changed_paths: list[Path]) -> bool:
-    """Whether a PR diff needs the compiler-backed lint lane."""
-
-    return any(
-        path.suffix.casefold() in _LINT_SOURCE_SUFFIXES or _full_lint_change(repository, path)
-        for path in changed_paths
-    )
-
-
 def _lint_selection(
     settings: Settings, changed_paths: list[Path]
 ) -> tuple[list[Path] | None, list[Path], list[Path]]:

@@ -107,13 +107,12 @@ curl -fsSL "https://raw.githubusercontent.com/agluszak/ghidra/$revision/support/
 bash /tmp/installForkDistribution.sh "$revision" "$checksum" "$GHIDRA_INSTALL_DIR"
 ```
 
-`doctor` checks the fork revision as well as the Ghidra and PyGhidra versions.
+Ghidra commands validate the pinned Ghidra fork and PyGhidra version when they start.
 
 Bootstrap the environment and prepare the canonical game input:
 
 ```sh
 uv sync --frozen
-uv run wiz8 doctor
 uv run wiz8 toolchain build vc6-sp5
 uv run wiz8 prepare
 ```
@@ -122,10 +121,9 @@ To restore the reviewed Ghidra analysis for reverse-engineering work:
 
 ```sh
 uv run wiz8 ghidra restore
-uv run wiz8 doctor
 ```
 
-Each checkout needs its own `WIZ8_WORK_DIR` and live Ghidra project.
+Ghidra commands reject stale or untracked live analysis state directly. Each checkout needs its own `WIZ8_WORK_DIR` and live Ghidra project.
 
 Common development commands:
 
@@ -144,9 +142,8 @@ Common development commands:
 | `uv run wiz8 check` | Run the fast repository checks. |
 | `uv run wiz8 lint` | Compile recovered C++ with the structural diagnostics lane. |
 | `uv run wiz8 tidy-audit` | Report the whole corpus under the non-gating clang-tidy audit profile. |
-| `uv run wiz8 pr-check` | Run the checks required before opening or updating a pull request. |
 
-Use `uv run wiz8 --help` for the complete command set.
+Use `uv run wiz8 --help` for the complete command set. CI runs `wiz8 check` and `wiz8 lint` as separate gates; run those directly when needed locally.
 
 `wiz8 check` enforces clang-format 21.1.8 on reconstructed C/C++, runtime tests and local
 analysis headers. `wiz8decomp.build.cpp_format_files` defines the shared ownership list;

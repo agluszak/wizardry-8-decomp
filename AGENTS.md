@@ -65,4 +65,4 @@ A failing gate is normally a source/model/tooling defect to fix, not a reason to
 
 Use the provided checkout and preserve unrelated work. Do not commit extracted trees, live Ghidra projects or build products. Only reviewed GZF checkpoints listed in `vendor/ghidra/exports/manifest.json` may be tracked.
 
-After adopting a revision with a changed reviewed Ghidra checkpoint, run `uv run wiz8 doctor` before relying on live retail analysis. Checkpoint handling is documented in [Ghidra checkpoints](docs/ghidra-checkpoints.md).
+Ghidra commands reject live analysis state whose reviewed checkpoint provenance is stale or untracked. Checkpoint handling is documented in [Ghidra checkpoints](docs/ghidra-checkpoints.md).

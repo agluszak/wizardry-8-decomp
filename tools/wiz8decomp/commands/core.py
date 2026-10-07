@@ -10,14 +10,6 @@ toolchain_app = typer.Typer(help="Build the pinned analysis toolchain.", no_args
 analyze_app = typer.Typer(help="Run project-specific binary analysis.", no_args_is_help=True)
 
 
-def doctor_command() -> None:
-    """Validate paths, pinned tools, extractors, and repository safety."""
-    from .. import command_support as cli
-    from ..doctor import validate_environment
-
-    cli.emit(validate_environment(cli.settings()))
-
-
 def prepare_command(
     comparison_target: Annotated[
         list[str] | None,
@@ -72,42 +64,6 @@ def tidy_audit_command() -> None:
     from ..build import tidy_audit
 
     cli.emit(tidy_audit(cli.settings()))
-
-
-def pr_check_command(
-    base: Annotated[str, typer.Option("--base", help="PR base revision.")] = "origin/main",
-) -> None:
-    """Run every validation lane required by the files changed in a PR."""
-    from .. import command_support as cli
-    from ..build import check, lint, lint_required
-    from ..comparison import changed_files
-    from ..config import repository_root
-    from ..paths import atomic_json
-
-    repository = repository_root()
-    changed_paths = changed_files(repository, base)
-    changed = [path.relative_to(repository).as_posix() for path in changed_paths]
-    result: dict[str, Any] = {
-        "status": "passed",
-        "base": base,
-        "changed_files": changed,
-        "check": check(repository),
-        "lint": None,
-    }
-    if lint_required(repository, changed_paths):
-        result["lint"] = lint(cli.settings(), since=base, changed_paths=changed_paths)
-    path = repository / "build/reports/pr-check.json"
-    atomic_json(path, result)
-    cli.emit(
-        {
-            "status": result["status"],
-            "base": base,
-            "changed_files": len(changed),
-            "check": result["check"].get("status"),
-            "lint": result["lint"].get("status") if result["lint"] is not None else "not-required",
-            "report": str(path.relative_to(repository)),
-        }
-    )
 
 
 def diagnostics_command(
@@ -488,12 +444,10 @@ def toolchain_build_command(
 
 
 def register(app: typer.Typer) -> None:
-    app.command("doctor")(doctor_command)
     app.command("prepare")(prepare_command)
     app.command("check")(check_command)
     app.command("lint")(lint_command)
     app.command("tidy-audit")(tidy_audit_command)
-    app.command("pr-check")(pr_check_command)
     app.command("diagnostics")(diagnostics_command)
     app.command("build")(build_command)
     app.command("compare")(compare_command)

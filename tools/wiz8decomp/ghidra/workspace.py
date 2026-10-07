@@ -288,8 +288,8 @@ def source_projection_freshness(settings: Settings, program_name: str) -> dict[s
 def project_seed_freshness(settings: Settings, seed: dict[str, Any]) -> dict[str, Any]:
     """Compare a live project's recorded reviewed seed with the current manifest.
 
-    This is deliberately metadata-only: doctor can reject stale or unprovable
-    analysis without opening Ghidra or mutating the live project.
+    This is deliberately metadata-only: the canonical opener can reject stale or unprovable
+    analysis without mutating the live project.
     """
 
     project_file = settings.project_dir / f"{settings.project_name}.gpr"
@@ -373,12 +373,11 @@ def restore_seed(settings: Settings, project: Any, selector: str | None = None) 
                 "(WIZ8_GHIDRA_PROJECT_DIR)"
             )
         freshness = project_seed_freshness(settings, seed)
-        if freshness["status"] == "stale":
+        if not freshness["ok"]:
             raise RuntimeError(
-                f"existing {program_name} uses reviewed GZF {freshness['recorded_seed_sha256']}, "
-                f"but this checkout requires {freshness['expected_seed_sha256']}; "
-                "run `uv run wiz8 doctor` and reconcile or explicitly refresh the checkout-owned "
-                "Ghidra project before using retail analysis"
+                f"existing {program_name} reviewed seed provenance is {freshness['status']}: "
+                f"{freshness.get('detail') or 'not current'}; reconcile or replace the "
+                "checkout-owned Ghidra project before using retail analysis"
             )
         status = "already-restored"
     else:
