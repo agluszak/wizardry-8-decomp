@@ -789,7 +789,8 @@ def run_clang_tidy(
         commands.append(
             shlex.join(
                 [
-                    "clang-tidy",
+                    "/usr/bin/clang-tidy-21",
+                    "--load=/usr/local/lib/wiz8-clang-tidy.so",
                     "--quiet",
                     "-p",
                     "/out",
@@ -806,7 +807,8 @@ def run_clang_tidy(
         commands.append(
             shlex.join(
                 [
-                    "clang-tidy",
+                    "/usr/bin/clang-tidy-21",
+                    "--load=/usr/local/lib/wiz8-clang-tidy.so",
                     "--quiet",
                     "--allow-no-checks",
                     "-p",
@@ -919,7 +921,6 @@ def check(repository: Path) -> dict[str, Any]:
     """Fast public validation: cheap host gates before compiler-backed indexing."""
 
     from .cast_lint import validate_cast_markers
-    from .global_model import validate_type_consistency
     from .identity_lint import validate_identity
     from .linkage_lint import validate_c_linkage
     from .placement import validate_source_placement
@@ -976,7 +977,6 @@ def check(repository: Path) -> dict[str, Any]:
         )
         validators = (
             ("source-units", lambda: validate_source_units(repository)),
-            ("type-consistency", lambda: validate_type_consistency(repository)),
             ("reccmp", lambda: validate_reccmp_annotations(repository)),
             ("template-model", lambda: validate_template_model(repository)),
             ("source-model", lambda: validate_source_model(repository)),

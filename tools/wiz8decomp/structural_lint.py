@@ -7,12 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from .cast_lint import added_lines_without_marker, baseline_diff
-from .global_model import (
-    overlapping_globals,
-    parse_global_definitions,
-    shadowed_global_definitions,
-    unaddressed_globals,
-)
+from .global_model import global_violations
+from .source_text import mask_cpp_noise, source_files
 
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/")
 
@@ -104,22 +100,11 @@ def validate_structures(repo_dir: Path) -> dict[str, Any]:
 
 
 def structural_violations(repo_dir: Path) -> list[dict[str, Any]]:
-    files = [
-        path
-        for path in list((repo_dir / "src/wiz8").rglob("*.cpp"))
-        + list((repo_dir / "include/wiz8").rglob("*.h"))
-        + list((repo_dir / "include/wiz8").rglob("*.hpp"))
-    ]
-
-    # Fixed-size array fields are declared in headers; collect every declared
-    # size per name so an ambiguous name is skipped rather than guessed.
+    files = source_files(repo_dir, ("src/wiz8", "include/wiz8"))
+    # Fixed-size member arrays: ambiguous names are deliberately not guessed.
     fields: dict[str, set[int]] = {}
-    for path in (repo_dir / "include/wiz8").rglob("*.h"):
-        text = path.read_text(encoding="utf-8", errors="ignore")
-        for name, size in _ARRAY_DECLARATION.findall(text):
-            fields.setdefault(name, set()).add(_number(size))
-    for path in (repo_dir / "include/wiz8").rglob("*.hpp"):
-        text = path.read_text(encoding="utf-8", errors="ignore")
+    for path in source_files(repo_dir, ("include/wiz8",)):
+        text = mask_cpp_noise(path.read_text(encoding="utf-8", errors="ignore"))
         for name, size in _ARRAY_DECLARATION.findall(text):
             fields.setdefault(name, set()).add(_number(size))
 
@@ -129,7 +114,7 @@ def structural_violations(repo_dir: Path) -> list[dict[str, Any]]:
             continue
         relative = str(path.relative_to(repo_dir))
         for number, line in enumerate(
-            path.read_text(encoding="utf-8", errors="ignore").splitlines(), 1
+            mask_cpp_noise(path.read_text(encoding="utf-8", errors="ignore")).splitlines(), 1
         ):
             for match in _ARRAY_INDEX.finditer(line):
                 name, index_text = match.group(1), match.group(2)
@@ -161,17 +146,5 @@ def structural_violations(repo_dir: Path) -> list[dict[str, Any]]:
                 ),
             }
         )
-    violations.extend(unaddressed_globals(repo_dir))
-    definitions = parse_global_definitions(repo_dir)
-    for item in overlapping_globals(definitions) + shadowed_global_definitions(
-        repo_dir, definitions
-    ):
-        violations.append(
-            {
-                "kind": item["kind"],
-                "file": item.get("file") or "",
-                "line": int(item.get("line") or 0),
-                "detail": item["detail"],
-            }
-        )
+    violations.extend(global_violations(repo_dir))
     return violations

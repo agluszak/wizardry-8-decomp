@@ -76,7 +76,7 @@ public:
     {
         const char* raw = std::getenv("WIZ8_REDUNDANT_CAST_LINES");
         // Only an explicit "*" opts into a full-corpus audit. Unset/empty means
-        // no lines are gated: the wrapper is responsible for publishing the
+        // no lines are gated: the host lint command publishes the
         // changed-line filter, and a missing VCS checkout must not suddenly
         // treat the entire recovered corpus as new debt.
         if (raw == nullptr || raw[0] == '\0') {

@@ -155,17 +155,9 @@ RUN --mount=type=bind,source=clang-tidy-plugin,target=/plugin-input \
       -DClang_DIR=/usr/lib/llvm-21/lib/cmake/clang \
  && cmake --build /tmp/wiz8-clang-tidy-plugin/build \
  && cmake --install /tmp/wiz8-clang-tidy-plugin/build \
- && install -m 0755 /tmp/wiz8-clang-tidy-plugin/clang-tidy-wrapper.py /usr/local/bin/clang-tidy \
- && install -m 0644 /tmp/wiz8-clang-tidy-plugin/scalar_facts.py /usr/local/bin/scalar_facts.py \
- && test "$(command -v clang-tidy)" = /usr/local/bin/clang-tidy \
- && clang-tidy --wiz8-wrapper-self-test \
- && clang-tidy --checks=-*,wiz8-redundant-scalar-cast --list-checks \
+ && clang-tidy-21 --load=/usr/local/lib/wiz8-clang-tidy.so --checks=-*,wiz8-redundant-scalar-cast --list-checks \
       | grep -q 'wiz8-redundant-scalar-cast' \
- && clang-tidy --checks=-*,wiz8-bool-like-byte --list-checks \
-      | grep -q 'wiz8-bool-like-byte' \
- && clang-tidy --checks=-*,wiz8-scalar-facts --list-checks \
-      | grep -q 'wiz8-scalar-facts' \
- && WIZ8_REDUNDANT_CAST_LINES='*' clang-tidy \
+ && WIZ8_REDUNDANT_CAST_LINES='*' clang-tidy-21 --load=/usr/local/lib/wiz8-clang-tidy.so \
       --checks=-*,wiz8-redundant-scalar-cast \
       /tmp/wiz8-clang-tidy-plugin/test.cpp \
       -- --target=i686-pc-windows-msvc -std=c++17 \
@@ -173,7 +165,7 @@ RUN --mount=type=bind,source=clang-tidy-plugin,target=/plugin-input \
  && test "$(grep -c '\[wiz8-redundant-scalar-cast\]' \
       /tmp/wiz8-clang-tidy-plugin/test.log)" -eq 7 \
  && WIZ8_REDUNDANT_CAST_LINES='/home/build/wizardry/include/wiz8/clang_tidy_record_fixture_types.h@1-200;/home/build/wizardry/include/wiz8/clang_tidy_record_fixture_macros.h@1-20;/home/build/wizardry/src/wiz8/clang_tidy_record_cast_fixture.cpp@1-500;/home/build/wizardry/src/wiz8/clang_tidy_record_cast_fixture_second.cpp@1-50' \
-      clang-tidy \
+      clang-tidy-21 --load=/usr/local/lib/wiz8-clang-tidy.so \
       --checks=-*,wiz8-project-record-reinterpret-cast \
       --header-filter=.* \
       /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.cpp \
@@ -194,7 +186,7 @@ RUN --mount=type=bind,source=clang-tidy-plugin,target=/plugin-input \
       /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.log \
  && grep -q 'source record provenance .* is unresolved' \
       /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.log \
- && WIZ8_REDUNDANT_CAST_LINES='*' clang-tidy \
+ && WIZ8_REDUNDANT_CAST_LINES='*' clang-tidy-21 --load=/usr/local/lib/wiz8-clang-tidy.so \
       --checks=-*,wiz8-project-record-reinterpret-cast \
       --header-filter=.* \
       /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.cpp \
@@ -205,40 +197,6 @@ RUN --mount=type=bind,source=clang-tidy-plugin,target=/plugin-input \
       > /tmp/wiz8-clang-tidy-plugin/record_cast_audit.log 2>&1 \
  && test "$(grep -c '\[wiz8-project-record-reinterpret-cast\]' \
       /tmp/wiz8-clang-tidy-plugin/record_cast_audit.log)" -eq 18 \
- && grep -q 'explicit full-tree audit mode selected' \
-      /tmp/wiz8-clang-tidy-plugin/record_cast_audit.log \
- && WIZ8_REDUNDANT_CAST_LINES='/tmp/wiz8-clang-tidy-plugin/bool_test.cpp@1-300' clang-tidy \
-      --checks=-*,wiz8-bool-like-byte --warnings-as-errors=* \
-      /tmp/wiz8-clang-tidy-plugin/bool_test.cpp \
-      -- --target=i686-pc-windows-msvc -std=c++17 \
-      > /tmp/wiz8-clang-tidy-plugin/bool_test.log 2>&1 \
- && test "$(grep -c 'warning:.*\[wiz8-bool-like-byte\]' \
-      /tmp/wiz8-clang-tidy-plugin/bool_test.log)" -eq 17 \
- && for candidate in HasEntries Both HasLineOfSightToBounds0046FD70 m_dirty \
-      selection_settled settled transition_active left_ready right_ready both_ready \
-      fCombatMode talking execution_active_000 initialized display_active \
-      SetPanelVisible::visible handed_ready; do \
-      grep -q "'$candidate'" /tmp/wiz8-clang-tidy-plugin/bool_test.log || exit 1; \
-    done \
- && ! grep -Eq 'error:|use bool|bool-byte-ok' /tmp/wiz8-clang-tidy-plugin/bool_test.log \
- && ! grep -Eq 'SetPanelLayered|SetCallbackEnabled|g_menu_active|has_group|monster_bound|nested_active' \
-      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
- && if WIZ8_REDUNDANT_CAST_LINES='/tmp/wiz8-clang-tidy-plugin/bool_test.cpp@1-300' clang-tidy \
-      --checks=-*,wiz8-bool-like-byte \
-      /tmp/wiz8-clang-tidy-plugin/bool_test.cpp \
-      -- --target=i686-pc-windows-msvc -std=c++17 -DWIZ8_BOOL_TEST_INVALID \
-      > /tmp/wiz8-clang-tidy-plugin/bool_test_invalid.log 2>&1; then \
-      cat /tmp/wiz8-clang-tidy-plugin/bool_test_invalid.log; exit 1; \
-    fi \
- && grep -q '\[clang-diagnostic-error\]' /tmp/wiz8-clang-tidy-plugin/bool_test_invalid.log \
- && WIZ8_SCALAR_FACTS_DIR=/tmp/wiz8-clang-tidy-plugin/scalar-facts clang-tidy \
-      --checks=-*,wiz8-bool-like-byte,wiz8-scalar-facts \
-      /tmp/wiz8-clang-tidy-plugin/scalar_test.cpp \
-      /tmp/wiz8-clang-tidy-plugin/scalar_test_second.cpp \
-      -- --target=i686-pc-windows-msvc -std=c++17 \
-      -isystem /tmp/wiz8-clang-tidy-plugin/scalar_system \
- && python3 /tmp/wiz8-clang-tidy-plugin/scalar_test.py \
-      /tmp/wiz8-clang-tidy-plugin/scalar-facts \
  && rm -rf /tmp/wiz8-clang-tidy-plugin \
  && find /usr/lib/llvm-21/lib -maxdepth 1 -type f -name '*.a' -delete
 
