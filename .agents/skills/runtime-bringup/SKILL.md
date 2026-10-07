@@ -22,7 +22,7 @@ registry. Do not build another runtime/trace harness.
 
 1. Establish the requested observation in retail, then compare recomp under the same setup.
 2. Drive real product paths; never add test-only branches or screen-specific bypasses to recovered code.
-3. At a divergence or mapped STUB trap, recover the nearest wrong/missing source, ABI, ownership or
+3. At a divergence, recover the nearest wrong/missing source, ABI, ownership or
    framework boundary. Use [matching-decomp](../matching-decomp/SKILL.md) and
    [type-modeling](../type-modeling/SKILL.md) rather than hard-coding around the symptom.
 4. Validate the actual observable behavior with the smallest existing scenario/debug run.
@@ -38,8 +38,8 @@ substantial batch is complete and run only scenarios whose behavior the batch pl
 Use `--build` only when the relevant runtime product is missing/stale. Reuse successful scenario
 results while relevant source/build/runtime inputs agree.
 
-Mapped unresolved first-party calls use build-generated STUB traps with established retail identity.
-Never add handwritten fake implementations to make the runnable product link.
+Both runnable products require complete native links; unresolved functions are linker errors.
+Never add fake implementations or generated traps to make a runnable product link.
 
 Low-level harness mechanics should be investigated from the owning runtime/tooling code only when the
 task is specifically about the harness itself; ordinary recovery does not need to preload them.

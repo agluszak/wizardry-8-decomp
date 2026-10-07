@@ -752,7 +752,7 @@ GameplayWait RuntimeCase::wait_gameplay_ready(unsigned long budget_ms, const cha
     unsigned long started = GetTickCount();
     HeldCommand walk(*this, W8_MGS_COMMAND_MOVE_FORWARD);
     bool walking = false;
-    while (GetTickCount() - started < budget_ms && gfProgramIsRunning) {
+    while (GetTickCount() - started < budget_ms && remaining_ms() > 0 && gfProgramIsRunning) {
         GameplayReadyCheck check;
         memset(&check, 0, sizeof(check));
         unsigned long elapsed = GetTickCount() - started;

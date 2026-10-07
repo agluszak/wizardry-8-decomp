@@ -4,11 +4,11 @@ The CMake graph contains the three actual products:
 
 * `WIZ8` links the recovered objects, producing `Wiz8.exe` and `Wiz8.pdb` for PE, PDB, and reccmp
   integration.
-* `WIZ8_RUNTIME` is the runnable vertical-slice image, linked with `/OPT:REF`.
+* `WIZ8_RUNTIME` is the runnable game image, linked with `/OPT:REF`.
   All three products share the reconstructed `WIZ8_SGP` static archive from `src/sgp`.
   `WIZ8` retains `/OPT:NOREF` for comparison; there is no separate SGP runtime override layer.
 * `WIZ8_RUNTIME_TEST` runs the semantic scenarios with the same optimized recovered objects. Its
-  results are authoritative runtime evidence.
+  results establish only the behavior observed by each scenario.
 
 Build and open the recovered main menu from the staged retail tree with:
 

@@ -223,19 +223,9 @@ srGERD::~srGERD()
     }
     prev = 0;
     next = 0;
-    srCriticalSection* section = renderers_section;
-    if (section != 0) {
-        section->getAccess();
-        section->releaseAccess();
-        delete section;
-    }
+    delete renderers_section;
     renderers_section = 0;
-    section = state_section;
-    if (section != 0) {
-        section->getAccess();
-        section->releaseAccess();
-        delete section;
-    }
+    delete state_section;
     state_section = 0;
     srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
 }

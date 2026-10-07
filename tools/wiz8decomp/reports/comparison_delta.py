@@ -12,7 +12,12 @@ from typing import Any
 from reccmp.ghidriff.report import selected_comparison
 
 _ANALYZED = frozenset({"differences", "no-differences"})
-_NON_EMITTED = ("internal-non-emission", "template-non-emission", "header-emission")
+_NON_EMITTED = (
+    "internal-non-emission",
+    "inline-non-emission",
+    "template-non-emission",
+    "header-emission",
+)
 
 # Callee names Ghidriff records for each side, import thunks included
 # ("SR.DLL::srHeap::free", "operator_new", "__3_YAXPAX_Z").

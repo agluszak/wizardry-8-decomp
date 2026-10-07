@@ -23,7 +23,7 @@ typedef srDD*(__cdecl* srDDInitDeviceFn)(unsigned long index);
 
 // Argument-bearing DirectX7 entrypoints and srGERD call sites prove caller
 // stack cleanup. No-argument functions alone cannot prove cdecl vs stdcall.
-// Nested records are incomplete: DebugDD's virtuals pass them by reference.
+// DebugDD's virtuals pass the shared device records below by reference.
 
 /* srDebugDD's copy constructor and assignment operator
    (0x100177D0/0x10017830) each emit a null-guarded one-byte copy at +0x04

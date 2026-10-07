@@ -88,9 +88,11 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
 // FUNCTION: WIZ8 0x004aded0
 W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float intensity,
                                          float distance_cap, const srVector3T<float>* position)
-    : flags(), intensity(intensity), distance_cap(distance_cap), timer(duration, 0), cycle(0),
-      frame(0), subcycle(0), completion_callback(0)
+    : intensity(intensity), distance_cap(distance_cap), timer(duration, 0), cycle(0), frame(0),
+      subcycle(0), completion_callback(0)
 {
+    Flags initial_flags = {false, false, false, false, false, false, 0, {0, 0, 0}};
+    flags = initial_flags;
     if (g_shake_effects == 0) {
         g_shake_effects = new W8Vector<W8CameraShakeEffect*>(5);
         g_shake_timer = new W8GameTimer(g_camera_shake_tick_seconds, 0);

@@ -647,6 +647,8 @@ def test_vtable_comparison_reports_unpaired_and_different_slots(tmp_path, monkey
             "status": "unpaired",
             "original": "Base::Draw",
             "recompiled": "Folded::Draw",
+            "original_address": "0x00403000",
+            "recompiled_address": "0x00503000",
         }
     ]
 
@@ -707,6 +709,76 @@ def test_internal_non_emission_requires_current_definition_and_absent_pdb_symbol
     )
     assert result["functions"][0]["outcome"] == expected
     assert result["ok"] == (expected == "internal-non-emission")
+
+
+@pytest.mark.parametrize(
+    "out_of_line,emitted,stale,expected",
+    [
+        (False, False, False, "inline-non-emission"),
+        (True, False, False, "unpaired"),
+        (False, True, False, "unpaired"),
+        (False, False, True, "unpaired"),
+    ],
+)
+def test_in_class_non_emission_requires_current_definition_and_absent_pdb_symbol(
+    tmp_path, monkeypatch, out_of_line, emitted, stale, expected
+):
+    from reccmp.source.records import SourceDeclaration
+    from wiz8decomp.paths import sha256_file
+
+    _products(tmp_path, monkeypatch)
+    row = _row(0x401000, "unpaired")
+    row["recomp"] = None
+    _fake_reccmp(monkeypatch, [row])
+    source = tmp_path / "unit.cpp"
+    source.write_text(
+        "class Widget {\n static const char* name();\n};\n"
+        'const char* Widget::name() { return "Widget"; }\n'
+        if out_of_line
+        else 'class Widget {\n static const char* name() { return "Widget"; }\n};\n'
+    )
+    declaration = SourceDeclaration(
+        semantic_id="?name@Widget@@SAPBDXZ",
+        qualified_name="Widget::name",
+        semantic_kind="static_method",
+        calling_convention="__cdecl",
+        return_type="const char *",
+        parameter_types=(),
+        owning_class="Widget",
+        source_file="unit.cpp",
+        line=4 if out_of_line else 2,
+        end_line=4 if out_of_line else 2,
+        is_definition=True,
+        linkage="external",
+        storage_class="static",
+    )
+    marker = SimpleNamespace(name="Widget::name", source_file="unit.cpp", declaration=declaration)
+    monkeypatch.setattr("wiz8decomp.source_index.source_functions", lambda *_: {0x401000: marker})
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.load_source_index",
+        lambda *_: {
+            "source_digests": {"unit.cpp": "stale" if stale else sha256_file(source)},
+            "classes": [
+                {
+                    "target": "WIZ8",
+                    "qualified_name": "Widget",
+                    "source_file": "unit.cpp",
+                    "line": 1,
+                    "end_line": 3,
+                }
+            ],
+        },
+    )
+    entity = SimpleNamespace(fact=lambda *_: declaration.semantic_id)
+    engine = SimpleNamespace(db=SimpleNamespace(get_all=lambda: [entity] if emitted else []))
+    monkeypatch.setattr(comparison.Compare, "from_target", lambda _: engine)
+
+    result = compare_selected(
+        tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), classify_source_non_emissions=True
+    )
+
+    assert result["functions"][0]["outcome"] == expected
+    assert result["ok"] == (expected == "inline-non-emission")
 
 
 def test_comparison_bootstraps_cleaned_generated_metadata(tmp_path, monkeypatch):

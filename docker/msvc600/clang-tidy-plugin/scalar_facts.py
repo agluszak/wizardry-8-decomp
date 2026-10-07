@@ -1611,16 +1611,24 @@ def _record_index(
     divergent: set[str] = set()
     for row in sorted(facts.records):
         if row[0] in records:
-            divergent.add(row[0])
+            previous = records[row[0]]
+            if previous[4:6] != row[4:6] or previous[7] != row[7]:
+                divergent.add(row[0])
+            # C COM interfaces expose a plain vtable pointer, while C++
+            # interfaces have virtual methods. Only the former can be
+            # replayed as a natural record; that is not a byte-layout delta.
+            if previous[6] != row[6]:
+                row = (*row[:6], "unknown", row[7])
         records[row[0]] = row
     fields: dict[str, list[tuple]] = defaultdict(list)
-    seen: dict[str, tuple] = {}
+    seen: dict[tuple[str, str], tuple] = {}
     for record, key, name, offset, size, align, type_ in sorted(facts.record_fields):
         row = (int(offset), key, name, int(size), int(align), type_)
-        if key in seen:
+        identity = (record, key)
+        if identity in seen:
             divergent.add(record)
             continue
-        seen[key] = row
+        seen[identity] = row
         fields[record].append(row)
     for rows in fields.values():
         rows.sort()

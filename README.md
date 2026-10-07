@@ -7,8 +7,9 @@ libraries. Recovered code is compiled with the original-era Microsoft Visual C++
 compared against the shipped machine code. The longer-term goal is a faithful, understandable source
 reconstruction of the game, not merely code that happens to behave similarly.
 
-This is a work in progress. It is not yet a complete or independently playable replacement for the
-original game.
+The recovered executable links and runs with the original game data and middleware. Semantic,
+binary-structure and behavioral audits remain open; linking and function pairing do not establish
+retail equivalence.
 
 The project is heavily inspired by the [LEGO Island decompilation](https://github.com/isledecomp/isle)
 and builds on tooling developed by contributors to that project, most notably
@@ -25,11 +26,11 @@ There are three useful views of the reconstruction:
 - **Recovered source** — ordinary C/C++ organized into reconstructed translation units and types.
 - **Matching build** — a recompilation used to compare recovered functions directly with the retail
   executable.
-- **Runnable build** — a partially recovered executable that uses the original game data and can be
+- **Runnable build** — an executable that uses the original game data and can be
   exercised under Wine.
 
-The runnable build is intentionally incomplete. Unrecovered first-party calls trap instead of being
-silently replaced with fake implementations.
+Both runnable products require complete native linking. Unresolved functions fail at the linker;
+the builds do not generate first-party trap implementations.
 
 ## How the reconstruction works
 

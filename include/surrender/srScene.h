@@ -15,6 +15,10 @@ class SR_DLL_IMPORT SR_DLL_EXPORT srScene : public srClassSupport<srScene, srNod
 public:
     enum e_enable { ENABLE_NODE_PICK_KEYS = 0 };
 
+#if !defined(SURRENDER_BUILD)
+    virtual ~srScene() override;
+#endif
+
     struct Statistics {
         double elapsed;              /* seconds since the last reset */
         unsigned long render_calls;  /* scene renders accumulated */
@@ -39,7 +43,12 @@ public:
     void enable(e_enable option);
     void getAmbientLight(srVector3T<float>& color) const;
     srVector3T<float> getAmbientLight() const;
-    void getFogColor(srVector3T<float>& color) const;
+    // FUNCTION: SURRENDER 0x10056C70 SYMBOL
+    // RECOMP: ?getFogColor@srScene@@QBEXAAV?$srVector3T@M@@@Z
+    void getFogColor(srVector3T<float>& color) const
+    {
+        color = fog_color;
+    }
 #if defined(SURRENDER_BUILD)
     /* Retail exports out-of-line copies (0x10056C90) even though consumer
        overlay builders expand the load inline. */
@@ -84,7 +93,12 @@ public:
         fog_color.z = blue;
     }
 #endif
-    void setFogColor(const srVector3T<float>& color);
+    // FUNCTION: SURRENDER 0x10056D40 SYMBOL
+    // RECOMP: ?setFogColor@srScene@@QAEXABV?$srVector3T@M@@@Z
+    void setFogColor(const srVector3T<float>& color)
+    {
+        fog_color = color;
+    }
 
 protected:
     srFlags<e_enable> enabled;       /* 0x138 */

@@ -21,7 +21,7 @@ endfunction()
 
 # The canonical executable statically links pristine zlib 1.0.4; 46 of its
 # bodies are already reviewed by their source markers and provenance claims.
-# Build the pinned source as a real library so bring-up resolves inflate*
+# Build the pinned source as a real library to resolve inflate*
 # by linking it, rather than by stubbing library code.
 # GLOB is lexically sorted; preserve the existing archive order.
 file(GLOB WIZ8_ZLIB_UNITS CONFIGURE_DEPENDS "${ZLIB_SOURCE}/*.c")
@@ -97,6 +97,8 @@ set(WIZ8_RUNTIME_TEST_SOURCES
     "${PROJECT_SOURCE_DIR}/tests/runtime/character_actions.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_runtime_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/oct_file_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/level_file_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/save_file_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/keyboard_menu_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/npc_dialogue_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/lock_device_semantic_test.cpp"

@@ -95,7 +95,7 @@ void W8NormalTexcoordMapper::process(srVertexPipe& pipe)
         return;
     }
     normals = pipe.getEyeSpaceNormal();
-    coordinates = pipe.getST(0, 0);
+    coordinates = pipe.getST(0, 1);
     count = pipe.getVertexCount();
     srCore.getStatisticsManager()->statistics.texture_coordinate_operations += count;
     for (index = 0; index < count; ++index) {

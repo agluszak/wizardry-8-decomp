@@ -2,6 +2,8 @@
 #define _WIN32_WINNT 0x0500
 #include "game_thread_executor.h"
 #include "runtime_scenario.h"
+#include "level_file_semantic_test.h"
+#include "save_file_semantic_test.h"
 #include "wiz8/regions.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/cursor.h"
@@ -985,16 +987,25 @@ static bool VoicePortraitSyncCase(RuntimeCase& test)
 
 static bool SaveLoadMoveCase(RuntimeCase& test)
 {
-    RT_REQUIRE(test, MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "moved-before-save"));
-    RuntimeCheckpoint saved;
-    RT_REQUIRE(test, QuickSave(test, saved));
-    test.observe("quick_slot", saved.quick_slot);
-    test.observe("saved_x", saved.anchor.position.x);
-    test.observe("saved_z", saved.anchor.position.z);
-    RT_REQUIRE(test, MoveAwayFrom(test, W8_MGS_COMMAND_MOVE_BACKWARD, saved, "moved-after-save"));
-    RT_REQUIRE(test, QuickLoad(test, saved));
-    RT_REQUIRE(test, ExpectRestoredPosition(test, saved));
-    RT_REQUIRE(test, MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "moved-after-load"));
+    unsigned int slots = 0;
+    for (int iteration = 0; iteration < 4; ++iteration) {
+        RT_REQUIRE(test,
+                   MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "moved-before-save"));
+        RuntimeCheckpoint saved;
+        RT_REQUIRE(test, QuickSave(test, saved));
+        test.expected("Quick 1, 2, 3, then replacement of the oldest slot");
+        RT_REQUIRE(test, saved.quick_slot == iteration % 3 + 1);
+        slots |= 1U << (saved.quick_slot - 1);
+        test.observe("quick_slot", saved.quick_slot);
+        RT_REQUIRE(test,
+                   MoveAwayFrom(test, W8_MGS_COMMAND_MOVE_BACKWARD, saved, "moved-after-save"));
+        RT_REQUIRE(test, QuickLoad(test, saved));
+        RT_REQUIRE(test, ExpectRestoredPosition(test, saved));
+        RT_REQUIRE(test, MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "moved-after-load"));
+    }
+    test.observe("saved_slots", slots);
+    test.observe("restored_cycles", 4U);
+    RT_REQUIRE(test, slots == 7);
     return true;
 }
 
@@ -1286,6 +1297,10 @@ static const RuntimeScenario kScenarios[] = {
      RUNTIME_INTEGRATION, 120000, AutomapRoundtripCase, 0},
     {"oct-file", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000,
      OctFileCase, 1},
+    {"level-file", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000,
+     RunLevelFileSemanticTests, 1},
+    {"save-file", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000,
+     RunSaveFileSemanticTests, 1},
     {"sight-threshold", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC,
      15000, SightThresholdCase, 1},
     {"split-stack", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000,

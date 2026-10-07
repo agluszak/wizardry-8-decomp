@@ -455,6 +455,48 @@
       "classification": "runtime-only",
       "reference": "src/wiz8/engine_code/OctPreTree.cpp",
       "reason": "Recursive spatial state is a borrowed working view; the file header is a separate packed representation."
+    },
+    {
+      "record": "srIOManager::ExporterRegistration",
+      "source_file": "include/surrender/srIOManager.h",
+      "classification": "runtime-only",
+      "reference": "src/surrender/io_managers.cpp",
+      "reason": "Retail typed registration paths 1002CFA0/1002D090 and 1002D300/1002D360 traverse separately allocated importer/exporter nodes; no serialized or kind-changing payload."
+    },
+    {
+      "record": "srIOManager::ImporterRegistration",
+      "source_file": "include/surrender/srIOManager.h",
+      "classification": "runtime-only",
+      "reference": "src/surrender/io_managers.cpp",
+      "reason": "Retail typed registration paths 1002CFA0/1002D090 and 1002D300/1002D360 traverse separately allocated importer/exporter nodes; no serialized or kind-changing payload."
+    },
+    {
+      "record": "W8GDFaceHeader",
+      "source_file": "src/wiz8/engine_code/GDFileIO.cpp",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Retail ReadWGDList transfers fixed 0x1c/0x18/0x44 face blocks; ReadProcessedGameData and WriteGameData transfer the 0x68-byte count/bounds header. Runtime arrays and ownership are separate."
+    },
+    {
+      "record": "W8GDFaceData",
+      "source_file": "src/wiz8/engine_code/GDFileIO.cpp",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Retail ReadWGDList transfers fixed 0x1c/0x18/0x44 face blocks; ReadProcessedGameData and WriteGameData transfer the 0x68-byte count/bounds header. Runtime arrays and ownership are separate."
+    },
+    {
+      "record": "W8GDExtendedFace",
+      "source_file": "src/wiz8/engine_code/GDFileIO.cpp",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Retail ReadWGDList transfers fixed 0x1c/0x18/0x44 face blocks; ReadProcessedGameData and WriteGameData transfer the 0x68-byte count/bounds header. Runtime arrays and ownership are separate."
+    },
+    {
+      "record": "W8ProcessedGameDataHeader",
+      "source_file": "src/wiz8/engine_code/GDFileIO.cpp",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Retail ReadWGDList transfers fixed 0x1c/0x18/0x44 face blocks; ReadProcessedGameData and WriteGameData transfer the 0x68-byte count/bounds header. Runtime arrays and ownership are separate."
     }
   ],
   "lifetimes": [
@@ -939,7 +981,7 @@
         "src/wiz8/engine_code/OctRegionPolygon.cpp",
         "src/wiz8/engine_code/materials.cpp"
       ],
-      "contract": "Release frees the buffers; owned_14 retains an unresolved payload type."
+      "contract": "Release frees the buffers; owned retains an unresolved payload type."
     },
     {
       "record": "W8OctPreTreeGeometry",
@@ -954,11 +996,11 @@
         "src/wiz8/engine_code/OctRegionPolygon.cpp",
         "src/wiz8/engine_code/materials.cpp"
       ],
-      "contract": "Release frees the buffers; owned_14 retains an unresolved payload type."
+      "contract": "Release frees the buffers; owned retains an unresolved payload type."
     },
     {
       "record": "W8OctPreTreeGeometry",
-      "field": "owned_14",
+      "field": "owned",
       "source_file": "include/wiz8/engine_code/OctPreTree.h",
       "type": "void *",
       "ownership": "owned",
@@ -969,11 +1011,11 @@
         "src/wiz8/engine_code/OctRegionPolygon.cpp",
         "src/wiz8/engine_code/materials.cpp"
       ],
-      "contract": "Release frees the buffers; owned_14 retains an unresolved payload type."
+      "contract": "Release frees the buffers; owned retains an unresolved payload type."
     },
     {
       "record": "W8OctPreTreeVertex",
-      "field": "face_indices_44",
+      "field": "face_indices",
       "source_file": "include/wiz8/engine_code/OctPreTree.h",
       "type": "int *",
       "ownership": "shared_allocation",
@@ -988,7 +1030,7 @@
     },
     {
       "record": "W8OctPreTreeVertex",
-      "field": "owned_48",
+      "field": "owned",
       "source_file": "include/wiz8/engine_code/OctPreTree.h",
       "type": "int *",
       "ownership": "shared_allocation",
@@ -1003,7 +1045,7 @@
     },
     {
       "record": "W8OctRegionPolygon",
-      "field": "face_indices_44",
+      "field": "face_indices",
       "source_file": "include/wiz8/engine_code/OctBuildPreTree.h",
       "type": "int *",
       "ownership": "shared_allocation",
@@ -1020,98 +1062,98 @@
       "field": "m_vertex_locations",
       "source_file": "include/wiz8/engine_code/OctMeshModel.h",
       "type": "srVector3T<float> *",
-      "ownership": "owned",
+      "ownership": "owned_or_borrowed",
       "allocator": "srHeap",
       "release": "srHeap.free",
       "source_evidence": [
         "include/wiz8/engine_code/OctMeshModel.h",
         "src/wiz8/engine_code/OctSubMesh.cpp"
       ],
-      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+      "contract": "Build storage is owned: Write consumes and clears it; the destructor releases remaining buffers. Read temporarily borrows the created srMeshModel arrays, fills them, and clears these aliases before returning the model."
     },
     {
       "record": "OctMeshModel",
       "field": "m_vertex_map",
       "source_file": "include/wiz8/engine_code/OctMeshModel.h",
       "type": "srVector2T<float> *",
-      "ownership": "owned",
+      "ownership": "owned_or_borrowed",
       "allocator": "srHeap",
       "release": "srHeap.free",
       "source_evidence": [
         "include/wiz8/engine_code/OctMeshModel.h",
         "src/wiz8/engine_code/OctSubMesh.cpp"
       ],
-      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+      "contract": "Build storage is owned: Write consumes and clears it; the destructor releases remaining buffers. Read temporarily borrows the created srMeshModel arrays, fills them, and clears these aliases before returning the model."
     },
     {
       "record": "OctMeshModel",
       "field": "m_poly_vertices",
       "source_file": "include/wiz8/engine_code/OctMeshModel.h",
       "type": "srVector3i *",
-      "ownership": "owned",
+      "ownership": "owned_or_borrowed",
       "allocator": "srHeap",
       "release": "srHeap.free",
       "source_evidence": [
         "include/wiz8/engine_code/OctMeshModel.h",
         "src/wiz8/engine_code/OctSubMesh.cpp"
       ],
-      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+      "contract": "Build storage is owned: Write consumes and clears it; the destructor releases remaining buffers. Read temporarily borrows the created srMeshModel arrays, fills them, and clears these aliases before returning the model."
     },
     {
       "record": "OctMeshModel",
       "field": "m_poly_uv_index",
       "source_file": "include/wiz8/engine_code/OctMeshModel.h",
       "type": "srVector3i *",
-      "ownership": "owned",
+      "ownership": "owned_or_borrowed",
       "allocator": "srHeap",
       "release": "srHeap.free",
       "source_evidence": [
         "include/wiz8/engine_code/OctMeshModel.h",
         "src/wiz8/engine_code/OctSubMesh.cpp"
       ],
-      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+      "contract": "Build storage is owned: Write consumes and clears it; the destructor releases remaining buffers. Read temporarily borrows the created srMeshModel arrays, fills them, and clears these aliases before returning the model."
     },
     {
       "record": "OctMeshModel",
       "field": "m_vertex_normals",
       "source_file": "include/wiz8/engine_code/OctMeshModel.h",
       "type": "srVector3T<float> *",
-      "ownership": "owned",
+      "ownership": "owned_or_borrowed",
       "allocator": "srHeap",
       "release": "srHeap.free",
       "source_evidence": [
         "include/wiz8/engine_code/OctMeshModel.h",
         "src/wiz8/engine_code/OctSubMesh.cpp"
       ],
-      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+      "contract": "Build storage is owned: Write consumes and clears it; the destructor releases remaining buffers. Read temporarily borrows the created srMeshModel arrays, fills them, and clears these aliases before returning the model."
     },
     {
       "record": "OctMeshModel",
       "field": "m_vertex_lights",
       "source_file": "include/wiz8/engine_code/OctMeshModel.h",
       "type": "srVector3T<float> *",
-      "ownership": "owned",
+      "ownership": "owned_or_borrowed",
       "allocator": "srHeap",
       "release": "srHeap.free",
       "source_evidence": [
         "include/wiz8/engine_code/OctMeshModel.h",
         "src/wiz8/engine_code/OctSubMesh.cpp"
       ],
-      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+      "contract": "Build storage is owned: Write consumes and clears it; the destructor releases remaining buffers. Read temporarily borrows the created srMeshModel arrays, fills them, and clears these aliases before returning the model."
     },
     {
       "record": "OctMeshModel",
       "field": "m_poly_equations",
       "source_file": "include/wiz8/engine_code/OctMeshModel.h",
       "type": "srVector4T<float> *",
-      "ownership": "owned",
+      "ownership": "owned_or_borrowed",
       "allocator": "srHeap",
       "release": "srHeap.free",
       "source_evidence": [
         "include/wiz8/engine_code/OctMeshModel.h",
         "src/wiz8/engine_code/OctSubMesh.cpp"
       ],
-      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+      "contract": "Build storage is owned: Write consumes and clears it; the destructor releases remaining buffers. Read temporarily borrows the created srMeshModel arrays, fills them, and clears these aliases before returning the model."
     },
     {
       "record": "OctMeshModel",
@@ -1154,25 +1196,1706 @@
         "src/wiz8/engine_code/OctSubMesh.cpp"
       ],
       "contract": "Write frees the per-sun arrays and pointer table. Destructor frees per-sun arrays but leaves the pointer table; preserve this asymmetry."
+    },
+    {
+      "record": "srArray",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "T *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<unsigned char>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "unsigned char *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<unsigned long>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "unsigned long *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srHeapBuffer",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "T *",
+      "ownership": "owned_raw_storage",
+      "allocator": "srHeap.allocate",
+      "release": "srHeap.free",
+      "contract": "Owns raw scratch storage without constructing T elements. Preserving growth assigns the overlapping prefix and releases the old run. The source leaves ordinary copy operations implicit and therefore shallow; this review does not invent deep copying or prove any retail copy call.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srHeapBuffer<unsigned long>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "unsigned long *",
+      "ownership": "owned_raw_storage",
+      "allocator": "srHeap.allocate",
+      "release": "srHeap.free",
+      "contract": "Owns raw scratch storage without constructing T elements. Preserving growth assigns the overlapping prefix and releases the old run. The source leaves ordinary copy operations implicit and therefore shallow; this review does not invent deep copying or prove any retail copy call.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srPtr",
+      "field": "pointer_",
+      "source_file": "include/surrender/srPtr.h",
+      "type": "T *",
+      "ownership": "reference_counted",
+      "allocator": "pointee addReference",
+      "release": "pointee release",
+      "contract": "Retains one reference: copy adds the source reference, destruction releases it, and replacement adds the incoming reference before releasing the previous one. Null assign clears the reference. This source contract does not establish original template argument spelling.",
+      "source_evidence": [
+        "include/surrender/srPtr.h"
+      ]
+    },
+    {
+      "record": "srPtr<srPalette>",
+      "field": "pointer_",
+      "source_file": "include/surrender/srPtr.h",
+      "type": "srPalette *",
+      "ownership": "reference_counted",
+      "allocator": "pointee addReference",
+      "release": "pointee release",
+      "contract": "Retains one reference: copy adds the source reference, destruction releases it, and replacement adds the incoming reference before releasing the previous one. Null assign clears the reference. This source contract does not establish original template argument spelling.",
+      "source_evidence": [
+        "include/surrender/srPtr.h"
+      ]
+    },
+    {
+      "record": "srPtr<void>",
+      "field": "pointer_",
+      "source_file": "include/surrender/srPtr.h",
+      "type": "void *",
+      "ownership": "reference_counted",
+      "allocator": "pointee addReference",
+      "release": "pointee release",
+      "contract": "Retains one reference: copy adds the source reference, destruction releases it, and replacement adds the incoming reference before releasing the previous one. Null assign clears the reference. This source contract does not establish original template argument spelling.",
+      "source_evidence": [
+        "include/surrender/srPtr.h"
+      ]
+    },
+    {
+      "record": "srArray<char *>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "char **",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srConfig::Entry *>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srConfig::Entry **",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<float>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "float *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srGERD::Renderer::TextureSet>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srGERD::Renderer::TextureSet *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srGERD::Texture *>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srGERD::Texture **",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srHuffman::Sampler::Symbol>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srHuffman::Sampler::Symbol *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srModeler::Triangle>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srModeler::Triangle *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srNode *>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srNode **",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srNode::TraverseInfo::Entry>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srNode::TraverseInfo::Entry *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srRegistry::ClassNode::IDIndex::InstanceLink *>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srRegistry::ClassNode::IDIndex::InstanceLink **",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srTriMeshPipeline::Pass>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srTriMeshPipeline::Pass *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srTriMeshPipeline::Record>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srTriMeshPipeline::Record *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srVector2T<float>>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srVector2T<float> *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srVector3i>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srVector3i *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srVector4T<float>>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srVector4T<float> *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srVertexArray>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srVertexArray *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srArray<srVertexProcessor *>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srVertexProcessor **",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srHeapBuffer<srGERD::Renderer::TexCoordQ>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srGERD::Renderer::TexCoordQ *",
+      "ownership": "owned_raw_storage",
+      "allocator": "srHeap.allocate",
+      "release": "srHeap.free",
+      "contract": "Owns raw scratch storage without constructing T elements. Preserving growth assigns the overlapping prefix and releases the old run. The source leaves ordinary copy operations implicit and therefore shallow; this review does not invent deep copying or prove any retail copy call.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srHeapBuffer<srVector4T<float>>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srVector4T<float> *",
+      "ownership": "owned_raw_storage",
+      "allocator": "srHeap.allocate",
+      "release": "srHeap.free",
+      "contract": "Owns raw scratch storage without constructing T elements. Preserving growth assigns the overlapping prefix and releases the old run. The source leaves ordinary copy operations implicit and therefore shallow; this review does not invent deep copying or prove any retail copy call.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srHeapBuffer<srVertexProcessor *>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srVertexProcessor **",
+      "ownership": "owned_raw_storage",
+      "allocator": "srHeap.allocate",
+      "release": "srHeap.free",
+      "contract": "Owns raw scratch storage without constructing T elements. Preserving growth assigns the overlapping prefix and releases the old run. The source leaves ordinary copy operations implicit and therefore shallow; this review does not invent deep copying or prove any retail copy call.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srHeapBuffer<unsigned char>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "unsigned char *",
+      "ownership": "owned_raw_storage",
+      "allocator": "srHeap.allocate",
+      "release": "srHeap.free",
+      "contract": "Owns raw scratch storage without constructing T elements. Preserving growth assigns the overlapping prefix and releases the old run. The source leaves ordinary copy operations implicit and therefore shallow; this review does not invent deep copying or prove any retail copy call.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srPtr<srColorSurfaceIFace>",
+      "field": "pointer_",
+      "source_file": "include/surrender/srPtr.h",
+      "type": "srColorSurfaceIFace *",
+      "ownership": "reference_counted",
+      "allocator": "pointee addReference",
+      "release": "pointee release",
+      "contract": "Retains one reference: copy adds the source reference, destruction releases it, and replacement adds the incoming reference before releasing the previous one. Null assign clears the reference. This source contract does not establish original template argument spelling.",
+      "source_evidence": [
+        "include/surrender/srPtr.h"
+      ]
+    },
+    {
+      "record": "srPtr<srMaterialIFace>",
+      "field": "pointer_",
+      "source_file": "include/surrender/srPtr.h",
+      "type": "srMaterialIFace *",
+      "ownership": "reference_counted",
+      "allocator": "pointee addReference",
+      "release": "pointee release",
+      "contract": "Retains one reference: copy adds the source reference, destruction releases it, and replacement adds the incoming reference before releasing the previous one. Null assign clears the reference. This source contract does not establish original template argument spelling.",
+      "source_evidence": [
+        "include/surrender/srPtr.h"
+      ]
+    },
+    {
+      "record": "srPtr<srModel>",
+      "field": "pointer_",
+      "source_file": "include/surrender/srPtr.h",
+      "type": "srModel *",
+      "ownership": "reference_counted",
+      "allocator": "pointee addReference",
+      "release": "pointee release",
+      "contract": "Retains one reference: copy adds the source reference, destruction releases it, and replacement adds the incoming reference before releasing the previous one. Null assign clears the reference. This source contract does not establish original template argument spelling.",
+      "source_evidence": [
+        "include/surrender/srPtr.h"
+      ]
+    },
+    {
+      "record": "srPtr<srTextureIFace>",
+      "field": "pointer_",
+      "source_file": "include/surrender/srPtr.h",
+      "type": "srTextureIFace *",
+      "ownership": "reference_counted",
+      "allocator": "pointee addReference",
+      "release": "pointee release",
+      "contract": "Retains one reference: copy adds the source reference, destruction releases it, and replacement adds the incoming reference before releasing the previous one. Null assign clears the reference. This source contract does not establish original template argument spelling.",
+      "source_evidence": [
+        "include/surrender/srPtr.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "T *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<GDProp *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "GDProp **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<MGSKeyBinding *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "MGSKeyBinding **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<MonGen *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "MonGen **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<Trigger *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "Trigger **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8AnimObj *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8AnimObj **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8AutomapNote *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8AutomapNote **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8CameraShakeEffect *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8CameraShakeEffect **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8Character *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8Character **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8CharacterEvent *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8CharacterEvent **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8CharacterPageEntry *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8CharacterPageEntry **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8ChunkHead *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8ChunkHead **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8CombatSlot>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8CombatSlot *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8CreditLine>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8CreditLine *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8DialogTextEntry *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8DialogTextEntry **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8DialogueTranscriptRecord *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8DialogueTranscriptRecord **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8EncounterScriptName *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8EncounterScriptName **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8EncounterTableRuntime *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8EncounterTableRuntime **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8GrCycle *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8GrCycle **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8GrCycleParticleAttachment *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8GrCycleParticleAttachment **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8GrowableVector<W8GrCycle *> *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8GrowableVector<W8GrCycle *> **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8GrowableVector<W8GrowableVector<unsigned short *> *> *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8GrowableVector<W8GrowableVector<unsigned short *> *> **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8GrowableVector<stLight *> *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8GrowableVector<stLight *> **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8GrowableVector<unsigned short *> *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8GrowableVector<unsigned short *> **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8JournalEntry>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8JournalEntry *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8MessageBoxLine *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8MessageBoxLine **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8Missile *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8Missile **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8MonsterGroup *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8MonsterGroup **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8NamedPosition *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8NamedPosition **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8Navigator *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8Navigator **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8NpcState *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8NpcState **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8OptionsPanel *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8OptionsPanel **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8OptionsSaveRow *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8OptionsSaveRow **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8OptionsSelection *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8OptionsSelection **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8PendingNoticeLine *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8PendingNoticeLine **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8Prop *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8Prop **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8PropAnimationSegment *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8PropAnimationSegment **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8SaveSlot *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8SaveSlot **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8Searchable *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8Searchable **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8SoundEvent *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8SoundEvent **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8SpellDamageReport *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8SpellDamageReport **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8SpellEffectEntry *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8SpellEffectEntry **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8SpellVisual *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8SpellVisual **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8TargetSource>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8TargetSource *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8TextBuffer *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8TextBuffer **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8TextControl *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8TextControl **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8TriggerEvent *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8TriggerEvent **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8Widget *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8Widget **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8World *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8World **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8WorldCursorNode *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8WorldCursorNode **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<W8WorldItem *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "W8WorldItem **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<bool>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "bool *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<char *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "char **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<float>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "float *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<int *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "int **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<int>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "int *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<short>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "short *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<srClass *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "srClass **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<srClientSupport<srClipPlane, 5376> *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "srClientSupport<srClipPlane, 5376> **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<srClipPlane *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "srClipPlane **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<srMaterialIFace *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "srMaterialIFace **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<srPtr<srTextureIFace> *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "srPtr<srTextureIFace> **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<srShader>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "srShader *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<srTextureIFace *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "srTextureIFace **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<srVector3T<float> *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "srVector3T<float> **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<srVector3T<float>>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "srVector3T<float> *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<stLight *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "stLight **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<stMeshModel *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "stMeshModel **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<stModelInstance *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "stModelInstance **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<stModelInstance2D *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "stModelInstance2D **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<stParticle *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "stParticle **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<stScriptLabel *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "stScriptLabel **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<stScriptLine *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "stScriptLine **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<stSound3D *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "stSound3D **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<unsigned char>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "unsigned char *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<unsigned long *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "unsigned long **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<unsigned short *>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "unsigned short **",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<unsigned short>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "unsigned short *",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "W8GrowableVector<void (*)(int)>",
+      "field": "data",
+      "source_file": "include/wiz8/vector.h",
+      "type": "void (**)(int)",
+      "ownership": "owned_container",
+      "allocator": "new T[]",
+      "release": "delete[]",
+      "contract": "Owns the T array. Growth and explicit copy construction/assignment allocate independent backing storage and assign elements; pointer elements do not transfer pointee ownership. Derived W8Vector teardown uses this base destructor.",
+      "source_evidence": [
+        "include/wiz8/vector.h"
+      ]
+    },
+    {
+      "record": "srArray<srVector3T<float>>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srVector3T<float> *",
+      "ownership": "owned_container",
+      "allocator": "new T[] (element allocator may use srHeap)",
+      "release": "delete[]",
+      "contract": "Owns the T array. Copy reserves independent storage and assigns capacity elements. Element construction/destruction belongs to T; pointer elements do not own pointees. Release clears data and capacity.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srHeapBuffer<float>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "float *",
+      "ownership": "owned_raw_storage",
+      "allocator": "srHeap.allocate",
+      "release": "srHeap.free",
+      "contract": "Owns raw scratch storage without constructing T elements. Preserving growth assigns the overlapping prefix and releases the old run. The source leaves ordinary copy operations implicit and therefore shallow; this review does not invent deep copying or prove any retail copy call.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srHeapBuffer<int>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "int *",
+      "ownership": "owned_raw_storage",
+      "allocator": "srHeap.allocate",
+      "release": "srHeap.free",
+      "contract": "Owns raw scratch storage without constructing T elements. Preserving growth assigns the overlapping prefix and releases the old run. The source leaves ordinary copy operations implicit and therefore shallow; this review does not invent deep copying or prove any retail copy call.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srHeapBuffer<srVector3T<float>>",
+      "field": "data",
+      "source_file": "include/surrender/srArray.h",
+      "type": "srVector3T<float> *",
+      "ownership": "owned_raw_storage",
+      "allocator": "srHeap.allocate",
+      "release": "srHeap.free",
+      "contract": "Owns raw scratch storage without constructing T elements. Preserving growth assigns the overlapping prefix and releases the old run. The source leaves ordinary copy operations implicit and therefore shallow; this review does not invent deep copying or prove any retail copy call.",
+      "source_evidence": [
+        "include/surrender/srArray.h"
+      ]
+    },
+    {
+      "record": "srIOManager::ExporterList",
+      "field": "first",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "ExporterRegistration *",
+      "ownership": "owned",
+      "allocator": "new registration node",
+      "release": "delete",
+      "contract": "Owns the chain and its terminal sentinel. Erase deletes a linked node and rewires next/previous; destruction drains the chain and deletes the sentinel. Does not own plugins or separately release extension strings.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ExporterList",
+      "field": "sentinel",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "ExporterRegistration *",
+      "ownership": "borrowed",
+      "allocator": "none",
+      "release": "none",
+      "contract": "Aliases the terminal node owned by the list chain; the list deletes it once through first after draining the other nodes.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ExporterRegistration",
+      "field": "extension",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "char *",
+      "ownership": "owned",
+      "allocator": "new[]",
+      "release": "delete[] in removeImporter/removeExporter",
+      "contract": "Registration receives its allocated uppercase extension string. Explicit removal releases it before erasing the node. List destruction deletes nodes without freeing remaining extension strings; preserve that retail leak.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ExporterRegistration",
+      "field": "exporter",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "Exporter *",
+      "ownership": "borrowed",
+      "allocator": "none",
+      "release": "none",
+      "contract": "Borrowed typed plugin pointer; finding/removing and virtual getTypeName use the matching list kind. Removing a registration does not destroy the plugin.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ExporterRegistration",
+      "field": "next",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "ExporterRegistration *",
+      "ownership": "borrowed",
+      "allocator": "none",
+      "release": "none",
+      "contract": "Borrowed links within the same typed registration list; erase rewires neighboring links before deleting the node. No importer/exporter storage overlap or cross-list relinking.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ExporterRegistration",
+      "field": "previous",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "ExporterRegistration *",
+      "ownership": "borrowed",
+      "allocator": "none",
+      "release": "none",
+      "contract": "Borrowed links within the same typed registration list; erase rewires neighboring links before deleting the node. No importer/exporter storage overlap or cross-list relinking.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ImporterList",
+      "field": "first",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "ImporterRegistration *",
+      "ownership": "owned",
+      "allocator": "new registration node",
+      "release": "delete",
+      "contract": "Owns the chain and its terminal sentinel. Erase deletes a linked node and rewires next/previous; destruction drains the chain and deletes the sentinel. Does not own plugins or separately release extension strings.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ImporterList",
+      "field": "sentinel",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "ImporterRegistration *",
+      "ownership": "borrowed",
+      "allocator": "none",
+      "release": "none",
+      "contract": "Aliases the terminal node owned by the list chain; the list deletes it once through first after draining the other nodes.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ImporterRegistration",
+      "field": "extension",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "char *",
+      "ownership": "owned",
+      "allocator": "new[]",
+      "release": "delete[] in removeImporter/removeExporter",
+      "contract": "Registration receives its allocated uppercase extension string. Explicit removal releases it before erasing the node. List destruction deletes nodes without freeing remaining extension strings; preserve that retail leak.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ImporterRegistration",
+      "field": "importer",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "Importer *",
+      "ownership": "borrowed",
+      "allocator": "none",
+      "release": "none",
+      "contract": "Borrowed typed plugin pointer; finding/removing and virtual getTypeName use the matching list kind. Removing a registration does not destroy the plugin.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ImporterRegistration",
+      "field": "next",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "ImporterRegistration *",
+      "ownership": "borrowed",
+      "allocator": "none",
+      "release": "none",
+      "contract": "Borrowed links within the same typed registration list; erase rewires neighboring links before deleting the node. No importer/exporter storage overlap or cross-list relinking.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
+    },
+    {
+      "record": "srIOManager::ImporterRegistration",
+      "field": "previous",
+      "source_file": "include/surrender/srIOManager.h",
+      "type": "ImporterRegistration *",
+      "ownership": "borrowed",
+      "allocator": "none",
+      "release": "none",
+      "contract": "Borrowed links within the same typed registration list; erase rewires neighboring links before deleting the node. No importer/exporter storage overlap or cross-list relinking.",
+      "source_evidence": [
+        "include/surrender/srIOManager.h",
+        "src/surrender/io_managers.cpp"
+      ]
     }
   ],
   "lifetime_source_snapshots": {
-    "include/wiz8/engine_code/OctBuildPreTree.h": "0a7910585dd79a0bce80f0d2fa285f8b008badd3be773d3cf826acb7d77197ca",
-    "include/wiz8/engine_code/OctMeshModel.h": "aae0baa64b2f9ef6caca6986fade80f959b98b02bec2d4821cd220109a2651b7",
-    "include/wiz8/engine_code/OctPath.h": "c60e4f353bcf12df17e6b8d6cae8c469ae98bc804a598ac068bbf92d27f0e445",
-    "include/wiz8/engine_code/OctPreTree.h": "e20a9ebdc7c16b95b75511ad1b2f14cfbbc846a4babcf4819a424967b372307e",
-    "include/wiz8/engine_code/Octree.h": "145dea39cb8f33f45f697b01024d050690df2e688726527333b78ae947f464cd",
-    "include/wiz8/layouts/world.h": "4d88aac6b0d6d41a49b2c4acd7c8b71f96d3e32e40109fc01d1693f618e93dc6",
-    "src/wiz8/3d_code/PList.cpp": "129fea6f9d617b025684cbfdb4aa6b964cf7d5c5efb309988819268eeb4fdd46",
-    "src/wiz8/engine_code/3d.cpp": "9ad0b1f1988dce2025e2badd71661e5bb3c67934a9fc846bcb0e3fff587e4778",
-    "src/wiz8/engine_code/3dapi.cpp": "b0cec301928c59adda89b5395eaeccf1b9e88b1d0329f96d7b89ab6fc7bdde98",
-    "src/wiz8/engine_code/OctBuildTree.cpp": "ab38d2e4f0129dbea02472f74e7b5964b5329ad4099831288750284b99f80f7a",
-    "src/wiz8/engine_code/OctPath.cpp": "445afd52120461fa18122e76e30e3d8357e7f2831be11934ca9e415faba3290e",
-    "src/wiz8/engine_code/OctPreTree.cpp": "2c47cb381e9e4bb36ab62caaff8e444765f186a2d7eff536594483f38123798f",
-    "src/wiz8/engine_code/OctRegionPolygon.cpp": "e32aee86d15503ddf7d33b5b6d7680fcf42674dbc0bf22311ca282a81cb05e01",
-    "src/wiz8/engine_code/OctSubMesh.cpp": "7b78afb951dcfb5b86013811c127d6ab4ca8196a6bd333fde1c072aa4922075a",
-    "src/wiz8/engine_code/Octree.cpp": "7df8502656155b90f6d72bcb29b099d4e0a125f8b1369c762caebf6cda3feb9e",
-    "src/wiz8/engine_code/UpdateMesh.cpp": "e4abcd09bb6abae595f4c2e804676eafd6224f62042626ad99d5a11b44c6c4ac",
-    "src/wiz8/engine_code/materials.cpp": "104166f3e4b731d4fcecef6071665fbe9ef4ca16ab92acb1be9f05cbca9f8dbf"
+    "include/wiz8/engine_code/OctBuildPreTree.h": "ed300ae86ff01bda08095249644c784705eb89a86c35a0a7c26e199a9c3a25b3",
+    "include/wiz8/engine_code/OctMeshModel.h": "3f05a8fb1c62e1b79a97b533be9cc843bc14bda8032231d91689f85e6d297667",
+    "include/wiz8/engine_code/OctPath.h": "7c699f1a746b6fc03b15e42151df9e91d37a541bb56049e15916916f806919a8",
+    "include/wiz8/engine_code/OctPreTree.h": "ae0ad6c88c87ccc144a14320d29c86918bd71129cf499394e75019c968b53d64",
+    "include/wiz8/engine_code/Octree.h": "6e11419537a7f953e9993fed5720ef5ca819ed33e045549e186c46983b32c262",
+    "include/wiz8/layouts/world.h": "2c37165c1d8ab8984b9d096cdc21fb97f4629c0a52bddab691bbcd36d1719bdb",
+    "src/wiz8/3d_code/PList.cpp": "a2e1dee6d629f1ee26ce26946e5edf443944be60bfc8b1745ffb2f3ddd37b08f",
+    "src/wiz8/engine_code/3d.cpp": "d210e238bdae24f20b37588cda576a4d7528ed3282df48bc333b1af0ac9f2ad2",
+    "src/wiz8/engine_code/3dapi.cpp": "caa623d4eb5aff6a74a1c03c68f06f7017fed589fce203b0784ec63245e40c0f",
+    "src/wiz8/engine_code/OctBuildTree.cpp": "a8d4f281afee6e3147803f388ff716b7c127d9bb46d44e12d8d3764f19dd090e",
+    "src/wiz8/engine_code/OctPath.cpp": "ec8ed0a91c85001c475293380508940e06081bd7132954db90603424d0ac0097",
+    "src/wiz8/engine_code/OctPreTree.cpp": "d28ce78b7c1cbd5e581f3a7ab8bb048ceb2ed3e86da458521c4c1c920351ec2e",
+    "src/wiz8/engine_code/OctRegionPolygon.cpp": "d32de38a79219352cb35915bf1e680055e678e3ac8fc11bb1a730469ae22f813",
+    "src/wiz8/engine_code/OctSubMesh.cpp": "703a168be440746ff8724f633eb1dce35f91dd950c1b80555070658152de1248",
+    "src/wiz8/engine_code/Octree.cpp": "eb54033fb88d97d709d31dcd5c1d410542008c42305b4b50a044020ba6732641",
+    "src/wiz8/engine_code/UpdateMesh.cpp": "c0c097e0cd58b6ccfa32a322b6174959ebcfbb3b9d86b1265c1d40ffb95a21ed",
+    "src/wiz8/engine_code/materials.cpp": "726f7a56ba48c0852f41e2008f0ca97cfab49b404d30773a0a07eccc4b296b21",
+    "include/surrender/srArray.h": "b49440573e9c9e727c00da0119610b6cf2226c2235ed57646aa095651dde80dc",
+    "include/surrender/srPtr.h": "bd2f882c75c5ba1320ace89ece337494ecb38b3ed869b00d7355cf6eaa76f52c",
+    "include/wiz8/vector.h": "00ea796c2446b9b39016431f5cdae9799320ac6824eb9f4d5b98e20679e869ce",
+    "include/surrender/srIOManager.h": "6a831c4dc4239eac8e95d28e7a146bbabc5984f8e3f2cef2db32d9a01e01ad06",
+    "src/surrender/io_managers.cpp": "990bfe55b5b9f8cf3c0ae44bb3a12159c070b0dca81b383c6969c3552df2b3cb"
   }
 }

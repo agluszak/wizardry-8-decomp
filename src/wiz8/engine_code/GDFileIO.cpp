@@ -143,8 +143,8 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
     if (poly_type < 0 || 2 < poly_type) {
         ReportBuildStatus(7, "ReadWGDList: Invalid poly type.\n");
     }
-    success = ReadFile(file, &vertex_count, 4, &bytes_read, 0) & 1 &
-              ReadFile(file, &face_count, 4, &bytes_read, 0);
+    success = ReadFile(file, &vertex_count, 4, &bytes_read, 0) & 1;
+    success &= ReadFile(file, &face_count, 4, &bytes_read, 0);
     if (success == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0xe5,
                      "Error reading counts from WGD file.");

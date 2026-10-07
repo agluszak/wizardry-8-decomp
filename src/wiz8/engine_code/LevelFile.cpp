@@ -1634,8 +1634,8 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
             memset(pAnimObj->pMorphs, 0, pAnimObj->num_anims * sizeof(W8LevelFileMorph));
             for (i = 0; i < pAnimObj->num_anims; ++i) {
                 W8LevelFileMorph* pMorph = pAnimObj->pMorphs + i;
-                fSuccess &= FileRead(hFile, &pMorph->channel, 1, 0) &
-                            FileRead(hFile, &pMorph->num_frames, 1, 0);
+                fSuccess &= FileRead(hFile, &pMorph->channel, 1, 0);
+                fSuccess &= FileRead(hFile, &pMorph->num_frames, 1, 0);
                 if (pMorph->num_frames != 0) {
                     pMorph->LODMesh.pFrames = static_cast<W8LevelFileFrame*>(
                         malloc(pMorph->num_frames * sizeof(W8LevelFileFrame)));
@@ -1650,9 +1650,9 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                         do {
                             W8LevelFileFrame* pFrame =
                                 pMorph->LODMesh.pFrames + static_cast<short>(usFrame);
-                            fSuccess &= FileRead(hFile, &pFrame->flags, 1, 0) &
-                                        ReadMeshFile(hFile, &pFrame->mesh) &
-                                        FileRead(hFile, &pFrame->num_textures, 2, 0);
+                            fSuccess &= FileRead(hFile, &pFrame->flags, 1, 0);
+                            fSuccess &= ReadMeshFile(hFile, &pFrame->mesh);
+                            fSuccess &= FileRead(hFile, &pFrame->num_textures, 2, 0);
                             if (pFrame->num_textures != 0) {
                                 pFrame->pTextures = static_cast<W8MaterialRecord*>(
                                     malloc(pFrame->num_textures * sizeof(W8MaterialRecord)));
@@ -1698,8 +1698,8 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                    pAnimObj->num_transforms * sizeof(W8LevelFileTransform));
             for (i = 0; i < pAnimObj->num_transforms; ++i) {
                 W8LevelFileTransform* pTransform = pAnimObj->pTransforms + i;
-                fSuccess &= FileRead(hFile, &pTransform->channel, 1, 0) &
-                            FileRead(hFile, &pTransform->num_frames, 1, 0);
+                fSuccess &= FileRead(hFile, &pTransform->channel, 1, 0);
+                fSuccess &= FileRead(hFile, &pTransform->num_frames, 1, 0);
                 if (pTransform->num_frames != 0) {
                     pTransform->LODMesh.pFrames = static_cast<W8LevelFileFrame*>(
                         malloc(pTransform->num_frames * sizeof(W8LevelFileFrame)));
@@ -1713,9 +1713,9 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                         short iFrame = 0;
                         do {
                             W8LevelFileFrame* pFrame = pTransform->LODMesh.pFrames + iFrame;
-                            fSuccess &= FileRead(hFile, &pFrame->flags, 1, 0) &
-                                        ReadMeshFile(hFile, &pFrame->mesh) &
-                                        FileRead(hFile, &pFrame->num_textures, 2, 0);
+                            fSuccess &= FileRead(hFile, &pFrame->flags, 1, 0);
+                            fSuccess &= ReadMeshFile(hFile, &pFrame->mesh);
+                            fSuccess &= FileRead(hFile, &pFrame->num_textures, 2, 0);
                             if ((pFrame->num_textures < 0) || (pFrame->num_textures > 500)) {
                                 sprintf(g_level_file_error,
                                         "Invalid number of materials in mesh (%d materials).\n",
@@ -1837,8 +1837,8 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
             }
             for (i = 0; i < pAnimObj->num_anims; ++i) {
                 W8LevelFileMorph* pMorph = pAnimObj->pMorphs + i;
-                fSuccess &= FileWrite(hFile, &pMorph->channel, 1, 0) &
-                            FileWrite(hFile, &pMorph->num_frames, 1, 0);
+                fSuccess &= FileWrite(hFile, &pMorph->channel, 1, 0);
+                fSuccess &= FileWrite(hFile, &pMorph->num_frames, 1, 0);
                 if (pMorph->num_frames != 0) {
                     if (pMorph->LODMesh.pFrames == 0) {
                         srAssertFail("pAnimObj->pMorphs[i].LODMesh.pFrames", LEVELFILE_CPP, 0x8a5,
@@ -1848,9 +1848,9 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                     do {
                         W8LevelFileFrame* pFrame =
                             pMorph->LODMesh.pFrames + static_cast<short>(usFrame);
-                        fSuccess &= FileWrite(hFile, &pFrame->flags, 1, 0) &
-                                    WriteMeshFile(hFile, &pFrame->mesh) &
-                                    FileWrite(hFile, &pFrame->num_textures, 2, 0);
+                        fSuccess &= FileWrite(hFile, &pFrame->flags, 1, 0);
+                        fSuccess &= WriteMeshFile(hFile, &pFrame->mesh);
+                        fSuccess &= FileWrite(hFile, &pFrame->num_textures, 2, 0);
                         if (pFrame->num_textures != 0) {
                             if (pFrame->pTextures == 0) {
                                 srAssertFail("pAnimObj->pMorphs[i].LODMesh.pFrames[i2].pTextures",
@@ -1892,8 +1892,8 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
             }
             for (i = 0; i < pAnimObj->num_transforms; ++i) {
                 W8LevelFileTransform* pTransform = pAnimObj->pTransforms + i;
-                fSuccess &= FileWrite(hFile, &pTransform->channel, 1, 0) &
-                            FileWrite(hFile, &pTransform->num_frames, 1, 0);
+                fSuccess &= FileWrite(hFile, &pTransform->channel, 1, 0);
+                fSuccess &= FileWrite(hFile, &pTransform->num_frames, 1, 0);
                 if (pTransform->num_frames != 0) {
                     if (pTransform->LODMesh.pFrames == 0) {
                         srAssertFail("pAnimObj->pTransforms[i].LODMesh.pFrames", LEVELFILE_CPP,
@@ -1902,9 +1902,9 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                     short iFrame = 0;
                     do {
                         W8LevelFileFrame* pFrame = pTransform->LODMesh.pFrames + iFrame;
-                        fSuccess &= FileWrite(hFile, &pFrame->flags, 1, 0) &
-                                    WriteMeshFile(hFile, &pFrame->mesh) &
-                                    FileWrite(hFile, &pFrame->num_textures, 2, 0);
+                        fSuccess &= FileWrite(hFile, &pFrame->flags, 1, 0);
+                        fSuccess &= WriteMeshFile(hFile, &pFrame->mesh);
+                        fSuccess &= FileWrite(hFile, &pFrame->num_textures, 2, 0);
                         if (pFrame->num_textures != 0) {
                             if (pFrame->pTextures == 0) {
                                 srAssertFail(
@@ -1954,11 +1954,11 @@ W8LevelFileProp* ReadPropsFile(int hFile, int count)
     memset(pProps, 0, count * sizeof(W8LevelFileProp));
     for (int i = 0; i < count; ++i) {
         W8LevelFileProp* pProp = pProps + i;
-        fSuccess &=
-            FileRead(hFile, &pProp->version, 1, 0) & FileRead(hFile, &pProp->bNumFrames, 1, 0);
+        fSuccess &= FileRead(hFile, &pProp->version, 1, 0);
+        fSuccess &= FileRead(hFile, &pProp->bNumFrames, 1, 0);
         if (pProp->version >= 5) {
-            fSuccess &= FileRead(hFile, &pProp->option, 1, 0) &
-                        FileRead(hFile, &pProp->position, sizeof(pProp->position), 0);
+            fSuccess &= FileRead(hFile, &pProp->option, 1, 0);
+            fSuccess &= FileRead(hFile, &pProp->position, sizeof(pProp->position), 0);
         }
         if (pProp->version >= 6) {
             fSuccess &= FileRead(hFile, &pProp->flags, 4, 0);
@@ -2015,8 +2015,8 @@ W8LevelFileProp* ReadPropsFile(int hFile, int count)
                 srAssertFail("fSuccess", LEVELFILE_CPP, 0x93e, 0);
             }
             if (pProp->has_footsteps != 0) {
-                fSuccess &= FileRead(hFile, &pProp->footstep_surface, 1, 0) &
-                            FileRead(hFile, &pProp->footstep_material, 1, 0);
+                fSuccess &= FileRead(hFile, &pProp->footstep_surface, 1, 0);
+                fSuccess &= FileRead(hFile, &pProp->footstep_material, 1, 0);
             }
         }
     }
@@ -2038,11 +2038,11 @@ BOOLEAN WritePropsFile(int hFile, int count, W8LevelFileProp* pProps)
     }
     for (int i = 0; i < count; ++i) {
         W8LevelFileProp* pProp = pProps + i;
-        fSuccess &=
-            FileWrite(hFile, &pProp->version, 1, 0) & FileWrite(hFile, &pProp->bNumFrames, 1, 0);
+        fSuccess &= FileWrite(hFile, &pProp->version, 1, 0);
+        fSuccess &= FileWrite(hFile, &pProp->bNumFrames, 1, 0);
         if (pProp->version >= 5) {
-            fSuccess &= FileWrite(hFile, &pProp->option, 1, 0) &
-                        FileWrite(hFile, &pProp->position, sizeof(pProp->position), 0);
+            fSuccess &= FileWrite(hFile, &pProp->option, 1, 0);
+            fSuccess &= FileWrite(hFile, &pProp->position, sizeof(pProp->position), 0);
         }
         if (pProp->version >= 6) {
             fSuccess &= FileWrite(hFile, &pProp->flags, 4, 0);
@@ -2082,8 +2082,8 @@ BOOLEAN WritePropsFile(int hFile, int count, W8LevelFileProp* pProps)
                 srAssertFail("fSuccess", LEVELFILE_CPP, 0x993, 0);
             }
             if (pProp->has_footsteps != 0) {
-                fSuccess &= FileWrite(hFile, &pProp->footstep_surface, 1, 0) &
-                            FileWrite(hFile, &pProp->footstep_material, 1, 0);
+                fSuccess &= FileWrite(hFile, &pProp->footstep_surface, 1, 0);
+                fSuccess &= FileWrite(hFile, &pProp->footstep_material, 1, 0);
             }
         }
     }

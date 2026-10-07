@@ -156,9 +156,9 @@ void srFog::process(srVertexPipe& pipe)
 }
 
 // FUNCTION: SURRENDER 0x1004BB60
-srFog::srFog(srNode* parent) : srIlluminator(0)
+srFog::srFog(srNode* parent)
+    : srClassSupport<srFog, srIlluminator, false, 0x1210>(static_cast<srNode*>(0))
 {
-    srCore.getRegistry()->registerInstance(ClientType::sGetClassNode(), this);
     if (parent != 0) {
         setParent(parent, 0);
     }
@@ -188,15 +188,5 @@ srClass* srFog::vInstance()
     return new srFog(static_cast<srNode*>(0));
 }
 
-// FUNCTION: SURRENDER 0x1004C210
-srFog::srFog(const srFog& other) : srIlluminator(0)
-{
-    srCore.getRegistry()->registerInstance(ClientType::sGetClassNode(), this);
-    *this = other;
-}
-
 // FUNCTION: SURRENDER 0x1004C350
-srFog::~srFog()
-{
-    srCore.getRegistry()->unregisterInstance(ClientType::sGetClassNode(), this);
-}
+srFog::~srFog() {}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "srCore.h"
 #include "srFlags.h"
 #include "srMath.h"
 #include "srVertexProcessor.h"
@@ -68,12 +69,12 @@ public:
     SR_DLL_IMPORT const srVector3T<float>* getEyeSpaceDir();
     SR_DLL_IMPORT const float* getEyeSpaceDist();
     SR_DLL_IMPORT const srVector4T<float>* getEyeSpaceLocation();
-    SR_DLL_IMPORT const srVector3T<float>* getEyeSpaceNormal();
+    const srVector3T<float>* getEyeSpaceNormal();
     SR_DLL_IMPORT const float* getEyeSpaceZDist();
     SR_DLL_IMPORT float* getFog();
     SR_DLL_IMPORT const srVertexProcessor::MaterialInfo& getMaterialInfo() const;
     SR_DLL_IMPORT float* getQ(unsigned long index, int create);
-    SR_DLL_IMPORT srVector2T<float>* getST(unsigned long index, int create);
+    srVector2T<float>* getST(unsigned long index, int create);
     static SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel>
     getShaderDisableMask(const srShader& shader);
     static SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel>
@@ -81,8 +82,8 @@ public:
                          unsigned long channel_count);
     SR_DLL_IMPORT srVector4T<float>* getSpecular();
     SR_DLL_IMPORT void* getUserArray(unsigned long index);
-    SR_DLL_IMPORT unsigned long getVertexCount() const;
-    SR_DLL_IMPORT int isChannelAvailable(srVertexProcessor::e_channel channel) const;
+    unsigned long getVertexCount() const;
+    int isChannelAvailable(srVertexProcessor::e_channel channel) const;
     SR_DLL_IMPORT void process(const Input& input);
     SR_DLL_IMPORT void swapDiffuseAndSpecular();
     SR_DLL_IMPORT int testEyeSpaceBounds(const srVector3T<float>& center, float radius) const;
@@ -207,3 +208,41 @@ private:
 static_assert(sizeof(srVertexPipe) == 0x9c, "srVertexPipe_must_be_0x9c");
 static_assert(sizeof(srVertexPipe::Record) == 0x5c, "srVertexPipe_Record_must_be_0x5c");
 static_assert(sizeof(srVertexPipe::Input) == 0x64, "srVertexPipe_Input_must_be_0x64");
+
+// FUNCTION: SURRENDER 0x1002C4B0 SYMBOL
+// RECOMP: ?getVertexCount@srVertexPipe@@QBEKXZ
+inline unsigned long srVertexPipe::getVertexCount() const
+{
+    return vertex_count;
+}
+
+// FUNCTION: SURRENDER 0x1002C4E0 SYMBOL
+// RECOMP: ?isChannelAvailable@srVertexPipe@@QBEHW4e_channel@srVertexProcessor@@@Z
+inline int srVertexPipe::isChannelAvailable(srVertexProcessor::e_channel channel) const
+{
+    return ((1u << channel) & channel_mask) != 0;
+}
+
+// FUNCTION: SURRENDER 0x1002C5C0 SYMBOL
+// RECOMP: ?getEyeSpaceNormal@srVertexPipe@@QAEPBV?$srVector3T@M@@XZ
+inline const srVector3T<float>* srVertexPipe::getEyeSpaceNormal()
+{
+    Scratch* scratch = this->scratch;
+    if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_NORMALS) == 0) {
+        setupEyeSpaceNormal();
+    }
+    return scratch->normals + sub_batch_offset;
+}
+
+// FUNCTION: SURRENDER 0x1002C780 SYMBOL
+// RECOMP: ?getST@srVertexPipe@@QAEPAV?$srVector2T@M@@KH@Z
+inline srVector2T<float>* srVertexPipe::getST(unsigned long index, int create)
+{
+    srCore.getStatisticsManager()->statistics.texture_coordinate_operations += vertex_count;
+    if ((create == 0) &&
+        ((lazy_setup_mask & (1 << (index + srVertexProcessor::CHANNEL_ST0))) == 0)) {
+        setupST(index);
+    }
+    lazy_setup_mask |= 1 << (index + srVertexProcessor::CHANNEL_ST0);
+    return (&vertex_array->st0)[index] + batch_base + sub_batch_offset;
+}

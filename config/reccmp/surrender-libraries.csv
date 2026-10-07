@@ -10,8 +10,8 @@ address|symbol|name|type
 100502b0||MFC CRect::CRect|library
 10055640||std::ios_base::Init::Init|library
 10055680||std::_Winit::_Winit|library
-1006fed6||atexit|library
-1006ff02||_onexit|library
+1006fed6||_onexit|library
+1006ff02||atexit|library
 1006ff1a||??_M@YGXPAXIHP6EX0@Z@Z|library
 10070050||__aullshr|library
 1007007c||??_L@YGXPAXIHP6EX0@Z1@Z|library

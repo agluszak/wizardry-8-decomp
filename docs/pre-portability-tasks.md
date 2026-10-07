@@ -69,35 +69,13 @@ overwrites. Captures remain optional local artifacts; they are not added to rout
 The nine required behavioral references are still missing; inventory and freezer code are
 not substitute captures. Closed Bink/Miles substitutions remain undecided.
 
-The first source batch names 14 established shared floating-point constants across their
-consumers, retaining each definition, value and `GLOBAL` identity. Generic zero/one names
-avoid assigning a single gameplay role to shared storage. The monster-create failure path
-now assigns integer zero directly, as established by its null-return branch. The SGP text
-boundary asserts 16-bit Wizardry code units. The scalar collector distinguishes function
-addresses from call results; saved report inputs carry hashes and explicitly unverified
-source freshness. Existing pointer-valued mesh/path hash specializations must not be
-reopened from older scalar snapshots that still describe them as integers.
-
-The next source batch names 115 spatial/pathing/world fields across 193 marked
-function regions. It distinguishes borrowed triangle and node views from owned
-region/search storage and adopted light references. Mesh float positions now use
-the existing vector type; allocation and transfer sizes retain retail's doubled
-non-LOD reservation. Sixteen level-file records have reviewed disk/mixed layout
-classifications, and eight additional allocator/lifetime contracts identify their
-canonical owners. Unresolved payload types and unused bitset roles remain open.
-
-After integration with the record/scalar campaigns on main, the next batch names
-321 level/geometry fields across 121 marked function regions. Trigger placement
-uses typed position/angle/direction storage and camera labels use character arrays.
-Forty-two level-file transfers now use their array extents, and geometry allocation
-uses the established vertex size while preserving reservation counts. Twenty-five
-more layouts and two geometry allocator contracts are reviewed. Scalar fixtures
-exercise both function decay and callback signatures without colliding test names.
-
-Field lifetime reviews now bind 34 contracts to exact record/field/declaration
+Field lifetime reviews bind contracts to exact record/field/declaration
 owners and types, with hashed source inputs. Changed or absent inputs and conflicting
 TU observations reopen the review; matching snapshots describe the recovered source,
 not independent retail equivalence. Container backing storage and element lifetime
 remain separate, including borrowed nodes and adopted light references. The mesh
 sun-light pointer-table cleanup asymmetry is retained explicitly. Layout reviews
 also bind to source owners, so same-named records cannot shadow one another.
+
+The [semantic-model audit](semantic-model-audit.md) records the reviewed corrections,
+specialized-comparison explanations, serialization coverage and remaining evidence gaps.

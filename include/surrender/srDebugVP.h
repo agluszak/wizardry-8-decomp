@@ -195,7 +195,7 @@ public:
     /* Only the constructor and resetInternalStatistics are exported; the
        forwarders are reached exclusively through the srVP vtable, so the
        class carries no blanket import specifier. */
-    SR_DLL_IMPORT srDebugVP(srVP* processor);
+    srDebugVP(srVP* processor);
     /* Destruction is consistent with base-only cleanup; the reconstruction
        leaves the derived destructor implicit. */
 

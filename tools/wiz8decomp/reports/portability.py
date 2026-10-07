@@ -78,6 +78,21 @@ _PUBLIC_TOKEN = re.compile(
 )
 _LAYOUT = re.compile(r"\b(?:sizeof|offsetof)\s*\(\s*([A-Za-z_]\w*(?:::\w+)*)")
 _ASSERTION = re.compile(r"\bstatic_assert\s*\([^;]+;", re.DOTALL)
+_BUILTIN_TYPES = frozenset(
+    {
+        "void",
+        "bool",
+        "char",
+        "wchar_t",
+        "short",
+        "int",
+        "long",
+        "float",
+        "double",
+        "signed",
+        "unsigned",
+    }
+)
 
 
 def _blank(match: re.Match[str]) -> str:
@@ -224,6 +239,11 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
     layout_reviews = {
         (row["source_file"], row["record"]): row for row in reviewed.get("layouts", [])
     }
+    declarations: dict[str, dict[str, dict[str, Any]]] = {}
+    for record in index.get("classes", []):
+        declarations.setdefault(str(record.get("qualified_name") or ""), {})[
+            str(record.get("source_file") or "")
+        ] = record
     for root_name in ROOTS:
         root = repository / root_name
         for file in sorted(root.rglob("*")) if root.is_dir() else [root]:
@@ -289,15 +309,31 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
                 for match in _LAYOUT.finditer(contract.group())
             ]
             for offset, name in layout_matches:
-                if (path, name) in seen_layouts:
+                if name in _BUILTIN_TYPES:
                     continue
-                seen_layouts.add((path, name))
-                review = layout_reviews.get((path, name))
+                # The assertion's file need not declare its record. Use only
+                # exact compiler names with one visible declaration owner;
+                # lexical aliases, nested names and templates remain candidates.
+                visible = set(index.get("unit_dependencies", {}).get(path, [])) | {path}
+                owners = declarations.get(name, {})
+                resolved = [record for owner, record in owners.items() if owner in visible]
+                declaration = resolved[0] if len(resolved) == 1 else None
+                owner = str(declaration["source_file"]) if declaration else path
+                if (owner, name) in seen_layouts:
+                    continue
+                seen_layouts.add((owner, name))
+                review = layout_reviews.get((owner, name))
                 layouts.append(
                     {
                         "record": name,
-                        "source_file": path,
-                        "line": code.count("\n", 0, offset) + 1,
+                        "source_file": owner,
+                        "line": declaration.get("line")
+                        if declaration
+                        else code.count("\n", 0, offset) + 1,
+                        "assertion_location": f"{path}:{code.count(chr(10), 0, offset) + 1}",
+                        "evidence": "source_index_declaration_owner"
+                        if declaration
+                        else "lexical_layout_candidate",
                         "classification": review["classification"] if review else "unclassified",
                         "review": review,
                     }

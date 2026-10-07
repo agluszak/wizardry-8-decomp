@@ -674,9 +674,6 @@ unsigned long srBinStream::getSize()
     return 0;
 }
 
-// FUNCTION: SURRENDER 0x1002E950
-srBinStream::~srBinStream() {}
-
 // FUNCTION: SURRENDER 0x100324C0
 void srIStreamOpener::parsePrefix(char** prefix, char** path, const char* source)
 {

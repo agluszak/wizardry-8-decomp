@@ -56,8 +56,8 @@ uncorroborated body resemblance.
 
 Ambiguous associations belong in `config/reccmp/emission_overrides.csv`, using the
 inventory columns, including optional `recomp_selector` and `selector_is_symbol`.
-This file is initially empty. Keep the original inventory as evidence; overrides
-record reviewed corrections or additional identities. Source-model lint rejects
+Keep the original inventory as evidence; overrides record reviewed corrections
+or additional identities. Source-model lint rejects
 reintroduced emission markers, and merge preservation recognizes source functions
 reclassified into binary metadata while continuing to protect authored identities.
 

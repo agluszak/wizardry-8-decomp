@@ -379,6 +379,7 @@ def test_capture_is_bounded_and_parses_frames(tmp_path: Path, monkeypatch) -> No
         "x/24i $pc-24": ["Cannot access memory"],
         "info sharedlibrary": ["0x00f20000 0x00f30000 mssv29.asi"],
         "thread apply all bt 16": ["#0  0x005f1270 in unrelated_thread ()"],
+        "thread apply all -c x/192wx $sp": ["0x12fe00: 0x005f1270"],
         "p/x $_siginfo._sifields._sigfault.si_addr": ["$1 = 0x0d959330"],
     }
     console = AsyncMock(side_effect=lambda command, **_: outputs[command])
@@ -391,6 +392,7 @@ def test_capture_is_bounded_and_parses_frames(tmp_path: Path, monkeypatch) -> No
     assert [call.args[0] for call in console.call_args_list] == list(outputs)
     assert snapshot.frame_addresses == (0x7BD642FC, 0x462892)
     assert snapshot.stack_words == ((0x67FE00, 0x479834),)
+    assert "0x12fe00: 0x005f1270" in snapshot.raw_path.read_text()
     assert snapshot.fault_address == 0xD959330
     assert "Cannot access memory" in snapshot.raw_path.read_text()
 

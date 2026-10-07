@@ -215,12 +215,6 @@ srVector3T<float> srScene::getAmbientLight() const
     return ambient_light;
 }
 
-// FUNCTION: SURRENDER 0x10056C70
-void srScene::getFogColor(srVector3T<float>& color) const
-{
-    color = fog_color;
-}
-
 // FUNCTION: SURRENDER 0x10056C90
 srVector3T<float> srScene::getFogColor() const
 {
@@ -247,10 +241,4 @@ void srScene::setFogColor(float red, float green, float blue)
     fog_color.x = red;
     fog_color.y = green;
     fog_color.z = blue;
-}
-
-// FUNCTION: SURRENDER 0x10056D40
-void srScene::setFogColor(const srVector3T<float>& color)
-{
-    fog_color = color;
 }

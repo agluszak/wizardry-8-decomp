@@ -37,11 +37,7 @@ srScheduler::~srScheduler()
             yieldOneMillisecond();
         }
     }
-    if (critical_section != 0) {
-        critical_section->getAccess();
-        critical_section->releaseAccess();
-        delete critical_section;
-    }
+    delete critical_section;
 }
 
 // FUNCTION: SURRENDER 0x10013EE0

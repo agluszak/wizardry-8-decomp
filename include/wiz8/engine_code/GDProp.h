@@ -51,7 +51,8 @@ public:
        inlined inside the derived ctor at 0x004B7BC0. */
     GDProp()
     {
-        m_flags = Flags();
+        Flags initial_flags = {false, false, false, false, 0, 0};
+        m_flags = initial_flags;
         m_prop_number = 0;
         m_vertex_count = 0;
         m_surface_count = 0;

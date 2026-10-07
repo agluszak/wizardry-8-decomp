@@ -314,6 +314,10 @@ class GdbSession:
             ("near pc", "x/24i $pc-24"),
             ("shared libraries", "info sharedlibrary"),
             ("all threads", "thread apply all bt 16"),
+            # Wine interrupts through a break-in thread. Optimized VC6 and
+            # middleware frames may not unwind, so retain each thread's raw
+            # stack as well as the stopped thread's parsed diagnostic.
+            ("all thread stacks", "thread apply all -c x/192wx $sp"),
         ):
             try:
                 output = await self._console(command, timeout=30)

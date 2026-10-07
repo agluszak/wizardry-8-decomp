@@ -30,6 +30,11 @@ public:
 
     srCamera(srNode* parent = 0);
 
+#if !defined(SURRENDER_BUILD)
+    srCamera& operator=(const srCamera& other);
+    virtual ~srCamera() override;
+#endif
+
     /* Copy construction, assignment and destruction are the ordinary
        srNode-base/member special members emitted by the class export. */
 
