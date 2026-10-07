@@ -321,8 +321,6 @@ Use the authoritative surfaces instead:
   source-owned model;
 - `uv run wiz8 ghidra decompile 0x<address>` / `ghidra sym 0x<address>` for native identity,
   ownership attachment, and current Ghidra evidence;
-- `uv run wiz8 analyze source-layouts` for an on-demand PDB-to-Ghidra layout comparison;
-  it reports current disagreements and does not keep a committed failure baseline;
 - `uv run wiz8 compare <addresses>` for relocation-masked body proof;
 - reviewed claims under `evidence/` for why an accepted identity or layout is trusted.
 

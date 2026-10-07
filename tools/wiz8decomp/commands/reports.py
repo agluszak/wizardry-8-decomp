@@ -10,50 +10,7 @@ from .. import command_support as cli
 
 app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
 
-
-@app.command("compare")
-def comparison_command(
-    addresses: Annotated[
-        list[str] | None, typer.Argument(help="Original addresses to inspect.")
-    ] = None,
-    program: Annotated[str, typer.Option("--program")] = "wiz8",
-    report: Annotated[
-        Path | None, typer.Option(help="Saved summary.json; defaults to the latest run.")
-    ] = None,
-    against: Annotated[
-        Path | None, typer.Option(help="Earlier summary.json; show changed results only.")
-    ] = None,
-    files: Annotated[
-        list[Path] | None, typer.Option("--file", help="Restrict to these source owners.")
-    ] = None,
-    outcome: Annotated[str | None, typer.Option(help="Filter by reccmp outcome.")] = None,
-    limit: Annotated[int, typer.Option(min=1, max=100, help="Maximum function rows.")] = 20,
-    diff_lines: Annotated[
-        int, typer.Option(min=0, max=200, help="Total code-diff line budget.")
-    ] = 0,
-) -> None:
-    """Inspect a saved comparison without compiling or starting Ghidra."""
-    from ..comparison import parse_address
-    from ..reports.comparison import comparison_report
-    from ..source_index import target_for_program
-
-    settings = cli.settings()
-    cli.emit(
-        comparison_report(
-            settings.repo_dir,
-            target_for_program(settings.repo_dir, program),
-            report=report,
-            against=against,
-            addresses=[parse_address(address) for address in addresses or []],
-            files=files,
-            outcome=outcome,
-            limit=limit,
-            diff_lines=diff_lines,
-        )
-    )
-
-
-_INCLUDE = re.compile(r'^\s*#\s*include\s*[<"]([^>"]+)[>"]', re.MULTILINE)
+_INCLUDE = re.compile(r'^\\s*#\\s*include\\s*[<\"]([^>\"]+)[>\"]', re.MULTILINE)
 
 
 def _includes_directly(source: Path, header: str) -> bool:

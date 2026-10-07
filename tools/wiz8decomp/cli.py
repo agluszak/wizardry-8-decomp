@@ -10,7 +10,6 @@ from .commands.evidence import app as evidence_app
 from .commands.ghidra import app as ghidra_app
 from .commands.inputs import app as corpus_app
 from .commands.reports import app as report_app
-from .commands.vtables import app as vtables_app
 
 app = typer.Typer(
     help="Wizardry 8 reproducible decompilation bootstrap CLI.",
@@ -22,7 +21,6 @@ app.add_typer(ghidra_app, name="ghidra")
 app.add_typer(report_app, name="report")
 app.add_typer(toolchain_app, name="toolchain")
 app.add_typer(evidence_app, name="evidence")
-app.add_typer(vtables_app, name="vtables")
 register_core(app)
 
 

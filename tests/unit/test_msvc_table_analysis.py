@@ -10,8 +10,6 @@ from wiz8decomp.msvc_table_analysis import (
     _construction_families,
     _import_slots,
     _receiver_provenance,
-    compare_table_reports,
-    table_shape_fingerprint,
 )
 
 
@@ -195,49 +193,3 @@ def test_construction_family_groups_same_receiver_transitions() -> None:
     ]
 
 
-def test_shape_fingerprint_ignores_local_addresses_but_keeps_alias_pattern() -> None:
-    first = {
-        "slots": [
-            {"target": "0x1000", "resolution": {"kind": "local-body"}},
-            {"target": "0x2000", "resolution": {"kind": "local-body"}},
-            {"target": "0x1000", "resolution": {"kind": "local-body"}},
-            {
-                "target": "0x3000",
-                "resolution": {"kind": "pure-virtual", "name": "MSVCRT.dll!_purecall"},
-            },
-        ]
-    }
-    second = {
-        "slots": [
-            {"target": "0x9000", "resolution": {"kind": "local-body"}},
-            {"target": "0xa000", "resolution": {"kind": "local-body"}},
-            {"target": "0x9000", "resolution": {"kind": "local-body"}},
-            {
-                "target": "0xb000",
-                "resolution": {"kind": "pure-virtual", "name": "MSVCRT.dll!_purecall"},
-            },
-        ]
-    }
-
-    assert table_shape_fingerprint(first) == table_shape_fingerprint(second)
-
-
-def test_cross_build_compare_uses_shape_fingerprint() -> None:
-    table_a = {
-        "address": "0x5000",
-        "slots": [{"target": "0x1000", "resolution": {"kind": "local-body"}}],
-    }
-    table_b = {
-        "address": "0x9000",
-        "slots": [{"target": "0x7000", "resolution": {"kind": "local-body"}}],
-    }
-
-    result = compare_table_reports(
-        [
-            {"binary": "a.exe", "vftables": [table_a]},
-            {"binary": "b.exe", "vftables": [table_b]},
-        ]
-    )
-
-    assert len(result["matches"]) == 1
-    assert {row["binary"] for row in result["matches"][0]["tables"]} == {"a.exe", "b.exe"}
