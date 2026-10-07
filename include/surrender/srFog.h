@@ -2,9 +2,6 @@
 
 #include "srIlluminator.h"
 
-/* SR.DLL exports both vtables and the complete lifecycle. Dump/assert strings
-   name Fog start, Fog end and Density; ctor defaults density 0.5 and fogEnd
-   1000.0. Wizardry writes these fields on the static and dynamic scene fogs. */
 // VTABLE: SURRENDER 0x10076FE8 srVertexProcessor
 // class srClassSupport<srFog, srIlluminator, 0, 4624>
 // VTABLE: SURRENDER 0x10076FF4 srClassSupport<srIlluminator, srNode, 0, 4608>
@@ -20,18 +17,11 @@ public:
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srFog(const srFog& other);
 #endif
-    /* Provider copy assignment is consistent with srIlluminator assignment
-       followed by the three fog fields. Wiz8 imports the standalone symbol,
-       so the consumer keeps only the dllimport declaration. */
 
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srFog& operator=(const srFog& other);
 #endif
-    /* Header-visible like srLight's: the client getClassName emission
-       (0x00484710) returns the consumer literal directly, the consumer import
-       table has no entry, and provider TUs inline the same literal inside the
-       srClassSupport registrations. The provider still exports an out-of-line
-       copy. */
+
     // FUNCTION: SURRENDER 0x1004C1A0
     static const char* sGetClassName()
     {
@@ -45,15 +35,11 @@ public:
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
     virtual SR_DLL_IMPORT void verify(srRuntimeClass::e_verify mode) override;
 
-    /* Retail exports the destructor under its public spelling. */
     virtual SR_DLL_IMPORT ~srFog() override;
 
 public:
     virtual SR_DLL_IMPORT srClass* vInstance() override;
-    /* The primary table is named for its srIlluminator subobject, but its
-       methods identify class 0x1210 and clone the complete srFog. The
-       constructor/destructor install a separate support-phase table before
-       registering/unregistering this layer. */
+
     using srClassSupport<srFog, srIlluminator, false, 0x1210>::process;
     virtual SR_DLL_IMPORT int isActive(srVertexPipe& pipe) override;
     virtual SR_DLL_IMPORT void process(srVertexPipe& pipe) override;

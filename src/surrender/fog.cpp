@@ -52,9 +52,8 @@ int srFog::isActive(srVertexPipe& pipe)
     }
     if (density > 0.0f) {
         pipe.getEyeSpaceBoundingSphere(center, radius);
-        if ((radius <= static_cast<float>(fog_start)) &&
-            (center.LengthSquared() <
-             (static_cast<float>(fog_start) - radius) * (static_cast<float>(fog_start) - radius))) {
+        if ((radius <= fog_start) &&
+            (center.LengthSquared() < (fog_start - radius) * (fog_start - radius))) {
             return 0;
         }
         return 1;
@@ -91,23 +90,23 @@ void srFog::process(srVertexPipe& pipe)
         srVector3T<float> center;
         float radius;
         pipe.getEyeSpaceBoundingSphere(center, radius);
-        float limit = radius + static_cast<float>(fog_end);
+        double limit = radius + fog_end;
         long count = (long)pipe.getVertexCount();
         if (center.LengthSquared() <= limit * limit) {
             if (fog_end == fog_start) {
                 scale = 1e+08f;
             } else {
-                scale = (float)(1.0 / (fog_end - fog_start));
+                scale = 1.0 / (fog_end - fog_start);
             }
             const float* distances = pipe.getEyeSpaceDist();
+            float start = fog_start;
             if (count != 0) {
-                if (static_cast<float>(fog_start) == 0.0f) {
+                if (start == 0.0f) {
                     if (values != distances) {
                         srVectorProcessor::memcopy(values, distances, count * 4);
                     }
                 } else {
-                    srVectorProcessor::add(values, -static_cast<float>(fog_start), distances,
-                                           count);
+                    srVectorProcessor::add(values, -start, distances, count);
                 }
                 if (scale != 1.0f) {
                     if (scale == 0.0f) {
@@ -157,7 +156,6 @@ void srFog::process(srVertexPipe& pipe)
 
 // FUNCTION: SURRENDER 0x1004BB60
 srFog::srFog(srNode* parent)
-    : srClassSupport<srFog, srIlluminator, false, 0x1210>(static_cast<srNode*>(0))
 {
     if (parent != 0) {
         setParent(parent, 0);
@@ -185,7 +183,7 @@ void srFog::dump(std::ostream& stream)
 // FUNCTION: SURRENDER 0x1004C1B0
 srClass* srFog::vInstance()
 {
-    return new srFog(static_cast<srNode*>(0));
+    return new srFog;
 }
 
 // FUNCTION: SURRENDER 0x1004C350
