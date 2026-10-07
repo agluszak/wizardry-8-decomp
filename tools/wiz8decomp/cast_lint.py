@@ -174,34 +174,14 @@ def _git_base(repository: Path) -> str:
     )
 
 
-def _jj_base(repository: Path) -> str:
-    for candidate in ("main@origin", "trunk()", "@-"):
-        probe = run(
-            ["jj", "log", "-r", candidate, "--no-graph", "-T", "change_id"],
-            cwd=repository,
-            check=False,
-        )
-        if probe.exit_status == 0 and probe.stdout.strip():
-            return candidate
-    raise CastGateError("no Jujutsu baseline found; cannot tell which casts the change introduces")
-
-
 def baseline_diff(repository: Path) -> tuple[str, str]:
     """Return the baseline name and the unified diff from it to the current tree."""
-    if (repository / ".jj").is_dir():
-        base = _jj_base(repository)
-        diff = run(
-            ["jj", "diff", "--git", "--from", base, "--to", "@"],
-            cwd=repository,
-            check=False,
-        )
-    else:
-        base = _git_base(repository)
-        diff = run(
-            ["git", "diff", "--no-color", "--no-ext-diff", base],
-            cwd=repository,
-            check=False,
-        )
+    base = _git_base(repository)
+    diff = run(
+        ["git", "diff", "--no-color", "--no-ext-diff", base],
+        cwd=repository,
+        check=False,
+    )
     if diff.exit_status != 0:
         raise CastGateError("could not read the change diff:\n" + diff.stderr.strip())
     return base, diff.stdout

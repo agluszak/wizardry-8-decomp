@@ -19,7 +19,7 @@ A byte-identical copy (every blob matches the upstream subtree) is in this
 repository's history at commit `72697ddaac1c`, path `third_party/sfi-sgp/sgp/`:
 
 ```sh
-jj file show -r 72697ddaac1c 'third_party/sfi-sgp/sgp/<file>'
+git show '72697ddaac1c:third_party/sfi-sgp/sgp/<file>'
 ```
 
 The released prebuilt `SMACKW32.LIB`, `ddraw.lib`, and `mss32.lib` were never

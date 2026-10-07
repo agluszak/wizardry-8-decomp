@@ -893,13 +893,11 @@ def extract_declaration_oracle(repository: Path, configuration: dict, destinatio
     import re
     import subprocess
 
-    from .subprocesses import git_prefix
-
     revision = configuration["revision"]
     if not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise ValueError("source oracle requires a full immutable commit ID")
     resolved = subprocess.run(
-        [*git_prefix(repository), "rev-parse", revision + "^{commit}"],
+        ["git", "rev-parse", revision + "^{commit}"],
         cwd=repository,
         capture_output=True,
         text=True,
@@ -911,7 +909,7 @@ def extract_declaration_oracle(repository: Path, configuration: dict, destinatio
     files = {}
     for root_index, root in enumerate(roots):
         names = subprocess.run(
-            [*git_prefix(repository), "ls-tree", "-r", "--name-only", revision, root],
+            ["git", "ls-tree", "-r", "--name-only", revision, root],
             cwd=repository,
             capture_output=True,
             text=True,
@@ -925,13 +923,13 @@ def extract_declaration_oracle(repository: Path, configuration: dict, destinatio
             if staged in files:
                 raise ValueError("case-folded source oracle filename collision")
             data = subprocess.run(
-                [*git_prefix(repository), "show", revision + ":" + name],
+                ["git", "show", revision + ":" + name],
                 cwd=repository,
                 capture_output=True,
                 check=True,
             ).stdout
             blob = subprocess.run(
-                [*git_prefix(repository), "rev-parse", revision + ":" + name],
+                ["git", "rev-parse", revision + ":" + name],
                 cwd=repository,
                 capture_output=True,
                 text=True,

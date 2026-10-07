@@ -40,14 +40,8 @@ class RepositoryHygieneError(RuntimeError):
 
 
 def tracked_paths(repository: Path) -> list[Path]:
-    # History is Jujutsu-first and a checkout need not be colocated, so a bare
-    # `.git` is the fallback rather than the assumption.
-    if (repository / ".jj").is_dir():
-        argv = ["jj", "file", "list", "--no-pager", "--quiet", "-T", 'path ++ "\\0"']
-    else:
-        argv = ["git", "ls-files", "-z"]
     completed = subprocess.run(
-        argv,
+        ["git", "ls-files", "-z"],
         cwd=repository,
         capture_output=True,
         check=True,

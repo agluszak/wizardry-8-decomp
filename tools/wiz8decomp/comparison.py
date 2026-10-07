@@ -26,7 +26,7 @@ from reccmp.types import ImageId
 
 from .config import Settings, load_settings
 from .paths import atomic_json, atomic_write, sha256_file
-from .subprocesses import CommandFailure, resolve_executable, run
+from .subprocesses import CommandFailure, run
 
 LOGGER = logging.getLogger(__name__)
 _PRODUCT_INPUT_SUFFIXES = frozenset(
@@ -92,31 +92,19 @@ def all_source_addresses(repository: Path, target: str) -> list[int]:
 
 
 def changed_files(repository: Path, since: str | None = None) -> list[Path]:
-    """Select changed paths with jj locally and Git in plain CI checkouts."""
-
-    if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
-        command = ["jj", "diff", "--name-only", "--color=never"]
-        if since is not None:
-            baseline = f"{since[7:]}@origin" if since.startswith("origin/") else since
-            command.extend(("--from", baseline))
-    else:
-        baseline = since
-        if baseline is None:
-            base_branch = os.environ.get("GITHUB_BASE_REF")
-            if base_branch:
-                baseline = f"origin/{base_branch}"
-            else:
-                # Push events expose the previous tip; shallow checkouts often
-                # lack HEAD^ so prefer the explicit before SHA when present.
-                # Workflow must fetch that SHA — fetch-depth: 2 alone does not
-                # guarantee github.event.before for multi-commit pushes.
-                before = os.environ.get("GITHUB_EVENT_BEFORE", "").strip()
-                baseline = before if before and set(before) != {"0"} else "HEAD^"
-        elif baseline.endswith("@origin"):
-            baseline = f"origin/{baseline.removesuffix('@origin')}"
-        command = ["git", "diff", "--name-only", "--no-renames", baseline]
-    result = run(command, cwd=repository)
-    return [repository / name for name in result.stdout.splitlines() if name]
+    """Select tracked changes against the supplied or workflow baseline."""
+    baseline = since
+    if baseline is None:
+        base_branch = os.environ.get("GITHUB_BASE_REF")
+        before = os.environ.get("GITHUB_EVENT_BEFORE", "").strip()
+        if base_branch:
+            baseline = f"origin/{base_branch}"
+        elif before and set(before) != {"0"}:
+            baseline = before
+        else:
+            baseline = "HEAD^" if os.environ.get("GITHUB_ACTIONS") == "true" else "origin/main"
+    result = run(["git", "diff", "--name-only", "--no-renames", "-z", baseline], cwd=repository)
+    return [repository / name for name in result.stdout.split("\0") if name]
 
 
 def changed_source_files(repository: Path, since: str | None = None) -> list[Path]:

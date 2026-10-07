@@ -8,23 +8,11 @@ import subprocess
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from functools import lru_cache
 from pathlib import Path
 
 from .paths import atomic_json
 
 LOG = logging.getLogger(__name__)
-
-
-@lru_cache(maxsize=8)
-def git_prefix(repository: Path) -> tuple[str, ...]:
-    """Read the backing Git object store in Git or Jujutsu workspaces."""
-    if (repository / ".jj").is_dir():
-        root = subprocess.run(
-            ["jj", "git", "root"], cwd=repository, capture_output=True, text=True, check=True
-        ).stdout.strip()
-        return ("git", f"--git-dir={root}")
-    return ("git",)
 
 
 class CommandFailure(RuntimeError):
