@@ -46,9 +46,7 @@ starts Wine's GDB proxy on a free port, and connects system GDB with a determini
 (`SIGTRAP` stop/print, `SIGSEGV` pass, full backtrace, registers, shared libraries, code and stack).
 Main-image register and raw-stack candidates are symbolized through `Wiz8Runtime.map`. The report and raw session are written under `build/debug/`.
 
-For behavioral recovery and visual acceptance, use the
-[runtime-bringup skill](../../.agents/skills/runtime-bringup/SKILL.md). A semantic scenario result
-only establishes its observed behavior; it is not independent proof of visible presentation.
+For behavioral recovery and visual acceptance, compare retail and recomp through the existing runtime commands. A semantic scenario result only establishes its observed behavior; it is not independent proof of visible presentation.
 
 Bare `uv run wiz8 build` builds the `WIZ8` comparison image; `uv run wiz8 build runtime` builds the runnable image.
 Pass an explicit target only for a library surface such as `uv run wiz8 build SREXT_JPEGIMPORTER`.
@@ -118,8 +116,7 @@ uv run wiz8 compare 0x0044e010
 
 Selected comparisons consume built inputs; run `uv run wiz8 build` when they are stale.
 `WIZ8` is not an address selector.
-Use the [comparison reference](../../.agents/skills/matching-decomp/references/comparison.md)
-when COFF contributions, folding, or relocation targets require a different modality.
+Use the existing comparison/reccmp commands when COFF contributions, folding, or relocation targets require a different modality.
 
 `config/reccmp/wiz8-msvc-runtime.csv` and `config/reccmp/wiz8-zlib.csv` retain
 reviewed library identities as `library` rows. These let reccmp account for

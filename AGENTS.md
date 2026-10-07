@@ -1,142 +1,68 @@
-# Wizardry 8 decompilation
+# Wizardry 8 reconstruction
 
-This is an evidence-driven reconstruction of Wizardry 8 and SurRender using the original VC6-era
-toolchain.
+This repository reconstructs Wizardry 8 and SurRender from retail binaries and accepted original-source evidence using the original VC6-era toolchain.
 
 ## Current stage
 
-The recovered executable links into runnable products. The primary task is
-**semantic-model, binary-structure and behavioral auditing**, including systematic classification
-and reduction of paired retail/recomp mismatches. Work by shared source-model cause:
-types/layouts, ABI, ownership, globals, classes/templates/lifecycle, constants, floating-point
-semantics and control flow. Do not treat thousands of remaining differences as independent functions.
+The products are substantially reconstructed and runnable. The remaining work is to turn the recovered source into a faithful, coherent historical codebase:
 
-A comparison is evidence about the current model, not an objective function. A clean decompilation
-does not prove equivalence or original spelling, and a differing decompilation does not prove a bug.
-Completion requires no unclassified evidence-backed defect. Unproven field meanings and
-compiler emission gaps remain explicit; naming every field is not a completion criterion.
+- correct residual semantic, type, layout, ABI and ownership mistakes;
+- recover shared helpers and original source structure where lowered code is still duplicated;
+- remove reconstruction artifacts, stale recovery machinery and unnecessary complexity;
+- establish a clean historical baseline for a future portable/modernized version.
 
-## Evidence and source fidelity
+Binary similarity is evidence, not the objective. Prefer plausible authored source even when equivalent compiler output still differs.
 
-- Retail instructions/call sites and accepted original-source oracles outrank inferred Ghidra types,
-  generated output, comparison results and workflow documentation. Keep unresolved facts unknown.
-- Recover plausible authored circa-2000 C++. Never shape source solely to influence registers, stack
-  layout, instruction scheduling, CFG shape or decompiler text.
-- Fix type/layout/ABI/ownership disagreements at their canonical owner. Do not hide them with casts,
-  duplicate declarations, wrappers, aliases, invented unions or local byte-offset tricks.
-- Compiler output is not authored source. ICF, storage reuse, widened copies, inlining, template
-  emissions, thunks and deleting destructors do not establish source aliases or handwritten helpers.
-  A template emission establishes only what its machine body actually distinguishes: an ABI-equivalent
-  constructor/destructor/helper does not prove the original template arguments or source spelling.
-  Recover template argument types from typed producers/consumers, element lifetimes, sizes, overloads
-  or independent original symbols; never add casts merely to satisfy an emission label.
-- Preserve established retail bugs/UB. Do not add guards, initialization or safer behavior merely
-  because the recovered code looks suspicious.
-- Search existing source and accepted oracles before declaring a new abstraction or implementation.
-  One entity has one canonical owner and one evidence-backed type.
-- SurRender import/export spelling is ABI evidence, not source ownership. Follow
-  `docs/libraries/surrender-import-visibility.md`.
-- The pinned released SGP baseline is the immutable SGP oracle; `src/sgp` is our editable
-  reconstruction of Wizardry's fork. Its markers establish ownership, not `sgp-source` provenance.
-  SGP changes need released-baseline/retail evidence and the required modification notice.
-- Never commit extracted trees, live Ghidra projects or build products. Only reviewed GZF checkpoints
-  listed in `vendor/ghidra/exports/manifest.json` may be tracked.
-- Work stays in our Wizardry/reccmp/Ghidriff forks. Do not prepare or suggest upstream submissions
-  unless explicitly requested.
+## Source fidelity
 
-Canonical rule owners:
+- Retail instructions, call sites and accepted original-source evidence outrank inferred Ghidra types, recomp PDBs, decompiler output and comparison heuristics.
+- Recover plausible circa-2000 C/C++. Do not shape source solely to influence registers, stack layout, instruction scheduling, CFG shape or decompiler text.
+- Fix type, layout, ABI and ownership errors at their canonical declaration or owner. Do not hide them with caller-local casts, aliases, invented unions or byte-offset tricks.
+- Compiler artifacts such as ICF, storage reuse, inlining, thunks, deleting destructors and template emissions are not automatically authored source.
+- Prefer an existing or evidence-backed shared abstraction over duplicated lowered implementations. Let the compiler own inlining.
+- Preserve established retail bugs and undefined behavior in the historical reconstruction.
+- Keep genuinely unknown facts unknown. Do not turn an inference into a stronger claim than the evidence supports.
 
-- General recovery fidelity: [source-fidelity](.agents/skills/matching-decomp/references/source-fidelity.md).
-- Type, layout and lifecycle inference: [type-modeling](.agents/skills/type-modeling/SKILL.md).
-- SurRender provider/consumer ABI boundaries: [import visibility](docs/libraries/surrender-import-visibility.md).
-- Source and translation-unit ownership: [source model](docs/wiz8-source-model.md).
+See [source fidelity](docs/source-fidelity.md) for the remaining recovery-specific constraints.
 
-Workflow and evidence documents link to these owners rather than maintaining parallel policies.
+## Project ownership
 
-## Tool ownership
+Keep one owner per concern:
 
-- Git/C++ owns recovered source, declarations, placement and build configuration.
-- Ghidra owns retail analysis. `ghidra decompile|asm|sym` are reads; `ghidra sync` projects
-  established source facts into ProgramDB.
+- C/C++ source owns the reconstructed program, declarations, source placement and build graph.
+- Ghidra owns retail binary analysis.
 - reccmp owns entity identity/pairing and comparison preparation.
 - Ghidriff owns decompiled-code differencing.
 - `uv run wiz8` composes project workflows.
 
-Do not create a second differ, semantic-equivalence engine, symbol database, parallel inventory,
-generic query protocol or alternate runtime harness when the existing owner can answer the question.
+Do not add parallel comparison engines, symbol databases, source inventories, generic query layers or runtime harnesses when an existing owner already covers the need.
 
-**Provenance matters:** a fact projected from current recovered source or recomp PDB into retail
-ProgramDB is useful analysis annotation, but it is not independent retail evidence confirming that
-same source fact.
+Source and translation-unit ownership is documented in [the source model](docs/wiz8-source-model.md). SurRender consumer/provider ABI rules are documented in [import visibility](docs/libraries/surrender-import-visibility.md).
 
-## Managed cloud tools
+A fact projected from recovered source or a recomp PDB into retail Ghidra is useful analysis annotation, but is not independent retail evidence confirming that same source fact.
 
-When `/workspace/.tools/activate.sh` exists, source it before tool commands.
-`/workspace/.tools/onboarding-toolchain.sh` provisions and smoke-tests the pinned
-VC6/QEMU and analysis images. Follow [compiler image instructions](docker/msvc600/README.md)
-for Wine/QEMU requirements. With Docker VFS, run compiler containers sequentially
-and source indexing with `uv run wiz8 analyze source-index --jobs 1`.
+## Working style
 
-## Work by recovery campaign
+Prefer simple code that could realistically have existed in the original codebase. Fix systemic causes rather than individual symptoms.
 
-For a mismatch campaign:
+When repeated code looks compiler-expanded, investigate a shared helper, template or header-visible definition rather than preserving duplication. Do not use `__forceinline`, noinline controls, optimizer pragmas or source-level aliases merely to chase retail code generation.
 
-1. Start from saved comparison reports; do not launch a fresh whole-image run just to begin.
-2. Choose a coherent cluster/family and identify the shared owner before editing callers.
-3. Inspect only unanswered retail facts, batching related Ghidra reads.
-4. Fix the canonical source model and all affected consumers coherently.
-5. Continue through a substantial batch — normally at least ~100 affected functions — before expensive
-   verification.
-6. Rebuild/compare once for the batch, inspect gains/regressions, and fix batch-level problems.
-7. Stop when no evidence-backed correction remains; retain faithful source even if representation or
-   established lowering still differs.
+Search the existing source and accepted oracles before inventing a new abstraction. One entity should have one canonical owner and one evidence-backed type.
 
-The goal is to reduce **unclassified mismatches and high-fanout source-model defects**, not merely to
-raise the clean-function count.
+Use Ghidra, comparison and runtime evidence when they answer a concrete question; they are not mandatory rituals after every edit. Runtime behavior is authoritative for behavioral questions, but a passing scenario proves only what it observes.
 
-## Verification discipline
+Repository-internal tools and formats have no compatibility contract. Delete or replace obsolete machinery instead of adding compatibility layers.
 
-Tests and full comparisons are expensive and should be **rare** during recovery campaigns.
+## Verification
 
-- During investigation prefer saved reports, source search, Ghidra reads and narrowly focused
-  comparisons only when they resolve a concrete uncertainty.
-- Do not run `pr-check`, broad test suites, runtime suites, full comparisons or formatting suites
-  after individual edits.
-- For mismatch work, normally wait until a coherent batch affects ~100+ functions before rebuilding
-  and running the relevant comparison.
-- Reuse successful results while their relevant inputs have not changed.
-- Near completion of a source batch run `uv run wiz8 compare --changed`, then
-  `uv run wiz8 pr-check` and
-  `uv run wiz8 report merge-preservation --base origin/main`.
-- Run runtime scenarios only when the batch plausibly changes the behavior they observe.
-- Tooling-only work uses the smallest focused tests for the changed owner. Documentation-only work
-  needs diff inspection, not product tests.
+Use the smallest check that can invalidate the change while developing. Reuse successful results while their relevant inputs have not changed.
 
-A gating failure is a source/model/tooling defect to fix, not a reason to accumulate waivers.
+Before publishing a substantial source change, run the relevant changed comparison and project checks. Run runtime scenarios only when the change plausibly affects the behavior they observe. Tooling-only changes should use focused tooling tests; documentation-only changes need diff/link inspection, not product tests.
 
-## Task skills
+A failing gate is normally a source/model/tooling defect to fix, not a reason to accumulate waivers.
 
-Load only the skill needed for the current task and only the references it routes to:
+## Repository state
 
-- [matching-decomp](.agents/skills/matching-decomp/SKILL.md): systematic recovery campaigns,
-  comparison triage, source placement and source oracles.
-- [type-modeling](.agents/skills/type-modeling/SKILL.md): prototypes, fields, globals, layouts,
-  inheritance, vtables and lifecycle ABI.
-- [ghidra-analysis](.agents/skills/ghidra-analysis/SKILL.md): live retail analysis, provenance,
-  ProgramDB edits and checkpoints.
-- [runtime-bringup](.agents/skills/runtime-bringup/SKILL.md): runtime/behavioral validation and
-  debugger use.
-- [tooling-maintenance](.agents/skills/tooling-maintenance/SKILL.md): Python/CMake/reccmp/Ghidriff,
-  source indexing, reports and validation infrastructure.
-- [jujutsu-workflow](.agents/skills/jujutsu-workflow/SKILL.md): load only for rebasing, existing PR
-  history, conflicts or publication; ordinary edits in the current change do not require it.
+Use the provided checkout and preserve unrelated work. Do not commit extracted trees, live Ghidra projects or build products. Only reviewed GZF checkpoints listed in `vendor/ghidra/exports/manifest.json` may be tracked.
 
-## Scope and publication
-
-Fix forward when the task exposes a concrete shared defect, but do not turn a focused task into
-unrelated repository cleanup. Repository-owned APIs/formats have no compatibility contract: replace
-obsolete machinery instead of adding compatibility layers.
-
-Use the provided checkout; do not create another workspace/clone unless explicitly requested. Preserve
-unrelated work. Before relying on retail/Ghidra state after adopting a genuinely new base, run
-`uv run wiz8 doctor`. Jujutsu mechanics and publication live in the dedicated skill.
+After adopting a revision with a changed reviewed Ghidra checkpoint, run `uv run wiz8 doctor` before relying on live retail analysis. Checkpoint handling is documented in [Ghidra checkpoints](docs/ghidra-checkpoints.md).
