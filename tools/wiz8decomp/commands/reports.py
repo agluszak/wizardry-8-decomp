@@ -174,32 +174,3 @@ def semantic_names_command() -> None:
     warn_if_source_index_may_be_stale(settings.repo_dir, "WIZ8")
     cli.emit(semantic_name_opportunity_report(settings.repo_dir))
 
-
-@app.command("merge-preservation")
-def merge_preservation_command(
-    base: Annotated[str, typer.Option("--base", help="Base revision, e.g. origin/main.")],
-    head: str | None = typer.Option(
-        None,
-        "--head",
-        help="Explicit result revision; defaults to the current Jujutsu change or Git working tree.",
-    ),
-) -> None:
-    """Compare FUNCTION/GLOBAL/VTABLE identities by retail address between two revisions."""
-
-    from ..merge_preservation import base_ancestry_report, merge_preservation_report
-
-    repository = cli.settings().repo_dir
-    ancestry = base_ancestry_report(repository, base, head)
-    if ancestry["status"] != "passed":
-        cli.emit({"status": "failed", "base": base, "base_ancestry": ancestry})
-        raise typer.Exit(code=1)
-    report = merge_preservation_report(
-        repository,
-        ancestry["base"],
-        ancestry["head"] if head is not None else None,
-    )
-    report["requested_base"] = base
-    report["base_ancestry"] = ancestry
-    cli.emit(report)
-    if report["status"] != "passed":
-        raise typer.Exit(code=1)

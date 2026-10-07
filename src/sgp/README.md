@@ -208,8 +208,7 @@ functions: 287 `no-differences`, 53 `differences`, zero unpaired and zero analys
 failures. Both TGA functions are `no-differences`. Its rebuilt PE SHA-256 is
 `1d90b377e9218dbea73c09b88814d22cc0c129728b74e6d17ac90b52f146d311`,
 using reccmp revision `4902aabd3f5d6b9f6b1ac686b686803479207e59`, Ghidra
-12.1.4 and Ghidriff 1.0.0. The VC6 build has no unresolved symbols; `pr-check`
-and merge-preservation pass. Generated reports and build products stay untracked.
+12.1.4 and Ghidriff 1.0.0. The VC6 build has no unresolved symbols and `pr-check` passes. Generated reports and build products stay untracked.
 
 The C++ residuals include changed helper inlining (`DequeueEvent`,
 `DeleteVideoObject`), string-copy lowering (`InitializeButtonImageManager`),

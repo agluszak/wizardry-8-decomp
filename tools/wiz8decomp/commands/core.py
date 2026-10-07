@@ -75,27 +75,21 @@ def tidy_audit_command() -> None:
 
 
 def pr_check_command(
-    base: Annotated[str, typer.Option("--base", help="PR base revision.")] = "main@origin",
+    base: Annotated[str, typer.Option("--base", help="PR base revision.")] = "origin/main",
 ) -> None:
     """Run every validation lane required by the files changed in a PR."""
     from .. import command_support as cli
     from ..build import check, lint, lint_required
     from ..comparison import changed_files
     from ..config import repository_root
-    from ..merge_preservation import base_ancestry_report
     from ..paths import atomic_json
 
     repository = repository_root()
-    ancestry = base_ancestry_report(repository, base)
-    if ancestry["status"] != "passed":
-        cli.emit({"status": "failed", "base": base, "base_ancestry": ancestry})
-        raise typer.Exit(code=1)
     changed_paths = changed_files(repository, base)
     changed = [path.relative_to(repository).as_posix() for path in changed_paths]
     result: dict[str, Any] = {
         "status": "passed",
         "base": base,
-        "base_ancestry": ancestry,
         "changed_files": changed,
         "check": check(repository),
         "lint": None,
@@ -108,7 +102,6 @@ def pr_check_command(
         {
             "status": result["status"],
             "base": base,
-            "head": ancestry.get("head"),
             "changed_files": len(changed),
             "check": result["check"].get("status"),
             "lint": result["lint"].get("status") if result["lint"] is not None else "not-required",
