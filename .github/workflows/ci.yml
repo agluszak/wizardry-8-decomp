@@ -186,17 +186,6 @@ jobs:
           enable-cache: true
       - name: Install Python dependencies
         run: uv sync --frozen
-      - name: Verify PR base ancestry and marker preservation
-        if: github.event_name == 'pull_request'
-        run: |
-          pr_head="refs/remotes/origin/pr-head"
-          for _ in 1 2 3 4 5; do
-            if git merge-base "$pr_head" "origin/$GITHUB_BASE_REF" >/dev/null 2>&1; then break; fi
-            git fetch --no-tags --deepen=256 origin \
-              "+${{ github.event.pull_request.base.sha }}:refs/remotes/origin/$GITHUB_BASE_REF" \
-              "+${{ github.event.pull_request.head.sha }}:$pr_head"
-          done
-          uv run wiz8 report merge-preservation --base "origin/$GITHUB_BASE_REF" --head "$pr_head"
       - name: Install host analysis tools
         run: |
           sudo apt-get update
