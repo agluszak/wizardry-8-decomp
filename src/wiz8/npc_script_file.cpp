@@ -8,20 +8,7 @@
 
 /* Original translation-unit ownership is unknown; surrounding anchors do not resolve it. */
 
-/* Read one record: its string table, its entry array, and each entry's
-   sub-entries with their own strings. Three levels of dynamic array, each
-   allocated from a count that arrives in the slot the pointer then occupies.
-
-   Array counts are cleared before allocation and restored after successful
-   allocation. Allocation failures retain the reader's original partial state.
-
-   Record strings arrive as wide characters and are converted through sprintf.
-   The format at 0x0061C4B0 is four bytes of data in the reviewed image, which is
-   consistent with the wide-to-narrow conversion spelled here but is not
-   confirmed byte for byte; the operand is a masked relocation either way.
-
-   Several reads here have no transferred-byte check and two allocations have no
-   null check. That is the original's own error handling, not an omission. */
+/* Preserve partial state and unchecked reads/allocations on failure. */
 
 /* Free each record's string table and the first entry's sub-entry array. The
    header, name, quotes array, and remaining entry allocations are left for

@@ -10,20 +10,6 @@
 #include "vobject_blitters.h"
 #include "vsurface.h"
 
-/*
- * Local Code\VideoObjectManager.cpp, named by the three assertions this body
- * embeds at lines 45, 62 and 221.
- *
- * Two tables are indexed here and both are established by this body alone. The
- * slot table is eight bytes per entry: a first-frame index at +0x00 and a
- * signed vertical offset at +0x04, which is read with movsx. The frame table is
- * 0x3c bytes per entry - the decompiler shows the index scaled by 0xf dwords -
- * whose first 0x30 bytes are the path it loads from, then a mode selector, a
- * loaded flag and the surface it draws. The path is what fixes the base at
- * 0x0062C430: reading the blit alone suggests 0x0062C460, because the first
- * fields it touches are the mode and the surface.
- */
-
 static_assert(sizeof(W8VideoObjectSlot) == 8, "W8VideoObjectSlot_size_must_be_8");
 static_assert(sizeof(W8VideoFrame) == 0x3c, "W8VideoFrame_size_must_be_0x3c");
 

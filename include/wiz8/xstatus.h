@@ -17,21 +17,6 @@ struct W8WorldItem;
 struct W8CharacterEventQueue;
 class W8GameTimer;
 
-/* Packed gXStatus at 0x006836B8. The thiscall constructor at 0x004E6970
-   constructs eight W8MonsterManagerEntry objects at this, then the growable
-   vector at this+0x9B7. The destructor at 0x004E6940 tears those members down
-   in reverse. These members form the non-trivial prefix of one C++ object,
-   not an entries array, a 0x73 prefix, and a separate targeting vector.
-
-   Database loaders and retail assertions name later members of this same
-   global (uiItemsInDatabase, fCombatMode, plsMonsterList, ...). Overlapping
-   GLOBAL aliases at 0x683F94, 0x683F95..0x683F9B, 0x683FAD, 0x683FB1,
-   0x683FC5, 0x683FCD, 0x683FCE, 0x683FD7, 0x684000 and 0x68406F are those
-   members, not separate roots.
-
-   The constructor and destructor only visit the non-trivial prefix members.
-   InitializeGameplayRuntimeObjects clears 0x1A0A bytes starting at this
-   object, establishing the POD state through +0x1A09 as its tail. */
 #pragma pack(push, 1)
 struct W8XStatus {
     W8MonsterManagerEntry monster_manager_entries[8]; /* 0x000: 0x006836B8 */
