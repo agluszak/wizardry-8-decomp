@@ -68,8 +68,6 @@ public:
     /* Copy construction and destruction are consistent with ordinary member
        lifecycle. The default constructor initializes stream state. */
 
-    /* Assignment performs memberwise copying; srArray owns buffer reallocation. */
-
 #if !defined(SURRENDER_BUILD)
     srBinOMStream(const srBinOMStream& stream);
     virtual ~srBinOMStream() override {}

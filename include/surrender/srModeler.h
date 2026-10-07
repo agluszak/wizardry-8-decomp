@@ -7,8 +7,6 @@
 #include "srShader.h"
 #include "srTextureIFace.h"
 
-/* Retail exports private helpers and copy operations. The reconstruction uses
-   class-level export; original annotation and special-member spelling are unresolved. */
 // VTABLE: SURRENDER 0x10076C88 srModeler
 #if defined(SURRENDER_BUILD)
 class __declspec(dllexport) srModeler {
@@ -43,8 +41,6 @@ public:
         {
         }
 
-        /* The assignment body copies the six fields. */
-
         e_axis axis_u;
         e_axis axis_v;
         float u_scale;
@@ -75,8 +71,6 @@ public:
         int operator==(const Vertex& other) const;
         int operator!=(const Vertex& other) const;
 
-        /* Class-level dllexport emits the memberwise assignment. */
-
         /* stCube.cpp writes the modelled position and the first of the eight
            UV slots the Polygon constructor layout-initializes at +0xC0. */
         srVector3T<float> position;
@@ -100,11 +94,6 @@ public:
         void reset();
         void flipFacing();
 
-        /* Copy bodies are consistent with memberwise copying. Assignment calls
-           Vertex::operator=; construction block-copies the Vertex region and
-           copies the four shader words individually. Original special-member
-           declarations are unresolved. */
-
         srTextureIFace* textures[4][2];
         srShader shaders[4];
         Vertex vertices[3];
@@ -124,8 +113,6 @@ public:
         void reset();
         void reAllocate(int vertices);
 
-        /* Copy bodies are consistent with memberwise copying, as for Triangle above. */
-
         srTextureIFace* textures[4][2];
         srShader shaders[4];
         /* Engine Code\stCube.cpp assigns positions and UVs through this table
@@ -139,9 +126,6 @@ public:
 
     srModeler();
     virtual ~srModeler();
-
-    /* Copy bodies are consistent with memberwise copying; srArray<Triangle>
-       owns the triangle storage clone. */
 
     void discard();
 

@@ -9,8 +9,6 @@
 class srBinOStream;
 class srModel;
 
-/* Provider exports include lifecycle symbols and the vftable. The reconstruction
-   uses implicit base-only lifecycle; original declaration spelling is unresolved. */
 // VTABLE: SURRENDER 0x10075418
 // class srSurfaceIOManager
 class
@@ -56,31 +54,23 @@ public:
     SurfaceExporter* getExporter(const char* path);
     void getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, const char* path,
                         const ImportInfo& options);
-
-    /* The emitted lifecycle is consistent with ordinary base-subobject operations. */
 };
 
 static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x04), "srSurfaceImportInfo_must_be_0x04");
 static_assert((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExportInfo_must_be_0x0c");
 
-/* Provider lifecycle symbols are exported. The reconstruction uses implicit
-   base-only lifecycle; original declaration spelling is unresolved. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
 #endif
     __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
 public:
-    /* Exported lifecycle bodies contain ordinary base-only operations. */
-
     virtual int getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, srBinIStream& stream,
                                const srSurfaceIOManager::ImportInfo& options);
     virtual srColorSurfaceIFace* importSurface(srBinIStream& stream,
                                                const srSurfaceIOManager::ImportInfo& options) = 0;
 };
 
-/* Provider exports include lifecycle symbols and the vftable. The reconstruction
-   uses implicit base-only lifecycle; original declaration spelling is unresolved. */
 // VTABLE: SURRENDER 0x10075530 srHierarchyIOManager
 // class srHierarchyIOManager
 class
@@ -110,9 +100,6 @@ public:
     class HierarchyImporter;
     class HierarchyExporter;
 
-    /* No state beyond srIOManager is modeled; exported lifecycle bodies contain
-       ordinary base-only operations. */
-
     void importHierarchy(const char* path, const ImportInfo& options);
     void exportHierarchy(const char* path, const ExportInfo& options);
 };
@@ -129,14 +116,10 @@ class
 #endif
     __declspec(novtable) srHierarchyIOManager::HierarchyImporter : public srIOManager::Importer {
 public:
-    /* Exported lifecycle bodies contain ordinary base-only operations. */
-
     /* importHierarchy's call site dispatches through vtable slot 2. */
     virtual void importHierarchy(srBinIStream& stream, const ImportInfo& options) = 0;
 };
 
-/* Provider exports include lifecycle symbols and the vftable. The reconstruction
-   uses implicit base-only lifecycle; original declaration spelling is unresolved. */
 // VTABLE: SURRENDER 0x10075534 srModelIOManager
 // class srModelIOManager
 class
@@ -166,9 +149,6 @@ public:
     class ModelImporter;
     class ModelExporter;
 
-    /* No state beyond srIOManager is modeled; exported lifecycle bodies contain
-       ordinary base-only operations. */
-
     srModel* importModel(const char* path, const ImportInfo& options);
     void exportModel(const char* path, srModel& model, const ExportInfo& options);
 };
@@ -183,8 +163,6 @@ class
 #endif
     __declspec(novtable) srModelIOManager::ModelImporter : public srIOManager::Importer {
 public:
-    /* Exported lifecycle bodies contain ordinary base-only operations. */
-
     /* importModel's call site dispatches through vtable slot 2. */
     virtual srModel* importModel(srBinIStream& stream, const ImportInfo& options) = 0;
 };

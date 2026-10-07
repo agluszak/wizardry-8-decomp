@@ -92,8 +92,6 @@ class __declspec(novtable) SR_DLL_IMPORT srBinIMStream
 public:
     srBinIMStream(const void* data, unsigned long size);
 
-    /* The emitted bodies are consistent with ordinary memberwise copying. */
-
     /* The reconstruction leaves provider destruction implicit; consumers retain the
        evidenced header-visible empty body. */
 

@@ -25,8 +25,6 @@ public:
     virtual unsigned long tell() override;
     virtual unsigned long vread(void* destination, unsigned long size) override;
 
-    /* The emitted copy body is consistent with memberwise copying. */
-
 private:
     unsigned char* buffer;
     srScheduler::Job* job;

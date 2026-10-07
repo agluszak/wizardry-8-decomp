@@ -22,9 +22,6 @@ public:
 // class srBoxFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srBoxFilter : public srFilter {
 public:
-    /* No derived state is modeled; lifecycle bodies are consistent with
-       ordinary base-only operations and derived table setup. */
-
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
     virtual double getSupport() const override;
@@ -34,9 +31,6 @@ public:
 // class srBellFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srBellFilter : public srFilter {
 public:
-    /* No derived state is modeled; lifecycle bodies are consistent with
-       ordinary base-only operations and derived table setup. */
-
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
     virtual double getSupport() const override;
@@ -46,9 +40,6 @@ public:
 // class srBSplineFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srBSplineFilter : public srFilter {
 public:
-    /* No derived state is modeled; lifecycle bodies are consistent with
-       ordinary base-only operations and derived table setup. */
-
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
     virtual double getSupport() const override;
@@ -58,9 +49,6 @@ public:
 // class srTriangleFilter
 class SR_DLL_IMPORT SR_DLL_EXPORT srTriangleFilter : public srFilter {
 public:
-    /* No derived state is modeled; lifecycle bodies are consistent with
-       ordinary base-only operations and derived table setup. */
-
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
     virtual double getSupport() const override;

@@ -49,7 +49,6 @@ public:
                                           const srVector3T<float>* vertices,
                                           const srVector4T<float>& plane, unsigned long shift,
                                           unsigned long count, int first);
-    /* The exported assignment is consistent with whole-object memberwise copying. */
 
     /* Sphere-vs-plane-mask test over the six axis frustum planes plus every
        set bit of mask. depth becomes the 0..1 penetration fraction when the

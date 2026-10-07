@@ -24,8 +24,6 @@ class srPalette;
 class srVertexProcessor;
 struct srVertexArray;
 
-/* Retail exports private helpers and copy construction. The reconstruction
-   uses class-level export; original annotation and copy spelling are unresolved. */
 // VTABLE: SURRENDER 0x100766B0 srGERD
 #if defined(SURRENDER_BUILD)
 class __declspec(dllexport) srGERD : public srRuntimeClass {
@@ -1327,9 +1325,6 @@ private:
        released by closeWindow. */
     srHeapBuffer<srVector4T<float> > pick_vertices;
 };
-
-/* The copy body is consistent with memberwise copying; no in-DLL call site is
-   identified in the reviewed evidence. */
 
 /* Retail 0x10027BF0: the three-word texture-set key hash; the interning
    cache inlines it for the lookup probe and calls this emission when

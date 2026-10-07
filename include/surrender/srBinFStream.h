@@ -25,8 +25,6 @@ public:
     const char* getPath() const;
     int isOpen();
 
-    /* The copy bodies are consistent with memberwise copying of the path. */
-
 protected:
     enum e_mode { SR_MODE_READ = 0, SR_MODE_WRITE = 1, SR_MODE_READ_WRITE = 2 };
 
@@ -70,9 +68,6 @@ public:
     virtual unsigned long tell() override;
 
 private:
-    /* Copy bodies are consistent with memberwise copying; the vbase destructor
-       is a compiler ABI helper. */
-
     virtual unsigned short vget() override;
     virtual unsigned long vread(void* destination, unsigned long size) override;
 };
@@ -101,9 +96,6 @@ public:
     virtual unsigned long tell() override;
 
 private:
-    /* Copy bodies are consistent with memberwise copying; the vbase destructor
-       is a compiler ABI helper. */
-
     virtual unsigned short vget() override;
     virtual unsigned short vput(char value) override;
     virtual unsigned long vread(void* destination, unsigned long size) override;
@@ -134,9 +126,6 @@ public:
     virtual unsigned long tell() override;
 
 private:
-    /* Copy bodies are consistent with memberwise copying; the vbase destructor
-       is a compiler ABI helper. */
-
     virtual unsigned short vput(char value) override;
     virtual unsigned long vwrite(const void* source, unsigned long size) override;
 };

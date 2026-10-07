@@ -44,5 +44,5 @@ object evidence are particularly useful here; masked equality still does not pro
 | Info-ZIP UnZip 5.4 | Accepted library source; [ZIP extension](../../../../docs/targets/srext-unzip.md) owns adapter evidence. Stock UnZip is `library` in the reccmp CSV; Sir-Tech retained subsets (`api_subset` / `windll_subset`) stay `function` to match recovered `FUNCTION` markers. |
 
 SurRender remains recoverable; exports, ABI observations, and header evidence do not make its
-implementation ordinary available source. See [SurRender ABI](../../../../docs/libraries/surrender-abi.md)
-when working at that boundary.
+implementation ordinary available source. Use the [ABI snapshots](../../../../evidence/snapshots/surrender-abi/) and
+[import visibility rules](../../../../docs/libraries/surrender-import-visibility.md).
