@@ -8,9 +8,8 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from .binary.code import relocation_sites
 from .binary.demangle import demangle, tool_version
-from .binary.image import PeImage
+from .binary.image import PeImage, relocation_sites
 from .binary.inventory import representative_modules
 from .config import Settings
 from .ghidra.project import program_name

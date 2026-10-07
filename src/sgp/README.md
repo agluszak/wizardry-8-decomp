@@ -39,9 +39,8 @@ are evidence only where binary/object evidence shows Wizardry retained them.
   `src/wiz8`. It is not evidence that the name or body is original.
 - `sgp-source` provenance comes only from an explicit reviewed claim in
   `evidence/reviewed/wiz8/claims.csv`, backed by the released baseline and an
-  object/binary comparison. The `source-oracle` gate reports SGP owner markers
-  that lack such a claim as unproven ownership
-  (`build/reports/source-oracle.json`, `"proven": false`).
+  object/binary comparison. SGP owner markers without such a claim are
+  ownership, not proof.
 - Names introduced here without a released counterpart (for example
   `OpenLibraryStream` at `0x00412f10`) are our names until evidence says
   otherwise.

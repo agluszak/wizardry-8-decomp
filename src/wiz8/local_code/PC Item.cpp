@@ -198,20 +198,15 @@ W8EquipSlot GetPairedEquipSlot(W8EquipSlot equip_slot)
 /* No weapon skill at all, which GetItemEquipSlotMask treats as a data error. */
 enum { W8_WEAPON_SKILL_NONE = -1 };
 
-/* 0x0061E956: the gppStringList message each item use kind shows for whatever
-   the item was used on. Retail reads a word at a four-byte stride from this
-   run of consecutive ids - every other entry - so the access doubles the use
-   kind. The run's extent ends where g_action_kind_message_ids starts;
-   its last six ids, from W8_ITEM_PROPERTY_MESSAGE_FIRST, are the item property
-   labels the assay dialog reads (0x0061E97C). */
+/* The gppStringList message each item use kind shows for whatever the item
+   was used on, read at every other entry. The last six ids, from
+   W8_ITEM_PROPERTY_MESSAGE_FIRST, are the item property labels. */
 // GLOBAL: WIZ8 0x0061e956
 unsigned short g_item_use_messages[25] = {
     0x4f6, 0x4f7, 0x4f8, 0x4f9, 0x4fa, 0x4fb, 0x4fc, 0x4fd, 0x4fe, 0x4ff, 0x500, 0x501, 0x502,
     0x503, 0x504, 0x505, 0x506, 0x507, 0x508, 0x509, 0x50a, 0x50b, 0x50c, 0x50d, 0x50e,
 };
-/* 0x0068C108: one lazily built generic name per unidentified-name index, and
-   0x0061E810: the notice each index formats from. The table's extent is the
-   pointer bound the release walk stops at. */
+/* One lazily built generic name per unidentified-name index. */
 // GLOBAL: WIZ8 0x0068C108
 wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 // GLOBAL: WIZ8 0x00616e84
@@ -223,11 +218,9 @@ W8Skill g_item_spell_presentation[11] = {
    none, which is the value the bound-item predicates refuse a binding behind. */
 // GLOBAL: WIZ8 0x00648c5c
 int g_equip_slot_icons[12] = {0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0};
-/* The leading entries are an offset alias of the tail of
-   g_equip_class_name_ids; retail reads both views of one block. */
+/* The notice each generic name index formats from. */
 // GLOBAL: WIZ8 0x0061E810
 // offset alias of the tail of g_equip_class_name_ids; shared retail
-// storage.
 unsigned short g_generic_item_name_notice[W8_GENERIC_ITEM_NAME_COUNT] = {
     0x45a, 0x45b, 0x45c, 0x45d, 0x45e, 0x45f, 0x460, 0x461, 0x462, 0x463, 0x464, 0x465, 0x466,
     0x467, 0x468, 0x469, 0x46a, 0x46b, 0x46c, 0x46d, 0x46e, 0x46f, 0x470, 0x471, 0x472, 0x473,
@@ -457,11 +450,6 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
     entry->initialized = true;
     return frame;
 }
-
-/* 0x0051FE30 */
-
-/* Whether a weapon and an off-hand item go together, named by its own error
-   text at 0x0051C8F0. */
 
 // GLOBAL: WIZ8 0x00652da6
 unsigned char g_party_has_slope_override_item;
@@ -854,8 +842,6 @@ bool HeldItemFitsPairedSlot(int party_slot, W8EquipSlot equip_slot)
         g_status.buffers.Char[party_slot].EquippedItem[paired_slot].iItemNo);
 }
 
-/* 0x0A: the bound the use-kind assertion names as USE_TYPE_COUNT, and the
-   extent of the per-kind message table at 0x0061E956. */
 enum { W8_ITEM_USE_TYPE_COUNT = 10 };
 
 /* The sex mask value that admits either sex rather than the one bit a
@@ -865,13 +851,9 @@ enum { W8_ITEM_GENDER_MASK_ANY = 3 };
 /* An unused requirement slot. */
 enum { W8_ITEM_REQUIREMENT_NONE = 0xff };
 
-/* The two profession levels the casting categories read, named by index into
-   W8Character::profession_levels (0x008d + 4 * index, so 0x0ad and 0x0b1). The
-   caster-item categories pair with them: CASTER_ITEM_6 reads index 9 through
-   the spell-source path and CASTER_ITEM_8 reads index 8. */
+/* The profession levels the caster-item categories read: CASTER_ITEM_6 reads
+   index 9 through the spell-source path and CASTER_ITEM_8 reads index 8. */
 enum { W8_CASTER_PROFESSION_INDEX_8 = 8, W8_CASTER_PROFESSION_INDEX_9 = 9 };
-
-/* 0x00521EF0 */
 
 /* Whether one character is allowed to use one item at all: profession, race
    and faction have to admit them, every attribute and skill floor has to be
@@ -1026,8 +1008,7 @@ bool AreAllHandSlotsEmpty(const W8Character* character)
 }
 
 /* Which of four groups an item's home slot belongs to. The four hand slots
-   share one group and the rest split two ways; what the groups are used for is
-   not established here, only which slots fall together. */
+   share one group and the rest split two ways. */
 // FUNCTION: WIZ8 0x0051c850
 W8ItemEquipSlotGroup GetItemEquipSlotGroup(int item_id)
 {
@@ -1076,9 +1057,7 @@ wchar_t* GetItemDisplayName(const W8ItemInstance* item)
     return g_generic_item_names[name_index];
 }
 
-/* Whether an item's generic name is one of five the callers single out. The
-   set is a jump table based at eleven, so it is a property of the shared
-   unidentified name rather than of the item itself. */
+/* Whether an item's generic name is one of five the callers single out. */
 // FUNCTION: WIZ8 0x0051cce0
 bool ItemHasSingledOutGenericName(int item_id)
 {
@@ -1095,9 +1074,7 @@ bool ItemHasSingledOutGenericName(int item_id)
     return false;
 }
 
-/* Whether the item counts its quantity the fourth way. Which of the three
-   uses-or-charges kinds that is has not been established, so the predicate is
-   named for the value it tests. */
+/* Whether the item counts its quantity in shots. */
 // FUNCTION: WIZ8 0x0051cdb0
 bool ItemUsesShots(int item_id)
 {
@@ -1127,9 +1104,6 @@ W8Skill GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
    the spell's presentation skill and the character's own level in it decide how
    hard the attempt is. `out_uses` receives the fatigue cost of the attempt, and
    stays -1 when nothing was attempted. */
-/* Several early exits (empty quantity-kind notices, blocked casting aid,
-   casting-aid power reduced to zero) never assign `used`; retail returned
-   the unset local. Preserve that read. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored                                                                   \
     "-Wsometimes-uninitialized" // uninit-ok: retail returns the unset used byte on rejected/spent-item paths; callers observe that indeterminate result.
@@ -1202,13 +1176,8 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             /* A casting aid has to beat the difficulty of the character's own
                level in the skill that presents the spell. Each attempt that
                fails is retried one power lower, and the first roll that
-               succeeds ends the search.
-
-               Spells 0x58/'X' and 0x74/'t' set skill to -1 via
-               GetItemSpellPresentation. Unlike CastItemSpell, which
-               skips difficulty and practice for those ids, retail UseItem
-               still evaluates skills[skill].level and can
-               PracticeCharacterSkill with skill == -1 when power hits zero. */
+               succeeds ends the search. Bug: spells 0x58 and 0x74 have no
+               presentation skill, and still index skills[-1] here. */
             skill = GetItemSpellPresentation(record);
             power = 7;
             do {
@@ -1690,8 +1659,8 @@ static void DropUnstoredCharacterItem(W8ItemInstance* item)
    to its slot stays with the body unless the binding was announced, the slot
    has no cursor icon, or the character is dead. What the pool cannot take is
    parked in the held-item display - the previous contents are restored after
-   the drop-or-refuse handling - and announced. The backpack loop keeps
-   reading the equipment row's item id, a leftover the retail body shares. */
+   the drop-or-refuse handling - and announced. Bug: the backpack loop reads
+   the equipment row's item id. */
 // FUNCTION: WIZ8 0x005223a0
 void StashDepartingCharacterItems(W8Character* character)
 {
@@ -1750,8 +1719,8 @@ void ReleaseGenericItemNames(void)
    the order the flag asks for. The item-in-hand state is cleared before the
    outcome is tested, and a store that fails is announced: the notice names the
    slot when neither destination was open, and the item otherwise. The flag
-   doubles as the result the way the compiled body reads it, so a failed
-   party-first attempt still reports success. */
+   doubles as the result, so a failed party-first attempt still reports
+   success. */
 // FUNCTION: WIZ8 0x0051ba00
 bool GiveHeldItemToCharacterOrParty(int uiChar, bool party_first)
 {
@@ -1773,8 +1742,6 @@ bool GiveHeldItemToCharacterOrParty(int uiChar, bool party_first)
             if (!g_status.buffers.XChar[slot].fOccupied) {
                 continue;
             }
-            /* 0xb is the index the body bounds the sweep at: a member past it is
-               too far gone to be offered the item. */
             if (character->hp_current == 0 || character->highest_condition >= W8_CONDITION_INSANE) {
                 continue;
             }
@@ -2068,8 +2035,7 @@ int GetItemSpell(const W8ItemInstance* item)
     return g_item_records[item->iItemNo].spell_id;
 }
 
-/* Let the whole party have a go at identifying one item. Every retail caller
-   passes a second zero argument; the body does not inspect it. Everybody able
+/* Let the whole party have a go at identifying one item. Everybody able
    tries, but only the first attempt's answer is reported - the rest still
    happen for whatever they do to the item. */
 // FUNCTION: WIZ8 0x005209f0
@@ -2425,9 +2391,7 @@ int CountItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** f
     if (include_backpack != 0) {
         for (slot = 0; slot < 8; ++slot) {
             if (character->backpack[slot].iItemNo == item_id) {
-                /* Retail bug: a matching backpack slot adds the stack count of
-                   the equipped slot with the same index (0x5211A0 reads
-                   [item - 0xc8]), not its own. */
+                /* Bug: this counts the equipped slot with the same index. */
                 total += character->EquippedItem[slot].stack_count == 0
                              ? 1
                              : character->EquippedItem[slot].stack_count;
@@ -2617,8 +2581,8 @@ void BindEveryPartyItem(void)
     ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x1ed]);
 }
 
-/* Order two pool entries. Both have to hold something - the two assertions say
-   so by name - and they are compared by equipment class, then by generic name,
+/* Order two pool entries. Both have to hold something, and they are compared
+   by equipment class, then by generic name,
    then unidentified before identified, then by value, then by stack count and
    finally by uses. Every comparison is the reverse of the usual sense, so the
    pool ends up in descending order. */
@@ -2678,9 +2642,7 @@ int __cdecl CompareItemsForPool(const void* first, const void* second)
     return -(b->uses_or_charges < a->uses_or_charges);
 }
 
-/* Put the party pool back in order. Its assertion names gStatus.fGameStarted,
-   which is what identified that global in the first place, and a pool of one
-   is left alone rather than sorted. */
+/* Put the party pool back in order; a pool of one is left alone. */
 // FUNCTION: WIZ8 0x005205b0
 void SortPartyItemPool(void)
 {
@@ -3784,16 +3746,12 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
         difficulty_kind = 1;
         caster_figure = character->uiExpLevel;
     }
-    /* The spell engine reads the difficulty it worked out off the source's own
-       tail bytes: 0x1f here, and the flag above at 0x21. */
     target.spell_difficulty =
         static_cast<unsigned char>(GetSpellDifficulty(caster_figure, spell_id, power));
 
-    if (strlen(record->video_object_name + 0x18) != 0) {
+    if (strlen(record->sound_name) != 0) {
         // reinterpret-ok: SGP's String returns UINT8* and SoundPlay takes char*
-        SoundPlay(
-            reinterpret_cast<char*>(String(s_spell_sound_format, record->video_object_name + 0x18)),
-            0);
+        SoundPlay(reinterpret_cast<char*>(String(s_spell_sound_format, record->sound_name)), 0);
     }
 
     {
@@ -3877,8 +3835,7 @@ void SplitThrowableStackBetweenHands(W8Character* character, W8EquipSlot equip_s
 }
 
 /* Close the hole one party-pool index leaves: everything after it moves down one
-   place and the count drops. Retail allocates a full 500-entry scratch buffer
-   (0x1770 bytes) for the shift; the caller has already emptied the record, so an
+   place and the count drops. The caller has already emptied the record, so an
    entry that still holds an item is left alone. */
 // FUNCTION: WIZ8 0x00521c20
 void RemovePartyPoolEntry(unsigned int index)
@@ -3897,10 +3854,8 @@ void RemovePartyPoolEntry(unsigned int index)
     }
 }
 
-/* Empty one of a character's eight carried slots. Retail compares the
-   resolved backpack entry to the global item-in-hand address before clearing;
-   that path is unreachable for a real character pointer but is emitted. When
-   the emptied entry also lives in the party pool, the hole is closed. */
+/* Empty one of a character's eight carried slots. When the emptied entry also
+   lives in the party pool, the hole is closed. */
 // FUNCTION: WIZ8 0x00521ac0
 void EmptyBackpackSlot(W8Character* character, int slot)
 {
@@ -3911,8 +3866,7 @@ void EmptyBackpackSlot(W8Character* character, int slot)
     EmptyItemRecord(&character->backpack[slot], character, true);
 }
 
-/* Empty one entry of the packed party pool by index and close the hole.
-   Retail takes a signed index and rejects negatives with JL. */
+/* Empty one entry of the packed party pool by index and close the hole. */
 // FUNCTION: WIZ8 0x00521cd0
 void EmptyPartyPoolEntry(int index)
 {
@@ -4077,10 +4031,8 @@ void UpgradeProfessionClassItem(W8Character* character)
 
 /* Take every instance of one item id out of the party: the hand first, then
    every member's slots, then the pool. When remove_all is clear the search
-   stops at the first hit. When it is set, retail still only calls
-   FindItemOnCharacter once per party member before moving on, so a second copy
-   on the same character is not cleared in that pass; the pool walk that follows
-   does compact every matching pool entry. */
+   stops at the first hit. Even when it is set, only one copy per party member
+   is cleared; the pool walk does compact every matching pool entry. */
 // FUNCTION: WIZ8 0x005215d0
 bool RemovePartyItemByID(int item_id, bool remove_all)
 {

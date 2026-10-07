@@ -11,8 +11,6 @@
 class SR_DLL_IMPORT SR_DLL_EXPORT srTextureMap
     : public srClassSupport<srTextureMap, srTexture, 0, 0x2111> {
 public:
-    /* The default-constructor closure 0x100608C0 proves the surface argument
-       defaults to null for paren-less new expressions. */
     srTextureMap(srColorSurfaceIFace* surface = 0);
 
     // FUNCTION: SURRENDER 0x10060770 SYMBOL
@@ -37,8 +35,6 @@ public:
 
 protected:
     virtual void setupDefaultValues() override;
-    /* 0x54: setSurfacePtr/getSurfacePtr; the copy-assignment emission proves
-       srPtr refcounting (field-address guard + release/addref handoff). */
     srPtr<srColorSurfaceIFace> surface;
     unsigned long frame_handle; /* 0x58: ctor stores getNewFrameHandle() */
 };

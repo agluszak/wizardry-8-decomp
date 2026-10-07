@@ -4,26 +4,12 @@
 #include "srMath.h"
 #include "srQuadWord.h"
 
-// The vbtable accesses in the JPEG extension prove that srBinStream is a
-// virtual base of both directional stream interfaces.
-// ??_7srBinIStream@@6B0@@ has two slots: vget, which the library implements,
-// and one holding the pure-virtual stub. Both are introduced here rather than
-// inherited, because the destructor override lands in the srBinStream subobject
-// table instead. The pure slot is what every reader supplies - srBinIMStream
-// with its own vread, and Wizardry's virtual-file adapter with its.
-/* The provider exports the full member surface including the lifecycle bodies
-   and both vftables (??_7srBinIStream@@6B0@@ and {for `srBinStream'}), so the
-   declaration imports the class for consumers and exports it for the provider.
-   Retail virtual-file construction writes both imported interface vtables;
-   inline lifecycle also retains imported exception-unwind destruction. */
+// srBinStream is a virtual base of both directional stream interfaces.
 // VTABLE: SURRENDER 0x100769FC srBinStream
 // VTABLE: SURRENDER 0x10076A10 srBinIStream
 // class srBinIStream
 class SR_DLL_IMPORT SR_DLL_EXPORT srBinIStream : public virtual srBinStream {
 public:
-    /* The reconstruction leaves provider lifecycle implicit. Wiz8 keeps the
-       header-visible default/destructor and imports copy/assignment emissions. */
-
 #if !defined(SURRENDER_BUILD)
     srBinIStream() {}
     srBinIStream(const srBinIStream& stream);
@@ -46,10 +32,6 @@ private:
     virtual unsigned long vread(void* destination, unsigned long size) = 0;
 };
 
-// srEXT_LWO imports the unsigned char/unsigned short/unsigned long/float
-// overloads and srHXImporter the unsigned long/float pair; the rest are
-// provider-only. The provider exports all of them through sr.def like the
-// free srDebugPrintf entry points.
 srBinIStream& operator>>(srBinIStream& stream, int& value);
 srBinIStream& operator>>(srBinIStream& stream, char& value);
 SR_DLL_IMPORT srBinIStream& operator>>(srBinIStream& stream, unsigned char& value);
@@ -77,9 +59,6 @@ srBinIStream& operator>>(srBinIStream& stream, srMatrix2T<double>& value);
 srBinIStream& operator>>(srBinIStream& stream, srMatrix3T<double>& value);
 srBinIStream& operator>>(srBinIStream& stream, srMatrix4T<double>& value);
 
-// BitArray::Load imports the compiler-generated virtual-base destructor closure.
-// Class import preserves that closure while the empty inline destructor leaves
-// ordinary directional-stream teardown visible to the consumer.
 // VTABLE: SURRENDER 0x10076B80 srBinStream
 // VTABLE: SURRENDER 0x10076B94 srBinIStream
 // class srBinIMStream
@@ -91,9 +70,6 @@ class __declspec(novtable) SR_DLL_IMPORT srBinIMStream
     : public srBinIStream {
 public:
     srBinIMStream(const void* data, unsigned long size);
-
-    /* The reconstruction leaves provider destruction implicit; consumers retain the
-       evidenced header-visible empty body. */
 
 #if !defined(SURRENDER_BUILD)
     virtual ~srBinIMStream() override {}

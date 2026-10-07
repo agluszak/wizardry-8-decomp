@@ -34,10 +34,8 @@ public:
         unsigned long clip_mask;
     };
 
-    /* Transforms one view-space clip plane back into object space with the
-       inverse model-view: three points on the plane are transformed and the
-       rebuilt (unnormalized) equation is flipped to keep the plane's
-       positive side. scale_type is accepted but never read. */
+    /* Transforms one view-space clip plane back into object space with the inverse model-view.
+       scale_type is accepted but never read. */
     static SR_DLL_IMPORT srVector4T<float>
     transformClipPlane(const srVector4T<float>& plane, const srMatrix4T<float>& matrix,
                        srMatrix4T<float>::e_scaleType scale_type);

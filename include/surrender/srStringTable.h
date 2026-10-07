@@ -13,9 +13,6 @@
 class SR_STRING_TABLE_API srStringTable {
 public:
     srStringTable();
-    /* srArray's copy constructor itself default-constructs then assigns, so
-       retail's strings assignment plus count copy is the implicit memberwise
-       copy of this class. */
 
     ~srStringTable();
     srStringTable& operator=(const srStringTable& other);

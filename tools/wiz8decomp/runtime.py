@@ -392,10 +392,6 @@ def _resolve_addresses(map_path: Path, addresses: list[int]) -> list[SymbolResol
     return LinkerMap.read(map_path).resolve_many(addresses)
 
 
-def _symbolize_addresses(map_path: Path, addresses: list[int]) -> list[str]:
-    return [item.format() for item in _resolve_addresses(map_path, addresses) if item is not None]
-
-
 def _parse_diagnostic_fields(fields: str) -> dict[str, str]:
     values: dict[str, str] = {}
     for item in fields.split():

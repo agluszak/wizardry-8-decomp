@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.20)
 
 project(wizardry8_decomp LANGUAGES C CXX)
 
-option(WIZ8_FULL_DIAGNOSTICS "Report recovery warnings without making them errors" OFF)
-
 # Global policy only: shared compile settings and immediate lint configuration.
 # Component sources, includes, defines and products belong to the component
 # directory, never here.

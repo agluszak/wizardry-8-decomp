@@ -8,9 +8,6 @@
 class srMaterialIFace;
 class srVertexPipe;
 
-/* Exact exported renderer APIs pass this 0x20-byte value by reference, and
-   srTriMeshPipeline's array instantiation advances by the same 0x20 stride.
-   Slot order follows getEyeSpaceLocation/getDiffuse/getSpecular/getST/getQ. */
 struct srVertexArray {
     enum {
         ATTRIBUTE_DIFFUSE = 0x01u,
@@ -33,13 +30,7 @@ struct srVertexArray {
 
 static_assert(sizeof(srVertexArray) == 0x20, "srVertexArray_must_be_0x20");
 
-/* SR.DLL exports secondary vtables qualified as srVertexProcessor for
-   srIlluminator, srFog and srLight. Each has exactly three slots: a destructor,
-   isActive and process. Wizardry's four-byte global processor at 0x0065BEA8 is
-   followed by independently used storage at 0x0065BEAF, and its constructor at
-   0x004B89A0 writes only the vptr. That complete-object allocation proves this
-   interface has no data beyond its vptr; srIlluminator's separate 0x2c-byte
-   tail begins after its secondary base at +0x138. */
+/* Interface with no data beyond its vptr. */
 #pragma pack(push, 4)
 // VTABLE: SURRENDER 0x10076c74 srVertexProcessor
 class srVertexProcessor {
@@ -59,10 +50,7 @@ public:
         unsigned long disabled_channels; /* 0x50 */
     };
 
-    /* Bit indices for enableChannel/getChannelMask. setupDiffuse enables 1,
-       setupSpecular 2, setupAlpha 3, setupFog 4, setupST(0) 5, setupST(1) 6,
-       setupQ(0) 7, setupQ(1) 8. srLight::process uses 9 and 10. Wizardry's
-       environment mapper requires channel 5 before getST(0). */
+    /* Bit indices for enableChannel/getChannelMask. */
     enum e_channel {
         CHANNEL_DIFFUSE = 1,
         CHANNEL_SPECULAR = 2,
@@ -77,11 +65,6 @@ public:
     };
 
 protected:
-    /* Header-visible, like srIlluminator's and srLight's: the srIlluminator
-       level of 0x0049C430 stores this subobject's vptr through the guarded
-       pointer and falls straight into the registry teardown, with no call to
-       a secondary-base destructor in between. The out-of-line copy below is
-       the COMDAT the secondary vtables need, not a separate definition. */
     // FUNCTION: WIZ8 0x0042A360
     virtual ~srVertexProcessor() {}
 

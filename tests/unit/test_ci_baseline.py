@@ -20,10 +20,6 @@ _SPEC.loader.exec_module(_MODULE)
 def test_baseline_reports_use_frozen_selection_and_retain_failed_evidence(tmp_path, monkeypatch):
     from wiz8decomp import comparison, config, source_index
 
-    report_dir = tmp_path / "completed-run"
-    (report_dir / "json").mkdir(parents=True)
-    (report_dir / "json/WIZ8.ghidriff.json").write_text('{"completed": true}')
-    (report_dir / "direct-calls.json").write_text("[]")
     result = {
         "ok": False,
         "report": {"classified_summary": "completed-run/summary.json"},
@@ -43,8 +39,6 @@ def test_baseline_reports_use_frozen_selection_and_retain_failed_evidence(tmp_pa
         _MODULE._reports(tmp_path, "WIZ8", "wiz8", tmp_path, [0x1000], stages.append)
     assert stages == ["source-index", "comparison"]
     assert json.loads((tmp_path / "wiz8-base-summary.json").read_text()) == result
-    assert json.loads((tmp_path / "wiz8-base-ghidriff.json").read_text()) == {"completed": True}
-    assert (tmp_path / "wiz8-base-direct-calls.json").read_text() == "[]"
 
 
 @pytest.mark.parametrize("failure", ["build", "comparison", "restore", None])

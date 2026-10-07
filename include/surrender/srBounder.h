@@ -6,8 +6,6 @@
 // class srClassSupport<srBounder, srNode, 0, 5632>
 
 // VTABLE: SURRENDER 0x10076f30 srBounder
-/* Provider-only SR class: no known Wizardry/JPEG/ZIP consumer imports its
-   members. Provider exports are not a reason to apply SR_DLL_IMPORT here. */
 class SR_DLL_EXPORT srBounder : public srClassSupport<srBounder, srNode, false, 0x1600> {
 public:
     enum e_boundMode { BOUND_MODE_DYNAMIC = 0 };

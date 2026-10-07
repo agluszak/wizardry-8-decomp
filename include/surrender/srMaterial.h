@@ -8,24 +8,11 @@
 // VTABLE: SURRENDER 0x1007556C
 // class srClassSupport<srMaterial, srMaterialIFace, 0, 8720>
 
-/* srMaterial's exported vftable has thirteen slots, and the first seven are
-   srClass's: evidence/snapshots/surrender-abi/vftable-slots.csv resolves slots
-   3, 4 and 6 to dump, verify and vInstance, and Wizardry's stMaterial overrides
-   slots 0, 1, 2 and 5 with a class-name getter, a class-id getter, a registry
-   walk and a destructor - which is srClass's declaration order exactly.
-
-   Two parameter types are simplified and neither moves a slot:
-   getMaterialInfo really takes srVertexProcessor::MaterialInfo&. */
-/* Retail exports the standalone default-constructor copy in addition to
-   folding the in-class body into callers; the class-level export emits it.
-   The declared lifecycle members and the vftable emit from the srMaterial.cpp
-   TU and export through sr.def. */
 // VTABLE: SURRENDER 0x10075538 srMaterial
 class SR_DLL_IMPORT SR_DLL_EXPORT srMaterial
     : public srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210> {
 public:
-    /* Bit indices, not masks. preProcess/postProcess (0x10033C00/0x10033C90)
-       distinguish depth cue, alpha and the three lighting-channel modes. */
+    /* Bit indices, not masks. */
     enum e_oper {
         OPER_DEPTH_CUE = 0,
         OPER_ALPHA = 1,
@@ -118,9 +105,6 @@ protected:
     void setVector(srVector4T<float>& destination, const srVector4T<float>& source);
 
 public:
-    /* ReadLevel.cpp directly edits cloned material parameters before setting
-       dirty. The original SurRender declaration therefore exposed this
-       state to clients; keeping it protected would force a fabricated wrapper. */
     srVertexProcessor::MaterialInfo parms; /* 0x18 */
     srFlags<e_oper> operations;            /* 0x6c */
     srVertexProcessor* mapper;             /* 0x70 */

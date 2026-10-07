@@ -1,10 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Reconstruct Wizardry stack-buffer PATH setup in its original translation unit.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
-   Recover retail path and file-age arithmetic and control flow.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
-   Remove inactive code and decorative comment banners, 2026-10-07.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 // Filename :	FileMan.c
 //	Purpose :	function definitions for the memory manager
@@ -1081,8 +1075,7 @@ BOOLEAN FileIsOlderThanFile(CHAR8* pcFileName1, CHAR8* pcFileName2, UINT32 ulNum
     INT32 compared;
     ULONGLONG difference;
 
-    /* Retail never checks for INVALID_HANDLE_VALUE: a failed search leaves
-       the WIN32_FIND_DATA uninitialized and the timestamps read as garbage. */
+    // a failed search leaves the timestamps uninitialized
     search = FindFirstFile(pcFileName1, &first);
     FindClose(search);
     search = FindFirstFile(pcFileName2, &second);

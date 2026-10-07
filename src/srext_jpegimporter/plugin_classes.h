@@ -6,12 +6,6 @@
 
 #include "layout.h"
 
-// The importer's surfaces are the established self-support specialization,
-// constructed directly at the allocation sites in surface_transfer.cpp. There
-// is no JPEG-specific surface subclass: identity (0x3110/"srColorSurface"),
-// heap routing (srClass), and cloning (srColorSurface::operator=) all come
-// from the canonical type below.
-
 class srJPEGImporter : public srSurfaceIOManager::SurfaceImporter,
                        public srSurfaceIOManager::SurfaceExporter {
 public:
@@ -30,8 +24,8 @@ private:
     void initializeCodecOptions();
     bool readHeader(void* input_cookie);
 
-    JpegCodecState32 codec_;
-    JpegExportOptions32 export_options_;
+    JpegCodecState codec_;
+    JpegExportOptions export_options_;
 };
 
 class srJPEGPlugin : public srPlugin {
@@ -42,3 +36,6 @@ public:
 private:
     srJPEGImporter jpeg_importer_;
 };
+
+static_assert((sizeof(srJPEGImporter) == 0x44), "srJPEGImporter_must_be_0x44");
+static_assert((sizeof(srJPEGPlugin) == 0x48), "srJPEGPlugin_must_be_0x48");

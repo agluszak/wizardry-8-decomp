@@ -63,8 +63,6 @@
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_screens/Screens.h"
 
-/* Local Code\Magic.cpp, named by the assertion this body embeds. */
-
 // FUNCTION: WIZ8 0x004ff3b0
 int GetProfessionCasterLevel(const W8Character* character, W8Profession profession_id)
 {
@@ -220,8 +218,8 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int)
 /* Whether the spell may be cast in the situation the party is in now. Two
    spells are always allowed on the shop screen out of combat; otherwise the
    record's usable-when value picks which of camp, combat and the shop admit
-   it. Every retail call site pushes only the two parameters, so the second
-   doubles as the out-of-combat override and the default-case return. */
+   it. The second parameter doubles as the out-of-combat override and the
+   default-case return. */
 // FUNCTION: WIZ8 0x005001e0
 bool SpellUsableNow(int spell_id, bool allow_out_of_combat)
 {
@@ -468,11 +466,8 @@ bool CombatHasCondition(int effect_id)
                 return true;
             }
         }
-        /* 0x00501250: nine 0x11-byte strides from g_combat_state+0x85a.
-           The first six occupy effect_slots0; the rest overlap
-           engaged_missile and TargetHit. Retail does that overlapping
-           walk; it is a raw stride, not a typed array of nine. */
-
+        /* Bug: effect_slots0 holds only six slots; the last three reads
+           run into the fields after it. */
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index) {
             slot = g_combat_state->effect_slots0 + index;
             if (slot->active && slot->effect_id == effect_id) {
@@ -524,9 +519,8 @@ bool PartySlotSpellTargetStillValid(int party_slot)
     return CharacterActionReachesTarget(party_slot, 0, W8_TARGETING_CONTEXT_SPELL);
 }
 
-/* Start one character's breath attack. The assertion names the predicate it
-   depends on outright - CanCharReBreathe - so a character who cannot is a
-   caller error rather than a refusal. */
+/* Start one character's breath attack; the character must be able to
+   breathe again. */
 // FUNCTION: WIZ8 0x00501880
 void StartCharacterBreathAttack(int party_slot)
 {
@@ -577,7 +571,7 @@ void AddSpellEffect(W8SpellEffectEntry* effect)
     g_spell_effects.Add(effect);
 }
 
-void FinishSpellEffect(W8SpellEffectEntry* effect); /* 0x00500F70 */
+void FinishSpellEffect(W8SpellEffectEntry* effect);
 
 /* Advance every queued spell effect one frame. An effect first checks that
    everything it owns is still live: its visuals have started, its missiles
@@ -1100,9 +1094,6 @@ bool CanCharacterLearnSpell(W8Character* character, int spell_id)
     return ceiling >= static_cast<unsigned int>(g_spell_records[spell_id].spell_level);
 }
 
-/* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
-   name entries by their byte offset into it, which is why the index is
-   spelled as one. */
 /* One message-table index per realm, for the realm's name. */
 // GLOBAL: WIZ8 0x0061E518
 // offset alias of the tail of g_attr_table1; shared retail storage.
@@ -1159,8 +1150,7 @@ void LearnSpell(W8Character* character, int spell_id, bool announce)
 // GLOBAL: WIZ8 0x0068c510
 int g_learn_sound = g_first_remapped_event + 16;
 /* Learn the spell a scroll or book teaches, and consume it. The item has to
-   carry a spell - the assertion names the field ubSpellNumber - and the
-   character has to be able to take it on; failing that the item is left alone
+   carry a spell and the character has to be able to take it on; failing that the item is left alone
    and the refusal is shown.
 
    Learning practises three things at once: the learning skill at twice the
@@ -1439,8 +1429,7 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
    than taking one.
 
    A power level outside one through seven is silently taken as one, which is
-   what makes a caller passing zero cast nothing at all rather than cast weakly.
-   Its error text names the function. */
+   what makes a caller passing zero cast nothing at all rather than cast weakly. */
 // FUNCTION: WIZ8 0x004fb220
 int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_level)
 {
@@ -1573,8 +1562,7 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
 /* One cast's failure chance used by the cast rating and power-level choosers: the
    chosen spellbook skill weighted four to one against the realm skill, priced
    against the spell's cost band, plus the spell's level for every caster level
-   short of what it asks for, scaled by the caster's combat pace. Retail
-   carries this sequence in the rating and both choosers, with no out-of-line copy. */
+   short of what it asks for, scaled by the caster's combat pace. */
 static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
                                          unsigned int power_level)
 {
@@ -1868,10 +1856,8 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
     return 1;
 }
 
-/* The target block and the source block are the same struct, so the two
-   predicates Targeting.cpp declares over a source answer for a target too. */
-/* 0x0068C09C is indexed here by byte offset; 0x610 is the "at %s" wrapper every
-   named target goes through and the rest are the fixed words. */
+/* Message-table byte offsets: the "at %s" wrapper every named target goes
+   through, and the fixed words. */
 enum {
     W8_MESSAGE_TARGET_AT = 0x610,
     W8_MESSAGE_TARGET_PARTY = 0x614,
@@ -1880,28 +1866,17 @@ enum {
     W8_MESSAGE_TARGET_ITEM = 0x620,
     W8_MESSAGE_TARGET_UNKNOWN = 0x624
 };
-/* 0x0061E436: the name-prefix table, eight-byte rows, holding a message-table
-   offset rather than a string. A character indexes it by sex and a monster
-   by its own name group at record+0x0cc, which is what makes the two one
-   table. */
+/* The name-prefix table, holding message-table indexes. A character indexes
+   it by sex and a monster by its name group. */
 // GLOBAL: WIZ8 0x0061E436
 // offset alias of g_gender_name_message_rows; shared retail storage.
 unsigned short g_name_prefix_messages[15] = {
     0x2da, 0x2d2, 0x2d5, 0x2d8, 0x2db, 0x2d3, 0x2d6, 0x2d9,
     0x2dc, 0x2dd, 0x2de, 0x2df, 0x2e0, 0x2e1, 0,
 };
-/* 0x00689B34: the empty string every no-target kind is described by. */
-
-/* Say in words what a spell is aimed at. Each target kind reads its own field,
-   which is what makes the two assertions here - on iChar and on iMonsterID -
-   name two different fields of one block rather than one field twice.
-
-   A character or a monster whose name the party does not have is described by
-   its name-prefix instead, looked up in the table at 0x0061E436 - by sex
-   for a character and by name group for a monster, which is what makes the two
-   one table. The entry is a message-table offset rather than a string, so it
-   is resolved twice. Everything else is a fixed word. Its error
-   text names the function. */
+/* Say in words what a spell is aimed at. A character or a monster whose name
+   the party does not have is described by its name prefix instead. Everything
+   else is a fixed word. */
 // FUNCTION: WIZ8 0x004f97a0
 wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* target)
 {
@@ -1975,8 +1950,6 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
 
     return FormatWideString(gppStringList[W8_MESSAGE_TARGET_AT / 4], gppStringList[name_prefix]);
 }
-
-/* 0x0053BE50 */
 
 /* The two log lines a monster's cast is announced with: one that names the
    power level and one that does not. */
@@ -2199,8 +2172,7 @@ bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool 
 // GLOBAL: WIZ8 0x00616E34
 int g_cooldown_gated_spells[14] = {30, 38, 75, 73, 32, 33, 17, 20, 8, 40, 26, 45, 64, 58};
 
-/* Descriptive name for the cooldown operation expanded in SpellAffectedTarget.
-   A failed check still restarts the slot, as in retail. */
+/* A failed check still restarts the slot. */
 static bool CheckAndRestartSpellCooldown(int spell_id)
 {
     bool affected = true;
@@ -3992,8 +3964,7 @@ void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_marker
 // FUNCTION: WIZ8 0x00501D20
 void TrackItemSpellSource(W8Character* character, int spell_id)
 {
-    bool has_spell_storage[0x96] = {false};
-    bool* has_spell = has_spell_storage + 1;
+    bool has_spell[0x96] = {false};
     W8ItemInstance* item;
     int count;
 
@@ -4005,7 +3976,7 @@ void TrackItemSpellSource(W8Character* character, int spell_id)
             ((g_item_records[item_id].quantity_kind != W8_ITEM_QUANTITY_SHOTS &&
               g_item_records[item_id].quantity_kind != W8_ITEM_QUANTITY_CHARGES) ||
              item->uses_or_charges != 0)) {
-            has_spell[g_item_records[item_id].spell_id - 1] = 1;
+            has_spell[g_item_records[item_id].spell_id] = 1;
         }
     }
     for (count = 0; count < 8; ++count) {
@@ -4016,18 +3987,13 @@ void TrackItemSpellSource(W8Character* character, int spell_id)
             ((g_item_records[item_id].quantity_kind != W8_ITEM_QUANTITY_SHOTS &&
               g_item_records[item_id].quantity_kind != W8_ITEM_QUANTITY_CHARGES) ||
              item->uses_or_charges != 0)) {
-            has_spell[g_item_records[item_id].spell_id - 1] = 1;
+            has_spell[g_item_records[item_id].spell_id] = 1;
         }
     }
-    /* Retail maps spell ids to records directly: record r is gated by
-       storage[r] (the walk reads has_spell[index - 1] with the 0-based
-       record index), so record 0 reads the always-zero leading byte and
-       spell id s marks record s - the same record the cast_count access
-       below increments. */
     W8ItemSpellUsageRecord* record = g_status.item_spell_usage;
     int index = 0;
     while (record < g_status.item_spell_usage + 150) {
-        if (has_spell[index - 1]) {
+        if (has_spell[index]) {
             ++record->usable_cast_count;
         }
         ++index;

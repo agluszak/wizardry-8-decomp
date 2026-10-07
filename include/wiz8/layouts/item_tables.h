@@ -30,9 +30,8 @@ struct W8ItemRequirement {
     unsigned char minimum;
 }; /* 0x02 */
 
-/* Equipment classes indexed by the retail Assay name table. Labels
-   1087..1112 name classes 0..25; labels 1114..1119 name classes 26..31.
-   The serialized field remains a byte. */
+/* Equipment classes. Labels 1087..1112 name classes 0..25; labels
+   1114..1119 name classes 26..31. Stored as a byte. */
 enum W8ItemEquipClass {
     W8_ITEM_EQUIP_CLASS_SHORT_WEAPON = 0,
     W8_ITEM_EQUIP_CLASS_EXTENDED_WEAPON = 1,
@@ -68,8 +67,7 @@ enum W8ItemEquipClass {
     W8_ITEM_EQUIP_CLASS_MACE = 31,
 };
 
-/* Item flag labels 1255..1262 in the retail string table name bits 0..7.
-   The serialized flags field remains a byte. */
+/* Item flag bits, named by labels 1255..1262. Stored as a byte. */
 enum W8ItemFlag {
     W8_ITEM_FLAG_AUTO_IDENTIFY = 0x01,
     W8_ITEM_FLAG_NO_DISCARD = 0x02, /* Crucial Item */
@@ -162,9 +160,7 @@ struct W8ItemDatabaseRecord {
     unsigned char binds_on_equip;                /* 0x08c */
     char internal_name[0x20];                    /* 0x08d .. 0x0ac */
     /* 0x0ad: extra swings the weapon grants when the wielder starts an
-       attack; StartCharacterAttack adds it to the rolled uiSwingsRemaining.
-       It sits inside the retail name region's tail dword, so the name buffer
-       is really 0x20 characters. */
+       attack. */
     int swings_bonus;
     /* 0x0b1/0x0b3: the item's (index, value) modifier pairs the equipment
        fold adds to the derived block's two byte tables. 0xff is no pair. */
@@ -187,8 +183,8 @@ struct W8ItemDatabaseRecord {
     /* 0x0cc: the missile table entry the item fires; the missile resolver
        bounds it against g_missile_table_count. */
     signed char missile_type;
-    /* GetOrCreateVideoObject treats this fixed buffer as the item image name. */
-    char video_object_name[0x40]; /* 0x0cd */
+    char video_object_name[0x18]; /* 0x0cd: the item image */
+    char sound_name[0x28];        /* 0x0e5: played when the item's spell is cast */
 }; /* 0x10d */
 
 static_assert(sizeof(W8ItemDatabaseRecord) == 0x10d, "W8ItemDatabaseRecord_size_must_be_0x10d");

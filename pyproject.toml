@@ -9,7 +9,6 @@ description = "Reproducible Wizardry 8 binary-corpus and Ghidra bootstrap toolin
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-  "capstone>=5.0.6,<6",
   "pefile>=2024.8.26",
   "pydantic>=2.11,<3",
   "pygdbmi==0.11.0.0",

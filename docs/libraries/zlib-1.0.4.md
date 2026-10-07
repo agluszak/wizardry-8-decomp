@@ -66,7 +66,7 @@ consistent with the executable's mixed 8447/8168/9044 Rich records and the unava
 
 ## Retained SGP boundary
 
-The five boundary functions belong to reconstructed [`src/sgp/Compression.c`](../../src/sgp/Compression.c),
+The five boundary functions belong to reconstructed [`src/sgp/Compression.cpp`](../../src/sgp/Compression.cpp),
 compiled into the shared `WIZ8_SGP` archive for every product. Wizardry owns no second implementation.
 Use the existing comparison/reccmp commands when stripped compression contributions need validation independently of final linkage; the old SGP
 oracle command has been removed. The retained behavior installs CRT allocation callbacks, constructs

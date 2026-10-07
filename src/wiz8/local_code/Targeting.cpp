@@ -599,7 +599,7 @@ unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
 
 /* Whether a recorded target is of the kind a caller needs. Each needed kind
    admits one or two target kinds that additionally have to be present.
-   Retail 0x005371f4 accepts other requirements after the null-target check. */
+   Other requirements are accepted after the null-target check. */
 // FUNCTION: WIZ8 0x00537160
 bool TargetMatchesNeeded(W8CombatSlot* target, W8TargetNeed needed)
 {
@@ -761,8 +761,7 @@ bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
 }
 
 /* Tint one monster for whoever is highlighting it. Three tints are named -
-   clear, green and red. Unrecognized values leave the local RGBA block
-   uninitialized, as retail does at 0x0053952e. */
+   clear, green and red. Bug: other values leave the color uninitialized. */
 // FUNCTION: WIZ8 0x00539480
 void TintHighlightedMonster(W8Monster* monster, W8TargetHighlight tint)
 {
@@ -785,8 +784,7 @@ void TintHighlightedMonster(W8Monster* monster, W8TargetHighlight tint)
 }
 
 /* Raise or lower one character's bit in a monster's highlight mask, and tell
-   whatever draws it. Retail inlines this where ClearTargetHighlights clears a
-   single target or a group and calls the out-of-line copy elsewhere. */
+   whatever draws it. */
 // FUNCTION: WIZ8 0x00539630
 void SetMonsterHighlight(int party_slot, int location_id, bool on)
 {
@@ -927,16 +925,14 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
    candidate is built and is what makes the sort stable across the fields it
    does not compare. */
 struct W8MonsterTargetCandidate {
-    int location_id;        /* 0x00 */
-    W8Condition state;      /* 0x04: the monster's own 0x107 */
-    unsigned char in_reach; /* 0x08: reachable with a real attack */
-    unsigned char pad_09[3];
-    unsigned int range_band;  /* 0x0c: the first band that covers it */
-    unsigned int hp_current;  /* 0x10 */
-    unsigned char same_group; /* 0x14: shares the caller's group */
-    unsigned char pad_15[3];
-    float distance; /* 0x18 */
-}; /* 0x1c */
+    int location_id;
+    W8Condition state;       /* the monster's highest condition */
+    unsigned char in_reach;  /* reachable with a real attack */
+    unsigned int range_band; /* the first band that covers it */
+    unsigned int hp_current;
+    unsigned char same_group; /* shares the caller's group */
+    float distance;
+};
 
 /* The order the candidates are taken in: the monster in the lowest state
    first, then the one that can actually be reached, then the nearest. Only
@@ -1095,9 +1091,7 @@ static int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext 
 enum { W8_CONDITION_REACHABLE_WHEN_DOWN = 18, W8_CONDITION_BEYOND_REACH = 19 };
 
 /* Whether whatever a target names is still there to be acted on. Each kind
-   checks its own field and then whatever that field points at, which is what
-   makes the four assertions here - on iChar, iMonsterID, iGroupID and pPCItem -
-   name four different fields of one block rather than one field four times.
+   checks its own field and then whatever that field points at.
 
    The two character kinds differ in what "still there" means: the direct one
    wants somebody alive and in a state under 0x12, and the indirect one wants
@@ -1308,7 +1302,7 @@ void ClearAllMonsterHighlights(void)
     }
 }
 
-/* 0x005EBB34: the float that stands for "no distance given". GameData.cpp
+/* The float that stands for "no distance given". GameData.cpp
    reads the same constant as the level vector's absent value. */
 /* The side selector that means any side at all. */
 enum { W8_SIDE_ANY = 3 };
@@ -1373,9 +1367,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
 /* Which targeting context is in force. A dialogue that is up and has settled on
    casting or on using an item owns the choice; failing that, the active slot
    with either overlay up gets the shared context, and otherwise it is simply
-   whether a fight is on.
-
-   Callers use this canonical source helper; retail may inline it per site. */
+   whether a fight is on. */
 // FUNCTION: WIZ8 0x0053bc10
 W8TargetingContext GetCurrentTargetingContext(int party_slot)
 {
@@ -1819,13 +1811,6 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
 
         ClearPartySlotMonsterHighlights(party_slot);
 
-        /* The retail guards the count unsigned and then loops against it
-           signed: 0x0053AAD2 test eax,eax; jbe 0x0053ABF9 for the guard, then
-           0x0053AADA cmp edi,eax; jge 0x0053AAF9 for the back-edge, off the
-           same hoisted [ebx+4]. Two comparisons over one value, so the guard
-           and the bound cannot be the same expression: GetCount() returns int,
-           which would make the guard a jle. Same two-expressions-one-value
-           shape as SetMonsterCondition and LoadSurfacePixels. */
         unsigned int count = entry->highlighted_monsters.GetCount();
         if (count > 0) {
             for (int highlight_index = 0; highlight_index < static_cast<int>(count);
@@ -2013,10 +1998,7 @@ bool CanPartySlotParticipate(int party_slot)
            g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD;
 }
 
-/* Validate a targeting context a second time, after resolving "current". The
-   inner resolution has an assertion of its own, so a context that gets this far
-   has already been checked once; this one guards the caller's own use of the
-   answer, and the two report different lines. */
+/* Validate a targeting context a second time, after resolving "current". */
 // FUNCTION: WIZ8 0x0053ba20
 W8TargetingContext GetValidatedTargetingContext(int party_slot, W8TargetingContext context)
 {
@@ -2445,9 +2427,9 @@ bool SpellHasAnyValidTarget(int party_slot, int spell_id, bool normalize)
    monster itself. The angle leads so that the ordinary signed comparison sorts
    on it. */
 struct W8GroupMemberByAngle {
-    int angle;       /* 0x00 */
-    int location_id; /* 0x04 */
-}; /* 0x08 */
+    int angle;
+    int location_id;
+};
 
 /* Step to the next member of a group, going round the party rather than
    through the list: the candidates are sorted by the angle from the party to
@@ -2614,7 +2596,7 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
                               GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
 }
 
-/* 0x006840B7: the group the party currently has picked out, by id, and -1 when
+/* The group the party currently has picked out, by id, and -1 when
    none. It is where the sweep below starts from and wraps back to. The
    declaration lives in targeting.h (C linkage); the definition is with the
    other targeting globals near the top of this file. */
@@ -2853,8 +2835,7 @@ void RefreshMonsterTargetCounts(void)
 
 /* Whether `monster` is closer than `max_distance` to the player and its
    elevated centre or either animation-bound corner still projects on the world
-   camera. Callers pass a camera `position`, but retail distance uses
-   GetDistanceToPlayer. */
+   camera. `position` is unused; the distance is measured to the player. */
 // FUNCTION: WIZ8 0x0053A060
 bool IsMonsterVisibleWithinDistance(W8Monster* monster, const srVector3T<float>* position,
                                     float max_distance)

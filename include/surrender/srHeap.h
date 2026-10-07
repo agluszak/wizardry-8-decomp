@@ -12,26 +12,13 @@
 #define SR_DLL_IMPORT
 #endif
 
-/* Provider-side export, independent of the consumer import contract above.
-   A class whose retail vtable holds a genuine vector deleting destructor was
-   exported whole: VC6 emits a distinct `vector deleting destructor' only for
-   a class-level dllexport and otherwise aliases it to the scalar one. A
-   class without that evidence whose default-argument constructor has an
-   exported `default constructor closure' (??_F) marks that constructor
-   alone, which is enough for VC6 to emit the closure. */
 #if defined(SURRENDER_BUILD)
 #define SR_DLL_EXPORT __declspec(dllexport)
 #else
 #define SR_DLL_EXPORT
 #endif
 
-/* The SDK's zero fill pre-aligns the destination to an 8-byte boundary:
-   VC6 lowers each site to a head memset + dword-body memset split rather
-   than the single rep stosd a plain memset produces. Fills shorter than the
-   alignment head, and empty fills, skip the split; the signed size tests
-   fold away at constant-size sites (createOptimalPalette 0x10005690 keeps
-   them for its variable palette and node-level fills). Inlined everywhere;
-   no standalone emission exists in retail. */
+/* Zero fill that pre-aligns the destination to an 8-byte boundary. */
 inline void srZeroMemory(void* destination, long size)
 {
     if (size > 0) {
@@ -49,11 +36,7 @@ inline void srZeroMemory(void* destination, long size)
     }
 }
 
-/* Float-to-int through the FPU's current rounding mode: every use site
-   lowers to an inline `fld value` / `fistp result` pair instead of the
-   _ftol call a C conversion emits, so it rounds to nearest rather than
-   truncating. The pixel format converters quantize dot-product results
-   and the exponent table indexes through it; no standalone emission. */
+/* Float-to-int through the FPU's current rounding mode (round to nearest, not truncation). */
 inline long srFloatToInt(float value)
 {
     long result;
@@ -102,9 +85,8 @@ private:
 
     static_assert(sizeof(Block) == 0x20, "srHeap_Block_must_be_0x20");
 
-    /* In-block allocation record for the pooled mid-size path. The 0x20-byte
-       header sits immediately before the user pointer; the byte at +0x1f is
-       the allocation tag read by free(). */
+    /* In-block allocation record for the pooled mid-size path. The header sits immediately before
+       the user pointer; its last byte is the allocation tag read by free(). */
     struct Chunk {
         Block* owner;
         unsigned long size;

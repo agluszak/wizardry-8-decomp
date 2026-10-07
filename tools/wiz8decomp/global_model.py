@@ -43,7 +43,6 @@ _CALLBACK_DECL = re.compile(
     r"(?P<name>[A-Za-z_]\w*)(?P<arrays>(?:\[[^\]]*\])*)\s*\)\s*"
     r"\((?P<args>[^)]*)\)\s*(?:=|;)"
 )
-_VTABLE_OR_FUNCTION = re.compile(r"^\s*//\s*(?:VTABLE|FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY):")
 _DOCUMENTED_ALIAS = re.compile(r"alias(?:es)?\s+(?:of|for)\b|no separate definition", re.IGNORECASE)
 # A file-scope variable definition whose name ends in a retail address. The
 # name must be preceded by type text so in-body assignments (`g_x_... = 1;`)
@@ -133,10 +132,6 @@ _EQUIVALENT = {
     "INT32": "int32",
     "wchar_t": "uint16",
 }
-
-
-class GlobalOverlapError(RuntimeError):
-    """Two independently defined globals occupy the same retail storage."""
 
 
 class TypeConsistencyError(RuntimeError):
@@ -888,29 +883,6 @@ def type_consistency_violations(
     return violations
 
 
-def validate_global_ownership(repo_dir: Path) -> dict[str, Any]:
-    sizes = known_type_sizes(repo_dir)
-    missing = unaddressed_globals(repo_dir)
-    if missing:
-        rendered = [f"{item['file']}:{item['line']} {item['detail']}" for item in missing]
-        raise GlobalOverlapError(
-            "GLOBAL markers have no retail address:\n  " + "\n  ".join(rendered)
-        )
-    definitions = parse_global_definitions(repo_dir, sizes)
-    overlaps = overlapping_globals(definitions)
-    if overlaps:
-        rendered = [item["detail"] for item in overlaps]
-        raise GlobalOverlapError(
-            "independently defined globals overlap retail storage:\n  " + "\n  ".join(rendered)
-        )
-    return {
-        "ok": True,
-        "gate": "global-ownership",
-        "globals": len(definitions),
-        "sized": sum(item["size"] is not None for item in definitions),
-    }
-
-
 def validate_type_consistency(repo_dir: Path) -> dict[str, Any]:
     sizes = known_type_sizes(repo_dir)
     definitions = parse_global_definitions(repo_dir, sizes)
@@ -921,89 +893,3 @@ def validate_type_consistency(repo_dir: Path) -> dict[str, Any]:
             "one address has incompatible source types:\n  " + "\n  ".join(rendered)
         )
     return {"ok": True, "gate": "type-consistency", "globals": len(definitions)}
-
-
-_STATUS_MEMBER = re.compile(r"\bg_status\.([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)")
-
-
-def status_member_accesses(repo_dir: Path) -> list[dict[str, Any]]:
-    """Source sites that name a g_status member."""
-
-    rows: list[dict[str, Any]] = []
-    for root in (repo_dir / "src/wiz8", repo_dir / "include/wiz8"):
-        if not root.is_dir():
-            continue
-        for path in root.rglob("*"):
-            if path.suffix.lower() not in {".h", ".hpp", ".cpp"}:
-                continue
-            relative = str(path.relative_to(repo_dir))
-            for number, line in enumerate(
-                path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
-            ):
-                for match in _STATUS_MEMBER.finditer(line):
-                    rows.append(
-                        {
-                            "file": relative,
-                            "line": number,
-                            "member": match.group(1),
-                            "absolute": f"0x{GSTATUS_START:08x}",
-                        }
-                    )
-    return rows
-
-
-GSTATUS_START = 0x00685170
-GSTATUS_SIZE = 0x49C2
-GSTATUS_END = GSTATUS_START + GSTATUS_SIZE
-GXSTATUS_START = 0x006836B8
-
-
-def classify_status_region(definitions: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Address-sorted globals around gStatus / gXStatus."""
-
-    rows: list[dict[str, Any]] = []
-    objects = [item for item in definitions if item.get("size") and item["name"]]
-    for item in sorted(definitions, key=lambda row: row["address"]):
-        address = int(item["address"])
-        if address < 0x00685000 or address >= 0x00689C00:
-            continue
-        kind = "standalone"
-        container = ""
-        offset: int | None = None
-        if GSTATUS_START <= address < GSTATUS_END:
-            if address == GSTATUS_START and str(item["name"]).startswith("g_status"):
-                kind = "object"
-                container = str(item["name"])
-                offset = 0
-            else:
-                kind = "member of g_status"
-                container = "g_status"
-                offset = address - GSTATUS_START
-        elif address == GXSTATUS_START:
-            kind = "object"
-            container = str(item["name"])
-            offset = 0
-        else:
-            for outer in objects:
-                start = int(outer["address"])
-                end = start + int(outer["size"])
-                if start <= address < end and outer["name"] != item["name"]:
-                    kind = f"member of {outer['name']}"
-                    container = str(outer["name"])
-                    offset = address - start
-                    break
-            else:
-                kind = "unresolved" if item.get("size") is None else "standalone"
-        rows.append(
-            {
-                "address": f"0x{address:08x}",
-                "name": item["name"],
-                "type": item.get("type") or "",
-                "size": item.get("size"),
-                "class": kind,
-                "container": container,
-                "offset": None if offset is None else f"0x{offset:x}",
-                "source_file": item.get("source_file") or "",
-            }
-        )
-    return rows

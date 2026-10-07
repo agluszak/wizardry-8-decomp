@@ -554,9 +554,8 @@ void srVertexPipe::applyFog(const float* values)
     lazy_setup_mask |= (1UL << srVertexProcessor::CHANNEL_FOG);
 }
 
-/* Retail copies the two owned allocations at +0x00/+0x04 verbatim. Assigning
-   two live pipes aliases their storage and leaves the old destination storage
-   behind; the function has no retail ownership repair. */
+/* The two owned allocations are copied as pointers: assigning two live pipes aliases their storage
+   and leaks the old destination storage. */
 
 // FUNCTION: SURRENDER 0x1002BCC0
 void srVertexPipe::applyDiffuseLight(const float* values, const srVector4T<float>& light)
@@ -637,8 +636,6 @@ void srVertexPipe::applyDiffuseLight(const srVector4T<float>& light)
     vector_processor->_add(diffuse, light, diffuse, vertex_count);
 }
 
-/* The indexed diffuse-source helper setupDiffuse reaches through the record's
-   colors/format pair selects the matching copyIndexed overload. */
 // FUNCTION: SURRENDER 0x1002BF20
 void srVertexPipe::Record::ColorSource::copyDiffuseColors(srVector4T<float>* destination,
                                                           const unsigned long* indices,
@@ -693,9 +690,8 @@ void srVertexPipe::setupDiffuse()
     }
 }
 
-/* Retail uses the whole-batch count and destination with a source offset by
-   sub_batch_offset. Later sub-batches can therefore overrun the source
-   scratch array; preserve that observed range contract. */
+/* Uses the whole-batch count and destination with a source offset by sub_batch_offset, so later
+   sub-batches can overrun the source scratch array. */
 // FUNCTION: SURRENDER 0x1002C0D0
 void srVertexPipe::setupDepthCue()
 {

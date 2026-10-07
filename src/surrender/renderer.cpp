@@ -4,9 +4,7 @@
 
 #include "surrender/srVectorProcessor.h"
 
-/* drawSorted's {order, sort_key} pair record; retail folds this TU's
-   radix-sort emission into huffman.cpp's identical sortSymbolPairs at
-   0x100027F0, which is why the retail drawSorted calls that address. */
+/* drawSorted's {order, sort_key} pair record. */
 struct SortPair {
     unsigned long index;
     unsigned long key;
@@ -85,9 +83,7 @@ static void* copyMemory(void* destination, const void* source, long size)
     return destination;
 }
 
-/* dst[i] = src[i] + offset over `count` dwords — the index-rebase helper
-   for both the triangle triples and the sort-key stream; authored unrolled
-   eight wide. */
+/* dst[i] = src[i] + offset over `count` dwords. */
 // FUNCTION: SURRENDER 0x10023CB0
 static void offsetIndices(unsigned long* destination, const unsigned long* source,
                           unsigned long offset, unsigned long count)
@@ -112,9 +108,8 @@ static void offsetIndices(unsigned long* destination, const unsigned long* sourc
     }
 }
 
-/* Retail 0x10023DE0: gather `count` triangle index triples through `order`;
-   a nonzero `vertex_base` additionally rebases every index (the sorted draw
-   path always passes 0). */
+/* Gather `count` triangle index triples through `order`; a nonzero `vertex_base` additionally
+   rebases every index. */
 // FUNCTION: SURRENDER 0x10023DE0
 static void gatherTriangles(srVector3i* destination, const srVector3i* source,
                             const unsigned long* order, long vertex_base, unsigned long count)
@@ -133,10 +128,8 @@ static void gatherTriangles(srVector3i* destination, const srVector3i* source,
     }
 }
 
-/* Retail 0x10023D90: gather `count` triangles through `indices`, remapping
-   every corner through `vertices` (the vector processor's
-   _srCopyIndexedRemap), then rebase every index by `vertex_base` when it is
-   nonzero. */
+/* Gather `count` triangles through `indices`, remapping every corner through `vertices`, then
+   rebase every index by a nonzero `vertex_base`. */
 // FUNCTION: SURRENDER 0x10023D90
 static void gatherIndexedTriangles(srVector3i* destination, const srVector3i* source,
                                    const unsigned long* indices, const unsigned long* vertices,
@@ -150,8 +143,7 @@ static void gatherIndexedTriangles(srVector3i* destination, const srVector3i* so
     }
 }
 
-/* Retail 0x10024000: dst[i] = src[i] + offset over `count` index triples —
-   the per-record vertex rebase; authored unrolled four wide. */
+/* dst[i] = src[i] + offset over `count` index triples. */
 // FUNCTION: SURRENDER 0x10024000
 static void offsetTriangles(srVector3i* destination, const srVector3i* source, unsigned long offset,
                             unsigned long count)
@@ -178,9 +170,7 @@ static void offsetTriangles(srVector3i* destination, const srVector3i* source, u
     }
 }
 
-/* Retail 0x10024100: index of the first element not equal to `value`, or
-   `count` when the whole range matches. drawImmediate uses it to find the
-   end of each equal-texture-set run; VC6 unrolls the scan four ways. */
+/* Index of the first element not equal to `value`, or `count` when the whole range matches. */
 // FUNCTION: SURRENDER 0x10024100
 static unsigned long firstMismatch(const unsigned long* values, unsigned long value,
                                    unsigned long count)
@@ -192,8 +182,7 @@ static unsigned long firstMismatch(const unsigned long* values, unsigned long va
     return index;
 }
 
-/* Retail 0x10024170: the drawSorted analog of firstMismatch — the count of
-   consecutive `order` entries whose values element equals `value`. */
+/* The count of consecutive `order` entries whose values element equals `value`. */
 // FUNCTION: SURRENDER 0x10024170
 static unsigned long firstMismatchSorted(const unsigned long* values, unsigned long value,
                                          const unsigned long* order, unsigned long count)
@@ -316,8 +305,7 @@ void srGERD::Renderer::VertexArrays::alloc(srVertexArray& arrays, unsigned long 
         attributes.ensureIndex(needed);
 
         unsigned long added = needed - capacity;
-        /* reinterpret-ok: the dword fill is the shader-agnostic byte fill the
-           vector processor exposes for 0x10-stride records. */
+        /* reinterpret-ok: dword fill of the vector records. */
         fillConstant(reinterpret_cast<unsigned long*>(&diffuse[capacity]), 0, added * 4);
         /* reinterpret-ok: as above. */
         fillConstant(reinterpret_cast<unsigned long*>(&specular[capacity]), 0, added * 4);
@@ -427,7 +415,7 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
             markTransitions(out, chunk_indices,
                             reinterpret_cast<const unsigned long*>(pass->shaders), TABLE_SHADER,
                             chunk,
-                            initialized); // reinterpret-ok: packed srShader words at 0x100278E0.
+                            initialized); // reinterpret-ok: packed srShader words.
         }
         if (chunk != 0) {
             for (unsigned long index = 0; index < chunk; index++) {
@@ -457,9 +445,8 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
     }
 }
 
-/* Retail 0x100251E0: depth-sort keys — each triangle's key is the negated
-   sum of its corner view-space z's plus the bias, converted to a sortable
-   unsigned value (sign-bit-mapped magnitude ordering). */
+/* Depth-sort keys: each triangle's key is the negated sum of its corner view-space z's plus the
+   bias, mapped to a sortable unsigned value. */
 // FUNCTION: SURRENDER 0x100251E0
 static void sortKeys(unsigned long* keys, const srVector3i* triangles,
                      const srVector4T<float>* positions, float bias, unsigned long count)
@@ -698,8 +685,7 @@ void srGERD::Renderer::transformVertices(const TriInput& input, unsigned char* c
     }
 }
 
-/* Retail 0x10025C00: all clip-flag bytes share a clip plane — ANDs them in
-   four-wide groups with an early out, then the scalar tail. */
+/* Whether all clip-flag bytes share a clip plane. */
 // FUNCTION: SURRENDER 0x10025C00
 static int fullyClipped(const unsigned char* flags, unsigned long count)
 {
@@ -717,8 +703,7 @@ static int fullyClipped(const unsigned char* flags, unsigned long count)
     return mask != 0;
 }
 
-/* OR the per-vertex packed attribute bytes into the aggregate mask the DD
-   dispatch tests; the bulk loop folds dword loads back to one byte. */
+/* OR the per-vertex packed attribute bytes into the aggregate mask. */
 // FUNCTION: SURRENDER 0x10025CB0
 static unsigned long attributeMask(const unsigned char* packed, unsigned long count)
 {
@@ -756,7 +741,6 @@ void srGERD::Renderer::drawImmediate()
         gerd->setShader(shader);
         if (srVectorProcessor::isEqual(texture_set, texture_set[0], count) != 0) {
             gerd->drawElements(srRendererDefs::PRIMITIVE_TRIANGLES, count * 3,
-                               /* The batcher's only retail index type. */
                                static_cast<srRendererDefs::e_indexType>(2), indices);
             return;
         }
@@ -953,10 +937,9 @@ void srGERD::Renderer::reset(int release_buffers)
     }
 }
 
-/* Retail 0x10026A00: copy the indices of the not-fully-clipped triangles —
-   a triangle drops out only when all three corners share a clip flag. With
-   direct_vertex_indices clear the corners index the flag array through the
-   vertices remap. */
+/* Copy the indices of the not-fully-clipped triangles; a triangle drops out only when all three
+   corners share a clip flag. With direct_vertex_indices clear the corners index the flag array
+   through the vertices remap. */
 // FUNCTION: SURRENDER 0x10026A00
 static unsigned long filterTriangles(unsigned long* destination, const unsigned char* flags,
                                      const srGERD::Renderer::TriInput& input)
@@ -1038,9 +1021,8 @@ void srGERD::Renderer::render(const TriInput& input)
     first_vertex = -1;
 }
 
-/* Retail 0x100278E0: mark `bit` in output wherever the indexed table value
-   changes between adjacent entries; when `initialized` is zero the output
-   chunk is cleared first. */
+/* Mark `bit` in output wherever the indexed table value changes between adjacent entries; when
+   `initialized` is zero the output chunk is cleared first. */
 // FUNCTION: SURRENDER 0x100278E0
 static void markTransitions(unsigned long* output, const unsigned long* indices,
                             const unsigned long* table, unsigned long bit, unsigned long count,
@@ -1083,8 +1065,7 @@ static void markTransitions(unsigned long* output, const unsigned long* indices,
     }
 }
 
-/* Retail 0x10027BA0: the guarded dword fill — the vector processor's _copy
-   emits nothing for a zero count. */
+/* Dword fill that does nothing for a zero count. */
 // FUNCTION: SURRENDER 0x10027BA0
 static void fillConstant(unsigned long* destination, unsigned long value, unsigned long count)
 {
@@ -1123,6 +1104,3 @@ void srGERD::Renderer::bindTextureSet(unsigned long index)
         gerd->setShader(shader);
     }
 }
-
-/* Compiler-generated memberwise teardown; the Renderer releases its members
-   individually, the nested records theirs. */

@@ -9,8 +9,8 @@ extern float g_automap_grid_cell_size;
 #include "surrender/srMath.h"
 #include "wiz8/vector.h"
 
-/* Map-note allocation at 0x00581360 is 0x10 bytes. The text is separately
-   malloc-owned and contains at most 39 UTF-16 characters plus the terminator. */
+/* One map note. The text is separately malloc-owned and holds at most 39
+   characters plus the terminator. */
 struct W8AutomapNote {
     srVector2T<float> position;
     int layer;
@@ -21,8 +21,8 @@ static_assert(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
 extern W8Vector<W8AutomapNote*>* g_automap_notes;
 extern W8MainUiMode g_ui_mode_current;
 extern W8MainUiMode g_ui_mode_saved;
-void SetCurrentAutomapUiMode(W8MainUiMode value); /* 0x00587C10 */
-void SetSavedAutomapUiMode(W8MainUiMode value);   /* 0x0058A870 */
+void SetCurrentAutomapUiMode(W8MainUiMode value);
+void SetSavedAutomapUiMode(W8MainUiMode value);
 
 class W8DialogButton;
 extern W8DialogButton** g_automap_buttons;
@@ -35,19 +35,19 @@ bool HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);
 bool CanUseCurrentAutomapTool(void);
 
-/* 0x00580380: recompute the automap's visible world bounds from lit cells. */
+/* Recompute the automap's visible world bounds from lit cells. */
 void UpdateAutomapBounds(void);
-/* 0x00580760: when the automap dirty flag is set, light a batch of pending
+/* When the automap dirty flag is set, light a batch of pending
    visited cells through the table-1 vertex lights, then clear the flag once
    the batch finds nothing left. */
 void RefreshDirtyAutomap(void);
-/* 0x00581B30: pack `position` into a cell key, mark it visited if known, and
+/* Pack `position` into a cell key, mark it visited if known, and
    return 1 only when that mark was newly set (retry one cell higher on miss). */
 bool AutomapHasCellAt(const srVector3T<float>* position);
 
 void ResetAutomapView(void);
-bool SaveAutomapNotes(int handle); /* 0x00581CE0 */
-bool LoadAutomapNotes(int handle); /* 0x00581E60 */
+bool SaveAutomapNotes(int handle);
+bool LoadAutomapNotes(int handle);
 unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position);
 void SetAutomapToolCursor(int tool);
 W8AutomapNote* FindAutomapNoteUnderCursor(void);
@@ -62,10 +62,9 @@ void AutomapScreenFrame(void);
 unsigned char AutomapScreenLeave(int leaving);
 unsigned char AutomapScreenFinalize(void);
 /* Full-screen dismiss: left-up after a held press leaves the automap. */
-unsigned char AutomapBackgroundRegionEvent(const InputAtom* event,
-                                           struct W8Region* region); /* 0x00581790 */
+unsigned char AutomapBackgroundRegionEvent(const InputAtom* event, struct W8Region* region);
 float GetAutomapGridCellSize(void);
-void SetAutomapGridCellSize(float value); /* 0x00585300 */
+void SetAutomapGridCellSize(float value);
 /* Packs a world position into an automap cell key. */
 unsigned int AutomapNodeKey(const srVector3T<float>* position);
 bool AutomapLevelIsLarge(void);

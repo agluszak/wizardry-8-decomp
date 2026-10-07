@@ -4,8 +4,6 @@
 #include "surrender/srThread.h"
 #include "surrender/srVariableTimer.h"
 
-/* This unit's scheduling loops wait through one out-of-line helper
-   (0x100146D0) rather than calling srThread::yield directly. */
 static void yieldOneMillisecond();
 
 // FUNCTION: SURRENDER 0x10013D70

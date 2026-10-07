@@ -55,7 +55,7 @@ static int g_camp_stats_origin_x;
 unsigned int g_camp_stats_range_region_set;
 // GLOBAL: WIZ8 0x0069c520
 unsigned int g_camp_stats_controls_region_set;
-/* 0x0069C524: the skills page row the cursor last hovered, kept so the help
+/* The skills page row the cursor last hovered, kept so the help
    text only resets on a real change. */
 // GLOBAL: WIZ8 0x0069c524
 static int g_camp_skill_hover_row;
@@ -115,15 +115,15 @@ static W8PortraitGroup g_portrait_groups[12] = {
 /* One row of the stats page's effect list: a character condition, an
    enchantment, or the modifiers of one equipped item. */
 struct W8CampEffectEntry {
-    unsigned char items;       /* 0x00: 1 when the row lists an equipped item */
-    bool visible;              /* 0x01: passes the current filter */
-    unsigned char beneficial;  /* 0x02 */
-    unsigned char detrimental; /* 0x03 */
-    int kind;                  /* 0x04: 0 condition, 1 enchantment, 2 equipment */
-    int index;                 /* 0x08: condition, enchantment or equipment-slot index */
-    int enchantment;           /* 0x0c: the enchantment id for kind 1 */
-    int turns;                 /* 0x10: remaining turns; 9999 is permanent */
-    int lines;                 /* 0x14: rendered height in 0xe-pixel lines */
+    unsigned char items; /* 1 when the row lists an equipped item */
+    bool visible;        /* passes the current filter */
+    unsigned char beneficial;
+    unsigned char detrimental;
+    int kind;        /* 0 condition, 1 enchantment, 2 equipment */
+    int index;       /* condition, enchantment or equipment-slot index */
+    int enchantment; /* the enchantment id for kind 1 */
+    int turns;       /* remaining turns; 9999 is permanent */
+    int lines;       /* rendered height in 0xe-pixel lines */
 };
 static_assert(sizeof(W8CampEffectEntry) == 0x18, "W8CampEffectEntry_size");
 
@@ -552,7 +552,7 @@ void DrawCampEffectList(void)
     SetFontDestBuffer(0xfffffff2, 0, 0, 0x280, 0x1e0, 0);
 }
 
-/* 0x005C54A0: renders one effect-list entry at `line` (in 0xe-pixel rows from
+/* Renders one effect-list entry at `line` (in 0xe-pixel rows from
    y 0xbf) and advances the counter past its height plus one row of spacing.
    Kind 0 is a condition, kind 1 an enchantment, kind 2 an equipped item. */
 // FUNCTION: WIZ8 0x005c54a0
@@ -707,7 +707,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
     *line_out = line + 1;
 }
 
-/* 0x005C5C60: wheel input over the stats page's effect-list region steps the
+/* Wheel input over the stats page's effect-list region steps the
    scrollbar. */
 // FUNCTION: WIZ8 0x005c5c60
 static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*)

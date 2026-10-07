@@ -17,44 +17,42 @@ struct W8ItemInstance;
 struct W8MonsterInfo;
 class W8Missile;
 
-void TickSpellEffects(void); /* 0x00500E90 */
+void TickSpellEffects(void);
 
 extern int g_learn_sound;
 
-/* 0x005001E0: whether the spell may be cast in the current situation. Every
-   retail caller pushes only these two arguments. */
+/* Whether the spell may be cast in the current situation. */
 bool SpellUsableNow(int spell_id, bool allow_out_of_combat);
 
 W8TargetNeed GetTargetNeededForSpellFriendly(int spell_id, bool normalize,
                                              W8TargetingContext context);
 W8TargetNeed GetTargetNeededForSpellHostile(int spell_id);
-/* 0x004FB1D0: whether the monster's spellcasting-blocked condition stops it
+/* Whether the monster's spellcasting-blocked condition stops it
    casting this spell - everything except alchemy, and alchemy only for the
    monster kinds that keep it. */
 bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id);
-/* 0x004FB0A0: everything that has to hold before a monster may start
-   casting. The retail caller passes the chosen power level as a third
-   argument the body never reads. */
+/* Everything that has to hold before a monster may start
+   casting. The power level is unused. */
 bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int power_level);
 unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int power_level);
-/* 0x00500330: the power level the monster can afford for the spell, out of
+/* The power level the monster can afford for the spell, out of
    its database base plus its runtime bonus. */
 unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                           int spell_id);
-/* 0x004FA4D0: one physical callable for queued and repeated casts; returns
+/* One physical callable for queued and repeated casts; returns
    0/1/2 and writes the per-step point cost. */
 int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_level,
                               int* out_points, bool continue_cast);
-/* 0x004FE740: a backfiring spell swaps roles - the intended target becomes
+/* A backfiring spell swaps roles - the intended target becomes
    the source and the original source the target. */
 void RedirectBackfiredSpellTarget(W8TargetSource* source, W8CombatSlot* target);
-/* 0x004FEDC0: pick one random in-combat participant other than the source
+/* Pick one random in-combat participant other than the source
    and write it as the backfired spell's new target. */
 int PickBackfireTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target);
-/* 0x004FEF90: scatter a backfired point target to a random reachable spot
+/* Scatter a backfired point target to a random reachable spot
    inside the spell's range around its source. */
 void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target);
-/* 0x004FF220: the once-per-cast backfire roll for single-target spells -
+/* The once-per-cast backfire roll for single-target spells -
    condition 0x0c gates it, a trait save can avoid it. */
 void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* target);
 void SetPartySlotSpell(int party_slot, int spell_id, int power_level, const W8CombatSlot* target);
@@ -64,9 +62,8 @@ bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item);
 
 bool CanCharacterLearnSpell(W8Character* character, int spell_id);
 void LearnSpell(W8Character* character, int spell_id, bool announce);
-/* 0x00500060: learns the spell a spell-source item holds and empties the
-   item. Retail callers push two arguments; the earlier three-parameter decl
-   added a phantom slot. */
+/* Learns the spell a spell-source item holds and empties the
+   item. */
 void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
 
 /* Zeroes the six per-realm learned-spell counters and recounts them from the
@@ -93,8 +90,8 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                         unsigned int power_level, int power_cast_bonus, unsigned int failure_chance,
                         bool recast, int* out_power, int cast_kind,
                         W8GrowableVector<int>* party_targets,
-                        W8GrowableVector<int>* monster_targets); /* 0x004FB4C0 */
-/* 0x004FEA50: assert and route the source/target pair a cast is about to
+                        W8GrowableVector<int>* monster_targets);
+/* Assert and route the source/target pair a cast is about to
    use; some target kinds have their own placement pass. */
 void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target);
 /* Resolve valid spell targets for one cast and append location ids to the
@@ -103,37 +100,36 @@ void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targ
    collection. */
 void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* source,
                                 W8CombatSlot* target, W8GrowableVector<int>* monster_markers,
-                                W8GrowableVector<int>* party_markers,
-                                int highlighting); /* 0x004FD030 */
-/* 0x00501B70: drop every marker that no longer names a live, targetable
+                                W8GrowableVector<int>* party_markers, int highlighting);
+/* Drop every marker that no longer names a live, targetable
    monster; a few spell ids prune on extra monster-record rules. */
 void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_markers);
 int GetProfessionCasterLevel(const W8Character* character, W8Profession profession_id);
-/* 0x00501D60: the highest power level this slot can afford to cast the spell
+/* The highest power level this slot can afford to cast the spell
    at for its current target; zero when none is castable. */
 unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context);
 extern unsigned char g_profession_spellbooks[W8_PROFESSION_COUNT];
-/* 0x00501A60: the spell a missile type carries, or W8_SPELL_NONE. */
+/* The spell a missile type carries, or W8_SPELL_NONE. */
 int MissileSpellId(int missile_type);
-bool PartyHasCondition(int effect_id);                                       /* 0x005012B0 */
-bool CombatHasCondition(int effect_id);                                      /* 0x00501250 */
-int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus); /* 0x004FF790 */
+bool PartyHasCondition(int effect_id);
+bool CombatHasCondition(int effect_id);
+int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus);
 
-/* 0x004FAE70: whether a spellcasting-blocked condition stops this character
+/* Whether a spellcasting-blocked condition stops this character
    casting this spell. */
 bool IsSpellBlockedForCharacter(const W8Character* character, int spell_id);
-/* 0x004F9A20: records the character's chosen spell and power level for the
+/* Records the character's chosen spell and power level for the
    pending action. */
 void SetCharacterSpell(const W8Character* character, int spell_id, int power_level);
-/* 0x00501400: the power level the party slot's chosen spell can actually be
+/* The power level the party slot's chosen spell can actually be
    cast at; zero means the cast cannot happen at all. */
 int GetAffordableSpellPowerLevel(int party_slot);
-bool CanPartySlotCastRecordedSpell(int party_slot); /* 0x005012E0 */
-bool CanPartySlotUseRecordedItem(int party_slot);   /* 0x00501660 */
+bool CanPartySlotCastRecordedSpell(int party_slot);
+bool CanPartySlotUseRecordedItem(int party_slot);
 /* Queue the slot's recorded spell cast; zero keeps the recorded power. */
-void StartCharacterSpellCast(int party_slot, int power_level); /* 0x00501590 */
-void StartCharacterItemUse(int party_slot);                    /* 0x00501790 */
-/* 0x00501860: one-line forwarder narrowing CanCharReBreathe to a flag. */
+void StartCharacterSpellCast(int party_slot, int power_level);
+void StartCharacterItemUse(int party_slot);
+/* One-line forwarder narrowing CanCharReBreathe to a flag. */
 bool CanPartySlotReBreathe(int party_slot);
 void StartCharacterBreathAttack(int party_slot);
 /* Sprite bands: automatic power, then failure chance >40, <=40, <=15, <=5 and zero. */
@@ -146,17 +142,15 @@ enum W8SpellCastRating {
     W8_CAST_RATING_NO_FAILURE = 5
 };
 
-/* 0x004FF4B0: the spell screen's one-to-five safety rating for one cast at a
+/* The spell screen's one-to-five safety rating for one cast at a
    power level; zero for the as-affordable request. */
 W8SpellCastRating GetSpellCastRating(W8Character* character, int spell_id,
                                      unsigned int power_level);
-/* 0x004FF410: the same chance for a bare skill figure rather than a caster,
+/* The same chance for a bare skill figure rather than a caster,
    which is what an item-use attempt has. */
 unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor);
 
-/* 0x004FF790: how hard this caster figure finds one spell at a power level, and
-   0x00501910: the combat-pace scale an item-use attempt applies to its own
-   difficulty. Both are defined in this unit. */
+/* The combat-pace scale an item-use attempt applies to its own difficulty. */
 void ScaleByCombatPace(int party_slot, unsigned int* value);
 
 /* Validate the available target set and cursor state for a spell or item cast. */
@@ -165,10 +159,10 @@ bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool 
 bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim,
                          unsigned int power);
 void TrackItemSpellSource(W8Character* character, int spell_id);
-bool IsTeleportCastMissingAnchor(W8Character* character, int spell_id); /* 0x00501D00 */
+bool IsTeleportCastMissingAnchor(W8Character* character, int spell_id);
 extern unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
 void DetachMissileReferences(W8Missile* missile);
-bool AllSpellEffectsStillRunning(void); /* 0x00500E50 */
+bool AllSpellEffectsStillRunning(void);
 
 #endif

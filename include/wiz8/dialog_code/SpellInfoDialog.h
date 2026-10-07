@@ -12,7 +12,7 @@
 // VTABLE: WIZ8 0x005efab0
 class W8SpellInfoDialog : public W8DialogBase {
 public:
-    W8SpellInfoDialog(unsigned int spell); /* 0x005DBB60 */
+    W8SpellInfoDialog(unsigned int spell);
     virtual ~W8SpellInfoDialog() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
@@ -21,27 +21,27 @@ public:
     virtual void OnMouseWheel(int delta) override;
 
 private:
-    bool PopulateText(); /* 0x005DBEE0 */
-    void DrawLabels();   /* 0x005DC490 */
+    bool PopulateText();
+    void DrawLabels();
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
-    unsigned int m_spell;           /* 0x054 */
-    W8DialogScrollBar m_scroll_bar; /* 0x058 */
-    W8DialogButton m_button;        /* 0x0a4 */
-    W8DialogTextArea m_text_area;   /* 0x0ec */
-    W8GameTimer m_timer;            /* 0x144 */
-    unsigned int m_animation_frame; /* 0x168 */
+    unsigned int m_spell;
+    W8DialogScrollBar m_scroll_bar;
+    W8DialogButton m_button;
+    W8DialogTextArea m_text_area;
+    W8GameTimer m_timer;
+    unsigned int m_animation_frame;
 };
 static_assert(sizeof(W8SpellInfoDialog) == 0x16c, "W8SpellInfoDialog_size");
 
-/* 0x0060D4E0: the "(on ...)" parenthetical per spell target type. */
+/* The "(on ...)" parenthetical per spell target type. */
 extern const wchar_t* g_spell_target_parentheticals[11];
 
-/* 0x00619794: the ", " separator join lists of notices are built with. */
+/* The ", " separator join lists of notices are built with. */
 extern wchar_t g_comma_space[];
 
-/* 0x0061A128: the "%d %s" count-and-name notice format. */
+/* The "%d %s" count-and-name notice format. */
 extern wchar_t g_format_d_s[];
 
-/* 0x0061E9A0: gppStringList indices naming each W8RangeCategory band. */
+/* GppStringList indices naming each W8RangeCategory band. */
 extern unsigned short g_spell_range_name_ids[4];

@@ -12,24 +12,19 @@ presence.
 
 ## Translation-unit layout
 
-The reviewed assertion paths remain the strongest anchors, but the same absolute source strings also
-appear in allocation macros, diagnostics and error routines. `wiz8decomp.ghidra.unit_intervals`
-scans the live Ghidra program for references to Wizardry source paths, resolves the containing
-function, and treats each as a direct anchor; reviewed assertion rows stay a separate anchor kind
-that also carries their line. Header spellings such as `..\Engine Code\Include\AnimRep.hpp` are
-header-origin inline evidence, never unit anchors, and a function naming two distinct `.cpp` paths
-resolves to `inlined-or-conflicting` rather than one owner.
+The reviewed assertion paths in `evidence/observations/wiz8/assertions.csv` anchor their
+containing functions to translation units (`wiz8decomp.unit_intervals`). Header spellings such as
+`..\Engine Code\Include\AnimRep.hpp` are header-origin inline evidence, never unit anchors, and a
+function naming two distinct `.cpp` paths resolves to `inlined-or-conflicting` rather than one
+owner.
 
 Ordinary non-COMDAT functions emitted by one translation unit occupy one contiguous `.text`
 contribution, so the convex hull of a unit's direct anchors is hard-owned while everything outside
 every hull remains an explicit gap. Hulls of distinct units must not overlap; an overlap is a model
 contradiction, surfaced rather than papered over. A gap may contain a unit's unanchored tail, an
-invisible TU, or the next unit's head, and is never assigned heuristically. Other official builds
-(demo, 1.2.6, 1.2.8) contribute `cross-build` anchors through unique relocation-insensitive body
-matches, which can establish a retail hull for a unit whose retail path string is gone; ambiguous or
-non-unique matches stay unknown. The same layout drives `wiz8 ghidra decompile`/`sym`; the placement validator in
-`uv run wiz8 check` compares it against the current source-index placement and enforces every
-anchored function.
+invisible TU, or the next unit's head, and is never assigned heuristically. The placement validator
+in `uv run wiz8 check` compares this layout against the current source-index placement and enforces
+every anchored function.
 
 ## Linker folding is not source ownership
 
@@ -48,59 +43,20 @@ reviewed evidence or comparison diagnostics rather than changing the source mode
 
 TU ranges place out-of-line functions. They do not by themselves prove original header
 filenames. Only `AnimRep.hpp`, `Trigger.hpp`, `stHeap.hpp` and `stLight.hpp` occur as
-actual source paths in assertion evidence.
+actual source paths in assertion evidence; other header names and splits are recovered
+roles, not original spellings.
 
-Every recovered header resolves to an inferred role, enforced by `wiz8 check`.
-Ownership comes entirely from the compiler-backed source index: its
-`header_declarations` projection names each entity a header declares by
-`semantic_id`, the merged declaration/variable records provide the defining
-file, and markers bind `semantic_id` to a retail address the assertion layout
-places. No textual C++ declaration parsing participates — `#include`
-directives are the only line-level fact the checker reads.
-
-- **shared-layout** (`include/wiz8/layouts/…`, plus leaf records such as
-  `gameplay_modifiers.h`): packed records, enums and the globals that *are* that
-  storage. No behavioral API — no function declarations, no in-header
-  definitions, and no includes of headers that declare namespace-scope
-  functions.
-- **tu-interface**: declarations whose implementations belong to one original
-  TU. This is the default inference whenever every resolved declaration
-  belongs to a single original unit; nothing is configured for it.
-- **multi-tu**: declarations genuinely resolve to several original TUs — a
-  deliberate declaration split, a class whose methods are defined in two
-  implementation files, or a mixed globals surface such as
-  `float_constants.h`. Fails `wiz8 check` unless the resolved set is covered
-  by `allowed-multi-tu-headers`, which is the human decision being persisted.
-- **provisional-interface**: inferred when every resolved declaration is
-  implemented by an unmapped source file (`npc_items.h`,
-  `character_skills.h`, the unmapped dialog helpers, …). Report-only — the
-  checker derives it from `source_units.json` rather than persisting it, and
-  it disappears automatically as fragments are rehomed.
-- **header-implementation**: a header that emits code itself — inline members
-  or template implementations such as the proven `stHeap.hpp` and
-  `vector.h`. Template-instantiation member declarations belong to the
-  template body in the header.
-- **unresolved**: declarations that resolve to no implementation and no retail
-  placement. Reported, never hidden behind a configured role.
-
-A header whose declarations resolve to several original units fails
-`wiz8 check` as `multi-tu-header` unless `allowed-multi-tu-headers` covers
-them. Every project-local `#include "wiz8/…"` must resolve to an existing
-header, which catches stale includes of deleted compatibility umbrellas; the
-removed umbrella filenames themselves are a fixed policy list in the checker,
-not configurable data.
+Headers under `include/wiz8/layouts/` hold packed records, enums and the globals that are
+that storage. Interface headers declare functions implemented in one original TU unless the
+declarations genuinely span several (for example `float_constants.h`). Inline members and
+template implementations belong to the header that defines them.
 
 SGP compiles as C++ and consumes owning product headers directly. `MoveTimer`
 and its action constants belong to `GameData.h`; game font handles belong to
-`fonts.h`. The retired `sgp_bridge.h` is not a header role or a linkage exception.
+`fonts.h`.
 Game initialization belongs to `game_init.h`; game-loop entries belong to
 `local_code/Gameloop.h`. Video and octree product calls have ordinary C++ linkage.
 Historical SGP API declarations retain their C linkage in the SGP headers.
-
-Provenance is independent of role: `proven-original-headers` records the
-assertion-evidenced filename. `header_architecture.json` therefore contains
-only human decisions — proven original filenames and allowed multi-TU
-interfaces — never generated state.
 
 ## RTTI result
 
@@ -249,7 +205,7 @@ one another; TextControl and TextBuffer are not duplicate identities.
 Button-System shell. Button, scrollbar and text-area helpers have their own headers
 and provisional implementation units; concrete dialogs include the helpers they contain.
 Factory-dialog and spell-dialog declarations likewise live outside the base header. The
-[modal base](../include/wiz8/dialog_code/ModalDialogBase.h) is only one inheritance branch.
+[modal base](../include/wiz8/dialog_code/MessageDialogBase.h) is only one inheritance branch.
 [TextArea](../include/wiz8/dialog_code/DialogTextArea.h) has its own provisional
 implementation in `dialog_code/DialogTextArea.cpp`, separate from its dialog consumers. It is
 nonpolymorphic; its two vectors own their pointer storage, but its destructor deletes
@@ -301,7 +257,7 @@ separate warning policy.
 
 The same compiler projection produces `build/source-index.json`, which is the
 canonical machine-readable view of declarations, definitions, linkage and
-header ownership used by repository gates and Ghidra synchronization.
+header ownership used by repository gates.
 Cross-target namespace separation belongs to that index/tooling layer; this
 document owns only the source-model rules, not compile-database plumbing.
 

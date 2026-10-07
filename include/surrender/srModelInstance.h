@@ -50,11 +50,6 @@ public:
     }
 #endif
     void setAlignAngle(double angle);
-    /* Header-visible in Wiz8: the EXE does not import these. SR.DLL still
-       exports out-of-line copies. setAlignAxis stores the by-value axis,
-       unitizes with the guarded reciprocal-sqrt form (z²+y²+x² order), then
-       enables alignment. Prop 0x0044aee0 is setAlignment(1) plus this call,
-       not a hand-written field expansion. */
 #if defined(SURRENDER_BUILD)
     void setAlignAxis(srVector3T<float> axis);
     void setAlignment(int enabled);
@@ -82,7 +77,6 @@ public:
         alignment_flags.value &= ~1u;
     }
 #endif
-    /* Wiz8 inlines this store; SR.DLL also exports an out-of-line copy. */
 #if defined(SURRENDER_BUILD)
     void setExclusionMask(unsigned long mask);
 #else
@@ -92,9 +86,6 @@ public:
     }
 #endif
 
-    /* Monster.cpp 0x004c6c30 calls `set` on this member - the receiver of
-       0x004ca880 is the flag word itself - so the original member was a flag
-       object reachable outside the class. */
     srFlags<int> alignment_flags;
 
 protected:
@@ -106,6 +97,4 @@ protected:
 };
 
 static_assert((sizeof(srModelInstance) == 0x160), "srModelInstance_must_be_0x160");
-/* Retail places the srModel::Client subobject at +0x138; the model instance's
-   own members begin at +0x148. */
 W8_ASSERT_BASE_END(srModelInstance, srModel::Client, alignment_flags, 0x138);

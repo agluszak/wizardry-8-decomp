@@ -11,10 +11,8 @@
 
 namespace {
 
-/* Retail returns an srInlineString by value: the name is canonicalized by
-   finding the last '.' after the last '/' or '\\' separator; a trailing '.'
-   gets the extension appended, an existing extension is kept, and a missing
-   one becomes ".<extension>". Callers pass "dll". */
+/* Canonicalizes the library name: a trailing '.' gets the extension appended, an existing extension
+   is kept, and a missing one becomes ".<extension>". */
 // FUNCTION: SURRENDER 0x10045F80
 srInlineString libraryName(const char* name, const char* extension)
 {

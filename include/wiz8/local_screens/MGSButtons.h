@@ -28,82 +28,79 @@ extern W8DialogButton* g_options_disk_button;
 extern short g_submenu_entry_count;
 extern TIMER g_submenu_clock;
 extern bool g_submenu_close_pending;
-/* Exactly five: the next known global begins at 0x0069B900. The cancel row
-   lands at [built-1] where built is the available-entry count plus one, so
-   the array is only safe because W8_SUBMENU_ATTACK's Berserk (fighter trait
-   0x14) and Pray (priest trait 0x0b) entries can never be available together -
-   iProfession is one index into g_profession_abilities. */
+/* The cancel row lands at [built-1] where built is the available-entry count
+   plus one, so five rows only suffice because Berserk (fighter trait 0x14) and
+   Pray (priest trait 0x0b) can never be available together. */
 extern W8TextControl* g_submenu_rows[5];
 extern W8DialogButton* g_submenu_buttons[9];
 /* The action-kind message indexes the caption draw maps through. */
 extern unsigned short g_action_kind_message_ids[12];
 /* Which menu the open sub-menu panel serves (W8SubMenuPage value), each row's
-   entry index and each row's W8SubMenuEntryState; the retail storage is
-   word-sized, so the enum values ride in shorts. */
+   entry index and each row's W8SubMenuEntryState, stored as shorts. */
 extern short g_submenu_menu;
 extern short g_submenu_entries[6];
 extern short g_submenu_entry_states[5];
 
 /* Invalidate (when asked) then redraw the sub-menu panel. */
-void RefreshSubMenuPanel(bool invalidate); /* 0x005963E0 */
+void RefreshSubMenuPanel(bool invalidate);
 /* Close and rebuild the sub menu around the saved combat-end notification. */
-void ResetSubMenuPanel(void); /* 0x00596CF0 */
+void ResetSubMenuPanel(void);
 /* Create and lay out the two scroll-arrow buttons. */
-unsigned char CreateSubMenuScrollButtons(void); /* 0x00596EC0 */
+unsigned char CreateSubMenuScrollButtons(void);
 /* Create the close/formation panel buttons. */
-unsigned char CreateSubMenuPanelButtons(void); /* 0x00597670 */
+unsigned char CreateSubMenuPanelButtons(void);
 /* Create the options-disk button. */
-unsigned char CreateOptionsDiskButton(void); /* 0x00597A30 */
+unsigned char CreateOptionsDiskButton(void);
 /* Create the five combat-stance buttons. */
-unsigned char CreateCombatStanceButtons(void); /* 0x00597B90 */
+unsigned char CreateCombatStanceButtons(void);
 /* Create the three roof/viewpoint buttons. */
-unsigned char CreateRoofButtons(void); /* 0x00597EE0 */
+unsigned char CreateRoofButtons(void);
 /* Draw roof chrome, mark the three buttons dirty, sync state, and request the
    0x100000 redraw bit. */
-void RedrawRoofButtons(void); /* 0x00598060 */
+void RedrawRoofButtons(void);
 /* Sync roof-button visibility/enabled/pressed state and Draw each button. */
-void UpdateRoofButtons(void); /* 0x005980B0 */
+void UpdateRoofButtons(void);
 /* Press the roof button that matches g_settings.main_ui_mode. */
-void SyncRoofButtonPressedState(void); /* 0x00598150 */
+void SyncRoofButtonPressedState(void);
 /* Draw layout-arrow chrome and sync the six raise/lower arrows against the
    live action-panel / formation-board / radar-map visibility flags. */
-void RedrawLayoutArrowButtons(void); /* 0x00598490 */
+void RedrawLayoutArrowButtons(void);
 /* Create the six layout-arrow buttons. */
-unsigned char CreateLayoutArrowButtons(void); /* 0x005982D0 */
+unsigned char CreateLayoutArrowButtons(void);
 /* MainGameScreenEnter's interface-button bank: submenu, scroll, panel,
    options disk, combat stance, roof, and layout arrows. */
-void CreateMainGameInterfaceButtons(void);  /* 0x00598AB0 */
-void DestroyMainGameInterfaceButtons(void); /* 0x00598AE0 */
+void CreateMainGameInterfaceButtons(void);
+void DestroyMainGameInterfaceButtons(void);
 /* Draw the selected character's name/profession line and the caption for
    their queued action. */
-void DrawSubMenuCharacterAction(void); /* 0x00596FE0 */
+void DrawSubMenuCharacterAction(void);
 /* Sync enable/press of the two sub-menu panel buttons, then Draw them. */
-void UpdateSubMenuPanelButtons(void); /* 0x00597790 */
+void UpdateSubMenuPanelButtons(void);
 /* Redraw the bottom sub-menu chrome, bank buttons, panel buttons, character
    action caption, and scroll arrows (redraw bit 0x1000). */
-void RedrawSubMenuButtons(void); /* 0x00598810 */
+void RedrawSubMenuButtons(void);
 /* Redraw the options-disk button (redraw bit 0x40000). */
-void RedrawOptionsDiskButton(void); /* 0x00597AF0 */
+void RedrawOptionsDiskButton(void);
 /* Mark combat-stance buttons dirty and refresh which stance is shown
    (redraw bit 0x80000). */
-void RedrawCombatStanceButtons(void); /* 0x00597D30 */
+void RedrawCombatStanceButtons(void);
 /* Show the active continuous/manual combat-stance button for the live mode. */
-void UpdateCombatStanceButtons(void); /* 0x00597D70 */
+void UpdateCombatStanceButtons(void);
 /* Per-frame button refresh from DrawMainGameScreen: bank buttons, scroll
    arrows, panel/options/stance/roof buttons and the layout-arrow pair. */
-void UpdateMainGameButtons(void); /* 0x005989B0 */
+void UpdateMainGameButtons(void);
 /* While the combat-end submenu is up and the cursor has left its row band,
    run a 500 ms countdown, then tear the panel and rows down. */
-void UpdateSubMenuAutoClose(void); /* 0x00598FA0 */
+void UpdateSubMenuAutoClose(void);
 
 /* The scroll-arrow callbacks are one-argument thunks over the shared handler:
    up steps toward lower slots, down toward higher, both wrapping and skipping
    ineligible slots. */
-void SubMenuScrollArrowUp(W8DialogButton* button);   /* 0x00597550 */
-void SubMenuScrollArrowDown(W8DialogButton* button); /* 0x00597560 */
+void SubMenuScrollArrowUp(W8DialogButton* button);
+void SubMenuScrollArrowDown(W8DialogButton* button);
 /* Move selected_character to the next eligible party slot (0 steps toward
    slot 0, 1 toward slot 7), wrapping, and raise the portrait redraw masks. */
-void ScrollSubMenuCharacter(char direction); /* 0x00597570 */
+void ScrollSubMenuCharacter(char direction);
 
 /* The per-row select callbacks AssignSubMenuCallback installs. */
 void SubMenuSelectAttack(void);
@@ -123,38 +120,33 @@ void SubMenuSelectWalk(void);
 
 /* Applies SetTooltipEnabled to all nine bank buttons, both scroll arrows and
    both panel buttons; the submenu rebuild paths call it around teardown. */
-void SetSubMenuButtonTooltips(int enabled); /* 0x005990F0 */
+void SetSubMenuButtonTooltips(int enabled);
 /* Region callback for the sub-menu background: right-up tears the panel down. */
-/* 0x00598C10 / 0x00598C70: enable/disable the scroll, roof and layout button
+/* Enable/disable the scroll, roof and layout button
    banks around the surprise/camp sequence. */
 void EnableMenuButtonBanks(void);
 void DisableMenuButtonBanks(void);
-unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event,
-                                           W8Region* region); /* 0x00598CD0 */
+unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event, W8Region* region);
 /* Region callback the five sub-menu rows share. */
-unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region); /* 0x00598DB0 */
+unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region);
 
-/* Panel build/state helpers; retail places them in the MGSPortraitCombat.cpp
-   span, but the demo bounds all six unique matches inside the
-   MGSButtons.cpp hull (anchors 0x0059DD20/0x0059EB10). */
 /* Enable the panel region set and one input region per live row. */
-void EnableSubMenuRegions(void); /* 0x005957E0 */
+void EnableSubMenuRegions(void);
 /* Descriptive name for the complete submenu opening operation expanded in
    the button callbacks and reopen/reset paths. */
 void OpenSubMenuPanel(short notification);
 /* Build the panel and one row per available entry of the notification's
    menu. */
-unsigned char BuildSubMenuPanel(short notification); /* 0x00595850 */
-/* Install the row's primary callback for its (W8SubMenuPage, entry) pair; the
-   retail parameters are word-sized. */
-void AssignSubMenuCallback(W8TextControl* row, short menu, short item); /* 0x00595EA0 */
+unsigned char BuildSubMenuPanel(short notification);
+/* Install the row's primary callback for its (W8SubMenuPage, entry) pair. */
+void AssignSubMenuCallback(W8TextControl* row, short menu, short item);
 /* The row availability states the refresh maps icon frames through. */
-W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot); /* 0x00595FE0 */
+W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot);
 /* Store the (W8SubMenuPage, entry) pair's pending command in the level block. */
-void MapSubMenuSelection(short menu, short item); /* 0x00596240 */
+void MapSubMenuSelection(short menu, short item);
 /* Whether the slot may perform the pending command, in entry-state terms:
    USABLE/UNUSABLE or the _SELECTED variant when it is already queued. */
-W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot); /* 0x00596360 */
+W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot);
 
 inline int GetAttackMenuWeaponOffset(W8Skill skill)
 {

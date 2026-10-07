@@ -20,7 +20,6 @@ from ..manifest_models import (
     write_generated_document,
 )
 from ..paths import (
-    atomic_json,
     build_directory_atomically,
     ensure_safe_generated_target,
     json_hash,
@@ -566,5 +565,3 @@ def materialize_variants(settings: Settings, *, only: list[str] | None = None) -
     output = VariantProvenanceManifest(schema="wiz8.variant-provenance", variants=records)
     write_generated_document(variant_provenance_path(settings), output)
     return output.model_dump(mode="json", by_alias=True)
-
-

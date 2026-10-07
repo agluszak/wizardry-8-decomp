@@ -87,11 +87,6 @@ srHuffman::BitOStream& srHuffman::BitOStream::operator=(const BitOStream& stream
     return *this;
 }
 
-/* Retail copies table memberwise and assigns symbols through
-   srArray::operator=. */
-
-/* Retail assigns table memberwise and symbols through srArray::operator=. */
-
 // FUNCTION: SURRENDER 0x100016D0
 srHuffman::BitOStream::BitOStream(srBinOStream& stream)
 {
@@ -544,9 +539,3 @@ static void* copyMemory(void* destination, const void* source, long size)
     memcpy(destination, source, size);
     return destination;
 }
-
-/* srHashTable<unsigned long,int>::Grow — called out of line from AllocateEntry
-   inside insert's inlined Insert. */
-
-/* srHashTable<unsigned long,Compressor::Node*>::Grow — called out of line from
-   AllocateEntry inside setupPath's inlined Insert. */

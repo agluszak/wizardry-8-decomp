@@ -21,7 +21,7 @@ void jpegErrorExit(j_common_ptr common);
 } // namespace
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10001000
-void srJPEG_read_header_adapter(JpegCodecState32* state)
+void srJPEG_read_header_adapter(JpegCodecState* state)
 {
     jpeg_decompress_struct decompress;
     JpegErrorManager error;
@@ -57,7 +57,7 @@ void jpegErrorExit(j_common_ptr common)
 } // namespace
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x100010F0
-void srJPEG_encode_adapter(JpegCodecState32* state)
+void srJPEG_encode_adapter(JpegCodecState* state)
 {
     jpeg_compress_struct compress;
     jpeg_error_mgr error;
@@ -100,7 +100,7 @@ void srJPEG_encode_adapter(JpegCodecState32* state)
 }
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10001290
-void srJPEG_decode_adapter(JpegCodecState32* state)
+void srJPEG_decode_adapter(JpegCodecState* state)
 {
     jpeg_decompress_struct decompress;
     JpegErrorManager error;

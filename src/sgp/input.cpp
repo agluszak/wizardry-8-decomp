@@ -1,10 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Reconstruct Wizardry physical-key mapping, raw-key string input, and character helpers.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
-   Recover the wide-character predicate return width and key translation modulo.
-   Remove the unused local configuration include and use the SDK mouse-wheel header, 2026-10-04.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-04, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include <windows.h>
@@ -818,8 +812,6 @@ int ToLowercaseWideChar(int character)
     return character;
 }
 
-/* Unlike the pinned VC6 _wcsicmp, retail has no locale branch. The adjacent
-   character helpers provide the same ASCII-only case conversion. */
 // FUNCTION: WIZ8 0x00402920
 int CompareWideTextIgnoreAsciiCase(const wchar_t* first, const wchar_t* second)
 {

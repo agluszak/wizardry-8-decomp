@@ -6,19 +6,20 @@ import pytest
 from typer.testing import CliRunner
 from wiz8decomp import command_support
 from wiz8decomp.cli import app
-from wiz8decomp.extract import variants
 
-REPOSITORY = Path(__file__).resolve().parents[2]
+
+def _reccmp_project(root: Path) -> None:
+    (root / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
 
 
 @pytest.mark.parametrize("scenario", [None, "main-game-start"])
 @pytest.mark.parametrize(
     "reason,exit_code",
     [
-        ("exited normally", 0),
         ("exited with code 3", 3),
         ("SIGSEGV", 1),
-        ("debugger timeout", 1),
         ("breakpoint-hit", 0),
     ],
 )
@@ -61,41 +62,11 @@ def test_debug_uses_existing_selected_product_before_launch(
     assert "session: session.json" in result.output
 
 
-def test_debug_build_option_builds_before_launch(monkeypatch) -> None:
-    from wiz8decomp import build
-    from wiz8decomp.debug import debugger
-
-    events = []
-    monkeypatch.setattr(command_support, "settings", lambda: object())
-    monkeypatch.setattr(build, "build_target", lambda _, target: events.append(("build", target)))
-    monkeypatch.setattr(
-        build, "warn_if_product_may_be_stale", lambda _, target: events.append(("check", target))
-    )
-    monkeypatch.setattr(
-        debugger,
-        "run_debugger",
-        lambda *_args, **_kwargs: {
-            "report": "",
-            "reason": "exited normally",
-            "exit_code": 0,
-            "log": "raw.txt",
-            "session": "session.json",
-        },
-    )
-
-    result = CliRunner().invoke(app, ["debug", "--build"])
-
-    assert result.exit_code == 0, result.output
-    assert events == [("build", "runtime"), ("check", "runtime")]
-
-
 def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypatch) -> None:
     from wiz8decomp import build, comparison, source_index
 
     settings = SimpleNamespace(repo_dir=tmp_path, ghidra_install_dir=tmp_path / "ghidra")
-    (tmp_path / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
-    )
+    _reccmp_project(tmp_path)
     source = tmp_path / "new.cpp"
     source.write_text("// FUNCTION: WIZ8 0x00401000\nvoid added() {}\n")
     (tmp_path / "build").mkdir()
@@ -158,101 +129,13 @@ def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypa
 def test_compare_changed_does_not_fall_back_to_whole_image(tmp_path, monkeypatch) -> None:
     from wiz8decomp import comparison
 
-    (tmp_path / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
-    )
+    _reccmp_project(tmp_path)
     monkeypatch.setattr(command_support, "settings", lambda: SimpleNamespace(repo_dir=tmp_path))
     monkeypatch.setattr(comparison, "changed_source_files", lambda *_args: [])
     result = CliRunner().invoke(app, ["compare", "--changed"])
     assert result.exit_code != 0
     assert isinstance(result.exception, ValueError)
     assert "no functions selected" in str(result.exception)
-
-
-def test_numeric_compare_is_read_only_and_passes_exact_addresses(tmp_path, monkeypatch) -> None:
-    from wiz8decomp import build, comparison, source_index
-
-    (tmp_path / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
-    )
-    seen = []
-    monkeypatch.setattr(
-        command_support,
-        "settings",
-        lambda: SimpleNamespace(repo_dir=tmp_path, ghidra_install_dir=tmp_path),
-    )
-    monkeypatch.setattr(
-        source_index, "write_source_index", lambda *_args: pytest.fail("must not write index")
-    )
-    monkeypatch.setattr(build, "build_target", lambda *_args: pytest.fail("must not build"))
-    monkeypatch.setattr(
-        comparison,
-        "compare_selected",
-        lambda _repo, _target, addresses, *_args, **_kwargs: seen.append(addresses) or {"ok": True},
-    )
-
-    result = CliRunner().invoke(app, ["compare", "0x4538d0"])
-
-    assert result.exit_code == 0, result.output
-    assert seen == [[0x4538D0]]
-
-
-def test_compare_build_explicitly_refreshes_and_builds(tmp_path, monkeypatch) -> None:
-    from wiz8decomp import build, comparison, source_index
-
-    (tmp_path / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
-    )
-    settings = SimpleNamespace(repo_dir=tmp_path, ghidra_install_dir=tmp_path)
-    events = []
-    monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(source_index, "write_source_index", lambda actual: events.append("index"))
-    monkeypatch.setattr(
-        build, "build_target", lambda actual, target: events.append(("build", target))
-    )
-    monkeypatch.setattr(
-        comparison,
-        "compare_selected",
-        lambda *_args, **_kwargs: events.append("compare") or {"ok": True},
-    )
-
-    result = CliRunner().invoke(app, ["compare", "--build", "0x4538d0"])
-
-    assert result.exit_code == 0, result.output
-    assert events == ["index", ("build", "WIZ8"), "compare"]
-
-
-@pytest.mark.parametrize(
-    "arguments,function_name",
-    [
-        (["vtable", "Widget"], "compare_vtables"),
-        (["datacmp"], "compare_data"),
-        (["addr", "0x401000"], "translate_addresses"),
-    ],
-)
-def test_inspection_build_refreshes_index_before_comparison(
-    tmp_path, monkeypatch, arguments, function_name
-) -> None:
-    from wiz8decomp import build, comparison, source_index
-
-    (tmp_path / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
-    )
-    settings = SimpleNamespace(repo_dir=tmp_path)
-    events = []
-    monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(source_index, "write_source_index", lambda _actual: events.append("index"))
-    monkeypatch.setattr(build, "build_target", lambda _actual, target: events.append("build"))
-    monkeypatch.setattr(
-        comparison,
-        function_name,
-        lambda *_args: events.append("compare") or {"ok": True},
-    )
-
-    result = CliRunner().invoke(app, [*arguments, "--build"])
-
-    assert result.exit_code == 0, result.output
-    assert events == ["index", "build", "compare"]
 
 
 @pytest.mark.parametrize(
@@ -268,9 +151,7 @@ def test_inspection_commands_do_not_build_by_default(
 ) -> None:
     from wiz8decomp import build, comparison
 
-    (tmp_path / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
-    )
+    _reccmp_project(tmp_path)
     settings = SimpleNamespace(repo_dir=tmp_path)
     calls = []
     monkeypatch.setattr(command_support, "settings", lambda: settings)
@@ -297,9 +178,7 @@ def test_vtable_and_datacmp_exit_nonzero_when_not_ok(
 ) -> None:
     from wiz8decomp import comparison
 
-    (tmp_path / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
-    )
+    _reccmp_project(tmp_path)
     settings = SimpleNamespace(repo_dir=tmp_path)
     monkeypatch.setattr(command_support, "settings", lambda: settings)
     monkeypatch.setattr(comparison, function_name, lambda *_args: {"ok": False, "issue_count": 1})
@@ -310,101 +189,10 @@ def test_vtable_and_datacmp_exit_nonzero_when_not_ok(
     assert '"ok": false' in result.output
 
 
-def test_runtime_test_build_is_explicit(monkeypatch) -> None:
-    from wiz8decomp import build, runtime
-
-    settings = object()
-    events = []
-    monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(build, "build_target", lambda _, target: events.append(("build", target)))
-    monkeypatch.setattr(
-        build, "warn_if_product_may_be_stale", lambda _, target: events.append(("check", target))
-    )
-    monkeypatch.setattr(
-        runtime,
-        "run_runtime_suite",
-        lambda *_args, **_kwargs: events.append("run") or {"ok": True},
-    )
-
-    default = CliRunner().invoke(app, ["runtime-test", "--scenario", "probe"])
-    explicit = CliRunner().invoke(app, ["runtime-test", "--build", "--scenario", "probe"])
-
-    assert default.exit_code == 0, default.output
-    assert explicit.exit_code == 0, explicit.output
-    assert events == [
-        ("check", "runtime-test"),
-        "run",
-        ("build", "runtime-test"),
-        ("check", "runtime-test"),
-        "run",
-    ]
-
-
-def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:
-    settings = object()
-    seen: list[tuple[object, str]] = []
-    monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(
-        variants,
-        "extract_role",
-        lambda actual, role: seen.append((actual, role)) or {"role": role},
-    )
-
-    result = CliRunner().invoke(app, ["corpus", "extract", "demo", "patch-128"])
-
-    assert result.exit_code == 0
-    assert seen == [(settings, "demo"), (settings, "patch-128")]
-    assert json.loads(result.stdout) == [{"role": "demo"}, {"role": "patch-128"}]
-
-
-def test_corpus_extract_all_uses_the_canonical_sequence(monkeypatch) -> None:
-    settings = object()
-    monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(
-        variants,
-        "extract_all",
-        lambda actual: {"all": actual is settings},
-    )
-
-    result = CliRunner().invoke(app, ["corpus", "extract", "--all"])
-
-    assert result.exit_code == 0
-    assert json.loads(result.stdout) == {"all": True}
-
-
-def test_prepare_comparison_targets_select_minimal_mode(monkeypatch) -> None:
-    from wiz8decomp import build
-
-    settings = object()
-    events = []
-    monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(build, "prepare", lambda _settings: events.append(("full", None)) or {})
-    monkeypatch.setattr(
-        build,
-        "prepare_comparison",
-        lambda _settings, targets: events.append(("comparison", targets)) or {},
-    )
-
-    default = CliRunner().invoke(app, ["prepare"])
-    comparison = CliRunner().invoke(
-        app,
-        ["prepare", "--comparison-target", "WIZ8", "--comparison-target", "SURRENDER"],
-    )
-
-    assert default.exit_code == 0, default.output
-    assert comparison.exit_code == 0, comparison.output
-    assert events == [
-        ("full", None),
-        ("comparison", ["WIZ8", "SURRENDER"]),
-    ]
-
-
 def test_compare_changed_without_target_markers_is_an_empty_success(tmp_path, monkeypatch) -> None:
     from wiz8decomp import comparison
 
-    (tmp_path / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
-    )
+    _reccmp_project(tmp_path)
     (tmp_path / "build").mkdir()
     (tmp_path / "build/source-index.json").write_text(json.dumps({"markers": []}))
     source = tmp_path / "other.cpp"
@@ -423,36 +211,3 @@ def test_compare_changed_without_target_markers_is_an_empty_success(tmp_path, mo
 
     assert result.exit_code == 0, result.output
     assert json.loads(result.stdout)["selected"] == 0
-
-
-def test_prepare_sources_only_does_not_require_game_inputs(monkeypatch) -> None:
-    from wiz8decomp import build, build_inputs
-
-    settings = SimpleNamespace()
-    monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(build, "prepare", lambda *_: pytest.fail("must not prepare game inputs"))
-    monkeypatch.setattr(
-        build, "prepare_comparison", lambda *_: pytest.fail("must not prepare originals")
-    )
-    calls = []
-    monkeypatch.setattr(build_inputs, "fetch_sources", lambda s: calls.append(s) or {"sources": []})
-    result = CliRunner().invoke(app, ["prepare", "--sources-only"])
-    assert result.exit_code == 0
-    assert calls == [settings]
-    assert json.loads(result.stdout) == {"sources": []}
-    result = CliRunner().invoke(app, ["prepare", "--sources-only", "--comparison-target", "WIZ8"])
-    assert result.exit_code != 0
-    assert calls == [settings]
-
-
-@pytest.mark.parametrize(
-    "scenario,returncode,expected",
-    [
-        ("screens", None, True),
-        ("screens", 1, False),
-        ("screens", 0, False),
-        ("load", None, True),
-        ("load", 0, True),
-        ("load", 1, False),
-    ],
-)

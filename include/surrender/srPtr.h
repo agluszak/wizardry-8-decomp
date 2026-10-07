@@ -1,16 +1,8 @@
 #pragma once
 
-/* SurRender exposes template specializations using this spelling in its
-   decorated exports. The polygon-texture accessors prove the instantiated
-   object is one pointer wide and that ordinary pointer access is inline.
-   Other concrete TEMPLATE names are recomp selectors until independently
-   bound; a common addReference/release call does not identify the pointee. */
 template <class T> class srPtr {
 public:
     srPtr() : pointer_(0) {}
-    /* Retail's copy path addrefs the source pointer then stores it — no
-       release path exists on a fresh object (srGERD's copy
-       constructor at 0x1001B020 inlines exactly that sequence). */
     srPtr(const srPtr& other)
     {
         if (other.pointer_ != 0) {
@@ -18,9 +10,6 @@ public:
         }
         pointer_ = other.pointer_;
     }
-    /* The scalar-array element-dtor emissions: mesh_model's materials
-       array uses the srPtr<srMaterialIFace> copy at 0x10042B00 while
-       textures's deduplicates to the earlier emission at 0x1001EE90. */
     ~srPtr()
     {
         if (pointer_ != 0) {
@@ -60,9 +49,8 @@ public:
         return assign(&other);
     }
 
-    /* Refcounted handoff retail inlines at every srPtr field copy: it guards
-       on a null source (so assign(0) clears) and on self-assignment, then
-       addrefs the incoming pointer before releasing the held one. */
+    /* Refcounted handoff: guards on a null source (so assign(0) clears) and on self-assignment,
+       then addrefs the incoming pointer before releasing the held one. */
     srPtr& assign(const srPtr* other)
     {
         if (other != this) {

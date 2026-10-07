@@ -17,5 +17,3 @@ def surrender_abi_command(update_snapshot: bool = typer.Option(False, "--update-
 
 
 refresh_app.command("surrender-abi")(surrender_abi_command)
-
-

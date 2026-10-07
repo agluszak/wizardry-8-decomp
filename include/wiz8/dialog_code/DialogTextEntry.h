@@ -5,8 +5,6 @@
 
 extern unsigned int g_dialog_text_layout_mask;
 
-/* Recovered role name. Constructor 0x005D1050 and the allocation in
-   0x005D16C0 establish a 0x50-byte text-buffer base plus 0x14 bytes. */
 // VTABLE: WIZ8 0x005ef894
 class W8DialogTextEntry : public W8TextBuffer {
 public:
@@ -14,10 +12,6 @@ public:
                       unsigned int text_palette, const W8ControlsRect* bounds, int font,
                       unsigned char category, unsigned int layout_mode, unsigned char shorten);
     void Draw(bool force);
-    /* Retail inlines this body at the 0x005D1E80/0x005D1ED0/0x005D20A0 call
-       sites inside W8DialogTextArea and keeps the out-of-line copy at
-       0x005D14B0; see the same unresolved VC6 inlining pattern documented in
-       PC_Item.h. */
     void SetSelected(bool selected);
 
 private:
@@ -25,13 +19,13 @@ private:
     friend class W8DialogTextArea;
     /* The controller reads m_category when it snapshots the transcript. */
     friend class W8NpcDialogueTextController;
-    unsigned int m_prefix_palette; /* 0x50 */
-    unsigned int m_text_palette;   /* 0x54 */
-    int m_prefix_length;           /* 0x58: includes ": " */
-    bool m_selected;               /* 0x5c */
-    bool m_entry_highlighted;      /* 0x5d: highlighted keyword palette */
-    unsigned char m_category;      /* 0x5e: text-area filter key */
-    unsigned char m_shorten_mask;  /* 0x5f: raw shortening bit from text-area behavior flags */
-    bool m_marked;                 /* 0x60: marked transcript entry palette */
+    unsigned int m_prefix_palette;
+    unsigned int m_text_palette;
+    int m_prefix_length; /* includes ": " */
+    bool m_selected;
+    bool m_entry_highlighted;     /* highlighted keyword palette */
+    unsigned char m_category;     /* text-area filter key */
+    unsigned char m_shorten_mask; /* raw shortening bit from text-area behavior flags */
+    bool m_marked;                /* marked transcript entry palette */
 };
 static_assert(sizeof(W8DialogTextEntry) == 0x64, "W8DialogTextEntry_size");

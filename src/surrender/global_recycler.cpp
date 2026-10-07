@@ -2,8 +2,7 @@
 
 namespace {
 
-/* RAII guard proven by the methods' EH funclets: unwind runs the guard dtor,
-   which calls LeaveCriticalSection on the stored section pointer. */
+/* Scoped critical-section guard. */
 class RecyclerAccess {
 public:
     RecyclerAccess(CRITICAL_SECTION* critical_section) : critical_section_(critical_section)
@@ -48,8 +47,6 @@ void srGlobalRecycler::setLimit(unsigned long limit)
     this->limit = limit;
 }
 
-/* TU-local heap adapter used by the recycler allocation paths. Retail takes
-   size from the stack, loads the global heap into ECX, and returns with RET 4. */
 // FUNCTION: SURRENDER 0x10035620
 static void* __stdcall AllocateRecyclerStorage(unsigned long size)
 {

@@ -103,7 +103,7 @@
 
 /* 0x004F8130, ItemManager.cpp line 998: asserts the item is non-null, then
    reports whether the flag word at +0x29 has any of the caller's bits set. */
-/* 0x00659756: set to 1 by LoadLevel (0x0042A6F0) around its restore call at
+/* Set to 1 by LoadLevel around its restore call at
    0x005135D0 and cleared immediately after, and read only from the save and
    load paths. It gates the bit-3 clear below. The meaning is not established
    beyond "a level restore is in progress", so the name stays positional. */
@@ -113,14 +113,14 @@
 /* The fixed 0x314-byte header every save begins with. Only the fields
    LoadStatusHeader forwards are established; the rest is read and kept. */
 struct W8StatusHeader {
-    float version;                     /* 0x000 */
-    int next_group_id;                 /* 0x004 */
-    int next_monster_location_id;      /* 0x008 */
-    int next_world_item_id;            /* 0x00c */
-    int next_trigger_id;               /* 0x010 */
-    unsigned char status_block[0x100]; /* 0x014 */
+    float version;
+    int next_group_id;
+    int next_monster_location_id;
+    int next_world_item_id;
+    int next_trigger_id;
+    unsigned char status_block[0x100];
     unsigned char unknown_114[0x200];
-}; /* 0x314 */
+};
 
 static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
 
@@ -508,7 +508,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
 /* Build the level-specific status path the save code falls back to when the
    current-game save has no matching level section. The regular levels use the
    database row's own folder and level names and level 56 is the shared default
-   test level. The binary is explicit here (0x00512E80): CMP ESI,0x39 branches
+   test level. The binary is explicit here: CMP ESI,0x39 branches
    at level < 57, CMP ESI,0x38 handles 56, and every other level indexes the
    table at 0x00604478 with stride 0x6B. That table has 47 entries, so levels
    47-55 read the adjacent rdata, even though LevelBuildInfoByID treats those
@@ -2036,7 +2036,7 @@ bool MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* empty_per
         } while (remaining != 0);
     }
     if (empty_percent != 0) {
-        /* The binary (0x00514DF0) divides by the accumulated extent with no
+        /* The binary divides by the accumulated extent with no
            zero test; an empty chunk file reaches this unsigned DIV. */
         *empty_percent = empty_total * 100 / total;
     }
@@ -2366,4 +2366,4 @@ void LoadMonsterControlSpellEffect(W8Chunk* chunks)
    kept this unit's instance for AddItem as well. */
 
 /* The remove-and-delete emission LoadGame calls while ResetLiveSessionForLoad
-   inlines it (0x00516A00) is instantiated explicitly in vector.cpp. */
+   inlines it is instantiated explicitly in vector.cpp. */

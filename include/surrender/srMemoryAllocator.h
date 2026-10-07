@@ -21,8 +21,6 @@ public:
     SR_DLL_IMPORT void setAlignment(e_alignSize alignment);
 
 private:
-    /* Retail mangles the parameter as PAVBlock: the nested record was declared
-       class, not struct. */
     class Block {
     public:
         Block* next;

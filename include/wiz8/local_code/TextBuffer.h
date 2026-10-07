@@ -30,7 +30,7 @@ public:
     void RenderText(unsigned char* buffer, unsigned int pitch, int x_offset, int y_offset,
                     bool force);
     void RenderToTarget(int offset, bool force, unsigned int target);
-    void UpdateLayout(); /* 0x004F35B0 */
+    void UpdateLayout();
     void SetLayoutMode(unsigned int layout_mode);
     void SetText(const wchar_t* text, int font);
     void SetLayoutBounds(const W8ControlsRect* bounds, bool copy_pending, bool update_layout);
@@ -82,27 +82,29 @@ public:
     virtual ~W8TextBuffer();
 
 protected:
-    W8ControlsRect m_layoutBounds;  /* 0x04: current absolute layout bounds */
-    W8ControlsRect m_pendingBounds; /* 0x14: mirrored pending bounds */
-    int m_field_24;                 /* 0x24: the constructor steps over this one */
-    int m_font;                     /* 0x28: font used for uncached line height */
+    W8ControlsRect m_layoutBounds;  /* current absolute layout bounds */
+    W8ControlsRect m_pendingBounds; /* mirrored pending bounds */
+    int m_field_24;                 /* the constructor steps over this one */
+    int m_font;                     /* font used for uncached line height */
 public:
     /* The tooltip builder in Video2.cpp reads the finished layout directly. */
-    int m_lineCount; /* 0x2c */
+    int m_lineCount;
+
 protected:
-    unsigned int m_lineHeight; /* 0x30: cached height, zero means query font */
-    wchar_t* m_buffer;         /* 0x34: freed on teardown */
-    unsigned int m_layoutMode; /* 0x38: 10 initially */
+    unsigned int m_lineHeight; /* cached height, zero means query font */
+    wchar_t* m_buffer;         /* freed on teardown */
+    unsigned int m_layoutMode; /* 10 initially */
 public:
-    unsigned int m_maxLineWidth; /* 0x3c */
+    unsigned int m_maxLineWidth;
+
 public:
     /* The party-selection controller raises the geometry-dirty byte directly
        when it changes modes; retain that observed public storage access. */
-    bool m_geometryDirty;              /* 0x40 */
-    unsigned char m_alternateRenderer; /* 0x41 */
+    bool m_geometryDirty;
+    unsigned char m_alternateRenderer;
     unsigned char pad_42[2];
-    int m_renderMode;     /* 0x44: 4 initially */
-    int m_fontStateIndex; /* 0x48: -1 skips the state-table override */
+    int m_renderMode;     /* 4 initially */
+    int m_fontStateIndex; /* -1 skips the state-table override */
     bool m_highlighted;
 };
 

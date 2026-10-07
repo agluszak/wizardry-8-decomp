@@ -1,8 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Encode retained retail diagnostic line numbers explicitly; format the reconstructed source.
-   Include the declarations used by the Wizardry build explicitly.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "sgp.h"
 #include "DirectX Common.h"

@@ -1,17 +1,19 @@
+import json
 from pathlib import Path
 
+import pytest
 from wiz8decomp.ghidra.project import program_name
-from wiz8decomp.ghidra.resolve import ResolveError, hex_address, resolve_function
-from wiz8decomp.source_index import AddressBoundIdentity, address_bound_identities
+from wiz8decomp.ghidra.resolve import ResolveError, resolve_function
+from wiz8decomp.source_index import (
+    AddressBoundIdentity,
+    address_bound_identities,
+    declaration_for_marker,
+)
 
 
 def test_program_name_is_stable_and_hash_qualified() -> None:
     module = {"variant": "gog-base", "relative_path": "Dll/Something.dll", "sha256": "a" * 64}
     assert program_name(module) == "wiz8--gog-base--something--aaaaaaaaaaaa"
-
-
-def test_hex_address_zero_pads() -> None:
-    assert hex_address(0x51EB90) == "0x0051eb90"
 
 
 def test_ambiguous_function_name_lists_candidates() -> None:
@@ -69,14 +71,8 @@ def test_ambiguous_function_name_lists_candidates() -> None:
 
             return Factory()
 
-    try:
+    with pytest.raises(ResolveError, match=r"ambiguous.*0x00401000.*0x00402000"):
         resolve_function(Program(), "Draw")
-    except ResolveError as error:
-        assert "ambiguous" in str(error)
-        assert "0x00401000" in str(error)
-        assert "0x00402000" in str(error)
-    else:
-        raise AssertionError("expected ResolveError")
 
 
 def test_declaration_only_address_binding(tmp_path: Path) -> None:
@@ -95,7 +91,7 @@ def test_declaration_only_address_binding(tmp_path: Path) -> None:
     build = tmp_path / "build"
     build.mkdir()
     (build / "source-index.json").write_text(
-        __import__("json").dumps(
+        json.dumps(
             {
                 "markers": [],
                 "declarations": [
@@ -138,8 +134,6 @@ def test_declaration_only_address_binding(tmp_path: Path) -> None:
 
 
 def test_v3_declaration_key_joins_marker_to_clang_declaration(tmp_path: Path) -> None:
-    from wiz8decomp.source_index import bind_marker_declarations, declaration_for_marker
-
     (tmp_path / "reccmp-project.yml").write_text(
         "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
         "    hash:\n      sha256: abc\n",
@@ -174,7 +168,7 @@ def test_v3_declaration_key_joins_marker_to_clang_declaration(tmp_path: Path) ->
     }
     build = tmp_path / "build"
     build.mkdir()
-    (build / "source-index.json").write_text(__import__("json").dumps(document), encoding="utf-8")
+    (build / "source-index.json").write_text(json.dumps(document), encoding="utf-8")
 
     bound = address_bound_identities(tmp_path, "WIZ8")
     identity = bound[0x401000][0]
@@ -182,8 +176,6 @@ def test_v3_declaration_key_joins_marker_to_clang_declaration(tmp_path: Path) ->
     assert identity.kind == "definition"
     assert identity.return_type == "void"
 
-    markers = bind_marker_declarations(document)
-    assert markers[0]["declaration"]["end_line"] == 20
     assert (
         declaration_for_marker(
             document["markers"][0], {("WIZ8", semantic, ""): document["declarations"][0]}

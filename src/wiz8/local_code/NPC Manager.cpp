@@ -83,7 +83,7 @@ enum { W8_NPC_ALWAYS_TRADED_ITEM = 0x29f, W8_NPC_MINIMUM_TRADE_VALUE = 300 };
 /* The two thresholds the disposition band is cut at. */
 enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 
-/* 0x00689F94: every NPC state, held in the shared growable vector. */
+/* Every NPC state, held in the shared growable vector. */
 // GLOBAL: WIZ8 0x00689F94
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
@@ -623,7 +623,7 @@ bool RecruitNpcIntoParty(W8NpcState* npc)
     return true;
 }
 
-/* 0x00619F18: the name a fact substitutes, and 0x00689F60 the buffer it is
+/* The name a fact substitutes, and 0x00689F60 the buffer it is
    copied into so the caller always gets a writable one. */
 // GLOBAL: WIZ8 0x00619F18
 char g_substituted_npc_name[] = "RFS81B";

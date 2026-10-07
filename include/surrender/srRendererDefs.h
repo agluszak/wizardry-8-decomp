@@ -4,10 +4,6 @@
 
 class srRendererDefs {
 public:
-    /* OpenGL srDD maps these to glDrawArrays modes (POINTS, LINE_STRIP, LINES,
-       TRIANGLE_STRIP, TRIANGLE_FAN, TRIANGLES). DirectX7 keeps the same SR
-       values as the draw-helper primitive key (value 5 is the triangle-list
-       merge case; value 3 is the four-vertex strip Wizardry draws). */
     enum e_primitive {
         PRIMITIVE_POINTS = 0,
         PRIMITIVE_LINE_STRIP = 1,
@@ -16,10 +12,8 @@ public:
         PRIMITIVE_TRIANGLE_FAN = 4,
         PRIMITIVE_TRIANGLES = 5
     };
-    /* Bit indices into srGERD's VertexArrayInfo clip mask / getClipMask.
-       applyClipPlaneChanges fills the six frustum planes at GERD+0x1418 in this
-       order (X pair, Y pair, then constant Z near/far). Bits 6+ are extra user
-       planes from pushClipPlane. Wizardry's 2D path writes the six-bit mask 0x3f. */
+    /* Clip-mask bit indices: the six frustum planes (X pair, Y pair, then near/far); bits 6+ are
+       user planes from pushClipPlane. */
     enum e_clip {
         CLIP_LEFT = 0,
         CLIP_RIGHT = 1,
@@ -30,13 +24,8 @@ public:
     };
     enum { FRUSTUM_CLIP_MASK = 0x3fu, FIRST_USER_CLIP_PLANE = 6 };
 
-    /* OpenGL vertex-array setup uses GL_FLOAT (0x1406) for this value.
-       Wizardry passes it for float[] position and texcoord arrays. */
     enum e_type { TYPE_FLOAT = 1 };
-    /* DD vertex-array slot indices consumed by srGERD::setDataPtr;
-       VertexArrayInfo mask sets bit 1<<slot for each live stream. Slot 3
-       carries the specular record's w component alone when a batch has
-       specular alpha without a specular stream. */
+    /* DD vertex-array slot indices; VertexArrayInfo's mask sets bit 1<<slot for each live stream. */
     enum e_vertexArray {
         VERTEX_ARRAY_POSITIONS = 0,
         VERTEX_ARRAY_DIFFUSE = 1,
@@ -47,9 +36,7 @@ public:
     };
     /* drawElements passes 2 for the renderer's 32-bit index triples. */
     enum e_indexType { INDEX_ULONG = 2 };
-    /* The vertex-stream state srGERD embeds at +0x21c4 and hands to
-       srDD::setVertexArrayInfo before each draw: live-slot mask, vertex count,
-       clip mask, then the per-slot component/type/stride/pointer arrays. */
+    /* Vertex-stream state handed to srDD::setVertexArrayInfo before each draw. */
     struct VertexArrayInfo {
         srFlags<e_vertexArray> mask;
         unsigned long count;

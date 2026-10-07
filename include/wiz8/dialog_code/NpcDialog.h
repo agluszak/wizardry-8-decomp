@@ -1,6 +1,6 @@
 #pragma once
 
-extern wchar_t g_format_S[]; /* 0x0061C4B4 */
+extern wchar_t g_format_S[];
 
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogButton.h"
@@ -9,8 +9,8 @@ extern wchar_t g_format_S[]; /* 0x0061C4B4 */
 
 class W8TextBuffer;
 
-/* The dialog receives the script entry itself. Its +0x0e sub-entry array is
-   the option list for kind 5; operand0 is the price for kinds 0x12/0x1e. */
+/* The dialog receives the script entry itself. Its sub-entry array is the
+   option list for kind 5; operand0 is the price for kinds 0x12/0x1e. */
 
 /* Dialog Code\NpcDialog.cpp. The NPC dialogue popup: the dispatch code
    allocates 0x270 bytes and hands the constructor a request buffer whose
@@ -20,34 +20,32 @@ class W8TextBuffer;
    Enter-key handling in ProcessInput reach back through it. */
 // VTABLE: WIZ8 0x005efa4c
 class W8NpcDialog : public W8DialogBase {
-    /* Its destroy callback at 0x00576E20 reads m_selected_option/m_message/
-       m_input_text from MainGameScreen.cpp. */
     friend void OnNpcDialogClosed(W8DialogBase* dialog);
 
 public:
-    W8NpcDialog(W8NpcQuoteEntry* message, int aux_data); /* 0x005DA6B0 */
+    W8NpcDialog(W8NpcQuoteEntry* message, int aux_data);
     virtual ~W8NpcDialog() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
     virtual void Draw() override;
-    virtual W8DialogKind GetDialogType() override; /* 0x005DB1A0: 7 */
+    virtual W8DialogKind GetDialogType() override; /* 7 */
     virtual bool ProcessInput() override;
 
 private:
     /* Copies the pressed option's user-data index into m_selected_option and
        closes the dialog. */
-    static void OptionSelected(W8DialogButton* button); /* 0x005DB150 */
+    static void OptionSelected(W8DialogButton* button);
 
-    W8TextBuffer* m_text_buffers[2]; /* 0x54 */
-    W8DialogButton* m_buttons[3];    /* 0x5c */
-    signed char m_selected_option;   /* 0x68: read MOVSX by the destroy callback */
-    W8NpcQuoteEntry* m_message;      /* 0x6c */
-    int m_aux_data;                  /* 0x70 */
-    bool m_compact_options;          /* 0x74: option list may size under 200 wide */
+    W8TextBuffer* m_text_buffers[2];
+    W8DialogButton* m_buttons[3];
+    signed char m_selected_option;
+    W8NpcQuoteEntry* m_message;
+    int m_aux_data;
+    bool m_compact_options; /* option list may size under 200 wide */
     unsigned char unknown_075;
-    unsigned short m_text_width; /* 0x76: widest option text + 6 */
-    unsigned char m_input_field; /* 0x78: AddTextInputField id for opcode 0x13 */
+    unsigned short m_text_width; /* widest option text + 6 */
+    unsigned char m_input_field; /* AddTextInputField id for opcode 0x13 */
     unsigned char unknown_079;
-    wchar_t m_input_text[251]; /* 0x7a: fills the 0x270-byte allocation */
+    wchar_t m_input_text[251]; /* fills the 0x270-byte allocation */
 };
 static_assert(sizeof(W8NpcDialog) == 0x270, "W8NpcDialog_size");

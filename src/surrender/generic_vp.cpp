@@ -1606,9 +1606,7 @@ void srVP_generic::_copyInterleaved(void* destination, const void* source,
     }
 }
 
-/* The per-column term order of each product is a.x, a.y, a.w, a.z; the retail
-   bodies at 0x100685C0 and in the shipped srVP_* modules all evaluate the w
-   term before the z term. */
+/* The per-column term order of each product is a.x, a.y, a.w, a.z. */
 // FUNCTION: SURRENDER 0x100685C0
 void srVP_generic::_mul(srMatrix4& destination, const srMatrix4& source_0,
                         const srMatrix4& source_1)
@@ -1701,11 +1699,10 @@ int srVP_generic::_srTestBoundingBox(const srMatrix4& matrix, const srVector3& m
     return 1;
 }
 
-/* Table-driven specular power: the exponent is clamped to 127 and halved
-   until it lies in [1,2); the fractional part of (reduced-1)*16 selects two
-   rows of the inherited coefficient table for lerp, and
-   points[index+1][squarings] is the per-element dead-zone threshold
-   below which the result is 0. */
+/* Table-driven specular power: the exponent is clamped to 127 and halved until it lies in [1,2);
+   the fractional part of (reduced-1)*16 selects two rows of the inherited coefficient table for
+   lerp, and points[index+1][squarings] is the per-element dead-zone threshold below which the
+   result is 0. */
 // FUNCTION: SURRENDER 0x10068A80
 void srVP_generic::_srSpecularPow(float* destination, const float* source, float exponent,
                                   SRDWORD count)

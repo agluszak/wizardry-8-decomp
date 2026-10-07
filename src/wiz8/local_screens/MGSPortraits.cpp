@@ -41,10 +41,10 @@
 #include "vobject.h"
 #include "vsurface.h"
 
-static void DrawDamageSplatOverlay(unsigned int party_slot); /* 0x0059ADD0 */
-void DrawPortraitEffectIcon(unsigned int party_slot);        /* 0x0059B0F0 */
+static void DrawDamageSplatOverlay(unsigned int party_slot);
+void DrawPortraitEffectIcon(unsigned int party_slot);
 
-/* 0x006488D0: dead-character portrait catalog ids, two per race - the small
+/* Dead-character portrait catalog ids, two per race - the small
    party-strip image at [race][0] and the large header portrait at [race][1]. */
 // GLOBAL: WIZ8 0x006488D0
 int g_dead_portrait_catalog_ids[W8_RACE_COUNT][2] = {
@@ -52,7 +52,7 @@ int g_dead_portrait_catalog_ids[W8_RACE_COUNT][2] = {
     {22, 33}, {25, 36}, {24, 35}, {27, 38}, {26, 37}, {28, 39}, {29, 40}, {30, 41},
 };
 
-/* 0x00649DD4: empty-hand catalog ids when a primary hand slot is bare. Each race
+/* Empty-hand catalog ids when a primary hand slot is bare. Each race
    stores the right-hand id at +0 and the left-hand id at +4 (retail also reaches
    the left id through 0x00649DD8). */
 // GLOBAL: WIZ8 0x00649DD4

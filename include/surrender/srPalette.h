@@ -8,18 +8,11 @@ class srColorSurfaceIFace;
 // VTABLE: SURRENDER 0x100753EC
 // class srClassSupport<srPalette, srClass, 1, 10496>
 
-/* SR.DLL owns palette storage and behavior. Its exported constructors and the
-   allocation in Wizardry's TGA loader prove a 0x28-byte srClass-derived
-   object. The executable emits the inline srClassSupport registry and clone
-   slots, which is why its local vtable mixes imported srPalette methods with
-   the 0x2900 class-support methods recovered in stTextureFile.cpp. */
 // VTABLE: SURRENDER 0x100753CC srPalette
 class SR_DLL_EXPORT srPalette : public srClassSupport<srPalette, srClass, 1, 0x2900> {
 public:
-    /* Provider-side quantizer; its 0x21918-byte allocation and member surface
-       are evidenced by updateQuantizer (0x10004240) and the exported
-       Quantizer methods. Two-level lookup: lut_rg[(g<<8)|r] selects a palette
-       row, lut_rgb[(row<<8)|b] yields the index. */
+    /* Two-level lookup: lut_rg[(g<<8)|r] selects a palette row, lut_rgb[(row<<8)|b] yields the
+       index. */
     class SR_DLL_EXPORT Quantizer {
     public:
         Quantizer();
@@ -71,12 +64,9 @@ public:
         long rg_dist[0x100];            /* 0x21518 */
     };
 
-    /* Provider-side color sampler; its 0x2052c-byte layout is established by
-       the constructor (0x100067d0) and the field offsets used throughout
-       addColor (0x10006530). Sampled colors are quantized to sample_bits per
-       channel and accumulated in a 0x8000-bucket open hash; entries hold the
-       packed color and its total weight, linked through a parallel index
-       array. */
+    /* Color sampler. Sampled colors are quantized to sample_bits per channel and accumulated in a
+       0x8000-bucket open hash; entries hold the packed color and its total weight, linked through a
+       parallel index array. */
     class SR_DLL_EXPORT Sampler {
     public:
         struct ColorEntry {
@@ -126,10 +116,9 @@ public:
         long buckets[0x8000];            /* 0x52c */
     };
 
-    /* Provider-side optimal-palette builder; an octree over the sampled
-       5-5-5 color space. Level arrays hold 8^level nodes for levels 0-4;
-       level-4 children index the sparse 15-bit leaf-bucket map. Leaf bucket
-       nodes own 0x10-byte Leaf records {color, weight, error}. */
+    /* Optimal-palette builder; an octree over the sampled 5-5-5 color space. Level arrays hold
+       8^level nodes for levels 0-4; level-4 children index the sparse 15-bit leaf-bucket map. Leaf
+       bucket nodes own Leaf records {color, weight, error}. */
     class SR_DLL_EXPORT Optimizer {
     public:
         struct PaletteInfo {
@@ -144,10 +133,6 @@ public:
         static srPalette* createOptimalPalette(const PaletteInfo& info);
 
     private:
-        /* User-provided trivial constructors: retail createOptimalPalette
-           (0x10005690) emits the new[] null select and element-count bound
-           for the hash-entry and leaf arrays, which only appears for
-           non-POD elements. */
         struct HashEntry {
             HashEntry() {}
 

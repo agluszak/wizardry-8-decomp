@@ -44,12 +44,9 @@ public:
     };
     /* The four per-pass table slots cap t.passes, as verify() asserts. */
     enum { MAX_PASSES = 4 };
-    /* Detached 0x154-byte value at srMeshModel+0x23c. updateTriMesh fills it
-       from the live tables; getTriMesh copies or returns it; renderTriMesh
-       feeds srTriMeshPipeline from these slots. */
+    /* Detached triangle-mesh view: updateTriMesh fills it from the live tables, getTriMesh copies
+       or returns it and renderTriMesh feeds srTriMeshPipeline from it. */
     struct TriMesh {
-        /* verify()'s emission zeroes only poly_vertices before the
-           getTriMesh fill. */
         TriMesh() : poly_vertices(0) {}
 
         long vertex_count;
@@ -80,8 +77,6 @@ public:
         long active_polygon_count;
     };
 
-    /* The default-constructor closure 0x100425A0 proves both arguments
-       default to zero for paren-less new expressions. */
     SR_DLL_IMPORT srMeshModel(long polygons = 0, long vertices = 0);
 
     SR_DLL_IMPORT void reset(long polygons, long vertices);
@@ -130,8 +125,6 @@ public:
     SR_DLL_IMPORT srTextureIFace* getTexture(long polygon, long layer) const;
     SR_DLL_IMPORT void setMaterial(srMaterialIFace* material, long polygon, e_side side);
     SR_DLL_IMPORT void setTexture(srTextureIFace* texture, long polygon, long layer);
-    /* In-class inlines: srModeler::convert expands these bodies inside the
-       srModeler TU. */
     // FUNCTION: SURRENDER 0x10041710 SYMBOL
     // RECOMP: ?setDirty@srMeshModel@@QAEXW4e_flags@1@@Z
     void setDirty(e_flags flag)
@@ -209,34 +202,21 @@ protected:
     SR_DLL_IMPORT virtual void calculateVertexNormals();
 
 public:
-    /* setMaterial indexes [pass][side]; ctor default-constructs eight slots.
-       The ctor/dtor array emissions prove srPtr elements (4 x 8 bytes via
-       __eharray, single srPtr ctor/dtor each). */
+    /* setMaterial indexes [pass][side]. */
     srPtr<srMaterialIFace> materials[4][2];
     srPtr<srTextureIFace> textures[4][2];
     srShader shaders[4];
-    /* Lazily grown mesh table pair. Retail's constructor/destructor emit the
-       pair records through array ctors/dtors; every table accessor resizes
-       `data` to its governing count on first use. POD elements zero-fill;
-       srPtr elements release through their own destructor. Concrete marker
-       names are recomp selectors unless independently bound to typed owners;
-       equal-width POD copies and bare frees do not distinguish exact T. */
+    /* Lazily grown mesh table; every table accessor resizes it to its governing count on first use. */
     template <class T> struct MeshTable {
         MeshTable() : data(0), count(0) {}
         MeshTable(const MeshTable& other) : data(0), count(0)
         {
             *this = other;
         }
-        /* The member-array destructor emissions: the srPtr copies run the
-           per-element release loop while the POD copies fold to a bare
-           free + zero. */
         ~MeshTable()
         {
             Release();
         }
-        /* Release, then the preserving resize and the element copy:
-           srMeshModel::operator= inlines this member as the three separate
-           calls while the standalone emissions inline the member bodies. */
         MeshTable& operator=(const MeshTable& other)
         {
             if (this != &other) {
@@ -249,10 +229,6 @@ public:
             return *this;
         }
 
-        /* Retail emits one allocation emission per element type, each a
-           thiscall on the table (the member never reads it): the srPtr/srShader
-           copies default-construct every element while the POD copies allocate
-           only, exactly as VC6 lowers an array new through srHeap. */
         T* Allocate(unsigned long elements)
         {
             T* replacement = static_cast<T*>(srHeap.allocate(elements * sizeof(T)));
@@ -262,9 +238,7 @@ public:
             return replacement;
         }
 
-        /* Release each element, free the allocation, and zero the pair; the
-           srPtr copies emit per-element releases while POD copies fold to a
-           bare free. */
+        /* Release each element, free the allocation, and zero the pair. */
         void Release()
         {
             if (data != 0) {
@@ -277,11 +251,8 @@ public:
             count = 0;
         }
 
-        /* The shared resize used by the accessors: fresh
-           Allocate() storage, a min(old,new) prefix copy only when
-           `preserve` is set, the old table's full Release(), then the pair
-           retargets. operator= and the copy-ctor pass preserve=1 on an
-           empty table where the prefix copy is dead. */
+        /* Fresh storage, a min(old,new) prefix copy when preserve is set, then the old table's
+           Release(). */
         void Resize(unsigned long elements, int preserve)
         {
             if (count != elements) {
@@ -299,9 +270,6 @@ public:
             }
         }
 
-        /* The elementwise copy operator= and Resize share; the srPtr
-           instantiations run the addref/release handoff through each
-           element's own assignment. */
         static void Copy(T* destination, const T* source, unsigned long count)
         {
             for (unsigned long index = 0; index < count; ++index) {
@@ -333,9 +301,6 @@ public:
     srVector3T<float> bounds_center;
     float bounds_radius;
     long pass_count;
-    /* GrCycle.cpp's 0x004A7E50 clamps a vertex index against this before
-       indexing the location array, which is what makes it that array's
-       length rather than one more opaque dword. */
     long vertex_location_count;
     long polygon_count;
     long uv_count;

@@ -11,16 +11,8 @@
 class srGERD;
 class srMaterialIFace;
 
-/* Shared lazy singleton behind the imported static
-   srTriMeshPipeline::pipe (IAT 0x005eb7fc). Retail allocates one 0xac-byte
-   instance from Wiz8.exe (0x004750A0), installs the local vtable at
-   0x005ec520, and owns an srVertexPipe at +0x90. Method bodies live in
-   Engine Code\stMeshModel.cpp next to that vtable's object.
-
-   Retail's Get path installs the vtable after some subobject setup; the
-   recovered model uses an ordinary C++ constructor (vtable first) so the
-   source stays compiler-owned. Get's residual divergence is recorded on
-   wiz8-et0o.2. */
+/* Shared lazy singleton behind srTriMeshPipeline::pipe. Wizardry implements it (Engine
+   Code\stMeshModel.cpp) and owns an srVertexPipe in it. */
 #pragma pack(push, 4)
 class srTriMeshPipeline {
 public:
@@ -35,14 +27,12 @@ public:
         unsigned long flags;
         unsigned long disable_mask;
         srMaterialIFace* material;
-        /* Bit 0: DIG or particle colors (+0x0c) with format at +0x10.
-           Bit 1: DCG at +0x14. Bit 2: SCG at +0x18. */
+        /* Bit 0: DIG or particle colors with format. Bit 1: DCG. Bit 2: SCG. */
         void* colors;
         srVertexPipe::Record::ColorSource::e_format color_format;
         srVector4T<float>* dcg;
         srVector4T<float>* scg;
-        /* Optional per-vertex arrays, each gated by its own flags bit:
-           0x004994D0 sets +0x1c under bit 3 and +0x20 under bit 4. */
+        /* Optional per-vertex arrays, each gated by its own flags bit. */
         float* alphas;
         srVector2T<float>* st0;
         srVector2T<float>* st1;
@@ -71,15 +61,11 @@ public:
     static_assert(sizeof(Pass) == 0x20, "srTriMeshPipeline_Pass_must_be_0x20");
 
     static srTriMeshPipeline* Get(srGERD* renderer);
-    /* By value, not by reference: 0x004994D0 reserves a four-byte argument
-       slot and constructs the flag object straight into it. */
     void SetFlags(srShader shader);
     void Reset(srGERD* renderer);
     void Flush();
     void PrepareSlot();
 
-    /* The guarded header-visible boundary expands at the stParticle call
-       sites. Its original spelling is not present in the binary. */
     inline void FlushIfCurrent()
     {
         srTriMeshPipeline* current = pipe;
@@ -93,9 +79,7 @@ public:
         }
     }
 
-    /* Slot 0 of vtable 0x005ec520. */
     virtual void FlushSlots();
-    /* Slot 1 / complete destructor at 0x004752F0. */
     virtual ~srTriMeshPipeline();
 
     srHeapBuffer<srVertexProcessor*> vertex_processors;
@@ -111,11 +95,7 @@ public:
     const unsigned long* active_triangles;
     const srVector4T<float>* projected_vertices;
     const srVector3i* triangles;
-    /* stParticle stores vertex_positions (vec3*) here; Reset/Get null it.
-       FlushSlots then CALLINDs vp+0x18c (_minMax vec4) with this
-       pointer and the packed vec3 min/max at +0x44/+0x50. Stores and the
-       xyz-only center math keep these as vec3; the vec4 slot is recorded,
-       not a reason to widen the fields. */
+    /* stParticle stores its vertex positions here; Reset/Get null it. */
     const srVector3T<float>* positions;
     const srVector3T<float>* vertex_extras;
     float sort_bias;

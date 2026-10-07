@@ -1,6 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __RANDOM_
 #define __RANDOM_

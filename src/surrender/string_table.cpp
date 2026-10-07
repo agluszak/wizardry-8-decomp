@@ -38,7 +38,6 @@ void srStringTable::addString(const char* string)
         return;
     }
 
-    /* This spelling emits one operator[] grow path before allocation, matching retail. */
     char*& slot = strings[count];
     char* copy = static_cast<char*>(srHeap.allocate(strlen(string) + 1));
     slot = copy;

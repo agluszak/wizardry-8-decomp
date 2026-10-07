@@ -18,16 +18,14 @@ void SetMusicVolume(unsigned char volume);
 bool IsMusicMuted(void);
 void SetMusicMuted(unsigned char muted);
 
-/* Local Code\Configuration.cpp owns the persisted 0xa4-byte configuration
-   block at 0x006850C8. Difficulty is stored as this int; the options list
-   labels it Novice/Normal/Expert. */
+/* The persisted configuration block. */
 
 #pragma pack(push, 1)
 struct W8GameSettings {
     unsigned char field_000;
     unsigned char numeric_hit_points;
     unsigned char unknown_002[0x4];
-    /* 0x06: mirrors W8LevelRuntimeBlock::main_ui_mode. ApplyMainGameModeFlag
+    /* Mirrors W8LevelRuntimeBlock::main_ui_mode. ApplyMainGameModeFlag
        writes both together; NONE is the transient park Screens uses while it
        re-raises panels on main-game enter. */
     W8MainUiMode main_ui_mode;
@@ -58,17 +56,17 @@ struct W8GameSettings {
     float monster_movement_speed;
     unsigned char field_03b;
     float gamma;
-    unsigned char pc_confirmations; /* 0x40: options string 0x823 */
+    unsigned char pc_confirmations; /* options string 0x823 */
     unsigned char mouselook_toggle;
-    unsigned char pc_subtitles; /* 0x42: options string 0x824 */
+    unsigned char pc_subtitles; /* options string 0x824 */
     unsigned char mouselook_smoothing;
     unsigned char verbose_combat_messages;
     unsigned char auto_save;
     bool intro_seen;
     unsigned char field_047;
-    unsigned char monster_shadows;           /* 0x48: options string 0x818 */
-    unsigned char smooth_monster_animations; /* 0x49: options string 0x819 */
-    unsigned char smooth_world_animations;   /* 0x4a: options string 0x81a */
+    unsigned char monster_shadows;           /* options string 0x818 */
+    unsigned char smooth_monster_animations; /* options string 0x819 */
+    unsigned char smooth_world_animations;   /* options string 0x81a */
     unsigned char skill_increase_messages;
     unsigned char ctrl_right_click_info;
     unsigned char autoswap_weapons;

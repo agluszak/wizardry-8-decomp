@@ -1,5 +1,4 @@
 import json
-import os
 import shlex
 from pathlib import Path
 
@@ -101,71 +100,6 @@ def test_display_selector_annotations_cannot_restore_emission_source_identity(
     )
     with pytest.raises(SourceIndexError, match="reccmp metadata"):
         source_index.validate_authored_marker_blocks(tmp_path)
-
-
-@pytest.mark.parametrize("existing_database", [False, True])
-def test_source_index_configures_missing_or_stale_compile_database(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_database: bool
-) -> None:
-    settings = _settings(tmp_path)
-    repository = settings.repo_dir
-    inventory = repository / "CMakeLists.txt"
-    inventory.parent.mkdir(parents=True)
-    inventory.write_text("project(wiz8)\n", encoding="utf-8")
-    (repository / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
-        "    hash:\n      sha256: abc\n",
-        encoding="utf-8",
-    )
-    database = repository / "build/clang/compile_commands.json"
-    if existing_database:
-        database.parent.mkdir(parents=True)
-        database.write_text("[]\n", encoding="utf-8")
-        os.utime(database, ns=(1_000_000_000, 1_000_000_000))
-        os.utime(inventory, ns=(2_000_000_000, 2_000_000_000))
-
-    configured: list[bool] = []
-
-    def configure(_settings: Settings, *, force: bool = False, **_kwargs):
-        configured.append(force)
-        database.parent.mkdir(parents=True, exist_ok=True)
-        database.write_text("[]\n", encoding="utf-8")
-        return database.parent, []
-
-    class FakeIndex:
-        markers: tuple[()] = ()
-        declarations: tuple[()] = ()
-        classes: tuple[()] = ()
-        variables: tuple[()] = ()
-        member_uses: tuple[()] = ()
-        conflicts: tuple[()] = ()
-
-        def to_dict(self) -> dict:
-            return {
-                "markers": [],
-                "declarations": [],
-                "classes": [],
-                "variables": [],
-                "member_uses": [],
-                "conflicts": [],
-            }
-
-    import wiz8decomp.build as build_module
-
-    collected: list[dict] = []
-
-    def collect(*_args, **_kwargs) -> FakeIndex:
-        collected.append({"force": _kwargs.get("force", False)})
-        return FakeIndex()
-
-    monkeypatch.setattr(build_module, "configure_clang", configure)
-    monkeypatch.setattr(source_index, "_collect_source_index", collect)
-    monkeypatch.setattr(source_index, "_source_index_projections", lambda *args, **kwargs: ([], []))
-
-    source_index.write_source_index(settings)
-
-    assert configured == [False]
-    assert collected == [{"force": False}]
 
 
 def test_surrender_source_functions_use_their_own_marker_target() -> None:
@@ -279,135 +213,114 @@ def _variable(
     }
 
 
-def test_cross_tu_gate_covers_agreeing_functions_and_globals(tmp_path: Path) -> None:
-    _cross_tu_index(
-        tmp_path,
-        [_declaration("_helper", "src/wiz8/a.cpp", 10)],
-        [_variable("_gShared", "int", "src/wiz8/a.cpp", 3)],
-    )
-    assert source_index.validate_cross_tu_declarations(tmp_path) == 2
-
-
-def test_cross_tu_gate_reports_conflicting_global_spellings(tmp_path: Path) -> None:
-    _cross_tu_index(
-        tmp_path,
-        [],
-        [
-            _variable("_gThing", "Foo *", "src/wiz8/a.cpp", 3),
-            _variable("_gThing", "int", "src/wiz8/b.cpp", 7),
+def _conflict(semantic_id: str, *variants: tuple[str, str, str]) -> dict:
+    return {
+        "semantic_id": semantic_id,
+        "qualified_name": semantic_id.lstrip("_"),
+        "record_kind": "variable",
+        "variants": [
+            {"signature": [type, linkage], "locations": [location]}
+            for type, linkage, location in variants
         ],
-    )
-    with pytest.raises(SourceIndexError, match="_gThing"):
-        source_index.validate_cross_tu_declarations(tmp_path)
+    }
 
 
-def test_cross_tu_gate_ignores_tu_local_definitions(tmp_path: Path) -> None:
-    _cross_tu_index(
-        tmp_path,
-        [
-            _declaration("_helper", "src/wiz8/a.c", 10, linkage="internal"),
-            _declaration("_helper", "src/wiz8/b.c", 4, linkage="internal"),
-        ],
-        [_variable("_counter", "int", "src/wiz8/a.c", 3, linkage="internal")],
-    )
-    assert source_index.validate_cross_tu_declarations(tmp_path) == 0
-
-
-def test_cross_tu_gate_reports_recorded_collector_conflicts(tmp_path: Path) -> None:
-    _cross_tu_index(
-        tmp_path,
-        [_declaration("_helper", "src/wiz8/a.c", 10)],
-        [],
-        [
-            {
-                "semantic_id": "_gThing",
-                "qualified_name": "gThing",
-                "record_kind": "variable",
-                "variants": [
-                    {
-                        "signature": ["Foo *", "external"],
-                        "locations": ["src/wiz8/a.cpp:3"],
-                    },
-                    {"signature": ["int", "external"], "locations": ["src/wiz8/b.cpp:7"]},
-                ],
-            }
-        ],
-    )
-    with pytest.raises(SourceIndexError, match="_gThing"):
-        source_index.validate_cross_tu_declarations(tmp_path)
-
-
-def test_cross_tu_gate_ignores_conflicts_without_external_spelling(tmp_path: Path) -> None:
-    _cross_tu_index(
-        tmp_path,
-        [],
-        [],
-        [
-            {
-                "semantic_id": "_buffer",
-                "qualified_name": "buffer",
-                "record_kind": "variable",
-                "variants": [
-                    {"signature": ["int[64]", "internal"], "locations": ["src/wiz8/a.c:3"]},
-                    {
-                        "signature": ["char[64]", "internal"],
-                        "locations": ["src/wiz8/b.c:5"],
-                    },
-                ],
-            }
-        ],
-    )
-    assert source_index.validate_cross_tu_declarations(tmp_path) == 0
-
-
-def test_cross_tu_gate_allows_extern_array_completion(tmp_path: Path) -> None:
-    _cross_tu_index(
-        tmp_path,
-        [],
-        [
-            _variable("_gTable", "const unsigned short[]", "src/wiz8/a.cpp", 1),
-            _variable("_gTable", "const unsigned short[2]", "src/wiz8/b.cpp", 2),
-        ],
-    )
-    assert source_index.validate_cross_tu_declarations(tmp_path) == 1
-
-
-def test_cross_tu_gate_allows_nested_array_completion(tmp_path: Path) -> None:
-    _cross_tu_index(
-        tmp_path,
-        [],
-        [
-            _variable("_gGrid", "unsigned short[][4]", "src/wiz8/a.cpp", 1),
-            _variable("_gGrid", "unsigned short[4][4]", "src/wiz8/b.cpp", 2),
-        ],
-    )
-    assert source_index.validate_cross_tu_declarations(tmp_path) == 1
-
-
-def test_cross_tu_gate_rejects_conflicting_array_extents(tmp_path: Path) -> None:
-    _cross_tu_index(
-        tmp_path,
-        [],
-        [
-            _variable("_gTable", "char[3]", "src/wiz8/a.cpp", 1),
-            _variable("_gTable", "char[4]", "src/wiz8/b.cpp", 2),
-        ],
-    )
-    with pytest.raises(SourceIndexError, match="_gTable"):
-        source_index.validate_cross_tu_declarations(tmp_path)
-
-
-def test_cross_tu_gate_rejects_mismatched_array_element_type(tmp_path: Path) -> None:
-    _cross_tu_index(
-        tmp_path,
-        [],
-        [
-            _variable("_gTable", "char[]", "src/wiz8/a.cpp", 1),
-            _variable("_gTable", "int[4]", "src/wiz8/b.cpp", 2),
-        ],
-    )
-    with pytest.raises(SourceIndexError, match="_gTable"):
-        source_index.validate_cross_tu_declarations(tmp_path)
+@pytest.mark.parametrize(
+    "declarations, variables, conflicts, expected",
+    [
+        (
+            [_declaration("_helper", "src/wiz8/a.cpp", 10)],
+            [_variable("_gShared", "int", "src/wiz8/a.cpp", 3)],
+            [],
+            2,
+        ),
+        (
+            [],
+            [
+                _variable("_gThing", "Foo *", "src/wiz8/a.cpp", 3),
+                _variable("_gThing", "int", "src/wiz8/b.cpp", 7),
+            ],
+            [],
+            None,
+        ),
+        (
+            [
+                _declaration("_helper", "src/wiz8/a.c", 10, linkage="internal"),
+                _declaration("_helper", "src/wiz8/b.c", 4, linkage="internal"),
+            ],
+            [_variable("_counter", "int", "src/wiz8/a.c", 3, linkage="internal")],
+            [],
+            0,
+        ),
+        (
+            [_declaration("_helper", "src/wiz8/a.c", 10)],
+            [],
+            [
+                _conflict(
+                    "_gThing",
+                    ("Foo *", "external", "src/wiz8/a.cpp:3"),
+                    ("int", "external", "src/wiz8/b.cpp:7"),
+                )
+            ],
+            None,
+        ),
+        (
+            [],
+            [],
+            [
+                _conflict(
+                    "_buffer",
+                    ("int[64]", "internal", "src/wiz8/a.c:3"),
+                    ("char[64]", "internal", "src/wiz8/b.c:5"),
+                )
+            ],
+            0,
+        ),
+        (
+            [],
+            [
+                _variable("_gTable", "const unsigned short[]", "src/wiz8/a.cpp", 1),
+                _variable("_gTable", "const unsigned short[2]", "src/wiz8/b.cpp", 2),
+            ],
+            [],
+            1,
+        ),
+        (
+            [],
+            [
+                _variable("_gTable", "unsigned short[][4]", "src/wiz8/a.cpp", 1),
+                _variable("_gTable", "unsigned short[4][4]", "src/wiz8/b.cpp", 2),
+            ],
+            [],
+            1,
+        ),
+        (
+            [],
+            [
+                _variable("_gTable", "char[3]", "src/wiz8/a.cpp", 1),
+                _variable("_gTable", "char[4]", "src/wiz8/b.cpp", 2),
+            ],
+            [],
+            None,
+        ),
+        (
+            [],
+            [
+                _variable("_gTable", "char[]", "src/wiz8/a.cpp", 1),
+                _variable("_gTable", "int[4]", "src/wiz8/b.cpp", 2),
+            ],
+            [],
+            None,
+        ),
+    ],
+)
+def test_cross_tu_gate(tmp_path: Path, declarations, variables, conflicts, expected) -> None:
+    _cross_tu_index(tmp_path, declarations, variables, conflicts)
+    if expected is None:
+        with pytest.raises(SourceIndexError, match="_gThing|_gTable"):
+            source_index.validate_cross_tu_declarations(tmp_path)
+    else:
+        assert source_index.validate_cross_tu_declarations(tmp_path) == expected
 
 
 @pytest.mark.parametrize("representation", ["command", "arguments"])

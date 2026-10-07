@@ -21,16 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(WIZ8_CLANG_LINT)
-/* The lint lane's stub <ostream> declares only the operator<< overloads the
-   recovered ABI references. dump calls std::endl - the real VC6 header
-   resolves it to the _CRTIMP char overload imported from MSVCP60 - so the
-   compile-only lane needs this declaration to parse. */
-namespace std {
-ostream& endl(ostream& stream);
-}
-#endif
-
 // GLOBAL: SURRENDER 0x100A4780
 srGERD* srGERD::first;
 
@@ -52,8 +42,6 @@ void srGERD::TexturePool::release()
     count = 0;
 }
 
-/* The pool operations are expanded in allocTexture/deleteTexture. Their
-   names are descriptive; retail establishes the chunk and free-list behavior. */
 srGERD::Texture* srGERD::TexturePool::allocate()
 {
     if (free == 0) {
@@ -331,8 +319,7 @@ void srGERD::getStatistics(Statistics& statistics)
     srDD::Statistics device;
     memset(&device, 0, sizeof(device));
     getDD()->getStatistics(device);
-    this->statistics.texture_transfer_low = device.value_00;
-    this->statistics.texture_transfer_high = device.value_04;
+    this->statistics.texture_transfer = device.texture_transfer;
     this->statistics.pixels_drawn = device.pixels_drawn;
     this->statistics.value_18 = device.value_10;
     this->statistics.value_1c = device.value_14;
@@ -1755,42 +1742,29 @@ void srGERD::accumClear()
 // VTABLE: SURRENDER 0x100767F8
 // class srGERD::LockSurface
 
-/* Locked-buffer surface created by lockBuffer: a 0x60-byte surface class
-   (ctor 0x100205D0, registered as "srGERD::Surface" class 0x3111) that keeps
-   its own scissor rect and proxies pixel access through device bufferOp
-   commands, staging through a 1-pixel-high srColorSurface scratch buffer when
-   the locked format is not 32-bit ARGB. Retail vtable 0x100767F8. */
+/* Locked-buffer surface created by lockBuffer. It keeps its own scissor rect and proxies pixel
+   access through device bufferOp commands, staging through a 1-pixel-high srColorSurface scratch
+   buffer when the locked format is not 32-bit ARGB. */
 class srGERD::LockSurface : public srClassSupport<LockSurface, srColorSurfaceIFace, false, 0x3111> {
 public:
-    // 0x100205D0
     LockSurface(srGERD* gerd, const srPixelConvert::PixelFormat& format);
-    // 0x1001F610
     virtual ~LockSurface() override;
     // FUNCTION: SURRENDER 0x1001F780
     static const char* sGetClassName()
     {
         return "srGERD::Surface";
     }
-    /* Retail 0x1001F770: vInstance cannot construct a LockSurface (the ctor
-       needs the owning GERD and pixel format) and returns null. */
+    /* Cannot construct a LockSurface without the owning GERD and pixel format. */
     virtual srClass* vInstance() override;
-    /* Retail vtable 0x100767F8 override slots. */
-    virtual void getPixelColumn(unsigned long* pixels, long x, long y0,
-                                long y1) override; // 0x10020BB0
-    virtual void setPixelColumn(const unsigned long* pixels, long x, long y0,
-                                long y1) override; // 0x10020AF0
-    virtual void* getDataPtr() override;           // 0x1001F750
-    virtual long getDataSize() override;           // 0x1001F760
+    virtual void getPixelColumn(unsigned long* pixels, long x, long y0, long y1) override;
+    virtual void setPixelColumn(const unsigned long* pixels, long x, long y0, long y1) override;
+    virtual void* getDataPtr() override;
+    virtual long getDataSize() override;
     virtual void setHLine(long y, long x0, long x1, unsigned long pixel) override;
-    // 0x100207A0
-    virtual void getPixelRow(unsigned long* pixels, long y, long x0,
-                             long x1) override; // 0x10020990
-    virtual void setPixelRow(const unsigned long* pixels, long y, long x0,
-                             long x1) override; // 0x10020840
-    virtual void getPixelRowRaw(void* pixels, long y, long x0,
-                                long x1) override; // 0x10020A70
-    virtual void setPixelRowRaw(const void* pixels, long y, long x0,
-                                long x1) override; // 0x10020900
+    virtual void getPixelRow(unsigned long* pixels, long y, long x0, long x1) override;
+    virtual void setPixelRow(const unsigned long* pixels, long y, long x0, long x1) override;
+    virtual void getPixelRowRaw(void* pixels, long y, long x0, long x1) override;
+    virtual void setPixelRowRaw(const void* pixels, long y, long x0, long x1) override;
     void setScissor(unsigned long left, unsigned long top, unsigned long right,
                     unsigned long bottom);
 
@@ -1958,7 +1932,6 @@ void srGERD::LockSurface::getPixelRowRaw(void* pixels, long y, long x0, long x1)
         return;
     }
     if (x0 < (long)left) {
-        /* Retail advances the raw pointer by one byte per clipped pixel. */
         pixels = (char*)pixels + (left - x0);
         x0 = left;
     }
@@ -2104,8 +2077,6 @@ srDD::e_error srGERD::_unlockBuffer()
     if (buffer_lock_count != 0) {
         buffer_lock_count -= 1;
         if (buffer_lock_count == 0) {
-            /* Retail's command.flags ends up holding the decremented lock
-               count (the decrement temporary shares that slot). */
             srDD::BufferCommand command;
             command.flags = buffer_lock_count;
             command.opcode = 1;
@@ -2752,7 +2723,6 @@ void srGERD::pushClipPlane(const srVector4T<float>& plane, e_clipMode mode)
             state.clip_mode1_mask &= ~bit;
         }
     }
-    // Retail increments even when the plane limit skips insertion.
     state.clip_plane_count += 1;
 }
 
@@ -2856,9 +2826,9 @@ void srGERD::setFogColor(const srVector3T<float>& color)
     setFogColor(clamped);
 }
 
-/* Each component clamps through (0,1) — strictly positive keeps the value,
-   1.0 or above saturates, anything else becomes 0. The color only updates
-   (and dirties state) when a clamped component differs. */
+/* Each component clamps through (0,1): strictly positive keeps the value, 1.0 or above saturates,
+   anything else becomes 0. The color only updates (and dirties state) when a clamped component
+   differs. */
 // FUNCTION: SURRENDER 0x1001C6B0
 void srGERD::setFogColor(const srVector4T<float>& color)
 {
@@ -3134,7 +3104,6 @@ srGERD::Texture* srGERD::findLowestPriority()
 srGERD::Texture* srGERD::allocTexture(unsigned long id)
 {
     Texture* texture = texture_pool.allocate();
-    /* Retail zeroes 0xa4 bytes; the final unknown dword is untouched. */
     memset(texture, 0, 0xa4);
     texture->id = id;
     texture->palette = 0;
@@ -3264,8 +3233,6 @@ bound:
 
 namespace {
 
-/* evaluateTextureDimensions' next-power-of-two clamp emits the unrolled
-   bit-scan both times the pattern appears. */
 unsigned long nextTextureDimension(unsigned long value)
 {
     if (value < 2) {
@@ -3550,11 +3517,8 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             if ((device.info.flags & srDD::Info::PIXEL_TEXTURE_STATISTICS) != 0) {
                 stream << "DD pixels drawn          (M/s)  : "
                        << statistics.pixels_drawn * 1e-06 / statistics.elapsed << '\n';
-                /* reinterpret-ok: the device stats mirror stores the
-                   transfer counter's double bits as a dword pair. */
                 stream << "DD Texture data transfer (Mb/s) : "
-                       << *reinterpret_cast<const double*>(&statistics.texture_transfer_low) *
-                              9.5367431640625e-07 / statistics.elapsed
+                       << statistics.texture_transfer * 9.5367431640625e-07 / statistics.elapsed
                        << '\n';
             } else {
                 stream << "DD doesn't support pixel/texture statistics" << std::endl;
@@ -3675,8 +3639,6 @@ void srGERD::dumpDeviceList(std::ostream& stream)
 // FUNCTION: SURRENDER 0x10018870
 srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long device)
 {
-    /* Retail reads the six entry-point names from the same contiguous table
-       for lookup and the missing-function error print (0x100993CC). */
     static const char* const entry_names[] = {"srDDGetDriverApiVersion", "srDDGetDriverName",
                                               "srDDConfigureDriver",     "srDDGetDeviceCount",
                                               "srDDGetDeviceName",       "srDDInitDevice"};

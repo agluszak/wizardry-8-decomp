@@ -1,13 +1,8 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Restore the retail two-bank key-to-character table at 0x005ffc3c.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "english.h"
 
-/* Virtual key to character: unmodified keys, then Shift keys.
-   Alt/Ctrl are rejected by TranslateKeyToCharacter. Non-character keys map
-   to zero. Retail's next object begins at 0x0060003c after these 512 words. */
+/* Virtual key to character: unmodified keys, then Shift keys. */
 // GLOBAL: WIZ8 0x005ffc3c
 UINT16 gsKeyTranslationTable[512] = {
     /* Unmodified */

@@ -145,12 +145,12 @@ int PickRandomPartySpeaker(unsigned int event_type, unsigned char excluded_slot)
 static int g_special_event21 = g_first_remapped_event;
 // GLOBAL: WIZ8 0x0068c57c
 unsigned int g_event_range_min = g_first_remapped_event + 21;
-/* 0x0068C580: the shared wide buffer formatted character text lands in. The
+/* The shared wide buffer formatted character text lands in. The
    message reader admits at most 0x7D0 code units, so the buffer holds exactly
    the two thousand characters that reach the next global at 0x0068D520. */
 // GLOBAL: WIZ8 0x0068C580
 static wchar_t g_character_text[2000];
-/* 0x005ED91C: the quote file-name stem per personality, a twenty-byte fixed
+/* The quote file-name stem per personality, a twenty-byte fixed
    buffer each. The nine personas end exactly at the next global; the quote
    lookup composes Data\Quotes\PCs\<m|f>_<stem><1|2>0.MSG from them. */
 // GLOBAL: WIZ8 0x005ed91c
@@ -183,17 +183,17 @@ const int g_fact_check_event = 129;
 // GLOBAL: WIZ8 0x005EE70C
 const unsigned int g_normal_event_count = 146; /* ordinary-event count */
 
-/* 0x005EE000: eight-byte dispatch records indexed by remapped event type.
+/* Eight-byte dispatch records indexed by remapped event type.
    The table ends at 0x005EE588 where g_effect0 begins. TryAdjustQueuedEvent
    reads coalesce_duplicates at +4; ProcessDeferredCharacterEvents reads
    defer_outside_main_game at +5. */
 struct W8CharacterEventDescriptor {
     int portrait_pose_category;
-    /* 0x04: a queued copy may be rewritten to the shared follow-up event (10)
+    /* A queued copy may be rewritten to the shared follow-up event (10)
        when another character already has the same event active. */
     unsigned char coalesce_duplicates;
     unsigned char defer_outside_main_game;
-    /* 0x06: when the portrait quote closes, its text is posted to the notice
+    /* When the portrait quote closes, its text is posted to the notice
        log instead of being dropped silently. */
     unsigned char log_quote_on_finish;
     unsigned char unknown_07;
@@ -418,7 +418,7 @@ W8CharacterEvent::W8CharacterEvent(W8Character* character, unsigned int event_ty
     }
 }
 
-/* 0x0052D0B0: format one character quote for the given event type into the
+/* Format one character quote for the given event type into the
    shared wide text buffer. A party member on any screen but the character
    screen takes the text from the NPC bound to its slot; otherwise the type
    selects an entry of the sex/personality/voice quote file, which is then
@@ -869,7 +869,7 @@ finish_without_dispatch:
     return 0;
 }
 
-/* 0x0052F890: turn a party-slot portrait/voice event on or off, optionally
+/* Turn a party-slot portrait/voice event on or off, optionally
    laying out the quote bubble and posting subtitle notices when one ends. */
 // FUNCTION: WIZ8 0x0052F890
 void SetPartyPortraitEventState(unsigned int party_slot, bool active, unsigned int event_type,

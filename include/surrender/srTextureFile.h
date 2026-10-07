@@ -6,21 +6,11 @@
 // VTABLE: SURRENDER 0x1007752C
 // class srClassSupport<srTextureFile, srTexture, 0, 8466>
 
-/* File-backed texture exported by SR.DLL (class id 0x2112, parent srTexture
-   0x2110). Wizardry does not import this type; it owns a parallel first-party
-   stTextureFile (id 0x10001) whose 17-slot vtable and method names match this
-   interface. SR's ctor writes cached/filename/surface/frame-handle at the same
-   offsets stTextureFile uses; Wizardry then adds has_alpha at +0x64.
-
-   This class overrides dump, dtor, vInstance, clone, getTextureFrameHandle,
-   getMipmapData, getMipmapLevelPartial, invalidate and setupDefaultValues.
-   Slots 9/10/13 (getPriority, getDimensions, getTextureParms) stay on
-   srTexture; slot 14 (getTextureName) stays on srTextureIFace. */
+/* File-backed texture. Wizardry does not use it; it owns a parallel stTextureFile with the same
+   interface. */
 // VTABLE: SURRENDER 0x100774E8 srTextureFile
 class SR_DLL_EXPORT srTextureFile : public srClassSupport<srTextureFile, srTexture, 0, 0x2112> {
 public:
-    /* The default-constructor closure 0x10060090 proves both arguments
-       default to zero for paren-less new expressions. */
     srTextureFile(const char* file_name = 0, int cached = 0);
 
     srTextureFile& operator=(const srTextureFile& other);
@@ -51,8 +41,6 @@ protected:
 
     int cached;
     char* file_name;
-    /* loadSurface stores the importSurface result here and releaseSurface
-       releases through srClass; the field is the interface pointer. */
     srColorSurfaceIFace* surface;
     unsigned long frame_handle;
 };

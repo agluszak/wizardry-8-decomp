@@ -8,15 +8,11 @@ class srShader;
 
 SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream, const srShader& shader);
 
-/* SurRender stores a shader as one 32-bit packed word. operator<<(ostream,
-   srShader) at 0x10034db0 prints every field; Wizardry writes the same word
-   with masks. The modeller/mesh default 0x0100241b is PASS_LEQUAL, depth and
-   color write, DSTBLEND_ZERO, FOG_DISABLE, GRADIENT_MODULATE, SRCBLEND_ONE,
-   TEXTURING_DISABLE, DITHER_ENABLE. */
+/* A shader is one 32-bit packed word. The modeler/mesh default 0x0100241b is PASS_LEQUAL, depth and
+   color write, DSTBLEND_ZERO, FOG_DISABLE, GRADIENT_MODULATE, SRCBLEND_ONE, TEXTURING_DISABLE,
+   DITHER_ENABLE. */
 class srShader {
 public:
-    /* Wizardry's constructed shader-vector elements use this packed default.
-       The ordinary default constructor is header-visible, not imported. */
     // FUNCTION: SURRENDER 0x100199F0
     // FUNCTION: WIZ8 0x00424A40
     // NAME: srShader::srShader
@@ -77,9 +73,7 @@ public:
     enum e_secondaryGradient { SECONDARY_GRADIENT_DISABLE = 0, SECONDARY_GRADIENT_ENABLE = 1 };
     enum e_texturing { TEXTURING_DISABLE = 0, TEXTURING_ENABLE = 1 };
 
-    /* Packed-field masks. Depth/color write, texturing, alphatest and dither
-       are one-bit enables. Gradient occupies bits 10–11 (MODULATE=0x400,
-       ADD=0x800). Detail color/alpha 0 sit at bits 16–22; unit 1 at 25–31. */
+    /* Packed-field masks. */
     enum {
         PASS_MASK = 7,
         DEPTH_WRITE_SHIFT = 3,
@@ -112,9 +106,7 @@ public:
         MASK_DETAILALPHA1 = 0xe0000000
     };
 
-    /* Packed-field range test; srMeshModel::verify asserts it on shader
-       words. Retail expands it inline as a disjunction of per-field
-       over-maximum tests — no out-of-line emission exists. */
+    /* Packed-field range test. */
     int isValid() const
     {
         return !((value & PASS_MASK) > PASS_ALWAYS || (value >> DEPTH_WRITE_SHIFT & 0x1) > 1 ||

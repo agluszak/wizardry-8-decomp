@@ -1,5 +1,3 @@
-// Recovery of sr.dll's srLight implementation against the gog-base retail
-// binary.
 
 #include "surrender/srLight.h"
 
@@ -11,10 +9,9 @@
 #include "surrender/srVectorProcessor.h"
 #include "surrender/srVertexPipe.h"
 
-/* Derived-state bit meanings recovered from process/isActive: bit0 = pushed
-   as an active vertex processor this frame, bit1 = spotlight cone active,
-   bit2 = directional, bit3 = OpenGL attenuation active, bit4 = constant-only
-   OpenGL attenuation, bit5 = far-range attenuation active. */
+/* Derived-state bits: bit0 = pushed as an active vertex processor this frame, bit1 = spotlight cone
+   active, bit2 = directional, bit3 = OpenGL attenuation active, bit4 = constant-only OpenGL
+   attenuation, bit5 = far-range attenuation active. */
 
 // FUNCTION: SURRENDER 0x1004DDA0
 srLight::srLight(srNode* parent, e_preset preset)
@@ -332,9 +329,8 @@ void srLight::process(srVertexPipe& pipe)
         need_normals = true;
     }
     SRDWORD count = pipe.vertex_count;
-    /* Retail's stack frame aligns a 0x700-byte work area to 32 bytes: five
-       64-entry banks (spot factors, attenuation, dot products, distances,
-       eye-space directions). */
+    /* 32-byte aligned work area: five 64-entry banks (spot factors, attenuation, dot products,
+       distances, eye-space directions). */
     float raw[0x1c0 + 8];
     // reinterpret-ok: manual 32-byte alignment of raw VP scratch storage.
     float* work = reinterpret_cast<float*>((reinterpret_cast<unsigned long>(raw) + 0x1f) & ~0x1ful);
@@ -377,8 +373,7 @@ void srLight::process(srVertexPipe& pipe)
             if ((derived_flags & srLight::DERIVED_OPENGL_ATTENUATION) != 0) {
                 if ((derived_flags & srLight::DERIVED_CONSTANT_ATTENUATION) != 0) {
                     float constant = 1.0f / opengl_attenuation.x;
-                    // reinterpret-ok: retail pushes the float bit pattern into
-                    // the SRDWORD fill.
+                    // reinterpret-ok: dword fill with the float's bit pattern.
                     srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(attenuation_bank),
                                             reinterpret_cast<SRDWORD&>(constant), count);
                 } else {
@@ -460,8 +455,7 @@ void srLight::process(srVertexPipe& pipe)
     if ((derived_flags & srLight::DERIVED_DIRECTIONAL) != 0 && count != 0) {
         if (eye_location.x == eye_location.y && eye_location.x == eye_location.z) {
             if (count * 3 != 0) {
-                // reinterpret-ok: the scalar broadcast fills the v3 array as
-                // flat dwords.
+                // reinterpret-ok: dword fill of the vector array.
                 srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(directions),
                                         *reinterpret_cast<SRDWORD*>(&eye_location.x), count * 3);
             }
@@ -473,8 +467,7 @@ void srLight::process(srVertexPipe& pipe)
         pipe.setupEyeSpaceDirAndDist();
     }
     if (count * 3 != 0) {
-        // reinterpret-ok: elementwise float subtraction across the v3 array
-        // (view directions subtracted from the half vectors).
+        // reinterpret-ok: elementwise float subtraction across the vector array.
         srVectorProcessor::sub(
             reinterpret_cast<float*>(directions), reinterpret_cast<const float*>(directions),
             reinterpret_cast<const float*>(scratch->dir + pipe.sub_batch_offset), count * 3);

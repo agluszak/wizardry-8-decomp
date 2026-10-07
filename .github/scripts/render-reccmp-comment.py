@@ -173,31 +173,6 @@ if comparison_rows:
             f"| {count_with_delta(head.get('inline_retry_failures'), delta.get('inline_retry_failures'))} |"
         )
 
-allocator_rows = [
-    (target, comparison["allocator_calls"])
-    for target, comparison in comparison_rows
-    if comparison.get("allocator_calls") and comparison["allocator_calls"]["new"]
-]
-if allocator_rows:
-    print()
-    print("#### New allocator call-family disagreements")
-    print()
-    print(
-        "_For the same direct allocator operation, both sides call an allocator but the "
-        "observed families differ. This is a call-graph triage signal, not pointer-proven "
-        "ownership or proof that storage crosses heaps._"
-    )
-    print()
-    print("| Target | Function | Operation | Retail | Rebuild |")
-    print("| --- | --- | --- | --- | --- |")
-    for target, allocators in allocator_rows:
-        for entry in allocators["new"][:20]:
-            print(
-                f"| `{target}` | `{entry['orig']}` {entry['name']} "
-                f"| {entry['operation']} | {', '.join(entry['retail'])} "
-                f"| {', '.join(entry['rebuild'])} |"
-            )
-
 candidate_rows = [
     (target, comparison["header_candidates"])
     for target, comparison in comparison_rows

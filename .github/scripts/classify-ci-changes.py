@@ -49,17 +49,14 @@ _WIZ8_COMPARISON_PREFIXES = (
 _WIZ8_COMPARISON_FILES = {
     "reccmp-project.yml",
     "tools/wiz8decomp/comparison.py",
-    "tools/wiz8decomp/reccmp_data.py",
 }
 _SURRENDER_PREFIXES = (
     "src/surrender/",
     "evidence/reviewed/surrender/",
 )
 _ANALYSIS_PREFIXES = (
-    "tests/ghidra/",
     "tools/ghidra-scripts/",
     "tools/wiz8decomp/ghidra/",
-    "evidence/seeds/",
     "evidence/snapshots/",
 )
 _SOURCE_INDEX_FILES = {

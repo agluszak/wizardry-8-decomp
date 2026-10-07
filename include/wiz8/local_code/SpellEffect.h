@@ -14,13 +14,12 @@ class W8SpellVisual;
 class W8Missile;
 
 /* One pending condition report. Kind 1 names a character by party slot and
-   carries no text; kind 3 carries its own inline text from 0x08. Every creator
-   allocates and clears the complete 0x6c-byte record, and the message pass
+   carries no text; kind 3 carries its own inline text. The message pass
    frees it after posting. */
 struct W8SpellDamageReport {
-    int kind;         /* 0x00 */
-    int value;        /* 0x04 */
-    wchar_t text[50]; /* 0x08 */
+    int kind;
+    int value;
+    wchar_t text[50];
 };
 
 static_assert(sizeof(W8SpellDamageReport) == 0x6c, "W8SpellDamageReport_must_be_0x6c");
@@ -31,20 +30,20 @@ static_assert(sizeof(W8SpellDamageReport) == 0x6c, "W8SpellDamageReport_must_be_
    0x20 through 0x2c combine into its duration, and the percentage at 0x24
    scales both. */
 struct W8SpellEffectDefinition {
-    float radius;     /* 0x00: an area effect reaches this far; 0 is single-target */
-    W8Dice magnitude; /* 0x04 */
-    /* 0x08: the percentage chance of each condition the effect can inflict,
+    float radius; /* an area effect reaches this far; 0 is single-target */
+    W8Dice magnitude;
+    /* The percentage chance of each condition the effect can inflict,
        rolled by ApplyEffectConditions. */
     unsigned char condition_chances[W8_ATTACK_EFFECT_COUNT];
-    int power_level; /* 0x18 */
-    /* 0x1c: flat base added to the effect dice (SetDice's `base`); sourced
+    int power_level;
+    /* Flat base added to the effect dice (SetDice's `base`); sourced
        from the attack's missile_magnitude, the item's missile_magnitude, or
        the missile table's magnitude_base. */
     int magnitude_base;
-    int duration_scale;     /* 0x20 */
-    unsigned int percent;   /* 0x24 */
-    int duration_base;      /* 0x28 */
-    int duration_per_power; /* 0x2c */
+    int duration_scale;
+    unsigned int percent;
+    int duration_base;
+    int duration_per_power;
 };
 
 static_assert(sizeof(W8SpellEffectDefinition) == 0x30, "W8SpellEffectDefinition_must_be_0x30");
@@ -52,27 +51,24 @@ static_assert(sizeof(W8SpellEffectDefinition) == 0x30, "W8SpellEffectDefinition_
 /* What one missile or queued effect accumulates while it resolves: the total
    amount, the number of hits, one count per condition, and the report records
    handed to the message pass. Both the missile and the effect embed this at
-   their own offset. The totals and condition counts are unsigned: the message
-   pass divides or tests them with unsigned instructions. */
+   their own offset. */
 #pragma pack(push, 1)
 struct W8SpellEffectResult {
-    unsigned int amount;                               /* 0x00 */
-    unsigned int count;                                /* 0x04 */
-    unsigned int condition_counts[W8_CONDITION_COUNT]; /* 0x08 */
-    /* The derived collection: retail construction writes the
-       W8Vector<W8SpellDamageReport*> vftable at 0x005ECE4C. */
-    W8Vector<W8SpellDamageReport*> reports; /* 0x58 */
-    /* 0x68..0x7c: the per-kind totals the notice pass folds into its messages;
+    unsigned int amount;
+    unsigned int count;
+    unsigned int condition_counts[W8_CONDITION_COUNT];
+    W8Vector<W8SpellDamageReport*> reports;
+    /* The per-kind totals the notice pass folds into its messages;
        [3] and [4] are the running damage totals the character and monster
        damage paths add to. */
     unsigned int notice_values[6];
-    /* 0x80: the report came from a non-verbose resolution pass and still
+    /* The report came from a non-verbose resolution pass and still
        needs to be folded into the shared attack report. */
     bool deferred;
-    /* 0x81: raised when the swing missed entirely, which is what lets the
+    /* Raised when the swing missed entirely, which is what lets the
        notice pass distinguish "missed" from "no effect". */
     bool missed;
-    /* 0x82: the target the attack actually struck - the accidental-fire path
+    /* The target the attack actually struck - the accidental-fire path
        replaces it with the rerolled victim. */
     W8CombatSlot target;
 };
@@ -83,10 +79,7 @@ static_assert(sizeof(W8SpellEffectResult) == 0xa2, "W8SpellEffectResult_must_be_
 struct W8SpellEffectEntry {
     void AddVisual(W8SpellVisual* visual);
 
-    /* Every construction site inlines this sequence: the member vectors are
-       built first, then the working source, the target slot, the carried
-       effect definition, the state flags and the whole result block are
-       cleared; OrigSource and OrigTarget are left for the caller to fill. */
+    /* OrigSource and OrigTarget are left for the caller to fill. */
     W8SpellEffectEntry()
     {
         kind = 0;
@@ -100,22 +93,21 @@ struct W8SpellEffectEntry {
         targets_resolved = false;
         reported = false;
         applied = false;
-        /* The retail rep-stosd zeroes the whole result block, including the
-           reports vector's freshly assigned vftable at 0x17e. */
+        /* Bug: this also clears the reports vector's freshly built vtable. */
         memset(&result, 0, sizeof(result));
     }
 
-    int kind;            /* 0x000 */
-    int turns_remaining; /* 0x004 */
-    /* Magic.cpp asserts this as pOrigSource: the cast's original source. */
-    W8TargetSource OrigSource; /* 0x008 */
+    int kind;
+    int turns_remaining;
+    /* The cast's original source. */
+    W8TargetSource OrigSource;
     /* The cast's original target slot, copied beside OrigSource before any
        backfire retargeting; the save chunk stores it after OrigSource. */
-    W8CombatSlot OrigTarget; /* 0x03c */
+    W8CombatSlot OrigTarget;
     /* Magic Effects.cpp asserts this as pQueue->Source: the working source the
        hostility walk and effect bodies hand to CollectHostileMonsters / damage. */
-    W8TargetSource Source; /* 0x05c */
-    W8CombatSlot target;   /* 0x090 */
+    W8TargetSource Source;
+    W8CombatSlot target;
     /* CastSpellFromSource copies the complete definition into the queue slot;
        effect handlers interpret its existing fields for their own kind. */
     W8SpellEffectDefinition definition;
@@ -123,32 +115,30 @@ struct W8SpellEffectEntry {
        CollectHostileMonsters gathers at 0x0e0, and a second index list at
        0x0f0 used both as party-slot indices and as monster-manager entry
        indices depending on the effect path. */
-    /* The two integer lists are base-class vectors: their retail member
-       constructors write only the W8GrowableVector<int> vftable. */
-    W8GrowableVector<int> monster_ids;    /* 0x0e0 */
-    W8GrowableVector<int> target_indices; /* 0x0f0 */
-    /* 0x100/0x110: spawned visuals and owned missiles. Their constructors
+    W8GrowableVector<int> monster_ids;
+    W8GrowableVector<int> target_indices;
+    /* Spawned visuals and owned missiles. Their constructors
        install a base vector table followed by the derived table. */
-    W8Vector<W8SpellVisual*> spell_visuals; /* 0x100 */
-    W8Vector<W8Missile*> missiles;          /* 0x110 */
-    /* 0x120: when the effect ends without having applied, the tick re-casts
+    W8Vector<W8SpellVisual*> spell_visuals;
+    W8Vector<W8Missile*> missiles;
+    /* When the effect ends without having applied, the tick re-casts
        the spell from the stored source. CastSpellFromSource's `c` argument. */
     bool recast;
-    /* 0x121: sustained effect - ticks once per turn while turns_remaining
+    /* Sustained effect - ticks once per turn while turns_remaining
        counts down (set for the monster-control spell 0x26). */
     bool sustained;
-    /* 0x122: missiles carrying the effect are still in flight; the tick
+    /* Missiles carrying the effect are still in flight; the tick
        releases them and spawns the impact visual before resolving. */
     bool missiles_pending;
-    /* 0x123: the non-missile path has already run ProcessSpellEffectTargets;
+    /* The non-missile path has already run ProcessSpellEffectTargets;
        skips re-resolution and gates the post-resolution bookkeeping. */
     bool targets_resolved;
-    /* 0x124: set once this effect's result has been reported. */
+    /* Set once this effect's result has been reported. */
     bool reported;
-    /* 0x125: set by a handler that actually landed its effect; the result
+    /* Set by a handler that actually landed its effect; the result
        report picks its message from this flag. */
     bool applied;
-    W8SpellEffectResult result; /* 0x126 */
+    W8SpellEffectResult result;
 };
 
 static_assert(sizeof(W8SpellEffectEntry) == 0x1c8, "W8SpellEffectEntry_must_be_0x1c8");
@@ -168,7 +158,7 @@ static_assert(offsetof(W8SpellEffectEntry, result) == 0x126, "W8SpellEffectEntry
 extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 
 W8SpellEffectEntry* FindMonsterControlSpellEffect(void);
-void AddSpellEffect(W8SpellEffectEntry* effect); /* 0x005008A0 */
+void AddSpellEffect(W8SpellEffectEntry* effect);
 /* Advance every queued spell effect one frame. */
 void UpdateSpellEffects(void);
 /* Fold one missile's accumulated damage and reports into the queued effect

@@ -12,12 +12,12 @@ struct W8DialogCloseListener {
 class W8NotificationDialog : public W8MessageDialogBase {
 public:
     W8NotificationDialog(int message_index, bool cancel_allowed, int notify_value);
-    virtual bool ProcessInput() override; /* 0x005A81A0 */
+    virtual bool ProcessInput() override;
 
 public:
     /* OptionsScreen installs the notification receiver directly. */
-    int notification_value;               /* 0x98 */
-    W8DialogCloseListener* notify_target; /* 0x9c */
+    int notification_value;
+    W8DialogCloseListener* notify_target;
 };
 
 static_assert(sizeof(W8NotificationDialog) == 0xa0, "W8NotificationDialog_must_be_0xa0");

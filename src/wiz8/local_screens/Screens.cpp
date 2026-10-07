@@ -262,7 +262,7 @@ void ApplyCurrentCursor(void)
 }
 
 /* Empty the item-in-hand record and restore the normal cursor. The held item is
-   the 0x0c-byte record at g_status.item_in_hand (0x006874CB); the
+   the 0x0c-byte record at g_status.item_in_hand; the
    byte directly before it is item_in_cursor. */
 // FUNCTION: WIZ8 0x0055f1e0
 void ClearHeldItemDisplay(void)

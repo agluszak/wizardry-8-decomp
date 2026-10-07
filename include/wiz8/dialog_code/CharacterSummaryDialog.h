@@ -13,23 +13,20 @@ class W8DialogNumericInput;
 class W8TextBuffer;
 
 /* The character-summary popup temporarily installs the character as party
-   slot zero so the ordinary portrait and quote machinery can render it.  Its
-   construction, vtable, embedded snapshots and complete lifecycle establish
-   a distinct W8DialogBase-derived object, even though retail exposes no
-   original class spelling. */
+   slot zero so the ordinary portrait and quote machinery can render it. */
 // VTABLE: WIZ8 0x005efdc0
 class W8CharacterSummaryDialog : public W8DialogBase {
 public:
-    explicit W8CharacterSummaryDialog(W8Character* character); /* 0x005E0320 */
-    virtual ~W8CharacterSummaryDialog() override;              /* 0x005E0410 */
-    virtual int CreateControls() override;                     /* 0x005E04E0 */
-    virtual void DestroyControls() override;                   /* 0x005E0590 */
-    virtual void Draw() override;                              /* 0x005E07B0 */
-    virtual W8DialogKind GetDialogType() override;             /* 0x005E0C30 */
-    virtual bool ProcessInput() override;                      /* 0x005E0920 */
-    virtual void OnNumericInputChanged(int value) override;    /* 0x005E0860 */
+    explicit W8CharacterSummaryDialog(W8Character* character);
+    virtual ~W8CharacterSummaryDialog() override;
+    virtual int CreateControls() override;
+    virtual void DestroyControls() override;
+    virtual void Draw() override;
+    virtual W8DialogKind GetDialogType() override;
+    virtual bool ProcessInput() override;
+    virtual void OnNumericInputChanged(int value) override;
 
-    void DrawPortraitAnimationFrame(); /* 0x005E0830 */
+    void DrawPortraitAnimationFrame();
 
 private:
     bool CreateQuoteText();

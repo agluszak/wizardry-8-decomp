@@ -3,9 +3,7 @@
 struct W8Character;
 
 /* W8Character::armor_class_by_location and gubLocalACPercent share this order.
-   CalcArmorClasses maps equipment slots {Head,Torso,Legs,Feet,Hands} onto it;
-   the retail manual independently describes those five local AC values and
-   notes the same chest-heavy / hands-light hit-frequency weighting. */
+   CalcArmorClasses maps equipment slots {Head,Torso,Legs,Feet,Hands} onto it. */
 enum W8ArmorLocation {
     W8_ARMOR_LOCATION_HEAD = 0,
     W8_ARMOR_LOCATION_TORSO = 1,
@@ -42,8 +40,7 @@ bool AnyCharacterActive(void);
 void CalcInitiative(W8Character* character);
 void CalcAttacks(W8Character* character);
 void CalcArmorClasses(W8Character* character);
-/* 0x00616308: the percentage of hits that land on each character armor
-   location; the error text spells its original name. */
+/* The percentage of hits that land on each character armor location. */
 extern unsigned char gubLocalACPercent[W8_ARMOR_LOCATION_COUNT];
 void CalcCharacterLevelBand(W8Character* character);
 
@@ -51,28 +48,28 @@ void CalcCharacterTableValue(W8Character* character);
 int CountActiveCharacters(void);
 unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
 
-void RefreshLevelUpReadyNotices(void); /* 0x004EF1F0 */
+void RefreshLevelUpReadyNotices(void);
 int AddCharacterToParty(W8Character* character, int slot);
-/* 0x004EF610: remove a slot's character from the party; fSaveCharData
+/* Remove a slot's character from the party; fSaveCharData
    persists it back to its NPC record first. */
 bool RemoveCharacterFromParty(int party_slot, bool save_character_data);
 
-void AwardPartyExperience(int value, int mode); /* 0x004EEF10 */
+void AwardPartyExperience(int value, int mode);
 bool IsCharacterReadyToAdvance(int party_slot);
 void CalcXPGoal(W8Character* character);
 void DeriveCharacterPersonality(W8Character* character);
 /* Rerolls personality/voice until no party member shares the
    character's gender/personality/voice pick. */
-void EnsureUniquePartyVoice(W8Character* character); /* 0x004EFAD0 */
-/* 0x00587C80: knock-knock style spell committed against the active lock or
+void EnsureUniquePartyVoice(W8Character* character);
+/* Knock-knock style spell committed against the active lock or
    trap interaction; with no interaction open it just prints the refusal
    notice. The lock-interaction owner lives past MainGameScreen.h, which this
    task does not expand. */
 void CastSpellAtLockInteraction(unsigned int level, int flag, int backfire);
-unsigned int GetAveragePartyLevel(void); /* 0x004EF420 */
+unsigned int GetAveragePartyLevel(void);
 unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* record,
                                         bool buy_equipment);
-bool AnyMonsterEngaged(void); /* 0x004EEE20 */
-/* 0x004EF9A0: on a level-motion override, roll `pow(8.0, fall + 0.7)` d6 of
+bool AnyMonsterEngaged(void);
+/* On a level-motion override, roll `pow(8.0, fall + 0.7)` d6 of
    fall damage against the party with a notice and the fall-impact sound. */
 void HandleLevelOverride(float fall);

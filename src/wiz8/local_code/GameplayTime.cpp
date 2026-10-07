@@ -408,7 +408,7 @@ void ResolveSurpriseWake(void)
     EnableMenuButtonBanks();
 }
 
-/* 0x00502B50: the hit-point, stamina and per-realm spell regeneration rates
+/* The hit-point, stamina and per-realm spell regeneration rates
    are one tick of the pool ceiling's share, twenty points of base and a
    twelveth of a minute each; the modifier block's three regeneration-boost flags
    raise their rate by half. */

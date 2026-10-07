@@ -4,26 +4,16 @@
 
 class srVectorProcessor;
 
-/* Debug wrapper installed over the active srVP by
-   srVectorProcessor::startDebug. The constructor at 0x10068FD0 proves the
-   layout: a 0x1678-byte object whose srVP base carries the inherited lookup
-   tables, followed by the wrapped processor, the calibrated per-call timing
-   overhead and five 166-entry statistics arrays, one entry per command in
-   the signature table at 0x100A9250 (index = vtable slot - 1; entry 0 is
-   the "dummy command" lead-in). Every forwarding override scopes the
-   wrapped call in a ScopeTimer, which accumulates elapsed time, element
-   count, call count and - while check_misalignments is set - the number
-   of pointer arguments that were not 8- or 16-byte aligned. */
+/* Debug wrapper installed over the active srVP by srVectorProcessor::startDebug. Every forwarding
+   override scopes the wrapped call in a ScopeTimer, which accumulates elapsed time, element count,
+   call count and - while check_misalignments is set - the number of pointer arguments that were not
+   8- or 16-byte aligned. */
 // VTABLE: SURRENDER 0x10077960 srDebugVP
 class srDebugVP : public srVP {
     friend class srVectorProcessor;
 
 public:
-    /* Command ids from the retail constructor at 0x10068FD0 and its
-       signature table at 0x100A9250. Names describe the recorded overloads;
-       original enumerator spellings are unknown. Slots 163 and 164 have no
-       signature-table initialization and remain unnamed. The DWORD min/max
-       forwarders retain their retail swapped command ids and calls. */
+    /* Command ids, one per srVP slot; the names are descriptive. Slots 163 and 164 are unnamed. */
     enum e_command {
         COMMAND_DUMMY = 0,
         COMMAND_MEMCMP = 1,
@@ -192,18 +182,12 @@ public:
         COMMAND_COUNT = 166
     };
 
-    /* Only the constructor and resetInternalStatistics are exported; the
-       forwarders are reached exclusively through the srVP vtable, so the
-       class carries no blanket import specifier. */
     srDebugVP(srVP* processor);
     /* Destruction is consistent with base-only cleanup; the reconstruction
        leaves the derived destructor implicit. */
 
-    /* Every override below wraps the same-numbered call on processor in
-       a ScopeTimer; declaration order mirrors the retail vtable slots. The
-       _max(const SRDWORD*)/_min(const SRDWORD*) bodies are swapped in retail
-       (each logs the other's command index and forwards to the other's
-       slot); see debug_vp.cpp. */
+    /* Every override below wraps the same-numbered call on processor in a ScopeTimer. The
+       _max/_min(const SRDWORD*) bodies swap their command ids and targets. */
     virtual const char* getName() override;
     virtual int _memcmp(const void* source_0, const void* source_1, SRDWORD bytes) override;
     virtual void _memcopy(void* destination, int source, SRDWORD bytes) override;
@@ -519,10 +503,8 @@ public:
                                  SRDWORD count) override;
 
 protected:
-    /* RAII timer constructed at the top of every srDebugVP forwarder and
-       destroyed after the wrapped call returns. The four pointer slots hold
-       the forwarded destination/source arguments whose alignment the
-       constructor counts. */
+    /* RAII timer around every forwarded call; the pointer slots hold the forwarded arguments whose
+       alignment the constructor counts. */
     class ScopeTimer {
     public:
         ScopeTimer(srDebugVP* owner, SRDWORD elements, e_command index, const void* pointer_0,
@@ -535,14 +517,9 @@ protected:
         e_command index;
         double start_time;
     };
-    /* VC6 does not grant a nested class access to the enclosing class's
-       protected members, so the statistics arrays stay reachable through an
-       explicit friend declaration. */
     friend class ScopeTimer;
 
-    /* Written from srVectorProcessor::startDebug's argument after
-       construction; zero disables the ScopeTimer alignment counters and
-       makes dump print "misAlignments not checked". */
+    /* Zero disables the ScopeTimer alignment counters. */
     int check_misalignments;
     srVP* processor;
     double call_overhead;

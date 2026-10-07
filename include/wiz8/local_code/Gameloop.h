@@ -16,7 +16,5 @@ extern bool g_screen_return_requested;
 extern HSTACK g_screen_return_stack;
 extern W8ScreenId g_previous_screen_id;
 extern W8ScreenId g_suspended_screen_id;
-/* Retail 0x006F0628: WinMain's loop flag, set with 0x006F0630 at startup and
-   cleared by the exit screen, the state machine's stop paths, and shutdown. */
 
 #endif

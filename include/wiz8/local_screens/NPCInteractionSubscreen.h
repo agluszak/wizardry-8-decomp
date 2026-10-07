@@ -23,9 +23,6 @@ enum W8NpcTradeFilter {
     W8_NPC_TRADE_USABLE_BY_PARTY = 0x40
 };
 
-/* Local Screens\NPCInteractionSubscreen.cpp owns the NPC dialogue state and
-   the keyword/transcript tables. */
-
 class W8DialogBase;
 class W8NpcDialogueScrollWidget;
 class W8NpcDialogueTextController;
@@ -39,13 +36,9 @@ struct W8NpcState;
 struct W8Region;
 struct W8SkillNoticePayload;
 
-/* The 0x50-byte panel stored at W8NpcInteractionState+0x1a8 (bounds
-   0x17,0x166-0xa4,0x1c2); it hosts the six option buttons at +0x170..+0x184.
-   Its SetEnabled keeps those six inactive unless the expanded NPC dialogue
-   layout (dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) is up, and its Redraw substitutes m_main_text_box_image for
-   m_catalogImage in that mode. The constructor is inlined into 0x0056D1D0 as
-   the Controls base call plus m_main_text_box_image = 0x11; no standalone derived body
-   exists. */
+/* The panel hosting the six option buttons. SetEnabled keeps them inactive
+   unless the main-text-box dialogue layout is up, and Redraw substitutes
+   m_main_text_box_image for m_catalogImage in that layout. */
 // VTABLE: WIZ8 0x005ee9f0
 class W8NpcDialogueOptionsPanel : public Controls {
 public:
@@ -55,18 +48,16 @@ public:
     {
         m_main_text_box_image = 0x11;
     }
-    virtual void SetEnabled(bool enable) override; /* 0x0056BC50 */
-    virtual void Redraw() override;                /* 0x0056BD30 */
+    virtual void SetEnabled(bool enable) override;
+    virtual void Redraw() override;
 
-    int m_main_text_box_image; /* 0x4c: catalog image used while dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX */
+    int m_main_text_box_image;
 };
 static_assert(sizeof(W8NpcDialogueOptionsPanel) == 0x50, "W8NpcDialogueOptionsPanel_size");
 
-/* The Controls-sized panel stored at W8NpcInteractionState+0x1c0 (bounds
-   0x1dc,0x166-0x269,0x1c0). Enabling it starts text-input scheme 1 and
-   installs the typed-dialogue input field; Redraw also draws the input-frame
-   image at y 0x19b while where_is_query is raised, else 0x18b. The constructor is the
-   plain Controls base call inlined at 0x0056D1D0 with no extra fields. */
+/* The typed-dialogue panel. Enabling it starts text-input scheme 1 and
+   installs the input field; Redraw draws the input frame one row lower while
+   where_is_query is raised. */
 // VTABLE: WIZ8 0x005ee9e4
 class W8NpcTypedDialoguePanel : public Controls {
 public:
@@ -75,8 +66,8 @@ public:
         : Controls(left, top, new_right, new_bottom, catalog_object, catalog_frame, catalog_image)
     {
     }
-    virtual void SetEnabled(bool enable) override; /* 0x0056BAC0 */
-    virtual void Redraw() override;                /* 0x0056BB20 */
+    virtual void SetEnabled(bool enable) override;
+    virtual void Redraw() override;
 };
 static_assert(sizeof(W8NpcTypedDialoguePanel) == 0x4c, "W8NpcTypedDialoguePanel_size");
 
@@ -85,17 +76,13 @@ struct W8PendingNoticeLine {
     int npc_kind;
 };
 
-/* 0x0068EE60: the NPC script notice queued between 0x0056C5E0 and its
-   DispatchPendingNpcScriptNotice dispatch. flag and force are independent
-   bytes at +0x14/+0x15. The dispatch's widened load does not establish a
-   packed source argument; the receiver consumes each flag as a byte. */
+/* An NPC script notice waiting for DispatchPendingNpcScriptNotice. */
 struct W8PendingNotice {
     W8NpcState* npc;
     W8ItemInstance item;
     int line;
     bool flag;
     unsigned char force;
-    unsigned char unused[2];
 };
 extern W8PendingNotice g_pending_notice;
 extern wchar_t g_dialogue_empty_text[4];
@@ -116,8 +103,8 @@ enum W8NpcTradeMode {
 /* Transcript keyword categories stored in
    W8NpcInteractionState::dialogue_category_filter and on each
    W8DialogTextEntry::m_category. The five filter buttons spell them
-   "Items", "People", "Places", "Misc" and "All"; 0x00571660 classifies a
-   keyword by scanning the item records, the NPC records plus the
+   "Items", "People", "Places", "Misc" and "All". A keyword is classified by
+   scanning the item records, the NPC records plus the
    named-monster table and the fixed place-name string table, in that
    order. -1 shows every category. */
 enum W8DialogueCategory {
@@ -128,14 +115,10 @@ enum W8DialogueCategory {
     W8_DIALOGUE_CATEGORY_MISC = 3
 };
 
-/* One saved transcript keyword, malloc'd/freed as a 0xca-byte record:
-   100 wide characters of text, then the W8DialogueCategory byte. Save-game
-   serialization writes the length-prefixed text and the trailing category
-   byte; it never persists the pad. */
+/* One saved transcript keyword. */
 struct W8DialogueTranscriptRecord {
     wchar_t text[100];
     signed char category;
-    unsigned char pad_0c9;
 };
 static_assert(sizeof(W8DialogueTranscriptRecord) == 0xca, "W8DialogueTranscriptRecord_size");
 
@@ -184,80 +167,54 @@ enum {
 };
 
 struct W8NpcInteractionState {
-    /* 0x000: a word 0x0056CAD0 clears while the dialogue opens. */
-    short value_000;
+    short value_000; /* cleared while the dialogue opens */
     unsigned char unknown_002[0xee];
-    W8MainUiMode saved_main_ui_mode; /* 0x0f0: the pre-dialogue display mode 0x56cad0 saves */
-    /* 0x0f4: the party slot 0x0056D030 picks as the dialogue's leading
-       speaker - the occupied row whose character leads skill 0x16. */
+    W8MainUiMode saved_main_ui_mode; /* the pre-dialogue display mode */
+    /* The dialogue's leading speaker: the occupied row whose character leads
+       skill 0x16. */
     int dialogue_speaker;
     int target_location_id;
-    /* 0x0fc: the layout currently up, a W8NpcDialogueLayout value. 0x104: the
-       layout the current one replaced; back-out paths reopen it. */
     W8NpcDialogueLayout dialogue_layout;
-    /* 0x100: the active trade tab, a W8NpcTradeMode value. */
     W8NpcTradeMode trade_mode;
+    /* The layout the current one replaced; back-out paths reopen it. */
     W8NpcDialogueLayout previous_dialogue_layout;
     W8ItemInstance* trade_item;
-    /* Indexed by the region callback id and deleted as 39 widget pointers
-       by the dialogue teardown. The creators establish each occupied slot's
-       concrete control type. */
-    W8Widget* dialogue_controls[39]; /* 0x10c */
-    /* The seven panels are also indexed by the retail redraw/teardown loops.
-       Concrete types are established by their construction slots. */
-    Controls* dialogue_panels[7]; /* 0x1a8 */
-    /* 0x1c4/0x1c8: the cursor position of the last mouse event the region
-       handler acted on; repeat events at the same point are dropped. */
+    W8Widget* dialogue_controls[39]; /* indexed by region callback id */
+    Controls* dialogue_panels[7];
+    /* The cursor position of the last mouse event the region handler acted
+       on; repeat events at the same point are dropped. */
     int last_mouse_x;
     int last_mouse_y;
-    /* 0x1cc: the text-box line the mouse/wheel handlers last selected, -1 for
-       none. */
+    /* The text-box line the mouse/wheel handlers last selected, -1 for none. */
     int hovered_text_line;
-    /* 0x1d0: the trade-list filter mask the six option buttons toggle: bit 0
-       keeps only items the selected character can use, bit 6 items any party
-       member can use, and bits 2-5 exclude the equipment slot groups
-       NpcTradeItemAllowed tests. */
-    int trade_filter;
+    int trade_filter; /* W8NpcTradeFilter bits */
     W8NpcState* dialogue_npc;
-    /* 0x1d8: the active transcript category filter, a W8DialogueCategory
-       value; the screen reset writes -1 (all). 0x1ec: the transcript
-       "Sort Alphabetically" toggle, reset to 0. */
-    signed char dialogue_category_filter;
-    /* 0x1d9: raised while the "Where Is" submit path runs, so the typed text
-       is wrapped in the "Where is %s" template instead of a plain keyword
-       lookup; the input panel draws its frame one row lower while set. */
+    signed char dialogue_category_filter; /* W8DialogueCategory */
+    /* Raised while the "Where Is" submit path runs, so the typed text is
+       wrapped in the "Where is %s" template instead of a plain keyword lookup. */
     bool where_is_query;
-    unsigned char unknown_1da[2];
-    /* 0x1dc: the running NPC-dialogue transcript - the records that
-       0x00575070 clears, 0x005750D0/0x00575290 load and save, and
-       0x0055E840 replays. */
-    /* The retail constructor (0x0056B9A0) writes the W8GrowableVector vtable
-       0x005EE9D0 and then the derived table 0x005EE9DC here, so this member is
-       the thin derived W8Vector, not the base. */
     W8Vector<W8DialogueTranscriptRecord*> dialogue_transcript;
     bool transcript_sorted;
-    /* 0x1ed: the item a pending NPC notice carries; the queued-notice block
-       at 0x0068EE60 copies it here when the dialogue opens. */
+    /* The item a pending NPC notice carries; copied from g_pending_notice
+       when the dialogue opens. */
     W8ItemInstance pending_item;
-    /* 0x1f9: pending_item came in through the cursor item; dialogue close
-       returns it to the hand and the consume path drains its stack. */
+    /* pending_item came in through the cursor item; dialogue close returns it
+       to the hand and the consume path drains its stack. */
     bool held_item_pending;
-    unsigned char script_busy; /* 0x1fa: set 0xff during script execution */
-    unsigned char unknown_1fb;
-    /* 0x1fc: the aux_data argument the NPC-dialog dispatch stashes when the
+    unsigned char script_busy; /* set 0xff during script execution */
+    /* The aux_data argument the NPC-dialog dispatch stashes when the
        request is a 0x12/0x1e price check; the reply handler runs it as the
        accepted script line, tells it as a fact, or runs its kind-0x17 decline
        entries. */
     int pending_fact;
-    /* 0x200: a kind-0x12/0x1e price-check modal is awaiting its yes/no reply;
-       the reply handler matches the accepted string against pending_price.
-       0x201: the request was kind 0x1e, so the accept path skips the
-       TellNpcFact call 0x12 makes. */
+    /* A kind-0x12/0x1e price-check modal is awaiting its yes/no reply; the
+       reply handler matches the accepted string against pending_price. */
     bool price_check_pending;
+    /* The request was kind 0x1e, so the accept path skips the TellNpcFact
+       call 0x12 makes. */
     bool price_check_skip_fact;
-    unsigned char unknown_202[2];
-    /* 0x204: the haggled price the NPC dialogue's price-check popup displays
-       and the submit path acts on. */
+    /* The haggled price the NPC dialogue's price-check popup displays and the
+       submit path acts on. */
     int pending_price;
     int quote_bubble;
     short quote_x;
@@ -265,75 +222,53 @@ struct W8NpcInteractionState {
     short quote_width;
     short quote_height;
     bool quote_visible;
-    unsigned char unknown_215[3];
-    /* Same derived-table evidence as dialogue_transcript: 0x005EE9D4 then
-       0x005EE9D8. */
-    W8Vector<W8PendingNoticeLine*> pending_notice_lines; /* 0x218 */
-    /* 0x228: SetNpcDialogueHidden stores its argument here: the whole
-       dialogue UI is parked (right-click hide) and the world input path is
-       live until it is shown again. */
+    W8Vector<W8PendingNoticeLine*> pending_notice_lines;
+    /* The whole dialogue UI is parked (right-click hide) and the world input
+       path is live until it is shown again. */
     unsigned char dialogue_hidden;
-    /* 0x229: the option layout was reached through the Exit/farewell path, so
-       backing out of it reopens the topic menu instead of the transcript. */
+    /* The option layout was reached through the Exit/farewell path, so backing
+       out of it reopens the topic menu instead of the transcript. */
     bool reopen_topics;
-    unsigned char unknown_22a[2];
-    /* 0x22c: the gold the player put on the trade table - the split-amount
-       dialog result, spent by ConfirmNpcTradePurchase. */
-    int trade_gold;
-    /* 0x230: g_settings.main_ui_mode saved while the NPC dialogue is
-       suppressed and handed back to ApplyMainGameModeFlag when it reopens. */
+    int trade_gold; /* gold put on the trade table */
+    /* g_settings.main_ui_mode saved while the NPC dialogue is suppressed. */
     W8MainUiMode saved_mode;
-    /* 0x234: the next UpdateNpcDialogueSubMode must reapply the
-       trade_pc_items toggle state; armed when the option layout opens and
-       when a re-open is staged through SyncDialogueNpcState*. */
+    /* The next UpdateNpcDialogueSubMode must reapply the trade_pc_items
+       toggle state. */
     bool pending_trade_toggle;
-    unsigned char unknown_235[3];
-    /* 0x238: a layout staged for reopen; the frame update closes the current
-       layout and opens this one, then clears it. */
+    /* A layout staged for reopen; the frame update closes the current layout
+       and opens this one, then clears it. */
     W8NpcDialogueLayout pending_layout;
-    /* 0x23c: cleared when the dialogue ends on a refusal/abrupt dismissal, in
-       which case the close path queues a delayed party reaction event. */
+    /* Cleared when the dialogue ends on a refusal/abrupt dismissal, in which
+       case the close path queues a delayed party reaction event. */
     bool suppress_parting_reaction;
-    /* 0x23d: LookAtDialogueNpc aimed the camera at the NPC, so the close
-       restores saved_camera_pitch. */
+    /* LookAtDialogueNpc aimed the camera at the NPC, so the close restores
+       the saved camera angles. */
     bool camera_redirected;
-    unsigned char unknown_23e[2];
-    /* 0x240/0x244: the camera pitch and yaw saved while the dialogue opens so
-       its close can restore them. */
     float saved_camera_pitch;
     float saved_camera_yaw;
     W8NpcQuoteNoticeKind quote_notice_kind;
-    unsigned char unknown_249[3];
-    /* 0x24c: notice payload discriminated by quote_notice_kind: 1 takes
-       `experience`, 2 `skill_notices`, 3 `level_up_slot`; producers arrive
-       through the `raw` member of a SetNpcQuoteBubbleVisible parameter. */
+    /* Discriminated by quote_notice_kind: 1 takes `experience`, 2
+       `skill_notices`, 3 `level_up_slot`. */
     W8MessageBoxPayload quote_notice_payload;
-    /* 0x250: a modal W8NpcDialog is up over the dialogue; transcript word
-       clicks, layout keys other than Escape and layout leave paths bail. */
+    /* A modal W8NpcDialog is up over the dialogue; transcript word clicks,
+       layout keys other than Escape and layout leave paths bail. */
     bool modal_dialog_open;
-    /* 0x251: a refusal/farewell line 0x5c was queued for the exit path. */
-    bool farewell_queued;
-    /* 0x252: the dialogue session runs as queued script lines without the
-       interactive panel; input, portrait and panel paths gate on it. */
+    bool farewell_queued; /* a refusal/farewell line was queued for the exit path */
+    /* The dialogue session runs as queued script lines without the
+       interactive panel. */
     bool scripted_dialogue;
-    unsigned char unknown_253;
     int trade_quantity;
-    /* 0x258: the screen reset writes -1 here, the no-selection value. */
-    int selected_trade_row;
-    /* 0x25c: how many times the transcript layout has opened this session;
-       the first open (count still below 1) queues the greeting lines. */
+    int selected_trade_row; /* -1 for none */
+    /* How many times the transcript layout has opened this session; the
+       first open queues the greeting lines. */
     int transcript_open_count;
-    /* 0x260: the "PC Items"/"Party Items" pool toggle of the trade layouts:
-       raised by the screen reset and SelectNpcPartyItems ("PC Items"),
-       cleared by SelectNpcStockItems ("Party Items"); it mirrors the button
-       pair so UpdateNpcDialogueSubMode can restore it. */
+    /* The "PC Items"/"Party Items" pool toggle of the trade layouts. */
     bool trade_pc_items;
-    /* 0x261: the main text box is collapsed to a single line while the
-       dialogue is fresh; cleared when the next transcript line scrolls. */
+    /* The main text box is collapsed to a single line while the dialogue is
+       fresh; cleared when the next transcript line scrolls. */
     bool text_box_collapsed;
-    bool dialogue_panel_hidden; /* 0x262 */
-    unsigned char unknown_263;
-    int last_notice_npc_kind; /* 0x264 */
+    bool dialogue_panel_hidden;
+    int last_notice_npc_kind;
 };
 static_assert(offsetof(W8NpcInteractionState, dialogue_controls) == 0x10c,
               "W8NpcInteractionState_dialogue_controls");
@@ -365,28 +300,28 @@ extern W8NpcInteractionState* g_npc_interaction_state;
 
 void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, bool suppress);
 void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, bool suppress,
-                          unsigned char arg); /* 0x0056C5E0 */
-void FlushPendingNoticeLines(void);           /* 0x005766B0 */
-/* 0x0056C520: zero W8NpcInteractionState, write its reset values, and reload the
+                          unsigned char arg);
+void FlushPendingNoticeLines(void);
+/* Zero W8NpcInteractionState, write its reset values, and reload the
    keyword lists through the loader below. */
 void ResetMainScreenStateBlock(void);
-/* 0x0068EE80: the dialogue keyword tables, one file list per language;
+/* The dialogue keyword tables, one file list per language;
    element zero is English_Keywords.txt and element one the translated list.
    A file list holds one line list per line, and a line list one malloc'd wide
    word per '/'-separated field. */
 extern W8GrowableVector<W8GrowableVector<W8GrowableVector<wchar_t*>*>*> g_keyword_lists;
-/* 0x0068F0F8: both files are loaded and the tables are usable. Raised once the
+/* Both files are loaded and the tables are usable. Raised once the
    second file loads and lowered whenever the tables are released. */
 extern bool g_keyword_lists_loaded;
-/* 0x0056C200: replace the keyword lists with the contents of
+/* Replace the keyword lists with the contents of
    Data\Strings\English_Keywords.txt and Data\Strings\translated_Keywords.txt. */
 void ReloadKeywordLists(void);
-/* 0x0056C130: release every file list, its lines and its words. */
+/* Release every file list, its lines and its words. */
 void ClearKeywordLists(void);
-/* 0x0056BED0: load one keyword file into a file list. */
+/* Load one keyword file into a file list. */
 unsigned char LoadKeywordFile(const char* path,
                               W8GrowableVector<W8GrowableVector<wchar_t*>*>* file);
-/* 0x0056BE40: copy the next '/'-terminated field out of a keyword line into
+/* Copy the next '/'-terminated field out of a keyword line into
    the caller's buffer and return the cursor past it, or null at the end. */
 wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 void SyncDialogueNpcState(void);
@@ -394,85 +329,77 @@ void SyncDialogueNpcState(void);
 void AddDialogueTranscriptKeyword(const wchar_t* name, signed char category);
 bool IsDialoguePlaceKeyword(const wchar_t* name);
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
-                              int quote_id, unsigned int font_palette); /* 0x00576030 */
+                              int quote_id, unsigned int font_palette);
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
                               int quote_id, unsigned int font_palette,
                               W8NpcQuoteNoticeKind notice_kind, W8MessageBoxPayload payload,
-                              int npc_kind); /* 0x00576060 */
-void DrawNpcQuoteBubble(void);               /* 0x00576670 */
-/* 0x00575E60: OpenNpcDialog — the modal request is the script's
-   W8NpcQuoteEntry itself; the dialog discriminates kind 0x05 (option
-   list), 0x12/0x1e (price check) and 0x13 (keyword entry). */
-void LookAtDialogueNpc(void); /* 0x005767F0 */
+                              int npc_kind);
+void DrawNpcQuoteBubble(void);
+void LookAtDialogueNpc(void);
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,
-                              unsigned char force); /* 0x0056C6D0 */
-void BeginScriptedWorldAction(void);                /* 0x00577520 */
-void CloseNpcDialogueLayout(void);                  /* 0x00570A20 */
-void OpenNpcDialogueTranscriptLayout(void);         /* 0x00570CF0 */
-void DispatchPendingNpcScriptNotice(void);          /* 0x0056CA90 */
+                              unsigned char force);
+void BeginScriptedWorldAction(void);
+void CloseNpcDialogueLayout(void);
+void OpenNpcDialogueTranscriptLayout(void);
+void DispatchPendingNpcScriptNotice(void);
 bool CanOpenNpcDialogue(void);
-bool IsNpcDialogueTextInputActive(void);                       /* 0x00577830 */
-bool IsNpcDialogueTextBoxActive(void);                         /* 0x0056EFD0 */
-unsigned char SetNpcDialoguePanelVisible(unsigned char value); /* 0x00577880 */
+bool IsNpcDialogueTextInputActive(void);
+bool IsNpcDialogueTextBoxActive(void);
+unsigned char SetNpcDialoguePanelVisible(unsigned char value);
 bool ProcessPendingEvent(void);
 void SyncDialogueNpcStateAndMarkPending(void);
 void ClearMainGameTargetState(void);
-/* 0x0068F0F9: a script notice is staged in g_pending_notice */
+/* A script notice is staged in g_pending_notice */
 extern bool g_pending_notice_queued;
-void SyncNpcServiceButtons(int party_slot); /* 0x0056EE20 */
+void SyncNpcServiceButtons(int party_slot);
 /* Forward mouse events to W8NpcInteractionState control slots indexed by
    callback_id in dialogue_controls (id 0x27 is ignored). */
-unsigned char MainScreenControlRegionEvent(const InputAtom* event,
-                                           struct W8Region* region); /* 0x0056F020 */
-void SwitchNpcDialogueLayout(W8NpcDialogueLayout layout);            /* 0x00570120 */
+unsigned char MainScreenControlRegionEvent(const InputAtom* event, struct W8Region* region);
+void SwitchNpcDialogueLayout(W8NpcDialogueLayout layout);
 void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,
-                      unsigned char force); /* 0x0056CA60 */
-unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item,
-                                   bool force);                     /* 0x0056CAD0 */
-void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags);          /* 0x0056D030 */
-void CreateNpcDialogueControls(void);                               /* 0x0056D1D0 */
-void InvalidateMainGameActionPanelRect(const W8ControlsRect* rect); /* 0x0056ECD0 */
-void SetNpcDialogueLayoutMode(W8NpcDialogueLayout value);           /* 0x0056EDD0 */
-void CloseNpcDialogueMode1Layout(void);                             /* 0x00573DD0 */
-void CloseNpcDialogueTranscriptLayout(void);                        /* 0x00571370 */
-void CloseNpcDialogueOptionLayout(void);                            /* 0x00572320 */
-void CloseNpcDialogueMode5Layout(void);                             /* 0x00573570 */
-void ShowNpcDialogueTopicMenu(void);                                /* 0x00570760 */
-void HandleNpcDialogueDeparture(unsigned char value);               /* 0x00577290 */
-unsigned char HandleNpcDialogueItem(W8ItemInstance* item);          /* 0x00575810 */
-unsigned char AcceptNpcDialogueItem(W8NpcState* npc, W8ItemInstance* item,
-                                    int mode); /* folded at 0x005B1740 */
-void TranslateDialogueKeyword(const wchar_t* source, wchar_t* destination); /* 0x0056C440 */
-void ResetNpcDialogueItemEditor(void);                                      /* 0x0056FED0 */
-void SetNpcDialogueHidden(char value);                                      /* 0x00576850 */
+                      unsigned char force);
+unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool force);
+void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags);
+void CreateNpcDialogueControls(void);
+void InvalidateMainGameActionPanelRect(const W8ControlsRect* rect);
+void SetNpcDialogueLayoutMode(W8NpcDialogueLayout value);
+void CloseNpcDialogueMode1Layout(void);
+void CloseNpcDialogueTranscriptLayout(void);
+void CloseNpcDialogueOptionLayout(void);
+void CloseNpcDialogueMode5Layout(void);
+void ShowNpcDialogueTopicMenu(void);
+void HandleNpcDialogueDeparture(unsigned char value);
+unsigned char HandleNpcDialogueItem(W8ItemInstance* item);
+unsigned char AcceptNpcDialogueItem(W8NpcState* npc, W8ItemInstance* item, int mode);
+void TranslateDialogueKeyword(const wchar_t* source, wchar_t* destination);
+void ResetNpcDialogueItemEditor(void);
+void SetNpcDialogueHidden(char value);
 /* While NPC script deferral holds character events, drain Escape / click so
    the open dialogue layout can dismiss without the normal input path. */
-void DrainNpcDialogueDeferralInput(void); /* 0x00575C50 */
+void DrainNpcDialogueDeferralInput(void);
 /* When world_cursor_gate is set, discard queued input after a mouse-position hook so
    the world-cursor gate does not process stale events. */
-void FlushInputWhileWorldCursorGate(void);                  /* 0x00577560 */
-void HandleNpcDialogueReply(wchar_t* text, bool echo);      /* 0x00574250 */
-void HandleNpcDialogueInput(void);                          /* 0x005743B0 */
-void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data); /* 0x00575E60 */
-void OnNpcDialogClosed(W8DialogBase* dialog);               /* 0x00576E20 */
-void ConfirmNpcTradePurchase(void);                         /* 0x00575710 */
-/* 0x00571660: learn one keyword into the dialogue transcript. category -1
+void FlushInputWhileWorldCursorGate(void);
+void HandleNpcDialogueReply(wchar_t* text, bool echo);
+void HandleNpcDialogueInput(void);
+void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data);
+void OnNpcDialogClosed(W8DialogBase* dialog);
+void ConfirmNpcTradePurchase(void);
+/* Learn one keyword into the dialogue transcript. category -1
    auto-classifies the text against items, NPC/named-monster names and the
    place-name table; a nonzero play_chime rings the keyword chime. */
 void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime);
-void ClearNpcDialogueTranscript(void);  /* 0x00575070 */
-void CloseNpcDialogueForCamp(void);     /* 0x00577020 */
-void OpenNpcDialogueOptionLayout(void); /* 0x00571AA0 */
-void OpenNpcDialogueMode1Layout(void);  /* 0x00573AE0 */
-void OpenNpcDialogueMode5Layout(void);  /* 0x005732A0 */
-void UpdateNpcDialogueSubMode(void);    /* 0x00571F60 */
-/* 0x00575390: restate the five transcript category buttons so only the
+void ClearNpcDialogueTranscript(void);
+void CloseNpcDialogueForCamp(void);
+void OpenNpcDialogueOptionLayout(void);
+void OpenNpcDialogueMode1Layout(void);
+void OpenNpcDialogueMode5Layout(void);
+void UpdateNpcDialogueSubMode(void);
+/* Restate the five transcript category buttons so only the
    active dialogue_category_filter's button shows its secondary state. */
 void SyncDialogueCategoryButtons(void);
 void EndNpcDialogueSession(bool skip_exit_actions);
 
-/* Retail emits one standalone copy but expands it at every caller, in other
-   units too, so the definition is visible here. */
 // FUNCTION: WIZ8 0x00576b80
 inline void CloseNpcDialogueIfActive(void)
 {
@@ -484,22 +411,21 @@ inline void CloseNpcDialogueIfActive(void)
    dialogue mode up, scripted_dialogue clear, the controller enabled, and its top
    edge above the slot's band. Portrait and character-update paths skip the
    covered rows through this. */
-bool IsPortraitObscuredByNpcDialogue(unsigned int party_slot); /* 0x0056EC90 */
+bool IsPortraitObscuredByNpcDialogue(unsigned int party_slot);
 void RecordLevelEntryDialogueState(void);
-unsigned char IsNpcDialogueCursorActive(void); /* 0x0056EFB0 */
-/* 0x0056EFF0: forward a portrait pick into an active NPC dialogue. */
+unsigned char IsNpcDialogueCursorActive(void);
+/* Forward a portrait pick into an active NPC dialogue. */
 void TryNpcDialoguePickpocket(int party_slot);
 void ShortenTextToWidth(wchar_t* output, const wchar_t* text, unsigned int width, int font);
 unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event, W8Region* region);
 void SetDialogueFieldKeyword(wchar_t* keyword, bool append);
-void ActivateNpcDialoguePanels(bool active); /* 0x0056ECF0 */
-bool HasNpcDialogueDirtyPanels(void);        /* 0x0056ED80 */
-unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event,
-                                            W8Region* region);        /* 0x0056F1D0 */
-void NpcDialogueTextBoxWheelAt(short x, unsigned short y, bool flag); /* 0x0056F490 */
+void ActivateNpcDialoguePanels(bool active);
+bool HasNpcDialogueDirtyPanels(void);
+unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* region);
+void NpcDialogueTextBoxWheelAt(short x, unsigned short y, bool flag);
 /* True when an NPC quote/portrait session is active: finish voice playback and
    report that the click was consumed. */
-bool FinishNpcVoiceIfSessionActive(void); /* 0x00577A20 */
+bool FinishNpcVoiceIfSessionActive(void);
 void ToggleNpcHandItemFilter(void);
 void ToggleNpcAccessoryItemFilter(void);
 void ToggleNpcBodyItemFilter(void);
@@ -545,19 +471,19 @@ void UpdateNpcTradeSelection(int index, int, int);
 void OpenNpcGoldAmountDialog(void);
 /* The dialogue text-box's button-up/double-click handlers, dispatched from
    NpcDialogueTextBoxRegionEvent. */
-void NpcDialogueTextBoxLeftUp(int x, int y);      /* 0x0056F530 */
-void NpcDialogueTextBoxRightUp(int x, int y);     /* 0x0056F6B0 */
-void NpcDialogueTextBoxDoubleClick(int x, int y); /* 0x0056F840 */
+void NpcDialogueTextBoxLeftUp(int x, int y);
+void NpcDialogueTextBoxRightUp(int x, int y);
+void NpcDialogueTextBoxDoubleClick(int x, int y);
 /* W8SplitAmountDialog destroy callback installed by OpenNpcGoldAmountDialog. */
-void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog);         /* 0x00572870 */
-W8ItemInstance* ResolveNpcTradeRow(int index, bool, char, char); /* 0x005729C0 */
-bool NpcTradeItemAllowed(W8ItemInstance* item);                  /* 0x00573190 */
-void EnableNpcTradeFilterButtons(void);                          /* 0x00573630 */
-W8ItemInstance* GetNpcTradeSlotItem(int index);                  /* 0x00573F80 */
-void HandleNpcDialogueKeyEvent(const InputAtom* event);          /* 0x00574BB0 */
-unsigned char LoadNpcDialogueTranscript(unsigned int file);      /* 0x005750D0 */
-unsigned char SaveNpcDialogueTranscript(unsigned int file);      /* 0x00575290 */
-void HandleNpcDialogueItemChoice(void);                          /* 0x00575B70 */
-void RefreshNpcTradePartyGold(void);                             /* 0x00575BC0 */
-void RefreshNpcTradePrice(void);                                 /* 0x00575C00 */
-void ResolveNpcPickpocket(int party_slot);                       /* 0x00576BA0 */
+void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog);
+W8ItemInstance* ResolveNpcTradeRow(int index, bool, char, char);
+bool NpcTradeItemAllowed(W8ItemInstance* item);
+void EnableNpcTradeFilterButtons(void);
+W8ItemInstance* GetNpcTradeSlotItem(int index);
+void HandleNpcDialogueKeyEvent(const InputAtom* event);
+unsigned char LoadNpcDialogueTranscript(unsigned int file);
+unsigned char SaveNpcDialogueTranscript(unsigned int file);
+void HandleNpcDialogueItemChoice(void);
+void RefreshNpcTradePartyGold(void);
+void RefreshNpcTradePrice(void);
+void ResolveNpcPickpocket(int party_slot);

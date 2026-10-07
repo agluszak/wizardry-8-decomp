@@ -1,7 +1,5 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-06.
-   Normalize formatting of the reconstructed source.
+/* Modified for the Wizardry 8 reconstruction: 2026-09-10, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
-/* Wizardry library configuration; reconstructed 2026-09-10. */
 #ifndef WIZ8_WIZLIBS_H
 #define WIZ8_WIZLIBS_H
 

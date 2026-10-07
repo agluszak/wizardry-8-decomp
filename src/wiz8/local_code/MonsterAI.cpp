@@ -75,7 +75,7 @@ static void QueueMonsterAction(W8MonsterInfo* monster_info, W8MonsterActionKind 
 int g_noise_investigate_radius_cap = 125000;
 
 struct W8SpellEffectEntry;
-/* 0x0061EEFC: two dwords per special-attack kind; only the leading dword is
+/* Two dwords per special-attack kind; only the leading dword is
    read here. */
 // GLOBAL: WIZ8 0x0061EEFC
 int g_special_attack_table[32][2] = {
@@ -140,22 +140,22 @@ int g_combat_effect_slot_spells_and_cast_success[23] = {
 // GLOBAL: WIZ8 0x0061CC14
 static int g_spell_cast_weights[10] = {5, 5, 5, 10, 10, 10, 10, 15, 15, 15};
 
-/* 0x005EE768: 1500.0, the "close enough" distance for patrol points and heard
+/* 1500.0, the "close enough" distance for patrol points and heard
    noises. */
 // GLOBAL: WIZ8 0x005EE768
 extern const double g_double_fifteen_hundred = 1500.0;
 
-/* 0x005EE774: scales the record float into the group-engagement probe
+/* Scales the record float into the group-engagement probe
    distance. */
 // GLOBAL: WIZ8 0x005EE774
 extern const float g_group_engagement_probe_scale = 333.33333f;
 
-/* 0x005EE77C: 7500.0, the floor added to the engagement range bound the
+/* 7500.0, the floor added to the engagement range bound the
    group combat checks compare nearest-member distances against. */
 // GLOBAL: WIZ8 0x005EE77C
 extern const float g_monster_engagement_range_floor = 7500.0f;
 
-/* 0x005EE780: 1.15, the slack the reinforcement check gives a hostile
+/* 1.15, the slack the reinforcement check gives a hostile
    monster's distance to the player before it counts as near the group. */
 // GLOBAL: WIZ8 0x005EE780
 extern const float g_reinforcement_distance_slack = 1.15f;

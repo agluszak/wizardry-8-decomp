@@ -5,25 +5,6 @@
 #include "srHeap.h"
 #include "srQuadWord.h"
 
-/* The eleven virtual slots are the exported ??_7srTimer@@6B@ in slot order,
-   from evidence/snapshots/surrender-abi/vftable-slots.csv: the destructor in
-   slot 0, then the ten methods the library exports by name. Wizardry imports
-   the (int,int,int) constructor and the destructor, so a derived class needs
-   no body the DLL will not supply.
-
-   The enum's values are not established; the one observed call site passes 0.
-
-   The extent 0x868 is what `new srTimer` allocates at 0x00439590. There is no
-   first-party subclass: vtable 0x005EC078 is the local copy VC6 materializes
-   for a dllimport class it instantiates - every slot an import thunk and the
-   deleting destructor generated locally - and the constructor re-stores it
-   over the vptr the imported constructor installed. The three named fields are
-   srTimer's own, placed by the game-timer unit's byte-exact constructor. */
-/* Packed at 4 the way the era's SDK headers ship: with the class's natural
-   alignment of 8 (the double member) MSVC pads the vfptr slot to the class
-   alignment and every field lands four bytes late; pack(4) is what puts the
-   frequency at +0x808 and the tick quotient at +0x838, where the byte-exact
-   constructor addresses them. */
 #pragma pack(push, 4)
 // VTABLE: SURRENDER 0x10077620 srTimer
 class SR_DLL_IMPORT SR_DLL_EXPORT srTimer {
@@ -51,9 +32,7 @@ public:
     virtual int reset(int force_system_timer, int unused, int save_calibration);
     virtual unsigned long getMsTime(e_timerReadControl control); /* 5 */
     virtual double getTime(e_timerReadControl control);          /* 6 */
-    /* Slots 7/9 take srQuadWord&, slots 8/10 take only the control. MSVC lays
-       an adjacent virtual overload group out in reverse declaration order, so
-       the source declares each pair reversed to land them as exported. */
+    /* Each overload pair is declared in reverse slot order. */
     virtual unsigned long getUTime(e_timerReadControl control); /* 8 */
     virtual unsigned long getUTime(srQuadWord& out, e_timerReadControl control);
     virtual unsigned long getRawTime(e_timerReadControl control); /* 10 */
@@ -61,9 +40,6 @@ public:
 
     const char* getIdent() const;
     const char* getOsIdent() const;
-    /* srCore::dump inlines the trivial field accessors. The member dllexport
-       marks keep the header bodies for that folding while still emitting the
-       exported standalone copies. */
     // FUNCTION: SURRENDER 0x10062340
     // RECOMP: ?getCPUIdent@srTimer@@QBEPBDXZ
     const char* getCPUIdent() const
@@ -111,10 +87,6 @@ public:
     unsigned long getUnits() const;
     void setUnits(unsigned long units);
     int isPaused() const;
-    /* Header-visible like srCore::getRegistry: srInit expands the
-       osThreadState/getOsIdent sequence inline rather than calling the
-       out-of-line emission, so the original header carried this body. The
-       member dllexport emits the exported standalone copy. */
     // FUNCTION: SURRENDER 0x10062750
     // RECOMP: ?fastThreads@srTimer@@QAEHXZ
     int fastThreads()
@@ -153,9 +125,7 @@ public:
 protected:
     int retrieve();
     int store();
-    /* Internal frequency calibration over the registry persistence blob
-       reset() fills. Retail neither exports it from this class-level export
-       nor passes it a timer, so it is a free function; it installs the
+    /* Frequency calibration over the registry persistence blob reset() fills; installs the
        protected RDTSC reader. */
     friend int calibrate(struct srTimerConfig* config);
 

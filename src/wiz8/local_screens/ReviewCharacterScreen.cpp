@@ -165,12 +165,12 @@ W8TextControl* g_camp_item_filter_buttons[7];
 // GLOBAL: WIZ8 0x0069c48c
 Controls* g_camp_item_filter_panel;
 
-/* 0x00648C48: the font-state palette index selected for each load category
+/* The font-state palette index selected for each load category
    while the weight line is drawn; zero leaves the default palette in place. */
 // GLOBAL: WIZ8 0x00648C48
 int g_load_category_palettes[5] = {0xf, 3, 1, 5, 0};
 
-/* 0x0064CDA0: one portrait frame per race and gender, race-major in threes. */
+/* One portrait frame per race and gender, race-major in threes. */
 // GLOBAL: WIZ8 0x0064CDA0
 int g_race_portrait_images[0x30] = {
     0x125, 0x126, 0x125, 0x127, 0x128, 0x127, 0x129, 0x12a, 0x129, 0x12b, 0x12c, 0x12b,
@@ -179,12 +179,12 @@ int g_race_portrait_images[0x30] = {
     0x13c, 0x13c, 0x13c, 0x13d, 0x13d, 0x13d, 0x13e, 0x13e, 0x13e, 0x13f, 0x13f, 0x13f,
 };
 
-/* 0x0064DD30: the seven attribute label message ids, drawn top to bottom on
+/* The seven attribute label message ids, drawn top to bottom on
    the secondary panel. The last two entries swap relative to attribute order. */
 // GLOBAL: WIZ8 0x0064DD30
 int g_attribute_label_ids[7] = {0x924, 0x925, 0x926, 0x927, 0x928, 0x92a, 0x929};
 
-/* 0x0064DD4C: the help-line weight breakdown, "<personal>: n, <party>: n". */
+/* The help-line weight breakdown, "<personal>: n, <party>: n". */
 // GLOBAL: WIZ8 0x0064DD4C
 wchar_t g_format_s_colon_d_s_colon_d[] = L"%s: %d, %s: %d";
 

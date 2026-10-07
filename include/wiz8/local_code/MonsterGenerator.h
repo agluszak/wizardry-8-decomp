@@ -9,53 +9,46 @@ struct W8Item;
 struct W8MonsterRecord;
 template <class T> class W8GrowableVector;
 
-/* Retail allocates 0x48 bytes for every MonGen. The unnamed bytes at +0x05,
-   +0x0a..+0x0b and +0x45..+0x47 are ordinary alignment padding, not fields. */
 struct MonGen {
-    unsigned int flags;              /* 0x00 */
-    signed char custom_spawn_chance; /* 0x04: MIPE edits 0..100 in steps of ten */
-    short custom_interval_seconds;   /* 0x06: MIPE's custom "every N s" value */
-    short unknown_08;                /* 0x08: persisted, initialized to -1 */
-    /* 0x0c: world position, saved as three dwords and handed to GenerateEncounter. */
+    unsigned int flags;
+    signed char custom_spawn_chance; /* MIPE edits 0..100 in steps of ten */
+    short custom_interval_seconds;   /* MIPE's custom "every N s" value */
+    short unknown_08;                /* persisted, initialized to -1 */
+    /* World position, saved as three dwords and handed to GenerateEncounter. */
     srVector3T<float> spawn_position;
-    W8Item* marker_item;       /* 0x18: loaded Data\Items3D\Bitmaps\mongen.itm marker */
-    int encounter_table_index; /* 0x1c: index into g_encounter_tables, -1 means none */
-    /* 0x20: m_pTimer, named by the MonGen.cpp:535 assertion, whose message also
-       gives the owning class and method - "MonGen::Reset() out of memory
-       allocating m_pTimer". */
+    W8Item* marker_item;       /* loaded Data\Items3D\Bitmaps\mongen.itm marker */
+    int encounter_table_index; /* index into g_encounter_tables, -1 means none */
     W8IntervalGate* m_pTimer;
-    char name[32];                    /* 0x24 */
-    unsigned char generation_enabled; /* 0x44: MIPE "Toggle Active"; gates CanGenerate */
+    char name[32];
+    unsigned char generation_enabled; /* MIPE "Toggle Active"; gates CanGenerate */
 
-    /* 0x0048A680 */
     MonGen();
     void Reset();
     /* Tests global encounter gates, range/LOS/occupancy constraints and this
-       generator's chance. Retail reads the force argument as one byte. */
-    bool CanGenerateEncounter(bool force); /* 0x0048B200 */
+       generator's chance. */
+    bool CanGenerateEncounter(bool force);
     /* Selects and spawns the encounter table entry at `position`. */
-    unsigned char GenerateEncounter(const srVector3T<float>* position); /* 0x0048AD20 */
+    unsigned char GenerateEncounter(const srVector3T<float>* position);
     /* Build the candidate-entry list for the current rarity/time/party level. */
     int SelectEncounterCandidates(W8EncounterTableRuntime* table,
-                                  W8GrowableVector<int>* candidates); /* 0x0048B9A0 */
+                                  W8GrowableVector<int>* candidates);
     /* Difficulty-aware group-size roll for one monster database record. */
-    int RollEncounterGroupSize(W8MonsterRecord* record); /* 0x0048BC30 */
+    int RollEncounterGroupSize(W8MonsterRecord* record);
     /* Arms or disarms the generator, loading its marker on the way in. */
     void SetActive(unsigned char active, W8Item* node);
     /* The save pair. Both are __thiscall in the image. */
     void Save(int handle);
     unsigned char Load(int handle);
-    /* 0x0048C110: the MONG chunk loader; its own assert spells the original
-       name, MonGen::LoadAll. */
+    /* The MONG chunk loader. */
     static unsigned char LoadAll(int save_handle);
     /* Moves the generator, notifying the scene when the generator has a marker. */
     void SetState(const srVector3T<float>* state);
     /* Loads the marker unconditionally, then applies the armed state. */
     void Reload(int, bool active);
-    /* 0x0048CC30: strncpy into the fixed 32-byte name member. */
+    /* Strncpy into the fixed 32-byte name member. */
     void SetName(const char* name);
     /* Select one loaded encounter table and apply its HARASSMENT flag. */
-    void SetEncounterTable(int index); /* 0x0048CC50 */
+    void SetEncounterTable(int index);
     ~MonGen();
 };
 

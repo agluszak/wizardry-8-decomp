@@ -9,10 +9,7 @@
 class srARGB;
 class srDD;
 
-// Dynamic driver entrypoints, proven by DirectX7 and the srGERD loader.
-// This is a reconstructed header grouping, not a recovered original filename.
-// Index/count/API values occupy one 32-bit word. The loader compares them
-// unsigned; surviving exports do not distinguish original int/long spelling.
+// Dynamic driver entrypoints.
 enum { SR_DD_MIN_API_VERSION = 0x128 };
 typedef unsigned long(__cdecl* srDDGetDriverApiVersionFn)();
 typedef const char*(__cdecl* srDDGetDriverNameFn)();
@@ -21,31 +18,18 @@ typedef unsigned long(__cdecl* srDDGetDeviceCountFn)();
 typedef const char*(__cdecl* srDDGetDeviceNameFn)(unsigned long index);
 typedef srDD*(__cdecl* srDDInitDeviceFn)(unsigned long index);
 
-// Argument-bearing DirectX7 entrypoints and srGERD call sites prove caller
-// stack cleanup. No-argument functions alone cannot prove cdecl vs stdcall.
-// DebugDD's virtuals pass the shared device records below by reference.
-
-/* srDebugDD's copy constructor and assignment operator
-   (0x100177D0/0x10017830) each emit a null-guarded one-byte copy at +0x04
-   overlapping the first member: MSVC6's signature for copying an empty
-   non-polymorphic base. RTTI is off and an empty base emits no vtable or
-   export, so the original name is unrecoverable. */
+/* Empty base class; its original name is unknown. */
 class srDDEmptyBase {};
 
 class __declspec(novtable) srDD : public srDDEmptyBase {
 public:
-    /* srGERD::changeTexture fills the device palette record at its +0x1f50
-       from srPalette::getPaletteDataPtr/getPaletteSize and passes it to
-       bindPalette; invalidatePalette hands the same record to deletePalette.
-    */
+    /* Device palette record handed to bindPalette/deletePalette. */
     struct Palette {
         const srARGB* data;
         unsigned long size;
         unsigned long flags;
     };
-    /* Device pixel format written by srGERD::convertPixelFormat: the channel
-       bit/shift bytes, color model and storage-size index of
-       srPixelConvert::PixelFormat without its trailing FourCC word. */
+    /* Device pixel format: srPixelConvert::PixelFormat without its trailing FourCC word. */
     struct PixelFormat {
         unsigned char red_bits;
         unsigned char red_shift;
@@ -60,10 +44,8 @@ public:
         srPixelConvert::e_colorModel color_model;
         srPixelConvert::e_pixelSize pixel_size;
     };
-    /* Device texture record embedded at +0x2c of srGERD::Texture and handed
-       to bindTexture/deleteTexture. evaluateTextureDimensions and
-       evaluateTexturePixelFormat fill it from the interface's Dimensions;
-       allocTextureData lays out per-level data pointers in levels. */
+    /* Device texture record handed to bindTexture/deleteTexture; levels holds the per-level data
+       pointers. */
     struct Texture {
         /* Shared initialization in GERD allocation/deletion. reset is a
            descriptive name; format, deleted and resident are set separately. */
@@ -98,9 +80,7 @@ public:
         unsigned long format_index;
         unsigned long parameter;
         void* levels[12];
-        /* Resident device-surface record and its byte size: written by the
-           device texture-upload path, cleared on invalidate, summed by
-           srGERD::getResidentTextureMemUsed. */
+        /* Resident device-surface record and its byte size. */
         unsigned long resident_data;
         unsigned long resident_size;
         /* markTextureAsDeleted sets this once the texture is on the
@@ -108,12 +88,9 @@ public:
         unsigned long deleted;
         unsigned long resident;
     };
-    /* Six-dword buffer command handed to bufferOp. The lock/unlock
-       commands write only the leading dwords and leave the rest
-       uninitialized; LockSurface's pixel transfers fill data/x/
-       y/count. Opcode values seen in retail: 0 lock, 1 unlock,
-       2 read row, 3 write row, 4 horizontal fill, 6 read column,
-       7 write column. */
+    /* Six-dword buffer command handed to bufferOp. Opcodes: 0 lock, 1 unlock, 2 read row, 3 write
+       row, 4 horizontal fill, 6 read column, 7 write column. Lock and unlock fill only the leading
+       dwords. */
     struct BufferCommand {
         unsigned long flags;
         unsigned long opcode;
@@ -122,13 +99,10 @@ public:
         long y;
         long count;
     };
-    /* getDriverInfo block. The caller writes the requested API version
-       (0x128), a capability flag and a debug callback before the call; the
-       device reports its DD API version, driver id, name and API version
-       string back into the same record. */
+    /* getDriverInfo block: the caller writes the requested API version, a capability flag and a
+       debug callback; the device reports its DD API version, driver id, name and API version
+       string. */
     struct DriverInfo {
-        /* srGERD's constructor emits the single flags zero-store as this
-           record's member init (0x2d0 inside the +0x2cc embedding). */
         DriverInfo() : flags(0) {}
 
         unsigned long api_version;
@@ -140,14 +114,9 @@ public:
         char api_name[64];
     };
     static_assert(sizeof(DriverInfo) == 0x94, "srDD_DriverInfo_must_be_0x94");
-    /* getInfo output record, 0x27c bytes. srGERD embeds it verbatim at +0x50
-       (initDDInfo clears the block, seeds the defaults below, then hands it
-       to srDD::getInfo). The nine trailing 0x40-byte strings are the device
-       identity fields initDDInfo fills with "Unknown". */
+    /* getInfo output record. The nine trailing strings are the device identity fields. */
     struct Info {
         enum { PIXEL_TEXTURE_STATISTICS = 0x10u, RELEASE_SURFACE_AFTER_BIND = 0x20u };
-        /* srGERD's constructor emits the single flags zero-store as this
-           record's member init (0x68 inside the +0x50 embedding). */
         Info() : flags(0) {}
 
         /* openWindowInternal rejects back-buffer dimensions above these
@@ -161,8 +130,7 @@ public:
         /* initDDInfo defaults: 1.0f / 65536.0f. */
         float unknown_10_;
         float unknown_14_;
-        /* initDDInfo defaults: 0. changeTexture tests bit 5;
-           getDepthBufferType reads bit 3 of the low byte. */
+        /* changeTexture tests bit 5; getDepthBufferType reads bit 3. */
         unsigned long flags;
         /* initDDInfo defaults: 0x100; createRenderer passes it to each
            Renderer as its batch limit. */
@@ -172,9 +140,7 @@ public:
         /* Device texture RAM in bytes; dumpTextureCache prints it in kB and
            treats 0 as "infinite" (no residency percentage). */
         unsigned long texture_ram;
-        /* initDDInfo defaults: 1, 1, 0x100, 1; texture-dimension clamps
-           applied by evaluateTextureDimensions. initDDInfo clamps
-           max_texture_stages to 2 after getInfo. */
+        /* Texture-dimension clamps applied by evaluateTextureDimensions. */
         unsigned long max_texture_stages;
         unsigned long texture_min_dim;
         unsigned long texture_max_dim;
@@ -188,13 +154,9 @@ public:
         char text[9][0x40];
     };
     static_assert(sizeof(Info) == 0x27c, "srDD_Info_must_be_0x27c");
-    /* getStatistics output record, 0x28 bytes: srGERD::getStatistics
-       zero-initialises the whole record and mirrors the first nine dwords
-       into its own Statistics block at +0x08; the dword pair at +0x08 is
-       read through the double Statistics::value_10 in the GERD copy. */
+    /* getStatistics output record. */
     struct Statistics {
-        unsigned long value_00;
-        unsigned long value_04;
+        double texture_transfer;
         double pixels_drawn;
         unsigned long value_10;
         unsigned long value_14;
@@ -231,13 +193,9 @@ public:
     struct OpenResult {
         unsigned long back_buffer_type;
     };
-    /* GERD embeds this verbatim at +0x1b08: setClearColor clamps into
-       color, the accumulation-buffer clear color occupies accum
-       (accumClear clamps it to [-1,1] per channel), setClearDepth clamps
-       depth to [0,1] and setClearStencil writes stencil. */
+    /* setClearColor clamps color, accumClear clamps accum to [-1,1] per channel and setClearDepth
+       clamps depth to [0,1]. */
 #pragma pack(push, 4)
-    /* Retail packs the double at 4-byte alignment: the record occupies
-       exactly 0x2c bytes in front of GERD's palette block. */
     struct ClearValues {
         srVector4T<float> color;
         srVector4T<float> accum;
@@ -246,8 +204,7 @@ public:
     };
 #pragma pack(pop)
     static_assert(sizeof(ClearValues) == 0x2c, "srDD_ClearValues_must_be_0x2c");
-    /* Scissor rectangle: setScissor/clamp evidence stores (left, top, right,
-       bottom) and recalcScissor compares right/bottom to width/height. */
+    /* Scissor rectangle {left, top, right, bottom}. */
     struct Scissor {
         unsigned long left, top, right, bottom;
     };
@@ -255,13 +212,11 @@ public:
        slots applyViewStateChanges copies through unchanged. */
     struct ViewPort {
         long x, y, width, height;
-        /* Depth range forwarded by applyViewStateChanges; srGERD stores it
-           as doubles at +0x1618. */
+        /* Depth range forwarded by applyViewStateChanges. */
         unsigned long extra[4];
     };
-    /* srGERD::applyFrameStateChanges packs the frame dirty bits, gamma,
-       a constant 1.0f, swap interval, antialias mode and enable bit 0 into
-       this 0x20-byte block and passes it to update(). */
+    /* Frame state handed to update(): dirty bits, gamma, a constant 1.0f, swap interval, antialias
+       mode and enable bit 0. */
     struct Update {
         enum {
             UPDATE_ENABLE = 0x01u,
@@ -287,10 +242,7 @@ public:
     /* srDD_OpenGL clearBuffers: bit 0 clears GL_COLOR_BUFFER_BIT, bit 1
        GL_DEPTH_BUFFER_BIT and bit 2 GL_STENCIL_BUFFER_BIT. */
     enum e_buffer { BUFFER_COLOR = 1, BUFFER_DEPTH = 2, BUFFER_STENCIL = 4 };
-    /* Enumerator order is proven by the command indices srDebugDD's
-       wrappers pass to ScopeTimer and by the funcName string table at
-       0x10099028 (index 0 is "dummy command", index 43 is "CMDMAX").
-       Original spellings are unknown; names are descriptive. */
+    /* Commands profiled by srDebugDD, in funcName table order; the names are descriptive. */
     enum e_command {
         COMMAND_DUMMY,
         COMMAND_GET_INFO,

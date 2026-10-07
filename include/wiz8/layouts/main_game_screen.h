@@ -13,9 +13,7 @@ class stModelInstance2D;
 
 /* One animated cursor resource the main-game / camp screens can install. The
    object is an stTextureAnim; size and hotspot are the unsigned shorts
-   ApplyCurrentCursor feeds to the mouse-cursor surface helpers. Layout is
-   fixed by LoadMainGameCursorResources at 0x00568E10: catalog id at +0,
-   object at +4, frame count at +8, ETRLE size at +0xc/+0xe. */
+   ApplyCurrentCursor feeds to the mouse-cursor surface helpers. */
 struct W8MainGameResourceSlot {
     int image_id;             /* 0x00: GetCatalogVideoObjectHandle / YOffset key */
     stTextureAnim* object;    /* 0x04: loaded cursor anim */
@@ -68,7 +66,6 @@ enum W8MainGameRedrawFlag {
                             W8_MAIN_REDRAW_COMBAT_STANCE | W8_MAIN_REDRAW_CHARACTER_ACTION
 };
 
-/* These masks include the high bit and remain unsigned on the VC6 ABI. */
 static const unsigned int W8_MAIN_REDRAW_FRAME = 0x80000000U;
 static const unsigned int W8_MAIN_REDRAW_ALL = 0xffffffffU;
 
@@ -85,7 +82,7 @@ struct W8DialogueTextState {
     unsigned int line_capacity;    /* 0x18: entries, grown by 0x20 */
     int notice_channel;            /* 0x1c: passed to the completed notice */
     short text_box;                /* 0x20: text box whose scroll is replaced */
-    short unknown_22;              /* 0x22: never consumed by the retail cluster */
+    short unknown_22;              /* 0x22: never read */
     unsigned int wrap_width;       /* 0x24: pixel budget and notice width */
     unsigned int cursor;           /* 0x28: insertion point in text */
     unsigned char cursor_dirty;    /* 0x2c: repaint just the dialogue cursor */
@@ -153,10 +150,7 @@ struct W8LevelRuntimeBlock {
     int selected_text_lines[4];
     bool dialogue_text_input_open;
     unsigned char padding_1f9[3];
-    /* GOG retail retains the complete editor consumer path, but has no writer
-       that raises this gate and no allocation/store producer for the pointer.
-       The input is therefore dormant in this build rather than an inferred
-       NPC-dialogue feature. */
+    /* Never set in this build; the editor path that consumes it is dormant. */
     W8DialogueTextState* dialogue_text_input;
     int portrait_overlay_party_slot; /* 0x200: -1 while untracked */
     /* 0x204 / 0x208: party slot whose condition / enchantment orb is held or
@@ -182,8 +176,7 @@ struct W8LevelRuntimeBlock {
     int dialogue_width;
     int highlight_row; /* 0x23c: -1 none; the content row the highlight sits on */
     /* The dialogue highlight sprite. DrawHighlightOverlay lazily creates it
-       from catalog object 0x72 through CreateSpriteFromSurface - the retail
-       assertion spells it gpMGSV->pHighlightGraphic - and it is released
+       from catalog object 0x72 through CreateSpriteFromSurface, and it is released
        through ReleaseObject whenever mode 6 ends or the tracked party
        slots change. */
     stModelInstance2D* highlight_graphic; /* 0x240 */

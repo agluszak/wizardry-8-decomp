@@ -9,8 +9,7 @@ uv run wiz8 ghidra class W8Monster
 ```
 
 Inspection writes disposable native C and listing artifacts under `build/ghidra/`.
-Use `uv run wiz8 compare` for Ghidriff comparison and `uv run wiz8 ghidra sync`
-to project established source facts.
+Use `uv run wiz8 compare` for Ghidriff comparison.
 
 `merge_checkpoint_functions.py` reconciles non-overlapping function analysis from
 reviewed GZF checkpoints. Follow the

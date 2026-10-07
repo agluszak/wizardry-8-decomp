@@ -22,10 +22,8 @@ private:
         unsigned long size;
     };
 
-    /* By-value CS member with a trivial ctor and a draining dtor
-       (Enter/Leave/DeleteCriticalSection): the methods Initialize/Enter/
-       Leave the contained section explicitly, and ~srGlobalRecycler's EH
-       funclet (0x100358D0) destroys this+0x8c. */
+    /* By-value critical section with a trivial constructor and a draining destructor; the owner
+       initializes, enters and leaves it explicitly. */
     class CriticalSection {
     public:
         ~CriticalSection()

@@ -50,8 +50,6 @@ public:
         color = fog_color;
     }
 #if defined(SURRENDER_BUILD)
-    /* Retail exports out-of-line copies (0x10056C90) even though consumer
-       overlay builders expand the load inline. */
     srVector3T<float> getFogColor() const;
 #else
     srVector3T<float> getFogColor() const
@@ -68,10 +66,6 @@ public:
     {
         return "srScene";
     }
-    /* The overlay builders expand these component stores at every call site.
-       They are the ordinary header-visible SurRender setters, not a Wizardry
-       aggregate helper around the scene object. The provider still exports
-       its own out-of-line copies from scene.cpp. */
 #if defined(SURRENDER_BUILD)
     void setAmbientLight(float red, float green, float blue);
 #else

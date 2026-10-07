@@ -4,8 +4,6 @@
 
 /* Shared declaration owner; implementation remains in Local Code\Controls.cpp. */
 
-/* W8Widget is a recovered role name, not a claim about the original spelling.
-   Its 0x34-byte layout and region/panel ownership are established by retail. */
 typedef void (*W8ControlCallback)();
 struct Controls;
 struct W8Region;
@@ -34,10 +32,7 @@ public:
     virtual ~W8Widget();
 
     virtual void SetEnabled(bool enabled);
-    /* Slots 2 and 5..17 share the retail ret-4 no-op at 0x005B1BE0.
-       These are default hooks, not missing implementations. Redraw's force
-       flag comes from the panel's boolean dirty state and is consumed as a
-       byte predicate by the concrete overrides. */
+    /* Default hooks; Redraw's flag is the panel's dirty state. */
     // FUNCTION: WIZ8 0x005b1be0
     virtual void Redraw(bool) {}
     virtual void SetBounds(int left, int top, int right, int bottom);
@@ -62,23 +57,23 @@ protected:
 public:
     /* Read from outside the class by Local Screens\RCSCommon.cpp, which is what
        keeps the three flags reachable rather than protected. */
-    bool m_enabled; /* 0x04: interaction and enabled appearance */
-    bool m_active;  /* 0x05: panel participation and region input */
-    bool m_dirty;   /* 0x06: pending widget redraw */
+    bool m_enabled; /* interaction and enabled appearance */
+    bool m_active;  /* panel participation and region input */
+    bool m_dirty;   /* pending widget redraw */
     unsigned char pad_007;
-    /* 0x08: the widget's rectangle, relative to the owner's origin. The
+    /* The widget's rectangle, relative to the owner's origin. The
        constructor adds the origin to all four before handing them to the
        region, which is what makes right and bottom edges rather than a size. */
-    int m_left;         /* 0x08 */
-    int m_top;          /* 0x0c */
-    int m_right;        /* 0x10 */
-    int m_bottom;       /* 0x14 */
-    int m_region;       /* 0x18: handed to DisableRegionInput unless -1 */
-    Controls* m_pPanel; /* 0x1c: named by Controls.cpp:1849 */
-    W8ControlCallback m_primaryActivationCallback;   /* 0x20: invoked by text-control activation */
-    W8ControlCallback m_leftButtonDownCallback;      /* 0x24 */
-    W8ControlCallback m_secondaryActivationCallback; /* 0x28 */
-    W8ControlCallback m_rightButtonDownCallback;     /* 0x2c */
-    W8ControlCallback m_leftDoubleClickCallback;     /* 0x30 */
-}; /* 0x34 established */
+    int m_left;
+    int m_top;
+    int m_right;
+    int m_bottom;
+    int m_region; /* handed to DisableRegionInput unless -1 */
+    Controls* m_pPanel;
+    W8ControlCallback m_primaryActivationCallback; /* invoked by text-control activation */
+    W8ControlCallback m_leftButtonDownCallback;
+    W8ControlCallback m_secondaryActivationCallback;
+    W8ControlCallback m_rightButtonDownCallback;
+    W8ControlCallback m_leftDoubleClickCallback;
+};
 static_assert(sizeof(W8Widget) == 0x34, "W8Widget_size");

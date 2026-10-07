@@ -564,7 +564,7 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
     }
 }
 
-/* 0x0061E518: one notice index per spell realm, giving the realm's name. */
+/* One notice index per spell realm, giving the realm's name. */
 /* Turn a pool fraction into a band. The same ladder decides a character's
    fatigue band and a monster's, from the percentage of the pool that is
    missing rather than the part that is left. */

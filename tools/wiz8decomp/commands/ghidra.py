@@ -28,25 +28,6 @@ def restore_command(program: str = "wiz8") -> None:
     cli.emit(action())
 
 
-@app.command("sync")
-def sync_command(
-    program: str = typer.Option("wiz8", "--program"),
-    import_source: bool = typer.Option(
-        False,
-        "--import-source",
-        help="Also run reccmp PDB import after established source facts are applied.",
-    ),
-) -> None:
-    """Project established source/evidence facts into the live ProgramDB."""
-    from .. import command_support as cli
-    from ..ghidra.sync import synchronize
-
-    payload = synchronize(cli.settings(), program_selector=program, import_source=import_source)
-    cli.emit(payload)
-    if payload.get("ok") is False:
-        raise typer.Exit(code=1)
-
-
 @app.command("decompile")
 def decompile_command(
     selectors: Annotated[

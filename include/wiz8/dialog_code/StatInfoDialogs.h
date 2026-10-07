@@ -7,10 +7,7 @@
 #include "wiz8/dialog_code/DialogTextArea.h"
 
 /* Shared storage for the attribute-information dialogs and the skill info
-   dialog. The base has no accepted original name yet, so its constructor
-   address remains in the name. It is never instantiated on its own, but
-   retail still emits its vtable: the derived constructors briefly store
-   0x005efc88 before overwriting it, and the derived destructors restore it. */
+   dialog. */
 // VTABLE: WIZ8 0x005efc88
 class W8StatInfoDialogBase : public W8DialogBase {
 public:
@@ -30,8 +27,8 @@ protected:
     W8DialogScrollBar scrollbar;
     W8DialogButton button;
     W8DialogTextArea textarea;
-    unsigned int m_title_id;  /* 0x140: gppStringList index, DrawTitle */
-    unsigned int m_detail_id; /* 0x144: gppStringList index, PopulateText */
+    unsigned int m_title_id;  /* gppStringList index, DrawTitle */
+    unsigned int m_detail_id; /* gppStringList index, PopulateText */
 };
 
 // VTABLE: WIZ8 0x005efcc8
@@ -41,7 +38,7 @@ public:
     virtual ~W8AttributeInfoDialog() override;
 
 private:
-    W8Attribute m_uiIndex; /* 0x148 */
+    W8Attribute m_uiIndex;
 };
 
 // VTABLE: WIZ8 0x005efd48
@@ -51,7 +48,7 @@ public:
     virtual ~W8SecondaryAttributeInfoDialog() override;
 
 private:
-    unsigned int m_uiIndex; /* 0x148 */
+    unsigned int m_uiIndex;
 };
 
 // VTABLE: WIZ8 0x005efd08
@@ -78,5 +75,5 @@ static_assert(sizeof(W8SecondaryAttributeInfoDialog) == 0x14c,
               "W8SecondaryAttributeInfoDialog005E0180_must_be_0x14c");
 static_assert(sizeof(W8SkillInfoDialog) == 0x150, "W8SkillInfoDialog005EFD08_must_be_0x150");
 
-/* 0x0061E50C: gppStringList indices naming each attribute/resistance row. */
+/* GppStringList indices naming each attribute/resistance row. */
 extern unsigned short g_attr_table1[18];

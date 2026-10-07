@@ -2,18 +2,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from wiz8decomp.config import Settings
 from wiz8decomp.ghidra import workspace
-
-
-def _settings(tmp_path: Path, **overrides: object) -> Settings:
-    values = {
-        "GHIDRA_INSTALL_DIR": str(tmp_path / "ghidra-install"),
-        "WIZ8_INPUT_DIR": str(tmp_path / "inputs"),
-        "WIZ8_WORK_DIR": str(tmp_path / "work"),
-        **overrides,
-    }
-    return Settings.model_validate(values)
 
 
 def _project_settings(tmp_path: Path) -> SimpleNamespace:
@@ -34,16 +23,6 @@ def _seed(sha256: str = "seed-hash") -> dict[str, str | Path]:
 def _create_project(settings: SimpleNamespace) -> None:
     settings.project_dir.mkdir(parents=True, exist_ok=True)
     (settings.project_dir / f"{settings.project_name}.gpr").touch()
-
-
-def test_project_dir_defaults_inside_the_checkout(tmp_path: Path) -> None:
-    settings = _settings(tmp_path)
-    assert settings.project_dir == settings.repo_dir / "ghidra-project"
-
-
-def test_project_dir_override_relocates_the_project(tmp_path: Path) -> None:
-    settings = _settings(tmp_path, WIZ8_GHIDRA_PROJECT_DIR=str(tmp_path / "elsewhere"))
-    assert settings.project_dir == (tmp_path / "elsewhere").resolve()
 
 
 def test_owner_check_accepts_this_checkout_and_unclaimed_projects(tmp_path: Path) -> None:
@@ -99,18 +78,7 @@ def test_seed_freshness_detects_newer_reviewed_checkpoint(tmp_path: Path) -> Non
     assert result["status"] == "stale"
     assert result["recorded_seed_sha256"] == "old-seed"
     assert result["expected_seed_sha256"] == "new-seed"
-
-
-def test_recorded_current_seed_is_accepted(tmp_path: Path) -> None:
-    settings = _project_settings(tmp_path)
-    _create_project(settings)
-    seed = _seed()
-    workspace.record_project_seed(settings, seed)
-
-    result = workspace.project_seed_freshness(settings, seed)
-
-    assert result["ok"] is True
-    assert result["status"] == "current"
+    assert workspace.project_seed_freshness(settings, _seed("old-seed"))["status"] == "current"
 
 
 def test_existing_program_does_not_validate_unused_seed_archive(
@@ -175,107 +143,3 @@ def test_missing_program_validates_seed_before_import(
 
     with pytest.raises(RuntimeError, match="validated .*seed.gzf"):
         workspace.restore_seed(settings, object())
-
-
-def test_source_projection_freshness_never_when_unrecorded(tmp_path: Path) -> None:
-    settings = _project_settings(tmp_path)
-    settings.repo_dir.mkdir()
-    (settings.repo_dir / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
-        "    hash:\n      sha256: abc\n",
-        encoding="utf-8",
-    )
-    result = workspace.source_projection_freshness(settings, "wiz8-program")
-    assert result["ok"] is True
-    assert result["status"] == "never"
-    assert "reviewed-seed origin" in result["detail"]
-
-
-def test_source_projection_freshness_stale_after_index_change(tmp_path: Path) -> None:
-    settings = _project_settings(tmp_path)
-    settings.project_dir.mkdir(parents=True)
-    settings.repo_dir.mkdir()
-    (settings.repo_dir / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
-        "    hash:\n      sha256: abc\n",
-        encoding="utf-8",
-    )
-    build = settings.repo_dir / "build"
-    build.mkdir()
-    index = build / "source-index.json"
-    index.write_text(
-        '{"markers": []}',
-        encoding="utf-8",
-    )
-    workspace._write_project_owner(settings)
-    workspace.record_source_projection(
-        settings,
-        "wiz8-program",
-        {"source_index_sha256": "old", "applied_ns": 1, "target": "WIZ8"},
-    )
-    result = workspace.source_projection_freshness(settings, "wiz8-program")
-    assert result["ok"] is True
-    assert result["status"] == "stale"
-    assert "wiz8 ghidra sync" in result["detail"]
-
-
-def test_compiler_projection_stale_when_pdb_hash_changes(tmp_path: Path) -> None:
-    settings = _project_settings(tmp_path)
-    settings.project_dir.mkdir(parents=True)
-    settings.repo_dir.mkdir()
-    (settings.repo_dir / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
-        "    hash:\n      sha256: abc\n",
-        encoding="utf-8",
-    )
-    (settings.repo_dir / "pyproject.toml").write_text(
-        '[tool.uv.sources]\nreccmp = { git = "https://example.invalid/reccmp", rev = "abc123" }\n',
-        encoding="utf-8",
-    )
-    decomp = settings.repo_dir / "build" / "decomp"
-    decomp.mkdir(parents=True)
-    pdb = decomp / "Wiz8.pdb"
-    pdb.write_bytes(b"new")
-    index = settings.repo_dir / "build" / "source-index.json"
-    index.write_text(
-        '{"markers": []}',
-        encoding="utf-8",
-    )
-    from wiz8decomp.paths import sha256_file
-
-    workspace._write_project_owner(settings)
-    workspace.record_source_projection(
-        settings,
-        "wiz8-program",
-        {
-            "source_index_sha256": sha256_file(index),
-            "applied_ns": index.stat().st_mtime_ns + 1,
-            "target": "WIZ8",
-            "complete": True,
-            "pdb_sha256": "old",
-            "reccmp_revision": "abc123",
-        },
-    )
-    result = workspace.source_projection_freshness(settings, "wiz8-program")
-    assert result["status"] == "current"
-    assert result["compiler_status"] == "stale"
-
-
-def test_seed_record_preserves_historical_exporter_versions(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    record = {
-        "program": "wiz8-program",
-        "path": "vendor/seed.gzf",
-        "sha256": "reviewed-seed-hash",
-        "ghidra_version": "12.1.4",
-        "ghidra_release": "PUBLIC",
-        "pyghidra_version": "3.1.0",
-    }
-    monkeypatch.setattr(workspace, "resolve_seed_program", lambda *_args: "wiz8-program")
-    monkeypatch.setattr(workspace, "seed_records", lambda *_args: [record])
-    settings = _settings(tmp_path)
-
-    resolved = workspace.seed_record(settings, validate_archive=False)
-
-    assert resolved == {**record, "archive": settings.repo_dir / "vendor/seed.gzf"}

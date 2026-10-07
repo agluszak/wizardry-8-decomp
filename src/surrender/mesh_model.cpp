@@ -18,9 +18,7 @@
 #include <string.h>
 #pragma intrinsic(memset)
 
-/* Comma-separated flag-name tables dump walks while printing the
-   render_control and dirty_flags bits. Retail .bss holds
-   zero-initialized pointers here; no in-range provider code ever stores to
+/* Flag-name tables dump walks while printing the render_control and dirty_flags bits. Nothing sets
    them, so dump prints numeric bit indices. */
 // GLOBAL: SURRENDER 0x100A4998
 static const char* s_control_names;
@@ -28,8 +26,6 @@ static const char* s_control_names;
 // GLOBAL: SURRENDER 0x100A499C
 static const char* s_flag_names0;
 
-/* Retail's guarded dword fill — identical emission to renderer.cpp's
-   file-local fillConstant; the linker folds the two copies. */
 static void fillConstant(unsigned long* destination, unsigned long value, unsigned long count)
 {
     if (count != 0) {
@@ -37,8 +33,7 @@ static void fillConstant(unsigned long* destination, unsigned long value, unsign
     }
 }
 
-/* POD table permutation: scratch through srHeap, straight copy, then
-   reordered copy back. Retail emits one instantiation per element type. */
+/* POD table permutation: scratch through srHeap, straight copy, then reordered copy back. */
 template <class T> static void permuteTable(T* table, const unsigned long* indices, long count)
 {
     T* scratch = static_cast<T*>(srHeap.allocate(count * sizeof(T)));
@@ -57,9 +52,7 @@ template <class T> static void permuteTable(T* table, const unsigned long* indic
     srHeap.free(scratch);
 }
 
-/* Object-table permutation: `new T[count]` scratch so each element's ctor and
-   copy-assign run (srPtr reference counts, srShader words). Retail emits one
-   instantiation per element type. */
+/* Object-table permutation: `new T[count]` scratch so each element's ctor and copy-assign run. */
 template <class T> static void permuteObjects(T* table, const unsigned long* indices, long count)
 {
     T* scratch = new T[count];
@@ -75,9 +68,7 @@ template <class T> static void permuteObjects(T* table, const unsigned long* ind
     delete[] scratch;
 }
 
-/* Bounds-checked pass/side slots. Retail rejects out-of-range indices and
-   leaves the slot untouched; setMaterial/setTexture keep the reference
-   counts balanced through addReference/release. */
+/* Bounds-checked pass/side slots; out-of-range indices are ignored. */
 // FUNCTION: SURRENDER 0x100403E0
 void srMeshModel::setShader(srShader shader, long pass)
 {
@@ -177,10 +168,8 @@ long srMeshModel::getUVCount() const
     return uv_count;
 }
 
-/* The lazily grown table accessors below share one retail shape: a table is
-   supplied only when its governing count is nonzero; on first use the pair
-   reallocs through srHeap, copies the shorter extent when the element type
-   preserves old data, and then clears or seeds the whole table. */
+/* Lazily grown table accessors: a table is supplied only when its governing count is nonzero; on
+   first use it is resized and then cleared or seeded. */
 // FUNCTION: SURRENDER 0x1003FFD0
 srVector3T<float>* srMeshModel::getVertexLoc()
 {
@@ -461,9 +450,8 @@ srMeshModel::~srMeshModel()
     freeAll();
 }
 
-/* Deep copy: reset re-allocates the destination to the source's polygon and
-   vertex counts, then every table, pass slot and scalar is copied over. The
-   changed bit is set in dirty_flags after the state words transfer. */
+/* Deep copy: reset re-allocates the destination to the source's polygon and vertex counts, then
+   every table, pass slot and scalar is copied over. */
 // FUNCTION: SURRENDER 0x1003D5D0
 srMeshModel& srMeshModel::operator=(const srMeshModel& other)
 {
@@ -1571,9 +1559,6 @@ void srMeshModel::dump(std::ostream& stream)
     stream.flags(flags & 0x7fff);
 }
 
-/* Provider pipeline ownership remains provisional; linked address order does
-   not establish original TU placement. */
-
 // GLOBAL: SURRENDER 0x100A4790
 srTriMeshPipeline* srTriMeshPipeline::pipe = 0;
 
@@ -1792,9 +1777,8 @@ void srTriMeshPipeline::FlushSlots()
             srVertexArray* vertex_arrays = &this->vertex_arrays[0];
             renderer->allocVertexArray(vertex_arrays[0], slot_count * culler_output.vertex_count);
 
-            /* Retail grows and re-reads the member array through
-               vertex_arrays[slot] on the left while the right side keeps
-               the vertex_arrays snapshot taken before the loop. */
+            /* The left side re-reads vertex_arrays[slot] while the right side keeps the snapshot
+               taken before the loop. */
             for (unsigned long slot = 1; slot < slot_count; ++slot) {
                 unsigned long offset = slot * culler_output.vertex_count;
                 this->vertex_arrays[slot].eye_locations = vertex_arrays[0].eye_locations + offset;
@@ -1897,8 +1881,6 @@ void srTriMeshPipeline::FlushSlots()
     }
 }
 
-/* Lazy singleton: construct once against the imported pipe static, then bind
-   the caller's renderer and rebuild the current slot. */
 // FUNCTION: SURRENDER 0x10043E00
 srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
 {
@@ -1917,8 +1899,6 @@ srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
     return pipe;
 }
 
-/* Provider-side renderTriMesh: the consumer's stMeshModel override extends
-   this same shape with its software-cull and inverted-depth paths. */
 // FUNCTION: SURRENDER 0x1003CA80
 void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 {

@@ -15,9 +15,7 @@ public:
 // VTABLE: WIZ8 0x005ed65c
 // class W8Vector<W8TextControl*>
 
-/* W8Control is itself the ordinary two-slot text-control listener. The same
-   W8TextControl pointer is laid out, registered in the vector and dispatched
-   for selected/deselected state; there is no parallel vector-element object. */
+/* A radio group of text controls: selecting one deselects the rest. */
 // VTABLE: WIZ8 0x005ed654
 class W8ControlSelection : public W8TextControl::Listener {
 public:
@@ -28,9 +26,6 @@ public:
     virtual void OnSecondary(W8TextControl*) override {}
 
 public:
-    /* State-5's option owner reads the selected index from its embedded
-       W8Control directly.  Keep the recovered storage public rather than
-       manufacturing an accessor that is absent from the retail call site. */
     int m_value_4;
     int m_value_8;
     int m_selectedIndex;

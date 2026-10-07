@@ -21,9 +21,7 @@ void srJPEG_set_output_stream(srBinOStream* stream)
     srJPEG_active_output_stream = stream;
 }
 
-// These definitions deliberately replace the CRT functions for the IJG object
-// files. IJG passes an element size of one; the target returns a byte count and
-// ignores its FILE cookie in favor of the active SurRender stream.
+// Replace the CRT functions for the IJG objects: the FILE cookie is ignored in favor of the active SurRender stream.
 // FUNCTION: SREXT_JPEGIMPORTER 0x10014BE0
 extern "C" size_t __cdecl fread(void* destination, size_t size, size_t count, FILE*)
 {

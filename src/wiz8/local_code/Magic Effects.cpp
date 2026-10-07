@@ -77,7 +77,7 @@
 // GLOBAL: WIZ8 0x005ee838
 const float g_camera_shake_intensity_base = 0.7900000214576721f;
 
-/* 0x0060CFF8: eight bytes per effect id. The leading dword is the icon the
+/* Eight bytes per effect id. The leading dword is the icon the
    party and combat HUD strips show for the effect (-1 means none); the second
    dword is the visual resource SetMonsterSpellIcon attaches to the monster.
    The array fills the region between g_spellbook_name_ids and
@@ -236,7 +236,7 @@ W8EffectVisual g_effect_visual_table[150] = {
     {-1, SPELL_ICON_NONE},
 };
 
-/* 0x00616F4C: the monster group Summon Elemental summons - one row of four
+/* The monster group Summon Elemental summons - one row of four
    per power level, the column the elemental realm the caster's realm skills
    weighted the roll toward. */
 // GLOBAL: WIZ8 0x00616f4c
@@ -245,7 +245,7 @@ int g_elemental_summon_group_ids[8][4] = {
     {36, 35, 33, 34}, {40, 39, 37, 38}, {44, 43, 41, 42}, {48, 47, 45, 46},
 };
 
-/* 0x0061E208: the affliction spell's weighted pick - the index is the
+/* The affliction spell's weighted pick - the index is the
    condition id, the value its share of a fifty-point roll. */
 // GLOBAL: WIZ8 0x0061e208
 int g_affliction_condition_weights[W8_CONDITION_COUNT] = {
@@ -404,7 +404,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
     RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_COMBAT_EFFECTS);
 }
 
-/* 0x006172A0: how much harder each condition is to shrug off, added to the
+/* How much harder each condition is to shrug off, added to the
    saving throw. */
 // GLOBAL: WIZ8 0x006172a0
 int g_condition_resist_base[W8_CONDITION_COUNT] = {0, 1,  2,  3,  4,  4,  5,  6,  7,  8,

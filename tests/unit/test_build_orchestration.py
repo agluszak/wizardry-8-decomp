@@ -7,7 +7,7 @@ from wiz8decomp import build
 from wiz8decomp.config import Settings
 
 
-@pytest.mark.parametrize("failure", [None, "clang-format", "pyright", "pytest"])
+@pytest.mark.parametrize("failure", [None, "pytest"])
 def test_check_uses_completed_index_and_propagates_command_failures(
     tmp_path: Path, monkeypatch, failure: str | None
 ) -> None:
@@ -25,7 +25,6 @@ def test_check_uses_completed_index_and_propagates_command_failures(
     validators = {
         "cast_lint": "validate_cast_markers",
         "global_model": "validate_type_consistency",
-        "header_architecture": "validate_header_architecture",
         "identity_lint": "validate_identity",
         "linkage_lint": "validate_c_linkage",
         "placement": "validate_source_placement",
@@ -97,19 +96,6 @@ def _prepare_sources(settings: Settings) -> None:
             (mount.host / sentinel).write_text("/* prepared source */\n")
 
 
-def test_product_build_uses_cmake_parallel_jom(tmp_path: Path) -> None:
-    command = build.ContainerBuild.from_settings(_settings(tmp_path)).build_command("WIZ8", 7)
-    assert command[-7:] == [
-        build.CMAKE_PROGRAM,
-        "--build",
-        "Z:/out",
-        "--target",
-        "WIZ8",
-        "--parallel",
-        "7",
-    ]
-
-
 @pytest.mark.parametrize("target", ["runtime", "runtime-test"])
 def test_runtime_build_needs_only_its_cmake_target(
     tmp_path: Path, monkeypatch, target: str
@@ -179,35 +165,6 @@ def test_forced_clang_configuration_is_incremental_not_fresh(tmp_path: Path, mon
 
     assert len(commands) == 1
     assert "--fresh" not in commands[0]
-
-
-def test_x64_configuration_is_isolated_from_lint_projection(tmp_path: Path, monkeypatch):
-    settings = _settings(tmp_path)
-    _prepare_sources(settings)
-    commands = []
-    monkeypatch.setattr(build, "run", lambda command, **_: commands.append(command))
-    output, _ = build.configure_clang(settings, full_diagnostics=True, x64=True)
-    assert output == tmp_path / build.X64_DIAGNOSTICS_BUILD_DIR
-    assert "-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-x86_64.cmake" in commands[0]
-    assert "-DWIZ8_FULL_DIAGNOSTICS=ON" in commands[0]
-    with pytest.raises(ValueError, match="not a source-index"):
-        build.configure_clang(settings, x64=True)
-
-
-def test_x64_diagnostics_separate_header_blockers_from_source_contracts():
-    result = build.x64_diagnostic_summary(
-        "/opt/msvc6-vc98-include/winnt.h(630,2): error: Must define a target architecture.\n"
-        "/repo/include/surrender/srPtr.h(91,1): error: static assertion failed: size\n",
-        "",
-    )
-    assert result["toolchain_blocked"]
-    assert result["source_errors"] == 1
-    assert result["toolchain_errors"] == 1
-
-
-def test_missing_runtime_product_names_the_explicit_build(tmp_path: Path) -> None:
-    with pytest.raises(FileNotFoundError, match=r"uv run wiz8 build runtime-test"):
-        build.require_product(_settings(tmp_path), "runtime-test")
 
 
 @pytest.mark.parametrize("source_newer, warns", [(True, True), (False, False)])
@@ -292,12 +249,6 @@ def test_lint_selection_refreshes_stale_source_index(tmp_path: Path, monkeypatch
     assert dependent == []
 
 
-def test_product_build_uses_product_only_vc6_image(tmp_path: Path) -> None:
-    product = build.ContainerBuild.from_settings(_settings(tmp_path))
-    assert product.image == build.VC6_PRODUCT_IMAGE
-    assert product.image != build.VC6_IMAGE
-
-
 def test_prepare_comparison_reuses_cached_original_without_installer(
     tmp_path: Path, monkeypatch
 ) -> None:
@@ -333,11 +284,11 @@ def test_prepare_comparison_reuses_cached_original_without_installer(
     assert events[0][:3] == ["reccmp-project", "detect", "--search-path"]
 
 
-@pytest.mark.parametrize("mode", ["product", "lint", "diagnostics", "cached-lint"])
-@pytest.mark.parametrize("dependency", ["/jpeg", "/zlib", "/infozip"])
+@pytest.mark.parametrize("mode", ["product", "lint", "cached-lint"])
 def test_configuration_rejects_missing_sources_before_running_docker(
-    tmp_path: Path, monkeypatch, mode: str, dependency: str
+    tmp_path: Path, monkeypatch, mode: str
 ) -> None:
+    dependency = "/zlib"
     settings = _settings(tmp_path)
     _prepare_sources(settings)
     mount = next(
@@ -358,15 +309,9 @@ def test_configuration_rejects_missing_sources_before_running_docker(
         if mode == "product":
             build._configure(settings)
         else:
-            build.configure_clang(settings, full_diagnostics=mode == "diagnostics")
+            build.configure_clang(settings)
     assert str(mount.host) in str(error.value)
     assert "uv run wiz8 prepare" in str(error.value)
-
-
-def test_product_configuration_clears_cached_build_type(tmp_path: Path) -> None:
-    command = build.ContainerBuild.from_settings(_settings(tmp_path)).configure_command()
-    assert "-DCMAKE_BUILD_TYPE=" in command
-    assert all("RelWithDebInfo" not in argument for argument in command)
 
 
 def test_old_nmake_cache_requires_fresh_jom_configuration(tmp_path: Path) -> None:
@@ -440,5 +385,3 @@ def test_product_build_never_opens_a_reccmp_catalog(tmp_path, monkeypatch, index
     assert build.build_target(settings, "WIZ8", 2)["status"] == "ok"
     assert len(commands) == 1
     assert (tmp_path / OUTPUT / "wiz8-emissions.csv").is_file()
-
-

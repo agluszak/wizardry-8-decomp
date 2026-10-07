@@ -1,14 +1,6 @@
 #pragma once
 
-/* Channel histogram summary filled by
-   srColorSurfaceIFace::getChannelStatistics (0x10059240). The body
-   writes a sample count, mean, standard deviation, median and min/max
-   bin. The double at +0x08 sits on the natural alignment hole after
-   the leading long; nothing in that function stores a field at +0x04.
-
-   Default 8-byte class alignment would pad the trailing longs to 0x28.
-   pack(4) plus the explicit hole keeps the recovered 0x24 size and
-   leaves the first double at +0x08. */
+/* Channel histogram summary filled by srColorSurfaceIFace::getChannelStatistics. */
 #pragma pack(push, 4)
 class srStat {
 public:

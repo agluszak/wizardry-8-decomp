@@ -5,18 +5,6 @@
 // VTABLE: SURRENDER 0x10076EF4
 // class srClassSupport<srClipPlane, srNode, 0, 5376>
 
-/* Reconstructed declaration surface for the closed SurRender class. The
-   exported constructor and virtual methods establish the ABI; the exported
-   ctor/dtor registration dance proves the srClassSupport base (0x1500 under
-   srNode's 0x1000). Wiz8's level reader establishes the four-float plane,
-   clip mode, and complete size. Wiz8 constructs an ordinary
-   srClientSupport<srClipPlane, ...> instantiation over this imported
-   class; its client-emitted registry slots and vtable are not evidence for
-   another authored class. */
-/* The Wiz8 consumer import table covers only the lifecycle/virtual members;
-   the three small accessors below carry no IAT entry, so consumers expand
-   them from the in-class bodies while the provider emits the standalone
-   exports from clipplane.cpp. */
 // VTABLE: SURRENDER 0x10076EC0 srClipPlane
 // class srClipPlane
 class SR_DLL_IMPORT SR_DLL_EXPORT srClipPlane
@@ -29,19 +17,10 @@ public:
     virtual ~srClipPlane() override;
 #endif
 
-    /* Dump prints +0x148 as a decimal "Clip type"; no name table. Wizardry
-       always writes 0. */
     enum e_clip { CLIP_POSITIONAL_0 = 0 };
 
     srClipPlane(srNode* parent = 0);
 
-    /* The class export emits the ordinary copy construction, assignment and
-       destruction of the srNode base plus clip fields. */
-
-    /* Header-visible like srFog's and srCamera's: the consumer import table
-       has no entry, so the client emission returns the literal directly, and
-       provider TUs inline the same literal inside the srClassSupport
-       registrations. The provider still exports an out-of-line copy. */
     // FUNCTION: SURRENDER 0x1004A150
     static const char* sGetClassName()
     {
@@ -57,8 +36,6 @@ public:
     void setClipPlane(const srVector4T<float>& plane);
     void setClipType(e_clip type);
 #else
-    /* Not in the consumer import table: consumer objects emit the stores
-       inline. The provider still exports its own copies from clipplane.cpp. */
     void setClipPlane(const srVector4T<float>& plane)
     {
         clip_plane_ = plane;

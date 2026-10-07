@@ -51,14 +51,8 @@ public:
         e_pixelSize pixel_size;
         unsigned long fourcc;
 
-        /* The default ctor initializes only fourcc: retail emits a
-           FourCC-clearing array-init loop over format_table (0x10007780)
-           and zeroes stack PixelFormat FourCCs in srGERD::lockBuffer. */
         PixelFormat() : fourcc(0) {}
 
-        /* Retail exports the standalone copy (param mangles QAD = char* const);
-           no recovered caller ODR-uses it, so only provider dllexport keeps
-           the emission. */
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
 #endif
@@ -66,8 +60,6 @@ public:
         int isValid() const;
         unsigned long match(const PixelFormat* formats, unsigned long count) const;
 
-        /* Retail compares the packed format as five dwords in isPixelFormatCompatible,
-           isCompatible and mapPixelFormat rather than field-wise bytes or memcmp. */
         int operator==(const PixelFormat& other) const
         {
             const unsigned long* a = reinterpret_cast<const unsigned long*>(
@@ -90,7 +82,6 @@ public:
     typedef void(__cdecl* ConversionFunc)(const ConversionInfo& info);
 
     static e_surfaceType mapPixelFormat(const PixelFormat& format);
-    /* This overload is imported by both Wiz8 and the JPEG extension. */
     static SR_DLL_IMPORT void mapPixelFormat(e_surfaceType type, PixelFormat& format);
     static void selectFuncs(const PixelFormat& format, ConversionFunc& write, ConversionFunc& read);
 };

@@ -1366,7 +1366,7 @@ void SelectAllText(void)
     gfHiliteMode = true;
 }
 
-/* 0x005D5DA0: sets whether the named field's mouse region callback is
+/* Sets whether the named field's mouse region callback is
    suppressed; the NPC dialogue toggles it on field 0 while the modal is up. */
 // FUNCTION: WIZ8 0x005D5DA0
 void SetInputFieldBlocksMouseCallback(unsigned char field_id, bool blocks)

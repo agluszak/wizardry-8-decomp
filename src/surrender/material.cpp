@@ -9,10 +9,8 @@
 
 #include <ostream>
 
-/* Comma-separated operation names srMaterial::dump walks while printing the
-   operations bits. Retail .data holds a zero-initialized pointer here; no
-   in-range provider code ever stores to it, so the source spelling stays
-   unresolved beyond the address binding. */
+/* Comma-separated operation names srMaterial::dump walks while printing the operations bits; never
+   assigned. */
 // GLOBAL: SURRENDER 0x100A48C0
 static const char* s_oper_names;
 

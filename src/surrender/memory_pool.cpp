@@ -329,9 +329,7 @@ int srMemoryPool::maskArea(const void* memory, long size)
     long old_size = area->size;
     used += size;
     largest_free_dirty = 1;
-    /* Retail stores the absolute pointer minus the relative entry offset
-       here; keep the established behavior.
-       reinterpret-ok: retail subtracts the raw pointer value, not an offset. */
+    /* reinterpret-ok: stores the absolute pointer minus the relative entry offset. */
     area->size = reinterpret_cast<long>(memory) - area->offset;
     long end = offset + size;
     if (end < area->offset + old_size) {

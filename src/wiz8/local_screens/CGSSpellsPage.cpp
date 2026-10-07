@@ -55,19 +55,18 @@ private:
     int GetMouseEntry();
 
 public:
-    W8RangeControl* m_range;                  /* 0x38 */
-    W8CharacterSpellEntry* m_entries;         /* 0x3c */
-    int m_first_entry;                        /* 0x40 */
-    int m_entry_count;                        /* 0x44 */
-    int m_hovered_entry;                      /* 0x48 */
-    int m_scroll_offset;                      /* 0x4c */
-    W8CharacterSpellListListener* m_listener; /* 0x50 */
-    unsigned int* m_region_set;               /* 0x54 */
-    int m_x;                                  /* 0x58 */
-    int m_y;                                  /* 0x5c */
+    W8RangeControl* m_range;
+    W8CharacterSpellEntry* m_entries;
+    int m_first_entry;
+    int m_entry_count;
+    int m_hovered_entry;
+    int m_scroll_offset;
+    W8CharacterSpellListListener* m_listener;
+    unsigned int* m_region_set;
+    int m_x;
+    int m_y;
 };
 static_assert(sizeof(W8CharacterSpellList) == 0x60, "W8CharacterSpellList_size");
-/* Retail secondary vftable 0x005ef610 places W8RangeListener at +0x34. */
 W8_ASSERT_BASE_END(W8CharacterSpellList, W8RangeListener, m_range, 0x34);
 
 W8CharacterSpellList::W8CharacterSpellList(Controls* owner, int x, int y,

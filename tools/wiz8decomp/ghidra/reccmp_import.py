@@ -9,7 +9,7 @@ from ..config import Settings
 from ..emissions import generate_emissions
 from ..source_index import target_for_program
 from ..subprocesses import run
-from .workspace import compiler_import_identity, resolve_seed_program
+from .workspace import resolve_seed_program
 
 
 def import_reccmp_source(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
@@ -38,10 +38,8 @@ def import_reccmp_source(settings: Settings, selector: str = "wiz8") -> dict[str
         ],
         cwd=settings.repo_dir / "build/decomp",
     )
-    identity = compiler_import_identity(settings, target)
     return {
         "program": program_name,
         "importer": "reccmp",
         "command": asdict(result),
-        **identity,
     }

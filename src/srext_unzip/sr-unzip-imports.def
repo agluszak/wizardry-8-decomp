@@ -5,6 +5,8 @@ EXPORTS
     ??0srBinIMStream@@QAE@PBXK@Z
     ??1srBinStream@@UAE@XZ
     ??_7srBinStream@@6B@
+    ??_7srBinIStream@@6B0@@ DATA
+    ??_7srBinIStream@@6BsrBinStream@@@ DATA
     ?allocate@srHeap@@QAEPAXK@Z
     ?free@srHeap@@QAEXPAX@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ

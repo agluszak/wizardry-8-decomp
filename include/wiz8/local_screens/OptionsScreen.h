@@ -59,7 +59,7 @@ public:
     bool m_editing;
     unsigned char pad_0ba[2];
     W8SaveSlot* m_save;
-    W8OptionsSaveRowListener* m_save_listener; /* 0xc0 */
+    W8OptionsSaveRowListener* m_save_listener;
 };
 
 static_assert(sizeof(W8OptionsSaveRow) == 0xc4, "W8OptionsSaveRow_size");
@@ -105,8 +105,7 @@ struct W8OptionsValues {
 static_assert(sizeof(W8OptionsValues) == 0x90, "W8OptionsValues_size");
 extern W8OptionsValues g_options_values;
 
-/* The 0x20-byte panel-set descriptor allocated by SelectPanel at 0x005A93C0.
-   Its vector at +0x10 owns panels. The descriptor itself has no vtable. */
+/* A set of option panels; it owns the panels in its vector. */
 class W8OptionsPanelSet {
 public:
     W8OptionsPanelSet();
@@ -119,16 +118,14 @@ public:
     unsigned char m_compact_layout;
     unsigned char m_hide_navigation;
     bool m_active; /* set once the set's panels are built */
-    unsigned char pad_00b;
     int m_current;
     W8Vector<W8OptionsPanel*> m_panels;
 };
 
 static_assert(sizeof(W8OptionsPanelSet) == 0x20, "W8OptionsPanelSet_must_be_0x20");
 
-/* These controls add actual value bindings to the canonical widget classes:
-   a checkbox integer at +0xb8, slider float at +0x70, and selection integer
-   at +0x24. Their input handlers store through those pointers. */
+/* Widgets bound to an option value; their input handlers store through the
+   value pointer. */
 // VTABLE: WIZ8 0x005eed8c
 class W8OptionsCheckbox : public W8TextControl {
 public:
@@ -150,9 +147,6 @@ public:
 class W8OptionsSelection : public W8ControlSelection {
 public:
     explicit W8OptionsSelection(int* value);
-    /* The base tables have no destructor slot (0x005ED654/0x005ED664 are two
-       slots wide); W8OptionsSelection introduces the virtual destructor itself,
-       so retail slot 2 is its own deleting destructor 0x005A8B30. */
     virtual ~W8OptionsSelection();
     virtual void OnPrimary(W8TextControl* control) override;
     int* m_value;
@@ -162,10 +156,7 @@ static_assert(sizeof(W8OptionsCheckbox) == 0xbc, "W8OptionsCheckbox_size");
 static_assert(sizeof(W8OptionsSlider) == 0x74, "W8OptionsSlider_size");
 static_assert(sizeof(W8OptionsSelection) == 0x28, "W8OptionsSelection_size");
 
-/* All concrete option panels share this 0x78-byte Controls-derived base.  Its
-   0x005A81E0 constructor establishes the two owning vectors and its vtable
-   supplies the active-state and selected-index operations used by a panel set.
-   The distinct concrete panel implementations remain in the table factory. */
+/* Common base of the concrete option panels. */
 // VTABLE: WIZ8 0x005eefa8
 class W8OptionsPanel : public Controls {
 public:
@@ -251,9 +242,7 @@ public:
     virtual void Populate() override;
 };
 
-/* The 0xb8-byte options button is instantiated directly for Reset Defaults.
-   Key rows run the same inlined construction first, then install the derived
-   vtable and two binding ids at +0xb8/+0xbc. */
+/* The plain options button (Reset Defaults); key rows derive from it. */
 // VTABLE: WIZ8 0x005eee80
 class W8OptionsButton : public W8TextControl {
 public:
@@ -353,21 +342,10 @@ static_assert(sizeof(W8OptionsAudioPanel) == 0xa0, "W8OptionsAudioPanel_size");
 static_assert(sizeof(W8OptionsGraphicsPanel) == 0x7c, "W8OptionsGraphicsPanel_size");
 static_assert(sizeof(W8OptionsKeyboardPanel) == 0xb4, "W8OptionsKeyboardPanel_size");
 static_assert(sizeof(W8OptionsSaveLoadPanel) == 0x150, "W8OptionsSaveLoadPanel_size");
-/* Retail secondary vftables place W8HorizontalRangeThumbListener at +0x78 and
-   W8TextControl::Listener at +0x7c on the interface/audio panels; the first
-   own member follows at +0x80. */
 W8_ASSERT_BASE_END(W8OptionsInterfacePanel, W8TextControl::Listener, m_tooltip_delay, 0x7c);
 W8_ASSERT_BASE_END(W8OptionsAudioPanel, W8TextControl::Listener, m_sliders, 0x7c);
-/* W8OptionsGraphicsPanel adds no members, so its extent ends the
-   W8HorizontalRangeThumbListener subobject at +0x78. */
 W8_ASSERT_BASE_TAIL(W8OptionsGraphicsPanel, W8HorizontalRangeThumbListener, 0x78);
-/* The keyboard panel's secondary bases run W8TextControl::Listener at +0x78,
-   W8ControlSelectionListener at +0x7c, W8OptionsKeyCapture at +0x80 and
-   W8DialogCloseListener at +0x84; m_panel begins at +0x88. */
 W8_ASSERT_BASE_END(W8OptionsKeyboardPanel, W8DialogCloseListener, m_panel, 0x84);
-/* The save/load panel's secondary bases run W8TextControl::Listener at +0x78,
-   W8DialogCloseListener at +0x7c, W8OptionsTextEditor::Listener at +0x80,
-   W8OptionsSaveRowListener at +0x84 and W8ControlSelectionListener at +0x88. */
 W8_ASSERT_BASE_END(W8OptionsSaveLoadPanel, W8ControlSelectionListener, m_panel, 0x88);
 
 /* One row of the main options menu table: the menu item id, two optional
@@ -387,9 +365,7 @@ struct W8OptionsPanelRange {
     int last;
 };
 
-/* The 0xc0-byte menu-row class constructed at 0x005A7370.  It is a concrete
-   W8TextControl with an independent listener subobject and a source-table item
-   id; the two optional child controls are owned by the base Controls panel. */
+/* One options menu row. */
 // VTABLE: WIZ8 0x005eed3c W8TextControl
 // VTABLE: WIZ8 0x005eed34 W8TextControl::Listener
 class W8OptionsMenuButton : public W8TextControl, public W8TextControl::Listener {
@@ -403,12 +379,9 @@ public:
 };
 
 static_assert(sizeof(W8OptionsMenuButton) == 0xc0, "W8OptionsMenuButton_must_be_0xc0");
-/* Retail secondary vftable 0x005eed34 places W8TextControl::Listener at +0xb8. */
 W8_ASSERT_BASE_END(W8OptionsMenuButton, W8TextControl::Listener, m_item_id, 0xb8);
 
-/* The 0x60-byte controls-derived menu-set object constructed at 0x005A8C90.
-   Its independent allocation, constructor, secondary listener vptr, and the
-   OptionsScreen.cpp assertion on m_pMenuSet establish this boundary. */
+/* The options menu: its rows and the panel set they select. */
 // VTABLE: WIZ8 0x005eefec Controls
 // VTABLE: WIZ8 0x005eefe4 W8TextControl::Listener
 class W8OptionsMenuSet : public Controls, public W8TextControl::Listener {
@@ -418,7 +391,7 @@ public:
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
 
-    W8OptionsPanelSet* m_pMenuSet; /* 0x50: OptionsScreen.cpp:1481 */
+    W8OptionsPanelSet* m_pMenuSet; /* OptionsScreen.cpp:1481 */
     W8TextControl* m_next;
     W8TextControl* m_previous;
     W8TextBuffer* m_page_text;
@@ -427,7 +400,6 @@ public:
 };
 
 static_assert(sizeof(W8OptionsMenuSet) == 0x60, "W8OptionsMenuSet_must_be_0x60");
-/* Retail secondary vftable 0x005eefe4 places W8TextControl::Listener at +0x4c. */
 W8_ASSERT_BASE_END(W8OptionsMenuSet, W8TextControl::Listener, m_pMenuSet, 0x4c);
 
 // VTABLE: WIZ8 0x005ef008 W8ControlSelectionListener
@@ -461,14 +433,12 @@ public:
     W8ControlSelection* m_menu_selection;
     unsigned char unknown_030[8];
     W8OptionsPanelSet* m_panel[8];
-    W8MessageDialogBase* m_active_modal; /* 0x58: frame/leave own and clear it */
+    W8MessageDialogBase* m_active_modal; /* frame/leave own and clear it */
     W8OptionsTextEditor* m_text_editor;
     W8OptionsKeyCapture* m_key_capture;
 };
 
 static_assert(sizeof(W8OptionsScreen) == 0x64, "W8OptionsScreen_must_be_0x64");
-/* Retail secondary vftables place W8TextControl::Listener at +0x4 and
-   W8DialogCloseListener at +0x8; the first own member follows at +0x0c. */
 W8_ASSERT_BASE_END(W8OptionsScreen, W8DialogCloseListener, m_save_slots, 0x8);
 
 extern W8OptionsScreen* g_options_screen;

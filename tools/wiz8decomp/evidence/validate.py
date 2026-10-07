@@ -1,28 +1,12 @@
 from __future__ import annotations
 
 import csv
-from collections.abc import Iterable, Mapping
 from pathlib import Path
 
 from ..provenance import ProvenanceError, validate_provenance
 from ..source_index import source_functions, validate_source_index
 from .claims import load_claims, validate_claim_rows
 from .io import parse_hex
-
-
-def validate_source_entries(categories: Mapping[str, Iterable[str]], root: Path) -> None:
-    """Validate an explicit source inventory without deriving or ordering it."""
-    seen: dict[str, str] = {}
-    for category, entries in categories.items():
-        for entry in entries:
-            normalized = entry.replace("\\", "/")
-            if normalized in seen:
-                raise ValueError(
-                    f"source {normalized} appears in both {seen[normalized]} and {category}"
-                )
-            if not (root / normalized).is_file():
-                raise ValueError(f"{category} names missing source: {normalized}")
-            seen[normalized] = category
 
 
 def _validate_csv_shapes(repo_dir: Path) -> int:
@@ -120,5 +104,3 @@ def validate_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, obje
         )
     failures = [check for check in checks if not check["ok"]]
     return {"ok": not failures, "checks": checks, "failure_count": len(failures)}
-
-

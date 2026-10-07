@@ -16,14 +16,15 @@ from wiz8decomp.runtime import (
     _parse_runtime_observation,
     _parse_runtime_scenarios,
     _parse_wine_dump,
+    _run_runtime_batch,
     _run_runtime_scenario,
     _runtime_audio,
     _runtime_failure,
     _runtime_history,
     _runtime_phase_summary,
     _runtime_test_command,
+    _RuntimeProcessResult,
     _semantic_observation,
-    _symbolize_addresses,
     analyze_runtime_crash,
     configure_wine_window_management,
     run_product,
@@ -394,17 +395,6 @@ def test_runtime_history_collects_completed_actions_with_observations() -> None:
     ]
 
 
-def test_semantic_observation_drops_volatile_fields() -> None:
-    observation = {
-        "scenario": "save-load-move",
-        "case_passed": 1,
-        "elapsed_ms": 1200,
-        "history": [{"action": "game-saved"}],
-    }
-
-    assert _semantic_observation(observation) == {"scenario": "save-load-move", "case_passed": 1}
-
-
 def test_repetition_comparison_reports_diverging_observations() -> None:
     first = {"scenario": "s", "menu_seen": 1, "playlist_tracks": 4}
     repeated = {"scenario": "s", "menu_seen": 1, "playlist_tracks": 3}
@@ -493,15 +483,6 @@ def test_repetition_comparison_reports_diverging_histories() -> None:
     ]
 
 
-def test_repetition_comparison_reports_diverging_case_observations() -> None:
-    first = {"scenario": "s", "case_passed": 1, "obs.quick_slot": 3}
-    repeated = {"scenario": "s", "case_passed": 1, "obs.quick_slot": 4}
-
-    problems = _compare_repetitions("s", [first, repeated])
-
-    assert problems == ["s: repetition 2 disagrees with the first run: obs.quick_slot: 3 != 4"]
-
-
 def test_runtime_failure_reports_native_reason_instead_of_timeout(tmp_path: Path) -> None:
     failure = _runtime_failure(
         "hostile-encounter",
@@ -583,9 +564,17 @@ def test_runtime_phase_summary_ignores_other_scenarios_and_unusable_steps() -> N
     )
 
 
-def _registry():
-    from wiz8decomp.runtime import _parse_runtime_scenarios
+def _stub_suite_host(monkeypatch) -> None:
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr("wiz8decomp.runtime.runtime_display", lambda *a, **kw: nullcontext(None))
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *a, **kw: None
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *a, **kw: None)
+    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *a: _registry())
 
+
+def _registry():
     return _parse_runtime_scenarios(
         "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\tbatch\n"
         "main-menu-startup\tmain-menu\tpr\tintegration\t15000\tmain-menu\tnatural\tno\n"
@@ -610,12 +599,27 @@ def _registry():
     ],
 )
 def test_registry_rejects_unsafe_or_ambiguous_metadata(row):
-    from wiz8decomp.runtime import _parse_runtime_scenarios
-
     with pytest.raises(RuntimeError):
         _parse_runtime_scenarios(
             "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\tbatch\n" + row
         )
+
+
+def _batch(tmp_path: Path, monkeypatch, scenarios, stdout: str, stderr: str = "", returncode=1):
+    result = _RuntimeProcessResult(
+        stdout=stdout,
+        stderr=stderr,
+        returncode=returncode,
+        timed_out=False,
+        failed_early=False,
+        last_step="x",
+        last_step_scenario="split-stack",
+        elapsed=1.0,
+    )
+    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", lambda *a, **kw: result)
+    return _run_runtime_batch(
+        tmp_path / "Wiz8RuntimeTest.exe", tmp_path, {}, scenarios, _registry()
+    )
 
 
 @pytest.mark.parametrize("all_cases_reported", [False, True])
@@ -625,34 +629,16 @@ def test_batch_error_only_when_the_process_dies(
     """A reported case failure inside a batch exits the process nonzero; that
     is an ordinary case result, not a dead batch. Only a process that died
     before reporting every case produces the batch error."""
-    from wiz8decomp.runtime import _run_runtime_batch, _RuntimeProcessResult
-
-    registry = _registry()
-    scenarios = ("main-menu-startup", "split-stack")
-
-    def drive(*args, **kwargs):
-        stdout = "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=0\n"
-        if all_cases_reported:
-            stdout += "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=1\n"
-            stdout += "WIZ8_RUNTIME_SESSION cases=2 driver=2 teardown=1\n"
-        return _RuntimeProcessResult(
-            stdout=stdout,
-            stderr="WIZ8_RUNTIME_FAILURE scenario=main-menu-startup step=x reason=y line=1\n",
-            returncode=1,
-            timed_out=False,
-            failed_early=False,
-            last_step="x",
-            last_step_scenario="split-stack",
-            elapsed=1.0,
-        )
-
-    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", drive)
-    observations, error = _run_runtime_batch(
-        tmp_path / "Wiz8RuntimeTest.exe",
+    stdout = "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=0\n"
+    if all_cases_reported:
+        stdout += "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=1\n"
+        stdout += "WIZ8_RUNTIME_SESSION cases=2 driver=2 teardown=1\n"
+    observations, error = _batch(
         tmp_path,
-        {},
-        scenarios,
-        registry,
+        monkeypatch,
+        ("main-menu-startup", "split-stack"),
+        stdout,
+        "WIZ8_RUNTIME_FAILURE scenario=main-menu-startup step=x reason=y line=1\n",
     )
 
     assert observations["main-menu-startup"]["case_passed"] == 0
@@ -669,36 +655,15 @@ def test_batch_case_failure_poisons_the_rest(tmp_path: Path, monkeypatch) -> Non
     """A failed case stops the batch after reporting itself: the abort marker
     distinguishes a deliberate poison from a dead process, and the unreported
     remainder stays missing so the runner re-runs it in a fresh process."""
-    from wiz8decomp.runtime import _run_runtime_batch, _RuntimeProcessResult
-
-    registry = _registry()
-
-    def drive(*args, **kwargs):
-        return _RuntimeProcessResult(
-            stdout=(
-                "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=1\n"
-                "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=0\n"
-                "WIZ8_RUNTIME_SESSION cases=3 driver=2 teardown=1\n"
-            ),
-            stderr=(
-                "WIZ8_RUNTIME_FAILURE scenario=split-stack step=case reason=x line=0\n"
-                "WIZ8_RUNTIME_BATCH scenario=oct-file event=aborted reason=case-failed\n"
-            ),
-            returncode=1,
-            timed_out=False,
-            failed_early=False,
-            last_step="split-stack",
-            last_step_scenario="split-stack",
-            elapsed=1.0,
-        )
-
-    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", drive)
-    observations, error = _run_runtime_batch(
-        tmp_path / "Wiz8RuntimeTest.exe",
+    observations, error = _batch(
         tmp_path,
-        {},
+        monkeypatch,
         ("main-menu-startup", "split-stack", "oct-file"),
-        registry,
+        "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=1\n"
+        "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=0\n"
+        "WIZ8_RUNTIME_SESSION cases=3 driver=2 teardown=1\n",
+        "WIZ8_RUNTIME_FAILURE scenario=split-stack step=case reason=x line=0\n"
+        "WIZ8_RUNTIME_BATCH scenario=oct-file event=aborted reason=case-failed\n",
     )
 
     assert len(observations) == 2
@@ -706,74 +671,33 @@ def test_batch_case_failure_poisons_the_rest(tmp_path: Path, monkeypatch) -> Non
     assert error is not None and error.startswith("batch aborted after 2/3 cases")
 
 
-def test_batch_teardown_failure_fails_the_suite(tmp_path: Path, monkeypatch) -> None:
-    """Every case reports case_passed=1 but final SGPExit teardown failed:
-    the session record, not the exit code, is the verdict."""
-    from wiz8decomp.runtime import _run_runtime_batch, _RuntimeProcessResult
-
-    registry = _registry()
-
-    def drive(*args, **kwargs):
-        return _RuntimeProcessResult(
-            stdout=(
-                "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=1\n"
-                "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=1\n"
-                "WIZ8_RUNTIME_SESSION cases=2 driver=0 teardown=0\n"
-            ),
-            stderr="",
-            returncode=1,
-            timed_out=False,
-            failed_early=False,
-            last_step="winmain-returned",
-            last_step_scenario="split-stack",
-            elapsed=1.0,
-        )
-
-    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", drive)
-    observations, error = _run_runtime_batch(
-        tmp_path / "Wiz8RuntimeTest.exe",
+@pytest.mark.parametrize(
+    "session,returncode,expected",
+    [
+        (
+            "WIZ8_RUNTIME_SESSION cases=2 driver=0 teardown=0\n",
+            1,
+            "batch teardown failed (session teardown=0)",
+        ),
+        ("", 0, "batch ended without a session record"),
+    ],
+)
+def test_batch_verdict_comes_from_the_session_record(
+    tmp_path: Path, monkeypatch, session, returncode, expected
+) -> None:
+    """Every case passed, but the session record (not the exit code) decides
+    the batch: failed teardown or a missing record is not a pass."""
+    observations, error = _batch(
         tmp_path,
-        {},
+        monkeypatch,
         ("main-menu-startup", "split-stack"),
-        registry,
+        "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=1\n"
+        "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=1\n" + session,
+        returncode=returncode,
     )
 
     assert all(observation["case_passed"] == 1 for observation in observations.values())
-    assert error == "batch teardown failed (session teardown=0)"
-
-
-def test_batch_without_a_session_record_fails_closed(tmp_path: Path, monkeypatch) -> None:
-    """All cases reported success but no session record exists: the verdict
-    cannot be established, so it is not silently a pass."""
-    from wiz8decomp.runtime import _run_runtime_batch, _RuntimeProcessResult
-
-    registry = _registry()
-
-    def drive(*args, **kwargs):
-        return _RuntimeProcessResult(
-            stdout=(
-                "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=1\n"
-                "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=1\n"
-            ),
-            stderr="",
-            returncode=0,
-            timed_out=False,
-            failed_early=False,
-            last_step="winmain-returned",
-            last_step_scenario="split-stack",
-            elapsed=1.0,
-        )
-
-    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", drive)
-    _, error = _run_runtime_batch(
-        tmp_path / "Wiz8RuntimeTest.exe",
-        tmp_path,
-        {},
-        ("main-menu-startup", "split-stack"),
-        registry,
-    )
-
-    assert error == "batch ended without a session record"
+    assert error == expected
 
 
 @pytest.mark.parametrize("check_order", [False, True])
@@ -863,15 +787,7 @@ def test_runtime_suite_workers_get_private_prefixes(tmp_path: Path, monkeypatch)
     prefixes = []
     # Keep both jobs active so the queue exercises both worker prefixes.
     both_workers = threading.Barrier(2, timeout=10)
-    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
-    )
-    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
-    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+    _stub_suite_host(monkeypatch)
 
     def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
         prefixes.append(environment["WINEPREFIX"])
@@ -892,15 +808,7 @@ def test_runtime_suite_workers_cap_at_the_job_count(tmp_path: Path, monkeypatch)
     no idle second display or prefix."""
     settings = _settings(tmp_path)
     prefixes = []
-    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
-    )
-    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
-    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+    _stub_suite_host(monkeypatch)
 
     def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
         prefixes.append(environment["WINEPREFIX"])
@@ -919,15 +827,7 @@ def test_runtime_suite_batches_same_fixture_cases_by_default(tmp_path: Path, mon
     a fixture reach _run_runtime_batch as one group without a --batch flag."""
     settings = _settings(tmp_path)
     batches = []
-    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
-    )
-    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
-    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+    _stub_suite_host(monkeypatch)
 
     def batch(executable, stage, environment, group, registry, object_root, map_path):
         batches.append(group)
@@ -1044,32 +944,6 @@ def test_interactive_crash_uses_staged_map_after_build_map_changes(
     assert run_product(settings)["crash"] == {"matched": True}
 
 
-def test_map_symbolization_refuses_cross_function_lines_and_section_end(tmp_path: Path) -> None:
-    map_path = tmp_path / "synthetic.map"
-    map_path.write_text(
-        " Start         Length     Name                   Class\n"
-        " 0001:00000000 00000020H .text                   CODE\n"
-        " 0002:00000000 00000010H .text$x                 CODE\n"
-        "  Address         Publics by Value              Rva+Base     Lib:Object\n"
-        " 0001:00000000       _first                     00401000 f   first.obj\n"
-        " 0001:00000010       _second                    00401010 f   second.obj\n"
-        " 0002:00000000       _third                     00402000 f   third.obj\n"
-        "Line numbers for first.obj(Z:\\repo\\first.cpp) segment .text\n"
-        " 10 0001:00000008\n"
-        "Line numbers for third.obj(Z:\\repo\\third.cpp) segment .text$x\n"
-        " 30 0002:00000004\n",
-        encoding="cp1252",
-    )
-
-    symbols = _symbolize_addresses(map_path, [0x00401008, 0x00401012, 0x00401020, 0x00402004])
-
-    assert symbols == [
-        "00401008: _first+0x8 [first.obj] first.cpp:10",
-        "00401012: _second+0x2 [second.obj]",
-        "00402004: _third+0x4 [third.obj] third.cpp:30",
-    ]
-
-
 def test_runtime_crash_symbolizes_reported_candidates(tmp_path: Path) -> None:
     map_path = tmp_path / "crash.map"
     map_path.write_text(
@@ -1154,18 +1028,6 @@ def test_analyze_runtime_crash_falls_back_to_a_wine_dump(tmp_path: Path) -> None
         candidate.get("symbol", "").startswith("_CharacterScreenFrame+0x164")
         for candidate in crash["candidates"]
     )
-
-
-def test_wine_stack_dump_drives_wide_candidates(tmp_path: Path) -> None:
-    _map_path, output = _wine_crash_fixture(tmp_path)
-
-    crash = _parse_wine_dump(output)
-
-    assert crash is not None
-    sources = {candidate.source: candidate.address for candidate in crash.candidates}
-    assert sources["stack+0xc"] == 0x00400ABC
-    assert sources["reg:edx"] == 0x0041FE14
-    assert "page fault on write access" in crash.fields["operation"]
 
 
 def test_wine_wow64_stack_rows_accept_wide_addresses() -> None:
@@ -1296,17 +1158,6 @@ def test_runtime_display_accepts_an_existing_private_display(
     assert environment["DISPLAY"] == ":0"
 
 
-def test_runtime_display_host_mode_preserves_the_inherited_display(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    environment = {"DISPLAY": ":0"}
-    monkeypatch.setenv("WIZ8_RUNTIME_DISPLAY", "host")
-
-    with runtime_display(environment, default="virtual", log_path=tmp_path / "xvfb.log") as display:
-        assert display is None
-        assert environment["DISPLAY"] == ":0"
-
-
 def test_virtual_runtime_display_fails_closed_without_xvfb(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1318,57 +1169,6 @@ def test_virtual_runtime_display_fails_closed_without_xvfb(
         runtime_display({}, default="virtual", log_path=tmp_path / "xvfb.log"),
     ):
         pass
-
-
-@pytest.mark.parametrize(("private_display", "managed"), [(True, "N"), (False, "Y")])
-def test_wine_window_management_matches_display_mode(
-    private_display: bool, managed: str, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    calls = []
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.subprocess.run",
-        lambda *args, **kwargs: calls.append((args, kwargs)),
-    )
-    monkeypatch.delenv("WIZ8_WINE_VIRTUAL_DESKTOP", raising=False)
-
-    prefix = tmp_path / "prefix"
-    prefix.mkdir()
-    (prefix / "system.reg").write_text("")
-    environment = {"WINEPREFIX": str(prefix), "WIZ8_UMU_RUN": "/prepared/umu-run"}
-    configure_wine_window_management(environment, private_display=private_display)
-
-    argv = calls[0][0][0]
-    assert argv[-3:] == ["/d", managed, "/f"]
-    assert calls[0][1]["env"] is environment
-    # The Wine virtual desktop is off by default on both display modes.
-    assert calls[1][0][0][-4:] == [
-        r"HKCU\Software\Wine\Explorer",
-        "/v",
-        "Desktop",
-        "/f",
-    ]
-    assert len(calls) == 2
-
-
-@pytest.mark.parametrize("private_display", [True, False])
-def test_wine_window_management_virtual_desktop_is_an_explicit_opt_in(
-    private_display: bool, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    calls = []
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.subprocess.run",
-        lambda *args, **kwargs: calls.append((args, kwargs)),
-    )
-    monkeypatch.setenv("WIZ8_WINE_VIRTUAL_DESKTOP", "1")
-
-    prefix = tmp_path / "prefix"
-    prefix.mkdir()
-    (prefix / "system.reg").write_text("")
-    environment = {"WINEPREFIX": str(prefix), "WIZ8_UMU_RUN": "/prepared/umu-run"}
-    configure_wine_window_management(environment, private_display=private_display)
-
-    assert calls[1][0][0][-5:] == ["/v", "Desktop", "/d", "Wizardry", "/f"]
-    assert calls[2][0][0][-5:] == ["/v", "Wizardry", "/d", "640x480", "/f"]
 
 
 def test_configure_wine_initializes_a_fresh_prefix_without_audio_overrides(

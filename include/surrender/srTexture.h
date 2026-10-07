@@ -36,8 +36,6 @@ public:
     void setMinFilter(e_filter filter);
     void setWrapS(e_wrap wrap);
     void setWrapT(e_wrap wrap);
-    /* The flag getters unpack the packed_state fields retail writes
-       through the setters below; all six are exported at 0x1005ED20..70. */
     e_correction getCorrection() const;
     e_filter getMagFilter() const;
     e_filter getMinFilter() const;
@@ -45,8 +43,7 @@ public:
     e_wrap getWrapS() const;
     e_wrap getWrapT() const;
 
-    /* Dump of +0x50: GENERATESURFACE_FAILURE,DIRTY_DEFAULTS. Bit indices into
-       texture_flags_; ctor ORs DIRTY_DEFAULTS. */
+    /* Bit indices into texture_flags_. */
     enum e_flag { FLAG_GENERATESURFACE_FAILURE = 0, FLAG_DIRTY_DEFAULTS = 1 };
 
 protected:
@@ -56,16 +53,12 @@ protected:
     static unsigned long getNewFrameHandle();
     /* Allocates count consecutive frame handles and returns the first. */
     static unsigned long getNewFrameHandles(unsigned long count);
-    /* Monotonic frame-handle counter at 0x100A4A1C; getNewFrameHandle
-       increments then returns it. */
     static unsigned long _frameHandle;
     void invalidateFrameHandle(unsigned long handle);
     void setupDefaultValuesFromSurface(srColorSurfaceIFace* surface);
 
-    unsigned long packed_state; /* 0x18: correction/mag/min/mipmap/wrap bits */
-    float mipmap_bias;          /* 0x1c */
-    /* 0x20: width/height, palette (+0x28), pixel format (+0x2c), hint/creation
-       flags (+0x40), parameter index (+0x44) and filter (+0x48, getFilter). */
+    unsigned long packed_state;     /* 0x18: correction/mag/min/mipmap/wrap bits */
+    float mipmap_bias;              /* 0x1c */
     Dimensions texture_dimensions_; /* 0x20 */
     float texture_priority;         /* 0x4c: getPriority; the ctor seeds 0.5f */
     unsigned long texture_flags_;   /* 0x50 */

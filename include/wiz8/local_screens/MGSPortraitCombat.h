@@ -2,10 +2,8 @@
 
 #include "surrender/srMath.h"
 
-/* Local Screens\MGSPortraitCombat.cpp. The portrait combat sub-menu's bank
-   buttons and the shared (menu, entry) state tables. The panel build/state
-   helpers declared in MGSButtons.h sit in this unit's retail span but carry
-   demo MGSButtons.cpp hull evidence. */
+/* The portrait combat sub-menu's bank buttons and the shared (menu, entry)
+   state tables. */
 
 class W8TextControl;
 class W8DialogButton;
@@ -33,8 +31,8 @@ enum W8SubMenuEntryState {
     W8_SUBMENU_ENTRY_UNAVAILABLE = 4
 };
 
-/* Owned globals: the icon paths, button positions and (menu, item)-keyed
-   entry message/help tables emitted by this translation unit. */
+/* The icon paths, button positions and (menu, item)-keyed entry message/help
+   tables. */
 extern char g_submenu_icons_path[];
 extern char g_submenu_combat_icons_path[];
 extern char g_options_disk_path[];
@@ -58,12 +56,12 @@ extern short g_submenu_entry_message_ids[25];
 extern int g_submenu_entry_help_ids[25];
 
 /* Create the nine-button bank and keep its state flag clear. */
-unsigned char CreateSubMenuButtons(void); /* 0x00594AF0 */
+unsigned char CreateSubMenuButtons(void);
 /* Restate one bank button against the live mode flags. */
-void UpdateSubMenuButton(int index); /* 0x00594D20 */
+void UpdateSubMenuButton(int index);
 /* Drop the combat-end notification, rebuild the panel for the saved one. */
-void ReopenSubMenuPanel(void); /* 0x00595600 */
+void ReopenSubMenuPanel(void);
 /* Descriptive name for panel/row deletion shared with failed construction. */
 void DestroySubMenuPanel();
 /* Drop the combat-end notification and tear down the panel and its rows. */
-void DestroySubMenuControls(void); /* 0x00595570 */
+void DestroySubMenuControls(void);

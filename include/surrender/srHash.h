@@ -1,12 +1,7 @@
 #pragma once
 
-/* The open-chained hash table the SurRender SDK carries for its own code.
-   Its layout and operations agree with Wiz8's W8HashTable, but no accepted
-   source oracle establishes one original template spelling across the two
-   binaries. The Huffman sampler/compressor instantiate it with unsigned long
-   keys, so the primary hash overload here takes unsigned long directly.
-   Entries double as the free list: next_index links a bucket chain while live
-   and the next unused slot while free. */
+/* The open-chained hash table the SurRender SDK carries for its own code. Entries double as the
+   free list: next_index links a bucket chain while live and the next unused slot while free. */
 inline unsigned int srHashValue(unsigned long key)
 {
     unsigned long mixed = (key >> 10) ^ key;
@@ -18,29 +13,20 @@ inline unsigned int srHashValue(unsigned short key)
     return srHashValue(static_cast<unsigned long>(key));
 }
 
-/* srRegistry's by_instance index hashes srRuntimeClass* keys with the same
-   mixing as the integer-keyed tables (retail srTypeRegistry unregisterInstance
-   at 0x1000FCD0 applies the (k>>10 ^ k)>>10 ^ k sequence to the pointer). */
 inline unsigned int srHashValue(const void* key)
 {
     // reinterpret-ok: pointer-keyed hashing mixes the pointer's integer value
     return srHashValue(reinterpret_cast<unsigned long>(key));
 }
 
-/* Concrete TEMPLATE names are recomp selectors unless independently backed
-   by original symbols or typed flow. Plain allocation, copying and release
-   constrain storage shape, not exact key/value arguments. */
 template <class Key, class Value> struct srHashEntry {
     int next_index;
     Key key;
     Value value;
 };
 
-/* Storage and algorithms without ownership. srRegistry's per-class ID index
-   embeds one directly: ~IDIndex (0x100109F0) runs no hash teardown and
-   ~ClassNode frees the two arrays through Release() before deleting the
-   index, so that member's type has no destructor. The owning table adds only
-   the destructor. `srHashTableBase` is a provisional spelling. */
+/* Storage and algorithms without ownership; the owning table adds only the destructor.
+   `srHashTableBase` is a provisional spelling. */
 template <class Key, class Value> class srHashTableBase {
 public:
     srHashTableBase() : bucket_heads(0), entries(0), free_head(-1), bucket_count(0)

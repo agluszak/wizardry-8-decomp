@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -31,34 +30,6 @@ _INTERPRET_FORMATS = {"float": "<f", "u32": "<I", "i32": "<i", "u16": "<H", "i16
 _DEFAULT_WINDOW = 64
 _VFPTR_FIELD_NAMES = frozenset({"vfptr", "vptr", "vftable", "__vftable"})
 _VBPTR_FIELD_NAMES = frozenset({"vbptr", "vbtable", "__vbtable"})
-
-
-@contextmanager
-def open_saved_comparison_programs(summary: dict, manifest: dict):
-    """Read the existing private programs only when both binary hashes match."""
-    import pyghidra
-
-    project_path = Path(summary["inputs"]["ghidra_project"])
-    project = pyghidra.open_project(project_path, project_path.name, create=False)
-    try:
-        with ExitStack() as contexts:
-            programs = {}
-            for domain_file in project.getProjectData().getRootFolder().getFiles():
-                if str(domain_file.getContentType()) != "Program":
-                    continue
-                program = contexts.enter_context(
-                    pyghidra.program_context(project, "/" + str(domain_file.getName()))
-                )
-                for side in ("orig", "recomp"):
-                    if str(program.getExecutableSHA256()) == manifest[side]["sha256"]:
-                        programs[side] = program
-            if set(programs) != {"orig", "recomp"}:
-                raise ValueError(
-                    "saved private comparison programs no longer match this run's binary hashes"
-                )
-            yield programs
-    finally:
-        project.close()
 
 
 class DecompileSession:
@@ -981,49 +952,6 @@ def lookup_symbols(
     }
 
 
-def function_inventory(settings: Settings, selector: str = "wiz8") -> list[dict[str, str]]:
-    from .env import open_program
-
-    with open_program(settings, selector) as program:
-        functions = []
-        iterator = program.getFunctionManager().getFunctions(True)
-        while iterator.hasNext():
-            function = iterator.next()
-            if not function.isExternal():
-                functions.append(
-                    {
-                        "entry": hex_address(function.getEntryPoint()),
-                        "name": function.getName(True),
-                    }
-                )
-        return functions
-
-
-def containing_functions(
-    settings: Settings, addresses: list[int], selector: str = "wiz8"
-) -> dict[int, int | None]:
-    """Native function entries that contain the given addresses, if any."""
-
-    from .env import open_program
-
-    if not addresses:
-        return {}
-    with open_program(settings, selector) as program:
-        manager = program.getFunctionManager()
-        found: dict[int, int | None] = {}
-        for address in addresses:
-            try:
-                target = program_address(program, hex_address(address))
-            except ResolveError:
-                found[address] = None
-                continue
-            function = manager.getFunctionContaining(target)
-            found[address] = (
-                int(function.getEntryPoint().getOffset()) if function is not None else None
-            )
-        return found
-
-
 def validate_function_entries(
     settings: Settings, entries: set[int], selector: str = "wiz8"
 ) -> dict[str, Any]:
@@ -1065,34 +993,29 @@ def _interpret_bytes(
     }
 
 
-def data_facts(
-    settings: Settings, entries: set[int], selector: str = "wiz8"
-) -> list[dict[str, Any]]:
-    from .env import open_program
+_SUBOBJECT_VIEW_DESCRIPTION = re.compile(
+    r"^wiz8\.subobject-view derived=(?P<derived>\S+) base=(?P<base>\S+) "
+    r"offset=(?P<offset>0x[0-9a-fA-F]+|\d+)"
+    r"(?: vtable=(?P<vtable>\S+))?$"
+)
 
-    with open_program(settings, selector) as program:
-        facts = []
-        for entry in sorted(entries):
-            symbol = resolve_symbol(program, hex_address(entry))
-            row = symbol_record(symbol)
-            address = program_address(program, hex_address(entry))
-            size = max(int(symbol.length or 4), 8)
-            buffer = None
-            try:
-                import jpype
 
-                buffer = jpype.JArray(jpype.JByte)(size)
-                read = program.getMemory().getBytes(address, buffer)
-                row["hex"] = bytes(b & 0xFF for b in buffer[:read]).hex()
-            except Exception:  # noqa: BLE001
-                row["hex"] = ""
-            facts.append(row)
-        return facts
+def _parse_subobject_view(description: str | None) -> dict[str, Any] | None:
+    """Decode the description reviewed checkpoints carry on derived-specific base views."""
+
+    match = _SUBOBJECT_VIEW_DESCRIPTION.match(str(description or "").strip())
+    if match is None:
+        return None
+    return {
+        "derived": match.group("derived"),
+        "base": match.group("base"),
+        "offset": int(match.group("offset"), 0),
+        "vtable": match.group("vtable"),
+    }
 
 
 def class_report(program: Any, names: list[str]) -> dict[str, Any]:
     from ..class_binding import find_class_structure, find_ghidra_class
-    from ..vftable_typing import parse_subobject_view
 
     classes = []
     for name in names:
@@ -1133,7 +1056,7 @@ def class_report(program: Any, names: list[str]) -> dict[str, Any]:
                     if nested is not None and hasattr(nested, "getDescription")
                     else None
                 )
-                view = parse_subobject_view(description)
+                view = _parse_subobject_view(description)
                 field_name = component.getFieldName()
                 record = {
                     "field": field_name,

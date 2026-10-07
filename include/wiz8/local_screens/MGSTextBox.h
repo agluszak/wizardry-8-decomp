@@ -24,32 +24,31 @@ struct W8NoticeWord {
     short end;
     short x_start;
     short x_end;
-    unsigned char keyword; /* 0x08: 0 none, 1 keyword, 2 selected */
-    bool redraw;           /* 0x09: repaint once after deselection */
+    unsigned char keyword; /* 0 none, 1 keyword, 2 selected */
+    bool redraw;           /* repaint once after deselection */
 };
 static_assert(sizeof(W8NoticeWord) == 10, "W8NoticeWord_must_be_10");
 
 void AdvanceNoticeLine(short text_box);
 
-/* Local Screens\MGSTextBox.cpp owns the four message runs at 0x0068F2D8. */
 struct W8MessageStorageRecord {
     void ClearEntries();
     void RebuildEntries();
 
-    wchar_t* wString; /* 0x00: the assertion at 0x0058B410 names it */
+    wchar_t* wString;
     unsigned char font_palette;
-    /* 0x05-0x07: the recoloured span [start, stop) of this line. */
+    /* The recoloured span [start, stop) of this line. */
     unsigned char highlight_color;
     unsigned char highlight_start;
     unsigned char highlight_stop;
     TIMER clock;
-    /* 0x0c: SaveGame snapshots the unsigned milliseconds remaining from
+    /* SaveGame snapshots the unsigned milliseconds remaining from
        ClockIsTicking; load rearms the countdown with this duration. */
     UINT32 saved_remaining_ms;
-    /* 0x10: continuation link count of a wrapped entry; -1 when unlinked. */
+    /* Continuation link count of a wrapped entry; -1 when unlinked. */
     int link;
-    int length; /* 0x14: wString length, -1 when unset */
-    /* 0x18: live list pointer; save preserves its 32-bit representation and
+    int length; /* wString length, -1 when unset */
+    /* Live list pointer; save preserves its 32-bit representation and
        load discards the serialized word instead of reconstructing a pointer. */
     W8PList* entries;
     unsigned char unknown_1c[8];
@@ -59,104 +58,100 @@ static_assert(sizeof(W8MessageStorageRecord) == 0x24, "W8MessageStorageRecord_mu
 
 extern W8MessageStorageRecord g_message_storage[4][0x15e];
 
-/* 0x0058AA20: reset one editor status line; -1 selects the current line. */
+/* Reset one editor status line; -1 selects the current line. */
 void ResetEditorStatusLine(short line);
-/* 0x0058AA10: the font currently bound to the main text box. */
+/* The font currently bound to the main text box. */
 int GetTextBoxFont(void);
-/* 0x0058C790: repaint dirty dialogue text-input lines and the caret. */
+/* Repaint dirty dialogue text-input lines and the caret. */
 void RedrawDialogueTextInput(void);
-/* 0x00590D90: clear one text_lines slot on the level block. */
+/* Clear one text_lines slot on the level block. */
 void ClearTextLineEntry(int index);
-void FormatNotice(int channel, short text_box, const wchar_t* format, ...); /* 0x0058AB60 */
+void FormatNotice(int channel, short text_box, const wchar_t* format, ...);
 
 void ReleaseMessageStorage(void);
-/* 0x0058FB50/0x0058FC30: the TEXT section pair - the four message-storage
+/* The TEXT section pair - the four message-storage
    runs persisted around the game-status record. */
 unsigned char SaveTextBoxState(unsigned int file);
-/* 0x0058D7E0-0x0058E010: the dormant typed-dialogue editing helpers are
-   translation-unit local; MGSTextBox.cpp declares them static. */
-unsigned char HandleDialogueTextInput(const InputAtom* input); /* 0x0058F250 */
-char TextBoxHandleKey(const InputAtom* event);                 /* 0x0058A8F0 */
-int GetSelectedTextLine(int index);                            /* 0x0058FA60 */
-void ClearSelectedTextLine(int index);                         /* 0x0058FA30 */
+unsigned char HandleDialogueTextInput(const InputAtom* input);
+char TextBoxHandleKey(const InputAtom* event);
+int GetSelectedTextLine(int index);
+void ClearSelectedTextLine(int index);
 /* Hover and selection track one wrapped-line start per box. Set operations
    snap a visible wrapped index back to its entry's first line. */
-int GetHoveredTextLine(int index);           /* 0x0058F990 */
-void ClearHoveredTextLine(int index);        /* 0x0058F960 */
-void SetHoveredTextLine(int line, int box);  /* 0x0058F8E0 */
-void SetSelectedTextLine(int line, int box); /* 0x0058F9B0 */
-/* 0x00590150/0x005901D0: walk every notice-word list of a box, clearing the
+int GetHoveredTextLine(int index);
+void ClearHoveredTextLine(int index);
+void SetHoveredTextLine(int line, int box);
+void SetSelectedTextLine(int line, int box);
+/* Walk every notice-word list of a box, clearing the
    flag_08 mark and raising flag_09; the first touches only selected (2)
    words, the second everything else. Nonzero redraw repaints the body
    through RedrawTextBoxBody(1). */
 void ClearNoticeWordHover(int box, bool redraw);
-void ResetUsedNoticeWords(int text_box, bool redraw); /* 0x00590150 */
-/* 0x00590250: refresh the hover mark on the notice word under (x, y). */
+void ResetUsedNoticeWords(int text_box, bool redraw);
+/* Refresh the hover mark on the notice word under (x, y). */
 void HighlightNoticeWordAt(int box, unsigned short x, unsigned short y);
-/* 0x00590410: the notice word under (x, y) in box, or 0; the word's line
+/* The notice word under (x, y) in box, or 0; the word's line
    slot is written through line_out. */
 W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y, int* line_out);
-/* 0x00590560: copy a word's text span out of its source line. */
+/* Copy a word's text span out of its source line. */
 void CopyNoticeWordText(const W8NoticeWord* word, wchar_t* out, unsigned int capacity, int box,
                         int start);
 void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
-/* 0x00590BD0: re-derive the text-box mode from the live screen state; 0xffff
+/* Re-derive the text-box mode from the live screen state; 0xffff
    asks for the automatic choice. */
 void RefreshTextBoxMode(unsigned short mode);
-/* 0x0058A9C0: the lock-interaction call convention - its caller passes the
+/* The lock-interaction call convention - its caller passes the
    same (level, flag, backfire) triple CastSpellAtLockInteraction
    takes; the body reads the target only. */
 void SetKnockKnockTarget(int target, int flag, int backfire);
-/* 0x0058A930: the trap-mode half of CastSpellAtLockInteraction;
+/* The trap-mode half of CastSpellAtLockInteraction;
    same (level, flag, backfire) triple. */
 void AttemptTrapDisarm(int level, int flag, char backfire);
 
-/* 0x005905F0: merge text onto a box's last used line, re-posting the combined
+/* Merge text onto a box's last used line, re-posting the combined
    line so wrapping, highlighting and the link counts rebuild; -1 picks the box
    the current game mode writes to. */
 void AppendToLastTextLine(const wchar_t* text, short text_box);
-/* 0x0069B7BC: wrapped line count of the notice ShowNotice last displayed;
+/* Wrapped line count of the notice ShowNotice last displayed;
    only maintained while game_status.quote_audit is raised. */
 extern int g_notice_line_count;
-/* 0x0058FB30: the number of lines the notice pane can scroll. */
+/* The number of lines the notice pane can scroll. */
 int GetTextBoxScrollRange(void);
-/* 0x00590950/0x00590B40: the two variadic notice formatters. The binary
-   builds a va_list in each and passes the format on. */
-void PostCharacterNotice(int party_slot, const wchar_t* format, ...);            /* 0x00590950 */
-void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...); /* 0x00590B40 */
-void ScrollTextBoxTo(int line);                                                  /* 0x0058BBC0 */
-void ScrollDialogueTextBoxToLine(void);                                          /* 0x0058BA60 */
-void ScrollTextBoxUp(int lines);                                                 /* 0x0058BF00 */
-void ScrollTextBoxDown(int lines);                                               /* 0x0058C060 */
-int GetTextBoxVisibleLineCount(void);                                            /* 0x00590900 */
+/* The two variadic notice formatters. */
+void PostCharacterNotice(int party_slot, const wchar_t* format, ...);
+void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...);
+void ScrollTextBoxTo(int line);
+void ScrollDialogueTextBoxToLine(void);
+void ScrollTextBoxUp(int lines);
+void ScrollTextBoxDown(int lines);
+int GetTextBoxVisibleLineCount(void);
 
-/* 0x0058B410: recolour the character span [start, stop) of the most recent
+/* Recolour the character span [start, stop) of the most recent
    line in one text box; -1 picks the box the current game mode writes to. */
 void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned char stop,
                            short text_box);
 
-void SelectTextBox(short value); /* 0x0058F6B0 */
-/* 0x0058AA00: ask for the text box to be redrawn without changing anything. */
+void SelectTextBox(short value);
+/* Ask for the text box to be redrawn without changing anything. */
 void RedrawTextBox(void);
-/* 0x0058C3A0: repaint visible text-box lines; skip_invalidate nonzero skips
+/* Repaint visible text-box lines; skip_invalidate nonzero skips
    InvalidateRegion of the text rectangle. */
 void RedrawTextBoxBody(bool skip_invalidate);
-/* 0x0058CC10: redraw text-box scroll up/down buttons and thumb, then body. */
+/* Redraw text-box scroll up/down buttons and thumb, then body. */
 void RedrawTextBoxScrollChrome(void);
-/* 0x0058B300: append text to a box's current line. Retail callers disagree on
-   arity - the box argument is optional. */
+/* Append text to a box's current line; the box argument is optional. */
 void AppendTextBoxLine(const wchar_t* text, ...);
 
-bool CurrentTextLineHasContent(void);                                  /* 0x0058B940 */
-bool CurrentDialogueLineHasContent(void);                              /* 0x0058B960 */
-int FindStoppedTextLine(void);                                         /* 0x0058D760 */
-void SetTextBoxRegionBounds(int left, int top, int right, int bottom); /* 0x0058FA90 */
-void ResetMessageStorage(void);                                        /* 0x0058FEE0 */
-/* 0x0058FB50: write the four message runs into the open TEXT chunk. */
+bool CurrentTextLineHasContent(void);
+bool CurrentDialogueLineHasContent(void);
+int FindStoppedTextLine(void);
+void SetTextBoxRegionBounds(int left, int top, int right, int bottom);
+void ResetMessageStorage(void);
+/* Write the four message runs into the open TEXT chunk. */
 unsigned char SaveMessageStorage(int file);
-/* 0x0058FC30: rebuild the four message runs from the open TEXT chunk. */
+/* Rebuild the four message runs from the open TEXT chunk. */
 unsigned char LoadMessageStorage(int file);
 /* Defaults select the live mode's text box and its available line width. */
 const short W8_NOTICE_TEXT_BOX_AUTOMATIC = -1;
@@ -165,7 +160,7 @@ const unsigned int W8_NOTICE_WRAP_AUTOMATIC = ~0U;
 void ShowNotice(unsigned int font_palette, const wchar_t* text,
                 short text_box = W8_NOTICE_TEXT_BOX_AUTOMATIC,
                 unsigned int wrap_width = W8_NOTICE_WRAP_AUTOMATIC, bool force_dialog = false);
-/* 0x0058AAD0: vswprintf the format into a scratch buffer and ShowNotice it,
+/* Vswprintf the format into a scratch buffer and ShowNotice it,
    choosing the text-box slot from the current dialogue/camp/combat mode. */
 void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...);
 

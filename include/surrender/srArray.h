@@ -1,6 +1,5 @@
 #pragma once
 
-/* <new> supplies VC6's throw() operator delete declaration. */
 #include <new>
 
 #include "srHeap.h"

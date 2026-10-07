@@ -4,12 +4,6 @@
 #include "srBinStream.h"
 #include "srQuadWord.h"
 
-// Like srBinIStream, this is an abstract directional interface. Its own
-// virtual slot provides the primary vptr at +0, and the original JPEG exporter
-// consequently reaches the virtual srBinStream base through the vbptr at +4.
-// novtable prevents this SDK boundary from emitting an abstract local table.
-// The provider exports the full member surface and both vftables, so the class
-// is dllexport under SURRENDER_BUILD.
 // VTABLE: SURRENDER 0x10076AE8 srBinStream
 // VTABLE: SURRENDER 0x10076AFC srBinOStream
 // class srBinOStream
@@ -21,9 +15,6 @@ class
 #endif
     srBinOStream : public virtual srBinStream {
 public:
-    /* No own state is modeled. Lifecycle is consistent with ordinary virtual-base
-       operations; consumers import the standalone symbols. */
-
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srBinOStream();
     SR_DLL_IMPORT srBinOStream(const srBinOStream& stream);
@@ -40,20 +31,13 @@ public:
     SR_DLL_IMPORT srBinOStream& write(const void* source, unsigned long size);
 
 protected:
-    // Exported by SR.DLL as ?vput@srBinOStream@@MAEGD@Z. Besides completing
-    // the ABI, this gives the directional interface its own primary vptr;
-    // its virtual-base pointer consequently lives at +4 as observed in the
-    // original JPEG exporter.
     virtual SR_DLL_IMPORT unsigned short vput(char value);
 
 private:
     virtual unsigned long vwrite(const void* source, unsigned long size) = 0;
 };
 
-// The memory-backed output stream keeps its buffer in an srArray<unsigned
-// char>; getPtr/vwrite show the canonical capacity + 8 + index growth, and
-// the copy constructor performs the deep array copy. Wiz8.exe imports the
-// constructor, the destructor family, getPtr, and getSize.
+// Memory-backed output stream.
 // VTABLE: SURRENDER 0x10076BB0 srBinStream
 // VTABLE: SURRENDER 0x10076BC4 srBinOStream
 // class srBinOMStream

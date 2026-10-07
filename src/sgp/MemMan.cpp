@@ -1,10 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Annotate retail function identities verified against the Wizardry 8 binary.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Drop the commented-out precompiled-header block.
-   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
-   Remove inactive code and decorative comment banners, 2026-10-07.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 // Filename :	MemMan.cpp
 //	Purpose :	function definitions for the memory manager

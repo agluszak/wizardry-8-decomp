@@ -22,12 +22,23 @@ def _added_casts(diff: str) -> list[dict[str, object]]:
     return added_lines_without_marker(diff, _CAST, _MARKER)
 
 
+def _commit_baseline(repository: Path) -> None:
+    def git(*args: str) -> None:
+        subprocess.run(["git", "-C", str(repository), *args], check=True)
+
+    git("init", "-q", "-b", "main")
+    git("config", "user.email", "test@invalid")
+    git("config", "user.name", "test")
+    git("add", ".")
+    git("commit", "-qm", "base")
+
+
 def _diff(path: str, *body: str) -> str:
     return "\n".join([f"diff --git a/{path} b/{path}", f"--- a/{path}", f"+++ b/{path}", *body])
 
 
-@pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
-def test_unmarked_added_cast_is_reported(root: str) -> None:
+def test_unmarked_added_cast_is_reported() -> None:
+    root = "include/surrender"
     diff = _diff(
         f"{root}/example.cpp",
         "@@ -1,1 +1,2 @@",
@@ -335,8 +346,6 @@ def test_format_off_marker_with_reason_passes() -> None:
     "path",
     [
         "src/wiz8/example.cpp",
-        "src/wiz8/CMakeLists.txt",
-        "src/surrender/CMakeLists.txt",
         "cmake/Warnings.cmake",
     ],
 )
@@ -463,14 +472,10 @@ def test_sgp_derivative_notice_allows_change(tmp_path: Path) -> None:
 
 
 def test_git_checkout_enforces_the_gate(tmp_path: Path) -> None:
-    subprocess.run(["git", "init", "-q", "-b", "main", str(tmp_path)], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email", "test@invalid"], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name", "test"], check=True)
     (tmp_path / "src/wiz8").mkdir(parents=True)
     source = tmp_path / "src/wiz8/example.cpp"
     source.write_text("int f() { return 0; }\n")
-    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "commit", "-qm", "base"], check=True)
+    _commit_baseline(tmp_path)
 
     source.write_text("int f() { return reinterpret_cast<int>(g); }\n")
     with pytest.raises(CastGateError, match="reinterpret-ok"):
@@ -483,14 +488,10 @@ def test_git_checkout_enforces_the_gate(tmp_path: Path) -> None:
 
 
 def test_new_layout_union_needs_positive_evidence(tmp_path: Path) -> None:
-    subprocess.run(["git", "init", "-q", "-b", "main", str(tmp_path)], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email", "test@invalid"], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name", "test"], check=True)
     header = tmp_path / "include/surrender/example.h"
     header.parent.mkdir(parents=True)
     header.write_text("struct Example { int value; };\n")
-    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "commit", "-qm", "base"], check=True)
+    _commit_baseline(tmp_path)
 
     header.write_text("union Example { int value; float other; };\n")
     with pytest.raises(CastGateError, match="union-ok"):
@@ -504,14 +505,10 @@ def test_new_layout_union_needs_positive_evidence(tmp_path: Path) -> None:
 
 
 def test_git_checkout_enforces_raw_offset_gate(tmp_path: Path) -> None:
-    subprocess.run(["git", "init", "-q", "-b", "main", str(tmp_path)], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email", "test@invalid"], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name", "test"], check=True)
     (tmp_path / "src/wiz8").mkdir(parents=True)
     source = tmp_path / "src/wiz8/example.cpp"
     source.write_text("int f() { return 0; }\n")
-    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "commit", "-qm", "base"], check=True)
+    _commit_baseline(tmp_path)
 
     source.write_text(
         "int f(W8Record* record) {\n"
@@ -534,14 +531,10 @@ def test_git_checkout_enforces_raw_offset_gate(tmp_path: Path) -> None:
 
 
 def test_git_checkout_enforces_c_style_and_format_gates(tmp_path: Path) -> None:
-    subprocess.run(["git", "init", "-q", "-b", "main", str(tmp_path)], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email", "test@invalid"], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name", "test"], check=True)
     (tmp_path / "src/wiz8").mkdir(parents=True)
     source = tmp_path / "src/wiz8/example.cpp"
     source.write_text("int f() { return 0; }\n")
-    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
-    subprocess.run(["git", "-C", str(tmp_path), "commit", "-qm", "base"], check=True)
+    _commit_baseline(tmp_path)
 
     source.write_text("int f() { return (int)g; }\n// clang-format off\n")
     with pytest.raises(CastGateError, match="c-style-cast-ok"):

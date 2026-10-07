@@ -33,7 +33,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GameData.h"
 
-/* 0x0064CA90: the blip palette, six classes of three distance rings. Items
+/* The blip palette, six classes of three distance rings. Items
    take class 4 and missiles class 5; monsters take their disposition-mapped
    class while a merely-sensed one and anything in the near field use class 3.
    AcquireRadarBlip's highlight path reuses rows group*3 and group*3+2 as the
@@ -47,11 +47,11 @@ static float g_radar_blip_colors[18][3] = {
     {0.0f, 0.0f, 0.7f}, {0.0f, 0.0f, 1.0f},
 };
 
-/* 0x0064CB68: ubDisposition to blip class for live monsters. */
+/* UbDisposition to blip class for live monsters. */
 // GLOBAL: WIZ8 0x0064cb68
 static unsigned char g_radar_disposition_class[4] = {0, 1, 2, 0};
 
-/* 0x0064CB6C: screen offsets at which the zoomed map image gets each
+/* Screen offsets at which the zoomed map image gets each
    occupied formation cell's party-order chip painted. */
 // GLOBAL: WIZ8 0x0064cb6c
 static srVector2i g_radar_cell_offsets[15] = {

@@ -7,9 +7,6 @@ struct W8ItemInstance;
 struct W8MonsterInfo;
 struct W8MonsterGroup;
 
-/* Local Code\Targeting.cpp. Assertions name iType, iChar, iMonsterID,
-   fBackfire and fReflection and establish the field offsets; SpellBackfires'
-   stack frame independently agrees with the same source-record layout. */
 /* The source-kind domain. Zero is the empty source, one a character, two a
    monster, and three a source that keeps the original's character or monster
    id while reading as a point - which is what a backfire or a reflection
@@ -77,10 +74,7 @@ enum W8TargetKind {
 };
 
 /* What a spell or action asks the interface to select, independently of the
-   recorded target's W8TargetKind. Retail GetTargetNeededForSpellFriendly
-   (0x005010f0), GetTargetNeededForSpellHostile (0x005011c0) and
-   TargetMatchesNeeded (0x00537160) establish the values and admitted targets.
-   INDIRECT uses the character-indirect target for spell 0x58; UNSET is the
+   recorded target's W8TargetKind. INDIRECT uses the character-indirect target for spell 0x58; UNSET is the
    temporary value used before a combat action supplies its requirement. */
 enum W8TargetNeed {
     W8_TARGET_NEED_UNSET = -1,
@@ -95,9 +89,7 @@ enum W8TargetNeed {
     W8_TARGET_NEED_CASTER = 8
 };
 
-/* Targeting.cpp's three highlight-color selectors. Retail 0x00539480,
-   0x005392e0 and 0x00538510 set clear, green and red RGBA values respectively.
-   Highlight masks and the on/off target marker flag are separate domains. */
+/* The three highlight colors: clear, green and red. */
 enum W8TargetHighlight {
     W8_TARGET_HIGHLIGHT_NONE = 0,
     W8_TARGET_HIGHLIGHT_GREEN = 1,
@@ -107,17 +99,10 @@ enum W8TargetHighlight {
 /* The shorter form a combatant carries inline, with one more field reset to
    -1 and no room for the tail. */
 struct W8CombatSlot {
-    /* The four ids are named by the assertions that bound each of them -
-       pTarget->iChar, pTarget->iMonsterID, pTarget->iGroupID and
-       pTarget->pPCItem - and they are the same four the source block carries
-       under the same names, one per target kind. */
-    W8TargetKind iType; /* 0x00 */
-    int iChar;          /* 0x04, -1 when empty */
-    int iMonsterID;     /* 0x08, -1 when empty */
-    int iGroupID;       /* 0x0c, -1 when empty */
-    /* Place targets store the ordinary world vector here. Other target kinds
-       reuse byte +0x19 as the "name known" flag; that overlapping byte use
-       does not establish a second source type or union boundary. */
+    W8TargetKind iType;      /* 0x00 */
+    int iChar;               /* 0x04, -1 when empty */
+    int iMonsterID;          /* 0x08, -1 when empty */
+    int iGroupID;            /* 0x0c, -1 when empty */
     srVector3T<float> point; /* 0x10 */
     /* 0x1c: the item aimed at, for the one kind that aims at one. */
     W8ItemInstance* pPCItem;
@@ -173,8 +158,7 @@ enum W8ActionKind {
 };
 
 /* CURRENT requests resolution of the active context rather than a target
-   block. Context five selects the breath-action target at party slot +0xd1
-   (retail 0x00501880); BREATH describes its observed role, not original spelling. */
+   block. Context five selects the slot's breath-action target. */
 enum W8TargetingContext {
     W8_TARGETING_CONTEXT_OUT_OF_COMBAT = 0,
     W8_TARGETING_CONTEXT_IN_COMBAT = 1,

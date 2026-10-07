@@ -6,12 +6,6 @@
 
 #include <stdio.h>
 
-/* SR-owned file-stream family. The path member is the provider's
-   srInlineString (the ctor/dtor/setPath/mopen bodies show its inline empty
-   state, srHeap-backed growth and release). Its classes and virtual tables
-   are visible in the provider ABI, but no known Wizardry/JPEG/ZIP consumer
-   imports a srBinFStream/srBinIFStream/srBinIOFStream/srBinOFStream symbol;
-   the provider export reproduces the retail emissions. */
 // VTABLE: SURRENDER 0x10076A40 srBinStream
 // VTABLE: SURRENDER 0x10076A54 srBinFStream
 // class srBinFStream
@@ -59,8 +53,6 @@ class
 public:
     srBinIFStream();
     srBinIFStream(const char* path);
-    /* Complete destruction is consistent with base cleanup; the reconstruction
-       leaves it implicit. The vtordisp/vbase helpers below are ABI emissions. */
 
     void open(const char* path);
     virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
@@ -87,8 +79,6 @@ class
 public:
     srBinIOFStream();
     srBinIOFStream(const char* path);
-    /* Complete destruction is consistent with base cleanup; the reconstruction
-       leaves it implicit. The vtordisp/vbase helpers below are ABI emissions. */
 
     void open(const char* path);
     virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
@@ -102,10 +92,6 @@ private:
     virtual unsigned long vwrite(const void* source, unsigned long size) override;
 };
 
-/* Unlike the input family, srBinOFStream virtually inherits both directional
-   interfaces: the retail object carries its own vbptr at +0, the shared
-   srBinStream vbase at +8, the srBinOStream subobject at +0x1c and the
-   srBinFStream subobject at +0x24. */
 // VTABLE: SURRENDER 0x10076B30 srBinFStream
 // VTABLE: SURRENDER 0x10076B3C srBinOStream
 // VTABLE: SURRENDER 0x10076B44 srBinStream

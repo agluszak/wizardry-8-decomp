@@ -388,9 +388,7 @@ srDebugVP::ScopeTimer::ScopeTimer(srDebugVP* owner, SRDWORD elements, e_command 
     this->owner = owner;
     this->index = index;
     if (owner->check_misalignments != 0) {
-        /* reinterpret-ok: the forwarded pointer arguments are OR-ed together
-           so a single mask reports any address that is not 8- or 16-byte
-           aligned. */
+        /* reinterpret-ok: one mask over all pointer arguments reports any misaligned address. */
         unsigned long mask = reinterpret_cast<unsigned long>(pointer_0) |
                              reinterpret_cast<unsigned long>(pointer_1) |
                              reinterpret_cast<unsigned long>(pointer_2) |
@@ -1633,8 +1631,8 @@ void srDebugVP::_copyIndexed(srVector4* destination, const srARGB* source, const
     processor->_copyIndexed(destination, source, indices, count);
 }
 
-/* Retail swaps these overloads' statistics indices. The linear form tracks
-   all four pointer arguments; the constant form omits constant alignment. */
+/* These overloads swap their statistics indices. The linear form tracks all four pointer arguments;
+   the constant form omits constant alignment. */
 // FUNCTION: SURRENDER 0x1006F190
 void srDebugVP::_mulIndexed(srVector4* destination, const srVector4* linear_source,
                             const srVector4* indexed_source, const SRDWORD* indices, SRDWORD count)

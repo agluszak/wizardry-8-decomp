@@ -1,6 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-06.
-   Normalize formatting of the reconstructed source.
-   Remove inactive code and decorative comment banners, 2026-10-07.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef _TOPICIDS_H
 #define _TOPICIDS_H

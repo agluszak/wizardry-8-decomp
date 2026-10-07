@@ -1343,17 +1343,17 @@ protected:
     int m_hoveredSprite;
     int m_disabledSprite;
     int m_drawOffsetX;
-    int m_pixelPosition;  /* 0x4c */
-    int m_thumbHeight;    /* 0x50 */
-    int m_trackLength;    /* 0x54 */
-    int m_dragCoordinate; /* 0x58 */
-    bool m_hovered;       /* 0x5c: cursor over the thumb */
-    bool m_dragging;      /* 0x5d: thumb drag in progress */
+    int m_pixelPosition;
+    int m_thumbHeight;
+    int m_trackLength;
+    int m_dragCoordinate;
+    bool m_hovered;  /* cursor over the thumb */
+    bool m_dragging; /* thumb drag in progress */
     unsigned char pad_5e[2];
-    float m_minimumPosition; /* 0x60 */
-    float m_maximumPosition; /* 0x64 */
-    float m_position;        /* 0x68 */
-    W8RangeControl* m_range; /* 0x6c */
+    float m_minimumPosition;
+    float m_maximumPosition;
+    float m_position;
+    W8RangeControl* m_range;
 
     void ClampPositionAndInvalidate();
     void SynchronizeRangeValue();

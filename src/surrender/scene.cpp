@@ -1,5 +1,3 @@
-// Recovery of sr.dll's srScene implementation against the gog-base retail
-// binary.
 
 #include "surrender/srScene.h"
 
@@ -45,9 +43,8 @@ srScene& srScene::operator=(const srScene& other)
     return *this;
 }
 
-/* The scene walks its own traversal arrays rather than sharing the generic
-   node walk: nodes carry the global pre/post passes (types 3 and 4) and the
-   typed entries carry their per-node process type in the entry value. */
+/* The scene walks its own traversal arrays: nodes carry the global pre/post passes (types 3 and 4)
+   and the typed entries carry their per-node process type in the entry value. */
 // FUNCTION: SURRENDER 0x100561F0
 void srScene::traverse(TraverseInfo& info)
 {

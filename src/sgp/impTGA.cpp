@@ -1,9 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Add matching markers for retained SGP functions and globals.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Include the importer declaration to preserve its C linkage in C++ mode, 2026-10-04.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
-   Remove inactive code and decorative comment banners, 2026-10-07.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-04, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 // Filename :	impTGA.c
 //	Purpose :	.tga file importer

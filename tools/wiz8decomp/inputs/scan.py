@@ -52,13 +52,6 @@ def load_local_inputs(settings: Settings) -> dict[str, str]:
     return resolved
 
 
-def _listing(path: Path) -> str:
-    from ..subprocesses import run
-
-    result = run(["7z", "l", "-slt", path], cwd=path.parent, check=False)
-    return result.stdout + result.stderr
-
-
 def scan_inputs(settings: Settings) -> InputManifest:
     if not settings.input_dir.is_dir():
         raise ValueError(f"WIZ8_INPUT_DIR is not readable: {settings.input_dir}")

@@ -143,3 +143,37 @@ class PeImage:
                 results.append(virtual_address)
             offset = self.data.find(needle, offset + 1)
         return results
+
+
+def relocation_sites(image: PeImage) -> list[int]:
+    """Every address holding an absolute operand the loader fixes up.
+
+    This is the image's own complete index of pointer-shaped values, which is
+    what makes a vtable scan exhaustive rather than pattern-matched.
+    """
+    data = image.data
+    pe_offset = struct.unpack_from("<I", data, 0x3C)[0]
+    optional = pe_offset + 4 + 20
+    directory_count = struct.unpack_from("<I", data, optional + 92)[0]
+    if directory_count <= 5:
+        return []
+    rva, size = struct.unpack_from("<II", data, optional + 96 + 5 * 8)
+    if not rva or not size:
+        return []
+    offset = image.offset(image.image_base + rva)
+    if offset is None:
+        return []
+    end = offset + size
+    sites: list[int] = []
+    while offset < end - 8:
+        page, block = struct.unpack_from("<II", data, offset)
+        if block < 8:
+            break
+        for index in range((block - 8) // 2):
+            entry = struct.unpack_from("<H", data, offset + 8 + index * 2)[0]
+            # Type 3 is HIGHLOW: a full 32-bit absolute address.
+            if entry >> 12 == 3:
+                sites.append(image.image_base + page + (entry & 0xFFF))
+        offset += block
+    sites.sort()
+    return sites

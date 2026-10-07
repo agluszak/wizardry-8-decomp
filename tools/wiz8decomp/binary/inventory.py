@@ -80,10 +80,6 @@ def representative_modules(
     return chosen, dict(sorted(aliases.items()))
 
 
-def is_first_party(module: dict[str, Any]) -> bool:
-    return module.get("classification") == "first-party-game"
-
-
 def inventory(settings: Settings) -> dict[str, Any]:
     variants_root = settings.work_dir / "variants"
     if not variants_root.is_dir():

@@ -305,16 +305,16 @@ bool g_navigator_position_changed;
 static void ApplyPendingMouselook(void);
 void ApplyPendingTooltip(void);
 void UpdateCombatPortraitStatus(void);
-void UpdateKeyboardMenu(void);          /* 0x0059B390 */
-void ApplySavedRedrawInvalidates(void); /* 0x00563D00 */
-void InvalidatePortraitPanel(void);     /* 0x0059BC00 */
+void UpdateKeyboardMenu(void);
+void ApplySavedRedrawInvalidates(void);
+void InvalidatePortraitPanel(void);
 
-void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled); /* 0x0059A540 */
+void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled);
 
-static void DrawMainGamePrompt(void);       /* 0x0056AC80 */
-void InvalidateLockInteractionPanels(void); /* 0x00587C50 */
-unsigned char GetOpenDialogueFlag(void);    /* 0x0058D7C0 */
-void RedrawTextBoxComplete(void);           /* 0x0058A8C0 */
+static void DrawMainGamePrompt(void);
+void InvalidateLockInteractionPanels(void);
+unsigned char GetOpenDialogueFlag(void);
+void RedrawTextBoxComplete(void);
 unsigned char HandleMouselookInput(const InputAtom* input);
 
 static bool IsPartyPortraitUnderCursor(unsigned int party_slot);
@@ -358,7 +358,7 @@ static unsigned int g_lock_tumbler_region_set;
 static unsigned int g_lock_action_region_set;
 // GLOBAL: WIZ8 0x0068F2C0
 static W8LockInteraction* g_lock_interaction;
-/* 0x00586A70: the selected slot's effective power with spell 0x27. */
+/* The selected slot's effective power with spell 0x27. */
 int GetKnockKnockSpellPower(int slot);
 void CancelMouselook()
 {

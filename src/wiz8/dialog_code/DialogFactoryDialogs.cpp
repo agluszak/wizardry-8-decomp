@@ -35,12 +35,6 @@
 #include <string.h>
 #include <wchar.h>
 
-/* Dialog Code\DialogFactoryDialogs.cpp. The factory dialogs are the list-box
-   dialog (kind 3) and the trigger-owned item picker; the split-item dialog
-   owns its own translation unit. The list-box helpers' bodies are recovered
-   below; their addresses sit in an attribution gap, so their original TU is
-   unproven rather than their bodies unrecovered. */
-
 void W8ListBoxDialog::ClearLines()
 {
     int line_count = m_lines.GetCount();
@@ -119,7 +113,7 @@ int W8ListBoxDialog::GetVisibleLineCount()
 }
 
 /* Both selection directions clamp the requested top row independently of
-   the selected row. Retail tests a zero area handle, not the -1 sentinel. */
+   the selected row. */
 void W8ListBoxDialog::SetFirstVisibleLine(int requested)
 {
     if (m_area_button != 0) {
@@ -205,9 +199,8 @@ bool W8ListBoxDialog::HandleInputEvent(const InputAtom* input)
     }
 }
 
-/* The list-box dialog. The retail layout puts the line strings in the vector
-   at 0x54 and builds two text buttons, the scrolling text area, the up and
-   down arrows, a slider and the confirmation pair. */
+/* Build two text buttons, the scrolling text area, the up and down arrows, a
+   slider and the confirmation pair. */
 // FUNCTION: WIZ8 0x005cbdb0
 int W8ListBoxDialog::CreateControls()
 {
@@ -1115,8 +1108,6 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
 
     for (index = 0; index < items.GetCount(); ++index) {
         if (*flags.GetAt(index) != 0) {
-            /* Retail 0x005CE4C0 passes the allocated copy directly to the add
-               API; this caller emits neither a null check nor a free. */
             W8ItemInstance* instance = CopyWorldItemInstance(*items.GetAt(index));
             bool added;
             if (destination == -1) {
@@ -1136,7 +1127,7 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
         }
     }
     if (failed) {
-        /* "\\b" in the original literal: retail stores a backspace, not a separator. */
+        /* "\b" here is a backspace, not a path separator. */
         SoundPlay("Data\\Sound\\Misc\beep2.wav", 0);
     }
     RefreshScrollButtons();

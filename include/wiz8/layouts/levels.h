@@ -31,8 +31,8 @@ struct W8LevelProgressRow {
 static_assert(sizeof(W8LevelFolderRecord) == 0x6b, "W8LevelFolderRecord_must_be_0x6b");
 static_assert(sizeof(W8LevelProgressRow) == 0x21, "W8LevelProgressRow_must_be_0x21");
 
-/* Engine Code\Levels.cpp. LevelBuildInfoByID fills eight consecutive path
-   buffers. LoadLevel passes the first three to LoadWorld as the level folder,
+/* LevelBuildInfoByID fills eight consecutive path buffers. LoadLevel passes
+   the first three to LoadWorld as the level folder,
    mutable level filename and bitmap folder; the remaining buffers are the
    complete level path and the corresponding four sky paths. */
 struct W8LevelInfo {

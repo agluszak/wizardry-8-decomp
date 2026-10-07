@@ -110,11 +110,3 @@ def variant_module_inventory_path(settings: Settings) -> Path:
 
 def write_generated_document(path: Path, document: GeneratedDocument) -> None:
     atomic_json(path, document.model_dump(mode="json", by_alias=True))
-
-
-def load_variant_provenance(settings: Settings) -> VariantProvenanceManifest:
-    return load_generated_document(variant_provenance_path(settings), VariantProvenanceManifest)
-
-
-def load_variant_module_inventory(settings: Settings) -> VariantModuleInventory:
-    return load_generated_document(variant_module_inventory_path(settings), VariantModuleInventory)

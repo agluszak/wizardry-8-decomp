@@ -2253,8 +2253,7 @@ void DrawVideoInspector(int left, unsigned int top)
             gprintfDirty(left, top + 0x32, L"VO: %d", statistics.device_vertices);
             gprintfDirty(left, top + 0x3c, L"DD: %d", statistics.device_calls);
             gprintfDirty(left, top + 0x46, L"TC: %d", statistics.texture_binds);
-            gprintfDirty(left, top + 0x50, L"TT: %d", statistics.texture_transfer_low,
-                         statistics.texture_transfer_high);
+            gprintfDirty(left, top + 0x50, L"TT: %d", statistics.texture_transfer);
             gprintfDirty(left, top + 0x5a, L"RM: %dK", g_gerd->getResidentTextureMemUsed() >> 10);
             gprintfDirty(left, top + 0x64, L"TM: %dK", g_gerd->getTextureCacheUsed());
             gprintfDirty(left, top + 0x6e, L"DR: %3d", GetCameraYawAndRotation(0));

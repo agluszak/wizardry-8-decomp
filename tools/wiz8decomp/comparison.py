@@ -725,18 +725,6 @@ def compare_selected(
     return result
 
 
-def last_comparison(repository: Path, target: str, recompiled: Path) -> dict[str, Any] | None:
-    """Counts from the last reccmp report for this target, if it compared the
-    current recompiled binary. Never runs a comparison."""
-    path = report_directory(repository, target) / "classified-summary.json"
-    if not path.is_file():
-        return None
-    summary = json.loads(path.read_text())
-    if summary.get("inputs", {}).get("recomp", {}).get("sha256") != sha256_file(recompiled):
-        return None
-    return {"requested": summary["requested"], **summary["counts"]}
-
-
 def translate_addresses(repository: Path, target: str, queries: list[int]) -> dict[str, Any]:
     """Look addresses up in reccmp's catalog, from either image."""
     recmp_target = comparison_target(repository, target)

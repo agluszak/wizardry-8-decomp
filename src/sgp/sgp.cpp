@@ -1,13 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Reconstruct Wizardry startup, shared shutdown, and fatal-error handling.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Drop the unused exception-handling include.
-   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
-   Keep gfGameInitialized set across shutdown, as retail does.
-   Annotate the retail addresses of the startup and shutdown statics.
-   Consume the owning C++ timer header and SDK mouse-wheel declarations, 2026-10-04.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
-   Remove inactive code and decorative comment banners, 2026-10-07.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-04, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include <windows.h>

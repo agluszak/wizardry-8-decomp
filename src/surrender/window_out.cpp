@@ -9,10 +9,8 @@
 #include <commdlg.h>
 #include <richedit.h>
 
-/* Internal stream buffer owning the "srDebugWndClass" diagnostic console: a
-   frame window with a RichEdit child, a File menu and a periodic timer.
-   Retail keeps the class translation-unit local - nothing exports it and no
-   other code references it. */
+/* Internal stream buffer owning the "srDebugWndClass" diagnostic console: a frame window with a
+   RichEdit child, a File menu and a periodic timer. */
 class srWindowOutStreamBuf : public std::basic_streambuf<char, std::char_traits<char> > {
 public:
     srWindowOutStreamBuf(unsigned long instance, unsigned long parent, const char* title,
@@ -20,15 +18,12 @@ public:
     virtual ~srWindowOutStreamBuf();
 
 private:
-    /* Pending output text: a raw buffer grown in 8-byte steps on every
-       bounds-checked write. '\n' flushes the whole buffer into the RichEdit;
-       a trailing partial line stays pending until the next newline, Clear or
-       Save. */
+    /* Pending output text. '\n' flushes the whole buffer into the RichEdit; a trailing partial line
+       stays pending until the next newline, Clear or Save. */
     struct Pending {
         char* text;             /* 0x88 */
         unsigned long capacity; /* 0x8c */
 
-        /* 0x10047C80 */
         void reserve(unsigned long size);
         char* c_str()
         {
@@ -40,37 +35,30 @@ private:
 
     /* The "srDebugWndClass" window procedure; the constructor stores this
        object's pointer in GWL_USERDATA. */
-    /* 0x10046870 */
     static long __stdcall windowProc(HWND window, unsigned int message, WPARAM wparam,
                                      LPARAM lparam);
-    /* 0x10046810 */
     static void __stdcall timerProc(HWND window, unsigned int message, unsigned int timer,
                                     unsigned long time);
-    /* 0x10046990 */
     static unsigned long __stdcall streamOutCallback(unsigned long stream, LPBYTE buffer,
                                                      long count, long* written);
 
-    /* 0x10047670 */
     virtual int overflow(int ch);
-    /* 0x10047680 */
     virtual int underflow();
-    /* 0x10047640 */
     virtual int sync();
 
-    /* 0x10046EC0 - bounds-checked append into the pending buffer; '\n' and
-       '\t' flush/expand instead of storing the byte. */
+    /* Bounds-checked append into the pending buffer; '\n' and '\t' flush/expand instead of storing
+       the byte. */
     void emit(int ch);
-    /* 0x10046E90 - scroll the caret into view after text was appended. */
+    /* Scroll the caret into view after text was appended. */
     void scrollCaret();
-    /* 0x10047790 - WM_DESTROY teardown; also makes emit() a no-op. */
+    /* WM_DESTROY teardown; also makes emit() a no-op. */
     void closeWindow();
-    /* 0x10046D10 - "&Clear" (wID 1): reset pending text and the RichEdit. */
+    /* "&Clear": reset pending text and the RichEdit. */
     void clearText();
-    /* 0x100469C0 - "&Save" (wID 2): GetSaveFileName + EM_STREAMOUT into a
-       new std::ofstream. */
+    /* "&Save": GetSaveFileName + EM_STREAMOUT into a new std::ofstream. */
     void saveText();
 
-    /* Inline companion of Pending::reserve: grow-then-store one character. */
+    /* Grow-then-store one character. */
     void put(unsigned long index, char ch)
     {
         if (pending.capacity <= index)
@@ -126,10 +114,9 @@ void __stdcall srWindowOutStreamBuf::timerProc(HWND window, unsigned int message
 {
     if (message != WM_TIMER || timer != 0x1ce7ea)
         return;
+    // reinterpret-ok: GWL_USERDATA holds this object's pointer.
     srWindowOutStreamBuf* self =
-        reinterpret_cast<srWindowOutStreamBuf*>( // reinterpret-ok: GWL_USERDATA
-            // stores this object's pointer as a raw LONG across the Win32 ABI.
-            GetWindowLongA(window, GWL_USERDATA));
+        reinterpret_cast<srWindowOutStreamBuf*>(GetWindowLongA(window, GWL_USERDATA));
     if (self != 0 && self->scroll != 0)
         self->scrollCaret();
 }
@@ -138,10 +125,9 @@ void __stdcall srWindowOutStreamBuf::timerProc(HWND window, unsigned int message
 long __stdcall srWindowOutStreamBuf::windowProc(HWND window, unsigned int message, WPARAM wparam,
                                                 LPARAM lparam)
 {
+    // reinterpret-ok: GWL_USERDATA holds this object's pointer.
     srWindowOutStreamBuf* self =
-        reinterpret_cast<srWindowOutStreamBuf*>( // reinterpret-ok: GWL_USERDATA
-            // stores this object's pointer as a raw LONG across the Win32 ABI.
-            GetWindowLongA(window, GWL_USERDATA));
+        reinterpret_cast<srWindowOutStreamBuf*>(GetWindowLongA(window, GWL_USERDATA));
     if (message < 0x15) {
         if (message == WM_ERASEBKGND)
             return 1;
@@ -177,13 +163,10 @@ unsigned long __stdcall srWindowOutStreamBuf::streamOutCallback(unsigned long st
                                                                 long count, long* written)
 {
     if (count != 0) {
-        std::ofstream* output = reinterpret_cast<std::ofstream*>( // reinterpret-ok: the EDITSTREAM
-            // cookie carries the ofstream across the Win32 callback ABI.
-            stream);
-        output->write(reinterpret_cast<const char*>( // reinterpret-ok: the
-                          // Win32 callback delivers the text as raw bytes.
-                          buffer),
-                      count);
+        // reinterpret-ok: the EDITSTREAM cookie carries the ofstream.
+        std::ofstream* output = reinterpret_cast<std::ofstream*>(stream);
+        // reinterpret-ok: the callback delivers the text as raw bytes.
+        output->write(reinterpret_cast<const char*>(buffer), count);
         *written = count;
         return 0;
     }
@@ -256,7 +239,7 @@ void srWindowOutStreamBuf::saveText()
     info.nFilterIndex = 0;
     info.nMaxFile = 299;
     info.lpstrFileTitle = 0;
-    /* Retail never writes nMaxFileTitle; the field stays uninitialized. */
+    /* nMaxFileTitle is never written. */
     info.lpstrInitialDir = 0;
     info.lpstrTitle = 0;
     info.Flags = OFN_OVERWRITEPROMPT;
@@ -280,9 +263,8 @@ void srWindowOutStreamBuf::saveText()
         scroll = 1;
     }
     EDITSTREAM output;
-    output.dwCookie = reinterpret_cast<unsigned long>( // reinterpret-ok: the
-        // Win32 callback ABI carries the ofstream as a raw cookie.
-        stream);
+    // reinterpret-ok: the EDITSTREAM cookie carries the ofstream.
+    output.dwCookie = reinterpret_cast<unsigned long>(stream);
     output.dwError = 0;
     output.pfnCallback = streamOutCallback;
     SendMessageA(edit_window, EM_STREAMOUT, SF_TEXT, (LPARAM)&output);
@@ -385,7 +367,7 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
     format.dwMask |= 0x40000008;
     format.cbSize = 0x3c;
     format.dwEffects = 0;
-    /* Retail stores the window height into crTextColor. */
+    /* The window height is stored into crTextColor. */
     format.crTextColor = height;
     SendMessageA(edit_window, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&format);
     disabled = 0;
@@ -456,13 +438,11 @@ int srWindowOutStreamBuf::underflow()
 // FUNCTION: SURRENDER 0x10047810
 srWindowOut::srWindowOut(unsigned long handle, const char* title, long width, unsigned long height)
     : std::basic_ostream<char, std::char_traits<char> >(new srWindowOutStreamBuf(
-          /* reinterpret-ok: the Win32 window handle arrives as a raw ulong
-             across the srWindowOut ABI, matching srWindow's convention. */
+          /* reinterpret-ok: raw window handle. */
           static_cast<unsigned long>(GetWindowLongA(reinterpret_cast<HWND>(handle), GWL_HINSTANCE)),
           handle, title, width, height))
 {
-    /* reinterpret-ok: the Win32 window handle arrives as a raw ulong across
-       the srWindowOut ABI, matching srWindow's convention. */
+    /* reinterpret-ok: raw window handle. */
     SetFocus(reinterpret_cast<HWND>(handle));
 }
 

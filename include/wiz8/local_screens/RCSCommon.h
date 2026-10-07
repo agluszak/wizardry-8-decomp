@@ -80,8 +80,8 @@ void SelectCampCharacter(int slot);
    for dead/insane/stoned, else try AddItemToCharacter. */
 void TryGiveHeldItemToCampPortrait(int slot);
 
-void RedrawRcsLevelUpPanel(void); /* 0x005B6590 */
-void RedrawRcsDismissPanel(void); /* 0x005B68D0 */
+void RedrawRcsLevelUpPanel(void);
+void RedrawRcsDismissPanel(void);
 
 extern Controls* g_level_up_panel;
 extern Controls* g_dismiss_panel;
@@ -91,24 +91,18 @@ extern W8TextControl* g_dismiss_button;
    CreateCampButtonPanel (Items/Skills/...). */
 extern W8TextControl* g_camp_page_buttons[5];
 extern W8TextControl* g_item_action_controls[W8_CAMP_ACTION_BUTTON_COUNT];
-/* 0x0069C404: the bottom Controls panel CreateCampButtonPanel parents
+/* The bottom Controls panel CreateCampButtonPanel parents
    the page and item-action strips to. */
 extern Controls* g_item_actions_panel;
 
-unsigned char CampDismissPortraitRegionEvent(const InputAtom* event,
-                                             W8Region* region); /* 0x005B5E90 */
-unsigned char CampPortraitSlotRegionEvent(const InputAtom* event,
-                                          W8Region* region); /* 0x005B5F10 */
-unsigned char CampOpenCharacterScreenRegionEvent(const InputAtom* event,
-                                                 W8Region* region); /* 0x005B61A0 */
-unsigned char CampProfessionHistoryRegionEvent(const InputAtom* event,
-                                               W8Region* region);                  /* 0x005B6220 */
-unsigned char CampPageButtonRegionEvent(const InputAtom* event, W8Region* region); /* 0x005B62C0 */
-unsigned char CampItemActionRegionEvent(const InputAtom* event, W8Region* region); /* 0x005B6360 */
-unsigned char CampLevelUpButtonRegionEvent(const InputAtom* event,
-                                           W8Region* region); /* 0x005B66B0 */
-unsigned char CampDismissButtonRegionEvent(const InputAtom* event,
-                                           W8Region* region); /* 0x005B6AA0 */
+unsigned char CampDismissPortraitRegionEvent(const InputAtom* event, W8Region* region);
+unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* region);
+unsigned char CampOpenCharacterScreenRegionEvent(const InputAtom* event, W8Region* region);
+unsigned char CampProfessionHistoryRegionEvent(const InputAtom* event, W8Region* region);
+unsigned char CampPageButtonRegionEvent(const InputAtom* event, W8Region* region);
+unsigned char CampItemActionRegionEvent(const InputAtom* event, W8Region* region);
+unsigned char CampLevelUpButtonRegionEvent(const InputAtom* event, W8Region* region);
+unsigned char CampDismissButtonRegionEvent(const InputAtom* event, W8Region* region);
 
 void CreateRcsLevelUpPanel(void);
 void DestroyRcsLevelUpPanel(void);
@@ -119,7 +113,7 @@ void UpdateRcsDismissPanel(void);
 void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
 void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
 void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
-/* 0x005B6FD0: like DrawRcsText but the box height is caller-provided and the
+/* Like DrawRcsText but the box height is caller-provided and the
    text is rendered through mprintf with the current font. */
 void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int height,
                           unsigned int layout_mode);

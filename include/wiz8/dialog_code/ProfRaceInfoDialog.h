@@ -25,13 +25,9 @@ extern W8AttributeMinimums g_race_attribute_minimums[];
 extern W8ProfRaceInfoRow g_profession_info_rows[W8_PROFESSION_COUNT];
 extern W8ProfRaceInfoRow g_race_info_rows[W8_RACE_COUNT];
 
-/* Dialog Code\ProfRaceInfoDialog.cpp shared shell: the constructor fixes the
-   popup frame and the derived dialogs fill the string ids, the attribute
-   minimums and the catalog image. DrawCatalogImageAndInvalidate proves that
-   +0x54/+0x58 are the object and image operands of the header icon, not
-   gppStringList indices. CreateControls dispatches the slot-14 PopulateText
-   virtual, which the base leaves at text-area configuration and the derived
-   dialogs extend with their entries. */
+/* Shared shell of the profession and race information dialogs: the base fixes
+   the popup frame and the derived dialogs fill the string ids, the attribute
+   minimums and the header icon. */
 // VTABLE: WIZ8 0x005efbc0
 class W8ProfRaceInfoDialogBase : public W8DialogBase {
 public:
@@ -59,12 +55,12 @@ private:
                       const wchar_t* text, int font);
 
 protected:
-    unsigned int m_uiTitleId;                  /* 0x054: video object catalog id */
-    unsigned int m_uiSummaryId;                /* 0x058: image inside the catalog object */
-    unsigned int m_uiNameId;                   /* 0x05c: gppStringList index */
-    unsigned int m_uiHeadingId;                /* 0x060: gppStringList index */
-    unsigned int m_uiDetailId;                 /* 0x064: gppStringList index */
-    int m_minimums[W8_DIALOG_ATTRIBUTE_COUNT]; /* 0x068 */
+    unsigned int m_uiTitleId;   /* video object catalog id */
+    unsigned int m_uiSummaryId; /* image inside the catalog object */
+    unsigned int m_uiNameId;    /* gppStringList index */
+    unsigned int m_uiHeadingId; /* gppStringList index */
+    unsigned int m_uiDetailId;  /* gppStringList index */
+    int m_minimums[W8_DIALOG_ATTRIBUTE_COUNT];
     W8DialogScrollBar m_scroll_bar;
     W8DialogButton m_button;
     W8DialogTextArea m_text_area;
@@ -78,7 +74,7 @@ public:
 private:
     virtual bool PopulateText() override;
 
-    W8Profession m_uiIndex; /* 0x170 */
+    W8Profession m_uiIndex;
 };
 
 // VTABLE: WIZ8 0x005efc38
@@ -89,7 +85,7 @@ public:
 private:
     virtual bool PopulateText() override;
 
-    W8Race m_uiIndex; /* 0x170 */
+    W8Race m_uiIndex;
 };
 
 static_assert(sizeof(W8AttributeMinimums) == 0x1c, "W8AttributeMinimums_must_be_0x1c");
