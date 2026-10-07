@@ -36,17 +36,6 @@ static W8NpcItemEntry* CreateNpcItemEntry(int item_id)
     return entry;
 }
 
-/* Add stock to an NPC's item list. Equipment, which is equip_class four, never
-   merges: it takes one fresh entry per requested unit and a fixed stock count.
-   Anything else merges into the existing entry for that item when there is one,
-   and the quantity lands in whichever of the two counts the item's quantity
-   kind uses.
-
-   The allocation is 0x14 bytes with a source-level null test around the clear
-   and the item build, and the retail body carries no exception frame, so the
-   entry is an ordinary cleared allocation rather than a constructed object.
-
-   A zero-unit equipment request returns the item id after creating the list. */
 static int FindNpcStockItem(W8NpcState* npc, int item_id)
 {
     unsigned int count = PLLength(npc->items);
@@ -183,21 +172,6 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
     return index;
 }
 
-/* Keep an NPC's stock current. Three passes, each with its own trigger.
-
-   First every entry is normalized: the quantity moves into the count its kind
-   uses, and a stackable entry whose stack has fallen below its remaining count
-   is topped back up to it.
-
-   Then, once the restock clock is more than 0xa8c0 old or the caller forces it,
-   every persistent stock rule is replenished toward its configured quantity.
-   Unlike RestockNpcItems this pass rolls no chance: persistent stock always
-   comes back, jittered by half up or down.
-
-   Finally, once the maintenance clock is more than 0x15180 old or the caller
-   forces it, the stock decays, non-persistent rules restock, emptied entries are
-   removed, and both clocks are restamped. Removing an entry steps the cursor back
-   so the shifted-down successor is not skipped. */
 // FUNCTION: WIZ8 0x0055afa0
 unsigned char MaintainNpcStock(W8NpcState* npc, bool force)
 {
@@ -258,14 +232,6 @@ unsigned char MaintainNpcStock(W8NpcState* npc, bool force)
     return 1;
 }
 
-/* Populate an NPC's stock from its database rules on first use. Each rule rolls
-   once per configured unit against the chance its difficulty tier selects, and
-   the successes are added as one batch. The stock is then sorted and both clock
-   stamps are set, which is what makes 0x0055AFA0's two staleness windows start
-   from the same instant.
-
-   A rule whose item id is past the end of the item database is skipped, and an
-   NPC with no rules or an empty rule list ends up with no item list at all. */
 // FUNCTION: WIZ8 0x0055a630
 unsigned char PopulateNpcStock(W8NpcState* npc)
 {

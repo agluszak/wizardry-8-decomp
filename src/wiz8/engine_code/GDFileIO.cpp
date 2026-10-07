@@ -28,12 +28,6 @@
 #include <new>
 #include "wiz8/engine_code/3d.h"
 
-/* Engine Code\GDFileIO.cpp. The game-data file reader and trigger-plane
-   integration, plus the level record's constructor, destructor and
-   spatial-index build. The adjacent 0x004497C0, 0x004498C0 and 0x00449A40
-   bodies are the surrounding attribution gaps placed with their asserted
-   companion. */
-
 // GLOBAL: WIZ8 0x005ec1a8
 const float g_float_negative_one_third = -0.3333333432674408f;
 // GLOBAL: WIZ8 0x005ebc58

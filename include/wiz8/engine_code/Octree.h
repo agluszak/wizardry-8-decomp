@@ -250,17 +250,6 @@ struct W8OctPreTreeLeaf {
 static_assert(sizeof(W8OctPreTreeBranch) == 0x24, "W8OctPreTreeBranch_must_be_0x24");
 static_assert(sizeof(W8OctPreTreeLeaf) == 0x28, "W8OctPreTreeLeaf_must_be_0x28");
 
-/* Engine Code\Octree.cpp. LoadWorld allocates exactly 0x29c bytes. This object
-   is deliberately non-polymorphic: neither the constructor at 0x0042BC10 nor
-   the destructor at 0x0042DE60 stores a vptr, and every owner calls the
-   complete teardown and then operator delete separately. The vtables at
-   0x005EBFE0/0x005EBFE4/0x005EBFE8/0x005EBFEC near the TU boundary are the
-   emitted scalar-deleting-destructor slots for W8GrowableVector<int>,
-   W8GrowableVector<W8SpellVisual_#>, W8GrowableVector<W8Missile_#> (the
-   construction-phase table for 0x005EC27C) and
-   W8GrowableVector<W8SpellDamageReport_#>, i.e. compiler template material,
-   not object polymorphism; the same holds for the emitted vector machinery
-   next to W8OctPreTree and W8OctBuildTree. */
 /* The camera snapshot and visibility frustum W8Octree keeps for one frame.
    Reset (0x0042D1D6) clears the whole record with one 47-dword rep stosd,
    from the camera location through the last frustum plane's w at +0x27B of
@@ -604,14 +593,6 @@ public:
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
-/* Engine Code\OctPreTree.cpp's build-time runtime tree.  The constructor at
-   0x004679E0 invokes W8Octree's constructor at offset zero, and its sole
-   caller allocates 0x3bc bytes before invoking it.  Only the suffix reached by
-   the destructive OctBuildPreTree conversion is named here.
-   Also non-polymorphic: the constructor's only vtable stores (0x005EC3F4
-   then 0x005EC3F0, the vector construction-phase and final tables) land in
-   the separately allocated props vector, never in this object
-   itself. */
 class OctPreTree : public W8Octree {
 public:
     OctPreTree();

@@ -70,13 +70,6 @@
 #include "wiz8/local_code/Sight.h"
 #include "soundman.h"
 
-/*
- * Local Code\Magic Effects.cpp.
- *
- * What a running spell effect is worth and how long it lasts, and the two
- * paths that take one off again.
- */
-
 #define MAGIC_EFFECTS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic Effects.cpp"
 
 /* The duration that means "for good". */

@@ -64,15 +64,6 @@
 #include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 
-/*
- * Local Code\Sight.cpp.
- *
- * Who can see what. A monster carries one visibility record per other monster
- * it has an opinion about, and the two release paths below own that list. The
- * sweeps re-run the sight update over every live monster, once for each
- * direction the update takes.
- */
-
 #define SIGHT_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Sight.cpp"
 
 // GLOBAL: WIZ8 0x005ec254

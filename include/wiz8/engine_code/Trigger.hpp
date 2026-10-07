@@ -119,35 +119,6 @@ public:
 
 static_assert(sizeof(W8StringTriggerActionData) == 0x0c, "W8StringTriggerActionData_must_be_0x0c");
 
-/* The flags bits whose roles are established by recovered producers and
-   consumers:
-   - ON arms a trigger plane / state-driven prop; scripts toggle it, mipe uses
-     it for the rep item's highlight state.
-   - RUNNING marks an in-flight action; FinishAction clears it.
-   - FIRE_LINKED enables linked-recipient dispatch from CommitActionResult or
-     RunLinkedTriggers; LINK_ON_DEACTIVATE selects the latter path.
-   - ENABLED makes the trigger interactable (picking, prop activation, door
-     pathing); scripts clear it to retire spent levers and triggers.
-   - POSITIONED records that position is live (kind-2 record or
-     SetPosition); the proximity scan requires it.
-   - EXCLUSIVE lets at most one flagged proximity trigger run per update scan.
-   - CAN_RUN_LINKED is the bit CanRunLinkedTriggers reports.
-   - REACTIVATE_LINKED re-fires linked recipients when a finished trigger
-     reactivates.
-   - ALTERNATE_ACTION alternates action_data with
-     alternate_action_data, tracked by ALTERNATE_SELECTED.
-   - ITEM_PICKER marks the item-picker dialog open for this trigger.
-   - SEARCHED marks an already-searched trigger; loading unregisters it.
-   - ANIMATE_STATES animates the prop through its states as the state index
-     cycles; ANIMATE_ACTION lets UpdateActionAnimation run.
-   - PLANE marks a trigger registered with AddTriggerPlane; the proximity scan
-     skips it.
-   - KEEP_ON_FINISH stops FinishAction undoing the action on the recipients.
-   - HAS_ALTERNATE is set when the record has an alternate action; SelectAction
-     then raises USE_ALTERNATE after the initial action, and ALTERNATE_TOGGLES
-     drops it again after the alternate one.
-   - CONSUME_ITEM removes the required item from the party when it is used.
-   - ONCE triggers refuse SelectAction once the action has set FIRED. */
 enum W8TriggerFlag {
     W8_TRIGGER_ANIMATE_STATES = 0x1,
     W8_TRIGGER_ANIMATE_ACTION = 0x2,

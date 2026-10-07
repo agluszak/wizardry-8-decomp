@@ -5,6 +5,7 @@
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Recover the library-stream CD fallback in the released InitializeLibrary form.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "Types.h"
 #include "windows.h"
@@ -36,9 +37,6 @@ HWFILE CreateLibraryFileHandle(INT16 sLibraryID, UINT32 uiFileNum);
 BOOLEAN CheckIfFileIsAlreadyOpen(STR pFileName, INT16 sLibraryID);
 
 INT32 CompareDirEntryFileNames(CHAR8* arg1[], DIRENTRY** arg2);
-
-//************************************************************************
-//
 static void MapSlfArchive(int library_id)
 {
     LibraryHeaderStruct* library = &gFileDataBase.pLibraries[library_id];
@@ -130,16 +128,12 @@ int LoadPatchSlfArchives(const char* directory)
     return loaded;
 }
 
-//*****************************************************************************************
 // ReopenCDLibraries
-//
 // Closes all CD libraries, then reopens them. This function needs to be called when CDs
 // are changed.
-//
 // Returns BOOLEAN            - TRUE, always
-//
 // Created:  3/21/00 Derek Beland
-//*****************************************************************************************
+
 // FUNCTION: WIZ8 0x00412a10
 BOOLEAN ReopenCDLibraries(void)
 {
@@ -158,13 +152,8 @@ BOOLEAN ReopenCDLibraries(void)
 
     return (TRUE);
 }
-
-//************************************************************************
-//
 //	 ShutDownFileDatabase():  Call this function to close down the file
 //	database.
-//
-//************************************************************************
 
 // FUNCTION: WIZ8 0x00412b10
 BOOLEAN ShutDownFileDatabase()
@@ -420,12 +409,7 @@ BOOLEAN LoadDataFromLibrary(INT16 sLibraryID, UINT32 uiFileNum, PTR pData, UINT3
 
     return (TRUE);
 }
-
-//************************************************************************
-//
 // CheckIfFileExistInLibrary() determines if a file exists in a library.
-//
-//************************************************************************
 
 // FUNCTION: WIZ8 0x00413110
 BOOLEAN CheckIfFileExistInLibrary(STR pFileName)
@@ -445,14 +429,10 @@ BOOLEAN CheckIfFileExistInLibrary(STR pFileName)
     else
         return (FALSE);
 }
-
-//************************************************************************
-//
 //	This function finds out if the file CAN be in a library.  It determines
 //	if the library that the file MAY be in is open.
 //	( eg. File is  Laptop\Test.sti, if the Laptop\ library is open, it returns true
-//
-//************************************************************************
+
 // FUNCTION: WIZ8 0x004131b0
 INT16 GetLibraryIDFromFileName(STR pFileName)
 {
@@ -504,15 +484,10 @@ INT16 GetLibraryIDFromFileName(STR pFileName)
     //no library was found, return an error
     return (sBestMatch);
 }
-
-//************************************************************************
-//
 //	GetFileHeaderFromLibrary() performsperforms a binary search of the
 //	library.  It adds the libraries path to the file in the
 //	library and then string compared that to the name that we are
 //	searching for.
-//
-//************************************************************************
 
 BOOLEAN GetFileHeaderFromLibrary(INT16 sLibraryID, STR pstrFileName, FileHeaderStruct** pFileHeader)
 {
@@ -539,12 +514,7 @@ BOOLEAN GetFileHeaderFromLibrary(INT16 sLibraryID, STR pstrFileName, FileHeaderS
         return (FALSE);
     }
 }
-
-//************************************************************************
-//
 //	CompareFileNames() gets called by the binary search function.
-//
-//************************************************************************
 
 // FUNCTION: WIZ8 0x00413360
 INT CompareFileNames(CHAR8* arg1[], FileHeaderStruct** arg2)
@@ -563,13 +533,8 @@ INT CompareFileNames(CHAR8* arg1[], FileHeaderStruct** arg2)
     /* Compare all of both strings: */
     return _stricmp(sSearchKey, sFileNameWithPath);
 }
-
-//************************************************************************
-//
 // This function will see if a file is in a library.  If it is, the file will be opened and a file
 // handle will be created for it.
-//
-//************************************************************************
 
 // FUNCTION: WIZ8 0x004133d0
 HWFILE OpenFileFromLibrary(STR pName)
@@ -753,12 +718,7 @@ BOOLEAN GetLibraryAndFileIDFromLibraryFileHandle(HWFILE hlibFile, INT16* pLibrar
 */
     return (TRUE);
 }
-
-//************************************************************************
-//
 //	Close an individual file that is contained in the library
-//
-//************************************************************************
 
 // FUNCTION: WIZ8 0x00413750
 BOOLEAN CloseLibraryFile(INT16 sLibraryID, UINT32 uiFileID)
@@ -817,14 +777,9 @@ BOOLEAN LibraryFileSeek(INT16 sLibraryID, UINT32 uiFileNum, UINT32 uiDistance, U
     gFileDataBase.pLibraries[sLibraryID].pOpenFiles[uiFileNum].uiFilePosInFile = uiCurPos;
     return (TRUE);
 }
-
-//************************************************************************
-//
 //	OpenLibrary() Opens a library from the 'array' of library names
 //	that was passd in at game initialization.  Pass in an enum for the
 //	library.
-//
-//************************************************************************
 
 BOOLEAN OpenLibrary(INT16 sLibraryID)
 {
@@ -1030,12 +985,7 @@ BOOLEAN GetLibraryFileTime(INT16 sLibraryID, UINT32 uiFileNum, SGP_FILETIME* pLa
 
     return (FALSE);
 }
-
-//************************************************************************
-//
 //	CompareFileNames() gets called by the binary search function.
-//
-//************************************************************************
 
 // FUNCTION: WIZ8 0x00413d00
 INT32 CompareDirEntryFileNames(CHAR8* arg1[], DIRENTRY** arg2)

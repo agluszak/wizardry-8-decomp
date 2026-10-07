@@ -4,15 +4,11 @@
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Recover retail path and file-age arithmetic and control flow.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
-//**************************************************************************
-//
 // Filename :	FileMan.c
-//
 //	Purpose :	function definitions for the memory manager
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
 //    08Apr97:ARM   -> Assign return value from Push() calls back to HStack
 //                     handle, because it may possibly do a MemRealloc()
@@ -21,16 +17,9 @@
 //									   allows for read-only attribute overriding
 //									-> Also added a simple function that clears all file attributes
 //										 to normal.
-//
 //		5 Feb 98:Dave French -> extensive modification to support libraries
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 //				Includes
-//
-//**************************************************************************
+
 #include "Types.h"
 #include <stdlib.h>
 #include <malloc.h>
@@ -46,11 +35,7 @@
 #include "Container.h"
 #include "LibraryDataBase.h"
 #include "io.h"
-//**************************************************************************
-//
 //				Defines
-//
-//**************************************************************************
 
 #define FILENAME_LENGTH 600
 
@@ -70,12 +55,7 @@
     if (!(exp)) {                                                                                  \
         return (-1);                                                                               \
     }
-
-//**************************************************************************
-//
 //				Typedefs
-//
-//**************************************************************************
 
 typedef struct FMFileInfoTag {
     CHAR strFilename[FILENAME_LENGTH];
@@ -95,12 +75,7 @@ typedef struct FileSystemTag {
     CHAR* pcFileNames;
     UINT32 uiNumFilesInDirectory;
 } FileSystem;
-
-//**************************************************************************
-//
 //				Variables
-//
-//**************************************************************************
 
 //The FileDatabaseHeader
 // GLOBAL: WIZ8 0x006eb720
@@ -120,100 +95,53 @@ HANDLE hFindInfoHandle[20] = {
     INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
     INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
     INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE};
-
-//**************************************************************************
-//
 //				Function Prototypes
-//
-//**************************************************************************
 
 void W32toSGPFileFind(GETFILESTRUCT* pGFStruct, WIN32_FIND_DATA* pW32Struct);
 
 HWFILE CreateFileHandle(HANDLE hRealFile, BOOLEAN fDatabaseFile);
 void DestroyFileHandle(HWFILE hFile);
-//**************************************************************************
-//
 //				Functions
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // FileSystemInit
-//
 //		Starts up the file system.
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
-//**************************************************************************
 
 BOOLEAN InitializeFileManager(STR strIndexFilename)
 {
     RegisterDebugTopic(TOPIC_FILE_MANAGER, "File Manager");
     return (TRUE);
 }
-
-//**************************************************************************
-//
 // FileSystemShutdown
-//
 //		Shuts down the file system.
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
 
 void ShutdownFileManager(void)
 {
     UnRegisterDebugTopic(TOPIC_FILE_MANAGER, "File Manager");
 }
-
-//**************************************************************************
-//
 // FileDebug
-//
 //		To set whether or not we should print debug info.
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // FileExists
-//
 //		Checks if a file exists.
-//
 // Parameter List :
-//
 //		STR	-> name of file to check existence of
-//
 // Return Value :
-//
 //		BOOLEAN	-> TRUE if it exists
 //					-> FALSE if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404bf0
 BOOLEAN FileExists(STR strFilename)
@@ -243,27 +171,15 @@ BOOLEAN FileExists(STR strFilename)
 
     return (fExists);
 }
-
-//**************************************************************************
-//
 // FileExistsNoDB
-//
 //		Checks if a file exists, but doesn't check the database files.
-//
 // Parameter List :
-//
 //		STR	-> name of file to check existence of
-//
 // Return Value :
-//
 //		BOOLEAN	-> TRUE if it exists
 //					-> FALSE if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404c40
 BOOLEAN FileExistsNoDB(STR strFilename)
@@ -286,57 +202,32 @@ BOOLEAN FileExistsNoDB(STR strFilename)
 
     return (fExists);
 }
-
-//**************************************************************************
-//
 // FileDelete
-//
 //		Deletes a file.
-//
 // Parameter List :
-//
 //		STR	-> name of file to delete
-//
 // Return Value :
-//
 //		BOOLEAN	-> TRUE if successful
 //					-> FALSE if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404c70
 BOOLEAN FileDelete(STR strFilename)
 {
     return (DeleteFile(strFilename));
 }
-
-//**************************************************************************
-//
 // FileOpen
-//
 //		Opens a file.
-//
 // Parameter List :
-//
 //		STR	   -> filename
 //		UIN32		-> access - read or write, or both
 //		BOOLEAN	-> delete on close
-//
 // Return Value :
-//
 //		HWFILE	-> handle of opened file
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404C80
 HWFILE FileOpen(STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose)
@@ -447,24 +338,13 @@ HWFILE FileOpen(STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose)
 
     return (hFile);
 }
-
-//**************************************************************************
-//
 // FileClose
-//
-//
 // Parameter List :
-//
 //		HWFILE hFile	-> handle to file to close
-//
 // Return Value :
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404e10
 void FileClose(HWFILE hFile)
@@ -494,33 +374,20 @@ void FileClose(HWFILE hFile)
             CloseLibraryFile(sLibraryID, uiFileNum);
     }
 }
-
-//**************************************************************************
-//
 // FileRead
-//
 //		To read a file.
-//
 // Parameter List :
-//
 //		HWFILE		-> handle to file to read from
 //		void	*	-> source buffer
 //		UINT32	-> num bytes to read
 //		UINT32	-> num bytes read
-//
 // Return Value :
-//
 //		BOOLEAN	-> TRUE if successful
 //					-> FALSE if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
 //		08Dec97:ARM		-> return FALSE if bytes to read != bytes read
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404ea0
 BOOLEAN FileRead(HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32* puiBytesRead)
@@ -576,33 +443,20 @@ BOOLEAN FileRead(HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32* puiBytes
 
     return (fRet);
 }
-
-//**************************************************************************
-//
 // FileWrite
-//
 //		To write a file.
-//
 // Parameter List :
-//
 //		HWFILE		-> handle to file to write to
 //		void	*	-> destination buffer
 //		UINT32	-> num bytes to write
 //		UINT32	-> num bytes written
-//
 // Return Value :
-//
 //		BOOLEAN	-> TRUE if successful
 //					-> FALSE if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
 //		08Dec97:ARM		-> return FALSE if dwNumBytesToWrite != dwNumBytesWritten
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00404FB0
 BOOLEAN FileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32* puiBytesWritten)
@@ -638,76 +492,38 @@ BOOLEAN FileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32* puiByt
 
     return (fRet);
 }
-
-//**************************************************************************
-//
 // FileLoad
-//
 //		To open, read, and close a file.
-//
 // Parameter List :
-//
-//
 // Return Value :
-//
 //		BOOLEAN	-> TRUE if successful
 //					-> FALSE if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
 //		08Dec97:ARM		-> return FALSE if bytes to read != bytes read (CHECKF is inappropriate?)
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // FilePrintf
-//
 //		To printf to a file.
-//
 // Parameter List :
-//
 //		HWFILE	-> handle to file to seek in
 //		...		-> arguments, 1st of which should be a string
-//
 // Return Value :
-//
 //		BOOLEAN	-> TRUE if successful
 //					-> FALSE if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // FileSeek
-//
 //		To seek to a position in a file.
-//
 // Parameter List :
-//
 //		HWFILE	-> handle to file to seek in
 //		UINT32	-> distance to seek
 //		UINT8		-> how to seek
-//
 // Return Value :
-//
 //		BOOLEAN	-> TRUE if successful
 //					-> FALSE if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00405030
 BOOLEAN FileSeek(HWFILE hFile, UINT32 uiDistance, UINT8 uiHow)
@@ -750,29 +566,16 @@ BOOLEAN FileSeek(HWFILE hFile, UINT32 uiDistance, UINT8 uiHow)
 
     return (TRUE);
 }
-
-//**************************************************************************
-//
 // FileGetPos
-//
 //		To get the current position in a file.
-//
 // Parameter List :
-//
 //		HWFILE	-> handle to file
-//
 // Return Value :
-//
 //		INT32		-> current offset in file if successful
 //					-> -1 if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x004050d0
 INT32 FileGetPos(HWFILE hFile)
@@ -809,29 +612,16 @@ INT32 FileGetPos(HWFILE hFile)
 
     return (BAD_INDEX);
 }
-
-//**************************************************************************
-//
 // FileGetSize
-//
 //		To get the current file size.
-//
 // Parameter List :
-//
 //		HWFILE	-> handle to file
-//
 // Return Value :
-//
 //		INT32		-> file size in file if successful
 //					-> 0 if not
-//
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x00405150
 UINT32 FileGetSize(HWFILE hFile)
@@ -863,151 +653,39 @@ UINT32 FileGetSize(HWFILE hFile)
     else
         return (uiFileSize);
 }
-
-//**************************************************************************
-//
 // FileDebugPrint
-//
 //		To print the state of memory to output.
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // GetHandleToRealFile
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
 //		9 Feb 98	DEF - modified to work with the library system
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // CreateFileHandle
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
-//**************************************************************************
-/*
-
-	not needed anymore
-
-HWFILE CreateFileHandle( HANDLE hRealFile, BOOLEAN fDatabaseFile )
-{
-	UINT32		i, uiOldNumHandles;
-	FMFileInfo		*pNewFileInfo;
-
-	Assert( !fDatabaseFile || (fDatabaseFile && gfs.fDBInitialized) );
-
-	// don't use 1st position - it'll confuse the users
-	for ( i=1 ; i<gfs.uiNumHandles ; i++ )
-	{
-		if ( gfs.pFileInfo[i].hFileHandle == 0 && gfs.pFileInfo[i].hDBFile == 0 )
-		{
-			if ( fDatabaseFile )
-				gfs.pFileInfo[i].hDBFile = (HDBFILE)hRealFile;
-			else
-				gfs.pFileInfo[i].hFileHandle = hRealFile;
-			return( i );
-		}
-	}
-
-	uiOldNumHandles = gfs.uiNumHandles;
-
-	pNewFileInfo = (FMFileInfo *)MemRealloc( gfs.pFileInfo, gfs.uiNumHandles + NUM_FILES_TO_ADD_AT_A_TIME );
-	if ( !pNewFileInfo )
-	{
-		// TBD: error error error
-		return(0);
-	}
-	gfs.pFileInfo = (FMFileInfo *)pNewFileInfo;
-	gfs.uiNumHandles = gfs.uiNumHandles + NUM_FILES_TO_ADD_AT_A_TIME;
-
-	for ( i=uiOldNumHandles ; i<gfs.uiNumHandles ; i++ )
-	{
-		gfs.pFileInfo[i].hFileHandle = 0;
-		gfs.pFileInfo[i].hDBFile = 0;
-	}
-
-	if ( fDatabaseFile )
-		gfs.pFileInfo[uiOldNumHandles].hDBFile = (HDBFILE)hRealFile;
-	else
-		gfs.pFileInfo[uiOldNumHandles].hFileHandle = hRealFile;
-
-	return(uiOldNumHandles);
-}
-*/
-
-//**************************************************************************
-//
 // DestroyFileHandle
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		24sep96:HJH		-> creation
-//
-//**************************************************************************
-/*
-void DestroyFileHandle( HWFILE hFile )
-{
-	if ( hFile < gfs.uiNumHandles && hFile )
-	{
-		gfs.pFileInfo[hFile].hFileHandle = 0;
-		gfs.pFileInfo[hFile].hDBFile = 0;
-	}
-}
-*/
-
-//**************************************************************************
-//
 // BuildFileDirectory
-//
-//
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		??nov96:HJH		-> creation
-//
-//**************************************************************************
-
-//**************************************************************************
-//
 // GetFilesInDirectory
-//
 //		Gets the files in a directory and the subdirectories.
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		??nov96:HJH		-> creation
-//
-//**************************************************************************
 
 // FUNCTION: WIZ8 0x004051d0
 BOOLEAN DirectoryExists(STRING512 pcDirectory)
@@ -1189,75 +867,6 @@ BOOLEAN FileCopy(STR strSrcFile, STR strDstFile, BOOLEAN fFailIfExists)
     return (CopyFile(strSrcFile, strDstFile, fFailIfExists));
 
     // Not needed, use Windows CopyFile
-    /*
-	HWFILE hFile;
-	UINT32 uiSize;
-	CHAR *pBuffer;
-	UINT32 uiBytesRead, uiBytesWritten;
-
-
-	// open source file
-  hFile = FileOpen(strSrcFile, FILE_ACCESS_READ, FALSE);
-  if (hFile == 0)
-  {
-   	FastDebugMsg(String("FileCopy: FileOpen failed on Src file %s", strSrcFile));
-    return(FALSE);
-  }
-
-	// get its size
-	uiSize = FileGetSize(hFile);
-	if (uiSize == 0)
-	{
-   	FastDebugMsg(String("FileCopy: size is 0, Src file %s", strSrcFile));
-    FileClose(hFile);
-    return(FALSE);
-	}
-
-	// allocate a buffer big enough to hold the entire file
-	pBuffer = MemAlloc(uiSize);
-	if (pBuffer == NULL)
-	{
-		FastDebugMsg(String("FileCopy: ERROR - MemAlloc pBuffer failed, size %d", uiSize));
-    FileClose(hFile);
-		return(FALSE);
-	}
-
-	// read the file into memory
-  if (!FileRead(hFile, pBuffer, uiSize, &uiBytesRead))
-  {
-   	FastDebugMsg(String("FileCopy: FileRead failed, file %s", strSrcFile));
-    FileClose(hFile);
-    return(FALSE);
-  }
-
-	// close source file
-  FileClose(hFile);
-
-
-	// open destination file
-  hFile = FileOpen(strDstFile, FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, FALSE);
-  if (hFile == 0)
-  {
-   	FastDebugMsg(String("FileCopy: FileOpen failed on Dst file %s", strDstFile));
-    return(FALSE);
-  }
-
-	// write buffer to the destination file
-  if (!FileWrite(hFile, pBuffer, uiSize, &uiBytesWritten))
-  {
-   	FastDebugMsg(String("FileCopy: FileWrite failed, file %s", strDstFile));
-    FileClose(hFile);
-    return(FALSE);
-  }
-
-	// close destination file
-  FileClose(hFile);
-
-
-  MemFree(pBuffer);
-  pBuffer = NULL;
-	return(TRUE);
-*/
 }
 
 // FUNCTION: WIZ8 0x004054f0
@@ -1431,21 +1040,14 @@ INT32 CompareSGPFileTimes(SGP_FILETIME* pFirstFileTime, SGP_FILETIME* pSecondFil
 {
     return (CompareFileTime(pFirstFileTime, pSecondFileTime));
 }
-
-//**************************************************************************
-//
 // AddSubdirectoryToPath
-//
 //		Puts a subdirectory of the current working directory into the current
 // task's system path.
-//
 // Parameter List :
 // Return Value :
 // Modification history :
-//
 //		10June98:DB		-> creation
-//
-//**************************************************************************
+
 // FUNCTION: WIZ8 0x00405740
 BOOLEAN AddSubdirectoryToPath(CHAR8* subdirectory)
 {

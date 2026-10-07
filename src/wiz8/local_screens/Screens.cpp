@@ -30,15 +30,6 @@
 
 #include <string.h>
 
-/*
- * Local Screens\Screens.cpp.
- *
- * Keeps the held-item cursor in step with the screen. On the two screens that
- * allow an item in hand it installs that item's cursor; anywhere else it puts
- * the default cursor back and forgets what was held. The screen ids and the
- * cursor ids are the numbers the original uses, and nothing here names them.
- */
-
 /* Query whether scrolling is possible, or scroll and invalidate the transcript. */
 // FUNCTION: WIZ8 0x0055EBB0
 bool W8NpcDialogueTextController::HandleScrollDownCommand(bool check_only)

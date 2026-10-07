@@ -3,6 +3,7 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include <math.h>
 #include <stdlib.h>
@@ -778,19 +779,11 @@ UINT16 Get16BPPColor(UINT32 RGBValue)
 
     return (usColor);
 }
-
-//*****************************************************************************
-//
 // ConvertToPaletteEntry
-//
 // Parameter List : Converts from RGB to SGPPaletteEntry
-//
 // Return Value  pointer to the SGPPaletteEntry
-//
 // Modification History :
 // Dec 15th 1996 -> modified for use by Wizardry
-//
-//*****************************************************************************
 
 // FUNCTION: WIZ8 0x00410580
 BOOLEAN GetETRLEImageData(HIMAGE hImage, ETRLEData* pBuffer)

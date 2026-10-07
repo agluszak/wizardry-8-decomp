@@ -181,17 +181,17 @@ bool MonsterGroupAllMembersDying(W8MonsterGroup* monster_group)
 }
 
 /* How a monster group starts out disposed towards the party.
- 
+
    A record flagged at +0xD0 answers from its NPC data instead of its faction:
    the group's first member is looked up, its NPC record fetched, and that
    record's own scale mapped onto this one. The two scales are not the same and
    the mapping is not the identity, which is why both are named separately.
- 
+
    Otherwise the faction decides. The unaligned faction defers to the record's
    hostility range - -1 means neutral, zero means hostile, and anything else is
    a proximity threshold that still starts neutral - and the party's own faction
    is always friendly. Every other faction goes through the disposition table.
- 
+
    Each of the three multi-way tests is a switch rather than a comparison chain:
    the original emits the dec/je ladder VC6 produces for small dense cases. */
 // FUNCTION: WIZ8 0x00511250
@@ -324,7 +324,7 @@ void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group)
    list, biased by 10000; anything else selects the loaded group list. An index
    past the end of its list answers null quietly, while an index inside it that
    the list nonetheless fails to produce is a bug and says so.
- 
+
    The diagnostic in the encounter branch reports the loaded list rather than
    the encounter list it actually read. Preserved as found. */
 // FUNCTION: WIZ8 0x005101b0
@@ -436,7 +436,7 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
    does not move an entry past the cursor. It stops at the first removal that
    fails and reports that, which is why the loop is a do/while on the result
    rather than a counted walk.
- 
+
    The despawn paths and the standalone emission share this canonical body. */
 // FUNCTION: WIZ8 0x0050f5d0
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
@@ -512,7 +512,7 @@ void RefreshMonsterGroup(W8MonsterGroup* monster_group)
 /* Refreshes a group and every group allied to it, then the lead member's live
    monster. All four ally slots are walked and the empty ones skipped, so the
    array is fixed-size rather than terminated.
- 
+
    The link-repair path calls the same canonical body. */
 // FUNCTION: WIZ8 0x005106d0
 void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
@@ -678,7 +678,7 @@ void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
    up: the same special-cased record id, the same choice between the record's
    two name sets, but the variant comes from the member count rather than a
    caller - a group of exactly one is named in the singular.
- 
+
    Its opening assertion is followed immediately by MonsterGroupGetRecord's own. */
 // FUNCTION: WIZ8 0x00510280
 wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group)
@@ -864,7 +864,7 @@ bool MonsterGroupHasIncapacitatedMember(int group_id)
    loaded and cached on the group itself; an unloaded group answers with
    whatever it last held. The out-parameter is optional, so the same call both
    refreshes the cache and reads it.
- 
+
    The divisor is the member count captured before the walk, not re-read after
    it, which is what makes a member added during the walk skew the average
    rather than divide by the wrong count. Preserved as found. */
@@ -904,7 +904,7 @@ void GetMonsterGroupCentre(W8MonsterGroup* monster_group, srVector3T<float>* cen
    cut and any ally slot pointing back at it is cleared too. Every group that
    ends up leading - because it never had a leader, or because the repair just
    removed one - is then refreshed along with its allies.
- 
+
    The list length is read once, before the walk, unlike the other passes over
    this list. Preserved as found. */
 // FUNCTION: WIZ8 0x00510740
@@ -960,18 +960,6 @@ static W8MonsterGroup* UnlinkMonsterGroupFromLeader(W8MonsterGroup* monster_grou
     return current;
 }
 
-/* Moves a group under a new leader, or detaches it when none is given.
- 
-   Linking a group to itself is refused outright. Otherwise the group is first
-   unlinked from wherever it currently sits: its old leader's ally slot is
-   cleared and its own leader link cut, and if it was leading a live formation
-   it is retired from the encounter budget on the way out. The formation is then
-   re-laid-out through whichever group the id still resolves to.
- 
-   With a leader given, the group takes the first free ally slot; a full leader
-   refuses the link and answers zero, leaving the group detached rather than
-   half-attached. Detaching instead - a null leader - hands a live group back to
-   the budget through the other of the two 0x0048C6xx entry points. */
 // FUNCTION: WIZ8 0x0050fc20
 unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* monster_group)
 {
@@ -1122,7 +1110,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
    simply unlinked from its leader and the formation re-laid-out. Its member
    IList is released and the record itself removed from whichever of the two
    group lists holds it, chosen by the same 10000 bias the lookups use.
- 
+
    Failing to destroy the member list leaves the record in place and reports
    failure, so the group survives rather than being half-freed. */
 // FUNCTION: WIZ8 0x0050f4a0

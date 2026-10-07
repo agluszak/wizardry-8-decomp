@@ -32,14 +32,6 @@
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/utility.h"
 
-/*
- * Local Code\Combat Hostility.cpp.
- *
- * Whether two monsters count as hostile to each other: same-species
- * short-circuit, disposition-band equality, and the faction records behind
- * them.
- */
-
 // STRING: WIZ8 0x0061DC60
 #define COMBAT_HOSTILITY_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp"
 

@@ -84,77 +84,6 @@ def is_first_party(module: dict[str, Any]) -> bool:
     return module.get("classification") == "first-party-game"
 
 
-def _module_diff(modules: list[dict[str, Any]]) -> dict[str, Any]:
-    groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for module in modules:
-        groups[module["module_name"].casefold()].append(module)
-    comparisons = []
-    for name, members in sorted(groups.items()):
-        members = sorted(members, key=lambda item: item["variant"])
-        if len(members) < 2:
-            comparisons.append(
-                {"module_name": name, "present_only_in": [item["variant"] for item in members]}
-            )
-            continue
-        baseline = next((item for item in members if item["variant"] == "gog-base"), members[0])
-        for other in members:
-            if other is baseline:
-                continue
-            left_sections = {item["name"]: item for item in baseline["sections"]}
-            right_sections = {item["name"]: item for item in other["sections"]}
-            changed = sorted(
-                name
-                for name in left_sections.keys() & right_sections.keys()
-                if left_sections[name]["sha256"] != right_sections[name]["sha256"]
-            )
-            added = sorted(right_sections.keys() - left_sections.keys())
-            removed = sorted(left_sections.keys() - right_sections.keys())
-            exact = baseline["sha256"] == other["sha256"]
-            metadata_only = (
-                not exact
-                and baseline["metadata_normalized_sha256"] == other["metadata_normalized_sha256"]
-            )
-            size_delta = other["size"] - baseline["size"]
-            comparisons.append(
-                {
-                    "module_name": name,
-                    "baseline_variant": baseline["variant"],
-                    "other_variant": other["variant"],
-                    "exact": exact,
-                    "metadata_only": metadata_only,
-                    "size_delta": size_delta,
-                    "delta_scale": "identical"
-                    if exact
-                    else (
-                        "small" if abs(size_delta) < max(4096, baseline["size"] // 100) else "large"
-                    ),
-                    "changed_sections": changed,
-                    "added_sections": added,
-                    "removed_sections": removed,
-                    "imports_added": sorted(
-                        {item["module"] for item in other["imports"]}
-                        - {item["module"] for item in baseline["imports"]},
-                        key=str.casefold,
-                    ),
-                    "imports_removed": sorted(
-                        {item["module"] for item in baseline["imports"]}
-                        - {item["module"] for item in other["imports"]},
-                        key=str.casefold,
-                    ),
-                    "injection_indicators": (
-                        ["added PE sections: " + ", ".join(added)] if added else []
-                    )
-                    + (
-                        ["new imported modules"]
-                        if {item["module"] for item in other["imports"]}
-                        - {item["module"] for item in baseline["imports"]}
-                        else []
-                    ),
-                }
-            )
-    return {"schema": "wiz8.module-diff", "comparisons": comparisons}
-
-
 def inventory(settings: Settings) -> dict[str, Any]:
     variants_root = settings.work_dir / "variants"
     if not variants_root.is_dir():
@@ -186,22 +115,6 @@ def inventory(settings: Settings) -> dict[str, Any]:
         ]
     )
     write_generated_document(variant_module_inventory_path(settings), variants)
-    diff = _module_diff(modules)
-    atomic_json(settings.build_dir / "reports" / "module-diff.json", diff)
-    compiler = {
-        "schema": "wiz8.compiler-evidence",
-        "modules": [
-            {
-                "identity": item["identity"],
-                "hypothesis": item["compiler_hypothesis"],
-                "rich_header": item["rich_header"],
-            }
-            for item in modules
-            if item["classification"] in {"first-party-game", "renderer", "fan-patch", "setup"}
-        ],
-    }
-    atomic_json(settings.build_dir / "reports" / "compiler-evidence.json", compiler)
-    _write_markdown(settings, modules, diff, compiler)
     _write_source_evidence(settings, modules)
     return result
 
@@ -220,46 +133,6 @@ def _write_source_evidence(settings: Settings, modules: list[dict[str, Any]]) ->
             assertion_writer.writerow([module["variant"], module["relative_path"], value])
     atomic_write(settings.build_dir / "evidence" / "source-paths.csv", source_buffer.getvalue())
     atomic_write(settings.build_dir / "evidence" / "assertions.csv", assertion_buffer.getvalue())
-
-
-def _write_markdown(
-    settings: Settings,
-    modules: list[dict[str, Any]],
-    diff: dict[str, Any],
-    compiler: dict[str, Any],
-) -> None:
-    lines = [
-        "# Wizardry 8 module inventory",
-        "",
-        "| Variant | Module | Class | SHA-256 | Version | Compiler |",
-        "|---|---|---|---|---|---|",
-    ]
-    for item in modules:
-        versions = item["version_resources"]
-        version = versions.get("FileVersion") or versions.get("FixedFileVersion") or "unknown"
-        lines.append(
-            f"| {item['variant']} | `{item['relative_path']}` | {item['classification']} | `{item['sha256'][:16]}…` | {version} | {item['compiler_hypothesis']['family']} ({item['compiler_hypothesis']['confidence']}) |"
-        )
-    lines.extend(
-        [
-            "",
-            "Generated from PE structures and content; classifications retain evidence in `modules.json`.",
-            "",
-        ]
-    )
-    atomic_write(settings.build_dir / "reports" / "modules.md", "\n".join(lines))
-    compiler_lines = ["# Compiler evidence", ""]
-    for item in compiler["modules"]:
-        hypothesis = item["hypothesis"]
-        compiler_lines.append(f"## `{item['identity']}`")
-        compiler_lines.append("")
-        compiler_lines.append(
-            f"Hypothesis: **{hypothesis['family']}**; confidence: **{hypothesis['confidence']}**."
-        )
-        compiler_lines.append("")
-        compiler_lines.extend(f"- {evidence}" for evidence in hypothesis["evidence"])
-        compiler_lines.append("")
-    atomic_write(settings.build_dir / "reports" / "compiler-evidence.md", "\n".join(compiler_lines))
 
 
 def load_inventory(settings: Settings) -> dict[str, Any]:

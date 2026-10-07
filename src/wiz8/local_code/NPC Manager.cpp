@@ -69,15 +69,6 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/GameData.h"
 
-/*
- * Local Code\NPC Manager.cpp.
- *
- * The runtime side of an NPC: the state record that pairs a database entry
- * with the monster standing in the world for it, the short list of facts it
- * has been told, and the small predicates the dialogue and trading code asks
- * about it.
- */
-
 #define NPC_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\NPC Manager.cpp"
 
 enum { W8_NPC_TOPIC_SLOTS = 5, W8_NPC_FACT_SLOTS = 14 };

@@ -1,11 +1,4 @@
-/* Local Code\ThingEditorShared.cpp - code shared with the thing editor.
 
-   Retail retains no path string for this unit; the official demo carries two
-   "E:\Wizardry 8\Local Code\ThingEditorShared.cpp" anchors at demo 0x0055AC00
-   (line 444) and 0x0055AE80 (line 540). Retail 0x00556000 uniquely matches
-   demo 0x0055AE30, which sits inside that demo hull. The unit's retail span
-   lies between Formation & Facing.cpp (0x00555F30) and GroupAttacks.cpp
-   (0x00556050); the other bodies in that interval stay unproven. */
 
 #include "wiz8/local_code/ThingEditorShared.h"
 

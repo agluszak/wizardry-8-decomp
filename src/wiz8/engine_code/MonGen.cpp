@@ -34,12 +34,6 @@
 #include <stdlib.h>
 #include "wiz8/engine_code/GameData.h"
 
-/* Engine Code\MonGen.cpp. InitializeEncounterTables at 0x0048A7A0 asserts
-   this unit (line 211) and the 0x0048A7A0-0x0048C110 hard hull is bounded to
-   it. MonGen's destructor and helper before the hull and the
-   encounter/timer bodies after it are attribution gaps placed here
-   provisionally; no assertion names their unit. */
-
 /* These are recovered in their owning Local Code units. Retail MonGen calls
    them out of line, so keep the cross-TU seams rather than cloning their logic. */
 unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader,
@@ -105,11 +99,6 @@ W8GrowableVector<char*> g_encounter_names;
 // GLOBAL: WIZ8 0x0060a6bc
 int g_encounter_tables_level = -1;
 
-/* Engine Code\\MonGen.cpp's startup loader. EncounterTables.dbs stores the
-   names first, followed by a columnar record: ids, rarity, time, challenge and
-   fixed 64-byte script names. Keeping those columns in their reviewed inline
-   vector layout makes this useful to the later encounter path as well as to
-   startup. */
 // FUNCTION: WIZ8 0x0048a7a0
 unsigned int InitializeEncounterTables(void)
 {
@@ -517,13 +506,13 @@ bool MonGen::CanGenerateEncounter(bool force)
 }
 
 /* Advances the random-encounter budget for the current level.
- 
+
    Normally the budget grows by the time elapsed since the level was last
    budgeted, divided by that level's period, and both the budget and the derived
    limit are then clamped into their own per-level ranges. A reset instead sets
    the budget straight to the level maximum and declares the elapsed span stale,
    which is what makes the reset path take the reroll branch below.
- 
+
    The elapsed span is finally added to every live group's own timestamp, so a
    group that existed through the gap ages by exactly as much as the level did.
    Past ten hours that is not worth doing and the encounters are rerolled. */
@@ -594,13 +583,13 @@ const float g_encounter_culling_rate = 2880.0f;
 const double g_encounter_culling_distance = 50000.0;
 
 /* Retires random encounters that have outlived their welcome.
- 
+
    A group is a candidate once more than the level's culling span has passed
    since it was budgeted, where the span is scaled one way normally and another
    when 0x00504910 reports the faster clock. A candidate is only actually
    despawned when the party is far enough away from its lead member - or when
    the override at 0x00687500 says to drop it regardless of distance.
- 
+
    The elapsed span is compared as unsigned, so a group whose timestamp is ahead
    of the clock reads as very old rather than as not yet due. Preserved as
    found. */

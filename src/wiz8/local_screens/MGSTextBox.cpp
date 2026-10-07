@@ -44,15 +44,6 @@
 // GLOBAL: WIZ8 0x0068f2d4
 W8MainGameScreen* g_main_game_screen;
 
-/*
- * Local Screens\MGSTextBox.cpp.
- *
- * The message box on the main game screen. Everything it reads and writes
- * lives on the level runtime block at 0x0068EDCC, which is the same object the
- * item manager and the movement rules reach through - the text state simply
- * occupies a different part of it.
- */
-
 #define MGS_TEXT_BOX_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSTextBox.cpp"
 
 /* The TEXT chunk's 0x24-byte form is separate from the live message record:

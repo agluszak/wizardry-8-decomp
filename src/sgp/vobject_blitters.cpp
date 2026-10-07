@@ -3,6 +3,7 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "DirectDraw Calls.h"
 #include <stdio.h>
@@ -30,10 +31,8 @@ BOOLEAN gfUsePreCalcSkips = FALSE;
 
 /***********************************************************************************/
 
-//*****************************************************************************
 //** 8 Bit Blitters
 //**
-//*****************************************************************************
 
 /**********************************************************************************************
  Blt8BPPDataTo8BPPBufferMonoShadowClip
@@ -166,12 +165,10 @@ LSSkip2:
 		add		esi, ecx // skip whole run, and start blit with new run
 		jmp		BlitLineSetup
 
-
 LSSkip1:
 		add		esi, ecx // skip whole run, continue skipping
 		sub		LSCount, ecx
 		jmp		LeftSkipLoop
-
 
 LSTrans:
 		and		ecx, 07fH
@@ -185,11 +182,9 @@ LSTrans:
 		mov		Unblitted, 0
 		jmp		BlitTransparent
 
-
 LSTrans1:
 		sub		LSCount, ecx // skip whole run, continue skipping
 		jmp		LeftSkipLoop
-
 
 BlitLineSetup: // Does any actual blitting (trans/non) for the line
 		mov		eax, BlitLength
@@ -277,9 +272,7 @@ BTrans2:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 RightSkipLoop: // skip along until we hit and end-of-line marker
-
 
 RSLoop1:
 		mov		al, [esi]
@@ -292,7 +285,6 @@ RSLoop1:
 		add		edi, LineSkip
 
 		jmp		LeftSkipSetup
-
 
 BlitDone:
     }
@@ -398,9 +390,6 @@ TSEndLine:
 		dec		ebx
 		jnz		TopSkipLoop
 
-
-
-
 LeftSkipSetup:
 
 		mov		Unblitted, 0
@@ -430,12 +419,10 @@ LSSkip2:
 		add		esi, ecx // skip whole run, and start blit with new run
 		jmp		BlitLineSetup
 
-
 LSSkip1:
 		add		esi, ecx // skip whole run, continue skipping
 		sub		ebx, ecx
 		jmp		LeftSkipLoop
-
 
 LSTrans:
 		and		ecx, 07fH
@@ -448,13 +435,9 @@ LSTrans:
 		mov		Unblitted, 0
 		jmp		BlitTransparent
 
-
 LSTrans1:
 		sub		ebx, ecx // skip whole run, continue skipping
 		jmp		LeftSkipLoop
-
-
-
 
 BlitLineSetup: // Does any actual blitting (trans/non) for the line
 		mov		ebx, BlitLength
@@ -555,9 +538,7 @@ BTrans1:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 RightSkipLoop: // skip along until we hit and end-of-line marker
-
 
 RSLoop1:
 		mov		al, [esi]
@@ -570,7 +551,6 @@ RSLoop1:
 		add		edi, LineSkip
 
 		jmp		LeftSkipSetup
-
 
 BlitDone:
     }
@@ -707,14 +687,12 @@ BlitTransparent:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 BlitDoneLine:
 
 		dec		usHeight
 		jz		BlitDone
 		add		edi, LineSkip
 		jmp		BlitDispatch
-
 
 BlitDone:
     }
@@ -774,7 +752,6 @@ BOOLEAN Blt8BPPDataTo8BPPBufferShadow(UINT16* pBuffer, UINT32 uiDestPitchBYTES,
 		mov		edx, OFFSET ShadeTable
 
 BlitDispatch:
-
 
 		mov		cl, [esi]
 		inc		esi
@@ -850,14 +827,12 @@ BlitTransparent:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 BlitDoneLine:
 
 		dec		ebx
 		jz		BlitDone
 		add		edi, LineSkip
 		jmp		BlitDispatch
-
 
 BlitDone:
     }
@@ -963,9 +938,6 @@ TSEndLine:
 		dec		ebx
 		jnz		TopSkipLoop
 
-
-
-
 LeftSkipSetup:
 
 		mov		Unblitted, 0
@@ -995,12 +967,10 @@ LSSkip2:
 		add		esi, ecx // skip whole run, and start blit with new run
 		jmp		BlitLineSetup
 
-
 LSSkip1:
 		add		esi, ecx // skip whole run, continue skipping
 		sub		ebx, ecx
 		jmp		LeftSkipLoop
-
 
 LSTrans:
 		and		ecx, 07fH
@@ -1012,13 +982,9 @@ LSTrans:
 		mov		ebx, BlitLength
 		jmp		BlitTransparent
 
-
 LSTrans1:
 		sub		ebx, ecx // skip whole run, continue skipping
 		jmp		LeftSkipLoop
-
-
-
 
 BlitLineSetup: // Does any actual blitting (trans/non) for the line
 		mov		ebx, BlitLength
@@ -1121,9 +1087,7 @@ BTrans1:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 RightSkipLoop:
-
 
 RSLoop1:
 		mov		al, [esi]
@@ -1137,17 +1101,14 @@ RSLoop1:
 
 		jmp		LeftSkipSetup
 
-
 BlitDone:
     }
 
     return (TRUE);
 }
 
-//*****************************************************************************
 //** 16 Bit Blitters
 //**
-//*****************************************************************************
 
 /**********************************************************************************************
  Blt8BPPDataTo16BPPBufferMonoShadowClip
@@ -1277,12 +1238,10 @@ LSSkip2:
 		add		esi, ecx // skip whole run, and start blit with new run
 		jmp		BlitLineSetup
 
-
 LSSkip1:
 		add		esi, ecx // skip whole run, continue skipping
 		sub		LSCount, ecx
 		jmp		LeftSkipLoop
-
 
 LSTrans:
 		and		ecx, 07fH
@@ -1296,11 +1255,9 @@ LSTrans:
 		mov		Unblitted, 0
 		jmp		BlitTransparent
 
-
 LSTrans1:
 		sub		LSCount, ecx // skip whole run, continue skipping
 		jmp		LeftSkipLoop
-
 
 BlitLineSetup: // Does any actual blitting (trans/non) for the line
 		mov		eax, BlitLength
@@ -1395,9 +1352,7 @@ BTrans2:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 RightSkipLoop: // skip along until we hit and end-of-line marker
-
 
 RSLoop1:
 		mov		al, [esi]
@@ -1410,7 +1365,6 @@ RSLoop1:
 		add		edi, LineSkip
 
 		jmp		LeftSkipSetup
-
 
 BlitDone:
     }
@@ -1468,7 +1422,6 @@ BlitNewLine:
 	jnz		BlitNewLine
 
 	jmp		BlitDone
-
 
 BlitDwords:
 	mov		ecx, uiWidth
@@ -1910,7 +1863,6 @@ BOOLEAN Blt16BPPBufferPixelateRectWithColor(UINT16* pBuffer, UINT32 uiDestPitchB
 		xor		ebx, ebx // pattern column index
 		xor		edx, edx // pattern row index
 
-
 BlitNewLine:
 		mov		ecx, width
 
@@ -2002,7 +1954,6 @@ BOOLEAN Blt8BPPDataTo16BPPBufferShadow(UINT16* pBuffer, UINT32 uiDestPitchBYTES,
 
 BlitDispatch:
 
-
 		mov		cl, [esi]
 		inc		esi
 		or		cl, cl
@@ -2077,14 +2028,12 @@ BlitTransparent:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 BlitDoneLine:
 
 		dec		ebx
 		jz		BlitDone
 		add		edi, LineSkip
 		jmp		BlitDispatch
-
 
 BlitDone:
     }
@@ -2222,7 +2171,6 @@ BlitTransparent:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 BlitDoneLine:
 
 		dec		usHeight
@@ -2230,29 +2178,23 @@ BlitDoneLine:
 		add		edi, LineSkip
 		jmp		BlitDispatch
 
-
 BlitDone:
     }
 
     return (TRUE);
 }
 
-//*****************************************************************************************
 // Blt8BPPDataTo16BPPBufferTransMirror
-//
 // Blits an 8bpp ETRLE to a 16-bit buffer, mirroring the image, with transparency.
-//
 // Returns BOOLEAN            - TRUE if successful
-//
 //  UINT16 *pBuffer           - 16bpp Destination buffer
 // UINT32 uiDestPitchBYTES    - Destination pitch in bytes
 // HVOBJECT hSrcVObject       - Source VOBJECT handle
 // INT32 iX                   - X-location of blit
 // INT32 iY                   - Y-location of blit
 // UINT16 usIndex             - VOBJECT image index to blit from
-//
 // Created:  7/28/99 Derek Beland
-//*****************************************************************************************
+
 // FUNCTION: WIZ8 0x00411cb0
 BOOLEAN Blt8BPPDataTo16BPPBufferTransMirror(UINT16* pBuffer, UINT32 uiDestPitchBYTES,
                                             HVOBJECT hSrcVObject, INT32 iX, INT32 iY,
@@ -2389,14 +2331,12 @@ BlitTransparent:
 		sub		edi, ecx
 		jmp		BlitDispatch
 
-
 BlitDoneLine:
 
 		dec		usHeight
 		jz		BlitDone
 		add		edi, uiDestSkip
 		jmp		BlitDispatch
-
 
 BlitDone:
     }
@@ -2501,9 +2441,6 @@ TSEndLine:
 		dec		ebx
 		jnz		TopSkipLoop
 
-
-
-
 LeftSkipSetup:
 
 		mov		Unblitted, 0
@@ -2533,12 +2470,10 @@ LSSkip2:
 		add		esi, ecx // skip whole run, and start blit with new run
 		jmp		BlitLineSetup
 
-
 LSSkip1:
 		add		esi, ecx // skip whole run, continue skipping
 		sub		ebx, ecx
 		jmp		LeftSkipLoop
-
 
 LSTrans:
 		and		ecx, 07fH
@@ -2551,13 +2486,9 @@ LSTrans:
 		mov		Unblitted, 0
 		jmp		BlitTransparent
 
-
 LSTrans1:
 		sub		ebx, ecx // skip whole run, continue skipping
 		jmp		LeftSkipLoop
-
-
-
 
 BlitLineSetup: // Does any actual blitting (trans/non) for the line
 		mov		ebx, BlitLength
@@ -2667,9 +2598,7 @@ BTrans1:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 RightSkipLoop: // skip along until we hit and end-of-line marker
-
 
 RSLoop1:
 		mov		al, [esi]
@@ -2682,7 +2611,6 @@ RSLoop1:
 		add		edi, LineSkip
 
 		jmp		LeftSkipSetup
-
 
 BlitDone:
     }
@@ -2842,9 +2770,6 @@ TSEndLine:
 		dec		ebx
 		jnz		TopSkipLoop
 
-
-
-
 LeftSkipSetup:
 
 		mov		Unblitted, 0
@@ -2874,12 +2799,10 @@ LSSkip2:
 		add		esi, ecx // skip whole run, and start blit with new run
 		jmp		BlitLineSetup
 
-
 LSSkip1:
 		add		esi, ecx // skip whole run, continue skipping
 		sub		ebx, ecx
 		jmp		LeftSkipLoop
-
 
 LSTrans:
 		and		ecx, 07fH
@@ -2891,13 +2814,9 @@ LSTrans:
 		mov		ebx, BlitLength
 		jmp		BlitTransparent
 
-
 LSTrans1:
 		sub		ebx, ecx // skip whole run, continue skipping
 		jmp		LeftSkipLoop
-
-
-
 
 BlitLineSetup: // Does any actual blitting (trans/non) for the line
 		mov		ebx, BlitLength
@@ -3000,9 +2919,7 @@ BTrans1:
 		add		edi, ecx
 		jmp		BlitDispatch
 
-
 RightSkipLoop:
-
 
 RSLoop1:
 		mov		al, [esi]
@@ -3015,7 +2932,6 @@ RSLoop1:
 		add		edi, LineSkip
 
 		jmp		LeftSkipSetup
-
 
 BlitDone:
     }
@@ -3160,343 +3076,7 @@ BlitLine:
     return (TRUE);
 }
 
-/*
-BOOLEAN Blt8BPPDataTo16BPPBufferFullTransparent( HVOBJECT hDestVObject, HVOBJECT hSrcVObject, UINT16 usX, UINT16 usY, SGPRect *srcRect )
-{
-	UINT32 uiSrcStart, uiDestStart, uiNumLines, uiLineSize;
-//	UINT32 rows, cols;
-	UINT8 *pSrc; //, *pSrcTemp;
-	UINT16 *pDest; //*pDestTemp,
-	UINT32	uiSrcPitch, uiDestPitch;
-	UINT16 *p16BPPPalette;
-	UINT16 usEffectiveSrcWidth;
-	UINT16 usEffectiveDestWidth;
-	UINT16 us16BPPSrcTransColor;
-	UINT16 us16BPPDestTransColor;
-//	UINT16 us16BPPValue;
-	UINT32 count;
-	UINT8  maskcolor;
-
-	// Assertions
-	Assert( hSrcVObject != NULL );
-	Assert( hDestVObject != NULL );
-
-	// Validations
-	CHECKF( usX >= 0 );
-	CHECKF( usY >= 0 );
-	CHECKF( srcRect->iRight > srcRect->iLeft );
-	CHECKF( srcRect->iBottom > srcRect->iTop );
-
-	p16BPPPalette = hSrcVObject->p16BPPPalette;
-	CHECKF( p16BPPPalette != NULL );
-
-	// Lock Data
-	pSrc = LockVideoObjectBuffer( hSrcVObject, &uiSrcPitch );
-
-	// Effective width ( in PIXELS ) is Pitch ( in bytes ) converted to pitch ( IN PIXELS )
-	usEffectiveSrcWidth = (UINT16)( uiSrcPitch / ( hSrcVObject->ubBitDepth / 8 ) );
-
-	pDest = (UINT16*)LockVideoObjectBuffer( hDestVObject, &uiDestPitch );
-
-	// Effective width ( in PIXELS ) is Pitch ( in bytes ) converted to pitch ( IN PIXELS )
-	usEffectiveDestWidth = (UINT16)( uiDestPitch / ( hDestVObject->ubBitDepth / 8 ) );
-
-	// Determine memcopy coordinates
-	uiSrcStart = srcRect->iTop * usEffectiveSrcWidth + srcRect->iLeft;
-	uiDestStart = usY * usEffectiveDestWidth + usX;
-	uiNumLines = ( srcRect->iBottom - srcRect->iTop );
-	uiLineSize = ( srcRect->iRight - srcRect->iLeft );
-
-	CHECKF( hDestVObject->usWidth >= uiLineSize );
-	CHECKF( hDestVObject->usHeight >= uiNumLines );
-
-	// Find 16 BPP transparent color
-	us16BPPSrcTransColor = Get16BPPColor( hSrcVObject->TransparentColor );
-	for(count=0; (count < 256) && (p16BPPPalette[count]!=us16BPPSrcTransColor); count++);
-
-	if(count==256)
-	{
-		DebugMsg(TOPIC_VIDEOOBJECT, DBG_LEVEL_2, String( "Transparency color does not exist in palette table for source object" ));
-		maskcolor=0;
-	}
-	else
-			maskcolor=(UINT8)count;
-
-	us16BPPDestTransColor = Get16BPPColor( hDestVObject->TransparentColor );
-
-	// Convert to Pixel specification
-	pDest = pDest + uiDestStart;
-	pSrc =  pSrc + uiSrcStart;
-
-	__asm {
-		mov		esi, pSrc						// pointer to current line start address in source
-		mov		edi, pDest					// pointer to current line start address in destination
-		mov		ecx, uiNumLines			// line counter (goes top to bottom)
-		mov		edx, p16BPPPalette
-
-		mov		ebx, uiLineSize			// column counter (goes right to left)
-		dec		ebx
-
-ReadMask:
-		mov		ax, [edi+ebx*2]
-		cmp		ax, us16BPPDestTransColor
-		je		NextColumn
-		xor		eax, eax						// clear out the top 24 bits
-		mov		al, [esi+ebx]
-		cmp		al, maskcolor
-		je		NextColumn
-
-		shl		eax, 1							// make it into a word index
-		mov		ax, [edx+eax]				// get 16-bit version of 8-bit pixel
-		mov		[edi+ebx*2], ax
-
-NextColumn:
-		dec		ebx									// decrement column counter
-		jns		ReadMask						// loop until one line is done
-
-		dec		ecx									// check line counter
-		jz		DoneBlit						// done blitting, exit
-
-		add		esi, uiSrcPitch			// move line pointers down one line
-		add		edi, uiDestPitch
-		mov		ebx, uiLineSize			// column counter (goes right to left)
-		dec		ebx
-		jmp		ReadMask						// back into blitting on next line
-
-DoneBlit:											// finished blit
-		}
-
-	ReleaseVideoObjectBuffer( hSrcVObject );
-	ReleaseVideoObjectBuffer( hDestVObject );
-
-	return( TRUE );
-
-}	*/
-
 // UTILITY FUNCTIONS FOR BLITTING
-/*
-BOOLEAN ClipReleatedSrcAndDestRectangles( HVOBJECT hDestVObject, HVOBJECT hSrcVObject, RECT *DestRect, RECT *SrcRect )
-{
-
-	Assert( hDestVObject != NULL );
-	Assert( hSrcVObject != NULL );
-
-	// Check for invalid start positions and clip by ignoring blit
-	if ( DestRect->iLeft >= hDestVObject->usWidth || DestRect->iTop >= hDestVObject->usHeight )
-	{
-		return( FALSE );
-	}
-
-	if ( SrcRect->iLeft >= hSrcVObject->usWidth || SrcRect->iTop >= hSrcVObject->usHeight )
-	{
-		return( FALSE );
-	}
-
-	// For overruns
-	// Clip destination rectangles
-	if ( DestRect->iRight > hDestVObject->usWidth )
-	{
-		// Both have to be modified or by default streching occurs
-		DestRect->iRight = hDestVObject->usWidth;
-		SrcRect->iRight = SrcRect->iLeft + ( DestRect->iRight - DestRect->iLeft );
-	}
-	if ( DestRect->iBottom > hDestVObject->usHeight )
-	{
-		// Both have to be modified or by default streching occurs
-		DestRect->iBottom = hDestVObject->usHeight;
-		SrcRect->iBottom = SrcRect->iTop + ( DestRect->iBottom - DestRect->iTop );
-	}
-
-	// Clip src rectangles
-	if ( SrcRect->iRight > hSrcVObject->usWidth )
-	{
-		// Both have to be modified or by default streching occurs
-		SrcRect->iRight = hSrcVObject->usWidth;
-		DestRect->iRight = DestRect->iLeft  + ( SrcRect->iRight - SrcRect->iLeft );
-	}
-	if ( SrcRect->iBottom > hSrcVObject->usHeight )
-	{
-		// Both have to be modified or by default streching occurs
-		SrcRect->iBottom = hSrcVObject->usHeight;
-		DestRect->iBottom = DestRect->iTop + ( SrcRect->iBottom - SrcRect->iTop );
-	}
-
-	// For underruns
-	// Clip destination rectangles
-	if ( DestRect->iLeft < 0 )
-	{
-		// Both have to be modified or by default streching occurs
-		DestRect->iLeft = 0;
-		SrcRect->iLeft = SrcRect->iRight - ( DestRect->iRight - DestRect->iLeft );
-	}
-	if ( DestRect->iTop < 0 )
-	{
-		// Both have to be modified or by default streching occurs
-		DestRect->iTop = 0;
-		SrcRect->iTop = SrcRect->iBottom - ( DestRect->iBottom - DestRect->iTop );
-	}
-
-	// Clip src rectangles
-	if ( SrcRect->iLeft < 0 )
-	{
-		// Both have to be modified or by default streching occurs
-		SrcRect->iLeft = 0;
-		DestRect->iLeft = DestRect->iRight  - ( SrcRect->iRight - SrcRect->iLeft );
-	}
-	if ( SrcRect->iTop < 0 )
-	{
-		// Both have to be modified or by default streching occurs
-		SrcRect->iTop = 0;
-		DestRect->iTop = DestRect->iBottom - ( SrcRect->iBottom - SrcRect->iTop );
-	}
-
-	return( TRUE );
-}
-
-
-BOOLEAN FillSurface( HVOBJECT hDestVObject, blt_fx *pBltFx )
-{
-	DDBLTFX				 BlitterFX;
-
-	Assert( hDestVObject != NULL );
-	CHECKF( pBltFx != NULL );
-
-	BlitterFX.dwSize = sizeof( DDBLTFX );
-	BlitterFX.dwFillColor = pBltFx->ColorFill;
-
-	DDBltSurface( (LPDIRECTDRAWSURFACE2)hDestVObject->pSurfaceData, NULL, NULL, NULL, DDBLT_COLORFILL, &BlitterFX );
-
-	if ( hDestVObject->fFlags & VOBJECT_VIDEO_MEM_USAGE && !hDestVObject->fFlags & VOBJECT_RESERVED_SURFACE )
-	{
-		UpdateBackupSurface( hDestVObject );
-	}
-
-	return( TRUE );
-}
-
-BOOLEAN FillSurfaceRect( HVOBJECT hDestVObject, blt_fx *pBltFx )
-{
-	DDBLTFX				 BlitterFX;
-
-	Assert( hDestVObject != NULL );
-	CHECKF( pBltFx != NULL );
-
-	BlitterFX.dwSize = sizeof( DDBLTFX );
-	BlitterFX.dwFillColor = pBltFx->ColorFill;
-
-	DDBltSurface( (LPDIRECTDRAWSURFACE2)hDestVObject->pSurfaceData, (LPRECT)&(pBltFx->FillRect), NULL, NULL, DDBLT_COLORFILL, &BlitterFX );
-
-	if ( hDestVObject->fFlags & VOBJECT_VIDEO_MEM_USAGE && !hDestVObject->fFlags & VOBJECT_RESERVED_SURFACE )
-	{
-		UpdateBackupSurface( hDestVObject );
-	}
-
-	return( TRUE );
-}
-
-
-BOOLEAN BltVObjectUsingDD( HVOBJECT hDestVObject, HVOBJECT hSrcVObject, UINT32 fBltFlags, INT32 iDestX, INT32 iDestY, RECT *SrcRect )
-{
-	UINT32		uiDDFlags;
-	RECT			DestRect;
-
-  // Blit using the correct blitter
-	if ( fBltFlags & VO_BLT_FAST )
-	{
-
-		// Validations
-		CHECKF( iDestX >= 0 );
-		CHECKF( iDestY >= 0 );
-
-		// Default flags
-		uiDDFlags = 0;
-
-		// Convert flags into DD flags, ( for transparency use, etc )
-		if ( fBltFlags & VO_BLT_USECOLORKEY )
-		{
-			uiDDFlags != DDBLTFAST_SRCCOLORKEY;
-		}
-
-		// Convert flags into DD flags, ( for transparency use, etc )
-		if ( fBltFlags & VO_BLT_USEDESTCOLORKEY )
-		{
-			uiDDFlags != DDBLTFAST_DESTCOLORKEY;
-		}
-
-		if ( uiDDFlags == 0 )
-		{
-			// Default here is no colorkey
-			uiDDFlags = DDBLTFAST_NOCOLORKEY;
-		}
-
-		DDBltFastSurface( (LPDIRECTDRAWSURFACE2)hDestVObject->pSurfaceData, iDestX, iDestY, (LPDIRECTDRAWSURFACE2)hSrcVObject->pSurfaceData, SrcRect, uiDDFlags );
-
-	}
-	else
-	{
-		// Normal, specialized blit for clipping, etc
-
-		// Default flags
-		uiDDFlags = DDBLT_WAIT;
-
-		// Convert flags into DD flags, ( for transparency use, etc )
-		if ( fBltFlags & VO_BLT_USECOLORKEY )
-		{
-			uiDDFlags |= DDBLT_KEYSRC;
-		}
-
-		// Setup dest rectangle
-		DestRect.top =  (int)iDestY;
-		DestRect.left = (int)iDestX;
-		DestRect.bottom = (int)iDestY + ( SrcRect->iBottom - SrcRect->iTop );
-		DestRect.right = (int)iDestX + ( SrcRect->iRight - SrcRect->iLeft );
-
-		// Do Clipping of rectangles
-		if ( !ClipReleatedSrcAndDestRectangles( hDestVObject, hSrcVObject, &DestRect, SrcRect ) )
-		{
-			// Returns false because dest start is > dest size
-			return( TRUE );
-		}
-
-		DDBltSurface( (LPDIRECTDRAWSURFACE2)hDestVObject->pSurfaceData, &DestRect, (LPDIRECTDRAWSURFACE2)hSrcVObject->pSurfaceData,
-							SrcRect, uiDDFlags, NULL );
-
-	}
-
-	// Update backup surface with new data
-	if ( hDestVObject->fFlags & VOBJECT_VIDEO_MEM_USAGE && !hDestVObject->fFlags & VOBJECT_RESERVED_SURFACE )
-	{
-		UpdateBackupSurface( hDestVObject );
-	}
-
-	return( TRUE );
-}
-
-
-// Blt to backup buffer
-BOOLEAN UpdateBackupSurface( HVOBJECT hVObject )
-{
-	RECT		aRect;
-
-	// Assertions
-	Assert( hVObject != NULL );
-
-	// Validations
-	CHECKF( hVObject->pSavedSurfaceData != NULL );
-
-	aRect.top = (int)0;
-	aRect.left = (int)0;
-	aRect.bottom = (int)hVObject->usHeight;
-	aRect.right = (int)hVObject->usWidth;
-
-	// Copy all contents into backup buffer
-	DDBltFastSurface( (LPDIRECTDRAWSURFACE2)hVObject->pSurfaceData, 0, 0, (LPDIRECTDRAWSURFACE2)hVObject->pSavedSurfaceData, &aRect, DDBLTFAST_NOCOLORKEY );
-
-	return( TRUE );
-
-}
-
-*/
 
 // FUNCTION: WIZ8 0x00412640
 BOOLEAN FillRect16BPP(UINT16* pBuffer, UINT32 uiDestPitchBYTES, INT32 x1, INT32 y1, INT32 x2,

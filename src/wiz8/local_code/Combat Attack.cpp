@@ -77,13 +77,6 @@
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 
-/*
- * Local Code\Combat Attack.cpp.
- *
- * Choosing and resolving one swing: which attack mode is used, whether a
- * combatant can attack at all, and how much of the damage the target keeps.
- */
-
 #define COMBAT_ATTACK_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Attack.cpp"
 
 // FUNCTION: WIZ8 0x00546a70

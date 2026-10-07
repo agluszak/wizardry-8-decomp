@@ -1,21 +1,4 @@
-"""Hard source-model invariants for recovered Wizardry C++.
-
-These checks cover constructs that should never be reintroduced once the typed
-source model can express them directly:
-
-* compiler/template output must remain emission provenance, not authored bodies;
-* calls and shared helpers belong to source; inlining belongs to the compiler;
-* literal byte offsets into repository-typed objects must use named fields;
-* recovered callables must use real declarations, not inline function-pointer
-  reinterpret casts;
-* semantic callable names must not encode retail addresses;
-* an object allocated with `new T[n]` must not be released by scalar `delete`;
-  on trivially destructible elements the spellings emit identical code, so a
-  scalar delete is always the wrong authored form.
-
-Unlike the diff-scoped cast hygiene gate, these are whole-tree invariants with
-no source comment waiver.
-"""
+"""Hard source-model invariants for recovered Wizardry C++."""
 
 from __future__ import annotations
 

@@ -1,17 +1,4 @@
-"""Exact structural invariants for recovered source.
-
-The gate keeps the checks that recovered source can decide exactly: a
-constant index past the end of a fixed-size array field declared in the
-recovered headers, newly added ``W8GrowableVector<void*>`` element claims,
-include-guarded Wizardry headers that close before their trailing
-declarations, and independently defined globals that share retail storage.
-
-An unresolved pointer-vector specialization keeps its element type unknown
-until a producer or consumer identifies it; erasing it to ``void*`` hides that
-missing evidence. A new occurrence needs ``vector-void-ok: <reason>`` when
-``void*`` is genuinely the source element type. Existing occurrences are not
-re-litigated; only lines introduced by the current change need the marker.
-"""
+"""Exact structural invariants for recovered source."""
 
 from __future__ import annotations
 

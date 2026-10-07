@@ -23,14 +23,6 @@
 #include "wiz8/3d_code/PList.h"
 #include "timer.h"
 
-/*
- * Local Code\Combat Party Movement.cpp.
- *
- * How the party moves while a fight is on: which of the two combat movement
- * modes is running, how fast it goes, and which phase of the turn the party is
- * allowed to act in.
- */
-
 #define COMBAT_MOVEMENT_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Party Movement.cpp"
 
 /* PHASES_PER_ROUND, named by the assertion that bounds the phase. */

@@ -1,10 +1,4 @@
 #include <windows.h>
-/* Local Screens\mipeEdit.cpp — prop field editor of the debug MIPE panel.
-
-   Editing is driven by a table of 0x18-byte W8MipeEditField descriptors:
-   digits select a row (or append to the selected row's numeric value), arrows
-   scroll the table or bump the selected value, Enter commits the edited bits
-   back into the prop's trigger action data and Escape abandons the edit. */
 
 #include <math.h>
 #include <stdlib.h>

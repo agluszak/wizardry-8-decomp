@@ -1,34 +1,4 @@
-"""Gate recovered Wizardry bodies against accepted source-oracle ownership.
-
-Once a retail address is proven to belong to an available-source oracle, agents
-must recover it from that oracle rather than independently decompiling it into
-Wizardry TUs.
-
-Ownership and provenance are distinct. ``src/sgp`` is the editable
-reconstruction of Wizardry's SGP fork, not the oracle: its FUNCTION/LIBRARY
-markers establish only that the address is owned by the SGP component. The
-immutable oracle is the pinned released SGP baseline; only an explicit reviewed
-``sgp-source`` claim promotes an address to source-backed oracle evidence.
-Owner markers still feed the misplacement gate and the per-TU hulls.
-
-Proven evidence is point-wise first:
-
-* LIBRARY markers for CRT helpers and embedded zlib entry points;
-* strong reviewed claims (``sgp-source`` retained identities, ``fid`` CRT
-  variants);
-* documented hard address ranges (zlib corpus, CRT startup/helper cluster);
-* sized reviewed bodies (CRT helpers and named zlib entries);
-* ``config/reccmp/*.csv`` ``library`` rows for CRT, zlib and extension DLLs.
-
-Contiguous contribution hulls are built only for owner translation units with
-real source roots (today: ``src/sgp``). Library identity catalogs must not form
-a single hull across the image.
-
-Retail-folded predicates document non-retained released bodies and are not
-required to keep an ``src/sgp`` FUNCTION marker. CRT identities are owned by
-library metadata, not recovered FUNCTION bodies. SurRender remains outside
-this gate: it is recoverable, not available-source.
-"""
+"""Gate recovered Wizardry bodies against accepted source-oracle ownership."""
 
 from __future__ import annotations
 

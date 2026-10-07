@@ -1,15 +1,4 @@
-"""Ban first-party ``extern "C"`` outside marked ABI boundaries.
-
-Wizardry C++ code has C++ linkage by default. A fixed original address, a free
-function, an unmangled-looking name, or how Ghidra spells a symbol are not C
-boundaries. A declaration must name the actual external ABI boundary on its
-line; SGP C++ callers consume ordinary owning product headers::
-
-    extern "C" {  // C-LINKAGE: callback exported to a C ABI consumer
-
-This gate is intentionally a line scan; it is a linkage reminder, not a
-recovery subsystem.
-"""
+"""Ban first-party ``extern "C"`` outside marked ABI boundaries."""
 
 from __future__ import annotations
 

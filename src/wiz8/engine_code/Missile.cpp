@@ -1,13 +1,5 @@
 #include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/spell_ids.h"
-/*
- * Engine Code\Missile.cpp.
- *
- * What a missile is fired from and where it comes out of. A missile holds a
- * launcher record at 0x1dc; the record carries a small table of emitters at
- * 0xd8 and an index into it at 0xa4, and the accessors below read the chosen
- * emitter, count how many the record has, and reach the emitter's own value.
- */
 
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GameData.h"
@@ -371,11 +363,9 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
 
 // VTABLE: WIZ8 0x005ecde0 W8MissileRep
 // class W8MissileRep
-
 // VTABLE: WIZ8 0x005ece08 W8GrObject
 // VTABLE: WIZ8 0x005ecdf4 W8Navigator
 // class W8Missile
-
 // GLOBAL: WIZ8 0x0065BDE4
 static int g_missile_iterator;
 

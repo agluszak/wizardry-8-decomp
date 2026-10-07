@@ -3,27 +3,17 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "line.h"
-
-//**************************************************************************
-//
 //				Example Usage
-//
-//**************************************************************************
 
 //	SEND THE PITCH IN BYTES
 //	SetClippingRegionAndImageWidth( uiPitch, 15, 15, 30, 30 );
-//
 //	LineDraw( TRUE, 10, 10, 200, 200, colour, pImageData);
 //    OR
 //	RectangleDraw( TRUE, 10, 10, 200, 200, colour, pImageData);
-
-//**************************************************************************
-//
 //				Line Drawing Functions
-//
-//**************************************************************************
 
 // GLOBAL: WIZ8 0x00650f9c
 int giImageWidth = 0;

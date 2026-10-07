@@ -21,14 +21,6 @@
 extern srVector3T<float> g_environment_offset;
 extern float g_monster_light_scale;
 
-/*
- * Engine Code\stMeshModel.cpp.
- *
- * A mesh model and the sibling chain it can be linked into. The shared
- * srTriMeshPipeline singleton's method bodies are emitted in this object as
- * well: its vtable sits immediately after the mesh-model vector vftables.
- */
-
 // GLOBAL: WIZ8 0x00659cb8
 W8GrowableVector<stMeshModel*> g_mesh_models;
 

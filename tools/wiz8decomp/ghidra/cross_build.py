@@ -1,19 +1,4 @@
-"""Project translation-unit anchors across Wizardry builds.
-
-Retail only retains the source paths the compiler embedded in retail code.
-Other official builds (demo, 1.2.6, 1.2.8) embed paths for translation units
-whose retail filenames survive nowhere. This module matches functions between
-builds with a relocation-insensitive instruction fingerprint and keeps only
-signature groups that are unique on both sides; when a variant was compiled
-with assertions and retail without them, a unique near-identical instruction
-sequence is accepted as a weaker ``similar-body`` match with its score. Those
-fuzzy matches stay advisory: only unique body matches may extend hard layout
-hulls (see :mod:`unit_intervals`).
-
-The matcher is deliberately narrow: every accepted pair must be unique, and an
-ambiguous or non-unique function stays unknown. Nothing is persisted; the
-projection is derived from the live project on demand.
-"""
+"""Project translation-unit anchors across Wizardry builds."""
 
 from __future__ import annotations
 

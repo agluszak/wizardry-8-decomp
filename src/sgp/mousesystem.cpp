@@ -4,19 +4,15 @@
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Remove the unused product font include; fast-help rendering delegates to VideoToolTip, 2026-10-04.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 
-//=================================================================================================
 //	MouseSystem.c
-//
 //	Routines for handling prioritized mouse regions. The system as setup below allows the use of
 //	callback functions for each region, as well as allowing a different cursor to be defined for
 //	each region.
-//
 //	Written by Bret Rowdon, Jan 30 '97
 //  Re-Written by Kris Morness, since...
-//
-//=================================================================================================
 
 #include "types.h"
 #include <windows.h>
@@ -35,10 +31,8 @@
 #include "Button System.h"
 
 //Kris:	Nov 31, 1999 -- Added support for double clicking
-//
 //Max double click delay (in milliseconds) to be considered a double click
 #define MSYS_DOUBLECLICK_DELAY 400
-//
 //Records and stores the last place the user clicked.  These values are compared to the current
 //click to determine if a double click event has been detected.
 // GLOBAL: WIZ8 0x00650E6C
@@ -140,11 +134,8 @@ BOOLEAN gfRefreshUpdate = FALSE;
 BOOLEAN gfIgnoreShutdownAssertions;
 #endif
 
-//======================================================================================================
 //	MSYS_Init
-//
 //	Initialize the mouse system.
-//
 // FUNCTION: WIZ8 0x0040b290
 INT32 MSYS_Init(void)
 {
@@ -209,11 +200,8 @@ INT32 MSYS_Init(void)
     return (1);
 }
 
-//======================================================================================================
 //	MSYS_Shutdown
-//
 //	De-inits the "mousesystem" mouse region handling code.
-//
 // FUNCTION: WIZ8 0x0040b450
 void MSYS_Shutdown(void)
 {
@@ -226,11 +214,8 @@ void MSYS_Shutdown(void)
     UnRegisterDebugTopic(TOPIC_MOUSE_SYSTEM, "Mouse Region System");
 }
 
-//======================================================================================================
 //	MSYS_SGP_Mouse_Handler_Hook
-//
 //	Hook to the SGP's mouse handler
-//
 // FUNCTION: WIZ8 0x0040b510
 void MSYS_SGP_Mouse_Handler_Hook(UINT16 Type, UINT16 Xcoord, UINT16 Ycoord, BOOLEAN LeftButton,
                                  BOOLEAN RightButton)
@@ -322,12 +307,9 @@ void MSYS_SGP_Mouse_Handler_Hook(UINT16 Type, UINT16 Xcoord, UINT16 Ycoord, BOOL
     }
 }
 
-//======================================================================================================
 //	MSYS_GetNewID
-//
 //	Returns a unique ID number for region nodes. If no new ID numbers can be found, the MAX value
 //	is returned.
-//
 INT32 MSYS_GetNewID(void)
 {
     INT32 retID;
@@ -364,11 +346,8 @@ INT32 MSYS_GetNewID(void)
     return (retID);
 }
 
-//======================================================================================================
 //	MSYS_TrashRegList
-//
 //	Deletes the entire region list.
-//
 void MSYS_TrashRegList(void)
 {
     while (MSYS_RegList) {
@@ -380,12 +359,9 @@ void MSYS_TrashRegList(void)
     }
 }
 
-//======================================================================================================
 //	MSYS_AddRegionToList
-//
 //	Add a region struct to the current list. The list is sorted by priority levels. If two entries
 //	have the same priority level, then the latest to enter the list gets the higher priority.
-//
 // FUNCTION: WIZ8 0x0040b720
 void MSYS_AddRegionToList(MOUSE_REGION* region)
 {
@@ -439,11 +415,8 @@ void MSYS_AddRegionToList(MOUSE_REGION* region)
     }
 }
 
-//======================================================================================================
 //	MSYS_RegionInList
-//
 //	Scan region list for presence of a node with the same region ID number
-//
 INT32 MSYS_RegionInList(MOUSE_REGION* region)
 {
     MOUSE_REGION* Current;
@@ -459,11 +432,8 @@ INT32 MSYS_RegionInList(MOUSE_REGION* region)
     return (found);
 }
 
-//======================================================================================================
 //	MSYS_DeleteRegionFromList
-//
 //	Removes a region from the current list.
-//
 // FUNCTION: WIZ8 0x0040b830
 void MSYS_DeleteRegionFromList(MOUSE_REGION* region)
 {
@@ -510,12 +480,9 @@ void MSYS_DeleteRegionFromList(MOUSE_REGION* region)
     }
 }
 
-//======================================================================================================
 //	MSYS_UpdateMouseRegion
-//
 //	Searches the list for the highest priority region and updates it's info. It also dispatches
 //	the callback functions
-//
 // FUNCTION: WIZ8 0x0040b900
 void MSYS_UpdateMouseRegion(void)
 {
@@ -767,11 +734,8 @@ void MSYS_UpdateMouseRegion(void)
         MSYS_PrevRegion = NULL;
 }
 
-//=================================================================================================
 //	MSYS_DefineRegion
-//
 //	Inits a MOUSE_REGION structure for use with the mouse system
-//
 // FUNCTION: WIZ8 0x0040be10
 void MSYS_DefineRegion(MOUSE_REGION* region, UINT16 tlx, UINT16 tly, UINT16 brx, UINT16 bry,
                        INT8 priority, UINT16 crsr, MOUSE_CALLBACK movecallback,
@@ -834,12 +798,9 @@ void MSYS_DefineRegion(MOUSE_REGION* region, UINT16 tlx, UINT16 tly, UINT16 brx,
     gfRefreshUpdate = TRUE;
 }
 
-//=================================================================================================
 //	MSYS_RemoveRegion
-//
 //	Removes a region from the list, disables it, then calls the callback functions for
 //	de-initialization.
-//
 // FUNCTION: WIZ8 0x0040bee0
 void MSYS_RemoveRegion(MOUSE_REGION* region)
 {
@@ -887,43 +848,31 @@ void MSYS_RemoveRegion(MOUSE_REGION* region)
     memset(region, 0, sizeof(MOUSE_REGION));
 }
 
-//=================================================================================================
 //	MSYS_EnableRegion
-//
 //	Enables a mouse region.
-//
 // FUNCTION: WIZ8 0x0040bf60
 void MSYS_EnableRegion(MOUSE_REGION* region)
 {
     region->uiFlags |= MSYS_REGION_ENABLED;
 }
 
-//=================================================================================================
 //	MSYS_DisableRegion
-//
 //	Disables a mouse region without removing it from the system list.
-//
 // FUNCTION: WIZ8 0x0040bf70
 void MSYS_DisableRegion(MOUSE_REGION* region)
 {
     region->uiFlags &= (~MSYS_REGION_ENABLED);
 }
 
-//=================================================================================================
 //	MSYS_SetCurrentCursor
-//
 //	Sets the mouse cursor to the regions defined value.
-//
 void MSYS_SetCurrentCursor(UINT16 Cursor)
 {
     SetCurrentCursorFromDatabase(Cursor);
 }
 
-//=================================================================================================
 //	MSYS_SetRegionUserData
-//
 //	Sets one of the four user data entries in a mouse region
-//
 // FUNCTION: WIZ8 0x0040bf80
 void MSYS_SetRegionUserData(MOUSE_REGION* region, INT32 index, INT32 userdata)
 {
@@ -939,11 +888,8 @@ void MSYS_SetRegionUserData(MOUSE_REGION* region, INT32 index, INT32 userdata)
     region->UserData[index] = userdata;
 }
 
-//=================================================================================================
 //	MSYS_GetRegionUserData
-//
 //	Retrieves one of the four user data entries in a mouse region
-//
 // FUNCTION: WIZ8 0x0040bfa0
 INT32 MSYS_GetRegionUserData(MOUSE_REGION* region, INT32 index)
 {
@@ -959,12 +905,9 @@ INT32 MSYS_GetRegionUserData(MOUSE_REGION* region, INT32 index)
     return (region->UserData[index]);
 }
 
-//=================================================================================================
 //	MSYS_GrabMouse
-//
 //	Assigns all mouse activity to a region, effectively blocking any other region from having
 //	control.
-//
 // FUNCTION: WIZ8 0x0040bfc0
 INT32 MSYS_GrabMouse(MOUSE_REGION* region)
 {
@@ -979,11 +922,8 @@ INT32 MSYS_GrabMouse(MOUSE_REGION* region)
     return (MSYS_GRABBED_OK);
 }
 
-//=================================================================================================
 //	MSYS_ReleaseMouse
-//
 //	Releases a previously grabbed mouse region
-//
 // FUNCTION: WIZ8 0x0040c010
 void MSYS_ReleaseMouse(MOUSE_REGION* region)
 {

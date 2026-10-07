@@ -35,19 +35,6 @@
 #include "wiz8/local_code/NPCManager.h"
 #include "LibraryDataBase.h"
 
-/*
- * Local Screens\PleaseWaitScreen.cpp.
- *
- * The unit is named by the five assertions its frame handler at 0x00590FA0
- * embeds, at lines 279, 293, 296, 320 and 332. The other three bodies here are
- * the same lifecycle record's remaining slots - record 4 of the table at
- * 0x00647BC8 - and they share this screen's private state with the named one:
- * the descriptor at 0x0069B7C8 is built by the entry handler, read by the frame
- * handler and released by the leave, and the font at 0x0069B7C0 is loaded by the
- * initializer and installed by the frame handler. The record and the shared
- * state are what place them; no assertion names them individually.
- */
-
 /* The screen's descriptor. The entry handler mallocs it, clears it and fills the
    tail from the screen-state record it was entered with; the frame handler reads
    the tail and writes the caption; the leave releases it. */

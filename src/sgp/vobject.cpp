@@ -3,6 +3,7 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "DirectDraw Calls.h"
 #include <stdio.h>
@@ -17,17 +18,13 @@
 #include "sgp.h"
 
 // ******************************************************************************
-//
 // Video Object SGP Module
-//
 // Video Objects are used to contain any imagery which requires blitting. The data
 // is contained within a Direct Draw surface. Palette information is in both
 // a Direct Draw Palette and a 16BPP palette structure for 8->16 BPP Blits.
 // Blitting is done via Direct Draw as well as custum blitters. Regions are
 // used to define local coordinates within the surface
-//
 // Second Revision: Dec 10, 1996, Andrew Emmons
-//
 // *******************************************************************************
 
 // *******************************************************************************
@@ -102,9 +99,7 @@ void CheckValidVObjectIndex(UINT32 uiIndex);
 #endif
 
 // **************************************************************
-//
 // Video Object Manager functions
-//
 // **************************************************************
 
 // FUNCTION: WIZ8 0x00405e60
@@ -607,9 +602,7 @@ UINT16 CreateObjectPaletteTables(HVOBJECT pObj, UINT32 uiType)
 }
 
 // *******************************************************************
-//
 // Blitting Functions
-//
 // *******************************************************************
 
 // High level blit function encapsolates ALL effects and BPP
@@ -753,32 +746,6 @@ UINT16 SetObjectShade(HVOBJECT pObj, UINT32 uiShade)
     pObj->pShadeCurrent = pObj->pShades[uiShade];
     return (TRUE);
 }
-
-/*
-UINT16 FillObjectRect(UINT32 iObj, INT32 x1, INT32 y1, INT32 x2, INT32 y2, COLORVAL color32)
-{
-UINT16	*pBuffer;
-UINT32	uiPitch;
-//HVSURFACE pSurface;
-
-	// Lock video surface
-	pBuffer = (UINT16*)LockVideoSurface(iObj, &uiPitch );
-	//UnLockVideoSurface(iObj);
-
-
-	if (pBuffer == NULL)
-		return( FALSE );
-
-	FillRect16BPP(pBuffer, uiPitch, x1, y1, x2, y2, Get16BPPColor(color32));
-
-	// Mark as dirty if it's the backbuffer
-	if(iObj == BACKBUFFER)
-		InvalidateBackbuffer();
-
-	UnLockVideoSurface(iObj);
-}
-
-*/
 
 /********************************************************************************************
 	GetETRLEPixelValue

@@ -27,19 +27,6 @@
 
 #include <string.h>
 
-/*
- * Local Screens\MGSFormation.cpp.
- *
- * The party-formation screen. The board is three sprites anchored at
- * (0x207, 0x167): the board art (catalogue object 0x99, or 0x9a for the
- * highlighted variant) with the occupied cells' facing arrow (0x9c) and
- * marching-order chip (0x9d) baked into its image, a compass needle (0x9b)
- * rotated to party_facing - party_heading, and a lazily created overlay.
- * Below the board sit fifteen cell controls in five rows of three over a
- * Controls panel; edits stage into gXStatus.edited_formation and commit
- * through ReconcilePartyFormation, or are only previewed while in combat.
- */
-
 /* 0x0064DAF4: on-board (left, top) of each of the fifteen cell markers,
    relative to the board anchor. */
 // GLOBAL: WIZ8 0x0064daf4

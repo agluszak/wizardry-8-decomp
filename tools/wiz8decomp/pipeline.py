@@ -94,10 +94,6 @@ def _clean_variants(settings: Settings, removed: list[str]) -> None:
         settings.build_dir / "manifests" / "variant-module-inventory.json",
         settings.build_dir / "manifests" / "modules.json",
         settings.build_dir / "reports" / "variant-diff.json",
-        settings.build_dir / "reports" / "module-diff.json",
-        settings.build_dir / "reports" / "modules.md",
-        settings.build_dir / "reports" / "compiler-evidence.json",
-        settings.build_dir / "reports" / "compiler-evidence.md",
         settings.build_dir / "evidence" / "source-paths.csv",
         settings.build_dir / "evidence" / "assertions.csv",
     ):

@@ -459,30 +459,7 @@ bool IsCharacterSkillAvailable(W8Character* character, W8Skill skill_id,
             static_cast<unsigned int>(skill_id) <= W8_SKILL_EAGLE_EYE) {
             return character->attributes[skill_id - 0x22].base >= 100;
         }
-        /* The canonical emits a byte index table over 0x00..0x1b, placed after
-           the body, with three groups: default for 0x00..0x09 and 0x12, a
-           middle band of 0x0a..0x11 and 0x13..0x17, and the magic realms. Its
-           first and third groups resolve to the same address, so the middle
-           band is a real case group whose body merely returns 1 like the
-           default. Neither an empty break nor an explicit return 1 reproduces
-           the table: VC6 drops the empty group and range-tests the remainder,
-           and returning 1 merges the two bands into one range compare that
-           costs 41 bytes more. */
         switch (skill_id) {
-        case W8_SKILL_LOCKS_TRAPS:
-        case W8_SKILL_STEALTH:
-        case W8_SKILL_MUSIC:
-        case W8_SKILL_PICKPOCKET:
-        case W8_SKILL_MARTIAL_ARTS:
-        case W8_SKILL_SCOUTING:
-        case W8_SKILL_CLOSE_COMBAT:
-        case W8_SKILL_RANGED_COMBAT:
-        case W8_SKILL_CRITICAL_STRIKE:
-        case W8_SKILL_ARTIFACTS:
-        case W8_SKILL_MYTHOLOGY:
-        case W8_SKILL_COMMUNICATION:
-        case W8_SKILL_ENGINEERING:
-            break;
         case W8_SKILL_SPELLBOOK_WIZARDRY:
         case W8_SKILL_SPELLBOOK_DIVINITY:
         case W8_SKILL_SPELLBOOK_ALCHEMY:
@@ -752,19 +729,6 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
     }
 }
 
-/* Rebuilds all six resistance channels from scratch.
- 
-   The base of each starts at a flat 25 plus a tenth of the matching skill, then
-   takes a flat bonus derived from skill 36 when the character has it, and five
-   more for profession 14. The race table adds its own adjustments next: a value
-   at or below 1000 is a flat amount, and anything above it names a character
-   attribute whose fifth is added instead. Two attributes feed two specific
-   channels directly, each contributing half of whatever it carries above 80.
- 
-   The total is then base plus the character's flat all-resistance bonus plus
-   the per-channel one, and only the total is clamped - the base is left as
-   computed, which is why a subsequent pass over the same character produces the
-   same answer rather than compounding. */
 /* The profession databases and per-skill attribute records. Contents are the
    retail tables at 0x00615570..0x0061634c; the five profession arrays share
    one contiguous block with the skill-attribute records. -1 in a skill slot

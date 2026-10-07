@@ -27,16 +27,6 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/Monster.h"
 
-/*
- * Engine Code\Environment.cpp.
- *
- * The world's ambient settings: the game-clock multiplier, the fog and sky
- * flags, the light direction, and the camera light the world setup creates. The
- * globals here keep their addresses in their names where nothing establishes
- * what they are for; the reset that clears six of them together is what groups
- * them.
- */
-
 #define ENVIRONMENT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Environment.cpp"
 
 // GLOBAL: WIZ8 0x0060a3a8
@@ -373,7 +363,6 @@ void UpdateEnvironmentLight(void)
 
 // VTABLE: WIZ8 0x005EC94C
 // class srClientSupport<srFog,4624>
-
 // FUNCTION: WIZ8 0x00483750
 void SetSkyEnabled(bool enabled)
 {

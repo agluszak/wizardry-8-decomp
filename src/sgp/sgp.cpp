@@ -7,6 +7,7 @@
    Annotate the retail addresses of the startup and shutdown statics.
    Consume the owning C++ timer header and SDK mouse-wheel declarations, 2026-10-04.
    Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+   Remove inactive code and decorative comment banners, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include <windows.h>
@@ -177,43 +178,6 @@ INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LP
             lpWindow->bottom = lpWindow->top + iHeight;
         }
 
-        /*
-			switch(wParam)
-			{
-				case WMSZ_BOTTOM:
-				case WMSZ_BOTTOMLEFT:
-				case WMSZ_BOTTOMRIGHT:
-					if(iHeight < SCREEN_HEIGHT)
-						lpWindow->bottom=lpWindow->top+SCREEN_HEIGHT;
-			}
-
-			switch(wParam)
-			{
-				case WMSZ_TOP:
-				case WMSZ_TOPLEFT:
-				case WMSZ_TOPRIGHT:
-					if(iHeight < SCREEN_HEIGHT)
-						lpWindow->top=lpWindow->bottom-SCREEN_HEIGHT;
-			}
-
-			switch(wParam)
-			{
-				case WMSZ_BOTTOMLEFT:
-				case WMSZ_LEFT:
-				case WMSZ_TOPLEFT:
-					if(iWidth < SCREEN_WIDTH)
-						lpWindow->left=lpWindow->right-SCREEN_WIDTH;
-			}
-
-			switch(wParam)
-			{
-				case WMSZ_BOTTOMRIGHT:
-				case WMSZ_RIGHT:
-				case WMSZ_TOPRIGHT:
-					if(iWidth < SCREEN_WIDTH)
-						lpWindow->right=lpWindow->left+SCREEN_WIDTH;
-			}
-*/
     } break;
 
     case WM_SIZE: {
@@ -418,20 +382,14 @@ void ShutdownStandardGamingPlatform(void)
 {
     // GLOBAL: WIZ8 0x00650db4
     static BOOLEAN Reenter = FALSE;
-
-    //
     // Prevent multiple reentry into this function
-    //
 
     if (Reenter == FALSE) {
         Reenter = TRUE;
     } else {
         return;
     }
-
-    //
     // Shut down the different components of the SGP
-    //
 
     if (gfGameInitialized) {
         ShutdownGame();
@@ -464,8 +422,6 @@ void ShutdownStandardGamingPlatform(void)
 #endif
 
     ShutdownMemoryManager(); // must go last (except for Debug), for MemDebugCounter to work right...
-
-    //
     // Make sure we unregister the last remaining debug topic before shutting
     // down the debugging layer
     UnRegisterDebugTopic(TOPIC_SGP, "Standard Gaming Platform");

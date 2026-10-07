@@ -42,12 +42,6 @@
 
 #define ST_CUBE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\stCube.cpp"
 
-/* Engine Code\stCube.cpp. The cursor's node table and the node selection
-   pass; the cursor state itself lives in Cursor3d.cpp. ReleaseWorldCursorNodes
-   at 0x0048DB30 lies inside the assertion-backed 0x0048D080-0x0048E7B0 hull;
-   0x0048ED00-0x0048EFC0 are the following attribution gap, so no assertion
-   names their unit. */
-
 /* Copy the node's world location out; the searchable position resolver treats
    a missing node chain as unresolvable. */
 // FUNCTION: WIZ8 0x0048d050

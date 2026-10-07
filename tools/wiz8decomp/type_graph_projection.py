@@ -1,32 +1,4 @@
-"""Two-phase type-graph remapper onto bound ``class_binding`` Structures.
-
-Phase 1 builds the class
-identity map and opaque shells; phase 2 reconciles fields and remaps nested
-references through that map.
-
-Plan schema (``wiz8.type-graph-projection-v1``)::
-
-    {
-      "schema": "wiz8.type-graph-projection-v1",
-      "target": "WIZ8",
-      "identity_map": {
-        "<class>": {
-          "ghidra_class": str | null,
-          "bound_path": str | null,
-          "evidence_path": str | null,
-          "status": "agree" | "bind-existing" | "create-opaque" | "conflict"
-                   | "no-layout-evidence" | "missing-class",
-          "asserted_size": int | null,
-          "field_action": "agree" | "reconcile-fields"
-                        | "conflict" | "skip" | null
-        }
-      },
-      "counts": {...},
-      "field_counts": {...},
-      "actionable": int,
-      "classes": [ ... actionable identity / field rows ... ]
-    }
-"""
+"""Two-phase type-graph remapper onto bound ``class_binding`` Structures."""
 
 from __future__ import annotations
 

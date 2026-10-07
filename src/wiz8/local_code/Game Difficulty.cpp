@@ -1,11 +1,4 @@
-/* Local Code\Game Difficulty.cpp - difficulty scaling for combat values.
 
-   Retail retains no path string for this unit; the official demo carries a
-   "E:\Wizardry 8\Local Code\Game Difficulty.cpp" anchor at demo 0x005624F0,
-   matching retail 0x0055CCB0. The unit sits in the retail span between
-   chunk.cpp (0x0055CB90) and InputMapper.cpp (0x0055D800); the neighbouring
-   character-side scaler has no proven owner and stays in
-   DifficultyScaling.cpp. */
 
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/MonsterManager.h"

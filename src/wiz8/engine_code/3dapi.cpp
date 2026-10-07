@@ -62,14 +62,6 @@
 #include "input.h"
 #include "soundman.h"
 
-/*
- * Engine Code\3dapi.cpp.
- *
- * The thin layer the rest of the engine calls the renderer through. Most of
- * what is here forwards straight on, which is what makes the file a layer
- * rather than an implementation.
- */
-
 #define THREE_D_API_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3dapi.cpp"
 
 // GLOBAL: WIZ8 0x00607d7c
@@ -379,7 +371,6 @@ void UpdateWorld(W8World* world)
 
 // VTABLE: WIZ8 0x005EC208
 // class srClientSupport<srNode,4096>
-
 /* Detach the item meshes in every registered world before the renderer-side
    resource transition. */
 // FUNCTION: WIZ8 0x0044f5b0

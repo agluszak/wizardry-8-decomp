@@ -1,15 +1,4 @@
-"""Type confirmed MSVC vbtables and retarget class ``vbptr`` fields.
-
-A vbtable is a run of signed displacements. Entry 0 is the displacement from the
-vbptr back to the owning subobject (not generally ``-4`` versus the complete
-object). Later entries locate virtual bases from that vbptr.
-
-Structures live under ``/wiz8/vbtables``. A table is attached to a source class
-only when a ctor/dtor of that class also installs a source-index vftable.
-Construction-phase vbtables are listed but never retarget the class ``vbptr``.
-Existing ``VBasePtr`` / ``o_*`` PointerTypedefs at ``vbptr + displacement`` may
-receive a ComponentOffset; this pass never invents those typedefs.
-"""
+"""Type confirmed MSVC vbtables and retarget class ``vbptr`` fields."""
 
 from __future__ import annotations
 

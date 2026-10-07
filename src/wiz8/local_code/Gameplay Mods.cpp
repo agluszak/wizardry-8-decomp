@@ -37,13 +37,6 @@
 
 #define GAMEPLAY_MODS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Gameplay Mods.cpp"
 
-/*
- * Local Code\Gameplay Mods.cpp.
- *
- * The party-wide effect block and the per-character bonus blocks it folds
- * into.
- */
-
 /* Clear the party modifier block, fold the party's effect slots, the combat
    effect run and each character's own equipment and condition blocks into
    their derived modifiers, then drive the sky node from the stored light

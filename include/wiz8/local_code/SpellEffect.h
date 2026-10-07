@@ -13,18 +13,6 @@
 class W8SpellVisual;
 class W8Missile;
 
-/* Local Code\Magic.cpp. FindMonsterControlSpellEffect returns this same object
-   to Levels.cpp, which places the target at 0x90 and the lure argument at 0xd0;
-   SpawnLureEffects places the effect vector at 0x100. The retail destructor
-   proves later subobjects exist; the whole 0x1c8 object is modeled below,
-   ending in the W8SpellEffectResult at 0x126.
-
-   The queued effect's own frame update (0x00500930) proves the rest of the
-   front: the source block at 0x08, the two flags at 0x77/0x78, the monster
-   index list at 0xf0, the spawned visual list at 0x100, the missiles the
-   cast owns at 0x110, and the four state bytes from 0x120. The destructor
-   proves the fifth list sits unaligned at 0x17e, which is what makes the
-   struct packed. */
 /* One pending condition report. Kind 1 names a character by party slot and
    carries no text; kind 3 carries its own inline text from 0x08. Every creator
    allocates and clears the complete 0x6c-byte record, and the message pass

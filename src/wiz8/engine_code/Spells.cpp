@@ -1,11 +1,4 @@
 #include "wiz8/engine_code/AnimRep.hpp"
-/*
- * Engine Code\Spells.cpp.
- *
- * A spell's visual side. It hangs off the same emitter record a missile does,
- * one offset along, and the four accessors below are the missile's four
- * bodies with 0x1e0 in place of 0x1dc.
- */
 
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/Spells.h"
@@ -1261,16 +1254,12 @@ void SetMonsterSpellIcon(W8Monster* pMonster, W8MonsterSpellIconId iIcon, bool a
 // VTABLE: WIZ8 0x005ecf40 W8GrObject
 // VTABLE: WIZ8 0x005ecf2c W8Navigator
 // class W8SpellVisual
-
 // VTABLE: WIZ8 0x005ecf18 W8SpellEmitterHost
 // class W8SpellEmitterHost
-
 // VTABLE: WIZ8 0x005ecfb0
 // class stSound3D
-
 // VTABLE: WIZ8 0x005ecfe4
 // class srClassSupport<stSound3D,srNode,0,65547>
-
 // FUNCTION: WIZ8 0x004AE6D0
 stSound3D::stSound3D(const char* name, srNode* parent)
     : srClassSupport<stSound3D, srNode, 0, 0x1000b>(static_cast<srNode*>(0))

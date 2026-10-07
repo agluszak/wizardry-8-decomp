@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import Settings
-from .paths import atomic_json, atomic_write
+from .paths import atomic_json
 from .source_index import source_functions
 
 _SCHEMA = "wiz8.decompiler-quality-v1"
@@ -622,44 +622,11 @@ def write_report(
     out_dir: Path | None = None,
     stem: str = "report",
 ) -> Path:
-    """Persist a quality report JSON (and markdown summary) under ``out_dir``."""
+    """Persist a quality report under ``out_dir``."""
 
     destination = out_dir if out_dir is not None else settings.build_dir / "decompiler-quality"
     path = destination / f"{stem}.json"
     atomic_json(path, report)
-    summary = report.get("summary") or {}
-    totals = summary.get("totals") or {}
-    lines = [
-        f"# Decompiler quality ({stem})",
-        "",
-        f"- corpus: {summary.get('ok', 0)}/{summary.get('requested', 0)} decompiled",
-        f"- failures: {summary.get('failures', 0)}",
-        f"- mean debt: {summary.get('mean_debt', 0):.2f}",
-        f"- max debt: {summary.get('max_debt', 0)}",
-        "",
-        "| metric | count |",
-        "| --- | ---: |",
-    ]
-    for key in METRIC_KEYS:
-        lines.append(f"| `{key}` | {totals.get(key, 0)} |")
-    high_totals = summary.get("high_function_totals")
-    if high_totals is not None:
-        lines.extend(
-            [
-                "",
-                "## HighFunction typing (informational)",
-                "",
-                f"Measured functions: {summary.get('high_function_measured', 0)}.",
-                "These counts do not contribute to checkpoint debt or regression thresholds.",
-                "",
-                "| metric | count |",
-                "| --- | ---: |",
-            ]
-        )
-        for key in HIGH_FUNCTION_METRIC_KEYS:
-            lines.append(f"| `{key}` | {high_totals.get(key, 0)} |")
-    lines.append("")
-    atomic_write(destination / f"{stem}.md", "\n".join(lines))
     return path
 
 
@@ -847,13 +814,10 @@ def run_decompiler_quality(
     )
     path = write_report(settings, report, out_dir=destination, stem=report_stem)
     report["report"] = str(path.relative_to(settings.repo_dir))
-    summary_md = destination / f"{report_stem}.md"
-    report["summary_markdown"] = str(summary_md.relative_to(settings.repo_dir))
     # CLI emission stays bounded: drop the per-function dump from stdout payload.
     return {
         "schema": _SCHEMA,
         "report": report["report"],
-        "summary_markdown": report["summary_markdown"],
         "profile": profile,
         "corpus": {
             "size": len(corpus["addresses"]),
