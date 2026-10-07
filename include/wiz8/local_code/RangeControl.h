@@ -14,16 +14,15 @@ public:
                   int image_object, int image_frame, int normal_sprite, int pressed_sprite,
                   int alternate_normal_sprite, int alternate_pressed_sprite, int disabled_sprite,
                   short direction, W8RangeControl* range);
-    /* Retail ICF folds this onto W8TextControl's deleting destructor at 0x004F6030. */
 
     virtual void OnLeftButtonDown(int event) override;
     virtual void ActivatePrimary(int event) override;
     virtual void AdjustValue(int steps) override;
 
 protected:
-    short m_direction; /* 0xb8: zero decrements */
+    short m_direction; /* zero decrements */
     unsigned short pad_ba;
-    W8RangeControl* m_range; /* 0xbc */
+    W8RangeControl* m_range;
 };
 static_assert(sizeof(W8RangeButton) == 0xc0, "W8RangeButton_size");
 
@@ -35,21 +34,15 @@ public:
 };
 
 /* Common base of the camp screen's three range listeners (item, spell-realm
-   and stats): each owns one W8RangeControl. Retail calls 0x005C4510 directly
-   on the stats and spell-realm listeners too, which proves this shared
-   prefix rather than a W8CampItemRange member. Its out-of-line refresh is
-   emitted in RCSStatsPage.cpp. */
+   and stats): each owns one W8RangeControl. */
 class W8CampRangeListener : public W8RangeListener {
 public:
-    /* 0x005C4510: re-invalidates the range control when the visible pool
+    /* Re-invalidates the range control when the visible pool
        changed and always repaints it. */
     void UpdateRange(bool range_changed);
     W8RangeControl* m_range;
 };
 
-/* The range panel is shared by Controls.cpp and the state-5 party-selection
-   controls. Its listener, value and child ownership are therefore part of the
-   shared range-control declaration rather than a translation-unit-local sketch. */
 // VTABLE: WIZ8 0x005ed74c
 class W8RangeControl : public Controls {
 public:
@@ -80,14 +73,14 @@ public:
         }
     }
 
-    int m_minimum;                 /* 0x4c */
-    int m_maximum;                 /* 0x50 */
-    int m_value;                   /* 0x54 */
-    W8Widget* m_decrement;         /* 0x58 */
-    W8Widget* m_increment;         /* 0x5c */
-    W8VerticalRangeThumb* m_thumb; /* 0x60 */
-    W8RangeListener* m_listener;   /* 0x64 */
-    bool m_enabled;                /* 0x68: binary enable gating Decrement/Increment */
+    int m_minimum;
+    int m_maximum;
+    int m_value;
+    W8Widget* m_decrement;
+    W8Widget* m_increment;
+    W8VerticalRangeThumb* m_thumb;
+    W8RangeListener* m_listener;
+    bool m_enabled; /* binary enable gating Decrement/Increment */
 };
 static_assert(sizeof(W8RangeControl) == 0x6c, "W8RangeControl_size");
 
@@ -115,13 +108,13 @@ public:
     virtual void OnMouseMove(int event) override;
 
 protected:
-    int m_catalogObject; /* 0x34 */
+    int m_catalogObject;
     int m_catalogFrame;
     int m_backgroundSprite;
     int m_normalThumbSprite;
     int m_hoveredThumbSprite;
     int m_disabledThumbSprite;
-    int m_trackLength; /* 0x4c */
+    int m_trackLength;
     int m_thumbWidth;
     int m_pixelPosition;
     int m_dragCoordinate;
@@ -131,7 +124,7 @@ protected:
 
 public:
     /* OptionsScreen.cpp sets these bounds and attaches the listener directly. */
-    float m_minimumPosition; /* 0x60 */
+    float m_minimumPosition;
     float m_maximumPosition;
     float m_position;
     W8HorizontalRangeThumbListener* m_listener;

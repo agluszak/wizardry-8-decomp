@@ -13,8 +13,6 @@ import re
 from pathlib import Path
 from typing import Any
 
-MAPPED_ORIGINAL_TU = "mapped-original-tu"
-UNMAPPED_SOURCE = "unmapped-source"
 CLASSIFICATION_PATH = Path("src/wiz8/source_units.json")
 SOURCE_TREE_PATH = Path("evidence/observations/wiz8/source-tree.csv")
 SOURCES_CMAKE = Path("src/wiz8/sources.cmake")
@@ -27,7 +25,6 @@ UNIT_DIRECTORIES = {
     "local code": "local_code",
     "local screens": "local_screens",
 }
-ORIGINAL_DIRECTORIES = {value: key for key, value in UNIT_DIRECTORIES.items()}
 
 _SOURCE_UNIT_LINE = re.compile(r'^\s*(?:"([^"]+)"|(\S+))\s*$')
 _CODE_MARKERS = re.compile(r"^\s*//\s*(?:FUNCTION|VTABLE|GLOBAL):\s+", re.IGNORECASE)
@@ -130,23 +127,6 @@ def mapped_repository_source_file(repo_dir: Path, unit: str) -> str | None:
     return matches[0].relative_to(repo_dir).as_posix()
 
 
-def mapping_for(path: str, originals: dict[str, str]) -> str:
-    return MAPPED_ORIGINAL_TU if path in originals else UNMAPPED_SOURCE
-
-
-def source_unit_records(repo_dir: Path) -> dict[str, dict[str, str]]:
-    load_source_unit_document(repo_dir)
-    originals = original_source_paths(repo_dir)
-    records: dict[str, dict[str, str]] = {}
-    for path in cmake_source_units(repo_dir):
-        kind = mapping_for(path, originals)
-        record = {"mapping": kind, "path": path}
-        if kind == MAPPED_ORIGINAL_TU:
-            record["original_path"] = originals[path]
-        records[path] = record
-    return records
-
-
 def file_emits_code_or_data(path: Path) -> bool:
     """Whether a translation unit contains a recovered definition or emission marker."""
 
@@ -180,11 +160,4 @@ def validate_source_units(repo_dir: Path) -> dict[str, Any]:
     if violations:
         rendered = [f"{item['file']}: {item['kind']}: {item['detail']}" for item in violations]
         raise SourceUnitError("source-unit classification failed:\n  " + "\n  ".join(rendered))
-    records = source_unit_records(repo_dir)
-    counts = {
-        MAPPED_ORIGINAL_TU: 0,
-        UNMAPPED_SOURCE: 0,
-    }
-    for record in records.values():
-        counts[record["mapping"]] += 1
-    return {"ok": True, "gate": "source-units", "units": len(records), **counts}
+    return {"ok": True, "gate": "source-units"}

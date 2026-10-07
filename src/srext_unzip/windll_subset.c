@@ -1,10 +1,4 @@
-/* Sir-Tech's narrowed Info-ZIP 5.4 WinDLL front end.
- *
- * The stock windll.c object also contains the general extraction, grep, and
- * validation entry points.  They are absent from srEXT_Unzip.dll even though
- * the linker retains unreferenced functions.  The target keeps only this
- * callback/setup subset plus the separate memory wrapper.
- */
+/* Sir-Tech's narrowed Info-ZIP 5.4 WinDLL front end: only the callback/setup subset. */
 
 #include <windows.h>
 

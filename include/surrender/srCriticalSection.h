@@ -32,9 +32,7 @@ private:
 
 static_assert(sizeof(srCriticalSection) == 0x18, "srCriticalSection_must_be_0x18");
 
-/* Scoped acquisition evidenced by the stored section pointer and the release
-   destructor called by retail unwind funclets in the registry, GERD, heap and
-   node families. The original guard spelling is unknown. */
+/* Scoped acquisition; the original guard spelling is unknown. */
 class srCriticalSectionAccess {
 public:
     explicit srCriticalSectionAccess(srCriticalSection* section) : section_(section)

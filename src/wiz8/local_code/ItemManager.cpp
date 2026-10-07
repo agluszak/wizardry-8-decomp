@@ -46,36 +46,36 @@
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 
-/* 0x0068EDCC: the level runtime block, which also carries the interface
+/* The level runtime block, which also carries the interface
    selection the item manager resets. */
 #define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
 
-/* 0x005ED7B0: 1/360, the half-degree step random item angles are built
+/* 1/360, the half-degree step random item angles are built
    from. */
 // GLOBAL: WIZ8 0x005ed7b0
 extern const double g_inverse_full_turn_degrees = 1.0 / 360.0;
 
-/* 0x005ED7B8: camera distance inside which inactive world items are activated. */
+/* Camera distance inside which inactive world items are activated. */
 // GLOBAL: WIZ8 0x005ed7b8
 const float g_item_camera_cull_distance = 20000.0f;
 
-/* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
+/* Pi, the amplitude cursor-driven throw angles are scaled from. */
 // GLOBAL: WIZ8 0x005ed7a8
 extern const double g_throw_angle_amplitude = 3.141592653589793;
 
-/* 0x005EBF48: the screen-y coefficient in the drop-item yaw. */
+/* The screen-y coefficient in the drop-item yaw. */
 // GLOBAL: WIZ8 0x005ebf48
 extern const float g_drop_item_yaw_scale = 85.0f;
 
-/* 0x005EBF4C: the screen-z coefficient in the drop-item pitch. */
+/* The screen-z coefficient in the drop-item pitch. */
 // GLOBAL: WIZ8 0x005ebf4c
 extern const float g_drop_item_pitch_scale = 71.0f;
 
-/* 0x005ED7C0: the vertical scale of the drop-item direction. */
+/* The vertical scale of the drop-item direction. */
 // GLOBAL: WIZ8 0x005ed7c0
 extern const double g_drop_item_vertical_scale = -2500.0;
 
-/* 0x0064A1CD: when set, skip activating world items that already carry flag
+/* When set, skip activating world items that already carry flag
    bit 0. */
 // GLOBAL: WIZ8 0x0064a1cd
 bool g_hide_invisible_items = true;
@@ -290,7 +290,7 @@ int GenerateItemsFromTable(W8GrowableVector<W8WorldItem*>* output_items, unsigne
     return output_items->GetCount();
 }
 
-/* 0x00689B54: the cursor the iterator below resumes from. */
+/* The cursor the iterator below resumes from. */
 
 // GLOBAL: WIZ8 0x00689b54
 int g_world_item_cursor;
@@ -466,7 +466,7 @@ unsigned int ItemIndex(int runtime_id)
     return 0;
 }
 
-/* 0x0068EDCC: the level runtime block, which also carries the interface
+/* The level runtime block, which also carries the interface
    selection the item manager resets. */
 
 // FUNCTION: WIZ8 0x004f8440
@@ -487,7 +487,7 @@ int ItemInfoMakeGroupList(W8WorldItem* item, W8GrowableVector<W8WorldItem*>* out
     return out->count;
 }
 
-/* 0x00617D34: the generic 3D model names ActivateItem falls back to when a
+/* The generic 3D model names ActivateItem falls back to when a
    record's internal_name is blank, indexed by unidentified_name_index. */
 // GLOBAL: WIZ8 0x00617d34
 static char g_item_model_fallback_names[145][0x1e] = {"Dagger",

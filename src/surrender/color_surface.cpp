@@ -11,8 +11,7 @@
 #include "surrender/srPalette.h"
 #include "surrender/srVectorProcessor.h"
 
-/* srColorSurface surface-flag names; never assigned in retail, so dump reports
-   numeric bit indices. */
+/* srColorSurface surface-flag names; never assigned, so dump reports numeric bit indices. */
 // GLOBAL: SURRENDER 0x100A4A10
 static const char* s_flag_names2;
 
@@ -64,7 +63,6 @@ srColorSurfaceIFace::srColorSurfaceIFace()
 // FUNCTION: SURRENDER 0x1005A120
 srColorSurfaceIFace::srColorSurfaceIFace(const srColorSurfaceIFace& other)
 {
-    /* Retail assigns, then re-copies the trailing field block verbatim. */
     *this = other;
     unknown_18_[1] = other.unknown_18_[1];
     memcpy(&width, &other.width, 0x28);
@@ -2484,12 +2482,9 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
     delete[] columns;
 }
 
-/* The horizontal and vertical filters use the same two eight-byte records:
-   a source index plus a float weight, and a count plus a pointer to those
-   records. Both enlarge/shrink paths expand append and normalization.
-   These are translation-unit-local descriptive names; original spelling is
-   unknown. Normalization rounds the reciprocal to float before multiplying
-   each stored weight and deliberately leaves a zero total unguarded. */
+/* The horizontal and vertical filters use the same two records: a source index plus a float weight,
+   and a count plus a pointer to those records. The names are descriptive. A zero total weight is
+   not guarded. */
 struct SampleWeight {
     long index;
     float weight;

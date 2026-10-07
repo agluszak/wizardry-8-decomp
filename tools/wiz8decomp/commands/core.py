@@ -58,18 +58,6 @@ def lint_command() -> None:
     cli.emit(lint(cli.settings()))
 
 
-def diagnostics_command(
-    x64: Annotated[
-        bool, typer.Option("--x64", help="Audit Windows pointer-width changes.")
-    ] = False,
-) -> None:
-    """Emit non-gating recovery-relevant clang diagnostics."""
-    from .. import command_support as cli
-    from ..build import lint
-
-    cli.emit(lint(cli.settings(), full_diagnostics=True, x64=x64))
-
-
 def build_command(
     target: Annotated[str, typer.Argument(help="Friendly alias or CMake target.")] = "match",
     jobs: Annotated[int | None, typer.Option("--jobs", "-j")] = None,
@@ -439,7 +427,6 @@ def register(app: typer.Typer) -> None:
     app.command("prepare")(prepare_command)
     app.command("check")(check_command)
     app.command("lint")(lint_command)
-    app.command("diagnostics")(diagnostics_command)
     app.command("build")(build_command)
     app.command("compare")(compare_command)
     app.command("vtable")(vtable_command)
@@ -450,7 +437,6 @@ def register(app: typer.Typer) -> None:
     app.command("debug")(debug_command)
     app.add_typer(analyze_app, name="analyze")
     analyze_app.command("source-index")(source_index_command)
-    analyze_app.command("decompiler-quality")(decompiler_quality_command)
 
 
 def source_index_command(
@@ -463,61 +449,6 @@ def source_index_command(
     from ..source_index import write_source_index
 
     cli.emit(write_source_index(cli.settings(), jobs=jobs))
-
-
-def decompiler_quality_command(
-    limit: Annotated[
-        int,
-        typer.Option(min=1, help="Maximum matched functions to decompile."),
-    ] = 200,
-    seed: Annotated[
-        int,
-        typer.Option(help="Stable corpus sample seed."),
-    ] = 1,
-    corpus_kind: Annotated[
-        str,
-        typer.Option(
-            "--corpus-kind",
-            help="oracle (exact|effective; default) or pain (any FUNCTION, stratified).",
-        ),
-    ] = "oracle",
-    require_match: Annotated[
-        bool | None,
-        typer.Option(
-            "--require-match/--any-recovered",
-            help="Override corpus match filter. Default follows --corpus-kind.",
-        ),
-    ] = None,
-    address: Annotated[
-        list[str] | None,
-        typer.Option(help="Explicit corpus address; repeatable. Disables stratified sampling."),
-    ] = None,
-    profile: Annotated[
-        str,
-        typer.Option(help="Decompiler option profile: analysis (default), recovery, or program."),
-    ] = "analysis",
-    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
-    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
-) -> None:
-    """Score Ghidra decompiler debt on a high-confidence recovered corpus."""
-    from .. import command_support as cli
-    from ..decompiler_quality import run_decompiler_quality
-
-    def action():
-        addresses = [int(value, 0) for value in address] if address else None
-        return run_decompiler_quality(
-            cli.settings(),
-            target=target,
-            program_name=program,
-            limit=limit,
-            seed=seed,
-            addresses=addresses,
-            require_match=require_match,
-            corpus_kind=corpus_kind,
-            profile=profile,
-        )
-
-    cli.emit(action())
 
 
 def debug_command(
@@ -574,5 +505,3 @@ def debug_command(
     )
     if result["exit_code"]:
         raise typer.Exit(result["exit_code"])
-
-

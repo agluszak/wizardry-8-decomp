@@ -31,43 +31,41 @@ static_assert(sizeof(W8MipeMonsterEntry) == 0x32, "W8MipeMonsterEntry_size");
    buffer and 7 picks one of option_count names starting at option_base in the
    g_mipe_key_names table. */
 struct W8MipeEditField {
-    char type;                /* 0x00 */
-    int label_index;          /* 0x04 */
-    signed char option_count; /* 0x08 */
-    signed char option_base;  /* 0x09 */
-    wchar_t* text;            /* 0x0c */
-    float float_value;        /* 0x10 */
-    int value;                /* 0x14 */
+    char type;
+    int label_index;
+    signed char option_count;
+    signed char option_base;
+    wchar_t* text;
+    float float_value;
+    int value;
 };
 
 static_assert(sizeof(W8MipeEditField) == 0x18, "W8MipeEditField_size");
 
-/* Local Screens\mipe.cpp's editor state, allocated once and stored in
-   g_mipe_state.  Offset zero is a live W8IList holding the selected
-   monster location ids, and callers pass the state pointer itself to
-   IListGetAt/ILLength. */
+/* The editor state, allocated once and stored in g_mipe_state. It begins
+   with the W8IList of selected monster location ids, and callers pass the
+   state pointer itself to IListGetAt/ILLength. */
 struct W8MipeState {
-    W8IList monster_ids; /* 0x00 */
+    W8IList monster_ids;
 
-    int selected_group_id;   /* 0x0c: group id of the last group pick; W8_MIPE_NO_GROUP = none */
-    unsigned char selecting; /* 0x10 */
+    int selected_group_id; /* group id of the last group pick; W8_MIPE_NO_GROUP = none */
+    unsigned char selecting;
     unsigned char unknown_11[0x13];
-    srVector3T<float> drag_anchor; /* 0x24 */
+    srVector3T<float> drag_anchor;
     unsigned char creation_method; /* 0 exact, 1 placeholder, 2 selection */
-    bool dragging;                 /* 0x31 */
+    bool dragging;
     unsigned char padding_32[2];
-    float value_34;               /* 0x34: initialised to 1.0 */
-    int waypoint_count;           /* 0x38 */
-    W8PList waypoints;            /* 0x3c */
-    W8Monster* monster;           /* 0x48 */
-    float speed_step;             /* 0x4c */
-    Trigger* trigger;             /* 0x50 */
-    MonGen* generator;            /* 0x54 */
-    W8Prop* prop;                 /* 0x58 */
-    W8MipeEditField* edit_fields; /* 0x5c: mipeEdit.cpp prop field table */
-    signed char edit_field_count; /* 0x60 */
-    signed char edit_selection;   /* 0x61: -1 = no row selected */
-    unsigned char padding_62[2];
+    float value_34; /* initialised to 1.0 */
+    int waypoint_count;
+    W8PList waypoints;
+    W8Monster* monster;
+    float speed_step;
+    Trigger* trigger;
+    MonGen* generator;
+    W8Prop* prop;
+    W8MipeEditField* edit_fields; /* mipeEdit.cpp prop field table */
+    signed char edit_field_count;
+    signed char edit_selection; /* -1 = no row selected */
 };
 
 static_assert(sizeof(W8MipeState) == 0x64, "W8MipeState_size");
@@ -108,7 +106,7 @@ bool MipeWorldViewEvent(int event, const POINT* point);
 /* Any armed monster-generator marker within reach of the camera; sticky
    index resumes the scan at the last hit. Used with AnyWorldItemVisible to
    gate world-model picking. */
-bool AnyMonsterGeneratorMarkerWithinReach(void); /* 0x0057E3C0 */
+bool AnyMonsterGeneratorMarkerWithinReach(void);
 
 bool IsMipeActive(void);
 bool IsMipeMenuActive(void);

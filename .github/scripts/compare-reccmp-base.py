@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -38,16 +37,7 @@ def _reports(
         classify_source_non_emissions=True,
         classify_template_emissions=True,
     )
-    # Use the completed result's directory, never a possibly stale latest pointer.
-    report = repository / result["report"]["classified_summary"]
     (directory / f"{prefix}-base-summary.json").write_text(json.dumps(result))
-    shutil.copyfile(
-        report.parent / "json" / f"{target}.ghidriff.json",
-        directory / f"{prefix}-base-ghidriff.json",
-    )
-    calls = report.parent / "direct-calls.json"
-    if calls.is_file():
-        shutil.copyfile(calls, directory / f"{prefix}-base-direct-calls.json")
     if not result["ok"]:
         raise ValueError("Baseline comparison contains unpaired or incomplete functions")
     if target == "SURRENDER":

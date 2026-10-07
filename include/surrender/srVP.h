@@ -8,8 +8,6 @@
 class srARGB;
 
 // Generic exports API 0x119, ID 0, and a factory returning an owned srVP.
-// All three take no arguments; cdecl is the loader spelling, not proof that
-// the SDK source could not have used the x86-equivalent stdcall spelling.
 enum { SR_VP_MIN_API_VERSION = 0x119 };
 class srVP;
 typedef unsigned long(__cdecl* srGetVectorProcessorAPIFn)();
@@ -25,19 +23,12 @@ typedef srVector3T<float> srVector3;
 typedef srVector4T<float> srVector4;
 typedef srMatrix4T<float> srMatrix4;
 
-/* VC6 orders virtual overloads in reverse declaration order. */
 class __declspec(novtable) srVP {
 public:
-    /* The constructor's emitted helper at 0x10064C40 fills the two tables
-       below from stack copies of literal arrays; the identical sequence is
-       inlined into srDebugVP's constructor and into the shipped srVP_*
-       modules, so the original initializer was header-visible. */
     srVP()
     {
         initTables();
     }
-    /* The reconstruction uses a pure destructor. Missing srVP vftable and
-       base-vptr stores do not independently establish original pure/non-pure spelling. */
     virtual ~srVP() = 0;
     virtual const char* getName();
     virtual int _memcmp(const void* source_0, const void* source_1, SRDWORD bytes);
@@ -75,12 +66,7 @@ public:
                          SRDWORD count);
     virtual int _isEqual(const SRDWORD* source, SRDWORD constant, SRDWORD count);
     virtual int _isEqual(const SRDWORD* source_0, const SRDWORD* source_1, SRDWORD count);
-    /* VC6 emits a new virtual overload at the head of its name group's slot
-       run, so within a name group the vtable order is reverse declaration
-       order. Declaring the SRDWORD forms first therefore produces the retail
-       order _max(float) at +0x74, _max(SRDWORD) at +0x78, _min(float) at
-       +0x7c and _min(SRDWORD) at +0x80; the shipped generic implementations
-       at those slots confirm which is which. */
+    /* Within each overload group the SRDWORD forms are declared first. */
     virtual SRDWORD _max(const SRDWORD* source, SRDWORD count);
     virtual float _max(const float* source, SRDWORD count);
     virtual SRDWORD _min(const SRDWORD* source, SRDWORD count);
@@ -317,8 +303,6 @@ public:
     virtual void _srLinearToFloat(float* destination, const SRDWORD* source, SRDWORD count);
     virtual void _srDirect3DConvertColor(SRDWORD* destination, const srVector4* source,
                                          SRDWORD count);
-    /* The two _transformIndexed overloads land at +0x280/+0x284 in reverse
-       declaration order like every other name group. */
     virtual void _transformIndexed(srVector4* destination, const srVector3* source,
                                    const SRDWORD* indices, const srMatrix4& matrix, SRDWORD count);
     virtual void _transformIndexed(srVector3* destination, const srVector3* source,
@@ -327,24 +311,13 @@ public:
                              const srVector4* vectors, const SRDWORD* indices, SRDWORD count);
     virtual SRDWORD _srCullNoClip(SRDWORD* destination, const srVector4& constant,
                                   const srVector4* vectors, SRDWORD count);
-    /* The slots at +0x2a0/+0x2a4 are plain stubs in both shipped
-       implementations (RET 0x8 and RET) and have no entry in srDebugVP's
-       signature table, so their original names and parameter types are not
-       recoverable; only the stack arity is proven. */
+    /* Unused slots; their original names and parameter types are unknown. */
     virtual void unknown_2a0(SRDWORD, SRDWORD);
     virtual void unknown_2a4();
     virtual void _srGetClipFlags(SRBYTE* destination, const srVector4* source, SRDWORD count);
 
 protected:
-    /* srVectorProcessor's facade dispatches protected slots for srGERD's
-       renderer the way retail does. */
     friend class srVectorProcessor;
-    /* The body at 0x10064C40 fills the tables at +0x08/+0x248 and stores no
-       vftable. The model owns it as initTables; original helper/constructor
-       boundaries remain unresolved. The external
-       VP modules reproduce the same storage, making the tables part of the
-       srVP ABI; nothing in any shipped binary reads them back, so their
-       original member names and consuming operation stay unproved. */
     // FUNCTION: SURRENDER 0x10064C40
     void initTables()
     {

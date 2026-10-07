@@ -15,13 +15,13 @@ template <class T> class W8GrowableVector;
    unless combat announcements are verbose. */
 void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                                W8CombatSlot* pAttackerSlot, W8GrowableVector<int> char_targets,
-                               W8GrowableVector<int> monster_targets); /* 0x005560A0 */
+                               W8GrowableVector<int> monster_targets);
 /* Whether the special-attack kind is one of the seven the casting-blocked
    condition keeps from fleeing. */
-bool MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind); /* 0x00556050 */
+bool MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind);
 
 /* Translate a summoning special-attack kind to its monster species, roll that
    record's group size and bring the new group in as close to the attacker's
    position as camera-facing placement allows. */
 void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
-                               W8CombatSlot* pAttackerSlot); /* 0x00556B10 */
+                               W8CombatSlot* pAttackerSlot);

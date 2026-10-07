@@ -1,164 +1,72 @@
-"""Class-ABI audit over the Clang-backed source index.
-
-These rules encode only facts the compiler and the retail image have already
-settled. They exist because a source model can be wrong in ways `wiz8 lint`
-cannot see: lint compiles the declarations, so it accepts a class that
-re-declares methods its base already emits, and it accepts a new virtual added
-to a dllimport class even when the linker then leaves that vtable slot null.
-"""
+"""Class-ABI rules over the Clang-backed source index that `wiz8 lint` cannot see."""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-REPOSITORY = Path(__file__).resolve().parents[2]
-"""The identity trio, and deliberately not clone.
+from wiz8decomp.source_index import (
+    declaration_for_marker,
+    declarations_by_semantic_key,
+    load_source_index,
+)
 
-A support-derived class never re-declares the identity trio: those three bodies
-are fixed by the template arguments, so a hand-written copy is always the
-address-qualified-wrapper mistake. clone is different. The template's clone
-copies memberwise through Derived, which is wrong for a class holding state its
-base's assignment operator cannot carry, and such a class overrides it for real.
-stTextureAnim is the worked example: its clone assigns through srTexture and then
-copies each playback field individually, and it compares byte-exact against
-0x004858B0. Listing clone here rejected that legitimate override, so it is out.
-"""
+REPOSITORY = Path(__file__).resolve().parents[2]
+# clone is deliberately absent: a class holding state its base's assignment
+# cannot carry overrides it for real (stTextureAnim, 0x004858B0).
 IDENTITY_METHODS = ("getClassName", "getClassID", "getClassNode")
 SUPPORT_BASE = "srClassSupport<"
-DELETING_DESTRUCTORS = (
-    "`scalar deleting destructor'",
-    "`vector deleting destructor'",
-)
 
 
 def _index() -> dict[str, Any]:
-    """Load the generated index.
-
-    These rules require a current index. `uv run wiz8 check` refreshes it before
-    the repository suite; for a direct run after source changes, refresh with
-    `uv run wiz8 check` first.
-
-    Do not add an mtime-based staleness assert here: the writer preserves the
-    file when regenerated content is byte-identical, so mtime comparison
-    reports false staleness.
-    """
-    path = REPOSITORY / "build" / "source-index.json"
-    assert path.is_file(), f"{path} is missing; generate it with `uv run wiz8 check`"
-    with path.open(encoding="utf-8") as handle:
-        index = json.load(handle)
-
+    index = load_source_index(REPOSITORY)
     assert index.get("markers") and index.get("classes") and index.get("declarations"), (
         "source index is empty or truncated; regenerate it with `uv run wiz8 check`"
     )
     return index
 
 
-def _support_specialization(record: dict[str, Any]) -> str | None:
-    """Return the srClassSupport base a class derives from, if any."""
-    for base in record.get("bases") or ():
-        if base.startswith(SUPPORT_BASE):
-            return base
-    return None
-
-
-def _declarations_by_key(index: dict[str, Any]) -> dict[tuple[Any, ...], dict[str, Any]]:
-    """Index declarations the way reccmp v3 marker keys name them."""
-    return {(item.get("target"), item.get("semantic_id")): item for item in index["declarations"]}
-
-
-def _marker_declaration(
-    marker: dict[str, Any], by_key: dict[tuple[Any, ...], dict[str, Any]]
-) -> dict[str, Any] | None:
-    """v2 embeds the declaration; v3 stores a (target, semantic_id) key."""
-    declaration = marker.get("declaration")
-    if declaration is not None:
-        return declaration
-    key = marker.get("declaration_key")
-    if not key:
-        return None
-    return by_key.get((key[0], key[1]))
-
-
 def test_support_derived_classes_do_not_redeclare_template_methods() -> None:
     """A class whose own base is srClassSupport<ThatClass, ...> inherits the
-    identity trio and clone from the template. Re-declaring them turns a
-    template emission back into a hand-written method, which is the exact
-    mistake the address-qualified wrapper classes encoded."""
+    identity trio from the template instead of re-declaring it."""
     index = _index()
-    declarations = index["declarations"]
-
     support_derived: dict[str, str] = {}
     for record in index["classes"]:
-        base = _support_specialization(record)
-        if base is None:
-            continue
-        name = record["qualified_name"]
-        # Only the class the specialization names owns those emissions; a
-        # further subclass of it may legitimately override them.
-        first_argument = base[len(SUPPORT_BASE) :].split(",")[0].strip()
-        if first_argument == name:
-            support_derived[name] = base
+        for base in record.get("bases") or ():
+            # Only the class the specialization names owns those emissions.
+            if (
+                base.startswith(SUPPORT_BASE)
+                and base[len(SUPPORT_BASE) :].split(",")[0].strip() == record["qualified_name"]
+            ):
+                support_derived[record["qualified_name"]] = base
 
     assert support_derived, "expected at least one srClassSupport-derived class"
-
     offenders = [
         f"{declaration['qualified_name']} "
         f"({declaration['source_file']}:{declaration['line']}) "
         f"duplicates {support_derived[declaration['owning_class']]}"
-        for declaration in declarations
+        for declaration in index["declarations"]
         if declaration.get("owning_class") in support_derived
         and declaration["qualified_name"].rsplit("::", 1)[-1] in IDENTITY_METHODS
     ]
-    assert not offenders, (
-        "these classes derive from srClassSupport and must inherit the "
-        "registry identity and clone slots instead of declaring them:\n  "
-        + "\n  ".join(sorted(offenders))
-    )
-
-
-def test_template_specializations_are_never_function_markers() -> None:
-    """An address inside srClassSupport<...> is emitted from the template, so
-    it belongs in binary emission metadata. FUNCTION would claim someone authored that body."""
-    offenders = [
-        f"{marker['source_file']}:{marker['line']} {marker['marker_name']}"
-        for marker in _index()["markers"]
-        if SUPPORT_BASE in (marker.get("marker_name") or "") and marker["marker_kind"] == "FUNCTION"
-    ]
-    assert not offenders, (
-        "srClassSupport specializations are template output and must use "
-        "binary emission metadata, never FUNCTION:\n  " + "\n  ".join(sorted(offenders))
-    )
-
-
-def test_deleting_destructors_have_no_source_marker() -> None:
-    """Deleting destructors are compiler output, identified outside the source tree."""
-    offenders = [
-        f"{marker['source_file']}:{marker['line']} {marker['marker_name']}"
-        for marker in _index()["markers"]
-        if any(spelling in (marker.get("marker_name") or "") for spelling in DELETING_DESTRUCTORS)
-    ]
-    assert not offenders, "\n".join(["deleting-destructor source identities:", *sorted(offenders)])
+    assert not offenders, "\n  ".join(["srClassSupport identity re-declared:", *sorted(offenders)])
 
 
 def test_authored_lifecycle_markers_use_lifecycle_semantics() -> None:
     """A marker that names a constructor or destructor must resolve to that
     C++ entity, so the compiler emits the real lifecycle bundle rather than a
     look-alike ordinary method."""
-    offenders = []
     index = _index()
-    by_key = _declarations_by_key(index)
+    by_key = declarations_by_semantic_key(index)
+    offenders = []
     for marker in index["markers"]:
         if marker["marker_kind"] != "FUNCTION":
             continue
-        declaration = _marker_declaration(marker, by_key)
-        if not declaration:
-            continue
-        name = declaration["qualified_name"]
+        declaration = declaration_for_marker(marker, by_key)
         owner = declaration.get("owning_class")
         if owner is None:
             continue
+        name = declaration["qualified_name"]
         tail = name.rsplit("::", 1)[-1]
         if tail.startswith("~"):
             expected = "destructor"

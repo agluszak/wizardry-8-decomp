@@ -17,15 +17,6 @@ def sha256_file(path: Path, chunk_size: int = 4 * 1024 * 1024) -> str:
     return digest.hexdigest()
 
 
-def repo_relative(path: Path, repo_dir: Path) -> str:
-    """Return ``path`` relative to ``repo_dir`` when possible, else absolute."""
-
-    try:
-        return str(path.resolve().relative_to(repo_dir.resolve()))
-    except ValueError:
-        return str(path)
-
-
 def atomic_write(path: Path, data: str | bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
@@ -88,14 +79,6 @@ def compile_database_relative(path: str, repository: Path) -> str | None:
         except ValueError:
             return None
     return posix
-
-
-def safe_relative(path: Path, root: Path) -> str:
-    resolved = path.resolve()
-    try:
-        return resolved.relative_to(root.resolve()).as_posix()
-    except ValueError as error:
-        raise ValueError(f"{path} is outside {root}") from error
 
 
 def tree_manifest(root: Path) -> list[dict[str, Any]]:

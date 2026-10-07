@@ -8,29 +8,20 @@
 struct W8Character;
 struct W8NpcScriptFile;
 
-/* One entry in an NPC's stock list. This one is deliberately outside the
-   pack(1) block below: AddNpcItem allocates 0x14 bytes for it, which the packed
-   size of 0x11 cannot produce. An ordinary naturally-aligned struct places
-   every field at the offset the recovered bodies read and pads the tail to
-   0x14, so the allocation is the size evidence. Offsets are identical either
-   way; only the tail padding differs. See wiz8-4of.8 for the wider packing
-   rule. */
+/* One entry in an NPC's stock list. */
 struct W8NpcItemEntry {
     /* 0x00: the game-clock stamp before which the entry is not ordinary trade
-       stock. Zero is the ordinary tradeable entry, and the restock helper at
-       0x0055AA80 writes a clock reading plus a delay here. */
+       stock. Zero is the ordinary tradeable entry; restocking writes a clock
+       reading plus a delay here. */
     unsigned int available_at;
     W8ItemInstance item;    /* 0x04 */
     unsigned char quantity; /* 0x10: non-stack remaining quantity */
-}; /* 0x14 by allocation */
+}; /* 0x14 */
 
 #pragma pack(push, 1)
 
-/* The database pointer sits unaligned at 0x06, which is what the byte-offset
-   loads through it show, and everything reached by the recovered NPC bodies is
-   placed off it. */
 struct W8NpcState {
-    W8NpcScriptFile* script_file; /* 0x00: .nsf script file loaded by 0x0055A480 */
+    W8NpcScriptFile* script_file; /* 0x00: the NPC's .nsf script file */
     /* 0x04: spawned flag; FindNpcOfKind returns it as the "in the world"
        answer, facts/combat paths set it, and 0xffff is the never-set
        sentinel normalized to zero on load. */
@@ -38,9 +29,9 @@ struct W8NpcState {
     W8NpcDatabaseRecord* record; /* 0x06 */
     W8PList* items;              /* 0x0a: W8NpcItemEntry* elements */
     /* 0x0e and 0x12: two world-clock stamps, both set when the stock is first
-       populated at 0x0055A630. 0x0055AFA0 reads them as separate windows: it
-       reruns the stock-rule pass once 0x0e is more than 0xa8c0 old, and the
-       decay and restock pass once 0x12 is more than 0x15180 old. */
+       populated. The stock-rule pass reruns once the first is more than 0xa8c0
+       old, and the decay and restock pass once the second is more than 0x15180
+       old. */
     int restock_clock;     /* 0x0e */
     int maintenance_clock; /* 0x12 */
     int location_id;       /* 0x16 */
@@ -53,8 +44,7 @@ struct W8NpcState {
        first-interaction paths lower it once the NPC has been greeted. */
     bool greeting_pending;
     unsigned int dismissed_timer;
-    /* 0x22/0x23: two bytes 0x0056D030 clears when the dialogue NPC is
-       staged. */
+    /* 0x22/0x23: cleared when the dialogue NPC is staged. */
     bool flag;
     bool flag0;
     /* 0x24: the level-band byte GetLevelBand returns for the bound level. */
@@ -78,19 +68,16 @@ struct W8NpcState {
     unsigned char name_style;
     /* 0x2f: the loaded level id the binding is stamped for. */
     unsigned char bound_level;
-    /* 0x30: the forty item ids 0x0050B9E0 copies out of the record's item
-       table, -1 for an unused slot; every retail reader sign-extends. */
+    /* 0x30: the forty item ids copied out of the record's item table, -1 for
+       an unused slot. */
     short item_ids[40];
-    /* 0x80: the purse 0x004F8CB0 hands to AddPartyGold, from the record's
-       gold field. */
+    /* 0x80: the purse, from the record's gold field. */
     int gold;
-    /* 0x84: cleared by 0x0056D030 when the runtime-node flag at 0x1d is
-       set. */
     /* 0x84: theft suspicion; each theft attempt raises it toward 0x64 and it
        scales the theft score down. */
     unsigned char suspicion;
     /* 0x85: bitmask the refusal callback reads and sets one bit per queued
-       refusal quote (0x67, 0x68, 0x69); retail accesses it as one dword. */
+       refusal quote (0x67, 0x68, 0x69). */
     unsigned int refusal_flags;
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
@@ -108,14 +95,13 @@ struct W8NpcState {
     int talk_cooldown_clock;
     int trade_cooldown_clock;
     unsigned char service_flags[0x14];
-    /* 0x0e8: cleared by the level-entry NPC-binding reset. */
-    /* 0xe8: the bound character's highest condition reached a serious
-       band; cleared when the character recovers. */
+    /* 0x0e8: the bound character's highest condition reached a serious
+       band; cleared when the character recovers or the level-entry binding
+       reset runs. */
     unsigned char incapacitated;
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
     unsigned char event_pending;
-    /* 0x0ea: this NPC is a candidate for the scripted event pass. */
-    /* 0xea: the NPC is restored into the current level and available for
+    /* 0x0ea: the NPC is restored into the current level and available for
        binding; cleared while a restore is pending. */
     bool restored;
     /* 0x0eb: world clock of the last event that ran for this NPC. */
@@ -127,7 +113,7 @@ struct W8NpcState {
     unsigned char item_assist;
     /* 0x0f2: fourteen facts, appended in order and terminated by zero. */
     short known_facts[14];
-    /* 0x10e: the item-count dice of the item table 0x0050B9E0 copied. */
+    /* 0x10e: the item-count dice of the record's item table. */
     W8Dice item_count_dice;
     /* 0x112/0x113: the monster-binding release flag and the level it is
        stamped for. */

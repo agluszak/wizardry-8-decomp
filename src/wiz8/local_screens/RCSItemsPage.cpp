@@ -75,7 +75,7 @@ W8ItemInstance* g_split_item_source;
 // GLOBAL: WIZ8 0x0069c490
 unsigned int g_camp_secondary_region_set;
 
-/* 0x0061E7C4: the twelve equip-slot label message ids indexed by region
+/* The twelve equip-slot label message ids indexed by region
    callback_id. */
 // GLOBAL: WIZ8 0x0061E7C4
 unsigned short g_equip_slot_label_ids[12] = {

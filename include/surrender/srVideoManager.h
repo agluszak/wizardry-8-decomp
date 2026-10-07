@@ -4,26 +4,19 @@
 #include "srIOManager.h"
 #include "srPixelConvert.h"
 
-/* Provider-side video interface. Wizardry imports srCore::getVideoManager only
-   as a getter returning this type; no known consumer imports a srVideoManager,
-   Stream, or VStream-owned symbol. */
 // VTABLE: SURRENDER 0x100769A0 srVideoManager::Stream
 class srVideoManager : public srIOManager {
 public:
     class Stream {
     public:
-        /* Per-frame target built by VStream::decompress: the frame extent
-           pairs with the destination surface extent behind a leading dword
-           that sr.dll always writes 0. */
+        /* Per-frame target built by VStream::decompress; the leading dword is always 0. */
         struct Target {
             long flags;
             srColorSurfaceIFace::Rectangle source;
             srColorSurfaceIFace::Rectangle surface;
         };
 
-        /* Stream description the importer fills through getInfo. The video
-           extensions memset the block, mapPixelFormat the leading format,
-           then write the extent/count/rate fields and a description string. */
+        /* Stream description the importer fills through getInfo. */
         struct Info {
             srPixelConvert::PixelFormat pixel_format;
             unsigned long width;
@@ -38,8 +31,6 @@ public:
             unsigned long field_74;
             unsigned long field_78;
 
-            /* VStream's implicit constructor emits a single store at +0x10,
-               the flags dword of the embedded pixel format. */
             Info()
             {
                 pixel_format.fourcc = 0;
@@ -64,8 +55,6 @@ public:
         {
             return index;
         }
-        /* The +0x08 payload's semantics are unresolved; no shipping importer
-           reads it. */
         // FUNCTION: SURRENDER 0x1002DFC0
         virtual void setParameter(long parameter)
         {
@@ -97,9 +86,8 @@ public:
         long position;
     };
 
-    /* Importer-side video entry: the video extensions register a subclass
-       whose openStream allocates its Stream (srEXT_FLIC drops the object when
-       the file fails to load). */
+    /* Importer-side video entry: the video extensions register a subclass whose openStream
+       allocates its Stream. */
     class VideoImporter : public srIOManager::Importer {
     public:
         virtual Stream* openStream(const char* path) = 0;

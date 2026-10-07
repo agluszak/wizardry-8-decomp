@@ -27,14 +27,8 @@ class stParticle;
 struct W8PathAI;
 struct W8GameData;
 
-/* The 0x3c-byte CamPos record GetWorldCameraState writes and
-   RestoreWorldCameraState reads (3dapi.cpp, assertions pWorld / CamPos).
-   Two six-float records follow the point: pitch at +0x0c and yaw/angle at
-   +0x24. Recall stores this same object on the character at +0x17d7. */
-/* Six-float CamPos angle record: [0] is the live angle, the tail is serialized
-   padding. GetCameraOrientation/SetCameraOrientation take these; their array
-   typedef decays to float* so callers with scalar floats keep their authored
-   shape. */
+/* Six-float camera angle record: [0] is the live angle, the tail is
+   serialized padding. */
 typedef float W8CameraAngleRecord[6];
 
 struct W8WorldCameraState {
@@ -55,8 +49,7 @@ struct W8World {
     float environment_range_start;
     float environment_range_end;
     /* Third serialized environment channel (loaded from
-       environment_colour.blue like the start/end fractions); no recovered
-       consumer reads it. */
+       environment_colour.blue like the start/end fractions); never read. */
     float environment_range_blue;
     float view_distance;
     float environment_intensity;

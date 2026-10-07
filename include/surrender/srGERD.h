@@ -45,10 +45,7 @@ public:
         unsigned long mode1_mask;
     };
 
-    /* pushEnvironment/popEnvironment record: {minimum, maximum, scale,
-       inverse_scale}. Unlike the scalar environment fields this element is
-       POD: the constructor emits no __ehvector_ctor over the 16-entry stack
-       the way it does for every srVector4T<float> array. */
+    /* pushEnvironment/popEnvironment record: {minimum, maximum, scale, inverse_scale}. */
     struct Environment {
         float x;
         float y;
@@ -80,9 +77,6 @@ public:
             float sort_bias;
         };
 
-        /* createRenderer packs this record on the stack for the ctor
-           (0x10024900, size 0xe4), which stores it verbatim at
-           +0xd4..+0xe0. */
         struct Parameters {
             srGERD* gerd;
             long sorted;
@@ -90,19 +84,15 @@ public:
             unsigned long texture_stages;
         };
 
-        /* +0x18/+0x20: per-stage scratch the DD dispatch at 0x10026360
-           repacks into interleaved {st,q} elements when the driver wants
-           combined texture-coordinate+w streams. */
+        /* Per-stage {st,q} scratch for drivers that want combined texture-coordinate and w streams. */
         struct TexCoordQ {
             srVector2T<float> st;
             float q;
         };
         static_assert(sizeof(TexCoordQ) == 0xc, "TexCoordQ_must_be_0xc");
 
-        /* intern() (0x10024280) hashes and compares the first three words;
-           the interned record additionally carries a class derived from the
-           shader's DSTBLEND field (ZERO -> 0, SRC_ALPHA pair -> 1, ONE -> 2,
-           SRC_COLOR pair -> 3). */
+        /* The interned record additionally carries a blend class derived from the shader's DSTBLEND
+           field (ZERO -> 0, SRC_ALPHA pair -> 1, ONE -> 2, SRC_COLOR pair -> 3). */
         struct TextureSetKey {
             srTextureIFace* texture0;
             srTextureIFace* texture1;
@@ -124,30 +114,21 @@ public:
             srShader shader;
             unsigned long blend;
         };
-        /* +0x44: texture-set interning cache. The map's value is the index
-           into sets; reset() runs the map's Clear() and empties the
-           record array. */
+        /* Texture-set interning cache; the map's value is the index into sets. */
         struct TextureSetCache {
             srHashTable<TextureSetKey, unsigned long>* map;
             srArray<TextureSet> sets;
             unsigned long count;
 
-            /* Retail's constructor emission allocates the map after the
-               record array and count are zeroed. */
             TextureSetCache() : count(0)
             {
                 map = new srHashTable<TextureSetKey, unsigned long>;
             }
-            /* ~Renderer inlines this sequence as map->Clear(),
-               sets.release(), count = 0, delete map followed by the
-               memberwise ~sets. */
             ~TextureSetCache()
             {
                 clear();
                 delete map;
             }
-            /* Renderer::reset inlines the same triple: clear the interning
-               map, drop the record array, reset the count. */
             void clear()
             {
                 map->Clear();
@@ -156,18 +137,15 @@ public:
             }
             unsigned long intern(const TextureSetKey& key);
         };
-        /* Write pointers alloc() (0x10024460) returns for the reserved
-           triangle range. */
+        /* Write pointers alloc() returns for the reserved triangle range. */
         struct IndexWrite {
             srVector3i* triangles;
             unsigned long* texture_set;
             unsigned long* sort_key;
             unsigned long* aux;
         };
-        /* +0x54: accumulated primitive work. alloc() reserves count entries
-           plus 0x40 headroom across all four streams and returns the write
-           pointers; reset() (0x10024620) always clears the count and only
-           frees when asked. */
+        /* Accumulated primitive work. alloc() reserves count entries plus 0x40 headroom across all
+           four streams; reset() always clears the count and only frees when asked. */
         struct IndexBatch {
             srArray<srVector3i> triangles;
             srArray<unsigned long> texture_set;
@@ -175,18 +153,13 @@ public:
             srArray<unsigned long> aux;
             unsigned long count;
 
-            /* Retail's constructor emission calls the reserve form with 0
-               on the three operator-new arrays. */
             IndexBatch() : texture_set(0), sort_key(0), aux(0), count(0) {}
             void alloc(IndexWrite& write, unsigned long count);
             void reset(int release);
         };
-        /* +0x78: accumulated vertex streams. alloc() (0x10024680) grows all
-           streams, default-fills the new range (positions {0,0,0,1}, st
-           {0,0}, q 1.0, the rest zeroed/uninitialized) and bind()
-           (0x10027cf0) points an srVertexArray at the reserved range. The
-           +0x00/+0x08/+0x10 streams bind to diffuse/specular/eye locations
-           in that order. */
+        /* Accumulated vertex streams. alloc() grows all streams and default-fills the new range
+           (positions {0,0,0,1}, st {0,0}, q 1.0); bind() points an srVertexArray at the reserved
+           range. */
         struct VertexArrays {
             srArray<srVector4T<float> > diffuse;
             srArray<srVector4T<float> > specular;
@@ -198,8 +171,6 @@ public:
             long count;
             unsigned long capacity;
 
-            /* Retail's constructor emission calls the reserve form with 0
-               on the vec4 streams and the attribute byte array. */
             VertexArrays()
                 : diffuse(0), specular(0), positions(0), attributes(0), count(0), capacity(0)
             {
@@ -216,8 +187,8 @@ public:
            into the output ids. */
         void assignTextureSets(unsigned long* texture_set, const unsigned long* indices,
                                unsigned long count, const srTriMeshPipeline::Pass* pass);
-        /* Retail 0x10024DE0: while a vertex range is reserved
-           (first_vertex != -1), give count accumulated vertices back. */
+        /* While a vertex range is reserved (first_vertex != -1), give count accumulated vertices
+           back. */
         void rewindVertexArray(unsigned long count);
         /* expands/dedups the input triangles into the index and
            vertex batches, per record. */
@@ -246,23 +217,18 @@ public:
         /* discard accumulated state; nonzero also releases
            the backing arrays. */
         void reset(int release_buffers);
-        /* resetStatistics zeroes the +0x28 stat block; getStatistics copies
-           its seven counters out for srGERD::getStatistics. */
+        /* resetStatistics zeroes statistics; getStatistics copies its seven counters out. */
         void resetStatistics();
         void getStatistics(unsigned long* statistics);
 
-        /* The checked-free srHeapBuffer family, not srArray: ~Renderer
-           null-checks before freeing these streams. bytes grows by 1-byte
-           elements, dwords and remap by 4-byte elements (the ensure
-           emissions at 0x100271D0/0x10027280 multiply by the element size). */
+        /* Checked-free heap buffers: ~Renderer null-checks before freeing them. */
         srHeapBuffer<unsigned char> bytes;
         srHeapBuffer<unsigned long> dwords;
         /* render()'s per-corner dedup scratch (six slots per triangle). */
         srHeapBuffer<unsigned long> remap;
         srHeapBuffer<TexCoordQ> stq[2];
-        /* memset for 0x1c bytes in the ctor; submit() (0x100266E0) bumps
-           [4] per call and accumulates the vertex count into [5] and the
-           index-batch count into [6]. */
+        /* submit() bumps [4] per call and accumulates the vertex count into [5] and the index-batch
+           count into [6]. */
         unsigned long statistics[7];
         TextureSetCache texture_sets;
         IndexBatch indices;
@@ -270,8 +236,7 @@ public:
         /* allocVertexArray() snapshots the vertex count here so render() can
            offset indices into the reserved range. */
         long first_vertex;
-        /* Bound draw state, refreshed per texture set in the immediate and
-           sorted paths. shader re-defaults in the ctor body. */
+        /* Bound draw state, refreshed per texture set. */
         srTextureIFace* texture0;
         srTextureIFace* texture1;
         srShader shader;
@@ -290,7 +255,6 @@ public:
                   "srGERD_Renderer_TextureSetKey_must_be_0x0c");
     static_assert(sizeof(Renderer::IndexWrite) == 0x10, "srGERD_Renderer_IndexWrite_must_be_0x10");
 
-    /* errStrings literal order at 0x100993A4. */
     enum e_error {
         ERROR_NONE = 0,
         ERROR_INVALID_ENUM = 1,
@@ -311,24 +275,14 @@ public:
     enum e_backBuffer { BACKBUFFER_NONE = 1, BACKBUFFER_ONE = 2, BACKBUFFER_TWO = 3 };
     /* applyRenderState translates each value to the same srDD mode. */
     enum e_polygonMode { POLYGON_POINT = 0, POLYGON_LINE = 1, POLYGON_FILL = 2 };
-    /* Wizardry uses 0 immediately before model-view loads and 1 immediately
-       before identity+ortho. OpenGL srDD talks GL_MODELVIEW (0x1700) and
-       GL_PROJECTION (0x1701) for those two stacks. */
+    /* 0 selects the model-view stack and 1 the projection stack. */
     enum e_matrixMode { MATRIX_MODELVIEW = 0, MATRIX_PROJECTION = 1 };
     enum e_antiAlias { ANTIALIAS_NONE = 0 };
-    /* srClipPlane::process passes its clip_type_ through unchanged; Wizardry
-       always writes 0. */
     enum e_clipMode { CLIPMODE_POSITIONAL_0 = 0 };
-    /* applyDrawStateChanges hands 0 to srDD as back-face culling and 1 as
-       front-face culling (each flipped by the winding) and 2 as srDD::CULL_NONE;
-       the constructor defaults to 0. */
+    /* 0 culls back faces and 1 front faces (each flipped by the winding); 2 disables culling. */
     enum e_cullMode { CULL_BACK = 0, CULL_FRONT = 1, CULL_NONE = 2 };
-    /* toggle XORs 1<<option into +0x20. Option 0 also dirties dirty bit 0
-       (Wizardry render-option 5). Option 1 selects sorted rendering. Option 4 is
-       SetRendererAutoFlipEnabled. Option 5 wraps/unwraps srDebugDD. GERD dump
-       has no enable-name table. */
-    /* The constructor sets bits 4 and 6 on enable_flags; ~srGERD toggles
-       bit 5, which openWindow's comment identifies as the debug-DD wrap. */
+    /* toggle XORs 1<<option into enable_flags. Option 1 selects sorted rendering; option 5
+       wraps/unwraps srDebugDD. The constructor sets options 4 and 6. */
     enum e_enable {
         ENABLE_POSITIONAL_0 = 0,
         ENABLE_SORTED_RENDERING = 1,
@@ -339,9 +293,9 @@ public:
     };
     enum e_winding { WINDING_POSITIONAL_0 = 0, WINDING_POSITIONAL_1 = 1 };
     enum e_visibility { VISIBILITY_OUTSIDE = 0 };
-    /* dump(stream, flags) section selectors: bit 0 driver/device info plus
-       the window block, bit 1 the texture cache, bit 3 the statistics
-       snapshot, bit 5 the srDebugDD call profile. dump(stream) passes 0x3f. */
+    /* dump(stream, flags) section selectors: bit 0 driver/device info plus the window block, bit 1
+       the texture cache, bit 3 the statistics snapshot, bit 5 the srDebugDD call profile.
+       dump(stream) passes 0x3f. */
     enum e_info {
         INFO_DEVICE = 0x1,
         INFO_TEXTURE_CACHE = 0x2,
@@ -351,9 +305,8 @@ public:
     };
     enum e_hint {};
     enum e_hintMode {};
-    /* accumulate() switch evidence: 0 loads the frame buffer into the accum
-       buffer, 1 accumulates, 4 returns the accum buffer to the frame
-       buffer; 2/3 multiply/add through the accum path. */
+    /* 0 loads the frame buffer into the accum buffer, 1 accumulates, 4 returns the accum buffer to
+       the frame buffer; 2/3 multiply/add through the accum path. */
     enum e_accum {
         ACCUM_LOAD = 0,
         ACCUM_ACCUMULATE = 1,
@@ -384,9 +337,6 @@ public:
         short alpha;
     };
 
-    /* Not in the consumer import table and no client emission exists in
-       retail Wiz8 (no "srGERD" literal): the consumer never references it,
-       so the inherited class-wide import decoration is unobservable. */
     static const char* sGetClassName();
     static srRegistry::ClassNode* sGetClassNode();
 
@@ -403,8 +353,7 @@ public:
     static srGERD* loadDeviceWithFileName(const char* filename, unsigned long device);
     static srGERD* getFirst();
     srGERD* getNext() const;
-    /* Open-device list used by srTexture::invalidateFrameHandle; the links
-       live in the object (getNextOpen reads +0x3c). */
+    /* Open-device list used by srTexture::invalidateFrameHandle. */
     static srGERD* getFirstOpen();
     srGERD* getNextOpen() const;
     e_error createContext(unsigned long window);
@@ -420,8 +369,7 @@ public:
         long height;
         long display_mode;
     };
-    /* Number of back buffers in the swap chain; openWindowInternal stores
-       the device result at +0x38c (1, 2 or 3). */
+    /* Number of back buffers in the swap chain (1, 2 or 3). */
     e_error openWindow();
     e_error openWindow(long width, long height);
     e_error openWindow(long mode);
@@ -440,19 +388,12 @@ public:
     long getHeight() const;
     long getWidth() const;
     void resetStatistics();
-    /* getStatistics buffer. The render probes return the double at +0x10
-       through ftol; the 0x00427460 debug overlay prints the dword counters at
-       +0x08/+0x0c (the TT pair halves), +0x20 (PO), +0x24 (VO), +0x34 (PI),
-       +0x3c (VI), +0x4c (TC) and +0x68 (DD). */
     struct Statistics {
         /* Epoch written by resetStatistics; getStatistics returns the
            seconds elapsed since then. */
         double elapsed;
-        /* Device texture byte count mirrored from srDD::Statistics +0x00 as
-           two dwords; dump reinterprets the pair as a double for the
-           "DD Texture data transfer (Mb/s)" line. */
-        unsigned long texture_transfer_low;
-        unsigned long texture_transfer_high;
+        /* Device texture bytes transferred. */
+        double texture_transfer;
         double pixels_drawn;
         unsigned long value_18;
         unsigned long value_1c;
@@ -504,12 +445,8 @@ public:
     void setClearDepth(double depth);
     void setAmbientLight(float red, float green, float blue, float alpha);
     void setAmbientLight(const srVector4T<float>& light);
-    /* Retail 0x1001C440: the scene's process installs its v3 ambient through
-       this overload. */
     void setAmbientLight(const srVector3T<float>& light);
     void setFogColor(const srVector3T<float>& color);
-    /* Retail 0x1001C6B0: the scene restores the saved v4 fog color through
-       this overload. */
     void setFogColor(const srVector4T<float>& color);
     void setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     /* Dirty-rectangle pair handed to flipFrame in {x,y,width,height} form;
@@ -529,8 +466,6 @@ public:
     void getMatrix(e_matrixMode mode, srMatrix4T<double>& matrix);
     void getEyeSpaceBounds(srVector3T<float>& center, float& radius,
                            const srVector3T<float>& object_center, float object_radius);
-    /* srIlluminator::process stores the eye-space camera position for the
-       current model view through this export. */
     srVector4T<float> getEyeSpaceLocation(const srVector3T<float>& object_location);
     void pushVertexProcessor(srVertexProcessor& processor);
     void popVertexProcessor();
@@ -542,7 +477,6 @@ public:
     void getNormalMatrix(srMatrix4T<float>& matrix);
     srMatrix4T<float>::e_scaleType getModelViewScaleType();
 
-    /* Retail 0x10021380. */
     float getMaxModelViewScale();
     e_cullMode getCullMode() const;
     e_winding getWinding() const;
@@ -554,14 +488,11 @@ public:
     unsigned long getVertexProcessorCount() const;
     void getVertexProcessors(srVertexProcessor** processors) const;
     void getAmbientLight(srVector4T<float>& light);
-    /* Retail 0x1001C680: the scene saves the current v4 fog color through
-       this overload. */
     void getFogColor(srVector4T<float>& color) const;
     void getEnvironmentRange(float& minimum, float& maximum) const;
     void getEnvironmentScaleFactor(float& scale, float& inverse_scale);
     unsigned long getExclusionMask() const;
     void setExclusionMask(unsigned long mask);
-    /* The pipeline's single-stage mask branch inlines this exported getter. */
     // FUNCTION: SURRENDER 0x1001BB70 SYMBOL
     // RECOMP: ?getMaxTextureStages@srGERD@@QBEJXZ
     long getMaxTextureStages() const
@@ -609,7 +540,6 @@ public:
     e_visibility testBoundingBox(const srVector3T<float>& minimum,
                                  const srVector3T<float>& maximum);
     void setPickKey(unsigned long key);
-    /* Retail 0x1001DB20. */
     unsigned long getPickKey() const;
     void ortho(double left, double right, double bottom, double top, double near_plane,
                double far_plane);
@@ -656,26 +586,21 @@ public:
     long getPolygonOffset() const;
     void setPolygonOffset(long offset);
 
-    /* Retail 0x10020DD0. */
     int isBufferLocked();
-    /* Retail 0x1001CF60/0x1001CF70: the +0x30/+0x38 list links. */
     srGERD* getPrev() const;
     srGERD* getPrevOpen() const;
-    /* Retail 0x1001B400/0x1001B420: walks the global device list. */
     static long getGERDCount();
     static srGERD* getGERD(unsigned long index);
-    /* Retail 0x10018BC0/0x10018C70: scan provider libraries for devices. */
+    /* Scan provider libraries for devices. */
     static void loadDevices(const char* path);
     static void scanDevices(const char* path, srStringTable& devices);
-    /* Retail 0x10018E60: releases every GERD on the global list. */
+    /* Releases every GERD on the global list. */
     static void releaseAll();
-    /* Retail 0x1001AFF0: static error-string table lookup. */
     const char* getErrorString(e_error error);
     e_error getError();
     int isFlipped() const;
     const char* getApiVersion() const;
-    /* device.info.text[0..8] accessors: initDDInfo seeds the nine 0x40-byte
-       identity strings, getInfo's driver fills them. */
+    /* device.info.text[0..8] accessors. */
     const char* getDeviceName() const;
     const char* getDeviceVendor() const;
     const char* getDevicePlatform() const;
@@ -701,7 +626,6 @@ public:
     void disable(e_enable option);
     void enable(e_enable option);
     srShader getShader() const;
-    /* Retail 0x1001BBB0: submits one triangle through drawElements. */
     void drawTriangle(const srVector3i& triangle);
     void setDepthRange(double minimum, double maximum);
     void getDepthRange(double& minimum, double& maximum) const;
@@ -736,8 +660,6 @@ public:
     static unsigned long sGetClassID();
     static void dumpDeviceList(std::ostream& stream);
 
-    /* These ordinary methods are header-visible in Wiz8 call sites even
-       though SR.DLL also exports out-of-line copies. */
     // FUNCTION: SURRENDER 0x1001BB80 SYMBOL
     // RECOMP: ?isPickStackEmpty@srGERD@@QBEHXZ
     int isPickStackEmpty() const
@@ -762,8 +684,6 @@ public:
         }
     }
 
-    /* Header inline that also emits the standalone retail 0x1001BB40 copy;
-       drawSorted calls the emission while drawImmediate inlines it. */
     // FUNCTION: SURRENDER 0x1001BB40 SYMBOL
     // RECOMP: ?setShader@srGERD@@QAEXABVsrShader@@@Z
     void setShader(const srShader& shader)
@@ -789,9 +709,6 @@ public:
         return vertex_arrays.mask;
     }
 
-    /* Retail emits each specialized setter as its own export writing the
-       indexed slot directly; setDataPtr is the general entry point the
-       renderer's bindVertexArrays calls. */
     void setDiffusePointer(long components, srRendererDefs::e_type type, unsigned long stride,
                            const void* values);
     void setSpecularPointer(long components, srRendererDefs::e_type type, unsigned long stride,
@@ -826,10 +743,8 @@ public:
     }
 
 private:
-    /* Pooled device-texture record, 0xa8 bytes. allocTexture links chunks
-       through +0x00, keeps live/deleted lists in {prev, next} and the
-       texture-interface id at +0x08 as the hash key. The embedded
-       srDD::Texture at +0x2c is handed to the device. */
+    /* Pooled device-texture record. allocTexture links chunks through the first word and keys the
+       hash by the texture-interface id; the embedded srDD::Texture is handed to the device. */
     struct Texture {
         Texture* prev;
         Texture* next;
@@ -844,10 +759,8 @@ private:
     };
     static_assert(sizeof(Texture) == 0xa8, "srGERD_Texture_must_be_0xa8");
 
-    /* Renderer::render's pick path hands this batch view to
-       performPickTest: indices selects triangles out of the caller's
-       srVector3i stream, vertices remaps each corner to a position index,
-       positions is the renderer's vec4 stream base. */
+    /* Pick batch view: indices selects triangles out of the caller's stream, vertices remaps each
+       corner to a position index, positions is the renderer's vec4 stream base. */
     struct PickInput {
         const unsigned long* indices;
         const srVector3i* triangles;
@@ -857,46 +770,29 @@ private:
         unsigned long vertex_count;
     };
 
-    /* Retail's exported operator= is a private no-op returning *this; the
-       class-level dllexport emits it even though nothing calls it. */
     srGERD& operator=(const srGERD& other);
-    /* Renderer::submit and LockSurface's pixel transfers reach getDD; VC6
-       does not give nested classes enclosing-member access. */
     srDD* getDD() const;
 
-    /* The members marked dllexport below are retail exports no recovered
-       caller references; without the annotation the linker garbage-collects
-       the emissions and the provider exports dangle. Retail mangles them
-       private. */
     static void debugWrite(const char* text);
     void fenceVertexArrays();
     void dumpTextureCache(std::ostream& stream);
     void setDataPtr(srRendererDefs::e_vertexArray index, long components,
                     srRendererDefs::e_type type, unsigned long stride, const void* values);
 
-    /* Renderer member functions reach GERD's array-state fields directly;
-       VC6 extended enclosing-class access to nested members, clang-cl
-       needs the explicit grant. */
     friend class Renderer;
-    /* Retail 0x1001D630: for each queued Pick, w-normalize the batch's
-       positions into pick_vertices and run the edge-function
-       triangle test against the pick ray. */
+    /* For each queued Pick, w-normalize the batch's positions into pick_vertices and run the
+       edge-function triangle test against the pick ray. */
     void performPickTest(const PickInput& input);
     void deleteRenderers();
     /* getErrorString table: the ten e_error names followed by no terminator;
        out-of-range errors report "UNKNOWN ERROR". */
     static const char* errStrings[10];
 
-    /* Handle-hash chain node: {next, handle, texture} at stride 0xc, proven
-       by invalidateTextureByFrameHandle's walk. */
     struct TextureEntry {
         long next;
         unsigned long handle;
         Texture* texture;
     };
-    /* Doubly-linked renderer list node proven by createRenderer's prepend
-       and the lock/flush walks; +0x0c is the busy flag _lockRenderer
-       raises. */
     struct RendererEntry {
         RendererEntry* prev;
         RendererEntry* next;
@@ -943,7 +839,6 @@ private:
     void initTextureFormats();
     void initDisplayModeList();
     void initGlobalPalette();
-    /* Retail 0x1001CF00: +0x2d8 of the device info block. */
     unsigned long getDDAPIVersion() const;
     void initClearColors();
     void initView();
@@ -959,8 +854,7 @@ private:
     short accumConvert(float value) const;
     void accumClear();
     void accumRelease();
-    /* MMX row kernels for accumulate(); retail inlines the same instruction
-       sequences inside accumulate itself. */
+    /* MMX row kernels for accumulate(). */
     static void __cdecl accumAccum_MMX(AccumPixel* accum, const srARGB* pixels, long scale,
                                        long count);
     static void __cdecl accumLoad_MMX(AccumPixel* accum, const srARGB* pixels, long scale,
@@ -977,31 +871,19 @@ private:
     void flushNonBusyRenderers();
     void flushSort();
     Renderer* _lockRenderer(RendererEntry* entry);
-    /* lockBuffer's 0x60-byte locked-back-buffer surface, defined in
-       gerd.cpp; LockSurface's pixel transfers reach the private getDD. */
     class LockSurface;
     friend class LockSurface;
 
-    /* The five-word texture pool at +0x2014: live-texture count, free-list
-       head, the chunk-pointer array and the chunk count. srGERD's destructor
-       calls release() at body level and deleteTexture reaches it when the live
-       count drains; its embedded array still gets the memberwise teardown. */
+    /* Texture pool: live-texture count, free-list head and the chunk-pointer array. */
     struct TexturePool {
-        /* Retail's constructor helper (0x1001EEA0) is the out-of-line
-           emission; it zeroes all five words (the embedded srArray
-           contributes the middle two). */
         TexturePool();
 
-        /* ~srGERD's member teardown calls this before the embedded array's
-           memberwise ~srArray, so the destructor body is release(). */
         ~TexturePool()
         {
             release();
         }
 
-        /* Frees every chunk through srHeap, releases the chunk array and
-           zeroes the record; the indexed free goes through srArray's
-           growing operator[] the way retail inlines it. */
+        /* Frees every chunk, releases the chunk array and zeroes the record. */
         void release();
         Texture* allocate();
         void release(Texture* texture);
@@ -1011,13 +893,9 @@ private:
         srArray<Texture*> chunks;
         unsigned long pool_count;
     };
-    /* VC6 needs an explicit grant for the pool's out-of-line operations
-       to name and allocate GERD's private Texture record. */
     friend struct TexturePool;
 
-    /* +0x21b0: the registered srVertexProcessor pointers plus the live count
-       share one constructed record — the ctor helper zeroes all three words
-       then calls release(), so the count lives inside a derived array. */
+    /* The registered srVertexProcessor pointers plus the live count. */
     struct VertexProcessors : public srArray<srVertexProcessor*> {
         VertexProcessors() : count(0)
         {
@@ -1031,19 +909,12 @@ private:
     static srGERD* firstOpen;
 
     struct MatrixStack {
-        /* The constructor emits __ehvector_ctor over state.matrix_stacks with
-           this block's constructor (0x10019A00) as the element callback: it
-           is a real function, not an inlined member init. */
         MatrixStack();
 
         srMatrix4T<float> stack[32];
         unsigned long depth;
     };
 
-    /* +0x40 device record: the copy body contains a 0xD4-dword rep movsd.
-       That alone does not establish the original member declaration boundaries.
-       Info's and DriverInfo's declared ctors produce the constructor's
-       +0x68/+0x2D0 init stores inside the inlined block construction. */
     struct Device {
         srDD* dd;
         srDebugDD* debug_dd;
@@ -1051,9 +922,6 @@ private:
         /* Dynamic-library handle the constructor stores and ~srGERD passes
            to srDynamicLibrary::free. */
         void* module;
-        /* Device info record handed to srDD::getInfo by initDDInfo; GERD
-           reads the staging/clamp fields out of it. openWindowInternal
-           clamps the requested back-buffer against its maximums. */
         srDD::Info info;
         /* getDriverInfo target; getDDAPIVersion/getDriverID/getDriverName
            (pre-context) and getApiVersion read its trailing fields. */
@@ -1065,33 +933,23 @@ private:
         /* setHint/getHint index this by e_hint. */
         e_hintMode hints[1];
         unsigned long window;
-        /* openWindowInternal memsets then struct-copies the OpenInfo record
-           verbatim: windowed dims, backbuffer dims, then the display-mode
-           index. isFullScreen tests display_mode against -1, and
-           openWindow leaves it -1 for the windowed path. */
+        /* openWindowInternal fills this record: windowed dims, backbuffer dims, then the
+           display-mode index (-1 when windowed). */
         OpenInfo open_info;
         /* e_backBuffer result of srDD::openWindow; getBackBufferType reads
            it. */
         e_backBuffer back_buffer_type;
     };
 
-    /* +0x390 render-state record: the copy emits one 0x4F2-dword
-       rep movsd over the block and the constructor zeroes it wholesale
-       through srZeroMemory(&state, 0x13C8). scissor_flags is the
-       only ctor-initialised scalar; its store lands between the clip-plane
-       and inverse-modelview __ehvector_ctor calls. */
     struct State {
         State() : scissor_flags(0) {}
 
         /* Per-mode current matrices; pushMatrix indexes by mode. */
         srMatrix4T<float> matrix_current[2];
-        /* Per-mode 32-deep matrix stacks; each block ends with its depth
-           counter (stride 0x804). */
+        /* Per-mode 32-deep matrix stacks. */
         MatrixStack matrix_stacks[2];
-        /* The constructor emits a single __ehvector_ctor over 32 srVector4T
-           elements: entries [0..5] are the eye-space frustum planes
-           maintained by applyClipPlaneChanges and [6..31] the user planes
-           pushed by pushClipPlane (mask bits 6..31 of clip_mask). */
+        /* Entries [0..5] are the eye-space frustum planes and [6..31] the user planes pushed by
+           pushClipPlane (mask bits 6..31 of clip_mask). */
         srVector4T<float> clip_planes[32];
         /* Depth range forwarded into srDD::ViewPort by applyViewStateChanges;
            initView resets it to [0.0, 1.0] and setDepthRange clamps it. */
@@ -1120,23 +978,17 @@ private:
         srMatrix4T<float> normal_matrix;
         srMatrix4T<float>::e_scaleType modelview_scale_type;
         float max_modelview_scale;
-        /* classifyMatrix writes the per-mode projection-shape class here;
-           the projection class at +0x13C0 feeds srDD::setProjectionMatrix. */
+        /* classifyMatrix writes the per-mode projection-shape class here. */
         srMatrix4T<float>::e_type matrix_class[2];
         unsigned char unknown_13c4_[4];
     };
 
-    /* +0x1758 presentation record: the copy emits a 5-dword rep
-       movsd over the block. */
     struct Display {
         srVector3T<float> gamma;
         unsigned long swap_interval;
         e_antiAlias antialias;
     };
 
-    /* +0x176C pick record: the copy emits a 0xA2-dword rep movsd
-       over the block; pick_depth is the ctor-initialised scalar whose
-       store lands right after the pick-stack __ehvector_ctor. */
     struct PickState {
         PickState() : pick_depth(0) {}
 
@@ -1145,17 +997,13 @@ private:
         unsigned long pick_key;
     };
 
-    /* +0x1B08 clear record: the copy emits a 0xC-dword rep movsd
-       over the block. */
     struct ClearState {
         srDD::ClearValues clear_values;
         unsigned char unknown_2c_[4];
     };
 
-    /* +0x1F5C texture-state record: the copy emits a 0x20-dword
-       rep movsd over the block. setTextureParameters indexes these maps
-       from the packed texture state; filter selector 4 is a valid index in
-       both filter maps. */
+    /* setTextureParameters indexes these maps from the packed texture state; filter selector 4 is a
+       valid index in both filter maps. */
     struct TextureState {
         unsigned long correction_map[4];
         unsigned long mag_filter_map[5];
@@ -1169,22 +1017,13 @@ private:
         srTextureIFace::e_filter default_mag_filter;
         srTextureIFace::e_filter default_min_filter;
         srTextureIFace::e_mipmap default_mipmap;
-        /* Per-type default device parameters; evaluateTexturePixelFormat
-           copies entry [Dimensions::parameter_index] into
-           srDD::Texture::parameter. Entry [4] doubles as the current
-           compression parameter written by setTextureDefaultCompression. */
+        /* Per-type default device parameters. Entry [4] doubles as the current compression
+           parameter written by setTextureDefaultCompression. */
         unsigned long default_texture_params[5];
-        /* Default Dimensions::compression for newly created textures;
-           setTextureDefaultCompression indexes default_texture_params
-           with it. */
         srTextureIFace::e_compression default_compression;
     };
 
-    /* +0x2068 environment/enable record: the copy emits a
-       0x52-dword rep movsd over the block. pushEnvironment/popEnvironment
-       stack {min, max, scale, inv_scale} POD elements — the constructor
-       emits no ehctor over that array — while enable_stack gets the
-       sixteen-element srFlags __ehvector_ctor (element ctor 0x1001EF50). */
+    /* pushEnvironment/popEnvironment stack plus the enable-flag stack. */
     struct EnvironmentState {
         EnvironmentState() : environment_depth(0), enable_depth(0) {}
 
@@ -1244,33 +1083,22 @@ private:
        next->prev_open. */
     srGERD* prev_open;
     srGERD* next_open;
-    /* Device record; retail's copy constructor emits a single
-       0xD4-dword rep movsd over the whole member. */
     Device device;
-    /* Render-state record; retail copies it as one 0x4F2-dword rep movsd
-       and the constructor zeroes it wholesale. */
     State state;
-    /* Presentation record; retail copies it as a 5-dword rep movsd. */
     Display display;
-    /* Pick record; retail copies it as a 0xA2-dword rep movsd. */
     PickState pick;
     unsigned char unknown_19f4_[4];
     /* Snapshot getStatistics refreshes on every flipFrame; dump prints it. */
     Statistics frame_statistics;
-    /* getDD counts each device access at value_68 (the overlay's "DD" row),
-       so the live counters are writable from const. */
+    /* getDD counts each device access, so the live counters are mutable. */
     mutable Statistics statistics;
-    /* accumAlloc sizes this width*height*8 accumulation pixel buffer plus a
-       width*4 scratch block; accumClear fills it from clear_state.clear_values's
-       accum color over the current scissor. */
+    /* Accumulation buffer: width*height pixels plus a width*4 scratch block. */
     AccumPixel* accum_buffer;
     unsigned long* accum_scratch;
     LockSurface* lock_surface;
     /* Buffer-lock nesting depth; _lockBuffer only locks the device on the
        first entry and _unlockBuffer unlocks when this returns to zero. */
     long buffer_lock_count;
-    /* Clear record; retail's copy constructor emits a 0xC-dword
-       rep movsd over the whole member. */
     ClearState clear_state;
     /* Grayscale ramp built by initGlobalPalette and handed to
        srDD::setGlobalPalette; matchPalette compares it as srARGB. */
@@ -1281,26 +1109,16 @@ private:
     srDD::TexParms texture_parms[2];
     /* Device palette record handed to bindPalette/deletePalette. */
     srDD::Palette device_palette;
-    /* Texture-parameter map record; retail's copy constructor
-       emits a 0x20-dword rep movsd over the whole member. */
     TextureState texture_state;
-    /* Palette currently bound to the device; srGERD's destructor runs the
-       releasing srPtr teardown at the member-teardown level after
-       texture_iface_; the assigning sites inline operator='s addref/release
-       handoff. */
     srPtr<srPalette> palette;
     e_polygonMode polygon_mode;
     long polygon_offset;
     srVector4T<float> fog_color;
     srShader shader;
-    /* Texture interfaces requested through setTexture for stages 0/1; the
-       srPtr array is proven by ~srGERD's __ehvec_dtor over two releasing
-       elements. */
+    /* Texture interfaces requested through setTexture for stages 0/1. */
     srPtr<srTextureIFace> texture_iface[2];
     /* Live textures keyed by the texture interface's frame handle. */
     srHashTable<unsigned long, Texture*> texture_lookup;
-    /* Chunk pointers backing the 0xa8-byte Texture pool; ~srGERD calls its
-       release() before the memberwise teardown reaches chunks. */
     TexturePool texture_pool;
     Texture* texture_deleted;
     Texture* texture_head;
@@ -1313,8 +1131,6 @@ private:
     unsigned char unknown_2045_[3];
     srVector4T<float> ambient_light;
     Environment environment;
-    /* Environment/enable record; retail's copy constructor emits a
-       0x52-dword rep movsd over the whole member. */
     EnvironmentState environment_state;
     VertexProcessors vertex_processors;
     unsigned long exclusion_mask;
@@ -1326,9 +1142,6 @@ private:
     srHeapBuffer<srVector4T<float> > pick_vertices;
 };
 
-/* Retail 0x10027BF0: the three-word texture-set key hash; the interning
-   cache inlines it for the lookup probe and calls this emission when
-   inserting. */
 // FUNCTION: SURRENDER 0x10027BF0 SYMBOL
 // RECOMP: ?srHashValue@@YAIABUTextureSetKey@Renderer@srGERD@@@Z
 inline unsigned int srHashValue(const srGERD::Renderer::TextureSetKey& key)

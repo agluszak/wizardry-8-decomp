@@ -12,7 +12,7 @@ int giStringListLen;
 // GLOBAL: WIZ8 0x0068c09c
 wchar_t** gppStringList;
 
-/* 0x0052FF80: read one entry of a .msg string database. The file ends with the
+/* Read one entry of a .msg string database. The file ends with the
    entry table; each record carries two metadata dwords, then the code-unit
    count and the text itself. The fifth header byte selects the 0x9697 text
    encoding, and the count guard admits at most 0x7D0 code units, which is the

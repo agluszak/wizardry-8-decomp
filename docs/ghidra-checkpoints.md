@@ -23,11 +23,10 @@ Restore does not overwrite an existing live program. If stale/unknown live work 
 After a coherent reviewed analysis batch:
 
 ```sh
-uv run wiz8 analyze decompiler-quality
 uv run wiz8 ghidra seed refresh wiz8
 ```
 
-`seed refresh` requires a successful decompiler-quality report tied to the current ProgramDB fingerprint. It is a sharing operation, not a per-function step and not a substitute for saving the live program.
+`seed refresh` is a sharing operation, not a per-function step and not a substitute for saving the live program.
 
 ## Reconcile divergent checkpoints
 

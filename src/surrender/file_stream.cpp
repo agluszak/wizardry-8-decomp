@@ -50,9 +50,6 @@ srFileManager::Path* srFileManager::Path::getNext() const
     return next;
 }
 
-/* Retail 0x100163A0 copies name0, next and previous memberwise,
-   preserving the pointer aliasing even though Path owns name0. */
-
 // FUNCTION: SURRENDER 0x1002E0B0
 void srFileManager::addPath(const char* path)
 {
@@ -212,9 +209,8 @@ srFileManager::~srFileManager()
 
 namespace {
 
-/* The async reader's scheduler payload: the job holds the opened input
-   stream, the destination buffer and the completion status the stream polls.
-   Retail emits the whole family file-local at 0x1002EBD0-0x1002ED70. */
+/* The async reader's scheduler payload: the job holds the opened input stream, the destination
+   buffer and the completion status the stream polls. */
 class ReadJob : public srScheduler::Job {
 public:
     // FUNCTION: SURRENDER 0x1002EBD0
@@ -291,8 +287,7 @@ srBinIAsyncStream::srBinIAsyncStream(const char* path)
     }
     e_state state = SR_STREAM_ERROR;
     if (stream != 0 && stream->good()) {
-        /* Retail does not branch on either allocation result before queueing
-           job and setting SR_STREAM_OK. */
+        /* Neither allocation result is checked. */
         size = stream->getSize();
         buffer = static_cast<unsigned char*>(srHeap.allocate(size));
         job = new ReadJob(stream, buffer, size);
@@ -406,11 +401,6 @@ void srBinFStream::close()
 {
     fclose(file);
     file = 0;
-    /* Retail inlines the empty-state sequence: release non-inline storage,
-       zero inline_, repoint data_, size 1. reset() itself stays out of line
-       in this unit (0x10012C80), so the authored spelling here is the
-       null-string assignment, which folds to that sequence; the stream
-       stays usable afterwards, so it is not member teardown. */
     path = 0;
     setState(SR_STREAM_STATE_2);
 }
@@ -699,6 +689,3 @@ unsigned long srBinOFStream::tell()
 {
     return ptell();
 }
-
-/* srFileManager's implicit deleting destructor is emitted in this unit with
-   the Path members. */

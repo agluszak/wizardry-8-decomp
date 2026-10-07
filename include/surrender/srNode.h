@@ -11,13 +11,6 @@
 // VTABLE: SURRENDER 0x10077204
 // class srClassSupport<srNode, srClass, 1, 4096>
 
-/* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
-   vtable. Its exported transform and hierarchy operations establish the
-   complete object layout. */
-/* SR.DLL's own construction and destruction prove this support base, and its
-   intermediate vtable proves the support level introduces clone rather than
-   srNode. See docs/libraries/surrender-abi.md for the addresses, the slot
-   table and the falsified alternatives. */
 // VTABLE: SURRENDER 0x100771D0 srNode
 class SR_DLL_EXPORT srNode : public srClassSupport<srNode, srClass, true, 0x1000> {
 public:
@@ -39,10 +32,8 @@ public:
     struct ProcessInfo {
         class srGERD* renderer;
     };
-    /* getLocalBounds and srBounder::getBounds/setBounds copy 11 dwords.
-       Model instances fill the box and sphere from srModel; the trailing
-       dword is 0 (empty), 1 (box+sphere), or 2 (FLAG_GLOBAL). Bounder's
-       constructor writes 2 into that last dword. */
+    /* Bounds record: box, sphere and a trailing state of 0 (empty), 1 (box+sphere) or 2
+       (FLAG_GLOBAL). */
     struct BoundInfo {
         srVector3T<float> minimum;
         srVector3T<float> maximum;
@@ -59,11 +50,9 @@ public:
         PROCESS_POP_GLOBAL = 4
     };
 
-    /* srNode ctor dump table at 0x1009c374: DISABLE,TERMINATE,GLOBAL,
-       IGNORE_TRANSFORM (bits 0–3 of flags). traverse omits this node
-       when DISABLE is set and does not walk children when TERMINATE is set.
-       Lights, clip planes and bounders set GLOBAL. setFlag(IGNORE_TRANSFORM)
-       also dirties the cached world transform. */
+    /* traverse omits a DISABLE node and does not walk the children of a TERMINATE node. Lights,
+       clip planes and bounders set GLOBAL. Setting IGNORE_TRANSFORM dirties the cached world
+       transform. */
     enum e_flag {
         FLAG_DISABLE = 0,
         FLAG_TERMINATE = 1,
@@ -71,8 +60,6 @@ public:
         FLAG_IGNORE_TRANSFORM = 3
     };
 
-    /* Dump walks +0x120 with the dump-format pointer at 0x100a4a04; that pointer is unset on disk, so
-       dump prints numeric bit indices. Wizardry does not call setNotify. */
     enum e_notify { NOTIFY_BOUNDS_DIRTY = 0 };
 
     SR_DLL_IMPORT srNode(srNode* parent = 0);
@@ -231,9 +218,6 @@ private:
     srFlags<e_flag> flags;                         /* 0x124 */
 
 public:
-    /* The hierarchy links are read directly by derived traversals and by
-       Wiz8's free scene walkers; the class-level export carries no inline
-       accessors for them. */
     srNode* next_sibling_;     /* 0x128 */
     srNode* previous_sibling_; /* 0x12c */
     srNode* parent_;           /* 0x130 */

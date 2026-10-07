@@ -3,9 +3,6 @@
 
 #include "surrender/srStatisticsManager.h"
 #include "surrender/srCore.h"
-#include "surrender/srDebug.h"
-#include "surrender/srHeap.h"
-#include "surrender/srPixelConvert.h"
 #include "surrender/srTimer.h"
 
 // FUNCTION: SURRENDER 0x100148A0
@@ -77,21 +74,4 @@ void srStatisticsManager::dump(std::ostream& stream, const Statistics& statistic
         }
     }
     stream << std::endl;
-}
-
-/* Per-TU CRT stream-init sentinels: retail emits an ios_base::Init ctor call
-   and atexit registrar (0x10014E20/0x10014E30) plus the _Winit pair
-   (0x10014E60/0x10014E70) for this unit's <iostream> include. */
-
-// FUNCTION: SURRENDER 0x10014FE0
-void __cdecl _srLibraryInit(void)
-{
-    srAssertSetFunc(srDefaultAssertFailFunc);
-    initPixelTables();
-}
-
-// FUNCTION: SURRENDER 0x10015000
-void __cdecl _srLibraryExit(void)
-{
-    srHeap.freeAll();
 }

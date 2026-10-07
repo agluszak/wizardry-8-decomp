@@ -30,8 +30,6 @@ public:
     };
 
     SR_DLL_IMPORT srFileManager();
-    /* Provider copy/assignment perform a shallow first_path pointer copy.
-       Consumers retain the imported standalone declarations. */
 
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srFileManager(const srFileManager& other);

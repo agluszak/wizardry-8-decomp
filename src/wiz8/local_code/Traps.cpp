@@ -64,7 +64,7 @@ static char s_error_deleting_log_file[] = "Error deleting log file.";
 static char s_log_file_deleted[] = "Log file deleted.";
 // GLOBAL: WIZ8 0x00650428
 static char s_delete_log[] = "DELETE LOG";
-/* 0x006504E8: per-device spell/notice table; TriggerTrapDevice reads
+/* Per-device spell/notice table; TriggerTrapDevice reads
    the effect spell id at index device + 0xb. */
 // GLOBAL: WIZ8 0x006504E8
 int g_table2[] = {10,  25, 35, 40, 50, 60, 70, 80,  90,  100, 110, 121, 122,

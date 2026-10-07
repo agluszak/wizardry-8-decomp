@@ -39,15 +39,15 @@
    tail from the screen-state record it was entered with; the frame handler reads
    the tail and writes the caption; the leave releases it. */
 struct W8LevelLoadDescriptor {
-    wchar_t caption[0x78];          /* 0x000, written by wcscpy and swprintf */
-    int mode;                       /* 0x0f0, the screen state's own mode */
-    int parameter;                  /* 0x0f4 */
-    int parameter_2;                /* 0x0f8 */
-    bool waiting;                   /* 0x0fc, gates the polling path */
-    char name[0x3f];                /* 0x0fd, bounded only by the next field */
-    W8SaveScreenshot* save_payload; /* 0x13c */
-    unsigned long entered_tick;     /* 0x140 */
-    int caption_y;                  /* 0x144 */
+    wchar_t caption[0x78]; /* 0x000, written by wcscpy and swprintf */
+    int mode;              /* 0x0f0, the screen state's own mode */
+    int parameter;
+    int parameter_2;
+    bool waiting;    /* 0x0fc, gates the polling path */
+    char name[0x3f]; /* 0x0fd, bounded only by the next field */
+    W8SaveScreenshot* save_payload;
+    unsigned long entered_tick;
+    int caption_y;
 };
 
 // GLOBAL: WIZ8 0x0069B7C0
@@ -63,7 +63,7 @@ static bool g_cd_marker_present;
 
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
-/* 0x0064BF8C: one video-object id per level, the backdrop the Please Wait
+/* One video-object id per level, the backdrop the Please Wait
    screen shows while that level loads. 0x00605820 indexes the level's name in
    the string list. Both are bounded by 0x2F, with 0xE4 as the backdrop the
    frame handler falls back to. */

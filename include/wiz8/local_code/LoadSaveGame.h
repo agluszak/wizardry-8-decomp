@@ -50,7 +50,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot);
 
 struct W8Character;
 bool SaveCharacter(W8Character* character, int slot, bool report_failure,
-                   void (*continuation)(void)); /* 0x00515090 */
+                   void (*continuation)(void));
 
 bool AutoSaveIfAllowed(bool forced);
 
@@ -64,7 +64,7 @@ void BuildCharacterFilePath(char* destination, const char* filename, int slot);
 void BuildCharacterPath(char* destination, const wchar_t* name, int slot);
 bool SaveGameExists(void);
 void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);
-/* 0x00512920: load a save slot by name; the Please Wait screen drives it. */
+/* Load a save slot by name; the Please Wait screen drives it. */
 bool LoadGame(const char* slot_name);
 
 bool SaveLevelStatus(const char* path);
@@ -79,30 +79,29 @@ bool MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* empty_per
 extern bool g_save_pending;
 
 /* Mark a matching CHAR payload consumed in Saves\\CurrentGame.SAV. */
-bool MarkCurrentGameCharacterChunkConsumed(const char* path); /* 0x005154A0 */
+bool MarkCurrentGameCharacterChunkConsumed(const char* path);
 /* Append one character record to Saves\\CurrentGame.SAV. `slot` is unused. */
-bool SaveCharacterToCurrentGame(const char* path, int slot,
-                                W8Character* character);                     /* 0x005155B0 */
-bool LoadCharacterFromCurrentGame(const char* path, W8Character* character); /* 0x005156C0 */
+bool SaveCharacterToCurrentGame(const char* path, int slot, W8Character* character);
+bool LoadCharacterFromCurrentGame(const char* path, W8Character* character);
 /* Deferred main-game autosave: notice first, then SaveGame on the next tick. */
-void ProcessMainGameAutoSave(void);                  /* 0x00515B00 */
-bool SaveMonsterStatus(W8Chunk* chunks);             /* 0x005145A0 */
-void SaveMonsterControlSpellEffect(W8Chunk* chunks); /* 0x00516580 */
-void LoadMonsterControlSpellEffect(W8Chunk* chunks); /* 0x00516310 */
+void ProcessMainGameAutoSave(void);
+bool SaveMonsterStatus(W8Chunk* chunks);
+void SaveMonsterControlSpellEffect(W8Chunk* chunks);
+void LoadMonsterControlSpellEffect(W8Chunk* chunks);
 
-bool LoadMonsterGroup(W8Chunk* chunk); /* 0x00513C20 */
-bool LoadMonster(W8Chunk* chunk);      /* 0x00513D80 */
-/* 0x005139C0: folds the shipped per-level status file in before a save's
+bool LoadMonsterGroup(W8Chunk* chunk);
+bool LoadMonster(W8Chunk* chunk);
+/* Folds the shipped per-level status file in before a save's
    section is applied. */
 bool LoadDefaultLevelStatus(unsigned int level);
 
-void ResetLiveSessionForLoad(void); /* 0x00512C40 */
+void ResetLiveSessionForLoad(void);
 
-bool SelectQuickSaveSlotForWrite(char* slot_name); /* 0x00516670 */
-bool FindFreeEndingSaveName(char* name);           /* 0x00516890 */
+bool SelectQuickSaveSlotForWrite(char* slot_name);
+bool FindFreeEndingSaveName(char* name);
 
-extern char g_save_extension[]; /* 0x0061A144: initialized "SAV" */
+extern char g_save_extension[]; /* Initialized "SAV" */
 
-void DeleteCurrentSaveFiles(void); /* 0x00515920 */
+void DeleteCurrentSaveFiles(void);
 
-void ReportSaveFailed(bool quiet); /* 0x00515AC0 */
+void ReportSaveFailed(bool quiet);

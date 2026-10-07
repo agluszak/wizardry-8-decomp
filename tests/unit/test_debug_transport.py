@@ -126,12 +126,6 @@ def test_sigtrap_stop_is_structured() -> None:
     assert not is_terminal_stop(event)
 
 
-def test_normal_exit_is_terminal() -> None:
-    event = stop_event_from_record(parse_mi_record('*stopped,reason="exited-normally"'))
-    assert event is not None
-    assert is_terminal_stop(event)
-
-
 def test_terminal_stop_reports_abnormal_exit_and_signal() -> None:
     normal = stop_event_from_record(parse_mi_record('*stopped,reason="exited-normally"'))
     assert normal is not None
@@ -196,23 +190,10 @@ def test_map_resolves_inside_function_but_not_across_symbol(tmp_path: Path) -> N
     assert inside.symbol.decorated_name == "_first"
     assert inside.confidence == "high"
 
-    across = linker_map.resolve(0x00401012)
-    assert across.symbol is not None
-    assert across.symbol.decorated_name == "_second"
-
-
-def test_crossing_into_next_symbol_does_not_bleed(tmp_path: Path) -> None:
-    map_path = tmp_path / "Wiz8Runtime.map"
-    map_path.write_text(
-        " 0001:00000000       _first 00401000 f   first.obj\n"
-        " 0001:00000010       _second 00401010 f   second.obj\n",
-        encoding="ascii",
-    )
-    linker_map = LinkerMap.read(map_path)
-    # 0x00401010 is exactly the next public; it must resolve to _second.
-    resolution = linker_map.resolve(0x00401010)
-    assert resolution.symbol is not None
-    assert resolution.symbol.decorated_name == "_second"
+    for address in (0x00401010, 0x00401012):
+        across = linker_map.resolve(address)
+        assert across.symbol is not None
+        assert across.symbol.decorated_name == "_second"
 
 
 @pytest.mark.parametrize("signal", ["SIGSEGV", "SIGTRAP"])
@@ -478,16 +459,4 @@ def test_proxy_early_exit_closes_log_without_signalling(tmp_path: Path, monkeypa
     with pytest.raises(DebuggerTransportError, match="exited early with 7"):
         proxy.start()
     kill_group.assert_not_called()
-    assert proxy._log is None
-
-
-def test_proxy_launch_failure_closes_log(tmp_path: Path, monkeypatch) -> None:
-    from wiz8decomp.debug import session
-
-    image = tmp_path / "game.exe"
-    image.touch()
-    monkeypatch.setattr(session.subprocess, "Popen", Mock(side_effect=OSError("launch failed")))
-    proxy = session.WineGdbProxy(image, tmp_path, {}, port=4242, log_path=tmp_path / "proxy.log")
-    with pytest.raises(OSError, match="launch failed"):
-        proxy.start()
     assert proxy._log is None

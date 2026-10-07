@@ -3,11 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from wiz8decomp.global_model import (
-    GlobalOverlapError,
     overlapping_globals,
     parse_global_definitions,
     type_consistency_violations,
-    validate_global_ownership,
 )
 
 
@@ -244,7 +242,6 @@ def test_legitimate_extern_is_not_an_overlap(tmp_path: Path) -> None:
     )
 
     assert overlapping_globals(parse_global_definitions(tmp_path)) == []
-    assert validate_global_ownership(tmp_path)["ok"]
 
 
 def test_unknown_size_global_only_collides_at_its_start(tmp_path: Path) -> None:
@@ -328,14 +325,3 @@ def test_extern_definition_without_address_is_a_violation(tmp_path: Path) -> Non
     from wiz8decomp.global_model import unaddressed_globals
 
     assert any(item["kind"] == "unaddressed-global" for item in unaddressed_globals(tmp_path))
-
-
-def test_overlap_gate_raises(tmp_path: Path) -> None:
-    _write(tmp_path, "src/wiz8/a.cpp", "// GLOBAL: WIZ8 0x100\nint g_a;\n")
-    _write(tmp_path, "src/wiz8/b.cpp", "// GLOBAL: WIZ8 0x100\nint g_b;\n")
-    try:
-        validate_global_ownership(tmp_path)
-    except GlobalOverlapError as error:
-        assert "g_b" in str(error) or "g_a" in str(error)
-    else:
-        raise AssertionError("expected GlobalOverlapError")

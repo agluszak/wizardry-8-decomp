@@ -11,16 +11,6 @@
 #include "surrender/srSystem.h"
 #include "surrender/srVP_generic.h"
 
-#if defined(WIZ8_CLANG_LINT)
-/* The lint lane's stub <ostream> declares only the operator<< overloads the
-   recovered ABI references. dump calls std::endl - the real VC6 header
-   resolves it to the _CRTIMP char overload imported from MSVCP60 - so the
-   compile-only lane needs this declaration to parse. */
-namespace std {
-ostream& endl(ostream& stream);
-}
-#endif
-
 srVP* srVectorProcessor::vp = 0;
 srVP* srVectorProcessor::base = 0;
 srDebugVP* srVectorProcessor::debug = 0;

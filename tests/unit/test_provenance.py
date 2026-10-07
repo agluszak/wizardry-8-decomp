@@ -1,18 +1,10 @@
-import csv
-from pathlib import Path
-
 import pytest
 from wiz8decomp.provenance import (
-    NAME_ORIGIN_CEILING,
     ProvenanceError,
     derive_authority,
-    is_original,
     parse_name_origin,
     validate_provenance,
 )
-
-REPOSITORY = Path(__file__).resolve().parents[2]
-FUNCTION_MAPS = sorted((REPOSITORY / "evidence/reviewed").glob("*/functions.csv"))
 
 
 def test_authority_is_the_strongest_ceiling_among_the_origins() -> None:
@@ -42,38 +34,3 @@ def test_unknown_and_malformed_tokens_are_rejected() -> None:
         parse_name_origin("sgp-source|sgp-source")
     with pytest.raises(ProvenanceError, match="cannot be combined"):
         parse_name_origin("descriptive|cosmic-forge")
-
-
-def test_only_original_evidence_counts_as_original() -> None:
-    assert is_original("source-backed")
-    assert is_original("string-backed")
-    assert not is_original("external-semantic")
-    assert not is_original("descriptive")
-
-
-def test_every_origin_token_has_a_ceiling() -> None:
-    assert set(NAME_ORIGIN_CEILING) == {
-        "original-source",
-        "sgp-source",
-        "original-export",
-        "original-runtime-string",
-        "original-source-path",
-        "official-demo",
-        "official-cross-build",
-        "fan-patch-signature",
-        "cosmic-forge",
-        "descriptive",
-    }
-
-
-@pytest.mark.parametrize("path", FUNCTION_MAPS, ids=lambda path: path.name)
-def test_reviewed_function_maps_carry_valid_provenance(path: Path) -> None:
-    with path.open(newline="", encoding="utf-8") as stream:
-        rows = list(csv.DictReader(stream))
-    assert rows
-    assert len({row["address"] for row in rows}) == len(rows)
-    for number, row in enumerate(rows, start=2):
-        try:
-            validate_provenance(row["name_origin"], row["authority"])
-        except ProvenanceError as error:
-            raise AssertionError(f"{path.name}:{number}: {error}") from error

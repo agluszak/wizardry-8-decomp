@@ -26,8 +26,6 @@ class W8TextControl : public W8Widget {
 public:
     friend class W8ControlSelection;
 
-    /* Retail 0x005ED664: pure primary callback, default secondary no-op.
-       Journal and character-profile listener tables retain that second slot. */
     // VTABLE: WIZ8 0x005ed664
     class Listener {
     public:
@@ -87,9 +85,9 @@ public:
     /* The state-5 controller persists two option bits by directly masking the
        controls' state words.  This is observed storage access, not an accessor
        API inferred for convenience. */
-    unsigned int m_stateFlags;   /* 0x34: paired state masks */
-    unsigned int m_layoutFlags;  /* 0x38: layout and input behavior masks */
-    bool m_alternateTextEnabled; /* 0x3c: alternate text-selection flag */
+    unsigned int m_stateFlags;   /* paired state masks */
+    unsigned int m_layoutFlags;  /* layout and input behavior masks */
+    bool m_alternateTextEnabled; /* alternate text-selection flag */
     unsigned char pad_3d[3];
     int m_imageObject;
     int m_imageFrame;
@@ -98,15 +96,15 @@ public:
     int m_alternatePressedSprite;
     int m_alternateNormalSprite;
     int m_disabledSprite;
-    short m_measured_w; /* 0x5c: -1 until measured */
-    short m_measured_h; /* 0x5e */
+    short m_measured_w; /* -1 until measured */
+    short m_measured_h;
 
 public:
-    W8TextBuffer m_textBuffer; /* 0x60: complete typed subobject */
+    W8TextBuffer m_textBuffer; /* complete typed subobject */
     int m_pressedTextOffset;
     /* Several owning panels install their listener immediately after
        construction; the pointer is the shared callback attachment point. */
-    Listener* m_listener; /* 0xb4 */
+    Listener* m_listener;
 
 protected:
     void UpdateTextLayout();
@@ -120,7 +118,6 @@ class W8HelpTextControl : public W8TextControl {
 public:
     W8HelpTextControl(Controls* panel, unsigned int region, int left, int top, int right,
                       int bottom);
-    /* Retail ICF folds this onto W8TextControl's deleting destructor at 0x004F6030. */
 
     void SetRegionHelp(const wchar_t* text);
     virtual void OnMouseEnter(int event) override;
@@ -131,7 +128,7 @@ public:
     virtual void OnLeftButtonDoubleClick(int event) override;
 
 protected:
-    wchar_t m_regionHelp[200]; /* 0xb8 */
+    wchar_t m_regionHelp[200];
 };
 static_assert(sizeof(W8HelpTextControl) == 0x248, "W8HelpTextControl_size");
 

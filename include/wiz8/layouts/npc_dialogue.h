@@ -2,9 +2,7 @@
 
 /* W8NpcInteractionState::dialogue_layout - which NPC dialogue layout is up. The
    layout-1 caption is "MAGIC" (Charm/Mindread/Use Item services) and the
-   layout-5 caption "TRADE"; both spellings come from the StringData.DAT
-   captions each open routine loads. Layout 6 owns no panels: every close path
-   only parks it back on NONE, and no open path is recovered. */
+   layout-5 caption "TRADE". Layout 6 owns no panels and is never opened. */
 enum W8NpcDialogueLayout {
     W8_DIALOGUE_LAYOUT_UNSET = -1, /* spell view has no dialogue to reopen */
     W8_DIALOGUE_LAYOUT_NONE = 0,

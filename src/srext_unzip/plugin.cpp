@@ -34,10 +34,7 @@ private:
 
 static_assert((sizeof(srOwnedBinIMStream) == 0x2c), "srOwnedBinIMStream_must_be_0x2c");
 
-/* This product carries its own srInlineString implementations. Retail keeps
-   callable constructors, assignment and destruction alongside expanded uses. */
-/* Product-owned empty initialization and checked release, expanded in
-   the unzip constructors, assignment and destructor. */
+/* Empty initialization and checked release. */
 void srInlineString::init()
 {
     inline_[0] = '\0';
@@ -268,10 +265,7 @@ static void WINAPI discardMessage(unsigned long, unsigned long, unsigned, unsign
 {
 }
 
-// The adapted Info-ZIP password bridge appends the adapter after the four
-// upstream callback arguments. The target body copies the current archive
-// path and counts the callback so ambiguous multi-member results can be
-// rejected.
+// Password callback: records the current archive path and counts the callback so ambiguous multi-member results can be rejected.
 // FUNCTION: SREXT_UNZIP 0x100115F0
 static int WINAPI noteArchive(char* destination, int, const char*, const char*,
                               srZipAdapter* adapter)
@@ -288,19 +282,14 @@ srZipAdapter::srZipAdapter()
     memset(callbacks_, 0, sizeof(*callbacks_));
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    /* The adapter password bridge carries an extra srZipAdapter* after the
-       four Info-ZIP arguments; the service slot reuses the two-argument
-       print body. Retail stores both pointers as-is. */
-
-    callbacks_->password = reinterpret_cast<DLLPASSWORD*>(
-        noteArchive); /* reinterpret-ok: Info-ZIP password slot cannot express the adapter argument */
+    /* reinterpret-ok: the password slot also passes the adapter. */
+    callbacks_->password = reinterpret_cast<DLLPASSWORD*>(noteArchive);
     callbacks_->print = discardPrintOrService;
     callbacks_->sound = 0;
     callbacks_->replace = discardReplace;
     callbacks_->SendApplicationMessage = discardMessage;
-    callbacks_->ServCallBk = reinterpret_cast<DLLSERVICE*>(
-        discardPrintOrService); /* reinterpret-ok: Info-ZIP service slot reuses the print body */
-
+    /* reinterpret-ok: the service slot reuses the print body. */
+    callbacks_->ServCallBk = reinterpret_cast<DLLSERVICE*>(discardPrintOrService);
 #pragma clang diagnostic pop
     callbacks_->adapter = this;
 }
@@ -388,19 +377,12 @@ srInlineString operator+(const srInlineString& left, const srInlineString& right
     return result;
 }
 
-// __cdecl like the sibling JPEG importer: retail exports this name
-// undecorated in every srEXT_* DLL (evidence/snapshots/surrender-abi/exports.csv),
-// which a __stdcall extern "C" definition could not produce, and the SurRender
-// host calls it through srInitPluginCdeclFn.
 // FUNCTION: SREXT_UNZIP 0x10011190
 extern "C" srPlugin* __cdecl srInitPlugin()
 {
     return new srUnzipPlugin;
 }
 
-// __cdecl for the same undecorated-export evidence; the host calls through
-// srGetLibraryVersionCdeclFn. Zero-parameter x86 bodies use plain RET under
-// either convention, so the emitted bytes are unchanged.
 // FUNCTION: SREXT_UNZIP 0x10011630
 extern "C" unsigned long __cdecl srGetLibraryVersion()
 {

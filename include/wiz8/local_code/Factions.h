@@ -1,10 +1,8 @@
 #ifndef WIZ8_LOCAL_CODE_FACTIONS_H
 #define WIZ8_LOCAL_CODE_FACTIONS_H
 
-/* The factions, in the order the contiguous 21-name table at 0x0061CE74
-   carries them. FindFactionByName indexes that table with these ids and both
-   the runtime score array and the relationship matrix keep one row per id. The
-   last two ids name no faction and exist only to hold the table's extent. */
+/* The factions. The name table, the runtime score array and the relationship
+   matrix keep one row per id. The last two ids name no faction. */
 enum W8Faction {
     W8_FACTION_UNALIGNED = 0,
     W8_FACTION_PARTY = 1,
@@ -36,13 +34,13 @@ enum W8Faction {
 
 struct W8FactionRuntimeRecord {
     signed char disposition_score;
-    /* 0x01: witnessed offenses against the faction; RecordFactionOffense
+    /* Witnessed offenses against the faction; RecordFactionOffense
        increments it (cap 0xfa) and reads it for the penalty tiers. */
     int offense_count;
     unsigned char unknown_05;
-    /* 0x06: g_status.world_clock at the last band change. */
+    /* G_status.world_clock at the last band change. */
     int band_changed_clock;
-    /* 0x0a: raised by the sight pass the first time the party sees one of
+    /* Raised by the sight pass the first time the party sees one of
        this faction's monsters; the journal lists encountered factions. */
     bool encountered;
     unsigned char unknown_0b[3];
@@ -59,34 +57,34 @@ typedef unsigned char W8Disposition;
 enum { W8_DISPOSITION_NEUTRAL = 0, W8_DISPOSITION_HOSTILE = 1, W8_DISPOSITION_FRIENDLY = 2 };
 
 extern W8FactionRuntimeRecord g_factions[W8_FACTION_COUNT];
-/* 0x0068D528: the 21x21 byte relation matrix, one row per faction, saved and
+/* The 21x21 byte relation matrix, one row per faction, saved and
    loaded whole by the FATA state handlers and reset with g_factions. */
 extern unsigned char g_faction_relations[W8_FACTION_COUNT][W8_FACTION_COUNT];
 W8FactionDisposition GetFactionDisposition(signed char faction);
 
-/* 0x00535C50: `other` as the party reads the live score band; any other
+/* `other` as the party reads the live score band; any other
    target is answered by the static relation matrix. */
 W8FactionDisposition GetFactionDispositionToward(signed char faction, signed char other);
 
 signed char GetFactionDispositionScore(signed char faction);
 
-/* 0x00535920: zero both faction tables and seed the starting dispositions and
+/* Zero both faction tables and seed the starting dispositions and
    relations a fresh game begins with. */
 void ResetFactions(void);
 
-void SetFactionDispositionBand(signed char faction, signed char band); /* 0x00535B40 */
+void SetFactionDispositionBand(signed char faction, signed char band);
 
-/* 0x00535CF0: faction change entry point - op 1 with a faction outside
+/* Faction change entry point - op 1 with a faction outside
    unaligned/party routes mode 0 to the witnessed-offense path and modes
    1..3 to a direct disposition delta. */
 void ApplyFactionChange(char mode, char op, signed char faction, int value);
-/* 0x00535D50: bump the faction's offense count and apply the penalty the
+/* Bump the faction's offense count and apply the penalty the
    victim's record and the running count select. */
 void RecordFactionOffense(signed char faction, unsigned int victim_location_index);
-/* 0x00535EA0: clamp disposition_score + delta to 0..99, stamp the world clock
+/* Clamp disposition_score + delta to 0..99, stamp the world clock
    when the band moved, and post the worsened/improved notice. */
 void AdjustFactionDisposition(signed char faction, char delta);
-/* 0x00536030/0x00536070: FATA section save and load. */
+/* FATA section save and load. */
 void SaveFactionState(int file);
 void LoadFactionState(int file);
 #endif

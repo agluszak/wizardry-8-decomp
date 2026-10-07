@@ -249,20 +249,6 @@ def declaration_for_marker(
     return dict(found) if found else {}
 
 
-def bind_marker_declarations(document: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """Copy markers with ``declaration`` filled from ``declaration_key`` when needed."""
-
-    keys = declarations_by_semantic_key(document)
-    bound: list[dict[str, Any]] = []
-    for marker in document.get("markers") or []:
-        row = dict(marker)
-        declaration = declaration_for_marker(row, keys)
-        if declaration:
-            row["declaration"] = declaration
-        bound.append(row)
-    return bound
-
-
 def _identity_from_declaration(
     entry: dict[str, Any],
     *,

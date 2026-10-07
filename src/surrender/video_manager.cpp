@@ -1,7 +1,6 @@
 #include "surrender/srVideoManager.h"
 
-/* The retail Stream constructor ignores path; the importer subclasses open
-   the file themselves. */
+/* path is ignored; the importer subclasses open the file themselves. */
 // FUNCTION: SURRENDER 0x1002DDD0
 srVideoManager::Stream::Stream(const char* path)
 {

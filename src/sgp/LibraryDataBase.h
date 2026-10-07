@@ -1,8 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Reconstruct Wizardry archive mapping and patch-library record layouts.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef _LIBRARY_DATABASE_H
 #define _LIBRARY_DATABASE_H

@@ -7,8 +7,6 @@
 #include <ostream>
 #include <string.h>
 
-/* The assert strings carry the original build tree's __FILE__ expansions,
-   not this checkout's layout. */
 #define SRRUNTIMECLASS_CPP "D:\\srsdk1x\\sources\\corelib\\srRuntimeClass.cpp"
 #define SRCLASS_CPP "D:\\srsdk1x\\sources\\corelib\\srClass.cpp"
 
@@ -79,8 +77,6 @@ struct srRegistry::ClassNode::NameIndex {
             return;
         }
         NameEntry* entry = allocateEntry();
-        /* Retail clears the popped entry's link before reconfiguring it
-           (0x1000F97B), even though the bucket push below overwrites it. */
         entry->next = 0;
         unsigned long bucket = bucketIndex(name);
         entry->bucket = bucket;
@@ -122,8 +118,6 @@ struct srRegistry::ClassNode::NameIndex {
         }
     }
 
-    /* Retail emits bucketIndex as a callable body (0x10010EF0), so its
-       definition sits out-of-line below the struct. */
     unsigned long bucketIndex(const char* name) const;
 
     srRuntimeClass* find(const char* name, const srRuntimeClass* relative_to) const
@@ -132,8 +126,6 @@ struct srRegistry::ClassNode::NameIndex {
             srRuntimeClass* relative_key = const_cast<srRuntimeClass*>(relative_to);
             NameEntry* entry = by_instance.Lookup(&relative_key);
             if (entry == 0) {
-                /* Retail returns the bucket head without namesEqual when the
-                   relative instance is absent from the side index. */
                 entry = buckets[bucketIndex(name)];
                 return entry == 0 ? 0 : entry->instance;
             }
@@ -159,10 +151,7 @@ private:
         unsigned long old_bucket_count = this->bucket_count;
         this->bucket_count = bucket_count;
         free = 0;
-        /* Retail clears by_instance rather than rehashing it: every live
-           instance is re-inserted with its new NameEntry below, so preserving
-           the old mappings would leave duplicate keys pointing into the freed
-           entry array (0x10010F30 calls 0x10011380, srHashTable::Clear). */
+        /* Every live instance is re-inserted with its new NameEntry below. */
         by_instance.Clear();
         NameEntry* entries = 0;
         NameEntry** buckets = 0;
@@ -246,13 +235,10 @@ struct srRegistry::ClassNode::IDIndex {
 
     IDIndex() : active_count(0), free(0), block_count(0), first(0), last(0), list_count(0) {}
 
-    /* Retail ~IDIndex (0x100109F0) is a callable body invoked by delete
-       expressions, so its definition sits out-of-line below the struct. */
     ~IDIndex();
 
-    /* Standalone full teardown (0x10010670): drains the link list, clears
-       the block pool, then runs the destructor in place. Retail never
-       calls it — ~ClassNode performs the same steps manually. */
+    /* Full teardown: drains the link list, clears the block pool, then runs the destructor in
+       place. Unused; ~ClassNode performs the same steps itself. */
     void destroy();
 
     void* operator new(unsigned int size)
@@ -310,8 +296,6 @@ struct srRegistry::ClassNode::IDIndex {
     friend class srRegistry::ClassNode;
 
 private:
-    /* Retail emits insert as a callable body (0x100107E0), so its definition
-       sits out-of-line below the struct. */
     InstanceLink* insert(InstanceLink* after, srRuntimeClass*& instance);
 
     /* remove and clearLinks share the same list unlink and pool return.
@@ -342,8 +326,6 @@ private:
 
     void allocateBlock()
     {
-        /* Retail compares signed (0xff < (int)count) and clamps counts
-           at 0x100, not above it. */
         int count = active_count < 2 ? 1 : active_count;
         if (count > 0xff) {
             count = 0x100;
@@ -360,16 +342,10 @@ private:
         block[count - 1].free = 0;
     }
 
-    /* Retail emits clearLinks as a callable body (0x100108E0), so its
-       definition sits out-of-line below the struct. */
     void clearLinks();
 
-    /* Retail clearBlocks (0x10010A90) resets only the block bookkeeping and
-       active_count; it deliberately does not touch first, last or
-       list_count. Callers update the list head/tail before the count hits
-       zero, and remove() decrements list_count after this call, so the
-       counters stay consistent — zeroing them here would underflow the
-       post-call decrement to 0xffffffff. */
+    /* Resets only the block bookkeeping and active_count; callers maintain first, last and
+       list_count. */
     void clearBlocks();
 
     unsigned long active_count;
@@ -379,9 +355,6 @@ private:
     InstanceLink* first;
     InstanceLink* last;
     unsigned long list_count;
-    /* Dtorless: ~IDIndex (0x100109F0) runs no hash teardown, and ~ClassNode
-       (0x1000F73C-0x1000F759) releases the two arrays before the link/block
-       teardown. */
     srHashTableBase<unsigned long, InstanceLink*> by_id;
 };
 
@@ -438,8 +411,6 @@ void srRegistry::ClassNode::IDIndex::clearLinks()
     while (first != 0) {
         InstanceLink* link = first;
         unlink(link);
-        /* Retail guards the unlink bookkeeping with link != 0 even though
-           link was just taken from the non-null first. */
         if (link != 0) {
             recycle(link);
         }
@@ -448,10 +419,7 @@ void srRegistry::ClassNode::IDIndex::clearLinks()
     clearBlocks();
 }
 
-/* member-dtor-ok: the body is clearBlocks and the implicit ~srArray member
-   teardown releases blocks again; by_id is a dtorless srHashTableBase so no
-   hash teardown follows; ~ClassNode (0x1000F772) and the delete-expression
-   unwind funclets call it. */
+/* member-dtor-ok: the implicit member teardown releases blocks again. */
 // FUNCTION: SURRENDER 0x100109F0
 srRegistry::ClassNode::IDIndex::~IDIndex()
 {
@@ -463,9 +431,7 @@ void srRegistry::ClassNode::IDIndex::destroy()
 {
     clearLinks();
     clearBlocks();
-    // member-dtor-ok: retail 0x10010670 runs clearBlocks and then repeats the
-    // ~IDIndex body plus its member teardown inline — the authored op is an
-    // in-place destructor call on a live index.
+    // member-dtor-ok: in-place destruction of a live index.
     this->~IDIndex();
 }
 
@@ -557,8 +523,6 @@ void srRuntimeClass::setName(const char* name)
     srCore.getRegistry()->refreshInstance(getClassNode(), this);
 }
 
-/* Retail writes the vptr before the member values and reuses the registry
-   pointer. Constructor spelling and the presence of a named local are unresolved. */
 // FUNCTION: SURRENDER 0x100119D0
 srRuntimeClass::srRuntimeClass()
 {
@@ -577,21 +541,18 @@ srRuntimeClass::~srRuntimeClass()
     }
 }
 
-/* The dump prints through the void* overload for both IDs and addresses:
-   getClassID/getID results reach operator<<(const void*), not the unsigned
-   long overload. */
 // FUNCTION: SURRENDER 0x10011AB0
 void srRuntimeClass::dump(std::ostream& stream)
 {
     std::ios::fmtflags flags = stream.flags();
     stream.setf(std::ios::left, std::ios::adjustfield);
     stream.width(0x20);
-    // c-style-cast-ok: retail prints the id through the void* overload
+    // c-style-cast-ok: the id prints as a pointer.
     stream << "Class Id: " << (void*)getClassID() << '\n';
     stream.width(0x20);
     stream << "Class name: " << getClassName() << '\n';
     stream.width(0x20);
-    // c-style-cast-ok: retail prints the id through the void* overload
+    // c-style-cast-ok: the id prints as a pointer.
     stream << "Instance Id code: " << (void*)getID() << '\n';
     stream.width(0x20);
     stream << "Instance name: " << getName() << '\n';
@@ -677,8 +638,7 @@ srClass* srClass::find(const srClass* relative_to)
     return static_cast<srClass*>(srCore.getRegistry()->find(sGetClassNode(), relative_to));
 }
 
-/* Retail assigns only the instance name: the base operator= is not invoked
-   and the reference count, timestamp and update link are left alone. */
+/* Assigns only the instance name; the reference count, timestamp and update link are left alone. */
 // FUNCTION: SURRENDER 0x1000E110
 srClass& srClass::operator=(const srClass& other)
 {
@@ -695,8 +655,6 @@ srClass::srClass() : reference_count(1), update(0)
     touch();
 }
 
-/* Retail ~srClass unregisters the instance and proceeds to base teardown;
-   no update unlink or deletion is emitted here. */
 // FUNCTION: SURRENDER 0x1000E1A0
 srClass::~srClass()
 {
@@ -737,8 +695,6 @@ void srClass::setUpdate(UpdateCallBack callback, double interval)
                 return;
             }
 
-            /* Retail re-tests update after the reuse-early-return and runs
-               the unlink plus delete only inside that second guard. */
             if (update != 0) {
                 if (update->previous != 0) {
                     update->previous->next = update->next;
@@ -826,9 +782,6 @@ unsigned long srClass::allocateTimeStamps(unsigned long count) const
     return first + 1;
 }
 
-/* The update block prints through the void* overload for the callback and
-   the intrusive list links; the interval prints "every frame" at zero and
-   the bare "secs" suffix otherwise. */
 // FUNCTION: SURRENDER 0x1000E620
 void srClass::dump(std::ostream& stream)
 {
@@ -847,7 +800,7 @@ void srClass::dump(std::ostream& stream)
             stream << "  Update interval: " << update->interval << "secs" << '\n';
         }
         stream.width(0x20);
-        // c-style-cast-ok: retail prints the callback through the void* overload
+        // c-style-cast-ok: the callback prints as a pointer.
         stream << "    Update callback: " << (void*)update->callback << '\n';
         if (update->instance != 0) {
             stream.width(0x20);
@@ -887,9 +840,6 @@ srRegistry::ClassNode* srClass::getClassNode() const
     return sGetClassNode();
 }
 
-/* Retail 0x1000E910 assigns every member in the body: the critical section
-   new runs before the access guard is taken, and root/class_index/
-   valid are never zero-initialized ahead of it. */
 // FUNCTION: SURRENDER 0x1000E910
 srRegistry::srRegistry()
 {
@@ -981,7 +931,7 @@ srRegistry::ClassNode* srRegistry::addToTree(ClassNode* parent, const char* clas
 void srRegistry::dumpInstanceNames(ClassNode* node, std::ostream& stream, int indent)
 {
     srCriticalSectionAccess access(critical_section);
-    // c-style-cast-ok: the recovered overload set requires an explicit null-pointer type
+    // c-style-cast-ok: selects the instance overload.
     for (srRuntimeClass* instance = find(node, (srRuntimeClass*)0); instance != 0;
          instance = find(node, instance)) {
         if (indent != 0 || instance->isNamed()) {
@@ -1156,8 +1106,6 @@ srRegistry::ClassNode::~ClassNode()
         delete link->node;
     }
     delete named_instances;
-    /* Retail releases by_id's storage manually — srHashTableBase has no
-       destructor — then unlinks and deletes the index object. */
     IDIndex* index = instances_by_id;
     if (index != 0) {
         index->by_id.Release();
@@ -1188,8 +1136,7 @@ void srRegistry::ClassNode::dump(std::ostream& stream, int indent)
     for (i = indent; i != 0; i--) {
         stream << ' ';
     }
-    /* reinterpret-ok: retail prints the numeric class id through
-       operator<<(const void*). */
+    /* reinterpret-ok: the class id prints as a pointer. */
     stream << "Class Id: " << reinterpret_cast<const void*>(class_id) << '\n';
     for (i = indent; i != 0; i--) {
         stream << ' ';
@@ -1481,7 +1428,6 @@ void srClass::autoRelease()
 // FUNCTION: SURRENDER 0x1000E260
 int srClass::release() const
 {
-    /* VC6 member functions can be invoked with a null this. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wtautological-compare"
     if (this == 0) {
@@ -1501,27 +1447,3 @@ long srClass::getReferenceCount() const
 {
     return reference_count;
 }
-
-/* Retail 0x10010780 drains the {count, first, last} sentinel list
-   embedded at ClassNode+0x00, freeing each ChildLink through operator delete;
-   exception-unwind funclets call this ClassNode::ChildList destructor. */
-
-/* member-dtor-ok: ~IDIndex (retail 0x100109F0) — the body is clearBlocks and
-   the implicit ~srArray member teardown releases blocks again; by_id
-   is a dtorless srHashTableBase so no hash teardown follows; ~ClassNode (0x1000F772)
-   and the delete-expression unwind funclets call it. */
-
-/* Funclet-invoked on this+8 during the IDIndex constructor unwind: the
-   blocks member destructor. */
-
-/* Retail calls this Remove emission for by_instance from the unregister
-   and refresh paths; the by_id Remove is inlined at its call sites. */
-
-/* Called on the fresh NameIndex's by_instance from the instance-index
-   setup path (0x1000F82D) and from the inlined AllocateEntry inside the
-   register path (0x1000FC5E). */
-
-/* AllocateEntry emits standalone for by_instance: its body is the
-   free_head == -1 guard, the inlined Grow, then the free-slot pop. Called
-   from the inherited-instance population loop (0x1000F9F6) and resize's
-   reinsert path (0x100111B4). */

@@ -65,13 +65,8 @@ set(WIZ8_INSTRUMENTABLE_SOURCE_FILES
 list(REMOVE_ITEM WIZ8_SOURCE_FILES ${WIZ8_INSTRUMENTABLE_SOURCE_FILES})
 
 # Share the common recovered objects across products. Only the selected units
-# are compiled again for the instrumented runtime test image.
-#
-# Recovered game units build with /Ob2, like the SGP library. RequestRedraw's
-# observed same-unit expansions and cross-unit calls are consistent with
-# ordinary compiler-owned inlining. A standalone emission alone does not prove
-# external linkage: recursive and address-taken static helpers also need bodies.
-# Historical inline spelling and original TU boundaries require separate evidence.
+# are compiled again for the instrumented runtime test image. Recovered game
+# units build with /Ob2, like the SGP library.
 add_library(wiz8_recovered_objects OBJECT ${WIZ8_SOURCE_FILES})
 target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
 target_compile_options(wiz8_recovered_objects PRIVATE /Ob2)
@@ -137,7 +132,6 @@ if(NOT WIZ8_ANALYSIS_BUILD)
         /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
         "/MAP:${CMAKE_BINARY_DIR}/Wiz8.map" /MAPINFO:LINES
     )
-
 
     add_executable(WIZ8_RUNTIME WIN32
         $<TARGET_OBJECTS:wiz8_recovered_objects>

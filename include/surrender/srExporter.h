@@ -19,7 +19,6 @@ class
 #endif
     __declspec(novtable) srHierarchyIOManager::HierarchyExporter : public srIOManager::Exporter {
 public:
-    /* exportHierarchy's call site dispatches through vtable slot 2. */
     virtual void exportHierarchy(srBinOStream& stream, const ExportInfo& options) = 0;
 };
 
@@ -29,6 +28,5 @@ class
 #endif
     __declspec(novtable) srModelIOManager::ModelExporter : public srIOManager::Exporter {
 public:
-    /* exportModel's call site dispatches through vtable slot 2. */
     virtual void exportModel(srBinOStream& stream, srModel& model, const ExportInfo& options) = 0;
 };

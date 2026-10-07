@@ -319,14 +319,13 @@ def test_fid_claim_satisfied_by_library_marker(tmp_path: Path) -> None:
     assert source_oracle_violations(tmp_path) == []
 
 
-def test_validate_writes_artifact_and_passes_clean_repo(tmp_path: Path) -> None:
+def test_validate_passes_clean_repo(tmp_path: Path) -> None:
     _write_claims(tmp_path, [])
     _write_index(tmp_path, [_marker(0x405000, "src/sgp/input.c")])
 
     result = validate_source_oracle_ownership(tmp_path)
 
     assert result["ok"] is True
-    assert (tmp_path / "build/reports/source-oracle.json").is_file()
 
 
 def test_validate_raises_on_violations(tmp_path: Path) -> None:
@@ -341,17 +340,6 @@ def test_validate_raises_on_violations(tmp_path: Path) -> None:
 
     with pytest.raises(SourceOracleGateError, match="source-oracle ownership gate failed"):
         validate_source_oracle_ownership(tmp_path)
-
-
-def test_oracle_family_registry_is_extensible() -> None:
-    family = OracleFamily(
-        name="jpeg",
-        target="SREXT_JPEGIMPORTER",
-        source_roots=("vendor/jpeg/",),
-        name_origins=frozenset({"original-source"}),
-    )
-    assert family.owns_source("vendor/jpeg/jdmarker.c")
-    assert not family.owns_source("src/sgp/Compression.c")
 
 
 def test_reccmp_csv_library_rejects_function(tmp_path: Path) -> None:

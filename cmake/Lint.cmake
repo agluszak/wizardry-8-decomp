@@ -1,12 +1,7 @@
 # The clang-cl diagnostics lane over the canonical component targets.
 # Apply diagnostics as each component declares its recovered/vendor targets.
 if(WIZ8_ANALYSIS_BUILD)
-    if(WIZ8_FULL_DIAGNOSTICS)
-        set(WIZ8_LINT_UMBRELLA WIZ8_CLANG_DIAGNOSTICS)
-    else()
-        set(WIZ8_LINT_UMBRELLA WIZ8_CLANG_LINT)
-    endif()
-    add_custom_target(${WIZ8_LINT_UMBRELLA})
+    add_custom_target(WIZ8_CLANG_LINT)
 endif()
 
 function(wiz8_lint_target target)
@@ -17,13 +12,6 @@ function(wiz8_lint_target target)
     target_link_libraries(${target} PRIVATE wiz8_compile_settings)
     target_include_directories(${target} BEFORE PRIVATE "${PROJECT_SOURCE_DIR}/tools/lint/include")
     target_compile_definitions(${target} PRIVATE WIZ8_CLANG_LINT)
-    if(WIZ8_ANALYSIS_X64)
-        target_compile_options(${target} PRIVATE
-            -Wpointer-to-int-cast
-            -Wint-to-pointer-cast
-            -Wshorten-64-to-32
-        )
-    endif()
 
     # Unavoidable Clang/VC6 driver and language-model compatibility. These are
     # not reconstruction diagnostics; recovered and vendor targets share them.
@@ -61,17 +49,10 @@ function(wiz8_lint_target target)
     )
 
     if(ARG_VENDOR)
-        # WIZ8_SGP retains the released SFI source style in C++. It uses the same headers
-        # and defines, but only the decompilation-correctness diagnostics gate it: its
-        # released-source style warnings (pointer-sign, unused-but-set, incompatible pointer
-        # types, ...) are vendor behavior and stay report-only in `wiz8 diagnostics`.
-        # Signed comparisons are included in that vendor exception because the
-        # reconstructed callers already fix their own side. The recovery warnings below
-        # are report-only in the diagnostics lane and errors in the gating lane, so
-        # `wiz8 diagnostics` never fails on what it is supposed to report. Clang 19
-        # additionally promotes implicit declarations and mismatched callback pointers
-        # to errors by default; those stay demoted to warnings here for the same
-        # vendor reason instead of rewriting retained source.
+        # WIZ8_SGP retains the released SFI source style in C++: only the
+        # decompilation-correctness diagnostics gate it. Its released-source style
+        # warnings, signed comparisons, implicit declarations and mismatched callback
+        # pointers are vendor behavior, not reconstruction errors.
         target_compile_options(${target} PRIVATE
             /UNOMINMAX
             -Wno-cast-function-type-mismatch
@@ -80,34 +61,22 @@ function(wiz8_lint_target target)
             -Wno-tautological-compare
             -Wno-unknown-escape-sequence
             /MD /U_DEBUG
-            -Wsometimes-uninitialized
-            -Wswitch
-            -Warray-bounds
-            -Wmissing-field-initializers
             -Wno-error=implicit-function-declaration
             -Wno-error=incompatible-function-pointer-types
+            -Werror=sometimes-uninitialized
+            -Werror=switch
+            -Werror=array-bounds
+            -Werror=missing-field-initializers
         )
-        if(NOT WIZ8_FULL_DIAGNOSTICS)
-            target_compile_options(${target} PRIVATE
-                -Werror=sometimes-uninitialized
-                -Werror=switch
-                -Werror=array-bounds
-                -Werror=missing-field-initializers
-            )
-        endif()
     else()
         # ABI-faithful char indices, callback mismatches and null-this tests use
         # function-local pragmas rather than global recovered-code suppressions.
-        if(NOT WIZ8_FULL_DIAGNOSTICS)
-            # Retail block-clears and block-copies some records holding vfptrs
-            # (docs/retail-bugs.md); those diagnostics stay visible, uncast.
-            target_compile_options(${target} PRIVATE -Werror
-                -Wno-error=dynamic-class-memaccess -Wno-error=nontrivial-memcall)
-        endif()
-        # The decompilation-correctness diagnostics. The gating lane makes them
-        # errors; the diagnostics lane reports them without failing. Suspicious
-        # original behavior gets a local, evidence-backed suppression at its site.
-        target_compile_options(${target} PRIVATE
+        # Retail block-clears and block-copies some records holding vfptrs
+        # (docs/retail-bugs.md); those diagnostics stay visible, uncast.
+        # Suspicious original behavior gets a local, evidence-backed suppression
+        # at its site.
+        target_compile_options(${target} PRIVATE -Werror
+            -Wno-error=dynamic-class-memaccess -Wno-error=nontrivial-memcall
             -Wsometimes-uninitialized
             -Wswitch
             -Warray-bounds
@@ -124,5 +93,5 @@ function(wiz8_lint_target target)
             $<$<COMPILE_LANGUAGE:CXX>:-Wmismatched-tags>
         )
     endif()
-    add_dependencies(${WIZ8_LINT_UMBRELLA} ${target})
+    add_dependencies(WIZ8_CLANG_LINT ${target})
 endfunction()

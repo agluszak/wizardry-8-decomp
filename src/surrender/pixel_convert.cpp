@@ -89,10 +89,9 @@ struct FormatEntry {
 
 static_assert(sizeof(FormatEntry) == 0x20, "srPixelConvert_FormatEntry_must_be_0x20");
 
-/* Lookup tables built by initPixelTables(): n-bit channel expansion
-   (round(i * 255 / (2^n - 1))), 8-bit channel reduction, the ordered-dither
-   bias cube, the packed-chroma decode table and the fixed-point channel
-   weight ramps the conversion kernels read. */
+/* Lookup tables built by initPixelTables(): n-bit channel expansion (round(i * 255 / (2^n - 1))),
+   8-bit channel reduction, the ordered-dither bias cube, the packed-chroma decode table and the
+   fixed-point channel weight ramps. */
 // GLOBAL: SURRENDER 0x100A1AB0
 unsigned char lutExpand1[1];
 // GLOBAL: SURRENDER 0x100A1AB4
@@ -129,10 +128,8 @@ unsigned char lutReduce2[256];
 // GLOBAL: SURRENDER 0x100A2438
 FormatEntry format_table[25];
 
-/* YUV conversion matrices, filled by this unit's static-init emissions
-   (0x100075F0/0x10007600 and 0x100076B0/0x100076C0): rgbToYUV rows are the
-   Y, U and V weights applied to the source pixel's float channels;
-   yuvToRGB rows decode the expanded Y, U and V back to R, G and B. */
+/* YUV conversion matrices: rgbToYUV rows are the Y, U and V weights applied to the source pixel's
+   float channels; yuvToRGB rows decode the expanded Y, U and V back to R, G and B. */
 // GLOBAL: SURRENDER 0x100A2758
 srVector3T<float> yuvToRGB[3] = {
     srVector3T<float>(1.0f, 0.956f, 0.620f),
@@ -650,12 +647,10 @@ static int clampChannel(float value)
     return 0;
 }
 
-/* YUVA write dispatcher: every case float-vectorizes the source pixel,
-   dot-products it with the rgbToYUV rows, then quantizes the Y, U and V
-   results through the format's channel reduction tables. Retail derives
-   the destination index from the shifted green-channel term instead of
-   the loop index, so writes scatter across the head of the destination;
-   preserved as written. */
+/* YUVA write dispatcher: every case float-vectorizes the source pixel, dot-products it with the
+   rgbToYUV rows, then quantizes the Y, U and V results through the format's channel reduction
+   tables. The destination index comes from the shifted green-channel term instead of the loop
+   index, so writes scatter across the head of the destination. */
 // FUNCTION: SURRENDER 0x100088D0
 void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
 {
@@ -747,11 +742,10 @@ void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* YUVA read dispatcher: every case expands the packed Y, U and V channels
-   through the format's channel expansion tables, dot-products them with
-   the yuvToRGB rows, clamps the results and packs an srARGB. Retail
-   derives the destination index from the expanded green (U) channel
-   instead of the loop index; preserved as written. */
+/* YUVA read dispatcher: every case expands the packed Y, U and V channels through the format's
+   channel expansion tables, dot-products them with the yuvToRGB rows, clamps the results and packs
+   an srARGB. The destination index comes from the expanded green (U) channel instead of the loop
+   index. */
 // FUNCTION: SURRENDER 0x10008F70
 void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
 {
@@ -808,8 +802,7 @@ void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
     case srPixelConvert::PIXEL_SIZE_24: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < info.count; i++) {
-            /* reinterpret-ok: 24-bit source records load their high two
-               bytes as a word plus the low byte separately. */
+            /* reinterpret-ok: 24-bit records load their high two bytes as a word. */
             unsigned long pixel =
                 *reinterpret_cast<const unsigned short*>(source + 1) * 0x100 + source[0];
             srVector3T<float> yuv((float)luts[0][(pixel >> shifts[0]) & masks[0]],
@@ -861,8 +854,7 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long color = source[i] & 0xffffff;
-            /* reinterpret-ok: quantize reads the packed BGR bytes of the
-               color; the palette index function ignores alpha. */
+            /* reinterpret-ok: packed BGR color. */
             unsigned char index = info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
             dest[i] = static_cast<unsigned char>(index << index_shift | alpha_lut[source[i] >> 24]
                                                                             << alpha_shift);
@@ -873,8 +865,7 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
         unsigned short* dest = static_cast<unsigned short*>(info.dest);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long color = source[i] & 0xffffff;
-            /* reinterpret-ok: quantize reads the packed BGR bytes of the
-               color; the palette index function ignores alpha. */
+            /* reinterpret-ok: packed BGR color. */
             unsigned char index = info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
             dest[i] = static_cast<unsigned short>(index << index_shift | alpha_lut[source[i] >> 24]
                                                                              << alpha_shift);
@@ -885,8 +876,7 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long color = source[i];
-            /* reinterpret-ok: quantize reads the packed BGR bytes of the
-               color; the palette index function ignores alpha. */
+            /* reinterpret-ok: packed BGR color. */
             unsigned char index = info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
             unsigned long pixel = index << index_shift | alpha_lut[source[i] >> 24] << alpha_shift;
             dest[0] = static_cast<unsigned char>(pixel);
@@ -900,8 +890,7 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
         unsigned long* dest = static_cast<unsigned long*>(info.dest);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long color = source[i];
-            /* reinterpret-ok: quantize reads the packed BGR bytes of the
-               color; the palette index function ignores alpha. */
+            /* reinterpret-ok: packed BGR color. */
             unsigned char index = info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
             dest[i] = index << index_shift | alpha_lut[source[i] >> 24] << alpha_shift;
         }
@@ -920,8 +909,7 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
     unsigned long alpha_mask = (1ul << format->alpha_bits) - 1;
     unsigned char alpha_shift = format->alpha_shift;
     const unsigned char* alpha_lut = channel_expand[format->alpha_bits];
-    /* reinterpret-ok: palette entries are packed srARGB dwords; only the low
-       24 color bits carry over, the alpha byte comes from the packed pixel. */
+    /* reinterpret-ok: palette entries are packed srARGB dwords. */
     const unsigned long* palette =
         reinterpret_cast<const unsigned long*>(info.palette->getPaletteDataPtr());
     unsigned long* dest = static_cast<unsigned long*>(info.dest);
@@ -1061,8 +1049,7 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
             unsigned long pixel = source[i];
             const unsigned char* gray =
                 lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
-            /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
-               as a dword so the expanded alpha can be ORed into byte 3. */
+            /* reinterpret-ok: packed BGRA gray entry. */
             dest[i] =
                 *reinterpret_cast<const unsigned long*>(gray) |
                 static_cast<unsigned long>(alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
@@ -1076,8 +1063,7 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
             unsigned long pixel = source[i];
             const unsigned char* gray =
                 lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
-            /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
-               as a dword so the expanded alpha can be ORed into byte 3. */
+            /* reinterpret-ok: packed BGRA gray entry. */
             dest[i] =
                 *reinterpret_cast<const unsigned long*>(gray) |
                 static_cast<unsigned long>(alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
@@ -1088,14 +1074,12 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
     case srPixelConvert::PIXEL_SIZE_24: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < count; i++) {
-            /* reinterpret-ok: 24-bit source records load their high two bytes as
-               a word plus the low byte separately. */
+            /* reinterpret-ok: 24-bit records load their high two bytes as a word. */
             unsigned long pixel =
                 *reinterpret_cast<const unsigned short*>(source + 1) * 0x100 + source[0];
             const unsigned char* gray =
                 lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
-            /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
-               as a dword so the expanded alpha can be ORed into byte 3. */
+            /* reinterpret-ok: packed BGRA gray entry. */
             dest[i] =
                 *reinterpret_cast<const unsigned long*>(gray) |
                 static_cast<unsigned long>(alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
@@ -1110,8 +1094,7 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
             unsigned long pixel = source[i];
             const unsigned char* gray =
                 lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
-            /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
-               as a dword so the expanded alpha can be ORed into byte 3. */
+            /* reinterpret-ok: packed BGRA gray entry. */
             dest[i] =
                 *reinterpret_cast<const unsigned long*>(gray) |
                 static_cast<unsigned long>(alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
@@ -2364,8 +2347,7 @@ static void packIntensity24(unsigned char* dest, const srARGB* source,
                                                  lutRamp18[pixel.blue]) >>
                                                 8]
                                   << intensity_shift;
-            /* reinterpret-ok: the 24-bit pixel record stores its low word plus
-               high byte separately. */
+            /* reinterpret-ok: 24-bit records store their low word separately. */
             *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
             pixel = source[i + 1];
@@ -2395,8 +2377,7 @@ static void packIntensity24(unsigned char* dest, const srARGB* source,
                                                 8]
                                       << intensity_shift |
                                   alpha_lut[pixel.alpha] << alpha_shift;
-            /* reinterpret-ok: the 24-bit pixel record stores its low word plus
-               high byte separately. */
+            /* reinterpret-ok: 24-bit records store their low word separately. */
             *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
             pixel = source[i + 1];
@@ -2589,8 +2570,7 @@ static void pack24(unsigned char* dest, const srARGB* source, const unsigned cha
             unsigned long value = luts[0][pixel.red] << shifts[0] |
                                   luts[1][pixel.green] << shifts[1] |
                                   luts[2][pixel.blue] << shifts[2];
-            /* reinterpret-ok: the 24-bit pixel record stores its low word plus
-               high byte separately. */
+            /* reinterpret-ok: 24-bit records store their low word separately. */
             *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
             pixel = source[i + 1];
@@ -2625,8 +2605,7 @@ static void pack24(unsigned char* dest, const srARGB* source, const unsigned cha
             unsigned long value =
                 luts[0][pixel.red] << shifts[0] | luts[1][pixel.green] << shifts[1] |
                 luts[3][pixel.alpha] << shifts[3] | luts[2][pixel.blue] << shifts[2];
-            /* reinterpret-ok: the 24-bit pixel record stores its low word plus
-               high byte separately. */
+            /* reinterpret-ok: 24-bit records store their low word separately. */
             *reinterpret_cast<unsigned short*>(dest) = static_cast<unsigned short>(value);
             dest[2] = static_cast<unsigned char>(value >> 16);
             pixel = source[i + 1];
@@ -2753,8 +2732,7 @@ static void unpack24(unsigned long* dest, const unsigned char* source,
 {
     unsigned long i = 0;
     for (; i < (count & ~3UL); i += 4) {
-        /* reinterpret-ok: 24-bit source records load their high two bytes as a
-           word plus the low byte separately. */
+        /* reinterpret-ok: 24-bit records load their high two bytes as a word. */
         unsigned long pixel =
             *reinterpret_cast<const unsigned short*>(source + 1) * 0x100 + source[0];
         dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
@@ -2825,7 +2803,3 @@ static void unpack32(unsigned long* dest, const unsigned long* source,
                   luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
     }
 }
-
-/* This unit's static-init emission chain: the CRT initterm table calls
-   the thunks at 0x100075F0/0x100076B0/0x10007770, which tail-jump into the
-   bodies that write the YUV matrices and clear the format_table fourcc. */

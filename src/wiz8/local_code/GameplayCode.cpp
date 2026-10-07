@@ -64,7 +64,7 @@ enum {
     W8_PHYS_COMBAT_WEIGHT_CASTER = 2
 };
 
-/* 0x00616604: one entry per sex, race and profession together. */
+/* One entry per sex, race and profession together. */
 // GLOBAL: WIZ8 0x00616308
 unsigned char gubLocalACPercent[5] = {15, 40, 30, 10, 5};
 
@@ -920,7 +920,7 @@ void CalcArmorClasses(W8Character* character)
         weighted_total < 0 ? (weighted_total - 50) / 100 : (weighted_total + 50) / 100;
 }
 
-/* 0x006164F4: personality and voice values by sex and profession class,
+/* Personality and voice values by sex and profession class,
    two dwords per row. It ends exactly where the sex/race/profession table
    at 0x00616604 begins. */
 // GLOBAL: WIZ8 0x006164F4

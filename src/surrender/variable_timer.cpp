@@ -1,4 +1,3 @@
-/* Recoverable from sr.dll */
 
 #include "surrender/srVariableTimer.h"
 
@@ -153,8 +152,7 @@ void srVariableTimer::setTime(float time)
     m_scaled_tick += m_scaled_base;
 }
 
-/* Retail 0x10063B90 updates m_step_size and m_step_scale but does not
-   recompute m_step_ticks in this function. */
+/* Does not recompute m_step_ticks. */
 // FUNCTION: SURRENDER 0x10063B90
 int srVariableTimer::stepBegin(unsigned long step_size)
 {
@@ -297,8 +295,8 @@ unsigned long srVariableTimer::getRawTime(e_timerReadControl control)
     return m_scaled_tick.lo - m_scaled_base.lo;
 }
 
-/* Retail 0x10064190 stores absolute m_scaled_tick to out while returning
-   the low dword of m_scaled_tick - m_scaled_base. */
+/* Stores the absolute m_scaled_tick to out while returning the low dword of m_scaled_tick -
+   m_scaled_base. */
 // FUNCTION: SURRENDER 0x10064190
 unsigned long srVariableTimer::getRawTime(srQuadWord& out, e_timerReadControl control)
 {

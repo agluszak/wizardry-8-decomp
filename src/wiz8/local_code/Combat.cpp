@@ -94,15 +94,12 @@
 
 // GLOBAL: WIZ8 0x006836a8
 W8CombatState* g_combat_state;
-/* 0x0068506C: a friendly NPC's combat-entry script notice was queued by
+/* A friendly NPC's combat-entry script notice was queued by
    StartCombat; while it is set the next call checks the dialogue and script
    deferral gates before clearing it and proceeding. */
-/* 0x006850B4: the once-per-combat difficulty evaluation result - 0 easy,
+/* The once-per-combat difficulty evaluation result - 0 easy,
    1 normal, 2 hard; picks the combat music and gates the victory event. */
 
-/* 0x00524A10 */
-
-/* 0x00547940 */
 /* The per-character combat rows live at +0x18 of the combat state and run
    0xd4 bytes apart; the state's leading 0x18 bytes are its own header. */
 // GLOBAL: WIZ8 0x0068d810
@@ -115,9 +112,7 @@ static wchar_t g_format_s_dash_dash[] = L"%s -- ";
 wchar_t g_format_s_bang[] = L"%s!";
 // GLOBAL: WIZ8 0x0061EC8C
 static int g_breath_notice_id = 0x65b;
-/* 0x0053AC30 */
 
-/* 0x004E7590 */
 void ResetPartyCombatRows(void);
 
 /* Enter combat mode: queue a friendly NPC's combat-entry script notice when

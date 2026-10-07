@@ -375,9 +375,6 @@ void srDebugDD::drawElements(srRendererDefs::e_primitive primitive, unsigned lon
     device->drawElements(primitive, count, type, indices);
 }
 
-/* Retail FuncInfo 0x100786F8 has no try blocks and unwinds the ScopeTimer.
-   This lifetime requires unwind support; neighboring frame differences do not
-   establish per-function compiler options or a different original TU. */
 // FUNCTION: SURRENDER 0x10017690
 void srDebugDD::drawArrays(srRendererDefs::e_primitive primitive, long first, unsigned long count)
 {

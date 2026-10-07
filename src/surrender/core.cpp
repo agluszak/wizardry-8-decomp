@@ -1,4 +1,4 @@
-#include <ostream>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,12 +12,14 @@
 #include "surrender/srExtension.h"
 #include "surrender/srFilter.h"
 #include "surrender/srGERD.h"
+#include "surrender/srHeap.h"
 #include "surrender/srImporter.h"
 #include "surrender/srIStreamOpener.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srMemoryPool.h"
 #include "surrender/srMutex.h"
 #include "surrender/srPalette.h"
+#include "surrender/srPixelConvert.h"
 #include "surrender/srScene.h"
 #include "surrender/srString.h"
 #include "surrender/srTextureMap.h"
@@ -27,15 +29,25 @@
 #include "surrender/srVectorProcessor.h"
 #include "surrender/srVideoManager.h"
 
+// FUNCTION: SURRENDER 0x10014FE0
+void __cdecl _srLibraryInit(void)
+{
+    srAssertSetFunc(srDefaultAssertFailFunc);
+    initPixelTables();
+}
+
+// FUNCTION: SURRENDER 0x10015000
+void __cdecl _srLibraryExit(void)
+{
+    srHeap.freeAll();
+}
+
 // FUNCTION: SURRENDER 0x10015010
 const char* srCore::getCopyright() const
 {
     return copyright_;
 }
 
-/* The string is the build's __DATE__/__TIME__ pair; the recomp bakes in its
-   own build stamp, so the literal content legitimately differs from retail
-   "Sep 17 2000 16:56:17". */
 // FUNCTION: SURRENDER 0x10015020
 const char* srCore::getBuildTime() const
 {
@@ -648,7 +660,3 @@ const unsigned char srLogo[0x1000] = {
     0x91, 0x91, 0x91, 0x91, 0x91, 0x92, 0x93, 0x93, 0x93, 0x91, 0x90, 0x91, 0x92, 0x90, 0x90, 0x90,
     0x90, 0x90, 0x90, 0x91, 0x92, 0x91, 0x92, 0x93, 0x93, 0x92, 0x92, 0x93, 0x91, 0x90, 0x90, 0x93,
 };
-
-/* This unit instantiates srMaterial in srInit, so retail emits the
-   srMaterial/srMaterialIFace class-support surface here ahead of the
-   file_stream TU's Path members. */

@@ -1,11 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Reconstruct Wizardry archive initialization, mapping, and patch lookup.
-   Restore retail sequential-scan flags for library and stream handles.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
-   Recover the library-stream CD fallback in the released InitializeLibrary form.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
-   Remove inactive code and decorative comment banners, 2026-10-07.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "Types.h"
 #include "windows.h"
@@ -329,9 +322,6 @@ BOOLEAN InitializeLibrary(STR pLibraryName, LibraryHeaderStruct* pLibHeader, BOO
     return (TRUE);
 }
 
-/* Wizardry opens a separate, positioned OS handle for each Miles stream.
-   Its original source spelling is unresolved; retail callers establish this
-   LibraryDataBase contribution and its HWFILE input. */
 // FUNCTION: WIZ8 0x00412f10
 HANDLE OpenLibraryStream(HWFILE file)
 {

@@ -79,12 +79,12 @@ int W8MonsterInfoDialog::CreateControls()
     return 0;
 }
 
-/* 0x0064F614: gppStringList indices naming the seven classes the monster's
+/* GppStringList indices naming the seven classes the monster's
    name line falls into by how far its level sits above the party average. */
 // GLOBAL: WIZ8 0x0064f614
 static int g_monster_level_name_ids[7] = {301, 302, 303, 304, 305, 306, 307};
 
-/* 0x0064F630: knowledge threshold and gppStringList label id pairs gating the
+/* Knowledge threshold and gppStringList label id pairs gating the
    record's six resistance entries. */
 // GLOBAL: WIZ8 0x0064f630
 static int g_monster_resistance_label_gates[6][2] = {

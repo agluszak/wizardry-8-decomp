@@ -13,25 +13,25 @@ struct W8WorldItem;
 struct W8Searchable {
     W8Searchable() : world_item(0), cursor_node(0), trigger(0) {}
 
-    /* 0x00517080: resolve this searchable's world position. */
+    /* Resolve this searchable's world position. */
     void GetPosition(srVector3T<float>* position);
-    /* 0x00516AD0: fire the found consequence (item reveal or trigger run) and
+    /* Fire the found consequence (item reveal or trigger run) and
        remove this record from the registry. */
     void Reveal();
-    /* 0x00517560: the best searching party member within range of this
+    /* The best searching party member within range of this
        searchable, or -1. Practices the searching skill on a qualified pick. */
     int PickBestSearcher();
 
     W8WorldItem* world_item;
-    /* 0x04: never written in retail; the only reader resolves a world cursor
-       node's location through it, so the dead path is modelled on that type. */
+    /* Never written; the only reader resolves a world cursor node's
+       location through it. */
     W8WorldCursorNode* cursor_node;
     Trigger* trigger;
 };
 
 static_assert(sizeof(W8Searchable) == 0x0c, "W8Searchable_must_be_0x0c");
 
-/* 0x00689FB8: the per-pulse iteration view over the registry. Its constructor
+/* The per-pulse iteration view over the registry. Its constructor
    seeds the cursor before the first element; CollectSearchablesInView refills
    the item list with the in-range, in-view records. */
 struct W8SearchableView {
@@ -51,12 +51,12 @@ extern TIMER g_search_pulse_clock;
 void RegisterSearchableWorldItem(W8WorldItem* item);
 void RegisterSearchableTrigger(Trigger* trigger);
 void UnregisterSearchableTrigger(Trigger* trigger);
-/* 0x00516BA0: refill the view with the in-range, in-view searchables and
+/* Refill the view with the in-range, in-view searchables and
    return it, or null when none qualify. */
 W8SearchableView* CollectSearchablesInView(void);
 void ClearSearchables();
-/* 0x005171C0: the 500ms sweep that picks searchers, queues their events and
+/* The 500ms sweep that picks searchers, queues their events and
    reveals what they found. */
 void RunSearchPulse(void);
 /* Toggle the party's search mode; blocked outright in combat. */
-void ToggleSearchMode(void); /* 0x00517780 */
+void ToggleSearchMode(void);

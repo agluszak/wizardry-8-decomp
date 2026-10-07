@@ -2,8 +2,6 @@
 
 #include "srHeap.h"
 
-/* Provider exports include copy construction, assignment and the vftable. The
-   reconstruction uses class-level export; original spelling is unresolved. */
 // VTABLE: SURRENDER 0x10076970 srBinStream
 // class srBinStream
 #if defined(SURRENDER_BUILD)
@@ -18,8 +16,7 @@ public:
 
     enum e_byteOrder { SR_BYTE_ORDER_0 = 0, SR_BYTE_ORDER_1 = 1 };
 
-    /* Thrown by setState when exceptions are enabled and the stream enters the
-       error state. Retail RTTI shows a one-byte type carrying the state. */
+    /* Thrown by setState when exceptions are enabled and the stream enters the error state. */
     class Failure {
     public:
         Failure(e_state state) : state(static_cast<char>(state)) {}

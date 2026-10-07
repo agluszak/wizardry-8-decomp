@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import shutil
 from pathlib import Path
 
@@ -32,24 +31,3 @@ def extract_installshield(source: Path, destination: Path, *, log_dir: Path) -> 
         "'unshield' tool, then rerun. Wine execution was not attempted because no verified silent "
         "response file is present and interactive installation cannot be made deterministic."
     )
-
-
-def isolated_wine_prefix(work_dir: Path, label: str) -> Path:
-    prefix = work_dir / "wine-prefixes" / label
-    prefix.mkdir(parents=True, exist_ok=True)
-    return prefix
-
-
-def run_under_wine(
-    executable: Path,
-    args: list[str],
-    *,
-    prefix: Path,
-    cwd: Path,
-    log_path: Path,
-) -> CommandResult:
-    if not shutil.which("wine"):
-        raise RuntimeError("Wine is required for this installer, but 'wine' is not on PATH")
-    environment = dict(os.environ)
-    environment.update({"WINEPREFIX": str(prefix), "WINEDLLOVERRIDES": "winemenubuilder.exe=d"})
-    return run(["wine", executable, *args], cwd=cwd, env=environment, log_path=log_path)

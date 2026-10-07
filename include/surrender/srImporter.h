@@ -17,10 +17,6 @@ class
 #endif
     srSurfaceIOManager : public srIOManager {
 public:
-    /* Retail callers build the import options as a single zeroed dword:
-       srPalette::Sampler::addSurface reuses the dead name argument slot and
-       srTextureFile::loadSurface reserves one dword local. ExportInfo keeps
-       the wider triple (Wizardry's SaveJpegScreenshot proves {0,1,"QUALITY=..."}). */
     struct ImportInfo {
         unsigned long unknown_00;
     };
@@ -37,19 +33,13 @@ public:
     /* The default-constructor body contains base construction and a derived
        vftable store, consistent with implicit construction. */
 
-    /* Provider-side entry (0x1002DCD0); no consumer import evidence, so it
-       stays unannotated. */
     void exportSurface(const char* path, srBinOStream& stream, srColorSurfaceIFace& surface,
                        const ExportInfo& options);
     SR_DLL_IMPORT void exportSurface(const char* path, srColorSurfaceIFace& surface,
                                      const ExportInfo& options);
-    /* Provider-side import entries (0x1002DB20/0x1002DA00); no consumer import
-       evidence, so they stay unannotated. */
     srColorSurfaceIFace* importSurface(const char* path, srBinIStream& stream,
                                        const ImportInfo& options);
     srColorSurfaceIFace* importSurface(const char* path, const ImportInfo& options);
-    /* Provider-side entries (0x1002D890/0x1002D8C0/0x1002D8F0); no consumer
-       import evidence, so they stay unannotated. */
     SurfaceImporter* getImporter(const char* path);
     SurfaceExporter* getExporter(const char* path);
     void getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, const char* path,
@@ -79,7 +69,6 @@ class
 #endif
     srHierarchyIOManager : public srIOManager {
 public:
-    /* The provider exports Info assignments at 0x10016490 and 0x100164A0. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -116,7 +105,6 @@ class
 #endif
     __declspec(novtable) srHierarchyIOManager::HierarchyImporter : public srIOManager::Importer {
 public:
-    /* importHierarchy's call site dispatches through vtable slot 2. */
     virtual void importHierarchy(srBinIStream& stream, const ImportInfo& options) = 0;
 };
 
@@ -128,7 +116,6 @@ class
 #endif
     srModelIOManager : public srIOManager {
 public:
-    /* The provider exports Info assignments at 0x100169A0 and 0x100169B0. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -163,6 +150,5 @@ class
 #endif
     __declspec(novtable) srModelIOManager::ModelImporter : public srIOManager::Importer {
 public:
-    /* importModel's call site dispatches through vtable slot 2. */
     virtual srModel* importModel(srBinIStream& stream, const ImportInfo& options) = 0;
 };

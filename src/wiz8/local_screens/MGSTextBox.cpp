@@ -93,7 +93,7 @@ static unsigned char g_text_box_mode;
 int g_notice_line_count;
 // GLOBAL: WIZ8 0x0064bd54
 static int g_text_box_value = W8_FONT_PALETTE_BEIGE;
-/* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c
+/* The screen the text box belongs to; its two panels sit at 0x0c
    and 0x14. */
 
 /* Release every heap object owned by the four-by-350 message store, then
@@ -1757,7 +1757,7 @@ void SetTextBoxMode(unsigned char mode, int value)
     }
 }
 
-/* 0x0058FFC0: draw clickable notice-word overlays for one painted line. */
+/* Draw clickable notice-word overlays for one painted line. */
 static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y);
 
 static void DrawMessageLineText(const W8MessageStorageRecord* line, int x, int y)

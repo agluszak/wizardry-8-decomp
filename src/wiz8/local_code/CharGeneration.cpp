@@ -176,7 +176,7 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
 void ResetSkillContribution(W8Character* character, W8CharacterCreationState* creation_state,
                             W8Skill skill_id)
 {
-    /* Retail stores to byte 1 of the skill record (0x00557CAB), not to the
+    /* Retail stores to byte 1 of the skill record, not to the
        active flag at byte 0. */
     character->skills[skill_id].reset_flag = true;
     creation_state->skill_points_spent[skill_id] = 0;

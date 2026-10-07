@@ -1,7 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Restrict JA2-only includes to their product branch.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include "Button System.h"

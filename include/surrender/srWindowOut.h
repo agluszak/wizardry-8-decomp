@@ -2,11 +2,8 @@
 
 #include <ostream>
 
-/* SurRender's diagnostic-console stream: a basic_ostream<char>-shaped
-   object (0x38 bytes: shared vbptr + basic_ios<char> vbase, the same layout
-   as srOStream_withassign). The constructor creates an internal
-   window-backed stream buffer ("srDebugWndClass") and gives it focus; the
-   destructor deletes the buffer. No known consumer imports the class. */
+/* SurRender's diagnostic-console stream. The constructor creates a window-backed stream buffer and
+   gives it focus; the destructor deletes the buffer. */
 // VTABLE: SURRENDER 0x10076E20 srWindowOut
 // class srWindowOut
 class
@@ -17,8 +14,4 @@ class
 public:
     srWindowOut(unsigned long handle, const char* title, long width, unsigned long height);
     virtual ~srWindowOut();
-
-    /* Copy construction and assignment are consistent with basic_ios<char>'s
-       memberwise copyfmt operations. The
-       vbase/vector-deleting destructors carry the virtual-inheritance ABI. */
 };

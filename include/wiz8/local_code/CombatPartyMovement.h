@@ -2,25 +2,25 @@
 
 #include "wiz8/layouts/targeting.h"
 
-void SetPendingMoveKind(W8ActionKind kind);                /* 0x004F0520 */
-unsigned char GetPartyHasteSteps(unsigned int* out_steps); /* 0x004F0010 */
-void CompletePartyMovementTurns(void);                     /* 0x004F06B0 */
-void BeginFreeTurnPhase(void);                             /* 0x004F0630 */
-void BeginPartyMovement(void);                             /* 0x004EFBE0 */
-void EndPartyMovementPhase(void);                          /* 0x004EFD30 */
-void CancelPartyMovement(void);                            /* 0x004F0860 */
-void InterruptActivePartyMovement(void);                   /* 0x004F0990 */
-bool CanPartyMove(void);                                   /* 0x004F0800 */
-void ClearPendingPartyMovement(int excluded_party_slot);   /* 0x004F0560 */
-void StartPartyMovementAction(W8PartyAction move_kind);    /* 0x004F0AF0 */
-void UpdateActivePartyMovement(void);                      /* 0x004F01D0 */
-void UpdatePartyMovementControl(void);                     /* 0x004F0AA0 */
+void SetPendingMoveKind(W8ActionKind kind);
+unsigned char GetPartyHasteSteps(unsigned int* out_steps);
+void CompletePartyMovementTurns(void);
+void BeginFreeTurnPhase(void);
+void BeginPartyMovement(void);
+void EndPartyMovementPhase(void);
+void CancelPartyMovement(void);
+void InterruptActivePartyMovement(void);
+bool CanPartyMove(void);
+void ClearPendingPartyMovement(int excluded_party_slot);
+void StartPartyMovementAction(W8PartyAction move_kind);
+void UpdateActivePartyMovement(void);
+void UpdatePartyMovementControl(void);
 void RoundPhaseToStep(unsigned int* phase, unsigned int base);
-int GetPhaseStep(void);            /* 0x004F0500 */
-float GetPartyMovementSpeed(void); /* 0x004EFFA0 */
+int GetPhaseStep(void);
+float GetPartyMovementSpeed(void);
 void BeginPartyMovementPhase(void);
 void FinishPartyMovementAction(void);
 bool PartyMovementReachedPhaseLimit(void);
-/* 0x004EFE70: Combat.cpp calls it when a party movement action is pending
+/* Combat.cpp calls it when a party movement action is pending
    while phases are assigned, so it is not file-local. */
 void InitializePartyMovementPhase(void);

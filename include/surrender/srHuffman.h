@@ -73,8 +73,6 @@ public:
         };
 
         SR_DLL_IMPORT Sampler();
-        /* Provider teardown is consistent with hash/array destruction. Wiz8
-           imports the standalone destructor, so only the consumer declares it. */
 
 #if !defined(SURRENDER_BUILD)
         SR_DLL_IMPORT ~Sampler();

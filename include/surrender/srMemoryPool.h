@@ -2,8 +2,6 @@
 
 #include "srHeap.h"
 
-/* Provider-side utility. No known Wizardry/JPEG/ZIP consumer imports
-   srMemoryPool symbols, so its provider declarations are not dllimport. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -14,7 +12,6 @@ public:
 
     srMemoryPool(void* memory, long size, long alignment);
     ~srMemoryPool();
-    /* The exported assignment is a whole-object memberwise copy. */
 
     void* allocate(long size);
     void dump();
@@ -44,8 +41,6 @@ private:
     static_assert(sizeof(Entry) == 0x14, "srMemoryPool_Entry_must_be_0x14");
 
     Entry* addEntry(Entry* previous, Entry* next);
-    /* Retail inlines both helpers at every call site yet still exports the
-       standalone copies; the class-level provider export roots the emission. */
     // FUNCTION: SURRENDER 0x100369E0
     // RECOMP: ?convertPtr@srMemoryPool@@ABEJPBX@Z
     long convertPtr(const void* allocation) const

@@ -22,8 +22,6 @@ enum { W8_PARTY_SLOT_COUNT = 8 };
 #pragma pack(push, 1)
 struct W8StatusBuffers {
     float save_version;
-    /* Char and XChar, spelled by the gStatus.Char[uiChar] and
-       gStatus.XChar[uiSlot] assertions. */
     W8Character* Char;
     W8PartySlotRow* XChar;
 };
@@ -55,9 +53,7 @@ struct W8GlobalStatus {
     int selected_character;
     W8ItemInstance party_item_pool[500];
     unsigned int party_item_count;
-    /* 0x1795: signed 16-bit text-box line cursor. Every retail access is a
-       word load/store or MOVSX; a 32-bit type would overlap the legacy save
-       fields at +0x1797. */
+    /* 0x1795: text-box line cursor. */
     short text_line_cursor;
     unsigned int legacy_text_box_lines[2][3];
     /* 0x17af: the party's twelve effect slots, the same 0x11-byte records the
@@ -70,9 +66,7 @@ struct W8GlobalStatus {
     unsigned int world_clock_ms;
     unsigned int party_order_slots[8];
     int current_level;
-    /* 0x1904..0x1a03: the 0x100-byte STAT header block. Assertion evidence
-       names the dword at +0xd4 uiTurnsElapsed; the surrounding bytes remain a
-       save/load blob. */
+    /* 0x1904..0x1a03: the 0x100-byte STAT header block. */
     unsigned char status_header_prefix[0xd4];
     unsigned int uiTurnsElapsed; /* 0x19d8 */
     unsigned char status_header_suffix[0x28];
@@ -91,7 +85,7 @@ struct W8GlobalStatus {
     int next_trigger_id;
     bool item_in_cursor;
     W8ItemInstance item_in_hand;
-    /* 0x2367: per-slot flags the character-load path consults at 0x006874D7. */
+    /* 0x2367: per-slot flags the character-load path consults. */
     unsigned char flags[0x20];
     unsigned int game_time_ms;
     unsigned int aging_accumulator;
@@ -103,7 +97,7 @@ struct W8GlobalStatus {
        force-despawn gate. */
     bool world_suspended;
     /* 0x2391/0x2395: session accumulators ConsumeLevelElapsedTime
-       folds the level's pending elapsed times into; the 0x00502D00 wait
+       folds the level's pending elapsed times into; the aging tick's wait
        pass sums them against zero. */
     float real_elapsed;
     float frame_elapsed;
@@ -129,8 +123,7 @@ struct W8GlobalStatus {
     unsigned char long_quote;
     bool party_fatigued;
     /* 0x2434: index of the party member the main-game selection flow is on.
-       The screen reset writes 0xff and the 0x00526E90 handler reads and
-       updates it while walking the 0x1862-byte character records. */
+       The screen reset writes 0xff. */
     unsigned char selected_party_member;
     /* 0x2435: read as a gate by the main-game frame's world-cursor path. */
     unsigned char world_cursor_gate;
@@ -176,13 +169,7 @@ struct W8GlobalStatus {
     int status_ints[1000];
     bool fact_88_latch;
     unsigned char unknown_40c2[0xc];
-    /* Retail addresses cast_count through +0x40c2 + spell_id * 0x10 and
-       usable_cast_count through +0x40c6 + spell_id * 0x10. These are the
-       +4/+8 fields of records rooted at +0x40ce and indexed by spell_id - 1.
-       The typed extent is the proven player-spell domain, IDs 1..0x71.
-       Spell 0x72 is item-routed in the audited producers; the unchecked cast
-       update would enter the following unknown storage if it were supplied,
-       so +0x47de is not an independently established original member boundary. */
+    /* Indexed by spell_id - 1, for the player spells 1..0x71. */
     W8CharacterSpellUsageRecord spell_usage[0x71];
     unsigned char unknown_47de[0x194];
     /* 0x4972: set once the Cosmic Circle arena monsters have been spawned by

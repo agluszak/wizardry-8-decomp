@@ -106,9 +106,3 @@ def validate_provenance(name_origin: str, authority: str) -> tuple[tuple[str, ..
             f"expected {expected!r}"
         )
     return origins, authority
-
-
-def is_original(authority: str) -> bool:
-    """True when the name is evidence about Sir-Tech's own naming, not a third party's."""
-
-    return AUTHORITY_RANK[authority] >= AUTHORITY_RANK["string-backed"]

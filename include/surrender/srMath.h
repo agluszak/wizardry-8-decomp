@@ -57,10 +57,7 @@ public:
         return *this;
     }
 
-    /* Guarded XZ/2D unitize via reciprocal-sqrt. Independent TUs: OctPath
-       0x0045aac0 / 0x0045ef90 / 0x0045BE30. GDCamera SnapToTarget/LookAt and
-       ApplyRotationMatrix use a different unguarded 1/Length form and stay
-       as Length() then *=. No Wiz8 COMDAT. */
+    /* Guarded unitize via reciprocal-sqrt. */
     srVector2T<T>* Normalize()
     {
         T length_squared = x * x + y * y;
@@ -217,14 +214,7 @@ template <class T> srVector3T<T>& srVector3T<T>::operator/=(double scalar)
     return *this;
 }
 
-/* Guarded vec3 → length 1 via reciprocal-sqrt of the squared length.
-   Independent TUs: stParticle 0x00499A50, OctPath 0x0045b730 / 0x0045e840 /
-   0x00465130, GDCamera 0x00476950 / 0x00476F90. Prop 0x0044aee0 goes through
-   srModelInstance::setAlignAxis, whose body is this same form with z,y,x
-   square order. No Wiz8 COMDAT; header-visible inlining is the retail shape.
-
-   ReadLevel 0x004BD0D0 is a second unitize family (Length(); if != 0; /=)
-   and keeps that authored form. Do not force this reciprocal-sqrt body there. */
+/* Guarded unitize via reciprocal-sqrt of the squared length. */
 template <class T> srVector3T<T>* srVector3T<T>::Normalize()
 {
     T length_squared = x * x + y * y + z * z;
@@ -235,9 +225,7 @@ template <class T> srVector3T<T>* srVector3T<T>::Normalize()
     return this;
 }
 
-/* Guarded vec3 → requested magnitude: desired / sqrt(len²). Independent TUs:
-   GDCamera::GetForwardPoint 0x00478CE0 and OctPath 0x00462570 / 0x00465D70.
-   Separate from Normalize(); the 1.0 vs requested-length constant is authored. */
+/* Guarded rescale to the requested length. */
 template <class T> srVector3T<T>* srVector3T<T>::SetLength(double length)
 {
     T length_squared = x * x + y * y + z * z;
@@ -248,8 +236,7 @@ template <class T> srVector3T<T>* srVector3T<T>::SetLength(double length)
     return this;
 }
 
-/* Length(); if != 0; /=. Distinct from the reciprocal-sqrt Normalize().
-   ReadLevel 0x004BD0D0 is the recovered site. Original spelling unknown. */
+/* Length(); if != 0; /=. Distinct from the reciprocal-sqrt Normalize(); original spelling unknown. */
 template <class T> srVector3T<T>* srVector3T<T>::Unitize()
 {
     T length = Length();
@@ -451,10 +438,7 @@ public:
                _finite(static_cast<double>(z)) && _finite(static_cast<double>(w));
     }
 
-    /* Four-channel saturation, expanded in setClearColor (0x1001CA30),
-       setFogColor (0x1001C6B0) and finishDiffuseAlpha (0x1002B200).
-       Keep the same <=/>= comparisons as the three-channel SetSaturated
-       operation, including the writes at the two endpoints. */
+    /* Four-channel saturation; both endpoints are written. */
     void SetSaturated(const srVector4T<T>& source)
     {
         *this = source;
@@ -564,9 +548,7 @@ template <class T> srVector4T<T> operator*(const srVector4T<T>& vector, double s
     return result;
 }
 
-/* 0x10067720 / 0x10067770 / 0x100677D0: the four-dimensional dot includes
-   w*w. Plane evaluation with a three-dimensional point is a distinct
-   operation and keeps its addition of the plane constant. */
+/* The four-dimensional dot includes w*w. */
 template <class T> T DotProduct(const srVector4T<T>& first, const srVector4T<T>& second)
 {
     return first.x * second.x + first.y * second.y + first.z * second.z + first.w * second.w;
@@ -653,11 +635,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>&
     return this;
 }
 
-/* Row-wise Gram-Schmidt, expanded by srNode::setParent, pitchAt, yawAt,
-   rollUp and rollAt (0x10050F00, 0x10052D80, 0x10052FC0, 0x10053210,
-   0x10053470). Original method spelling is unknown. Each projection and
-   reciprocal is rounded through the vector operators' double arguments;
-   zero-length rows remain unguarded, unlike srVector3T::Normalize. */
+/* Row-wise Gram-Schmidt; zero-length rows are not guarded. Original method spelling unknown. */
 template <class T> void srMatrix3T<T>::OrthonormalizeRows()
 {
     for (int row = 0; row < 3; ++row) {
@@ -761,9 +739,8 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double angle)
     return this;
 }
 
-/* Single-angle overload of the Rodrigues rotation above, keeping the
-   trigonometry and the basis products in double precision until the float
-   stores. The MartensBluff2 arrow trap emits it at 0x004DE940. */
+/* Single-angle overload of the Rodrigues rotation above, in double precision until the float
+   stores. */
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double angle, const srVector3T<T>& axis)
 {
@@ -842,15 +819,13 @@ template <class T> srVector3T<T>& srVector3T<T>::Transform(const srMatrix3T<T>& 
 
 template <class T> class srMatrix4T {
 public:
-    /* classifyMatrix on the model-view stack writes these from the 3x3
-       column lengths. Original enumerator spellings are not in the binary. */
+    /* classifyMatrix on the model-view stack writes these from the 3x3 column lengths. */
     enum e_scaleType {
         SCALE_TYPE_UNIT = 0,       /* equal column lengths, all ~1 */
         SCALE_TYPE_UNIFORM = 1,    /* equal column lengths, not 1 */
         SCALE_TYPE_NON_UNIFORM = 2 /* unequal column lengths */
     };
-    /* classifyMatrix (0x100215A0) distinguishes these zero patterns.
-       1 and 2 are not produced by the recovered classifier. */
+    /* Zero patterns classifyMatrix distinguishes. */
     enum e_type {
         TYPE_GENERAL = 0,
         TYPE_AFFINE = 3,
@@ -878,11 +853,8 @@ public:
 
     srMatrix4T<T>* Invert();
     srMatrix4T<T>* Inverse(srMatrix4T<T>& source);
-    /* Each completed row is stored before reading the source for the next
-       row; the matrices must not alias. Mixed-precision multiplication
-       retains the source coefficient width.
-       srGERD's double overload uses FMUL double and rounds only each result
-       into the float matrix; converting the input first loses precision. */
+    /* Each completed row is stored before reading the source for the next row; the matrices must
+       not alias. Mixed-precision multiplication keeps the source coefficient width. */
     template <class U> srMatrix4T<T>* MultiplyBy(const srMatrix4T<U>& other)
     {
         for (int row = 0; row != 4; ++row) {
@@ -944,9 +916,7 @@ template <class T> srMatrix4T<T>* srMatrix4T<T>::Invert()
     return this;
 }
 
-/* Assign *this = inverse(source). The float instantiation inside
-   srBounder::updateBounds (0x1004A800) takes a self-source branch that stages
-   the adjugate through a temporary before copying back. */
+/* Assign *this = inverse(source). */
 template <class T> srMatrix4T<T>* srMatrix4T<T>::Inverse(srMatrix4T<T>& source)
 {
     if (&source == this) {

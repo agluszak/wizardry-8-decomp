@@ -5,16 +5,11 @@
 #include "wiz8/dialog_code/DialogScrollBar.h"
 #include "wiz8/dialog_code/DialogTextArea.h"
 
-/* Dialog Code\MonsterInfoDialog.cpp. The constructor stores a monster
-   location id; Draw and PopulateText pass that id to
-   MonsterGetIndexByLocationID. The live hull is Draw and PopulateText
-   (0x005D6080-0x005D6160). Constructor, destructor, CreateControls,
-   OnRightButtonUp, OnMouseWheel and DestroyControls sit in the gaps around
-   that hull and remain in this class file because they are its methods. */
+/* The monster information dialog for one monster location id. */
 // VTABLE: WIZ8 0x005ef910
 class W8MonsterInfoDialog : public W8DialogBase {
 public:
-    W8MonsterInfoDialog(int location_id); /* 0x005D5E30 */
+    W8MonsterInfoDialog(int location_id);
     virtual ~W8MonsterInfoDialog() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
@@ -23,15 +18,15 @@ public:
     virtual void OnMouseWheel(int delta) override;
 
 private:
-    bool PopulateText(); /* 0x005D6160 */
+    bool PopulateText();
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
-    int m_location_id;              /* 0x54 */
-    W8DialogScrollBar m_scroll_bar; /* 0x58 */
-    W8DialogButton m_button;        /* 0xa4 */
-    W8DialogTextArea m_text_area;   /* 0xec */
+    int m_location_id;
+    W8DialogScrollBar m_scroll_bar;
+    W8DialogButton m_button;
+    W8DialogTextArea m_text_area;
 };
 static_assert(sizeof(W8MonsterInfoDialog) == 0x144, "W8MonsterInfoDialog_size");
 
-/* 0x0064F610: the monster and statistic info dialogs' background. */
+/* The monster and statistic info dialogs' background. */
 extern char* g_info_dialog_background;

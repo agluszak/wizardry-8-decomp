@@ -82,26 +82,17 @@ public:
         e_command command;
         double start_time;
     };
-    /* VC6 does not grant a nested class access to the enclosing class's
-       protected members, so the statistics arrays stay reachable through an
-       explicit friend declaration. */
     friend class ScopeTimer;
-    /* srGERD::dump (0x1001E9A6) reads call_counts and funcName directly,
-       so srGERD was a friend. */
     friend class srGERD;
 
 private:
     void resetInternalStatistics();
 
-    /* Command names indexed by e_command: funcName[0] is "dummy command",
-       funcName[42] is "setPolygonOffset()", funcName[43] is "CMDMAX".
-       Mangles private static (@@0PAPBDA). */
+    /* Command names indexed by e_command. */
     static const char* funcName[0x2c];
 
     srDD* device;
     unsigned long unknown_08;
-    /* +0x0c..+0x0f is alignment padding before time_scale, not a member:
-       the copy bodies skip it. */
     double time_scale;
     double call_times[0x2b];
     unsigned long call_counts[0x2b];

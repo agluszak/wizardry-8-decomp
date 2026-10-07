@@ -543,8 +543,8 @@ void srMemoryAllocator::setAlignment(e_alignSize alignment)
 // FUNCTION: SURRENDER 0x10036530
 srMemoryAllocator::Block* srMemoryAllocator::align(void* allocation)
 {
-    /* Block headers sit 0x20 bytes below the user pointer; the user address is
-       rounded up to alignment. */
+    /* Block headers sit 0x20 bytes below the user pointer; the user address is rounded up to
+       alignment. */
     // reinterpret-ok: block alignment is computed on the raw allocation bits.
     return reinterpret_cast<Block*>(
         ((reinterpret_cast<unsigned long>(allocation) + alignment + 0x1f) & ~(alignment - 1)) -

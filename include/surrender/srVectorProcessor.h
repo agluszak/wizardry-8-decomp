@@ -34,8 +34,6 @@ public:
         vp->_memcopy(destination, source, bytes);
     }
 
-    /* Retail also emits a guarded variant at 0x10027BA0 that skips the call
-       when count is zero. */
     // FUNCTION: SURRENDER 0x10027BC0 SYMBOL
     // RECOMP: ?copy@srVectorProcessor@@SAXPAKKK@Z
     static inline void copy(SRDWORD* destination, SRDWORD constant, SRDWORD count)
@@ -67,8 +65,6 @@ public:
         vp->_copyIndexed(destination, source, indices, count);
     }
 
-    /* srVertexPipe's record paths dispatch the vertex4 sources through the
-       three-vector4 copyIndexed overloads at vtable +0x84/+0x88/+0x8c. */
     static inline void copyIndexed(srVector4* destination, const srARGB* source,
                                    const SRDWORD* indices, SRDWORD count)
     {
@@ -98,7 +94,6 @@ public:
         vp->_copy(destination, source, w, count);
     }
 
-    /* srFog::process adds a scalar fog offset through vtable +0xdc. */
     static inline void add(float* destination, float constant, const float* source, SRDWORD count)
     {
         vp->_add(destination, constant, source, count);
@@ -116,8 +111,6 @@ public:
         vp->_add(destination, constant, float_source, count);
     }
 
-    /* srVertexPipe adds a constant color into a diffuse/specular vector run
-       through the srVector4-source overload. */
     static inline void add(srVector4* destination, const srVector4& constant,
                            const srVector4* vector_source, SRDWORD count)
     {
@@ -130,33 +123,27 @@ public:
         vp->_add(destination, vector_source, float_source, count);
     }
 
-    /* dest[i] = source[i] + constant for `count` vectors; retail callers reach
-       the srVector3 constant overload at vtable +0xD4. */
+    /* dest[i] = source[i] + constant for `count` vectors. */
     static inline void add(srVector3* destination, const srVector3& constant,
                            const srVector3* vector_source, SRDWORD count)
     {
         vp->_add(destination, constant, vector_source, count);
     }
 
-    /* dest[i] = source[i] + (target[i] - source[i]) * constant; the Wiz8 mesh
-       code lerps raw float triples through vtable +0x178. */
+    /* dest[i] = source[i] + (target[i] - source[i]) * constant. */
     static inline void lerp(float* destination, const float* target, const float* source,
                             float constant, SRDWORD count)
     {
         vp->_lerp(destination, target, source, constant, count);
     }
 
-    /* dest[i] = matrix * vectors[i] for `count` vectors through vtable +0x224. */
+    /* dest[i] = matrix * vectors[i] for `count` vectors. */
     static inline void transform(srVector3* destination, const srVector3* vectors,
                                  const srMatrix4& matrix, SRDWORD count)
     {
         vp->_transform(destination, vectors, matrix, count);
     }
 
-    /* srGERD::Renderer's batch ingress dispatches the projection matrix's
-       detected mode: the vec4 transform through +0x220, ortho through
-       +0x23c, perspective through +0x240, the clip-flag byte stream
-       through +0x298, and the gather+remap triangle copy through +0x25c. */
     static inline void transform(srVector4* destination, const srVector4* vectors,
                                  const srMatrix4& matrix, SRDWORD count)
     {
@@ -195,8 +182,7 @@ public:
         vp->_copyIndexed(destination, source, indices, count);
     }
 
-    /* destination[i] = |vectors[i]| for `count` vectors through vtable
-       +0x210; the automap cell lighting uses it for per-vertex distances. */
+    /* destination[i] = |vectors[i]|. */
     static inline void length(float* destination, const srVector3* vectors, SRDWORD count)
     {
         vp->_length(destination, vectors, count);
@@ -207,8 +193,6 @@ public:
         vp->_mul(destination, constant, source, count);
     }
 
-    /* srLight::process multiplies work arrays elementwise through +0x12c and
-       subtracts a constant through +0x104. */
     static inline void mul(float* destination, const float* source_0, const float* source_1,
                            SRDWORD count)
     {
@@ -220,17 +204,12 @@ public:
         vp->_sub(destination, constant, source, count);
     }
 
-    /* srLight::process subtracts the per-vertex view directions from the half
-       vectors elementwise through +0x100. */
     static inline void sub(float* destination, const float* source_0, const float* source_1,
                            SRDWORD count)
     {
         vp->_sub(destination, source_0, source_1, count);
     }
 
-    /* Light direction vectors: eye-space positions copied out of the vertex
-       array (+0x2c), then rebased to the light (+0xFC), normalized with the
-       lengths kept (+0x22C). */
     static inline void copy(srVector3* destination, const srVector4* source, SRDWORD count)
     {
         vp->_copy(destination, source, count);
@@ -260,9 +239,6 @@ public:
         vp->_dot(destination, vectors_0, vectors_1, count);
     }
 
-    /* Attenuation evaluation: 1/(poly.x + poly.y*d + poly.z*d^2) through
-       +0x1E4, lower clamp through +0x164, all-zero test through +0x184, and
-       the specular power through +0x258. */
     static inline void invPoly(float* destination, const float* source, const srVector3& poly,
                                SRDWORD count)
     {
@@ -280,8 +256,6 @@ public:
         return vp->_isZero(source, count);
     }
 
-    /* srGERD::Renderer::drawImmediate tests whether the whole batch shares
-       one texture set through the constant overload at vtable +0x70. */
     static inline int isEqual(const SRDWORD* source, SRDWORD constant, SRDWORD count)
     {
         return vp->_isEqual(source, constant, count);
@@ -299,15 +273,11 @@ public:
         vp->_swap(first, second, bytes);
     }
 
-    /* srColorSurfaceIFace::flipRectangle mirrors a converted ARGB row run
-       through the dword reverse slot (+0x3c). */
     static inline void reverse(SRDWORD* destination, const SRDWORD* source, SRDWORD count)
     {
         vp->_reverse(destination, source, count);
     }
 
-    /* srPixelConvert's keyed 32-bit formats fold a constant into the pixel
-       run through the dword _and/_or slots (+0x44/+0x4c). */
     static inline void bitwiseAnd(SRDWORD* destination, const SRDWORD* source, SRDWORD constant,
                                   SRDWORD count)
     {
@@ -338,8 +308,6 @@ public:
         vp->_mulIndexed(destination, constant, indexed_source, indices, count);
     }
 
-    /* finishDiffuseAlpha/finishSpecularFog fold an indexed specular array into
-       a linear destination run through the linear-source overload. */
     static inline void mulIndexed(srVector4* destination, const srVector4* linear_source,
                                   const srVector4* indexed_source, const SRDWORD* indices,
                                   SRDWORD count)
@@ -347,8 +315,7 @@ public:
         vp->_mulIndexed(destination, linear_source, indexed_source, indices, count);
     }
 
-    /* Per-vertex light accumulation into the output rows: destination[i] +=
-       constant * source[i] ( * source_1[i] ) through +0x1A4/+0x198. */
+    /* destination[i] += constant * source[i] ( * source_1[i] ). */
     static inline void axpy(srVector4* destination, const srVector4* add_source,
                             const srVector4& multiply_constant, const float* multiply_source,
                             SRDWORD count)
@@ -388,7 +355,6 @@ public:
         vp->_normalize(destination, vectors, length, count);
     }
 
-    /* srFog::process clamps the computed fog factors through vtable +0x16c. */
     static inline void clampUnit(float* destination, const float* source, SRDWORD count)
     {
         vp->_clampUnit(destination, source, count);
@@ -431,8 +397,6 @@ private:
     /* srVertexPipe::process snapshots the active processor into its own
        vector_processor and dispatches vtable slots through it. */
     friend class srVertexPipe;
-    /* srGERD::testBoundingBox dispatches the processor's bounding-box slot
-       through vp (IAT 0x005eb7e8). */
     friend class srGERD;
     /* srTriangleCuller dispatches _dot/_dotIndexed/_srCullNoClip and the
        buildAVT scratch ops through vp from its own TU. */

@@ -13,8 +13,8 @@ class SR_DLL_IMPORT SR_DLL_EXPORT srCamera : public srClassSupport<srCamera, srN
 public:
     enum e_project { PROJECT_PERSPECTIVE = 0, PROJECT_ORTHOGRAPHIC = 1 };
 
-    /* project (0x10048E30): a projected point inside the view is 0,
-       outside its XY bounds is 1, outside the near/far interval is 2. */
+    /* project(): a projected point inside the view is 0, outside its XY bounds is 1, outside the
+       near/far interval is 2. */
     enum e_projectionResult {
         PROJECTION_RESULT_ACCEPTED = 0,
         PROJECTION_RESULT_OUTSIDE_VIEW = 1,
@@ -35,9 +35,6 @@ public:
     virtual ~srCamera() override;
 #endif
 
-    /* Copy construction, assignment and destruction are the ordinary
-       srNode-base/member special members emitted by the class export. */
-
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
@@ -46,9 +43,6 @@ public:
     void flipVertical();
     double getAspectRatio() const;
     void setClipRange(double near_plane, double far_plane);
-    /* The reader for the pair setClipRange writes. Both planes come back
-       through out-parameters, which is why the caller at 0x0046E440 keeps two
-       doubles on its frame and returns only the far one. */
     void getClipRange(double& near_plane, double& far_plane) const;
     void getEnvironmentRange(float& near_range, float& far_range) const;
     void getEnvironmentScale(float& near_scale, float& far_scale) const;
@@ -59,11 +53,6 @@ public:
     e_projectionResult project(srVector3T<float>& output, const srVector3T<double>& input);
     void setProjectionType(e_project projection);
     void normalizeViewPlane();
-    /* Header-visible on both sides: the client getClassName/getClassNode
-       emissions (0x0042A020, 0x0042A030) read the consumer literal
-       s_srCamera_0060445c directly, the consumer import table has no entry,
-       and provider TUs inline the same literal inside the srClassSupport
-       registrations. The provider still exports an out-of-line copy. */
     // FUNCTION: SURRENDER 0x10048020
     static const char* sGetClassName()
     {

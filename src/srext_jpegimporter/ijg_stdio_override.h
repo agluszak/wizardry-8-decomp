@@ -1,11 +1,6 @@
 #pragma once
 
-// The target IJG stdio managers resolve fread/fwrite to the SurRender bridge
-// in stream_bridge.cpp and do not inspect or flush a CRT FILE. Force-including
-// this overlay before jdatasrc.c/jdatadst.c reproduces that source-level
-// configuration without modifying the pristine downloaded IJG tree.
-// compiler.h includes stddef.h first, which has already selected DLL imports.
-// Override that selection before stdio.h declares the bridge entry points.
+// Force-included into the IJG stdio managers: fread/fwrite resolve to the SurRender bridge in stream_bridge.cpp, which never touches a CRT FILE.
 #undef _CRTIMP
 #define _CRTIMP
 #include <stdio.h>

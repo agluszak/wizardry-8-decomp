@@ -10,8 +10,6 @@ class srVP;
 
 #pragma pack(push, 4)
 class SR_DLL_EXPORT srVertexPipe {
-    /* Wizardry's ground-shadow vertex processor walks the batch cursor,
-       vertex-index and ST0 output fields directly (0x004D6090). */
     friend class W8GroundShadowMapper;
 
 public:
@@ -88,12 +86,10 @@ public:
     SR_DLL_IMPORT void swapDiffuseAndSpecular();
     SR_DLL_IMPORT int testEyeSpaceBounds(const srVector3T<float>& center, float radius) const;
 
-    /* Per-record render state from Input::records, stride 0x5c. flags:
-       bit0 vertex colors present, bit1 indexed specular into diffuse,
-       bit2 indexed specular into specular, bit3 indexed alpha, bits4/5
-       indexed ST0/ST1, bit6 per-vertex material table. channels is the
-       shader's channel-disable mask; color_source.format selects the
-       ARGB/vector3/vector4 copyIndexed source for color_source.colors. */
+    /* Per-record render state from Input::records. flags: bit0 vertex colors present, bit1 indexed
+       specular into diffuse, bit2 indexed specular into specular, bit3 indexed alpha, bits4/5
+       indexed ST0/ST1, bit6 per-vertex material table. channels is the shader's channel-disable
+       mask; color_source.format selects the ARGB/vector3/vector4 source for color_source.colors. */
     struct Record {
         enum {
             HAS_COLORS = 0x01u,
@@ -107,8 +103,6 @@ public:
         unsigned long flags;
         unsigned long channels;
         srMaterialIFace* material;
-        /* The colors/format pair is a member object: copyDiffuseColors is a
-           member call (retail loads ECX = record+0xc at the call site). */
         struct ColorSource {
             enum e_format { FORMAT_ARGB = 0, FORMAT_VECTOR3 = 1, FORMAT_VECTOR4 = 2 };
             const void* colors;
@@ -152,17 +146,9 @@ private:
     SR_DLL_IMPORT void setupST(unsigned long index);
     SR_DLL_IMPORT void setupSpecular();
 
-    /* srEnvironmentMapper::process reaches the scratch arrays, vertex array
-       pointer, lazy mask and vertex count directly rather than through the
-       lazy getters (which retail inlines into it). */
     friend class srEnvironmentMapper;
-    /* srLight::isActive reads the input record (exclusion mask, bounding
-       sphere) and process reaches the scratch flags, vertex array rows and
-       batch offsets directly; retail inlines the equivalent getters. */
     friend class srLight;
 
-    /* Getter/setup/process bodies in sr.dll. Scratch is operator_new(0xb04)
-       with a flags dword at +0xb00. */
     struct Scratch {
         enum {
             READY_EYE_DIRECTION = 0x01u,

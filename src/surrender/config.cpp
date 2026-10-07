@@ -9,8 +9,7 @@
 #include "surrender/srString.h"
 
 namespace {
-/* The provider's name hash: identical to the registry index in
-   type_registry.cpp. Retail inlines it in this unit. */
+/* The provider's name hash. */
 unsigned long hashName(const char* name)
 {
     unsigned long hash = 0;
@@ -33,8 +32,7 @@ struct srConfig::Index {
         Entry* entry;
     };
 
-    /* Entry*-keyed side map (0x10 bytes): dense records with a free list,
-       bucket heads of record indices. */
+    /* Entry*-keyed side map: dense records with a free list, bucket heads of record indices. */
     class EntryMap {
     public:
         struct Record {
@@ -71,10 +69,6 @@ struct srConfig::Index {
             resize();
         }
 
-        /* Retail keeps callable copies of the record allocator and the
-           keyed operations (Index::resize calls 0x100136D0, the name-table
-           add calls 0x10013340, removeEntry calls 0x100134F0) while resize
-           splits between call and inlined copies. */
         int allocRecord();
         void insert(Entry*& key, NameEntry*& value);
         void erase(Entry*& key);
@@ -455,8 +449,6 @@ void srInlineString::init()
     size_ = 1;
 }
 
-/* The provider's reset releases non-inline storage, unlike the bare
-   reinitialization at 0x0047D290 in Wiz8. */
 // FUNCTION: SURRENDER 0x10012C80
 void srInlineString::reset()
 {

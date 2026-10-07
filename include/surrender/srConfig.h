@@ -24,9 +24,6 @@ public:
     SR_DLL_IMPORT void setFloat(const char* name, float value);
     SR_DLL_IMPORT void setLong(const char* name, long value);
 
-    /* Nested implementation types stay public so out-of-line member
-       definitions can name them, matching the ClassNode::NameIndex/IDIndex
-       convention in srTypeRegistry.h. */
     struct Entry {
         char* name;
         char* value;
@@ -37,10 +34,8 @@ public:
 
     struct Index;
 
-    // Entry storage pool: heap blocks of pooled Entry records threaded through
-    // the name pointer while free. The provider keeps it as a member sub-object
-    // at +0x04 (its own unwind emission destroys the embedded srArray). The
-    // destructor's release path is what removeAll/removeEntry invoke directly.
+    // Entry storage pool: heap blocks of pooled Entry records threaded through the name pointer
+    // while free.
     struct EntryPool {
         EntryPool() : entry_count(0), free_entries(0), entry_blocks(), entry_block_count(0) {}
 
@@ -50,9 +45,6 @@ public:
             release();
         }
 
-        /* Pool operations expanded in retail set (0x100121B0) and
-           removeEntry (0x10012640). The existing pool subobject owns block
-           growth and recycling; method names are descriptive. */
         Entry* allocate()
         {
             if (free_entries == 0) {
@@ -98,11 +90,6 @@ public:
             for (unsigned long index = 0; index < entry_block_count; ++index) {
                 srHeap.free(entry_blocks[index]);
             }
-            /* Retail ~EntryPool (0x10012B40) releases the array storage and
-               zeroes the counters; the member's own ~srArray teardown then
-               emits a second delete on the nulled fields. The pool stays
-               live after release(), so this is release, not member
-               teardown. */
             entry_blocks.release();
             free_entries = 0;
             entry_block_count = 0;

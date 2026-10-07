@@ -2,12 +2,8 @@
 
 #include "srVP.h"
 
-/* Built-in fallback vector processor instantiated by
-   srVectorProcessor::initBaseVP when no better module is installed. The
-   retail vtable at 0x100776B0 proves all 166 command implementations live in
-   sr.dll itself; the shipped srVP_Generic.dll packages the same
-   implementation set as a loadable module. Slots 164/165 are empty stubs in
-   both. */
+/* Built-in fallback vector processor instantiated by srVectorProcessor::initBaseVP when no better
+   module is installed. */
 // VTABLE: SURRENDER 0x100776B0 srVP_generic
 class srVP_generic : public srVP {
 public:

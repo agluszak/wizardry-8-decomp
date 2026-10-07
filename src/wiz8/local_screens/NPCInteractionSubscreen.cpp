@@ -144,26 +144,26 @@ static W8NpcInteractionState g_npc_interaction_storage;
 
 // GLOBAL: WIZ8 0x00649f1c
 W8NpcInteractionState* g_npc_interaction_state = &g_npc_interaction_storage;
-/* 0x0068EE80: the dialogue keyword tables. Element zero is the English file
+/* The dialogue keyword tables. Element zero is the English file
    list and element one the translated one; each file list holds one line list
    per line and each line list one word per field. */
 // GLOBAL: WIZ8 0x0068EE80
 W8GrowableVector<W8GrowableVector<W8GrowableVector<wchar_t*>*>*> g_keyword_lists;
-/* 0x0068F0F8: both keyword files are loaded and the tables are usable. */
+/* Both keyword files are loaded and the tables are usable. */
 // GLOBAL: WIZ8 0x0068F0F8
 bool g_keyword_lists_loaded;
-/* 0x0068F0F9: the keyword subsystem's active flag, written absolutely by the
+/* The keyword subsystem's active flag, written absolutely by the
    screen reset and by the keyword panel helpers. */
 // GLOBAL: WIZ8 0x0068F0F9
 bool g_pending_notice_queued;
-/* 0x0068EE58: empty wide string used to clear dialogue editor text. */
+/* Empty wide string used to clear dialogue editor text. */
 // GLOBAL: WIZ8 0x0068EE58
 wchar_t g_dialogue_empty_text[4];
-/* 0x0068EE60: the queued NPC script notice; see the type comment in the
+/* The queued NPC script notice; see the type comment in the
    header. */
 // GLOBAL: WIZ8 0x0068EE60
 W8PendingNotice g_pending_notice;
-/* 0x0068EE78: GetTickCount sample for the trade-item highlight timeout. */
+/* GetTickCount sample for the trade-item highlight timeout. */
 // GLOBAL: WIZ8 0x0068EE78
 static unsigned int g_trade_highlight_tick;
 

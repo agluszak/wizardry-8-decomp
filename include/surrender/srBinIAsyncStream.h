@@ -3,9 +3,6 @@
 #include "srBinIStream.h"
 #include "srScheduler.h"
 
-/* SR-owned asynchronous reader. The provider vtable is recovered, but no known
-   Wizardry/JPEG/ZIP consumer imports srBinIAsyncStream symbols. Retail exports
-   the full member surface, so the provider build dllexport-s the class. */
 // VTABLE: SURRENDER 0x100769E0 srBinStream
 // VTABLE: SURRENDER 0x100769F4 srBinIStream
 // class srBinIAsyncStream

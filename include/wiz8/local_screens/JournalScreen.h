@@ -9,9 +9,6 @@ extern wchar_t g_default_level[];
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/Controls.h"
 
-/* Local Screens\JournalScreen.cpp's live panel.  Construction starts with a
-   complete Controls at +0, then installs the independently evidenced callback
-   base at +0x4c before the five owned display objects. */
 class W8JournalPanel : public Controls, public W8TextControl::Listener {
 public:
     explicit W8JournalPanel(unsigned int* region_set);
@@ -30,7 +27,6 @@ public:
 };
 
 static_assert(sizeof(W8JournalPanel) == 0x68, "W8JournalPanel_size");
-/* Retail secondary vftable 0x005ef338 places W8TextControl::Listener at +0x4c. */
 W8_ASSERT_BASE_END(W8JournalPanel, W8TextControl::Listener, m_next, 0x4c);
 
 struct W8JournalEntry {
@@ -40,17 +36,17 @@ struct W8JournalEntry {
 };
 static_assert(sizeof(W8JournalEntry) == 0x0c, "W8JournalEntry_size");
 
-/* 0x0068de40: the fact journal, created lazily by the initializer below and
+/* The fact journal, created lazily by the initializer below and
    appended to whenever a fact changes. */
 extern W8GrowableVector<W8JournalEntry>* g_fact_journal_entries;
-/* 0x0064D7F0: the "%d / %d" current-over-max format shared by journal pages
+/* The "%d / %d" current-over-max format shared by journal pages
    and debug stat readouts. */
 extern wchar_t g_journal_page_format[];
 void InitializeFactJournal(void);
-/* 0x005588F0: append one changed fact to the journal and, unless notices are
+/* Append one changed fact to the journal and, unless notices are
    suppressed, post the fact's own journal entry. */
 void RecordFactChangeForJournal(W8FactId fact_id);
-/* 0x00558A90: write the entry count, a format dword and each journal entry
+/* Write the entry count, a format dword and each journal entry
    into the open JRNL chunk. */
 void SaveFactJournal(int file);
 unsigned char JournalScreenInitialize(void);
@@ -58,5 +54,5 @@ unsigned char JournalScreenEnter(void);
 void JournalScreenFrame(void);
 unsigned char JournalScreenLeave(int leaving);
 unsigned char JournalScreenFinalize(void);
-/* 0x00558B20: load the fact journal vector from the JRNL section. */
+/* Load the fact journal vector from the JRNL section. */
 void LoadJournalEntries(unsigned int file);

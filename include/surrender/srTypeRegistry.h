@@ -1,7 +1,6 @@
 #pragma once
 
-// Reconstructed SDK construction interface; the original spelling is unknown.
-// ClientType retains the evidenced self-support specialization and allocation.
+// Constructs a SurRender type's client implementation; the original spelling is unknown.
 #define SR_NEW(Type) new Type::ClientType
 
 #include <iosfwd>
@@ -26,10 +25,6 @@ public:
             ChildLink* previous;
         };
 
-        /* The child list is a single member object at offset 0: the
-           constructor's unwind funclet destroys {count, first, last} on
-           this+0 when initialize() throws, and ~ClassNode's state-0 region
-           covers the whole body while the list teardown runs at the end. */
         struct ChildList {
             unsigned long count;
             ChildLink* first;
@@ -110,8 +105,6 @@ public:
 
         ClassNode(ClassNode* parent, const char* class_name, unsigned long class_id);
         ~ClassNode();
-        /* Retail emits the field initialization and parent linkage as a
-           separate out-of-line body the constructor calls (0x1000F5F0). */
         void initialize(ClassNode* parent, const char* class_name, unsigned long class_id);
         void* operator new(unsigned int size)
         {
@@ -148,13 +141,7 @@ public:
     SR_DLL_IMPORT ClassNode* getRootClass();
     SR_DLL_IMPORT ClassNode* getRootNode();
     SR_DLL_IMPORT int isDerivedOrSame(ClassNode* base, ClassNode* derived);
-    /* SR.DLL's registerClass at 0x1000EC60 adds the node, then calls
-       0x1000F7E0 only when the last argument is non-zero. That routine
-       allocates this node's own instance indices, named_instances and
-       instances_by_id, when they are still null. So the argument selects
-       whether the node carries its own instance lookup tables; it is not C++
-       abstractness. stTexture2D and stSurface2D are constructed directly and
-       still pass 0, which independently rules that reading out. */
+    /* Nonzero gives the node its own instance lookup tables. */
     SR_DLL_IMPORT ClassNode* registerClass(const char* class_name, ClassNode* parent,
                                            unsigned long class_id, int register_instances);
     SR_DLL_IMPORT void registerInstance(ClassNode* node, srRuntimeClass* instance);
@@ -184,23 +171,10 @@ private:
 static_assert(sizeof(srRegistry::ClassNode) == 0x2c, "srRegistry_ClassNode_must_be_0x2c");
 static_assert(sizeof(srRegistry) == 0x10, "srRegistry_must_be_0x10");
 
-/* Copy construction and assignment at 0x10011A10/0x10011A80 contain a
-   null-guarded byte copy at +0x04, overlapping the first member. Related
-   copies occur in srClass and srGERD; the reconstruction models a zero-storage
-   base. The reviewed evidence does not establish its original name.
-
-   The reconstruction places heap-routing operators on this common base.
-   Missing operator exports and calls to srHeap::free do not uniquely establish
-   their original declaration owner. */
+/* Empty common root; its original name is unknown. */
 class srRuntimeClassEmptyBase {
 public:
-    /* Every class in this hierarchy is allocated from and freed through the
-       SurRender heap rather than the global operators, and the routing is
-       declared at the common root rather than per class: the identical
-       scalar deleting destructor sits at slot 5 of first-party classes
-       derived from srClass itself, from srModel/srMeshModel, from
-       srTexture/srTextureIFace and from srNode. 0x0042A170 is one of them
-       and 0x00492C40 is stMaterial's. */
+    /* Every class in this hierarchy is allocated from and freed through the SurRender heap. */
     void* operator new(unsigned int size)
     {
         return srHeap.allocate(size);
@@ -255,11 +229,6 @@ private:
 
 static_assert(sizeof(srRuntimeClass) == 0x0c, "srRuntimeClass_must_be_0x0c");
 
-/* The exported constructor and copy constructor never install an srClass
-   vtable; they leave the srRuntimeClass construction vtable in place until a
-   concrete derived class installs its own. That is MSVC's novtable ABI, not a
-   missing handwritten vtable write. */
-
 class __declspec(novtable)
 #if defined(SURRENDER_BUILD)
 __declspec(dllexport)
@@ -279,10 +248,7 @@ public:
     static SR_DLL_IMPORT srClass* find(const srClass* relative_to);
     static SR_DLL_IMPORT void performUpdates(double time);
 
-    /* Assignment is user-defined and copies only the instance name through
-       setName; the copy constructor is implicit (memberwise, vptr-last) and
-       emitted via the class-level dllexport. novtable leaves the
-       srRuntimeClass construction vtable in place. */
+    /* Assignment copies only the instance name. */
     SR_DLL_IMPORT srClass& operator=(const srClass& other);
 
     virtual SR_DLL_IMPORT srRegistry::ClassNode* getClassNode() const override;
@@ -295,9 +261,7 @@ protected:
 public:
     virtual srClass* vInstance() = 0;
 
-    /* Slot 7. Its own spelling is not exported; vClone follows the vInstance
-       convention of slot 6. clone below is the exported nonvirtual forwarder
-       onto it, as instance is onto vInstance. */
+    /* Slot 7; clone is the nonvirtual forwarder onto it, as instance is onto vInstance. */
     virtual srClass* vClone() = 0;
 
     // FUNCTION: SURRENDER 0x1000E860 SYMBOL
@@ -345,22 +309,13 @@ private:
 
 static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
 
-/* The concrete client class a canonical SurRender type hands out through
-   ClientType. It is not a provider support layer: retail's client scalar
-   deleting destructor calls the imported base destructor directly with no
-   support-layer vtable store (W8ColorSurface at 0x00423F00, srNode at
-   0x0044F3D0, the srEXT JPEG importer at 0x100151D0). The reconstruction
-   leaves the client destructor implicit; its original declaration is unresolved.
-   The provider ~srClassSupport restores the support vtable and unregisters the instance.
-   The client layer supplies the same registry identity and clone surface
-   without the registration lifecycle; the imported base constructor already
-   registers the object under the canonical class node. */
+/* The concrete client class a canonical SurRender type hands out through ClientType. It supplies
+   the registry identity and clone surface without the registration lifecycle; the imported base
+   constructor already registers the object. */
 template <class Base, unsigned long ClassID> class srClientSupport : public Base {
 private:
-    /* Same derived==base-style detection the provider template uses: a client
-       type for the canonical class itself reuses that class's registry node,
-       while a client type for a descendant such as srFog must register its
-       own ClassID above the inherited ancestor node. */
+    /* A client type for the canonical class itself reuses that class's registry node; a descendant
+       such as srFog registers its own ClassID. */
     static char selfType(Base*);
     static long selfType(...);
     enum {
@@ -402,9 +357,6 @@ public:
     }
 
 public:
-    /* The client constructions forward the canonical base constructor before
-       installing the instantiation's table; the imported base constructor
-       already performs the registry work a provider layer would repeat. */
     srClientSupport() {}
 
     explicit srClientSupport(srNode* parent) : Base(parent) {}
@@ -430,27 +382,17 @@ public:
     }
 
 public:
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#pragma clang diagnostic ignored "-Wsuggest-override"
-#endif
     /* Same clone slot as the provider layer. */
-    virtual srClass* vClone()
+    virtual srClass* vClone() override
     {
         Base* copy = static_cast<Base*>(this->vInstance());
         *copy = *static_cast<const Base*>(this);
         return copy;
     }
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 };
 
-/* SurRender's exported decorated vtable names establish this template's
-   parameter order. It contributes no storage: it supplies registry identity,
-   instance registration and the class hierarchy's clone slot for a class
-   derived from an existing registry class. */
+/* Supplies registry identity, instance registration and the clone slot for a class derived from an
+   existing registry class. */
 template <class Derived, class Base, bool RegisterInstances, unsigned long ClassID>
 class srClassSupport : public Base {
 public:
@@ -486,18 +428,14 @@ public:
     }
 
 public:
-    /* Public because Wiz8 directly constructs the zero-argument self-support
-       instantiation over srMaterial; this is not only a base-class hook. */
     srClassSupport()
     {
         srRegistry* registry = srCore.getRegistry();
         registry->registerInstance(sGetClassNode(), this);
     }
 
-    /* Retail's exported copies (srNode 0x10051AA0, srMeshModel 0x10041BF0)
-       default-construct Base, register this support layer and assign Derived
-       before the compiler copy-constructs Derived's members. This accesses
-       unconstructed derived state; retain that retail lifecycle ordering. */
+    /* Default-constructs Base, registers, then assigns Derived before Derived's members are
+       copy-constructed; this touches unconstructed derived state. */
     srClassSupport(const Derived& other) : Base()
     {
         srCore.getRegistry()->registerInstance(sGetClassNode(), this);
@@ -505,11 +443,8 @@ public:
     }
 
 public:
-    /* Forwarding constructors: scene-graph instantiations pass the canonical
-       node parent, texture maps their color surface, and client-emitted
-       self-support constructions up to five arguments. They are templates so
-       that a class-level dllexport of an instantiation whose Base lacks a
-       given constructor does not instantiate a forwarding body for it. */
+    /* Forwarding constructors. They are templates so that exporting an instantiation whose Base
+       lacks a given constructor does not instantiate a forwarding body for it. */
     template <class A0> explicit srClassSupport(A0 first_argument) : Base(first_argument)
     {
         srRegistry* registry = srCore.getRegistry();
@@ -548,22 +483,11 @@ protected:
     }
 
 public:
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#pragma clang diagnostic ignored "-Wsuggest-override"
-#endif
-    /* Slot 7 of every registry class. The return type is srClass* at every
-       level, which is what makes the nested chain legal under VC6: srClass's
-       own nonvirtual clone forwards through this slot and returns srClass*.
-       srClass declares vClone, so every specialization overrides it. */
-    virtual srClass* vClone()
+    /* Slot 7 of every registry class; returns srClass* at every level. */
+    virtual srClass* vClone() override
     {
         Derived* copy = static_cast<Derived*>(this->vInstance());
         *copy = *static_cast<const Derived*>(this);
         return copy;
     }
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 };

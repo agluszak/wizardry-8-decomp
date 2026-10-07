@@ -42,5 +42,3 @@ def validate_claim_rows(
                     f"{address:08x}"
                 )
     return len(claims)
-
-

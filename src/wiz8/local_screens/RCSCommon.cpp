@@ -79,7 +79,7 @@ W8TextControl* g_dismiss_button;
 // GLOBAL: WIZ8 0x0069c404
 Controls* g_item_actions_panel;
 
-/* 0x0064DAD0: the level-line format the header draws - name, level and the
+/* The level-line format the header draws - name, level and the
    profession's level-band title. */
 // GLOBAL: WIZ8 0x0064DAD0
 static wchar_t g_format_s_d_paren_s[] = L"%s %d (%s)";

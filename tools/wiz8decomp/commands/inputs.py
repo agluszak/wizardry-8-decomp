@@ -49,5 +49,3 @@ def materialize_command() -> None:
     from ..extract.variants import materialize_variants
 
     cli.emit(materialize_variants(cli.settings()))
-
-

@@ -11,25 +11,23 @@ struct W8HandAttack;
 struct W8MonsterAttack;
 class W8Missile;
 
-/* 0x005499D0: play one Data\Sound\Combat\<name>.wav; a variant count above
+/* Play one Data\Sound\Combat\<name>.wav; a variant count above
    one appends a random digit onto the caller's writable name buffer, and the
    flag registers the handle on the combat state. */
 void PlayCombatSound(char* sound_name, unsigned int variant_count, bool store_handle, int volume);
-/* 0x00549EB0: shared weapon-class/armour-material impact lookup; the sibling
-   callers inline it while Combat Attack.cpp calls the emitted copy. */
+/* Shared weapon-class/armour-material impact lookup. */
 char* GetMaterialImpactSound(int weapon_class, int target_material);
-/* 0x00549EF0: play the attacking hand's swing sound; retail callers pass a
-   third argument the body never reads. */
+/* Play the attacking hand's swing sound; the attack mode is unused. */
 void MakePCAttackSound(W8CombatCharacterRow* row, const W8HandAttack* hand_attack, W8AttackMode,
                        bool store_handle, int volume);
-/* 0x00549F50: melee hit sound for a PC's paired weapon striking the target's
+/* Melee hit sound for a PC's paired weapon striking the target's
    armour at one location. */
 void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlot* target,
                          int hit_location, int volume);
-/* 0x0054A0E0: play the hit sound for a missile striking the target's armour
-   at one location; its own assertion spells the name. */
+/* Play the hit sound for a missile striking the target's armour
+   at one location. */
 void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, int volume);
-/* 0x0054A270: melee hit sound for a monster striking the target's armour at
+/* Melee hit sound for a monster striking the target's armour at
    one location; the selected attack supplies its signed weapon class. */
 void MakeMonsterHitSound(const W8MonsterAttack* attack, W8CombatSlot* target, int hit_location,
                          int volume);

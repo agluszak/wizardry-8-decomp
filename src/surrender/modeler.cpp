@@ -7,22 +7,10 @@
 #include <math.h>
 #include <string.h>
 
-#if defined(WIZ8_CLANG_LINT)
-/* The lint lane's stub <ostream> declares only the operator<< overloads the
-   recovered ABI references. AutoSmoother::assignGroups calls std::endl - the
-   real VC6 header resolves it to the _CRTIMP char overload imported from
-   MSVCP60 - so the compile-only lane needs this declaration to parse. */
-namespace std {
-ostream& endl(ostream& stream);
-}
-#endif
-
-/* autoSmooth's worker: buckets triangle indices by deduplicated shade vertex,
-   turns every triangle pair coincident at a vertex into a candidate edge
-   weighted by the facing/material test, floods smooth-group bits through the
-   smooth edges, then copies the assigned mask back into Triangle::flags.
-   Retail emits its members at 0x100370B0-0x10037B20, ahead of this TU's
-   srModeler bodies. */
+/* autoSmooth's worker: buckets triangle indices by deduplicated shade vertex, turns every triangle
+   pair coincident at a vertex into a candidate edge weighted by the facing/material test, floods
+   smooth-group bits through the smooth edges, then copies the assigned mask back into
+   Triangle::flags. */
 namespace {
 
 class AutoSmoother {
@@ -91,8 +79,6 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
     }
     ++vertex_count;
     vertices = new VertexEntry[vertex_count];
-    /* Retail walks the vertex table with unsigned counters against the signed
-       vertex_count (JBE/JC); the mixed-sign spelling is part of the body. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
     for (vertex = 0; vertex < vertex_count; ++vertex) {
@@ -128,8 +114,7 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
     unsigned long edge = 0;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-but-set-variable"
-    /* Retail increments this smooth-edge counter but never reads it - the
-       store is recovered behavior, not dead code. */
+    /* Counted but never read. */
     long smooth_edges = 0;
 #pragma clang diagnostic pop
     for (vertex = 0; vertex < vertex_count; ++vertex) {
@@ -178,9 +163,6 @@ AutoSmoother::~AutoSmoother()
     }
     delete[] entries;
     delete[] edges;
-    /* Retail walks the vertex table with an unsigned counter against the
-       signed vertex_count (JBE); the mixed-sign spelling is part of the
-       body. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
     for (unsigned long vertex = 0; vertex < vertex_count; ++vertex) {
@@ -325,8 +307,6 @@ void AutoSmoother::smooth()
 
 } // namespace
 
-/* TU-scope constant the geometry generators and cylinderMap load from rdata
-   0x10076C90 (pi + pi / pi * 2.0 in retail emission). */
 static const double pi = 3.141592653589793;
 
 // FUNCTION: SURRENDER 0x10037BC0

@@ -11,10 +11,6 @@ srTextureMap::srTextureMap(srColorSurfaceIFace* surface)
     setSurfacePtr(surface);
 }
 
-/* Retail delegates to operator= then memberwise-copies its own members;
-   the surface tail uses srPtr copy-constructor semantics (addref, no
-   release), which a source-level member assignment cannot reproduce. */
-
 // FUNCTION: SURRENDER 0x10060210
 srTextureMap& srTextureMap::operator=(const srTextureMap& other)
 {
@@ -38,8 +34,6 @@ void srTextureMap::getMipmapData(MultiRequest& request)
         request.destinations[request.mipmap_level]->copy(*surface.get());
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-        /* Retail compares the signed level against the unsigned last level
-           (JA branch); the mixed-sign spelling is part of the body. */
         for (long level = request.mipmap_level + 1; level <= request.last_level; ++level) {
             request.destinations[level]->copy(*request.destinations[level - 1]);
         }

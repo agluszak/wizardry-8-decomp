@@ -360,8 +360,6 @@ srColorSurfaceIFace* srSurfaceIOManager::importSurface(const char* path, srBinIS
                                                        const ImportInfo& options)
 {
     if (path != 0 && *path != '\0') {
-        /* Retail tests the stream parameter's storage for null (TEST on the
-           lowered reference pointer) before the vbase-adjusted good() call. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wtautological-undefined-compare"
         if (&stream != 0 && stream.good()) {
@@ -429,8 +427,6 @@ void srSurfaceIOManager::exportSurface(const char* path, srBinOStream& stream,
                                        srColorSurfaceIFace& surface, const ExportInfo& options)
 {
     if (path != 0 && *path != '\0') {
-        /* Retail tests the stream parameter's storage for null (TEST on the
-           lowered reference pointer) before the vbase-adjusted good() call. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wtautological-undefined-compare"
         if (&stream != 0 && stream.good()) {
@@ -446,6 +442,3 @@ void srSurfaceIOManager::exportSurface(const char* path, srBinOStream& stream,
     }
     throw Error("srSurfaceIOManager::exportSurface() - given filename is NULL or empty");
 }
-
-/* The IO-manager units emit the deleting-destructor wrappers and the
-   material class-support registrations they reference. */

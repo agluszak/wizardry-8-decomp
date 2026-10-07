@@ -17,22 +17,16 @@ struct W8NpcScriptQuote;
 struct W8ScreenRect;
 
 void RequestRedrawParty(void);
-void RedrawCombatMonsterList(void); /* 0x00565440 */
+void RedrawCombatMonsterList(void);
 void RefreshSelectedPartyPortrait(unsigned int party_slot);
 void ClearHighlightIfItIs(const int* item);
 
 #include "wiz8/layouts/main_game_screen.h"
-/* MainGameScreen.cpp GLOBAL at 0x006068E4: the "%s" display format. */
 extern wchar_t g_format_s[];
-/* MainGameScreen.cpp GLOBAL at 0x0064BAB0: the "%d%%" display format. */
 extern wchar_t g_format_d_percent[];
-/* MainGameScreen.cpp GLOBAL at 0x0061C3E0: the "%s: %s" display format. */
 extern wchar_t g_format_s_colon_s[];
-/* MainGameScreen.cpp GLOBAL at 0x006481B4: the "%s: %s (%d)" display format. */
 extern wchar_t g_format_s_colon_s_paren_d[];
-/* MainGameScreen.cpp GLOBAL at 0x0064DA8C: the " %s : " display format. */
 extern wchar_t g_format_s_spaced_colon[];
-/* MainGameScreen.cpp GLOBAL at 0x0061A700: the "%s (%d)" display format. */
 extern wchar_t g_format_s_paren_d[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
@@ -57,14 +51,9 @@ extern unsigned short g_trap_name_string_ids[];
 
 #include <cstddef>
 
-/* Local Screens\MainGameScreen.cpp owns the live level-screen state. */
-
 class W8MainGameScreen;
 class W8MainGameTextPanel;
 
-/* 0x00587CF0 constructs this concrete key handler.  Its primary vtable is the
-   W8Widget table extended by one entry: slot 0x48 points at
-   0x00588170 and accepts the key code forwarded by TextBoxHandleKey. */
 // VTABLE: WIZ8 0x005eeafc
 class W8MainGameTextKeyHandler : public W8Widget, public W8RangeListener {
 public:
@@ -90,13 +79,11 @@ public:
     W8RangeListener* m_range_listener;
 };
 static_assert(sizeof(W8MainGameTextKeyHandler) == 0xc0, "W8MainGameTextKeyHandler_size");
-/* The secondary W8RangeListener subobject sits at +0x34. */
+
 W8_ASSERT_BASE_END(W8MainGameTextKeyHandler, W8RangeListener, m_range, 0x34);
 
-/* 0xc0-byte text-panel cell. W8TextControl is 0xb8; the extra dword at +0xb8
-   holds the displayed catalog image (or -1) and +0xbc gates mouse handling.
-   Slot 0 is its own scalar deleting destructor at 0x00588350, not
-   W8TextControl's. */
+/* One text-panel cell: the catalog image it shows (or -1) and a flag that
+   gates mouse handling. */
 // VTABLE: WIZ8 0x005eeb4c
 class W8MainGameTextEntry : public W8TextControl {
 public:
@@ -108,14 +95,9 @@ public:
 
     int m_image;
     bool m_input_blocked;
-    unsigned char m_pad_bd[3];
 };
 static_assert(sizeof(W8MainGameTextEntry) == 0xc0, "W8MainGameTextEntry_size");
 
-/* The text panel's constructor at 0x005884D0 begins with Controls::Controls.
-   The two secondary bases are installed at 0x4c and 0x50, before its own
-   fields. Ordinary destructor 0x00588790; 0x00588770 is the scalar deleting
-   wrapper. */
 // VTABLE: WIZ8 0x005eeba8
 // VTABLE: WIZ8 0x005eeba0 W8TextControl::Listener
 class W8MainGameTextPanel : public Controls,
@@ -124,8 +106,8 @@ class W8MainGameTextPanel : public Controls,
 public:
     void BeginProgress(const wchar_t* text, float duration, float hold);
 
-    W8MainGameTextPanel();          /* 0x005884D0 */
-    virtual ~W8MainGameTextPanel(); /* 0x00588790 */
+    W8MainGameTextPanel();
+    virtual ~W8MainGameTextPanel();
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
@@ -136,9 +118,7 @@ public:
     int m_selection;
     W8MainGameScreen* m_screen;
     int* m_values;
-    /* 0x84: the timed progress text block is displayed. */
-    bool m_progress_display;
-    unsigned char m_pad_085[3];
+    bool m_progress_display; /* the timed progress text block is displayed */
     float m_progress_duration;
     float m_progress_elapsed;
     int m_progress_drawn; /* widest progress extent drawn so far */
@@ -148,25 +128,21 @@ public:
     W8GameTimer m_timer1;
     int m_marker_anim_time; /* drives the 12-frame target-changed marker */
     bool m_target_changed;
-    /* 0x141: draw the animated target-changed marker this frame;
-       raised while m_fDirty, consumed by Redraw. */
+    /* Draw the animated target-changed marker this frame; raised while
+       m_fDirty, consumed by Redraw. */
     bool m_target_marker_pending;
-    unsigned char m_pad_142[2];
 };
 static_assert(sizeof(W8MainGameTextPanel) == 0x144, "W8MainGameTextPanel_size");
-/* Retail secondary vftable 0x005eeba0 places W8TextControl::Listener at +0x4c
-   and W8RangeListener at +0x50; the panel's own members begin at +0x54. */
+
 W8_ASSERT_BASE_END(W8MainGameTextPanel, W8RangeListener, m_entries, 0x50);
 
-/* The 0x00588A90 constructor establishes a Controls-derived status panel.
-   Ordinary destructor 0x00588DB0; 0x00588D90 is the scalar deleting wrapper. */
 // VTABLE: WIZ8 0x005eebc0
 class W8MainGameStatusPanel : public Controls {
 public:
-    W8MainGameStatusPanel();          /* 0x00588A90 */
-    virtual ~W8MainGameStatusPanel(); /* 0x00588DB0 */
+    W8MainGameStatusPanel();
+    virtual ~W8MainGameStatusPanel();
     virtual void Redraw() override;
-    void RefreshStatusTexts(); /* 0x00588E60 */
+    void RefreshStatusTexts();
 
     W8TextBuffer* m_text;
     W8TextBuffer* m_text0;
@@ -179,63 +155,60 @@ public:
 };
 static_assert(sizeof(W8MainGameStatusPanel) == 0x6c, "W8MainGameStatusPanel_size");
 
-/* 0x0055DE40 constructs this Controls-derived NPC dialogue text controller:
-   Controls base, six dwords, then the W8DialogTextArea at +0x64 for a 0xBC
-   total. W8NpcInteractionState stores the live instance at +0x1b0. */
+/* The NPC dialogue keyword transcript. */
 // VTABLE: WIZ8 0x005ee920
 class W8NpcDialogueTextController : public Controls {
 public:
     W8NpcDialogueTextController(int panel_left, int panel_top, int panel_right, int panel_bottom,
                                 int catalog_object, int catalog_frame, int catalog_image,
-                                int margin_image, int line_image); /* 0x0055DE40 */
-    virtual void Redraw() override;                                /* 0x0055DF80 */
+                                int margin_image, int line_image);
+    virtual void Redraw() override;
     bool HandleScrollDownCommand(bool check_only);
     bool HandleScrollUpCommand(bool check_only);
     /* Add one keyword line to the transcript unless the text is already
        present; a nonzero mark puts the new entry in state 0x60, and any
        leftover "[No Keywords]" placeholder is removed afterwards. */
-    unsigned char AddTranscriptEntry(const wchar_t* text, signed char category,
-                                     char mark); /* 0x0055E0C0 */
+    unsigned char AddTranscriptEntry(const wchar_t* text, signed char category, char mark);
     /* Whether the expanded transcript's top edge reaches above the portrait
        band for an odd party slot (1 -> 0x67, 3 -> 0xbc, 5 -> 0x111, 7 ->
        always covered). Callers use it to skip portrait work on rows the
        open transcript covers. */
-    bool IsSlotPortraitTranscriptCovered(unsigned int party_slot); /* 0x0055E410 */
+    bool IsSlotPortraitTranscriptCovered(unsigned int party_slot);
     /* Re-apply the category filter, rebuild the expansion and restate the
        scroll widgets. */
-    void SetTranscriptCategoryFilter(signed char category); /* 0x0055E7C0 */
+    void SetTranscriptCategoryFilter(signed char category);
     /* Replay every saved dialogue_transcript record into the text area,
        adding the "[No Keywords]" placeholder and forcing the all filter
        when nothing was saved. */
-    void RestoreTranscriptEntries(); /* 0x0055E840 */
+    void RestoreTranscriptEntries();
     /* Snapshot the transcript lines into the screen state's
        dialogue_transcript records (text plus category byte). */
-    void SaveTranscriptEntries(); /* 0x0055E940 */
+    void SaveTranscriptEntries();
     /* Drop every transcript line from the text area and invalidate. */
-    void ClearTranscriptEntries();         /* 0x0055EA40 */
-    int GetSelectedTranscriptEntryIndex(); /* 0x0055EAB0 */
-    void SetTranscriptSorted(bool sorted); /* 0x0055EAC0 */
-    void RemoveSelectedTranscriptEntry();  /* 0x0055EA70 */
+    void ClearTranscriptEntries();
+    int GetSelectedTranscriptEntryIndex();
+    void SetTranscriptSorted(bool sorted);
+    void RemoveSelectedTranscriptEntry();
     /* Open the transcript upward to fit its lines (capped at 0xff pixels)
        and enable its scroll region. */
-    void Expand(); /* 0x0055E1E0 */
+    void Expand();
     /* Shrink the transcript back to one line, clearing and redrawing the
        area it covered. */
-    void Collapse(); /* 0x0055E2C0 */
+    void Collapse();
     /* Clear and redraw the backdrop the transcript covers. */
-    void ClearBackground(); /* 0x0055EAE0 */
-    bool IsExpanded();      /* 0x0055E2B0 */
+    void ClearBackground();
+    bool IsExpanded();
 
-    /* 0x4c/0x50: catalog image ids whose measured heights seed margin and
+    /* Catalog image ids whose measured heights seed margin and
        line_height/scroll_height in the constructor; never read again. */
     int margin_image;
     int line_image;
-    int visible;                                       /* 0x54 */
-    int line_height;                                   /* 0x58 */
-    int margin;                                        /* 0x5c */
-    int scroll_height;                                 /* 0x60 */
-    W8DialogTextArea text_area;                        /* 0x64 */
-    void SelectTranscriptKeywordAtPoint(int x, int y); /* 0x0055E490 */
+    int visible;
+    int line_height;
+    int margin;
+    int scroll_height;
+    W8DialogTextArea text_area;
+    void SelectTranscriptKeywordAtPoint(int x, int y);
 };
 static_assert(sizeof(W8NpcDialogueTextController) == 0xbc, "W8NpcDialogueTextController_size");
 static_assert(offsetof(W8NpcDialogueTextController, visible) == 0x54,
@@ -249,25 +222,21 @@ static_assert(offsetof(W8NpcDialogueTextController, scroll_height) == 0x60,
 static_assert(offsetof(W8NpcDialogueTextController, text_area) == 0x64,
               "W8NpcDialogueTextController_text_area");
 
-/* The hover/click target the dialogue controller embeds for its text area
-   (constructed by 0x0055E570, stored in W8NpcInteractionState at +0x130, parented
-   to the +0x1b0 controller). Entering selects the first visible entry,
-   leaving clears the selection, and the button handlers track the press in
-   m_flags before firing the widget callbacks. */
+/* The hover/click target over the dialogue transcript. Entering selects the
+   first visible entry, leaving clears the selection, and the button handlers
+   track the press in m_flags before firing the widget callbacks. */
 // VTABLE: WIZ8 0x005ee92c
 class W8NpcDialogueScrollWidget : public W8Widget {
 public:
     W8NpcDialogueScrollWidget(Controls* panel, unsigned int region, int left, int top, int right,
-                              int bottom); /* 0x0055E570 */
-    /* The ordinary destructor at 0x0055E5D0 is a pure JMP thunk to
-       W8Widget::~W8Widget; there is no authored body to match. */
+                              int bottom);
 
-    virtual void OnMouseEnter(int event) override;     /* 0x0055E5E0 */
-    virtual void OnMouseLeave(int event) override;     /* 0x0055E610 */
-    virtual void OnLeftButtonDown(int event) override; /* 0x0055E640 */
-    virtual void OnLeftButtonUp(int event) override;   /* 0x0055E660 */
+    virtual void OnMouseEnter(int event) override;
+    virtual void OnMouseLeave(int event) override;
+    virtual void OnLeftButtonDown(int event) override;
+    virtual void OnLeftButtonUp(int event) override;
 
-    unsigned int m_flags; /* 0x34: bit 0 while the primary button is held */
+    unsigned int m_flags; /* bit 0 while the primary button is held */
 };
 static_assert(sizeof(W8NpcDialogueScrollWidget) == 0x38, "W8NpcDialogueScrollWidget_size");
 static_assert(offsetof(W8NpcDialogueScrollWidget, m_flags) == 0x34,
@@ -275,160 +244,138 @@ static_assert(offsetof(W8NpcDialogueScrollWidget, m_flags) == 0x34,
 
 class W8LockTumbler;
 
-/* One-slot callback a W8LockTumbler holds at +0x44 and invokes with itself on
-   left-button release (0x00585690). 0x005eeabc is the construction-phase table
-   emitted for the abstract interface; the implementing secondary base sits at
-   W8LockTumblerPanel+0x4c (table 0x005eeaa8). */
+/* Notified by a W8LockTumbler when it is released. */
 // VTABLE: WIZ8 0x005eeabc
 class W8LockTumblerListener {
 public:
     virtual void OnTumblerReleased(W8LockTumbler* tumbler) = 0;
 };
 
-/* One lock-picking pin widget (0x48 bytes, created inline inside the
-   W8LockTumblerPanel constructor loop, final table 0x005eea60). +0x3c is the
-   per-pin pattern byte copied from Trigger::lock_state.device_state.pins; +0x40 is the
-   pin's current pixel offset, 0x22 at rest. */
+/* One lock-picking pin. */
 // VTABLE: WIZ8 0x005eea60
 class W8LockTumbler : public W8Widget {
 public:
-    /* Retail ICF folds this deleting destructor onto
-       W8NpcDialogueScrollWidget's retained body at 0x0055E5B0; there is no
-       distinct retail emission to mark. */
-
-    /* Inlined into 0x005856E0: the W8Widget base call plus the field writes
-       below; no standalone derived body exists. */
     W8LockTumbler(Controls* panel, int left, int top, int right, int bottom, int pin_index)
         : W8Widget(panel, 0xffffffff, left, top, right, bottom), m_pin_set(0), m_rising(0),
           m_falling(0), m_at_top(0), m_hovered(0), m_pin_index(pin_index), m_pin_height(0x22),
           m_listener(0)
     {
     }
-    virtual void Redraw(bool full_redraw) override; /* 0x005854B0 */
-    virtual void OnMouseEnter(int event) override;  /* 0x00585610 */
-    virtual void OnMouseLeave(int event) override;  /* 0x00585650 */
-    /* Retail folds this with W8HorizontalRangeThumb::OnMouseEnter at 0x004F58C0. */
+    virtual void Redraw(bool full_redraw) override;
+    virtual void OnMouseEnter(int event) override;
+    virtual void OnMouseLeave(int event) override;
     virtual void OnLeftButtonDown(int event) override;
-    virtual void OnLeftButtonUp(int event) override; /* 0x00585690 */
+    virtual void OnLeftButtonUp(int event) override;
 
-    bool m_pin_set;                    /* 0x34: raised and holding */
-    bool m_rising;                     /* 0x35: animating toward its target height */
-    bool m_falling;                    /* 0x36: dropping back to rest */
-    bool m_at_top;                     /* 0x37: redrawn against the shared tumble phase */
-    bool m_hovered;                    /* 0x38 */
-    int m_pin_index;                   /* 0x3c: column into the pin pattern tables */
-    int m_pin_height;                  /* 0x40: pixel offset, 0x22 at rest */
-    W8LockTumblerListener* m_listener; /* 0x44 */
+    bool m_pin_set; /* raised and holding */
+    bool m_rising;  /* animating toward its target height */
+    bool m_falling; /* dropping back to rest */
+    bool m_at_top;  /* redrawn against the shared tumble phase */
+    bool m_hovered;
+    int m_pin_index;  /* column into the pin pattern tables */
+    int m_pin_height; /* pixel offset, 0x22 at rest */
+    W8LockTumblerListener* m_listener;
 };
 static_assert(sizeof(W8LockTumbler) == 0x48, "W8LockTumbler_size");
 
-/* One-slot callback W8LockTumblerPanel holds at +0xe8 and invokes with the
-   released tumbler's index (0x00585950). 0x005eeae0 is the construction-phase
-   table; W8LockInteraction implements it on its primary base. */
+/* Notified by W8LockTumblerPanel with the index of a released tumbler. */
 // VTABLE: WIZ8 0x005eeae0
 class W8LockTumblerPanelListener {
 public:
     virtual void OnTumblerPicked(int index) = 0;
 };
 
-/* The tumbler strip of the lock interaction (0xec bytes, ctor 0x005856E0,
-   primary table 0x005eeaac, W8LockTumblerListener secondary at +0x4c with
-   table 0x005eeaa8). Owns the eight tumblers and the three animation timers:
-   the phase timer steps the shared sway, the rise timer moves a pin toward
-   g_lock_pin_target_height, the fall timer returns it to rest. */
+/* The tumbler strip of the lock interaction. Owns the eight tumblers and the
+   three animation timers: the phase timer steps the shared sway, the rise
+   timer moves a pin toward g_lock_pin_target_height, the fall timer returns it
+   to rest. */
 // VTABLE: WIZ8 0x005eeaac
 class W8LockTumblerPanel : public Controls, public W8LockTumblerListener {
 public:
-    W8LockTumblerPanel(int tumbler_count, const unsigned char* pin_data); /* 0x005856E0 */
+    W8LockTumblerPanel(int tumbler_count, const unsigned char* pin_data);
 
-    virtual ~W8LockTumblerPanel();                                   /* 0x005858C0 */
-    virtual void OnTumblerReleased(W8LockTumbler* tumbler) override; /* 0x00585950 */
-    void UpdateTumblerAnimation();                                   /* 0x00585990 */
+    virtual ~W8LockTumblerPanel();
+    virtual void OnTumblerReleased(W8LockTumbler* tumbler) override;
+    void UpdateTumblerAnimation();
 
-    int m_tumbler_count;          /* 0x50: pins in use, clamped to [2,8] */
-    W8LockTumbler* m_tumblers[8]; /* 0x54 */
-    bool m_animating;             /* 0x74: a pin is in flight; input is locked out */
-    unsigned char unknown_75[3];
-    int m_phase;                            /* 0x78: sway accumulator feeding g_lock_phase */
-    W8GameTimer m_phase_timer;              /* 0x7c: 0.04s */
-    W8GameTimer m_rise_timer;               /* 0xa0: 0.03s */
-    W8GameTimer m_fall_timer;               /* 0xc4: 0.01s */
-    W8LockTumblerPanelListener* m_listener; /* 0xe8 */
+    int m_tumbler_count; /* pins in use, clamped to [2,8] */
+    W8LockTumbler* m_tumblers[8];
+    bool m_animating;          /* a pin is in flight; input is locked out */
+    int m_phase;               /* sway accumulator feeding g_lock_phase */
+    W8GameTimer m_phase_timer; /* 0.04s */
+    W8GameTimer m_rise_timer;  /* 0.03s */
+    W8GameTimer m_fall_timer;  /* 0.01s */
+    W8LockTumblerPanelListener* m_listener;
 };
 static_assert(sizeof(W8LockTumblerPanel) == 0xec, "W8LockTumblerPanel_size");
-/* The secondary W8LockTumblerListener subobject sits at +0x4c (secondary
-   vftable 0x005eeaa8). */
+
 W8_ASSERT_BASE_END(W8LockTumblerPanel, W8LockTumblerListener, m_tumbler_count, 0x4c);
 static_assert(offsetof(W8LockTumblerPanel, m_tumblers) == 0x54, "W8LockTumblerPanel_tumblers");
 static_assert(offsetof(W8LockTumblerPanel, m_listener) == 0xe8, "W8LockTumblerPanel_listener");
 
-/* The lock interaction's readout column (0x6c bytes, ctor 0x00585B00): the
-   selected character's name plus the lockpick-skill, spell-power and
-   force-chance percentages, one W8TextBuffer per row. */
+/* The lock interaction's readout column: the selected character's name plus
+   the lockpick-skill, spell-power and force-chance percentages. */
 // VTABLE: WIZ8 0x005eeac0
 class W8LockInfoPanel : public Controls {
 public:
-    W8LockInfoPanel(int tumbler_count); /* 0x00585B00 */
+    W8LockInfoPanel(int tumbler_count);
 
-    virtual ~W8LockInfoPanel();     /* 0x00585E20 */
-    virtual void Redraw() override; /* 0x00586120 */
-    void RefreshInfo();             /* 0x00585ED0 */
+    virtual ~W8LockInfoPanel();
+    virtual void Redraw() override;
+    void RefreshInfo();
 
-    int m_tumbler_count;   /* 0x4c */
-    W8TextBuffer* m_text0; /* 0x50: character name */
-    W8TextBuffer* m_text1; /* 0x54 */
-    W8TextBuffer* m_text2; /* 0x58: lockpick skill */
-    W8TextBuffer* m_text3; /* 0x5c */
-    W8TextBuffer* m_text4; /* 0x60: spell power */
-    W8TextBuffer* m_text5; /* 0x64 */
-    W8TextBuffer* m_text;  /* 0x68: force chance */
+    int m_tumbler_count;
+    W8TextBuffer* m_text0; /* character name */
+    W8TextBuffer* m_text1;
+    W8TextBuffer* m_text2; /* lockpick skill */
+    W8TextBuffer* m_text3;
+    W8TextBuffer* m_text4; /* spell power */
+    W8TextBuffer* m_text5;
+    W8TextBuffer* m_text; /* force chance */
 };
 static_assert(sizeof(W8LockInfoPanel) == 0x6c, "W8LockInfoPanel_size");
 
-/* The lock-picking interaction root allocated at 0x0068F2C0 (0xa4 bytes, ctor
-   0x005861A0, destructor 0x005866A0). The primary base answers the tumbler
-   panel's "released tumbler N" callback; the secondary W8TextControl::Listener
-   at +0x04 (table 0x005eead0) receives the action-panel buttons. Process() at
-   0x00586740 is the per-frame state machine ProcessLockInteractMode drives. */
+/* The lock-picking interaction. It answers the tumbler panel's "released
+   tumbler N" callback and receives the action-panel buttons; Process() is the
+   per-frame state machine ProcessLockInteractMode drives. */
 // VTABLE: WIZ8 0x005eead8 W8LockTumblerPanelListener
 // VTABLE: WIZ8 0x005eead0 W8TextControl::Listener
 class W8LockInteraction : public W8LockTumblerPanelListener, public W8TextControl::Listener {
 public:
-    W8LockInteraction(Trigger* trigger); /* 0x005861A0 */
+    W8LockInteraction(Trigger* trigger);
 
-    virtual ~W8LockInteraction();                            /* 0x005866A0 */
-    virtual void OnTumblerPicked(int index) override;        /* 0x00586B10 */
-    virtual void OnPrimary(W8TextControl* control) override; /* 0x00586C00 */
+    virtual ~W8LockInteraction();
+    virtual void OnTumblerPicked(int index) override;
+    virtual void OnPrimary(W8TextControl* control) override;
     int ReleaseOwnedTumblers(int slot);
-    void Process();                /* 0x00586740 */
-    void ResolvePick();            /* 0x00586C60 */
-    void AttemptForce();           /* 0x00586E40 */
-    void EnablePanels(int enable); /* 0x00586AF0 */
-    void BeginUnlock();            /* 0x005874D0 */
+    void Process();
+    void ResolvePick();
+    void AttemptForce();
+    void EnablePanels(int enable);
+    void BeginUnlock();
     /* Knock-knock resolution: rolls the per-level chance over a shuffled pin
        order, raising (or on backfire dropping) them, then re-derives the
        control enables and enters state 7. The flag parameter is unused. */
-    void ApplyKnockKnock(int level, int flag, char backfire); /* 0x005871A0 */
+    void ApplyKnockKnock(int level, int flag, char backfire);
 
-    Trigger* m_trigger;  /* 0x08 */
-    int m_tumbler_count; /* 0x0c: trigger->lock_state.difficulty clamped to [2,8] */
+    Trigger* m_trigger;
+    int m_tumbler_count; /* trigger->lock_state.difficulty clamped to [2,8] */
     W8LockTumblerPanel* m_tumbler_panel;
     W8LockInfoPanel* m_info_panel;
     Controls* m_action_panel;
-    W8TextControl* m_done_button;      /* 0x1c: OnPrimary target, state 9 */
-    W8TextControl* m_spell_button;     /* 0x20: gated by spell-0x27 power */
-    W8TextControl* m_force_button;     /* 0x24: gated by the force chance */
-    W8TextControl* m_cancel_button;    /* 0x28: OnPrimary target, state 5 (cancel) */
-    int m_selected_slot;               /* 0x2c: party slot owning the raised pins */
-    int m_picked_tumbler;              /* 0x30: index OnTumblerPicked recorded */
-    int m_state;                       /* 0x34: Process() state */
-    int m_tumbler_owner[8];            /* 0x38: owning party slot per pin, -1 unset */
-    unsigned char m_tumbler_locked[8]; /* 0x58: pin kept when the slot is released */
-    int m_slot_attempts[8];            /* 0x60: pick attempts per party slot */
-    W8GameTimer m_timer;               /* 0x80: state-8 completion delay */
+    W8TextControl* m_done_button;      /* OnPrimary target, state 9 */
+    W8TextControl* m_spell_button;     /* gated by spell-0x27 power */
+    W8TextControl* m_force_button;     /* gated by the force chance */
+    W8TextControl* m_cancel_button;    /* OnPrimary target, state 5 (cancel) */
+    int m_selected_slot;               /* party slot owning the raised pins */
+    int m_picked_tumbler;              /* index OnTumblerPicked recorded */
+    int m_state;                       /* Process() state */
+    int m_tumbler_owner[8];            /* owning party slot per pin, -1 unset */
+    unsigned char m_tumbler_locked[8]; /* pin kept when the slot is released */
+    int m_slot_attempts[8];            /* pick attempts per party slot */
+    W8GameTimer m_timer;               /* state-8 completion delay */
 };
 static_assert(sizeof(W8LockInteraction) == 0xa4, "W8LockInteraction_size");
-/* Retail secondary vftable 0x005eead0 places W8TextControl::Listener at +0x4. */
 W8_ASSERT_BASE_END(W8LockInteraction, W8TextControl::Listener, m_trigger, 0x4);
 static_assert(offsetof(W8LockInteraction, m_trigger) == 0x08, "W8LockInteraction_trigger");
 static_assert(offsetof(W8LockInteraction, m_tumbler_panel) == 0x10,
@@ -436,13 +383,6 @@ static_assert(offsetof(W8LockInteraction, m_tumbler_panel) == 0x10,
 static_assert(offsetof(W8LockInteraction, m_state) == 0x34, "W8LockInteraction_state");
 static_assert(offsetof(W8LockInteraction, m_timer) == 0x80, "W8LockInteraction_timer");
 
-/* 0x005eebdc is the construction-phase primary table installed at the start
-   of 0x00589160; 0x005eebd8 is the complete-object table. Slot 0 is a pure
-   virtual the complete object implements at 0x00589550 (the text-entry
-   selection path). The ordinary destructor at 0x005894B0 is non-virtual.
-   W8TextControl::Listener is the proven secondary base at +0x04: collapsing
-   it into Listener-only inheritance would move Listener to +0 and shrink the
-   object. */
 // VTABLE: WIZ8 0x005eebdc
 class W8MainGameTextSelectionListener {
 public:
@@ -453,18 +393,18 @@ public:
 // VTABLE: WIZ8 0x005eebd0 W8TextControl::Listener
 class W8MainGameScreen : public W8MainGameTextSelectionListener, public W8TextControl::Listener {
 public:
-    W8MainGameScreen(Trigger* owner); /* 0x00589160 */
-    ~W8MainGameScreen();              /* 0x005894B0 */
+    W8MainGameScreen(Trigger* owner);
+    ~W8MainGameScreen();
     virtual void SelectTextEntry(int index) override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
-    void Update();                           /* 0x00589A80 */
-    void RefreshActionPanel();               /* 0x00589D90 */
-    void EnablePanelRegionSets(bool enable); /* 0x0058A030 */
+    void Update();
+    void RefreshActionPanel();
+    void EnablePanelRegionSets(bool enable);
     int GetTrapInteractionChance() const;
-    void ApplyInspectSuccess(); /* 0x0058A060 */
-    void CastTrapSpell();       /* 0x0058A200 */
-    void UseTrapItem();         /* 0x0058A3E0 */
+    void ApplyInspectSuccess();
+    void CastTrapSpell();
+    void UseTrapItem();
 
     Trigger* m_owner;
     W8MainGameTextPanel* m_text_panel;
@@ -483,7 +423,6 @@ public:
     W8GameTimer m_timer;
 };
 static_assert(sizeof(W8MainGameScreen) == 0x178, "W8MainGameScreen_size");
-/* Retail secondary vftable 0x005eebd0 places W8TextControl::Listener at +0x4. */
 W8_ASSERT_BASE_END(W8MainGameScreen, W8TextControl::Listener, m_owner, 0x4);
 
 extern W8LevelRuntimeBlock* g_level_block;
@@ -505,11 +444,11 @@ extern W8DialogBase* g_pending_main_game_dialog;
 /* Open the assay (item info) dialog for an item, evaluated against the party
    slot's character; -1 means no character. The current modal owner, if any,
    moves to the pending slot. */
-void OpenMonsterInfoDialog(int location_id);                    /* 0x0056AD60 */
-void OpenAssayDialog(W8ItemInstance* item, int character_slot); /* 0x0056AE20 */
+void OpenMonsterInfoDialog(int location_id);
+void OpenAssayDialog(W8ItemInstance* item, int character_slot);
 
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
-void OnLeaveGameConfirmClosed(W8DialogBase* dialog); /* 0x00560A70 */
+void OnLeaveGameConfirmClosed(W8DialogBase* dialog);
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
@@ -518,21 +457,21 @@ void ResetMainGameScreenState(void);
 struct W8NpcScriptQuote;
 struct W8NpcQuoteEntry;
 
-void RefreshTrackedPortraitOverlay(void); /* 0x00563890 */
+void RefreshTrackedPortraitOverlay(void);
 /* Which party portrait the pointer is over, if any. */
 unsigned char HitTestPartyPortrait(const InputAtom* event);
-void ClearCombatSelection(void);                                                /* 0x0056A5A0 */
-void UpdateWorldViewCursor(const InputAtom* event, W8TargetNeed target_needed); /* 0x0056A5D0 */
+void ClearCombatSelection(void);
+void UpdateWorldViewCursor(const InputAtom* event, W8TargetNeed target_needed);
 void RequestRefreshPartyState(void);
 void RefreshFlaggedMainGameState(void);
 bool IsScreenIdle(void);
 bool IsModalOpen(void);
 
 void RequestRedraw(unsigned int mask);
-void ApplyMainGameRedrawFlags(void); /* 0x00562E40 */
-void DrawMainGameScreen(void);       /* 0x00562A80 */
+void ApplyMainGameRedrawFlags(void);
+void DrawMainGameScreen(void);
 void CancelMouselook();
-void SetTooltipSubject(int kind, int subject); /* 0x00569C60 */
+void SetTooltipSubject(int kind, int subject);
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 
@@ -552,47 +491,45 @@ enum W8MainGameMode {
 
 extern W8MainGameMode g_main_game_mode;
 extern int g_selected_party_slot;
-int GetSelectedPartySlot(void); /* 0x00593320 */
+int GetSelectedPartySlot(void);
 void RequestLevelTransition(int level, int entry, unsigned char flag);
 extern bool g_build_level_links;
 extern int g_next_link_level;
 extern bool g_navigator_position_changed;
-void BeginLevelTransition(void); /* 0x005611A0 */
-void SetViewportMode(int mode);  /* 0x005618F0 */
+void BeginLevelTransition(void);
+void SetViewportMode(int mode);
 /* Apply a main-game UI mode (0=portraits, 1=formation, 2=radar): drop raised
    panels, optionally re-raise them from settings prefs, refresh tooltip and
    region state, and sync both settings and the level-block mode field. */
-void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable); /* 0x00562580 */
-unsigned char ProcessMainGameInput(void);                   /* 0x005684E0 */
-void TickAmbientFollowUpIdle(unsigned char input_handled);  /* 0x00561330 */
-/* 0x00561EC0: re-sync the eight party slots' region sets and portrait hit
+void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable);
+unsigned char ProcessMainGameInput(void);
+void TickAmbientFollowUpIdle(unsigned char input_handled);
+/* Re-sync the eight party slots' region sets and portrait hit
    regions with occupancy, the monster-entry flag and the display mode; the
    party add/remove entries and the keyboard menu's close run it. */
 void RefreshPartySlotRegions(void);
-/* 0x00561FD0: re-sync mouse hotspot, region enables and viewport after a
+/* Re-sync mouse hotspot, region enables and viewport after a
    main-game mode change. */
 void SyncMainGameModeRegions(void);
-void ClearHighlightOverlayRegion(void); /* 0x00563DD0 */
-void DismissHighlightOverlay(void);     /* 0x00563EB0 */
-/* 0x00563FC0: the portrait-hover panel's producer; the four hover entry
+void ClearHighlightOverlayRegion(void);
+void DismissHighlightOverlay(void);
+/* The portrait-hover panel's producer; the four hover entry
    points hand it the slot, a content row count and a minimum plate width. */
 void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int min_width);
-void DrawPortraitVitalsOverlay(int party_slot);      /* 0x00564710 */
-void DrawPortraitConditionOverlay(int party_slot);   /* 0x00564BA0 */
-void DrawPortraitStatusOverlay(int party_slot);      /* 0x00564D80 */
-void DrawPortraitEnchantmentOverlay(int party_slot); /* 0x005651F0 */
-void SelectPartyCharacter(int party_slot);           /* 0x00565740 */
-void RefreshLockInteractionControls(void);           /* 0x00587A30 */
-void EnableLockInteractionPanels(void);              /* 0x00587C20 */
-void RefreshMainGameActionPanel(void);               /* 0x0058A860 */
-void EnableTrapInteractionPanelRegions(void);        /* 0x0058A880 */
-void OpenAutomapScreen(void);                        /* 0x00561480 */
+void DrawPortraitVitalsOverlay(int party_slot);
+void DrawPortraitConditionOverlay(int party_slot);
+void DrawPortraitStatusOverlay(int party_slot);
+void DrawPortraitEnchantmentOverlay(int party_slot);
+void SelectPartyCharacter(int party_slot);
+void RefreshLockInteractionControls(void);
+void EnableLockInteractionPanels(void);
+void RefreshMainGameActionPanel(void);
+void EnableTrapInteractionPanelRegions(void);
+void OpenAutomapScreen(void);
 /* Clear one slot's pending portrait refresh while the screen is not in
    portrait mode, and disable that slot's portrait region set. */
-void ClearPortraitRefreshSlot(int slot); /* 0x00561DB0 */
-/* Clear whatever the screen was waiting on and open the options screen.
-   The main-menu Options region expands this body; the keyboard path calls
-   the retained emission. */
+void ClearPortraitRefreshSlot(int slot);
+/* Clear whatever the screen was waiting on and open the options screen. */
 // FUNCTION: WIZ8 0x00565970
 inline void ClearScreenWait(void)
 {
@@ -601,36 +538,27 @@ inline void ClearScreenWait(void)
 }
 /* Portrait condition / enchantment orbs (help 25 / 26): hold opens the
    mode-6 hover overlay; leave and release tear it down. */
-unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event,
-                                              struct W8Region* region); /* 0x005667A0 */
-unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event,
-                                                struct W8Region* region); /* 0x00566AE0 */
+unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, struct W8Region* region);
+unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event, struct W8Region* region);
 /* Party portrait hit regions: select, target, open camp, and drag-hover. */
-unsigned char PortraitSelectRegionEvent(const InputAtom* event,
-                                        struct W8Region* region); /* 0x00565990 */
+unsigned char PortraitSelectRegionEvent(const InputAtom* event, struct W8Region* region);
 /* Help 28: portrait side bar that opens Assay on the hovered weapon/item. */
-unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event,
-                                              struct W8Region* region); /* 0x00566E20 */
+unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event, struct W8Region* region);
 /* Help 24: portrait overlay hover strip; drives portrait_overlay_party_slot. */
-unsigned char PortraitOverlayHoverRegionEvent(const InputAtom* event,
-                                              struct W8Region* region); /* 0x005670C0 */
+unsigned char PortraitOverlayHoverRegionEvent(const InputAtom* event, struct W8Region* region);
 /* Region set 4: the eight combat-action hit regions beside the portraits. */
-unsigned char PartyCombatActionRegionEvent(const InputAtom* event,
-                                           struct W8Region* region); /* 0x005673B0 */
+unsigned char PartyCombatActionRegionEvent(const InputAtom* event, struct W8Region* region);
 /* Help 31: radar-map button beside the text area. */
-unsigned char RadarMapButtonRegionEvent(const InputAtom* event,
-                                        struct W8Region* region); /* 0x00567600 */
+unsigned char RadarMapButtonRegionEvent(const InputAtom* event, struct W8Region* region);
 /* Region 23: the 3D world view. Hover refreshes the combat selection/target,
    left-up runs the targeting/item/monster dispatch, right-down opens monster
    info or the assay dialog, and the mouselook latch arms and releases here. */
-unsigned char WorldViewRegionEvent(const InputAtom* event,
-                                   struct W8Region* region); /* 0x00567800 */
+unsigned char WorldViewRegionEvent(const InputAtom* event, struct W8Region* region);
 /* Help 36: combat monster-list hit rows beside the radar map. */
-unsigned char MonsterListRegionEvent(const InputAtom* event,
-                                     struct W8Region* region); /* 0x00568100 */
-void SetMainGameMode(W8MainGameMode mode);                     /* 0x00568390 */
-void SetFormationBoardVisible(bool visible);                   /* 0x00569390 */
-void ToggleMainGamePause(void);                                /* 0x0056ABE0 */
+unsigned char MonsterListRegionEvent(const InputAtom* event, struct W8Region* region);
+void SetMainGameMode(W8MainGameMode mode);
+void SetFormationBoardVisible(bool visible);
+void ToggleMainGamePause(void);
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and
    TryMGSActionKey share: the interface commands map to views and recorded
    actions, the combat commands map to ChooseAction selections, and
@@ -655,14 +583,13 @@ enum W8MGSAction {
     W8_MGS_ACTION_REPEAT = 0x10
 };
 
-void TryMGSActionKey(W8MGSAction command); /* 0x0056B4C0 */
-/* The action-key command gate and executor the dispatcher's 0x131..0x141
-   cases and TryMGSActionKey share. */
-bool IsMGSActionKeyEnabled(unsigned short command); /* 0x0056AF80 */
-void RunMGSActionKey(unsigned short command);       /* 0x0056B270 */
-void LoadMainGameCursorResources(void);             /* 0x00568E10 */
-short GetMainGameViewportMode(void);                /* 0x005698C0 */
-void CloseMainGameOverlays(void);                   /* 0x00569570 */
+void TryMGSActionKey(W8MGSAction command);
+
+bool IsMGSActionKeyEnabled(unsigned short command);
+void RunMGSActionKey(unsigned short command);
+void LoadMainGameCursorResources(void);
+short GetMainGameViewportMode(void);
+void CloseMainGameOverlays(void);
 /* Overlay entry points share the radar-mode fallback. The caller captures and
    stores its return mode before or after this operation as its own path requires. */
 inline void SetMainGameOverlayViewport(W8MainUiMode mode)
@@ -674,59 +601,59 @@ inline void SetMainGameOverlayViewport(W8MainUiMode mode)
     }
 }
 
-void SetRadarMapVisible(bool visible);                                    /* 0x00568EB0 */
-void SetActionPanelVisible(bool visible);                                 /* 0x00569120 */
-void OpenCharacterScreenForPartySlot(unsigned int party_slot, bool flag); /* 0x00560E10 */
+void SetRadarMapVisible(bool visible);
+void SetActionPanelVisible(bool visible);
+void OpenCharacterScreenForPartySlot(unsigned int party_slot, bool flag);
 void RebuildNpcTradeItemList(bool scroll_to_top);
-/* 0x005ADAA0: the trade-stock index behind a visible NPC item row. */
+/* The trade-stock index behind a visible NPC item row. */
 int ResolveNpcTradeStockIndex(int index);
-/* 0x005AD950: append one NPC stock item's name and price lines to the trade
+/* Append one NPC stock item's name and price lines to the trade
    text box. */
 void ShowNpcTradeItemNotice(W8ItemInstance* item);
-/* 0x005ADBE0: refill the trade text box from the pending item pool or the NPC
+/* Refill the trade text box from the pending item pool or the NPC
    stock, then re-enable the filter buttons. */
 void PopulateNpcTradeList(void);
-/* 0x005AE1F0: validate the pending trade selection; queues a refusal quote and
+/* Validate the pending trade selection; queues a refusal quote and
    fails when the NPC declines the item or the party cannot pay. */
 bool ValidateNpcTradeSelection(void);
-/* 0x005AE2A0: run one NPC trade offer; the result selects the accepted,
+/* Run one NPC trade offer; the result selects the accepted,
    refused or offended script path. */
 bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index);
-/* 0x005AE1A0: destroy callback on the NPC trade split dialog; commits the
+/* Destroy callback on the NPC trade split dialog; commits the
    chosen count to the editor slot and refreshes the trade selection. */
 void NpcTradeSplitDialogResult(W8DialogBase* dialog);
-void RefreshFormationPanel(bool show_portraits); /* 0x005B2980 */
-void EndLockInteractMode(char suspend);          /* 0x005879A0 */
-void UpdateMainGameScreen(void);                 /* 0x0058A750 */
-void EndTrapInteractMode(char suspend);          /* 0x0058A790 */
+void RefreshFormationPanel(bool show_portraits);
+void EndLockInteractMode(char suspend);
+void UpdateMainGameScreen(void);
+void EndTrapInteractMode(char suspend);
 int GetPartySlotLocksTrapsLevel(int slot);
 int OpenLockInteraction(Trigger* trigger);
 int OpenTrapInteraction(Trigger* trigger);
-/* 0x0056A770: when a slot's committed action cannot execute, re-choose a
+/* When a slot's committed action cannot execute, re-choose a
    fallback hand, breath or character attack, or reroute spell/item aiming. */
 void FallbackFromUnreachableAction(int party_slot);
-void SetCombatAction(int value);    /* 0x0056A480 */
-void SetCombatSelection(int value); /* 0x00569F70 */
-void SetCombatTarget(int value);    /* 0x0056A2D0 */
+void SetCombatAction(int value);
+void SetCombatSelection(int value);
+void SetCombatTarget(int value);
 
-void RequestRedrawCombatBar(void);             /* 0x005699B0 */
-void UpdateScreenOverlays(int frame);          /* 0x0056AF20 */
-bool LoadCurrentLevelData(void);               /* 0x00560A20 */
-void ResetMainGameMode(void);                  /* 0x00560C60 */
-void CreateSurpriseFade(void);                 /* 0x0056B4E0 */
-void ReverseSurpriseFade(void);                /* 0x0056B5F0 */
-void DestroySurpriseFade(void);                /* 0x0056B690 */
-unsigned char UpdateSurpriseFade(void);        /* 0x0056B6F0 */
-void DisableMainRegionSet(void);               /* 0x00561FB0 */
-void EnableMainRegionSet(void);                /* 0x00561FA0 */
-unsigned char OpenUseItemSelectView(int slot); /* 0x0059C930 */
+void RequestRedrawCombatBar(void);
+void UpdateScreenOverlays(int frame);
+bool LoadCurrentLevelData(void);
+void ResetMainGameMode(void);
+void CreateSurpriseFade(void);
+void ReverseSurpriseFade(void);
+void DestroySurpriseFade(void);
+unsigned char UpdateSurpriseFade(void);
+void DisableMainRegionSet(void);
+void EnableMainRegionSet(void);
+unsigned char OpenUseItemSelectView(int slot);
 
 unsigned char MainGameScreenInitialize(void);
 unsigned char MainGameScreenEnter(void);
 void MainGameScreenFrame(void);
 unsigned char MainGameScreenLeave(int leaving);
 void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, bool confirmation,
-                            bool cancel); /* 0x00569A50 */
+                            bool cancel);
 
 unsigned char CombatBarRegionEvent(const InputAtom* event, struct W8Region* region);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);

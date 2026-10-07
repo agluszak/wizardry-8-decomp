@@ -12,14 +12,12 @@ struct W8Character;
 
 enum { W8_ASSAY_BUTTON_COUNT = 0x25, W8_ASSAY_TEXT_BUFFER_COUNT = 5 };
 
-/* Dialog Code\AssayDialog.cpp. The constructor stores the inspected item and
-   the character whose stats the requirement lines compare against. The live
-   hull is PopulateText at 0x005D7310; CreateControls, Draw and the tab
-   callbacks sit in the gaps around that hull. */
+/* The item information dialog. It keeps the inspected item and the character
+   whose stats the requirement lines compare against. */
 // VTABLE: WIZ8 0x005ef988
 class W8AssayDialog : public W8DialogBase {
 public:
-    W8AssayDialog(W8ItemInstance* item, W8Character* character); /* 0x005D6FB0 */
+    W8AssayDialog(W8ItemInstance* item, W8Character* character);
     virtual ~W8AssayDialog() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
@@ -29,23 +27,23 @@ public:
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
 private:
-    bool PopulateText();                       /* 0x005D7310 */
-    bool PopulateRequirements();               /* 0x005D8850 */
-    bool CreateTextBuffers();                  /* 0x005D8FB0 */
-    void SetProfessionIconsVisible(bool show); /* 0x005D9330 */
-    void SetRaceIconsVisible(bool show);       /* 0x005D9460 */
-    void ShowPrimaryTab();                     /* 0x005D9620 */
-    void ShowSecondaryTab();                   /* 0x005D96A0 */
+    bool PopulateText();
+    bool PopulateRequirements();
+    bool CreateTextBuffers();
+    void SetProfessionIconsVisible(bool show);
+    void SetRaceIconsVisible(bool show);
+    void ShowPrimaryTab();
+    void ShowSecondaryTab();
     static void PrimaryTabCallback(W8DialogButton* button);
     static void SecondaryTabCallback(W8DialogButton* button);
 
-    W8DialogButton* m_buttons[W8_ASSAY_BUTTON_COUNT];         /* 0x54 */
-    W8TextBuffer* m_text_buffers[W8_ASSAY_TEXT_BUFFER_COUNT]; /* 0xe8 */
-    W8DialogScrollBar m_scroll_bar;                           /* 0xfc */
-    W8ItemInstance* m_item;                                   /* 0x148 */
-    bool m_item_portrait_dirty;                               /* 0x14c */
-    W8DialogTextArea m_text_area;                             /* 0x150 */
-    W8Character* m_character;                                 /* 0x1a8 */
+    W8DialogButton* m_buttons[W8_ASSAY_BUTTON_COUNT];
+    W8TextBuffer* m_text_buffers[W8_ASSAY_TEXT_BUFFER_COUNT];
+    W8DialogScrollBar m_scroll_bar;
+    W8ItemInstance* m_item;
+    bool m_item_portrait_dirty;
+    W8DialogTextArea m_text_area;
+    W8Character* m_character;
 };
 static_assert(sizeof(W8AssayDialog) == 0x1ac, "W8AssayDialog_size");
 extern unsigned short g_equip_class_name_ids[32];

@@ -1,6 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-04.
-   Remove the unused local configuration include.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-04, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __MUTEX_
 #define __MUTEX_

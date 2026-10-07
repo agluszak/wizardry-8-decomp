@@ -34,8 +34,6 @@ private:
     };
 
     struct QueueEntry {
-        /* queue writes 0, dispatch writes 1, and retirement writes 2.
-           These descriptive states retain the retail four-byte field. */
         enum State { QUEUED = 0, EXECUTING = 1, FINISHED = 2 };
 
         Job* job;

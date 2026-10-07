@@ -6,11 +6,7 @@
 
 #include <ostream>
 
-/* Per-class flag-name table: unlike srNode's lazily assigned list, retail
-   leaves this global zero-initialized for srCamera, so dump prints numeric
-   bit indices. Retail references absolute 0x100A49BC, a slot inside the
-   .bss extent already claimed by timer.cpp's storage_class; no GLOBAL
-   marker, since the shared address cannot be claimed twice. */
+/* Flag-name table; never assigned, so dump prints numeric bit indices. */
 static const char* flag_names;
 
 // FUNCTION: SURRENDER 0x10047D60

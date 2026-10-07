@@ -1,10 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
-   Reconstruct Wizardry sound lifecycle, driver setup, channel reset, and sample loading.
-   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
-   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
-   Restore the Wizardry fade-volume and music-flag bookkeeping when samples start.
-   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
-   Remove inactive code and decorative comment banners, 2026-10-07.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 /*********************************************************************************
 * SGP Digital Sound Module

@@ -6,9 +6,6 @@
 // VTABLE: SURRENDER 0x100773A0
 // class srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 12560>
 
-/* The interface owns the common 0x44-byte surface description. The concrete
-   implementation adds conversion callbacks, palette ownership and pixel-data
-   storage; srClassSupport contributes registry identity without storage. */
 // VTABLE: SURRENDER 0x100772D0 srColorSurface
 class SR_DLL_EXPORT srColorSurface
     : public srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 0x3110> {
@@ -105,8 +102,5 @@ private:
 
 static_assert((sizeof(srColorSurface) == 0x5c), "srColorSurface_must_be_0x5c");
 
-/* Wizardry's client-side self-support instantiation of srColorSurface. The
-   retail image constructs this form (the compiled constructor calls the
-   imported srColorSurface constructor and then installs table 0x005EBD10 over
-   the class's own), and the template supplies the registry lifecycle. */
+/* Wizardry's client-side srColorSurface. */
 typedef srClientSupport<srColorSurface, 0x3110> W8ColorSurface;

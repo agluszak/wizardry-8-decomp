@@ -10,7 +10,7 @@ from .. import command_support as cli
 
 app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
 
-_INCLUDE = re.compile(r'^\\s*#\\s*include\\s*[<\"]([^>\"]+)[>\"]', re.MULTILINE)
+_INCLUDE = re.compile(r"^\\s*#\\s*include\\s*[<\"]([^>\"]+)[>\"]", re.MULTILINE)
 
 
 def _includes_directly(source: Path, header: str) -> bool:
@@ -32,14 +32,10 @@ def pr_comparison_command(
     target: Annotated[str, typer.Option("--target")],
     head_summary: Annotated[Path | None, typer.Option("--head-summary")] = None,
     base_summary: Annotated[Path | None, typer.Option("--base-summary")] = None,
-    head_ghidriff: Annotated[Path | None, typer.Option("--head-ghidriff")] = None,
-    base_ghidriff: Annotated[Path | None, typer.Option("--base-ghidriff")] = None,
     head_datacmp: Annotated[Path | None, typer.Option("--head-datacmp")] = None,
     base_datacmp: Annotated[Path | None, typer.Option("--base-datacmp")] = None,
     head_exports: Annotated[Path | None, typer.Option("--head-exports")] = None,
     base_exports: Annotated[Path | None, typer.Option("--base-exports")] = None,
-    head_direct_calls: Annotated[Path | None, typer.Option("--head-direct-calls")] = None,
-    base_direct_calls: Annotated[Path | None, typer.Option("--base-direct-calls")] = None,
     since: Annotated[
         str | None,
         typer.Option(
@@ -72,12 +68,8 @@ def pr_comparison_command(
         target,
         head_summary_path=head_summary,
         base_summary_path=base_summary,
-        head_ghidriff_path=head_ghidriff,
-        base_ghidriff_path=base_ghidriff,
         head_datacmp_path=head_datacmp,
         base_datacmp_path=base_datacmp,
-        head_direct_calls_path=head_direct_calls,
-        base_direct_calls_path=base_direct_calls,
         header_includers=header_includers,
         head_exports_path=head_exports,
         base_exports_path=base_exports,
@@ -85,5 +77,3 @@ def pr_comparison_command(
     cli.emit(result)
     if not result["ok"]:
         raise typer.Exit(1)
-
-

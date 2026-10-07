@@ -20,11 +20,11 @@ enum W8ScreenId {
 };
 
 struct W8ScreenStateHandlers {
-    unsigned char (*initialize)(void);   /* +0x00, startup ownership */
-    unsigned char (*enter)(void);        /* +0x04, transition into state */
-    void (*frame)(void);                 /* +0x08, active frame */
-    unsigned char (*leave)(int leaving); /* +0x0c, 0 = suspend, 1 = discard */
-    unsigned char (*finalize)(void);     /* +0x10, shutdown ownership */
+    unsigned char (*initialize)(void);
+    unsigned char (*enter)(void);
+    void (*frame)(void);
+    unsigned char (*leave)(int leaving); /* 0 = suspend, 1 = discard */
+    unsigned char (*finalize)(void);
 };
 
 static_assert(sizeof(W8ScreenStateHandlers) == 0x14, "W8ScreenStateHandlers_size");

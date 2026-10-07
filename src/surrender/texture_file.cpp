@@ -56,8 +56,6 @@ const char* srTextureFile::getFileName() const
     return file_name;
 }
 
-/* The filename is an ordinary CRT string: retail allocates it with the
-   scalar global operator new, not the SurRender heap or vector new. */
 // FUNCTION: SURRENDER 0x1005FA00
 void srTextureFile::setFileName(const char* file_name)
 {
@@ -165,8 +163,6 @@ void srTextureFile::getMipmapData(MultiRequest& request)
         request.destinations[request.mipmap_level]->copy(*surface);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-        /* Retail compares the signed level against the unsigned last level
-           (JA branch); the mixed-sign spelling is part of the body. */
         for (long level = request.mipmap_level + 1; level <= request.last_level; ++level) {
             if (request.destinations[level] != 0 && request.destinations[level - 1] != 0) {
                 request.destinations[level]->copy(*request.destinations[level - 1]);

@@ -37,8 +37,7 @@ int srTriangleCuller::setClipFlags(unsigned long* clip_flags, float* distances,
 {
     unsigned long collected = 0;
     srVectorProcessor::vp->_dot(distances, plane, vertices, count);
-    /* reinterpret-ok: the per-vertex outside test reads the distances' raw
-       IEEE sign bits, exactly as retail's SHR 0x1f/SHL sequence. */
+    /* reinterpret-ok: the outside test reads the distances' IEEE sign bits. */
     const unsigned long* bits = reinterpret_cast<const unsigned long*>(distances);
     unsigned long index = 0;
     if (first == 0) {
@@ -189,8 +188,7 @@ unsigned long srTriangleCuller::collectNegative(unsigned long* indices, const fl
                                                 unsigned long first, unsigned long count)
 {
     unsigned long* destination = indices;
-    /* reinterpret-ok: the negative test reads the distances' raw IEEE sign
-       bit, exactly as retail's SHR 0x1f store-then-advance sequence. */
+    /* reinterpret-ok: the negative test reads the distances' IEEE sign bits. */
     const unsigned long* bits = reinterpret_cast<const unsigned long*>(distances);
     unsigned long collected = 0;
     if (count != 0) {
@@ -363,8 +361,8 @@ unsigned long srTriangleCuller::buildAVT(unsigned long* avt, unsigned long* vert
 {
     srVP* processor = srVectorProcessor::vp;
     processor->_memcopy(vertex_scratch, 0, vertex_count);
-    /* reinterpret-ok: the caller-provided flag scratch holds one SRBYTE per
-       vertex here and is reused as the dword inverse remap below. */
+    /* reinterpret-ok: the flag scratch holds one SRBYTE per vertex here and is reused as the dword
+       inverse remap below. */
     processor->_srSetIndexed(reinterpret_cast<SRBYTE*>(vertex_scratch), triangles, indices,
                              triangle_count);
     unsigned long count = processor->_srCollectNonZero(

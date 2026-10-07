@@ -332,14 +332,13 @@ public:
     virtual void OnLeftButtonUp(int event) override;
     virtual void OnRangeChanged(W8RangeControl* control) override;
 
-    int m_visible_rows;                                /* 0x38 */
-    int m_selection;                                   /* 0x3c */
-    int m_hovered;                                     /* 0x40 */
-    int m_first_visible;                               /* 0x44 */
-    W8PartySelectionListSelectionListener* m_listener; /* 0x48 */
+    int m_visible_rows;
+    int m_selection;
+    int m_hovered;
+    int m_first_visible;
+    W8PartySelectionListSelectionListener* m_listener;
 };
 static_assert(sizeof(W8PartySelectionListControl) == 0x4c, "W8PartySelectionListControl_size");
-/* The secondary W8RangeListener subobject sits at +0x34. */
 W8_ASSERT_BASE_END(W8PartySelectionListControl, W8RangeListener, m_visible_rows, 0x34);
 
 // FUNCTION: WIZ8 0x005bff60
@@ -499,9 +498,6 @@ public:
 };
 static_assert(sizeof(W8PartySelectionCharacterPanel) == 0x84,
               "W8PartySelectionCharacterPanel_size");
-/* Retail secondary vftable 0x005ef3b4 places
-   W8PartySelectionPanelSelectionListener at +0x54 after the
-   W8ControlSelectionListener (+0x4c) and W8RangeListener (+0x50) bases. */
 W8_ASSERT_BASE_END(W8PartySelectionCharacterPanel, W8PartySelectionPanelSelectionListener,
                    m_control, 0x54);
 
@@ -515,8 +511,6 @@ public:
 };
 static_assert(sizeof(W8PartySelectionCharacterGridPanel) == 0x50,
               "W8PartySelectionCharacterGridPanel_size");
-/* Retail secondary vftable 0x005ef448 places W8TextControl::Listener at
-   +0x4c; the panel adds no members, so its extent ends that subobject. */
 W8_ASSERT_BASE_TAIL(W8PartySelectionCharacterGridPanel, W8TextControl::Listener, 0x4c);
 
 class W8PartySelectionPartySlotRow : public W8TextControl {
@@ -543,7 +537,6 @@ public:
 };
 static_assert(sizeof(W8PartySelectionPartySlotPanel) == 0x74,
               "W8PartySelectionPartySlotPanel_size");
-/* The secondary W8ControlSelectionListener subobject sits at +0x4c. */
 W8_ASSERT_BASE_END(W8PartySelectionPartySlotPanel, W8ControlSelectionListener, m_control, 0x4c);
 
 class W8PartySelectionCharacterSummaryPanel : public Controls {
@@ -608,12 +601,12 @@ public:
     void LoadImportedPartyFile(int selection);
     void TogglePartyMemberSelection();
 
-    W8PartySelectionMode m_mode;          /* 0x0c */
-    W8PartySelectionMode m_previous_mode; /* 0x10 */
+    W8PartySelectionMode m_mode;
+    W8PartySelectionMode m_previous_mode;
     bool m_redraw_backdrop;
     unsigned char pad_15[3];
     W8Character* m_character;
-    W8RangeControl* m_range; /* 0x1c */
+    W8RangeControl* m_range;
     W8PartySelectionCharacterPanel* m_character_panel;
     W8PartySelectionCharacterGridPanel* m_control0;
     W8PartySelectionPartySlotPanel* m_control1;
@@ -636,8 +629,6 @@ public:
     W8PartyConfirmationAction m_confirmation_action;
 };
 static_assert(sizeof(W8PartySelectionController) == 0x70, "W8PartySelectionController_size");
-/* The secondary bases sit at +0x4 for W8PartySelectionListSelectionListener
-   and +0x8 for W8PartySelectionDecisionListener; m_mode follows at +0x0c. */
 W8_ASSERT_BASE_END(W8PartySelectionController, W8PartySelectionDecisionListener, m_mode, 0x8);
 
 // GLOBAL: WIZ8 0x0069C4E8

@@ -1,4 +1,3 @@
-/* Recoverable from sr.dll */
 
 #include "surrender/srPalette.h"
 
@@ -11,9 +10,6 @@
 #include "surrender/srCore.h"
 #include "surrender/srHeap.h"
 #include "surrender/srImporter.h"
-
-/* Retail compares and copies palette entries as raw dwords; srARGB is a
-   four-byte packed color, so the elementwise loops lower to dword moves. */
 
 /* Squared channel distance scaled by the luma weights 299/587/114; the biased
    pointers index by (channel - reference) so negative differences work. */
@@ -402,10 +398,6 @@ void srPalette::updateQuantizer()
     if (quantizer != 0) {
         srHeap.free(quantizer);
     }
-    /* Retail (0x10004240) takes the storage straight from srHeap::allocate
-       and runs the inlined constructor under an unwind state. Quantizer is
-       exported without any operator new/delete, so the heap routing is at
-       the new-expression, not a class allocator. */
     quantizer = new (srHeap.allocate(sizeof(Quantizer)))
         Quantizer(colors, color_count, 0, '\b', '\b', '\b');
 }
@@ -417,9 +409,9 @@ void srPalette::update()
     flags = flags & ~1;
 }
 
-/* A null color table builds the default palette: the 6x6x6 color cube with
-   its gray diagonal skipped (216 - 6 = 210 entries), then a 46-entry gray
-   ramp for the rest of the 256. A non-cube count gets a linear ramp. */
+/* A null color table builds the default palette: the 6x6x6 color cube with its gray diagonal
+   skipped (216 - 6 = 210 entries), then a 46-entry gray ramp for the rest of the 256. A non-cube
+   count gets a linear ramp. */
 // FUNCTION: SURRENDER 0x10004310
 srPalette::srPalette(srARGB* colors, long color_count)
     : srClassSupport<srPalette, srClass, 1, 0x2900>(), flags(0)
@@ -597,14 +589,6 @@ srClass* srPalette::vInstance()
     return new srPalette(0, 1);
 }
 
-/* The copy constructor registers through the base like retail, delegates the
-   field copy to operator=, then retail overwrites the freshly allocated
-   members with the source's pointers — sharing the source's color table and
-   quantizer and leaking the copies operator= just made. */
-
-/* Sampler field offsets and behavior are fixed by the retail constructor
-   (0x100067d0), discard (0x100068d0) and addColor (0x10006530). */
-
 // FUNCTION: SURRENDER 0x100067D0
 srPalette::Sampler::Sampler(long sample_limit)
 {
@@ -622,10 +606,8 @@ srPalette::Sampler::Sampler(long sample_limit)
     memset(mask_colors, 0, 0x400);
 }
 
-/* Retail copies the owning colors/links pointers verbatim (offsets 0x524 /
-   0x528): a Sampler copy aliases the source's tables, so destruction or
-   discard() of either object leaves the other's pointers dangling —
-   double-free semantics proven in the original. */
+/* The copy aliases the source's colors/links tables, so destroying either object leaves the other's
+   pointers dangling. */
 // FUNCTION: SURRENDER 0x10004BA0
 srPalette::Sampler::Sampler(const Sampler& other)
 {
@@ -648,9 +630,6 @@ srPalette::Sampler::~Sampler()
 {
     discard();
 }
-
-/* Same retail aliasing as the copy constructor: colors and links are copied
-   as raw pointers, so assignment shares ownership of both tables. */
 
 // FUNCTION: SURRENDER 0x10004AF0
 long srPalette::Sampler::getColorCount()
@@ -741,9 +720,7 @@ void srPalette::Sampler::discard()
 void srPalette::Sampler::reallocColors(long new_capacity)
 {
     ColorEntry* new_colors = new ColorEntry[new_capacity];
-    /* Retail tests the first allocation and stores 0 on failure — a no-op
-       check identical in shape to addSurface's pixels guard. The second
-       allocation is never tested. */
+    /* Only the first allocation is tested, and failure is ignored. */
     long* new_links = new long[new_capacity];
     srARGB empty_color;
     memset(&empty_color, 0, sizeof(empty_color));
@@ -902,9 +879,6 @@ void srPalette::Sampler::addSurface(srColorSurfaceIFace& surface, long weight)
     }
     if (sample_factor == 1.0) {
         srARGB* pixels = new srARGB[width];
-        /* Retail shape (0x1000644F): the allocation result is tested and 0 is
-           stored on failure — a no-op null check; pixels then flows into
-           getPixelRow regardless. */
         for (long y = 0; y < height; ++y) {
             /* reinterpret-ok: the surface API exchanges packed srARGB rows as dwords */
             surface.getPixelRow(reinterpret_cast<unsigned long*>(pixels), y, 0, width);
@@ -1071,8 +1045,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     HashEntry* entries = new HashEntry[info.color_count];
     HashEntry** rehash = new HashEntry*[0x8000];
     srARGB* palette_colors = new srARGB[info.palette_size];
-    /* The retail epilogue frees palette_colors, two node pools and the five
-       level arrays — lut is never deleted. Proven retail leak. */
+    /* lut is never deleted. */
     LUT* lut = new LUT;
     srZeroMemory(palette_colors, info.palette_size * 4);
     srZeroMemory(buckets, 0x20000);

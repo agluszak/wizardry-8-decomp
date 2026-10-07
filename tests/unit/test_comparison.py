@@ -82,64 +82,30 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
     ]
 
 
-def test_changed_files_uses_local_main_baseline(tmp_path, monkeypatch):
-    for name in ["One.cpp", "gone.cpp"]:
-        (tmp_path / name).write_text("")
+@pytest.mark.parametrize(
+    "environment, baseline",
+    [
+        ({}, "origin/main"),
+        ({"GITHUB_BASE_REF": "develop"}, "origin/develop"),
+        ({"GITHUB_EVENT_BEFORE": "abc123"}, "abc123"),
+        ({"GITHUB_EVENT_BEFORE": "0" * 40, "GITHUB_ACTIONS": "true"}, "HEAD^"),
+        ({"GITHUB_EVENT_BEFORE": "0" * 40, "GITHUB_ACTIONS": "false"}, "origin/main"),
+    ],
+)
+def test_changed_files_baseline(tmp_path, monkeypatch, environment, baseline):
+    (tmp_path / "One.cpp").write_text("")
 
     def fake_run(command, *, cwd):
         assert cwd == tmp_path
-        assert command == ["git", "diff", "--name-only", "--no-renames", "-z", "origin/main"]
+        assert command == ["git", "diff", "--name-only", "--no-renames", "-z", baseline]
         return SimpleNamespace(stdout="One.cpp\0gone.cpp\0")
 
     monkeypatch.setattr(comparison, "run", fake_run)
-    monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
-    monkeypatch.delenv("GITHUB_EVENT_BEFORE", raising=False)
+    for name in ("GITHUB_BASE_REF", "GITHUB_EVENT_BEFORE", "GITHUB_ACTIONS"):
+        monkeypatch.delenv(name, raising=False)
+    for name, value in environment.items():
+        monkeypatch.setenv(name, value)
     assert changed_files(tmp_path) == [tmp_path / "One.cpp", tmp_path / "gone.cpp"]
-
-
-def test_changed_files_uses_github_base_ref_for_git(tmp_path, monkeypatch):
-    (tmp_path / "One.cpp").write_text("")
-
-    def fake_run(command, *, cwd):
-        assert command == ["git", "diff", "--name-only", "--no-renames", "-z", "origin/develop"]
-        return SimpleNamespace(stdout="One.cpp\0")
-
-    monkeypatch.setattr(comparison, "run", fake_run)
-    monkeypatch.setenv("GITHUB_BASE_REF", "develop")
-    monkeypatch.delenv("GITHUB_EVENT_BEFORE", raising=False)
-    assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
-
-
-def test_changed_files_uses_github_event_before_for_push(tmp_path, monkeypatch):
-    (tmp_path / "One.cpp").write_text("")
-
-    before = "abc123def4567890abc123def4567890abc123de"
-
-    def fake_run(command, *, cwd):
-        assert command == ["git", "diff", "--name-only", "--no-renames", "-z", before]
-        return SimpleNamespace(stdout="One.cpp\0")
-
-    monkeypatch.setattr(comparison, "run", fake_run)
-    monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
-    monkeypatch.setenv("GITHUB_EVENT_BEFORE", before)
-    assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
-
-
-@pytest.mark.parametrize("actions, baseline", [("true", "HEAD^"), ("false", "origin/main")])
-def test_changed_files_ignores_all_zero_github_event_before(
-    tmp_path, monkeypatch, actions, baseline
-):
-    (tmp_path / "One.cpp").write_text("")
-
-    def fake_run(command, *, cwd):
-        assert command == ["git", "diff", "--name-only", "--no-renames", "-z", baseline]
-        return SimpleNamespace(stdout="One.cpp\0")
-
-    monkeypatch.setattr(comparison, "run", fake_run)
-    monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
-    monkeypatch.setenv("GITHUB_ACTIONS", actions)
-    monkeypatch.setenv("GITHUB_EVENT_BEFORE", "0" * 40)
-    assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
 
 
 def test_missing_comparison_products_fail_without_creating_a_build(tmp_path, monkeypatch):
@@ -721,18 +687,6 @@ def test_comparison_bootstraps_cleaned_generated_metadata(tmp_path, monkeypatch)
     assert comparison.comparison_target(tmp_path, "WIZ8") is target
 
 
-def test_comparison_without_native_procedures_is_not_a_binary_health_snapshot(
-    tmp_path, monkeypatch
-):
-    output = tmp_path / "report"
-    output.mkdir()
-    (output / "classified-summary.json").write_text(json.dumps({"inputs": {}, "functions": []}))
-    monkeypatch.setattr(comparison, "report_directory", lambda *_: output)
-    binary = tmp_path / "Wiz8.exe"
-    binary.write_bytes(b"product")
-    assert comparison.last_comparison(tmp_path, "WIZ8", binary) is None
-
-
 def test_signature_artifact_is_separate_from_body_artifact(tmp_path, monkeypatch):
     monkeypatch.setattr(comparison, "report_directory", lambda *_: tmp_path)
     signature = ["--- orig/f\n", "+++ recomp/f\n", "-uint f();\n", "+int f();\n"]
@@ -746,21 +700,3 @@ def test_signature_artifact_is_separate_from_body_artifact(tmp_path, monkeypatch
     )
     assert (tmp_path / "00001000.ordinary.signature.diff").read_text() == "".join(signature)
     assert not (tmp_path / "00001000.ordinary.diff").exists()
-
-
-def test_frozen_comparison_tools_use_explicit_product_repository(tmp_path, monkeypatch):
-    from wiz8decomp import config
-
-    product = tmp_path / "base-source"
-    snapshot = tmp_path / "head-tools"
-    product.mkdir()
-    snapshot.mkdir()
-    for key in ("GHIDRA_INSTALL_DIR", "WIZ8_INPUT_DIR", "WIZ8_WORK_DIR"):
-        monkeypatch.setenv(key, str(tmp_path / key.lower()))
-    monkeypatch.delenv("WIZ8_GHIDRA_PROJECT_DIR", raising=False)
-    monkeypatch.setattr(config, "repository_root", lambda: snapshot)
-    settings = config.load_settings(repository=product)
-    assert settings is not None
-    assert settings.repo_dir == product
-    assert settings.product_build_dir == product / "build/decomp"
-    assert settings.project_dir == product / "ghidra-project"

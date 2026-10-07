@@ -42,8 +42,8 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason);
 // VTABLE: WIZ8 0x005efa98
 class W8DialogButton {
 public:
-    W8DialogButton();          /* 0x005DB1B0 */
-    virtual ~W8DialogButton(); /* 0x005DB260 */
+    W8DialogButton();
+    virtual ~W8DialogButton();
     void Draw();
     void SetPosition(int x, int y);
     int GetWidth();
@@ -67,9 +67,9 @@ public:
     void SetVisible(bool visible);
     /* Installs the tooltip string on the SGP button (when one is configured
        and tooltips are on), or clears it. */
-    void SetTooltipEnabled(bool enabled); /* 0x005DBA70 */
+    void SetTooltipEnabled(bool enabled);
     int GetUserData();
-    /* 0x005DB3E0: load the frame images, create the SGP button, and store the
+    /* Load the frame images, create the SGP button, and store the
        per-button callbacks, left-toggle flag, priority and tooltip index. */
     bool Configure(const char* image_path, int gray_frame, int off_normal_frame,
                    int off_hover_frame, int on_normal_frame, int on_hover_frame,
@@ -85,50 +85,50 @@ public:
                          tooltip_index, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     }
 
-    /* 0x005DB350: create an SGP text button (BUTTON_NO_TOGGLE, priority 0x7f),
+    /* Create an SGP text button (BUTTON_NO_TOGGLE, priority 0x7f),
        store this in its user-data slot 0 and the payload in slot 1 (read back
        by GetUserData), then install the left-click callback. */
     bool ConfigureTextButton(const wchar_t* text, unsigned int font, short fore_color,
                              short shadow_color, short x, short y, short width, short height,
                              W8DialogButtonCallback left_callback, int user_data);
-    /* 0x005DB2A0: configure from an already-loaded vobject; the five state
+    /* Configure from an already-loaded vobject; the five state
        frames derive from base_frame (gray +3, off +0/+1, on states +2/+2). */
     bool ConfigureVObjButton(HVOBJECT object, int base_frame, W8DialogButtonCallback left_callback,
                              bool left_toggles);
-    /* 0x005DBAC0: store the tooltip string-table index and, when tooltips are
+    /* Store the tooltip string-table index and, when tooltips are
        enabled, push its text onto the SGP button. */
     void SetTooltipIndex(int tooltip_index);
 
     friend void DialogButtonCallback(GUI_BUTTON* button, INT32 reason);
 
 private:
-    int m_gray_frame;       /* 0x04 */
-    int m_off_normal_frame; /* 0x08 */
-    int m_off_hover_frame;  /* 0x0c */
-    int m_on_normal_frame;  /* 0x10 */
-    int m_on_hover_frame;   /* 0x14 */
-    int m_image_handle;     /* loaded button-image handle */
-    int m_button_handle;    /* SGP button handle */
-    int m_tooltip_index;    /* 0x20: gppStringList index, or -1 */
+    int m_gray_frame;
+    int m_off_normal_frame;
+    int m_off_hover_frame;
+    int m_on_normal_frame;
+    int m_on_hover_frame;
+    int m_image_handle;  /* loaded button-image handle */
+    int m_button_handle; /* SGP button handle */
+    int m_tooltip_index; /* gppStringList index, or -1 */
     W8DialogButtonCallback m_left_callback;
     W8DialogButtonCallback m_right_callback;
     W8DialogButtonCallback m_move_callback;
     W8DialogButtonCallback m_double_click_callback;
-    unsigned char m_latched_press_bits; /* 0x34: latched BUTTON_CLICKED_ON bit */
+    unsigned char m_latched_press_bits; /* latched BUTTON_CLICKED_ON bit */
     bool m_enabled;
-    bool m_left_toggles; /* 0x36: left down xors CLICKED_ON */
+    bool m_left_toggles; /* left down xors CLICKED_ON */
 
 public:
-    /* 0x37: raised by the dialog factories on their item-row buttons; right
+    /* Raised by the dialog factories on their item-row buttons; right
        down then toggles CLICKED_ON the same way left-toggle does. */
     bool m_right_toggles;
-    bool m_dirty; /* 0x38: set by owning screens before Draw */
+    bool m_dirty; /* set by owning screens before Draw */
 private:
     bool silent;       /* suppresses all button sounds */
     bool hover_silent; /* suppresses hover/exit sounds only */
 
 public:
-    /* 0x3b: raised on spinner-style buttons (the split dialog's arrows); the
+    /* Raised on spinner-style buttons (the split dialog's arrows); the
        dispatch then fires the stored left/right callback on press and clears
        the pending state on release instead of firing on release. */
     bool m_fires_on_press;
@@ -137,15 +137,15 @@ private:
     bool press_armed; /* clicked-on and fires_on_press: release completes */
 
 public:
-    /* 0x40: set by the dialog factories to the owning dialog; the per-button
+    /* Set by the dialog factories to the owning dialog; the per-button
        dispatch callback reads it back when a stored callback needs it. */
     W8DialogBase* m_owner;
 
 private:
-    /* 0x44: snapshot of the live-dialog count; dispatch ignores events when a
+    /* Snapshot of the live-dialog count; dispatch ignores events when a
        nested dialog has changed that count. */
     int m_live_dialog_count;
-}; /* 0x48 */
+};
 
 static_assert(sizeof(W8DialogButton) == 0x48, "W8DialogButton_size");
 

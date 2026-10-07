@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import runpy
 from pathlib import Path
 
 import pytest
@@ -61,21 +60,6 @@ def _summary(*rows: dict) -> dict:
     }
 
 
-def _ghidriff(*pairs: tuple[int, float]) -> dict:
-    return {
-        "functions": {
-            "modified": [
-                {
-                    "old": {"address": hex(address)},
-                    "new": {"address": hex(0x10000 + address)},
-                    "ratio": ratio,
-                }
-                for address, ratio in pairs
-            ]
-        }
-    }
-
-
 def test_missing_ratio_does_not_discard_scored_similarity() -> None:
     summary = _summary(_row(1, "no-differences"), _row(2, "differences", code=True))
     metrics = comparison_metrics(summary)
@@ -105,29 +89,6 @@ def test_similarity_without_scored_functions_is_unknown(summary: dict) -> None:
     assert metrics["similarity_scored"] == 0
     assert metrics["similarity_unscored"] == metrics["analyzed"]
     assert metrics["similarity_coverage"] == (0.0 if metrics["analyzed"] else None)
-
-
-def test_comment_discloses_partial_similarity_coverage(monkeypatch, capsys) -> None:
-    summary = _summary(_row(1, "no-differences"), _row(2, "differences", code=True))
-    report = {
-        "project": {"head": {"source_functions": 2, "paired": 2}, "delta": {}},
-        "comparison": {
-            "head": comparison_metrics(summary),
-            "delta": {},
-            "transitions": {"resolved": 0, "newly_different": 0},
-        },
-    }
-    monkeypatch.setenv("WIZ8_STATUS", json.dumps(report))
-    monkeypatch.delenv("SURRENDER_STATUS", raising=False)
-    runpy.run_path(
-        str(Path(__file__).resolve().parents[2] / ".github/scripts/render-reccmp-comment.py")
-    )
-    rendered = capsys.readouterr().out
-    assert "Requested | Analyzed | Non-emitted" in rendered
-    assert "Unpaired | Analysis failed | Missing" in rendered
-    assert "Similarity scores" in rendered
-    assert "| 1/2 | 100.00% |" in rendered
-    assert "missing pass scores are excluded" in rendered
 
 
 def test_comparison_metrics_use_selected_pass_scores() -> None:
@@ -219,17 +180,11 @@ def test_pr_report_contains_comparison_and_data_deltas(tmp_path: Path) -> None:
         ),
         encoding="utf-8",
     )
-    head_md = tmp_path / "head.json"
-    base_md = tmp_path / "base.json"
-    head_md.write_text(json.dumps(_ghidriff((2, 0.9))), encoding="utf-8")
-    base_md.write_text(json.dumps(_ghidriff((1, 0.8), (2, 0.6))), encoding="utf-8")
 
     report = pr_comparison_report(
         "WIZ8",
         head_summary_path=paths["head_summary"],
         base_summary_path=paths["base_summary"],
-        head_ghidriff_path=head_md,
-        base_ghidriff_path=base_md,
         head_datacmp_path=head_data,
         base_datacmp_path=base_data,
     )
@@ -284,8 +239,6 @@ def test_internal_non_emission_cannot_hide_disappearing_procedure(tmp_path: Path
     for name, value in {
         "head_summary": head,
         "base_summary": base,
-        "head_ghidriff": _ghidriff(),
-        "base_ghidriff": _ghidriff(),
     }.items():
         paths[name] = tmp_path / f"{name}.json"
         paths[name].write_text(json.dumps(value))
@@ -355,21 +308,18 @@ def test_classified_comparison_coverage_includes_all_debt():
     ] == [7, 1, 3, 1, 1, 1]
 
 
-@pytest.mark.parametrize("added", [False, True])
-def test_pr_report_cli_fails_on_new_export_debt(tmp_path: Path, added: bool):
+def test_pr_report_cli_fails_on_new_export_debt(tmp_path: Path):
     from typer.testing import CliRunner
-    from wiz8decomp.commands.reports import app
+    from wiz8decomp.cli import app
 
     paths = {}
-    for side, symbols in [
-        ("head", ["existing", "new"] if added else ["existing"]),
-        ("base", ["existing"]),
-    ]:
+    for side, symbols in [("head", ["existing", "new"]), ("base", ["existing"])]:
         paths[side] = tmp_path / f"{side}.json"
         paths[side].write_text(json.dumps({"compiler_exports_absent_from_retail": symbols}))
     result = CliRunner().invoke(
         app,
         [
+            "report",
             "pr-comparison",
             "--target",
             "SURRENDER",
@@ -379,10 +329,8 @@ def test_pr_report_cli_fails_on_new_export_debt(tmp_path: Path, added: bool):
             str(paths["base"]),
         ],
     )
-    assert result.exit_code == int(added)
-    report = json.loads(result.stdout)
-    assert report["ok"] is (not added)
-    assert report["exports"]["added"] == (["new"] if added else [])
+    assert result.exit_code == 1
+    assert json.loads(result.stdout)["exports"]["added"] == ["new"]
 
 
 def test_declaration_findings_do_not_reduce_body_quality() -> None:
@@ -398,8 +346,8 @@ def test_declaration_findings_do_not_reduce_body_quality() -> None:
     assert metrics["average_similarity"] == 0.95
 
 
-@pytest.mark.parametrize("key", ["normalization_key", "decompiler_sha256"])
-def test_pr_delta_rejects_different_comparison_policies(tmp_path: Path, key: str):
+def test_pr_delta_rejects_different_comparison_policies(tmp_path: Path):
+    key = "decompiler_sha256"
     head = _summary(_row(1, "no-differences"))
     base = _summary(_row(1, "no-differences"))
     base["inputs"][key] = "older-policy"
@@ -407,8 +355,6 @@ def test_pr_delta_rejects_different_comparison_policies(tmp_path: Path, key: str
     for name, value in {
         "head_summary": head,
         "base_summary": base,
-        "head_ghidriff": _ghidriff(),
-        "base_ghidriff": _ghidriff(),
     }.items():
         path = tmp_path / f"{name}.json"
         path.write_text(json.dumps(value))

@@ -2,8 +2,6 @@
 
 #include "srHeap.h"
 
-/* Recovered SR provider utility. Its methods are provider exports, not imports
-   in the known consumers, so the class must not carry consumer dllimport. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -24,9 +22,9 @@ protected:
 
 static_assert((sizeof(srExponentTable) == 0x1004), "srExponentTable_must_be_0x1004");
 
-/* The cached table keeps a process-wide doubly linked freelist of up to 0x10
-   exponent tables. get() bumps a reference count and reuses the last result;
-   the renderer releases tables back to the pool instead of deleting them. */
+/* Process-wide doubly linked freelist of up to 0x10 exponent tables. get() bumps a reference count
+   and reuses the last result; the renderer releases tables back to the pool instead of deleting
+   them. */
 class
 #if defined(SURRENDER_BUILD)
     __declspec(dllexport)
@@ -40,8 +38,6 @@ public:
     void release();
 
 protected:
-    /* The ??_F default-constructor closures (0x10003160 base, 0x100031A0
-       derived) pass 1.0, so both ctors default exponent to 1.0f. */
     srCachedExponentTable(float exponent = 1.0f);
     ~srCachedExponentTable();
 

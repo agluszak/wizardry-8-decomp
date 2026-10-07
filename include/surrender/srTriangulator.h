@@ -2,13 +2,9 @@
 
 #include "srMath.h"
 
-/* Recovered SR provider utility. No known Wizardry/JPEG/ZIP consumer imports
-   this class, so provider exports do not justify consumer dllimport codegen. */
 class SR_DLL_EXPORT srTriangulator {
 public:
-    /* Doubly-linked circular vertex list. The constructor allocates the node
-       array with a raw scalar operator new and links every node to its
-       neighbors; node[0]'s prev is the tail and the tail's next is node[0]. */
+    /* Doubly-linked circular vertex list. */
     class CircularList {
     public:
         class Node {

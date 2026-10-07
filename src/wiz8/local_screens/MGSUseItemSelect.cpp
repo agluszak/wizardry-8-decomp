@@ -72,7 +72,7 @@ static W8ItemInstance* g_use_item_detail_item;
 int g_saved_target_cursor;
 // GLOBAL: WIZ8 0x0069BF34
 static int g_use_item_hover_row;
-/* 0x0069BF38: held while CommitSelectedSpellTarget runs for a use-item
+/* Held while CommitSelectedSpellTarget runs for a use-item
    commit; CloseUseItemSelectView early-outs on it so the commit's side
    effects cannot tear the view down mid-call. */
 // GLOBAL: WIZ8 0x0069BF38
@@ -80,16 +80,16 @@ static bool g_use_item_commit_active;
 // GLOBAL: WIZ8 0x0064C7DC
 static wchar_t g_format_s_paren_question[] = L"%s (?)";
 
-void UpdateUseItemScrollButtons(void);                                  /* 0x0059D070 */
-static void RebuildUseItemSelectList(int mode, W8ItemInstance* select); /* 0x0059D230 */
+void UpdateUseItemScrollButtons(void);
+static void RebuildUseItemSelectList(int mode, W8ItemInstance* select);
 static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
-                                   unsigned char pass); /* 0x0059D450 */
-bool IsUseItemFilteredOut(W8ItemInstance* item);        /* 0x0059D6B0 */
-static void UseItemSelectScrollUp(void);                /* 0x0059D790 */
-static void UseItemSelectScrollDown(void);              /* 0x0059D7E0 */
-static void UseItemSelectFilterToggle(void);            /* 0x0059D830 */
-static void UseItemSelectAssayButton(void);             /* 0x0059D860 */
-static void CreateUseItemSelectControls(void);          /* 0x0059C300 */
+                                   unsigned char pass);
+bool IsUseItemFilteredOut(W8ItemInstance* item);
+static void UseItemSelectScrollUp(void);
+static void UseItemSelectScrollDown(void);
+static void UseItemSelectFilterToggle(void);
+static void UseItemSelectAssayButton(void);
+static void CreateUseItemSelectControls(void);
 
 /* Build the use-item view chrome: three Controls panels, the two scroll
    buttons plus the caption label in g_use_item_select_scroll_buttons, and the

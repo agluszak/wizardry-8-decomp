@@ -6,8 +6,6 @@ from wiz8decomp.config import Settings
 from wiz8decomp.runtime_toolchain import (
     RuntimeArchive,
     _materialize_archive,
-    ge_proton_path,
-    umu_run_path,
 )
 
 
@@ -30,15 +28,6 @@ def _tar_with_file(path: Path, root: str, relative: str, data: bytes) -> None:
     info.mode = 0o755
     with tarfile.open(path, "w") as bundle:
         bundle.addfile(info, payload)
-
-
-def test_runtime_toolchain_paths_are_checkout_local(tmp_path: Path) -> None:
-    settings = _settings(tmp_path)
-
-    assert umu_run_path(settings) == (
-        settings.work_dir / "runtime-toolchain/umu-launcher-1.4.4/umu-run"
-    )
-    assert ge_proton_path(settings) == settings.work_dir / "runtime-toolchain/GE-Proton11-7-x86_64"
 
 
 def test_materialize_archive_uses_verified_cached_archive(tmp_path: Path, monkeypatch) -> None:

@@ -18,5 +18,4 @@ unsigned char CreditsScreenEnter(void);
 void CreditsScreenFrame(void);
 unsigned char CreditsScreenLeave(int leaving);
 /* Full-screen dismiss on left-up or right-up. */
-unsigned char CreditsBackgroundRegionEvent(const InputAtom* event,
-                                           struct W8Region* region); /* 0x005BC7A0 */
+unsigned char CreditsBackgroundRegionEvent(const InputAtom* event, struct W8Region* region);

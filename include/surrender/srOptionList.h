@@ -1,7 +1,6 @@
 #pragma once
 
-// The JPEG exporter reads the option string at +0x08.  The first two words
-// remain intentionally opaque until another extension gives them semantics.
+// The first two words are opaque; the JPEG exporter reads only the option string.
 struct srImportOptions {
     unsigned long unknown_00;
     unsigned long unknown_04;

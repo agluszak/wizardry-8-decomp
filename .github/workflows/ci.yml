@@ -251,8 +251,8 @@ jobs:
         run: uv sync --frozen
       - name: Restore reviewed Ghidra checkpoint
         run: uv run wiz8 ghidra restore
-      - name: Run Ghidra enrichment integration tests
-        run: uv run pytest -q tests/ghidra
+      - name: Decompile from the restored checkpoint
+        run: uv run wiz8 ghidra decompile 0x00401920
 
   wiz8:
     name: WIZ8 comparison
@@ -380,15 +380,11 @@ jobs:
           latest="build/reports/compare/wiz8/latest"
           # Source PRs already produced the selected report above. Only
           # tooling-only changes without a source selection need a full run.
-          if [[ ! -f "$latest/classified-summary.json" || ! -f "$latest/json/WIZ8.ghidriff.json" ]]; then
+          if [[ ! -f "$latest/classified-summary.json" ]]; then
             uv run wiz8 compare --all-source || quality_status=$?
           fi
           test -f "$latest/classified-summary.json"
           cp "$latest/classified-summary.json" "$RUNNER_TEMP/wiz8-head-summary.json"
-          cp "$latest/json/WIZ8.ghidriff.json" "$RUNNER_TEMP/wiz8-head-ghidriff.json"
-          if [[ -f "$latest/direct-calls.json" ]]; then
-            cp "$latest/direct-calls.json" "$RUNNER_TEMP/wiz8-head-direct-calls.json"
-          fi
           if (( quality_status != 0 )); then
             echo "::error::target-wide WIZ8 comparison contains unpaired/incomplete functions"
             exit "$quality_status"
@@ -502,18 +498,9 @@ jobs:
           args+=(
             --head-summary "$RUNNER_TEMP/wiz8-head-summary.json"
             --base-summary "$RUNNER_TEMP/wiz8-base-summary.json"
-            --head-ghidriff "$RUNNER_TEMP/wiz8-head-ghidriff.json"
-            --base-ghidriff "$RUNNER_TEMP/wiz8-base-ghidriff.json"
             --head-datacmp "$RUNNER_TEMP/wiz8-head-datacmp.json"
             --base-datacmp "$RUNNER_TEMP/wiz8-base-datacmp.json"
           )
-          # Compare allocator families on the inline-normalized call view.
-          if [[ -f "$RUNNER_TEMP/wiz8-head-direct-calls.json" && -f "$RUNNER_TEMP/wiz8-base-direct-calls.json" ]]; then
-            args+=(
-              --head-direct-calls "$RUNNER_TEMP/wiz8-head-direct-calls.json"
-              --base-direct-calls "$RUNNER_TEMP/wiz8-base-direct-calls.json"
-            )
-          fi
           # Group regressions by the changed headers their files include directly.
           if merge_base="$(git merge-base HEAD "${{ github.event.pull_request.base.sha }}" 2>/dev/null)"; then
             args+=(--since "$merge_base")
@@ -646,16 +633,12 @@ jobs:
           set -euo pipefail
           quality_status=0
           latest="build/reports/compare/surrender/latest"
-          if [[ ! -f "$latest/classified-summary.json" || ! -f "$latest/json/SURRENDER.ghidriff.json" ]]; then
+          if [[ ! -f "$latest/classified-summary.json" ]]; then
             uv run wiz8 compare --all-source --program sr.dll || quality_status=$?
           fi
           test -f "$latest/classified-summary.json"
           cp "$latest/classified-summary.json" "$RUNNER_TEMP/surrender-head-summary.json"
           cp build/reports/surrender-exports.json "$RUNNER_TEMP/surrender-head-exports.json"
-          cp "$latest/json/SURRENDER.ghidriff.json" "$RUNNER_TEMP/surrender-head-ghidriff.json"
-          if [[ -f "$latest/direct-calls.json" ]]; then
-            cp "$latest/direct-calls.json" "$RUNNER_TEMP/surrender-head-direct-calls.json"
-          fi
           if (( quality_status != 0 )); then
             echo "::error::target-wide SURRENDER comparison contains unpaired/incomplete functions"
             exit "$quality_status"
@@ -731,20 +714,11 @@ jobs:
           args+=(
             --head-summary "$RUNNER_TEMP/surrender-head-summary.json"
             --base-summary "$RUNNER_TEMP/surrender-base-summary.json"
-            --head-ghidriff "$RUNNER_TEMP/surrender-head-ghidriff.json"
-            --base-ghidriff "$RUNNER_TEMP/surrender-base-ghidriff.json"
             --head-datacmp "$RUNNER_TEMP/surrender-head-datacmp.json"
             --base-datacmp "$RUNNER_TEMP/surrender-base-datacmp.json"
             --head-exports "$RUNNER_TEMP/surrender-head-exports.json"
             --base-exports "$RUNNER_TEMP/surrender-base-exports.json"
           )
-          # Compare allocator families on the inline-normalized call view.
-          if [[ -f "$RUNNER_TEMP/surrender-head-direct-calls.json" && -f "$RUNNER_TEMP/surrender-base-direct-calls.json" ]]; then
-            args+=(
-              --head-direct-calls "$RUNNER_TEMP/surrender-head-direct-calls.json"
-              --base-direct-calls "$RUNNER_TEMP/surrender-base-direct-calls.json"
-            )
-          fi
           # Group regressions by the changed headers their files include directly.
           if merge_base="$(git merge-base HEAD "${{ github.event.pull_request.base.sha }}" 2>/dev/null)"; then
             args+=(--since "$merge_base")

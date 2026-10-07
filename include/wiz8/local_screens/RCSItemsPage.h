@@ -80,26 +80,23 @@ void DrawCampItemIcons(void);
 
 bool IsSpecialItemId(W8ItemInstance* item);
 
-/* 0x0061E7C4: the twelve equip-slot label message ids indexed by region
-   callback_id; gap-owned table, also read by the AssayDialog TU. */
+/* The twelve equip-slot label message ids indexed by region callback_id. */
 extern unsigned short g_equip_slot_label_ids[12];
 
-/* Camp panel lifecycle helpers, currently placed in RCSItemsPage.cpp.
-   Retail DrawCampScreen calls the three refresh helpers, but their addresses
-   lie in an assertion-only TU gap; the exact original unit remains unknown. */
-int CreateCampActionPanel(void);                 /* 0x005B9070 */
-void ReleaseCampActionPanel(void);               /* 0x005B9220 */
-void EnableCampActionButtons(void);              /* 0x005B9270 */
-void DisableCampActionButtons(void);             /* 0x005B9310 */
-void RefreshCampActionPanel(bool invalidate);    /* 0x005B9330 */
-int CreateItemsTabPanel(void);                   /* 0x005B9350 */
-void ReleaseItemsTabPanel(void);                 /* 0x005B9760 */
-void UpdateCampItemFilters(void);                /* 0x005B97B0 */
-void DisableItemsRealmTabs(void);                /* 0x005B98C0 */
-void RefreshItemsTabPanel(bool invalidate);      /* 0x005B98E0 */
-int CreateCampSecondaryPanel(void);              /* 0x005B9900 */
-void ReleaseCampSecondaryPanel(void);            /* 0x005B9EA0 */
-void InvalidateCampPanel(void);                  /* 0x005B9EF0 */
-void EnableCampSecondaryPanel(void);             /* 0x005B9F00 */
-void DisableCampSecondaryPanel(void);            /* 0x005B9F60 */
-void RefreshCampSecondaryPanel(bool invalidate); /* 0x005B9F90 */
+/* Camp panel lifecycle helpers. */
+int CreateCampActionPanel(void);
+void ReleaseCampActionPanel(void);
+void EnableCampActionButtons(void);
+void DisableCampActionButtons(void);
+void RefreshCampActionPanel(bool invalidate);
+int CreateItemsTabPanel(void);
+void ReleaseItemsTabPanel(void);
+void UpdateCampItemFilters(void);
+void DisableItemsRealmTabs(void);
+void RefreshItemsTabPanel(bool invalidate);
+int CreateCampSecondaryPanel(void);
+void ReleaseCampSecondaryPanel(void);
+void InvalidateCampPanel(void);
+void EnableCampSecondaryPanel(void);
+void DisableCampSecondaryPanel(void);
+void RefreshCampSecondaryPanel(bool invalidate);

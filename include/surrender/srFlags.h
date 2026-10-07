@@ -2,10 +2,6 @@
 
 template <class Enum> class srFlags {
 public:
-    /* Retail's srGERD constructor emits __ehvector_ctor over
-       enable_stack with the standalone srFlags<e_enable>::srFlags
-       emission (0x1001EF50) as the element callback; clang-cl folds the
-       provably-constant body to a rep stos — a documented lowering gap. */
     srFlags();
     explicit srFlags(unsigned long bits) : value(bits) {}
 
@@ -16,9 +12,7 @@ public:
 
 template <class Enum> srFlags<Enum>::srFlags() : value(0) {}
 
-/* Set or clear one flag bit. The 0x004CA880 srFlags<int>::set body in WIZ8 is
-   an ordinary primary-template emission, not evidence of an authored int
-   specialization. */
+/* Set or clear one flag bit. */
 template <class Enum> void srFlags<Enum>::set(int bit, int on)
 {
     if (on != 0) {

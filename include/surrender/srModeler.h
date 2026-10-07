@@ -14,19 +14,9 @@ class __declspec(dllexport) srModeler {
 class SR_DLL_IMPORT srModeler {
 #endif
 public:
-    /* Axis selector indexing the position components: getAxialBounds and the
-       mapping functions read (&vertex.position.x)[axis], proving X=0,
-       Y=1, Z=2. */
+    /* Axis selector indexing the position components. */
     enum e_axis { AXIS_X = 0, AXIS_Y = 1, AXIS_Z = 2 };
 
-    /* The exported constructor (0x10037BD0) takes two e_axis values and four
-       floats; the ??_F default-constructor closure (0x10037DC0) proves all six
-       arguments carry defaults. In-class inline: retail Wiz8.exe imports only
-       planarMap and never this constructor, so the consumer TUs inlined the
-       six-field store while the dllexport standalone emission stays at
-       0x10037BD0. */
-    /* Retail exports MappingInfo construction and assignment. Original
-       annotation and special-member spelling are unresolved. */
     struct
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -49,30 +39,21 @@ public:
         float v_offset;
     };
 
-    /* A triangle vertex: position, the per-pass material pair (side-indexed),
-       the three per-pass attribute vectors convert() feeds into the mesh's
-       DCG/DIG/SCG streams, the eight UV slots (pass*2 + layer), and the
-       per-pass weights convert() writes as the DCG alpha. */
-    /* Retail exports Vertex lifecycle, including copy/assignment bodies. */
+    /* A triangle vertex: position, the per-pass material pair (side-indexed), the three per-pass
+       attribute vectors convert() feeds into the mesh's DCG/DIG/SCG streams, the eight UV slots
+       (pass*2 + layer), and the per-pass weights convert() writes as the DCG alpha. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
 #endif
         Vertex {
     public:
-        /* Retail inlines the reset() call into the modeler-TU
-           new Vertex[]/vertices[3] array-construction loops
-           (Polygon::Polygon 0x10038890, Triangle::Triangle 0x10038B50) while
-           Wiz8.exe imports the standalone copy - so the body is an inline
-           definition in modeler.cpp, not visible to consumers. */
         Vertex();
         void reset();
         void interpolate(const Vertex& first, const Vertex& second, float fraction);
         int operator==(const Vertex& other) const;
         int operator!=(const Vertex& other) const;
 
-        /* stCube.cpp writes the modelled position and the first of the eight
-           UV slots the Polygon constructor layout-initializes at +0xC0. */
         srVector3T<float> position;
         unsigned long shade_index;
         srMaterialIFace* materials[4][2];
@@ -83,7 +64,6 @@ public:
         float weights[4];
     };
 
-    /* Retail exports Triangle lifecycle, including copy/assignment bodies. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -101,7 +81,6 @@ public:
         unsigned long disabled;
     };
 
-    /* Retail exports Polygon lifecycle, including copy/assignment bodies. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)

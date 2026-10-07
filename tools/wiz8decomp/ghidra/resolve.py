@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any
 
 from ..source_index import (
     AddressBoundIdentity,
@@ -16,13 +16,6 @@ from ..source_index import (
 
 class ResolveError(ValueError):
     """A selector did not identify exactly one entity."""
-
-
-@dataclass(frozen=True)
-class ResolvedFunction:
-    entry: int
-    function: Any
-    selector: str
 
 
 @dataclass(frozen=True)
@@ -116,12 +109,6 @@ def identities_for_target(
         return address_bound_identities(settings.repo_dir, str(metadata["target"]))
     except Exception:  # noqa: BLE001 - source attachment is optional on the read path
         return {}
-
-
-def identities_at(
-    settings: Any, program_selector: str, address: int
-) -> tuple[AddressBoundIdentity, ...]:
-    return identities_for_target(settings, program_selector).get(address, ())
 
 
 def _functions_named(program: Any, text: str) -> list[Any]:
@@ -562,6 +549,3 @@ def symbol_record(symbol: ResolvedSymbol) -> dict[str, Any]:
         "detail": symbol.detail,
         "views": list(symbol.views),
     }
-
-
-SourceState = Literal["current", "stale", "missing", "invalid", "unavailable"]

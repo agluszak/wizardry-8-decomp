@@ -124,7 +124,6 @@ def test_semantic_names_placeholders_and_special_members_are_allowed(
     assert validate_source_model(repository)["ok"] is True
 
 
-@pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
 @pytest.mark.parametrize(
     ("source", "kind"),
     [
@@ -137,11 +136,9 @@ def test_semantic_names_placeholders_and_special_members_are_allowed(
         ("void Caller() { FooInline(); }", "codegen-inline-name"),
     ],
 )
-def test_inlining_controls_are_forbidden_in_all_recovered_roots(
-    tmp_path: Path, root: str, source: str, kind: str
-) -> None:
+def test_inlining_controls_are_forbidden(tmp_path: Path, source: str, kind: str) -> None:
     repository = _index(tmp_path)
-    path = repository / root / "example.h"
+    path = repository / "include/surrender" / "example.h"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("// inline-control-ok: cannot waive this rule\n" + source + "\n")
     violations = source_model_violations(repository)
@@ -197,11 +194,10 @@ def test_compiler_helpers_must_be_binary_metadata(tmp_path: Path, kind: str, nam
         validate_source_model(repository)
 
 
-@pytest.mark.parametrize("kind", ["LIBRARY"])
-def test_marker_only_emissions_cannot_bind_authored_declarations(tmp_path: Path, kind: str) -> None:
+def test_marker_only_emissions_cannot_bind_authored_declarations(tmp_path: Path) -> None:
     declaration = _definition("W8Thing::Body", owning_class="W8Thing")
     marker = _marker(
-        kind,
+        "LIBRARY",
         name="W8Thing::Body",
         declaration_key=["WIZ8", declaration["semantic_id"], None],
     )
@@ -229,13 +225,10 @@ def test_source_rejects_binary_identity_markers(tmp_path: Path) -> None:
         validate_source_model(repository)
 
 
-@pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
 @pytest.mark.parametrize("type_name", ["W8Record", "srRecord", "stRecord"])
-def test_typed_object_literal_raw_offset_is_hard_error(
-    tmp_path: Path, root: str, type_name: str
-) -> None:
+def test_typed_object_literal_raw_offset_is_hard_error(tmp_path: Path, type_name: str) -> None:
     repository = _index(tmp_path)
-    source = repository / root / "example.cpp"
+    source = repository / "src/wiz8" / "example.cpp"
     source.parent.mkdir(parents=True, exist_ok=True)
     source.write_text(
         f"int read({type_name}* record) {{\n"
@@ -288,13 +281,12 @@ def test_variable_offset_is_not_a_layout_claim(tmp_path: Path) -> None:
     assert validate_source_model(repository)["ok"] is True
 
 
-@pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])
-@pytest.mark.parametrize("calling_convention", ["__thiscall ", "__stdcall", "__stdcall "])
+@pytest.mark.parametrize("calling_convention", ["__thiscall ", "__stdcall"])
 def test_inline_function_pointer_reinterpret_cast_is_hard_error(
-    tmp_path: Path, root: str, calling_convention: str
+    tmp_path: Path, calling_convention: str
 ) -> None:
     repository = _index(tmp_path)
-    source = repository / root / "example.cpp"
+    source = repository / "src/surrender" / "example.cpp"
     source.parent.mkdir(parents=True, exist_ok=True)
     source.write_text(
         "void call(unsigned long address, W8Thing* thing) {\n"

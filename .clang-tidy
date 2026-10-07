@@ -1,7 +1,19 @@
-# Gating clang-tidy profile for reconstruction errors. Keep this list narrow:
-# style and modernization policy do not belong in the historical source.
-# Project-specific checks operate on changed lines during normal lint.
+# The gating clang-tidy profile: only checks that find reconstruction/type
+# errors. Style, naming and modernize checks do not apply to recovered source.
 #
+# Stock checks are gated only when a whole-tree trial found no false positives.
+# Notable exclusions: narrowing conversions (VC6 source narrows implicitly
+# everywhere), sizeof-pointer heuristics (allocators size pointer arrays),
+# copy-constructor-init (recovered copies deliberately reset bases) and
+# suspicious-memory-comparison (memcmp over padded W8CombatSlot is the retail
+# idiom). A hit on a gated check means compare with retail; established retail
+# behavior, including UB, is not "repaired" for lint.
+#
+# The wiz8-* checks come from docker/msvc600/clang-tidy-plugin. `wiz8 lint`
+# gates them on changed lines only (WIZ8_REDUNDANT_CAST_LINES; `*` audits the
+# whole corpus). Cross-record project reinterpret casts have no waiver:
+# reconcile the type/prototype. wiz8-bool-like-byte findings are review
+# guidance, not proof of a historical bool type.
 Checks: >
   -*,
   wiz8-redundant-scalar-cast,

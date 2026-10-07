@@ -36,9 +36,6 @@ unsigned __int64 quadWord64(const srQuadWord& value)
     return ((unsigned __int64)value.hi << 32) | value.lo;
 }
 
-/* Empty lpClass/empty-string storage. Bounded by the flag-name cursor global
-   srLight::dump reads at 0x100A49D0, so the retail object is at most 0x1C
-   bytes. */
 // GLOBAL: SURRENDER 0x100A49B4
 char storage_class[0x1c];
 } // namespace
@@ -105,9 +102,7 @@ srTimer::srTimer(int force_system_timer, int unused, int save_calibration)
     reset(force_system_timer, unused, save_calibration);
 }
 
-/* Retail copies the two 0x400 strings and the 13-byte CPU signature with
-   byte-at-a-time loops, reloads kernel32, and omits +0x82c..+0x840
-   (including both conversion scales and CPU count). */
+/* The copy omits both conversion scales and the CPU count, and reloads kernel32. */
 // FUNCTION: SURRENDER 0x10060B90
 srTimer::srTimer(const srTimer& other)
 {
@@ -135,8 +130,7 @@ srTimer::srTimer(const srTimer& other)
     m_pause.hi = 0;
 }
 
-/* Assignment has the same +0x82c..+0x840 omission and reloads kernel32
-   without releasing any prior destination handle. */
+/* Assignment omits the same fields and reloads kernel32 without releasing any prior handle. */
 // FUNCTION: SURRENDER 0x10062480
 srTimer& srTimer::operator=(const srTimer& other)
 {
@@ -955,11 +949,7 @@ const char* srTimer::getOsIdent() const
         ++front;
     }
     strcpy(info.szCSDVersion, front);
-    /* Retail walks from the NUL terminator (not the last character) and tests
-       isspace before decrementing, so the trim is inert: isspace('\0') stops
-       the loop at entry and *end = 0 rewrites the existing terminator. No
-       trailing whitespace is ever removed, but no out-of-bounds access is
-       possible either. Preserved as recovered retail behavior. */
+    /* The trim starts at the terminator, so it never removes anything. */
     char* end = info.szCSDVersion + strlen(info.szCSDVersion);
     while (end != info.szCSDVersion && isspace(*end)) {
         --end;

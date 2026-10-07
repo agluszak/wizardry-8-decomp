@@ -9,8 +9,6 @@
 
 #include "surrender/srCore.h"
 
-/* The installed assert handler, zero-initialized in retail .data: nothing
-   references it outside this translation unit. */
 // GLOBAL: SURRENDER 0x100A0280
 static srAssertHandler srAssertFunc = 0;
 
@@ -26,9 +24,8 @@ srAssertHandler __cdecl srAssertGetFunc()
     return srAssertFunc;
 }
 
-/* With no handler installed retail exits on the 0xdeadbabe code rather than
-   reporting. The buffer clears its first byte even when message is 0 so the
-   handler always receives a terminated string. */
+/* With no handler installed the process exits with code 0xdeadbabe. The buffer is terminated even
+   when message is 0. */
 // FUNCTION: SURRENDER 0x10001020
 void __cdecl srAssertFail(const char* expression, const char* source_path, long line,
                           const char* message, ...)
@@ -83,8 +80,6 @@ srOStream_withassign::srOStream_withassign(std::streambuf* buffer)
 {
 }
 
-/* Shared formatting sink the printf family routes through: a plain
-   _vsnprintf passthrough with the 0x400-byte limit. */
 // FUNCTION: SURRENDER 0x10033310
 static long __cdecl srVsnprintf(char* buffer, unsigned long size, const char* format, va_list args)
 {
@@ -100,8 +95,6 @@ long __cdecl srDebugPrintf(unsigned long level, const char* format, ...)
     if (format == 0) {
         return 0;
     }
-    /* Retail frames are 0x404 bytes: the buffer carries four slack bytes
-       past the 0x400 write cap. */
     char buffer[0x404];
     va_list args;
     va_start(args, format);
@@ -147,8 +140,7 @@ const char* __cdecl srBoolToString(int value)
     return value != 0 ? "true" : "false";
 }
 
-/* The stock handler SurRender ships for hosts that want a dialog. Retail
-   links it in its own TU far from the assert setter/getter/fail cluster. */
+/* The stock handler SurRender ships for hosts that want a dialog. */
 // FUNCTION: SURRENDER 0x100466A0
 void __cdecl srDefaultAssertFailFunc(const char* expression, const char* source_path, long line,
                                      const char* message)
@@ -172,8 +164,7 @@ void __cdecl srDefaultAssertFailFunc(const char* expression, const char* source_
     }
 }
 
-/* One shared dummy buffer backs all four provider streams; the retail CRT
-   init order is buffer, srOut, srLog, srErr, srDummyStream. */
+/* One shared dummy buffer backs all four provider streams. */
 // GLOBAL: SURRENDER 0x100A47E0
 static srDummyStreamBuf srDummyBuf;
 

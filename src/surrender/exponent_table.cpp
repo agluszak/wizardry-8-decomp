@@ -139,5 +139,3 @@ srCachedExponentTable* srCachedExponentTable::get(float exponent)
     lastResult = new srCachedExponentTable(exponent);
     return lastResult;
 }
-
-/* Emitted inside this TU by the constructor defaults. */

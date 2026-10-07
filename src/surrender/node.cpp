@@ -13,9 +13,8 @@ srCriticalSection srNode::sceneGraphCSect;
 // GLOBAL: SURRENDER 0x100A49FC
 long srNode::sceneGraphLockCount;
 
-/* Comma-separated flag/notify name lists dumped beside the bit values. Both
-   are zero-initialized on disk; the constructor lazily installs the flag
-   names. */
+/* Comma-separated flag/notify name lists dumped beside the bit values; the constructor lazily
+   installs the flag names. */
 // GLOBAL: SURRENDER 0x100A4A00
 static const char* s_flag_names1;
 
@@ -205,9 +204,7 @@ srNode::srNode(srNode* parent)
     setParent(parent, 0);
 }
 
-/* Destroying a node detaches it and deletes its whole child list through the
-   deleting destructor at vtable slot 5. The support base runs the registry
-   unregister after the scene-graph lock is released. */
+/* Destroying a node detaches it and deletes its whole child list. */
 // FUNCTION: SURRENDER 0x10050E20
 srNode::~srNode()
 {
@@ -312,7 +309,6 @@ int srNode::isChildOf(const srNode& node) const
 // FUNCTION: SURRENDER 0x100513A0
 int srNode::isParentOf(const srNode& node) const
 {
-    /* Retail guards a null pointer arriving through the reference. */
     const srNode* target = &node;
     if (target == 0) {
         return 0;
@@ -486,8 +482,8 @@ const char* srNode::sGetClassName()
 // FUNCTION: SURRENDER 0x10051D40
 void srNode::setWSDirty()
 {
-    /* The dirty fan-out to parents and children can rewrite the notification
-       word, so retail saves the positional bit first and restores it after. */
+    /* The dirty fan-out to parents and children can rewrite the notification word, so the
+       positional bit is saved first and restored after. */
     int bounds_dirty = notifications.value & (1 << NOTIFY_BOUNDS_DIRTY);
     notifyParents(srFlags<e_notify>(1));
     notifyChildren(srFlags<e_notify>(2));
@@ -511,7 +507,6 @@ void srNode::setRotation(const srMatrix3T<double>& rotation)
 // FUNCTION: SURRENDER 0x100536D0
 void srNode::setRotation(const srMatrix3T<float>& rotation)
 {
-    /* Retail widens through a double temporary before assigning. */
     srMatrix3T<double> widened;
     widened.vectors[0] = rotation.vectors[0];
     widened.vectors[1] = rotation.vectors[1];
@@ -617,7 +612,6 @@ void srNode::getLocation(srVector3T<float>& location) const
 // FUNCTION: SURRENDER 0x10053E10
 void srNode::getRotation(srMatrix3T<float>& rotation) const
 {
-    /* Retail narrows into a float temporary, then copy-assigns the result. */
     srMatrix3T<float> narrowed;
     narrowed.vectors[0] = this->rotation.vectors[0];
     narrowed.vectors[1] = this->rotation.vectors[1];

@@ -7,7 +7,7 @@ import json
 import re
 import struct
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
@@ -21,7 +21,6 @@ from .identity_lint import (
     _declaration_lines,
     _last_component,
 )
-from .paths import atomic_json
 from .provenance import ORIGIN_SEPARATOR, ProvenanceError, parse_name_origin
 
 RETAINED_IDENTITY_PREDICATES = frozenset({"accepted-identity", "accepted-alias"})
@@ -754,132 +753,18 @@ def source_oracle_violations(
     return violations
 
 
-def source_oracle_report(
-    repo_dir: Path,
-    *,
-    families: Sequence[OracleFamily] = ORACLE_FAMILIES,
-) -> dict[str, Any]:
-    """Summarize oracle ownership and write the full artifact under ``build/``."""
-
-    index = _load_index(repo_dir)
-    claims = load_claims(repo_dir)
-    symbols = oracle_symbols(repo_dir, index=index, claims=claims, families=families)
-    hulls = contribution_hulls(symbols, families)
-    ranges = _range_owners(families)
-    bodies = _sized_body_owners(families)
-    violations = source_oracle_violations(repo_dir, index=index, claims=claims, families=families)
-    artifact = {
-        "schema": "wiz8.source-oracle-v2",
-        "families": [
-            {
-                "name": family.name,
-                "target": family.target,
-                "source_roots": list(family.source_roots),
-                "name_origins": sorted(family.name_origins),
-                "claim_origins": sorted(family.claim_origins),
-                "reccmp_csv": family.reccmp_csv,
-                "address_ranges": [
-                    [_format_address(start), _format_address(end)]
-                    for start, end in family.address_ranges
-                ],
-            }
-            for family in families
-        ],
-        "symbols": [
-            {
-                "address": _format_address(item.address),
-                "family": item.family,
-                "target": item.target,
-                "source_file": item.source_file,
-                "evidence": item.evidence,
-                "name": item.name,
-                "marker_kind": item.marker_kind,
-                "proven": item.proven,
-            }
-            for item in symbols
-        ],
-        "contribution_hulls": [
-            {
-                "family": hull.family,
-                "target": hull.target,
-                "source_file": hull.source_file,
-                "start": _format_address(hull.start),
-                "end": _format_address(hull.end),
-            }
-            for hull in hulls
-        ],
-        "address_ranges": [
-            {
-                "family": owner.family,
-                "target": owner.target,
-                "start": _format_address(owner.start),
-                "end": _format_address(owner.end),
-            }
-            for owner in ranges
-        ],
-        "sized_bodies": [
-            {
-                "family": body.family,
-                "target": body.target,
-                "start": _format_address(body.start),
-                "end": _format_address(body.end),
-                "size": body.size,
-            }
-            for body in bodies
-        ],
-        "violations": violations,
-    }
-    path = repo_dir / "build/reports/source-oracle.json"
-    atomic_json(path, artifact)
-    counts: dict[str, int] = defaultdict(int)
-    for item in violations:
-        counts[str(item["kind"])] += 1
-    by_family: dict[str, int] = defaultdict(int)
-    owned_by_family: dict[str, int] = defaultdict(int)
-    for item in symbols:
-        (by_family if item.proven else owned_by_family)[item.family] += 1
-    return {
-        "status": "passed" if not violations else "failed",
-        "proven_symbols": sum(by_family.values()),
-        "proven_symbols_by_family": dict(by_family),
-        "unproven_owned_symbols_by_family": dict(owned_by_family),
-        "contribution_hulls": len(hulls),
-        "address_ranges": len(ranges),
-        "sized_bodies": len(bodies),
-        "violations": len(violations),
-        "violation_kinds": dict(counts),
-        "artifact": str(path.relative_to(repo_dir)),
-    }
-
-
 def validate_source_oracle_ownership(
     repo_dir: Path,
     *,
     families: Sequence[OracleFamily] = ORACLE_FAMILIES,
 ) -> dict[str, Any]:
-    report = source_oracle_report(repo_dir, families=families)
-    if report["status"] != "passed":
-        violations = json.loads((repo_dir / report["artifact"]).read_text(encoding="utf-8"))[
-            "violations"
-        ]
+    violations = source_oracle_violations(repo_dir, families=families)
+    if violations:
         rendered = [item["detail"] for item in violations]
         raise SourceOracleGateError(
             "source-oracle ownership gate failed:\n  " + "\n  ".join(rendered)
         )
-    return {
-        "ok": True,
-        "gate": "source-oracle",
-        "proven_symbols": report["proven_symbols"],
-        "proven_symbols_by_family": report["proven_symbols_by_family"],
-        "unproven_owned_symbols_by_family": report["unproven_owned_symbols_by_family"],
-        "contribution_hulls": report["contribution_hulls"],
-        "address_ranges": report["address_ranges"],
-        "artifact": report["artifact"],
-    }
-
-
-def iter_oracle_families() -> Iterable[OracleFamily]:
-    return ORACLE_FAMILIES
+    return {"ok": True, "gate": "source-oracle"}
 
 
 def extract_declaration_oracle(repository: Path, configuration: dict, destination: Path) -> dict:

@@ -1,5 +1,4 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-10-06.
-   Normalize formatting of the reconstructed source.
+/* Modified for the Wizardry 8 reconstruction: 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __DirectDraw_Calls_H__
 #define __DirectDraw_Calls_H__

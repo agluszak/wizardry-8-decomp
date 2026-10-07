@@ -123,39 +123,3 @@ def open_program(settings: Settings, selector: str = "wiz8") -> Iterator[Any]:
 
         with pyghidra.program_context(project, "/" + program_name) as program:
             yield program
-
-
-def save_program(program: Any, comment: str) -> None:
-    """Flush ProgramDB to the checkout-owned DomainFile, or raise if it stays dirty."""
-
-    import pyghidra
-    from ghidra.util.task import TaskMonitor
-
-    if not program.isChanged():
-        return
-    program.save(comment, pyghidra.task_monitor())
-    if program.isChanged():
-        domain = program.getDomainFile()
-        if domain is not None:
-            domain.save(TaskMonitor.DUMMY)
-    if program.isChanged():
-        raise RuntimeError(f"Ghidra ProgramDB still dirty after save ({comment})")
-
-
-@contextmanager
-def open_live_program(settings: Settings, program_name: str) -> Iterator[Any]:
-    """Open one already-imported project program that has no tracked seed record.
-
-    Variant builds used for cross-build anchor projection are live analysis
-    inputs, not reviewed checkpoints, so they are addressed by their project
-    name instead of the seed manifest.
-    """
-
-    settings.project_dir.mkdir(parents=True, exist_ok=True)
-    with open_project(settings, create=True) as project:
-        import pyghidra
-
-        if project.getProjectData().getFile("/" + program_name) is None:
-            raise FileNotFoundError(f"Ghidra project has no program {program_name}")
-        with pyghidra.program_context(project, "/" + program_name) as program:
-            yield program

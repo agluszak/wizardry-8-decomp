@@ -16,12 +16,8 @@ public:
     /* srGERD::setTextureDefaultCompression remaps DEFAULT (4) to 0; the
        srTexture ctor seeds Dimensions::compression with DEFAULT. */
     enum e_compression { COMPRESSION_DEFAULT = 4 };
-    /* srTexture::getDimensions copies the embedded 0x2c-byte state block at
-       srTexture+0x20 wholesale: width/height, an srPtr<srPalette> assigned
-       through srPtr::operator= (so the output object must be constructed), the
-       surface PixelFormat, the e_hint bitmask, the compression selector and
-       the raw srFilter*. The srTexture ctor seeds palette from
-       srCore::getPalette() and filter from srCore::getFilter(). */
+    /* srTexture::getDimensions copies this block wholesale; palette is assigned through
+       srPtr::operator=, so the output object must be constructed. */
     struct Dimensions {
         unsigned long width;
         unsigned long height;
@@ -50,8 +46,7 @@ public:
         long source_bottom;
         srColorSurfaceIFace* destination;
     };
-    /* getTextureParms copies eight bytes: packed filter/wrap/mipmap state
-       from srTexture+0x18 and mipmap bias from +0x1c. */
+    /* Packed filter/wrap/mipmap state and the mipmap bias. */
     struct Parameters {
         enum {
             CORRECTION_MASK = 0x0003u,
@@ -82,9 +77,7 @@ public:
     /* Dump: NONE / FASTEST / BEST, else DEFAULT. GOOD is not a mipmap
        enumerator. setTextureDefaultMipmap remaps DEFAULT (3) to FASTEST. */
     enum e_mipmap { MIPMAP_NONE = 0, MIPMAP_FASTEST = 1, MIPMAP_BEST = 2, MIPMAP_DEFAULT = 3 };
-    /* enableHint ORs 1<<hint into srTexture+0x40. srTexture::dump does not
-       print these. Wizardry 2D tiles pair 1/2 with shader ALPHATEST; overlay
-       and poster paths also set 3; stTexture2D's ctor also sets 6. */
+    /* enableHint ORs 1<<hint into the texture's hint mask. */
     enum e_hint {
         HINT_NO_ALPHA = 1,
         HINT_ONE_BIT_ALPHA = 2,
@@ -95,10 +88,7 @@ public:
         HINT_NO_REDUCTION = 7,
         HINT_INTENSITY = 8
     };
-    /* Dump prints REPEAT then CLAMP for wrap S/T. Wizardry requests 1. */
     enum e_wrap { WRAP_REPEAT = 0, WRAP_CLAMP = 1 };
-    /* Dump: FASTEST / GOOD / BEST, else DEFAULT. Packed in bits 0–1 of
-       srTexture+0x18. */
     enum e_correction {
         CORRECTION_FASTEST = 0,
         CORRECTION_GOOD = 1,
