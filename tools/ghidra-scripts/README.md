@@ -14,7 +14,7 @@ to project established source facts.
 
 `merge_checkpoint_functions.py` reconciles non-overlapping function analysis from
 reviewed GZF checkpoints. Follow the
-[checkpoint procedure](../../.agents/skills/ghidra-analysis/references/checkpoints.md)
+[checkpoint procedure](../../docs/ghidra-checkpoints.md)
 before applying or refreshing analysis.
 
 Retail instructions and accepted original-source evidence outrank inferred types
