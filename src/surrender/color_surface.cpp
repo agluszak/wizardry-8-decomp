@@ -3303,25 +3303,25 @@ void srColorSurfaceIFace::magnify(srColorSurfaceIFace& source)
         }
         even[(source_width - 1) * 2] = buffer[source_width - 1];
         even[(source_width - 1) * 2 + 1] = buffer[source_width - 1];
-        setPixelRow(even, 0, 0, width);
-        for (long y = 1; y < source_height; y++) {
-            source.getPixelRow(buffer, y, 0, source_width);
+        /* Each pass writes the widened row y and the average of rows y and y + 1; the widened last
+           source row is never written, so the bottom two destination rows keep their contents. */
+        for (long y = 0; y < source_height - 1; y++) {
+            source.getPixelRow(buffer, y + 1, 0, source_width);
             for (x = 0; x < source_width - 1; x++) {
                 odd[x * 2] = buffer[x];
                 odd[x * 2 + 1] = (buffer[x + 1] >> 1 & 0x7f7f7f7f) + (buffer[x] >> 1 & 0x7f7f7f7f);
             }
             odd[(source_width - 1) * 2] = buffer[source_width - 1];
             odd[(source_width - 1) * 2 + 1] = buffer[source_width - 1];
+            setPixelRow(even, y * 2, 0, width);
             for (x = 0; x < width; x++) {
-                even[x] = (even[x] >> 1 & 0x7f7f7f7f) + (odd[x] >> 1 & 0x7f7f7f7f);
+                even[x] = (odd[x] >> 1 & 0x7f7f7f7f) + (even[x] >> 1 & 0x7f7f7f7f);
             }
-            setPixelRow(even, y * 2 - 1, 0, width);
-            setPixelRow(odd, y * 2, 0, width);
+            setPixelRow(even, y * 2 + 1, 0, width);
             unsigned long* swap = even;
             even = odd;
             odd = swap;
         }
-        setPixelRow(even, height - 1, 0, width);
         delete[] buffer_colors;
     }
 }
