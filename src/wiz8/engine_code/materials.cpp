@@ -2106,6 +2106,11 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
                 sprintf(texture_path, "%s\\%s", bitmap_folder, source->texture_names[index]);
             }
             texture_index = index;
+            /* Retail 0x004b8c93: a texture found only in the fourth slot marks
+               the material as alpha-carrying before any texture is loaded. */
+            if (index == 3) {
+                has_alpha = true;
+            }
             break;
         }
     }
