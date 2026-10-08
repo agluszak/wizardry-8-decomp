@@ -1412,10 +1412,11 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &minimum_range, 4, 0);
             FileRead(handle, surface_id, sizeof(surface_id), 0);
             /* The id is the four characters after a leading NUL: retail stores
-               a terminator at surface_id[5] before atoi, and tests the world
-               geometry without a null check on its owner. */
+               a terminator at surface_id[5] before atoi. Retail 0x00441c99
+               only requires the world's game data, not its build-time
+               geometry index (null once a level runs from its octree). */
             if (surface_id[0] == 0) {
-                if (world->game_data->geometry_index != 0) {
+                if (world->game_data != 0) {
                     surface_id[5] = 0;
                     id = atoi(surface_id + 1);
                 }
@@ -1584,8 +1585,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             trigger->flags |= W8_TRIGGER_PLANE;
         trigger->m_pacRecipients = new char[strlen(recipients) + 1];
         strcpy(trigger->m_pacRecipients, recipients);
-        if ((trigger->flags & W8_TRIGGER_PLANE) != 0 && world->game_data != 0 &&
-            world->game_data->geometry_index != 0) {
+        /* Retail 0x00442483 hands plane triggers to the game data whenever it
+           exists; AddTriggerPlane itself picks the octree or build path. */
+        if ((trigger->flags & W8_TRIGGER_PLANE) != 0 && world->game_data != 0) {
             world->game_data->AddTriggerPlane(trigger->representation_vectors, trigger);
         }
         if (trigger->initial_action == 0x34 && trigger->m_pacRecipients[0] == 0) {
@@ -1900,8 +1902,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             }
         }
 
-        if (representation_kind == 2 && world->game_data != 0 &&
-            world->game_data->geometry_index != 0) {
+        /* Retail 0x0044342d: the legacy representation path has the same
+           game-data-only guard. */
+        if (representation_kind == 2 && world->game_data != 0) {
             world->game_data->AddTriggerPlane(trigger->representation_vectors, trigger);
         }
         if (trigger->initial_action == 0x34 && trigger->m_pacRecipients == 0) {
