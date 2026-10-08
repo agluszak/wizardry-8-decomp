@@ -161,8 +161,11 @@ public:
         unsigned long value_10;
         unsigned long value_14;
         unsigned long triangles_received;
-        unsigned long vertices_transferred;
+        /* Retail GERD::getStatistics copies +0x1c into its vertex-index
+           counter and +0x20 into its vertices-transferred counter; the
+           Glide2x driver accumulates per-call vertex counts into +0x20. */
         unsigned long vertex_indices;
+        unsigned long vertices_transferred;
         unsigned long value_24;
     };
     /* getTextureFormats / getWindowList fill {pointer, count} out-records;
