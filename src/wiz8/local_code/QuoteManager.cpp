@@ -912,8 +912,11 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active, unsigned i
             swprintf(formatted, L"%s", character_name);
             int scroll_range = GetTextBoxScrollRange();
             ShowNotice(W8_FONT_PALETTE_GREEN, formatted, 3, scroll_range);
-            const wchar_t* suffix = GetPortraitQuoteText(quote->quote_handle);
-            ShowNotice(W8_FONT_PALETTE_TEXT_BOX, suffix);
+            /* Retail 0x0052fc82..0x0052fc9b: the quote line follows the
+               speaker's name into the dialogue box (3) with the same scroll
+               width, not the mode-selected box. */
+            ShowNotice(W8_FONT_PALETTE_TEXT_BOX, GetPortraitQuoteText(quote->quote_handle), 3,
+                       GetTextBoxScrollRange());
         } else {
             if (g_first_remapped_event <= mapped_event) {
                 mapped_event = g_normal_event_count - g_first_remapped_event + mapped_event;
