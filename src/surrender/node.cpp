@@ -100,6 +100,11 @@ static void normalizeZYX(srVector3T<double>& vector)
     }
 }
 
+static double dotZYX(const srVector3T<double>& first, const srVector3T<double>& second)
+{
+    return (first.z * second.z + first.y * second.y) + first.x * second.x;
+}
+
 /* srMatrix3T<double>::MultiplyBy as retail's out-of-line instance
    (0x10055930) sums it: every element is (z + y) + x over the left row. The
    header template's loop associates the rows differently once VC6 has
@@ -1496,11 +1501,12 @@ void srNode::pitchAt(const srVector3T<double>& target, double amount)
     srMatrix3T<double> rotation;
     getWorldSpaceRotation(rotation);
     srVector3T<double> direction = target - getWorldSpaceLocation();
-    direction.Normalize();
+    normalizeZYX(direction);
     srVector3T<double> up(rotation.vectors[0].y, rotation.vectors[1].y, rotation.vectors[2].y);
     srVector3T<double> forward(rotation.vectors[0].z, rotation.vectors[1].z, rotation.vectors[2].z);
-    float toward = DotProduct(forward, direction);
-    double angle = -atan2(DotProduct(up, direction), toward) * amount;
+    /* Retail stores the forward component to a float slot and reloads it. */
+    volatile float toward = (float)dotZYX(forward, direction);
+    double angle = -atan2(dotZYX(up, direction), toward) * amount;
     if (angle != 0.0) {
         rotateAboutX(rotation, sin(angle), cos(angle));
     }
@@ -1520,11 +1526,12 @@ void srNode::yawAt(const srVector3T<double>& target, double amount)
     srMatrix3T<double> rotation;
     getWorldSpaceRotation(rotation);
     srVector3T<double> direction = target - getWorldSpaceLocation();
-    direction.Normalize();
+    normalizeZYX(direction);
     srVector3T<double> right(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x);
     srVector3T<double> forward(rotation.vectors[0].z, rotation.vectors[1].z, rotation.vectors[2].z);
-    float toward = DotProduct(forward, direction);
-    double angle = atan2(DotProduct(right, direction), toward) * amount;
+    /* Retail stores the forward component to a float slot and reloads it. */
+    volatile float toward = (float)dotZYX(forward, direction);
+    double angle = atan2(dotZYX(right, direction), toward) * amount;
     if (angle != 0.0) {
         rotateAboutY(rotation, sin(angle), cos(angle));
     }
@@ -1543,7 +1550,7 @@ void srNode::rollUp(double amount)
 {
     srMatrix3T<double> rotation;
     getWorldSpaceRotation(rotation);
-    float vertical = rotation.vectors[1].y;
+    volatile float vertical = (float)rotation.vectors[1].y;
     double angle = -atan2(rotation.vectors[1].x, vertical) * amount;
     if (angle != 0.0) {
         rotateAboutZ(rotation, sin(angle), cos(angle));
@@ -1559,7 +1566,10 @@ void srNode::rollAt(const srVector3T<double>& target, double amount)
     getWorldSpaceRotation(rotation);
     srVector3T<double> right(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x);
     srVector3T<double> up(rotation.vectors[0].y, rotation.vectors[1].y, rotation.vectors[2].y);
-    double angle = -atan2(DotProduct(right, target), DotProduct(up, target)) * amount;
+    /* Retail's inlined dot products associate (z + x) + y and (x + z) + y. */
+    double across = (right.z * target.z + right.x * target.x) + right.y * target.y;
+    double along = (up.x * target.x + up.z * target.z) + up.y * target.y;
+    double angle = -atan2(across, along) * amount;
     if (angle != 0.0) {
         rotateAboutZ(rotation, sin(angle), cos(angle));
     }
