@@ -19,7 +19,7 @@ srVariableTimer::srVariableTimer(int force_system_timer, int unused, int save_ca
     m_step_ticks = static_cast<unsigned __int64>((double)m_step_ticks * m_step_scale);
 }
 
-// FUNCTION: SURRENDER 0x10063450
+// FUNCTION: SURRENDER 0x10063550
 srVariableTimer::srVariableTimer(const srVariableTimer& other) : srTimer(other)
 {
     m_multiplier = other.m_multiplier;
@@ -32,7 +32,7 @@ srVariableTimer::srVariableTimer(const srVariableTimer& other) : srTimer(other)
     m_step_ticks = other.m_step_ticks;
 }
 
-// FUNCTION: SURRENDER 0x10063550
+// FUNCTION: SURRENDER 0x10063450
 srVariableTimer::srVariableTimer(const srTimer& other) : srTimer(other)
 {
     m_multiplier = 1.0f;
