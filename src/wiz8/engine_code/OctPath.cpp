@@ -59,7 +59,7 @@
 // GLOBAL: WIZ8 0x005ebc30
 const double g_double_one = 1.0;
 // GLOBAL: WIZ8 0x005ec020
-const float g_path_overlap_tolerance = 0.0f;
+const double g_path_overlap_tolerance = 250.0;
 // GLOBAL: WIZ8 0x005ec368
 const double g_waypoint_edge_offset = 25.00000037252903;
 // GLOBAL: WIZ8 0x005ec378
@@ -85,9 +85,9 @@ const float g_path_gap_penalty_scale = 0.5099999904632568f;
 // GLOBAL: WIZ8 0x005ec3c0
 const float g_float_one_million = 1000000.0f;
 // GLOBAL: WIZ8 0x005ec3c8
-const float g_path_blocking_alignment_upper_bound = -107374184.0f;
+const double g_path_blocking_alignment_upper_bound = 0.9;
 // GLOBAL: WIZ8 0x005ec3d0
-const float g_path_blocking_alignment_lower_bound = -107374184.0f;
+const double g_path_blocking_alignment_lower_bound = -0.9;
 // GLOBAL: WIZ8 0x005ed2e0
 const double g_obstacle_slide_side_threshold = 0.2;
 // GLOBAL: WIZ8 0x005ed2e8
