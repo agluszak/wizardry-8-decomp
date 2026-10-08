@@ -895,8 +895,11 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         for (short index = 0; index < mapping_count; ++index) {
             short value;
             short key;
-            if (success == 0 || !FileRead(file, &value, sizeof(value), 0) ||
-                !FileRead(file, &key, sizeof(key), 0)) {
+            /* Retail 0x00485e06/0x00485e1b: the mapping key (the vertex
+               marker id GetCycleMappedPosition asks for) comes first in the
+               file, then the original vertex index. */
+            if (success == 0 || !FileRead(file, &key, sizeof(key), 0) ||
+                !FileRead(file, &value, sizeof(value), 0)) {
                 success = 0;
             }
             mapped_values.Add(value);
