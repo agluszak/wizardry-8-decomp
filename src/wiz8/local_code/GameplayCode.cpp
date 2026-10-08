@@ -710,6 +710,7 @@ void CalcAttacks(W8Character* character)
         }
 
         divisor = 1;
+        bool strength_applies = true;
         if (records[hand] != 0 && (records[hand]->attack_flags & 0xfe6f) == 0) {
             switch (records[hand]->unidentified_name_index) {
             case 0x68:
@@ -717,13 +718,16 @@ void CalcAttacks(W8Character* character)
             case 0x72:
             case 0x83:
             case 0x90:
+                strength_applies = false;
                 break;
             default:
                 divisor = 2;
             }
         }
 
-        if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective < 50) {
+        if (!strength_applies) {
+            /* These kinds skip the strength terms entirely (0x004ee78a -> 0x004ee7fe). */
+        } else if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective < 50) {
             attack->hit_bonus -=
                 (50 - character->attributes[W8_ATTRIBUTE_STRENGTH].effective) / (divisor * 10);
             attack->damage_percent -=
