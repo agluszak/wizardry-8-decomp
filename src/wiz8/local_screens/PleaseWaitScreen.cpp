@@ -3,6 +3,8 @@
 #include "mousesystem.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/sgp_text.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Levels.h"
@@ -186,8 +188,7 @@ static void DrawPleaseWaitScreen()
     DrawCatalogImage(FRAME_BUFFER, backdrop, 0, 0, 0, 0, VO_BLT_SRCTRANSPARENCY, 0);
     DrawCatalogImage(FRAME_BUFFER, 0x1de, 0, 0, 0, 0x1be, VO_BLT_SRCTRANSPARENCY, 0);
     SetFont(g_level_load_font);
-    gprintf(0x6a, 0x1c7, (unsigned short*)"%", /* c-style-cast-ok: SGP UINT16* format */
-            g_load_descriptor->caption);
+    gprintf(0x6a, 0x1c7, Wiz8ToSgpWideText(g_format_s), g_load_descriptor->caption);
     DrawCatalogImage(FRAME_BUFFER, 0x1dd, 0, g_load_descriptor->caption_y, 0, 0x185,
                      VO_BLT_SRCTRANSPARENCY, 0);
     ResetTransientRenderScenes();
