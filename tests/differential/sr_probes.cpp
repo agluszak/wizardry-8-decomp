@@ -132,14 +132,17 @@ class ProbeDD : public srDD {
 public:
     ProbeDD()
     {
-        static const srPixelConvert::e_surfaceType types[3] = {srPixelConvert::SURFACE_ARGB4444,
-                                                               srPixelConvert::SURFACE_ARGB4444,
-                                                               srPixelConvert::SURFACE_ARGB4444};
+        /* The first entry stays ARGB4444 (createNewTexture's starting format);
+           the rest let format.match pick 16-bit, 32-bit and indexed storage. */
+        static const srPixelConvert::e_surfaceType types[TEXTURE_FORMATS] = {
+            srPixelConvert::SURFACE_ARGB4444, srPixelConvert::SURFACE_RGB565,
+            srPixelConvert::SURFACE_BGRA32, srPixelConvert::SURFACE_P8};
         int index;
         memset(calls, 0, sizeof(calls));
         memset(formats, 0, sizeof(formats));
         texture_events = 0;
-        for (index = 0; index < 3; ++index) {
+        dump_texture_rows = 0;
+        for (index = 0; index < TEXTURE_FORMATS; ++index) {
             srPixelConvert::PixelFormat format;
             srPixelConvert::mapPixelFormat(types[index], format);
             /* srDD::PixelFormat is the converter format without its FourCC. */
@@ -171,7 +174,7 @@ public:
     {
         ++calls[2];
         list.formats = formats;
-        list.count = 3;
+        list.count = TEXTURE_FORMATS;
     }
     virtual void getStatistics(Statistics& stats)
     {
@@ -347,9 +350,14 @@ public:
             return;
         }
         ++texture_events;
-        printf("dd %s %lu size %lux%lu levels %lu..%lu pixel-size %d\n", call, argument,
-               texture.width, texture.height, texture.first_level, texture.last_level,
-               static_cast<int>(texture.format.pixel_size));
+        /* texture.format is the source format the GERD asked for; the level
+           data is in the matched device format. */
+        const PixelFormat& stored =
+            formats[texture.format_index < TEXTURE_FORMATS ? texture.format_index : 0];
+        printf("dd %s %lu size %lux%lu levels %lu..%lu pixel-size %d stored %lu/%d\n", call,
+               argument, texture.width, texture.height, texture.first_level, texture.last_level,
+               static_cast<int>(texture.format.pixel_size), texture.format_index,
+               static_cast<int>(stored.pixel_size));
         for (level = texture.first_level; level <= texture.last_level && level < 12; ++level) {
             unsigned long width = texture.width >> level;
             unsigned long height = texture.height >> level;
@@ -363,7 +371,7 @@ public:
             if (height == 0) {
                 height = 1;
             }
-            bytes = width * height * (static_cast<unsigned long>(texture.format.pixel_size) + 1);
+            bytes = width * height * (static_cast<unsigned long>(stored.pixel_size) + 1);
             if (data == 0) {
                 printf("dd   level %lu %lux%lu null\n", level, width, height);
                 continue;
@@ -372,12 +380,26 @@ public:
                 sum = (sum ^ data[offset]) * 16777619UL;
             }
             printf("dd   level %lu %lux%lu fnv %08lx\n", level, width, height, sum);
+            if (dump_texture_rows && level == texture.first_level) {
+                unsigned long row_bytes = bytes / height;
+                unsigned long row;
+                for (row = 0; row < height && row < 8; ++row) {
+                    printf("dd   row %lu ", row);
+                    for (offset = 0; offset < row_bytes && offset < 64; ++offset) {
+                        printf("%02x", data[row * row_bytes + offset]);
+                    }
+                    printf("\n");
+                }
+            }
         }
     }
 
     unsigned long calls[8];
     int texture_events;
-    PixelFormat formats[3];
+    /* Set by gerdTextureCase: also print the first rows of the top level. */
+    int dump_texture_rows;
+    enum { TEXTURE_FORMATS = 4 };
+    PixelFormat formats[TEXTURE_FORMATS];
     WindowInfo modes[2];
     srMatrix4T<float> last_projection;
     int last_projection_type;
@@ -468,10 +490,62 @@ static void textureProbe()
     printf("setTexture done, texture-events %d\n", g_dd->texture_events);
 }
 
+/* Binds a runner-built texture through the GERD; ProbeDD records every
+   uploaded level. */
+typedef void* ExportAddress;
+
+static ExportAddress g_apply_state;
+
+static void callMember0(ExportAddress function, void* self)
+{
+    __asm {
+        mov ecx, self
+        call function
+    }
+}
+
+void gerdTextureCase(srTextureIFace* texture)
+{
+    if (g_context_result == -2) {
+        driverListProbe();
+    }
+    if (g_context_result != 0) {
+        printf("error no context\n");
+        return;
+    }
+    static int window_open = 0;
+    if (!window_open) {
+        g_gerd->openWindow(32, 32);
+        window_open = 1;
+    }
+    if (g_apply_state == 0) {
+        g_apply_state = reinterpret_cast<ExportAddress>(
+            GetProcAddress(GetModuleHandleA("sr.dll"), "?applyDrawStateChanges@srGERD@@AAEXXZ"));
+    }
+    g_dd->texture_events = 0;
+    g_dd->dump_texture_rows = 1;
+    g_gerd->setTexture(texture, 0);
+    /* setTexture only builds the GERD copy; the bind happens when the next
+       draw applies the dirty state. */
+    callMember0(g_apply_state, g_gerd);
+    printf("texture-events %d\n", g_dd->texture_events);
+    srGERD::TextureInfo info;
+    memset(&info, 0, sizeof(info));
+    int known = g_gerd->getTextureInfo(texture, info);
+    printf("texture-info %d %lux%lu last %lu format %d/%d %d/%d %d/%d %d/%d size %d cached %d\n",
+           known, info.width, info.height, info.last_level, info.pixel_format.red_bits,
+           info.pixel_format.red_shift, info.pixel_format.green_bits, info.pixel_format.green_shift,
+           info.pixel_format.blue_bits, info.pixel_format.blue_shift, info.pixel_format.alpha_bits,
+           info.pixel_format.alpha_shift, static_cast<int>(info.pixel_format.pixel_size),
+           g_gerd->isTextureCached(texture));
+    g_dd->dump_texture_rows = 0;
+    g_gerd->setTexture(srCore.getTexture(), 0);
+    callMember0(g_apply_state, g_gerd);
+    g_gerd->invalidateTexture(texture);
+}
+
 /* ------------------------------------------------------------------------ */
 /* Camera: processPush loads the view matrix into the renderer. */
-
-typedef void* ExportAddress;
 
 static ExportAddress g_process_push;
 static ExportAddress g_process_pop;
@@ -594,6 +668,9 @@ static void cameraTranslatedRotated()
 void surfaceCases();
 void huffmanCases();
 void miscCases();
+void streamCases();
+void modelCases();
+extern const char* g_blob_file;
 
 void probeCases()
 {
@@ -607,4 +684,6 @@ void probeCases()
     surfaceCases();
     huffmanCases();
     miscCases();
+    streamCases();
+    modelCases();
 }

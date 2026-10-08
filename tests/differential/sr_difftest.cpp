@@ -8,7 +8,7 @@
    which the driver does not compare.
 
    Usage: sr_difftest [--seed N] [--generated K] [--window FIRST COUNT]
-                      [--list] [case-name ...]
+                      [--list] [--blobs FILE] [case-name ...]
 */
 
 #include <excpt.h>
@@ -2128,6 +2128,8 @@ static void printSlots()
     }
 }
 
+extern const char* g_blob_file;
+
 int main(int argc, char** argv)
 {
     unsigned long seed = 1;
@@ -2145,6 +2147,8 @@ int main(int argc, char** argv)
         } else if (strcmp(argv[index], "--window") == 0 && index + 2 < argc) {
             g_window_first = atoi(argv[++index]);
             g_window_count = atoi(argv[++index]);
+        } else if (strcmp(argv[index], "--blobs") == 0 && index + 1 < argc) {
+            g_blob_file = argv[++index];
         } else if (strcmp(argv[index], "--list") == 0) {
             g_list_only = 1;
         } else {

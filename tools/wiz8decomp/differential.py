@@ -195,6 +195,69 @@ def _divergent_element(divergence: dict[str, Any]) -> int | None:
     return int(key[1][2 : key[1].index("]")])
 
 
+def _blob_lines(trace: Trace) -> list[str]:
+    return [line for name in trace.order for line in trace.cases[name] if line.startswith("blob ")]
+
+
+def cross_read(
+    variants: Sequence[Variant],
+    traces: Sequence[Trace],
+    directories: Sequence[Path],
+    cases: Sequence[str],
+) -> dict[str, Any]:
+    """Decode every variant's written stream blobs with every other variant.
+
+    Each variant's ``blob`` lines go to ``blobs-<source>.txt`` in every variant
+    directory. For each source, every variant runs the ``stream.xread.*`` cases
+    on that file, and each candidate's decode is compared with the reference's
+    decode of the same bytes. Retail-written bytes are thus read by the rebuilt
+    DLL and the other way round.
+    """
+    empty: dict[str, Any] = {"cases": 0, "divergences": [[] for _ in variants[1:]]}
+    selected = [case for case in cases if case.startswith(("stream.xread", "stream.*", "stream.x"))]
+    if cases and not selected:
+        return empty
+    blobs = [_blob_lines(trace) for trace in traces]
+    if not any(blobs):
+        return empty
+    for directory in directories:
+        for variant, lines in zip(variants, blobs, strict=True):
+            (directory / f"blobs-{variant.name}.txt").write_text(
+                "\n".join(lines) + "\n", encoding="utf-8"
+            )
+    jobs = [(source, index) for source in range(len(variants)) for index in range(len(variants))]
+
+    def run(job: tuple[int, int]) -> Trace:
+        source, index = job
+        arguments = ["--blobs", f"blobs-{variants[source].name}.txt", "stream.xread.*"]
+        return run_variant(directories[index], arguments)
+
+    with ThreadPoolExecutor(max_workers=min(6, len(jobs))) as pool:
+        decoded = dict(zip(jobs, pool.map(run, jobs), strict=True))
+    for (source, index), trace in decoded.items():
+        (directories[index] / f"xread-{variants[source].name}.txt").write_text(
+            "\n".join(f"case {name}\n" + "\n".join(trace.cases[name]) for name in trace.order)
+            + "\n",
+            encoding="utf-8",
+        )
+    divergences: list[list[dict[str, Any]]] = [[] for _ in variants[1:]]
+    count = 0
+    for source, variant in enumerate(variants):
+        reference = decoded[(source, 0)]
+        count += len(reference.order)
+        for index in range(1, len(variants)):
+            trace = decoded[(source, index)]
+            for name in reference.order:
+                divergence = first_divergence(
+                    reference.cases[name], trace.cases.get(name, ["<missing case>"])
+                )
+                if divergence is not None:
+                    divergences[index - 1].append(
+                        {"case": f"{name}@{variant.name}-written", **divergence}
+                    )
+    return {"cases": count, "divergences": divergences}
+
+
 def compare(
     variants: Sequence[Variant],
     runner: Path,
@@ -283,6 +346,12 @@ def compare(
                 "reference": [line for line in left_lines if line.startswith("out ")],
                 "candidate": [line for line in right_lines if line.startswith("out ")],
             }
+
+    cross = cross_read(variants, traces, directories, cases)
+    for result, entries in zip(results, cross["divergences"], strict=True):
+        result["cases"] += cross["cases"]
+        result["divergent"] += len(entries)
+        result["divergences"].extend(entries)
 
     # Each reduction is two short container runs; bound the parallelism.
     with ThreadPoolExecutor(max_workers=6) as pool:

@@ -11,8 +11,10 @@
 #include "surrender/srColorSurface.h"
 #include "surrender/srFilter.h"
 #include "surrender/srPalette.h"
+#include "surrender/srTextureMap.h"
 
 void runProbe(const char* name, void (*probe)());
+void gerdTextureCase(srTextureIFace* texture);
 
 static unsigned long g_surface_rng = 1;
 
@@ -509,6 +511,167 @@ static void paletteCase()
 }
 
 /* ------------------------------------------------------------------------ */
+/* srTextureMap mip chains. Source and destinations live in runner buffers
+   with padded pitches, guarded on both sides, so the cases also see writes
+   into row padding or past the surface. */
+
+static const unsigned char GUARD = 0xa7;
+
+struct PitchedSurface {
+    srColorSurface* surface;
+    unsigned char* buffer;
+    unsigned long bytes;
+    long pitch;
+    long row_bytes;
+};
+
+static PitchedSurface makePitched(const SurfaceType* type, long width, long height, long padding)
+{
+    PitchedSurface result;
+    srPixelConvert::PixelFormat format;
+    srPixelConvert::mapPixelFormat(type->type, format);
+    long bytes_per_pixel = static_cast<long>(format.pixel_size) + 1;
+    result.row_bytes = width * bytes_per_pixel;
+    result.pitch = result.row_bytes + padding;
+    result.bytes = static_cast<unsigned long>(result.pitch * height + 32);
+    result.buffer = static_cast<unsigned char*>(malloc(result.bytes));
+    memset(result.buffer, GUARD, result.bytes);
+    result.surface =
+        new srColorSurface(type->type, result.buffer + 16, width, height, result.pitch);
+    if (result.surface->isPaletted()) {
+        result.surface->setPalette(probePalette());
+    }
+    return result;
+}
+
+static void dumpPitched(const char* label, const PitchedSurface& pitched)
+{
+    unsigned long index;
+    unsigned long touched = 0;
+    long height = pitched.surface->getHeight();
+    dumpRaw(label, pitched.surface);
+    for (index = 0; index < pitched.bytes; ++index) {
+        long offset = static_cast<long>(index) - 16;
+        int inside = offset >= 0 && offset < pitched.pitch * height &&
+                     (offset % pitched.pitch) < pitched.row_bytes;
+        if (!inside && pitched.buffer[index] != GUARD) {
+            if (touched < 8) {
+                printf("%s guard %ld %02x\n", label, offset, pitched.buffer[index]);
+            }
+            ++touched;
+        }
+    }
+    printf("%s pitch %ld guards-touched %lu\n", label, pitched.pitch, touched);
+}
+
+static void textureMipCase()
+{
+    long width = g_size[0];
+    long height = g_size[1];
+    long start = g_size[2];
+    PitchedSurface source = makePitched(g_type_a, width, height, 3);
+    unsigned char* data = static_cast<unsigned char*>(source.surface->getDataPtr());
+    long y;
+    long x;
+    for (y = 0; y < height; ++y) {
+        for (x = 0; x < source.row_bytes; ++x) {
+            data[y * source.pitch + x] = static_cast<unsigned char>(surfaceRandom() >> 7);
+        }
+    }
+    if (g_variant != 0) {
+        source.surface->setFilter(g_filters[g_variant]);
+    }
+    srTextureMap* texture = new srTextureMap(source.surface);
+    srTextureIFace::Dimensions dimensions;
+    texture->getDimensions(dimensions);
+    const srPixelConvert::PixelFormat& format = dimensions.format;
+    printf("dimensions %lux%lu format %d/%d %d/%d %d/%d %d/%d model %d size %d palette %d\n",
+           dimensions.width, dimensions.height, format.red_bits, format.red_shift,
+           format.green_bits, format.green_shift, format.blue_bits, format.blue_shift,
+           format.alpha_bits, format.alpha_shift, static_cast<int>(format.color_model),
+           static_cast<int>(format.pixel_size), dimensions.palette != 0 ? 1 : 0);
+    srTextureIFace::Parameters parameters;
+    texture->getTextureParms(parameters);
+    float bias = parameters.mipmap_bias;
+    float priority = texture->getPriority();
+    printf("parameters %08lx bias %08lx priority %08lx\n", parameters.packed_state,
+           *reinterpret_cast<unsigned long*>(&bias), *reinterpret_cast<unsigned long*>(&priority));
+    srTextureIFace::MultiRequest request;
+    PitchedSurface levels[12];
+    long level_count = 0;
+    long level;
+    memset(&request, 0, sizeof(request));
+    for (level = 0; level < 12; ++level) {
+        long level_width = width >> level;
+        long level_height = height >> level;
+        levels[level] = makePitched(g_type_b, level_width ? level_width : 1,
+                                    level_height ? level_height : 1, level & 1 ? 5 : 2);
+        request.destinations[level] = levels[level].surface;
+        ++level_count;
+        if (level_width <= 1 && level_height <= 1) {
+            break;
+        }
+    }
+    request.mipmap_level = start;
+    request.last_level = static_cast<unsigned long>(level_count - 1);
+    texture->getMipmapData(request);
+    for (level = start; level < level_count; ++level) {
+        char label[16];
+        sprintf(label, "L%ld", level);
+        dumpPitched(label, levels[level]);
+    }
+    dumpPitched("source", source);
+}
+
+static void textureGerdCase()
+{
+    srColorSurface* source = makeSurface(g_type_a, g_size[0], g_size[1]);
+    fillRaw(source);
+    srTextureMap* texture = new srTextureMap(source);
+    if (g_variant & 1) {
+        texture->enableHint(srTextureIFace::HINT_NO_MIPMAPS);
+    }
+    if (g_variant & 2) {
+        texture->setMipmap(srTextureIFace::MIPMAP_BEST);
+    }
+    gerdTextureCase(texture);
+}
+
+static void clippedBlitCase()
+{
+    static const long rects[][8] = {
+        {0, 0, 7, 5, 0, 0, 7, 5},   {-3, -2, 4, 3, 0, 0, 7, 5},     {5, 3, 12, 9, 0, 0, 7, 5},
+        {2, 1, 6, 4, -4, -4, 3, 3}, {0, 0, 7, 5, 4, 2, 11, 7},      {3, 2, 3, 4, 0, 0, 7, 5},
+        {6, 4, 2, 1, 0, 0, 7, 5},   {-10, -10, -1, -1, 0, 0, 3, 3}, {1, 1, 6, 4, 2, 2, 4, 3},
+        {0, 0, 14, 10, 0, 0, 7, 5},
+    };
+    PitchedSurface destination = makePitched(g_type_b, 7, 5, 3);
+    PitchedSurface source = makePitched(g_type_a, 7, 5, 1);
+    unsigned char* data = static_cast<unsigned char*>(source.surface->getDataPtr());
+    long y;
+    long x;
+    for (y = 0; y < 5; ++y) {
+        for (x = 0; x < source.row_bytes; ++x) {
+            data[y * source.pitch + x] = static_cast<unsigned char>(surfaceRandom() >> 7);
+        }
+    }
+    destination.surface->fill(0x11223344);
+    const long* rect = rects[g_variant];
+    srColorSurfaceIFace::BlitInfo info;
+    info.destination.left = rect[0];
+    info.destination.top = rect[1];
+    info.destination.right = rect[2];
+    info.destination.bottom = rect[3];
+    info.source.left = rect[4];
+    info.source.top = rect[5];
+    info.source.right = rect[6];
+    info.source.bottom = rect[7];
+    static_cast<srColorSurfaceIFace*>(destination.surface)->blit(info, *source.surface);
+    dumpPitched("d", destination);
+    dumpARGB("d", destination.surface);
+}
+
+/* ------------------------------------------------------------------------ */
 
 static void submitSurface(void (*function)())
 {
@@ -577,4 +740,49 @@ void surfaceCases()
     }
     sprintf(g_case_name, "palette.quantize");
     submitSurface(paletteCase);
+    static const int mip_types[] = {19, 7, 2, 11, 4, 12, 9, 3, 14, 6};
+    static const long mip_sizes[][3] = {{16, 16, 0}, {7, 5, 0}, {1, 9, 0}, {13, 1, 0},
+                                        {3, 3, 0},   {8, 8, 1}, {32, 4, 2}};
+    for (a = 0; a < 10; ++a) {
+        for (b = 0; b < 10; ++b) {
+            for (index = 0; index < 7; ++index) {
+                if (index >= 2 && (a + b + index) % 3 != 0) {
+                    continue; /* thin out the size matrix */
+                }
+                g_type_a = &g_types[mip_types[a]];
+                g_type_b = &g_types[mip_types[b]];
+                g_size[0] = mip_sizes[index][0];
+                g_size[1] = mip_sizes[index][1];
+                g_size[2] = mip_sizes[index][2];
+                g_variant = (a * 7 + b * 3 + index) % 5;
+                sprintf(g_case_name, "texture.mips.%s.%s.%ldx%ld.from%ld.%s", g_type_a->name,
+                        g_type_b->name, g_size[0], g_size[1], g_size[2], g_filter_names[g_variant]);
+                submitSurface(textureMipCase);
+            }
+        }
+    }
+    static const long gerd_sizes[][2] = {{16, 16}, {7, 5}, {1, 1}, {64, 2}, {3, 17}};
+    for (a = 0; a < 10; ++a) {
+        for (index = 0; index < 5; ++index) {
+            for (filter = 0; filter < 4; ++filter) {
+                g_type_a = &g_types[mip_types[a]];
+                g_size[0] = gerd_sizes[index][0];
+                g_size[1] = gerd_sizes[index][1];
+                g_variant = filter;
+                sprintf(g_case_name, "texture.gerd.%s.%ldx%ld.v%d", g_type_a->name, g_size[0],
+                        g_size[1], filter);
+                submitSurface(textureGerdCase);
+            }
+        }
+    }
+    for (a = 0; a < 10; ++a) {
+        for (index = 0; index < 10; ++index) {
+            g_type_a = &g_types[mip_types[a]];
+            g_type_b = &g_types[mip_types[(a + index) % 10]];
+            g_variant = index;
+            sprintf(g_case_name, "surface.blitclip.%s.%s.r%d", g_type_a->name, g_type_b->name,
+                    index);
+            submitSurface(clippedBlitCase);
+        }
+    }
 }

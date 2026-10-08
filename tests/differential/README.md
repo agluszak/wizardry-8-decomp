@@ -27,7 +27,8 @@ native-first through `WINEDLLOVERRIDES`. Every container runs with
 
 Runner options: `--seed N` (default 1), `--generated K` rounds,
 `--window FIRST COUNT` (rerun only those elements; the driver uses this for
-minimized reproducers), `--list`.
+minimized reproducers), `--blobs FILE` (run the `stream.xread.*` cases on
+the blobs in FILE; the driver uses this for cross-reads), `--list`.
 
 ## Cases
 
@@ -47,8 +48,8 @@ minimized reproducers), `--list`.
 * `probe.registry.grow-shrink`: an `srRegistry` with 40 named instances.
   After each insert and each removal, the probe checks that every live name is
   still found. Capacity starts at 4, so the 5th insert grows the table.
-* `probe.gerd.driver-lists`: a runner-owned `srDD` (`ProbeDD`) reports 3
-  texture formats and 2 display modes to a real `srGERD::createContext`.
+* `probe.gerd.driver-lists`: a runner-owned `srDD` (`ProbeDD`) reports 4
+  texture formats (ARGB4444, RGB565, BGRA32, P8) and 2 display modes to a real `srGERD::createContext`.
 * `probe.gerd.default-texture`: `openWindow` builds the 64x64, 7-level
   default texture through `createNewTexture`'s MultiRequest. The probe
   prints each mip level's size and FNV checksum as `ProbeDD::bindTexture`
@@ -109,6 +110,68 @@ minimized reproducers), `--list`.
   over 1 to 256 colours and four channel-bit layouts, and
   `Sampler::createOptimalPalette` over random, clustered, grey and
   coarsely sampled colour sets.
+
+* `stream.write.*`, `stream.read.*`, `stream.file.o<n>`,
+  `stream.edge.empty-large`: `srBinOMStream` writes every `operator<<` type
+  and the raw writers in both byte orders, and prints the buffer as a
+  `blob` line. `srBinIMStream` decodes the same layout through every
+  `operator>>` and getter, plus EOF, `clear`, the `seek` variants and the
+  `Failure` exception. `srBinOFStream`/`srBinIFStream` repeat the round trip
+  through a temporary file.
+* `stream.xread.<id>@<variant>-written`: the driver collects every
+  variant's `blob` lines, and each variant then decodes every other
+  variant's blobs (`--blobs`). The written bytes and the decoded values are
+  compared with the reference's decode of its own blobs.
+* `texture.mips.<A>.<B>.<WxH>.from<n>.<filter>`: `srTextureMap` over a
+  type-A source with odd and small sizes. `getDimensions`,
+  `getTextureParms` and `getMipmapData` fill a type-B MultiRequest down to
+  1x1, starting at level n, into padded-pitch buffers with guard bytes.
+* `texture.gerd.<type>.<WxH>.v<hints>`: `srGERD::setTexture` and an
+  explicit `applyDrawStateChanges` (an exported private member, called
+  through its export) bind the texture to `ProbeDD`. With and without
+  `NO_MIPMAPS`/`MIPMAP_BEST` hints, the probe prints each level's checksum,
+  the top level's first rows in the stored device format, and
+  `getTextureInfo`.
+* `surface.blitclip.<A>.<B>.r<n>`: `blit` with source and destination
+  rects that are clipped, partly outside, empty or reversed.
+* `modeler.shape.v<n>`: `createSphere`, `createTorus` and `createGrid`
+  over the detail ranges, including degenerate counts. The probe prints
+  per-triangle hashes, `getUniqueVertexCount`, `getMaxVertexDist` and
+  `getAxialBounds`.
+* `modeler.xform.v<n>`: random whole-modeler and per-triangle `scale`,
+  `move` and `rotate`, followed by `findClosestVertex` and `findVertex`.
+* `modeler.tesselate.v<n>`, `modeler.smooth.v<n>`, `modeler.map.v<n>`,
+  `modeler.polygon.v<n>`, `modeler.manage.v<n>`: `tesselateEdges` (whole
+  modeler and per triangle), `autoSmooth` followed by `convert`,
+  `planarMap`/`planarMapAbsolute`/`cylinderMap`/`removeMapping`, `addPolygon`
+  over convex, star, random-radius and non-planar polygons in both
+  windings, and triangle editing (degenerate corners, disable/enable, flip,
+  `removeDisabledTriangles`, `addFromModeler`, `setTriangleCount`).
+* `mesh.convert.v<n>`, `mesh.ops.v<n>`: `srModeler::convert` with both
+  flag values into fresh and populated meshes, then `srMeshModel`
+  `getTriMesh` (vertex normals, polygon equations, bounds), the
+  bounding box and sphere, `getAverageRadius`/`getMaxRadius`,
+  `centerVertices`, `applyMatrix`, `scale`, `relocateVertices`,
+  `flipFaces`, `scaleToMaxRadius`/`scaleToAverageRadius` and
+  `findClosestVertex`.
+* `node.xform.v<n>`: a three-level `srNode` hierarchy plus a loose node
+  under random `setLocation`, `move*`, `rotate*`, `setRotation` variants,
+  `setScale`, `pitchAt`/`yawAt`/`rollAt`, `offsetLocation` and
+  `setWorldSpaceLocation`. The probe prints the world matrix in double and
+  float, local and world rotation, location, scale and DOF, then repeats
+  after `setParent` (with and without preserving the world transform) and
+  after `setWorldSpaceMatrix`.
+* `bounder.v<n>`: an `srBounder` over `srModelInstance` children (direct
+  and under a rotated, scaled group) holding converted meshes. The probe
+  prints each child's `getLocalBounds`, then the bounder's bounds after
+  `forceUpdateBounds` and again after a child moves and `updateBounds` runs.
+* `envmap.v<n>`: `srEnvironmentMapper::isActive`/`process` (called through
+  their exports) on a raw `srVertexPipe` image with the eye-direction and
+  eye-normal scratch already marked ready. Inputs include unit and
+  non-unit normals, direction == normal, and reflections onto (0, 0, -1),
+  where the divisor is zero. The probe prints the generated ST0 range, the
+  lazy-setup mask and a checksum of the whole guarded ST buffer. The
+  setupEyeSpace* paths are not reached.
 
 ## Aliasing scope
 
