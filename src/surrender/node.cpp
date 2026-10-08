@@ -431,7 +431,19 @@ int srNode::setParent(srNode* parent, int preserve_world_transform)
             srVector3T<double> parent_location;
             srVector3T<double> parent_scale;
             parent->getWorldSpaceCoordinates(parent_rotation, parent_location, parent_scale);
-            rotation.MultiplyBy(parent_rotation);
+            /* The new local rotation is transpose(parent) * world: each element is the
+               out-of-line DotProduct (0x10055cb0, summed z, y, x) of a parent column
+               with a world column. */
+            srMatrix3T<double> local;
+            for (int column = 0; column < 3; ++column) {
+                for (int row = 0; row < 3; ++row) {
+                    (&local.vectors[row].x)[column] =
+                        ((&parent_rotation.vectors[2].x)[row] * (&rotation.vectors[2].x)[column] +
+                         (&parent_rotation.vectors[1].x)[row] * (&rotation.vectors[1].x)[column]) +
+                        (&parent_rotation.vectors[0].x)[row] * (&rotation.vectors[0].x)[column];
+                }
+            }
+            rotation = local;
             orthonormalizeRows(rotation);
             srVector3T<double> inverse_scale;
             inverse_scale.x = 1.0 / parent_scale.x;
@@ -439,7 +451,15 @@ int srNode::setParent(srNode* parent, int preserve_world_transform)
             inverse_scale.z = 1.0 / parent_scale.z;
             location -= parent_location;
             location *= inverse_scale;
-            location = parent_rotation.TransformTransposed(location);
+            /* Out-of-line srMatrix3T<double>::TransformTransposed (0x100555c0) sums
+               z, y, then x. */
+            {
+                const srVector3T<double>* p = parent_rotation.vectors;
+                srVector3T<double> moved = location;
+                location.x = (p[2].x * moved.z + p[1].x * moved.y) + p[0].x * moved.x;
+                location.y = (p[2].y * moved.z + p[1].y * moved.y) + p[0].y * moved.x;
+                location.z = (p[2].z * moved.z + p[1].z * moved.y) + p[0].z * moved.x;
+            }
             scale *= inverse_scale;
         }
     }
