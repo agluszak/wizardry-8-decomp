@@ -1087,7 +1087,7 @@ unsigned short OctBuildPreTree::BuildRegions()
 // FUNCTION: WIZ8 0x004b1d90
 void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* arg_spatial)
 {
-    W8OctSpatialState child(spatial);
+    W8OctSpatialState child(arg_spatial);
     if (arg_spatial->m_depth >= 16) {
         return;
     }
