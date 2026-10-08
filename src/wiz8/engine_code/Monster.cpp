@@ -1438,18 +1438,23 @@ void W8Monster::Update()
             case W8_MONSTER_CYCLE_TALK_SPICE:
                 if (Query(W8_MONSTER_QUERY_CYCLE_COMPLETE) != 0) {
                     if (talking) {
+                        /* 0x004C276F..0x004C27D7: the talking path never stores
+                           pending_subcycle, so TALK keeps the current frame
+                           (clamped by ApplyPendingCycle) instead of frame 0. */
                         talk_state = 0x17;
                         talk_start = GetTickCount();
                         talk_duration = Random(2000) + 2000;
                         m_pRep->pending_cycle = 0x18;
                         m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                         m_pRep->pending_behaviour = W8_ANIMATION_PLAY_ONCE;
+                        m_pRep->animation_playing = 1;
+                        m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     } else {
                         m_pRep->pending_cycle = 1;
+                        m_pRep->animation_playing = 1;
+                        m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+                        m_pRep->pending_subcycle = 0;
                     }
-                    m_pRep->animation_playing = 1;
-                    m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-                    m_pRep->pending_subcycle = 0;
                 }
                 break;
             case W8_MONSTER_CYCLE_SPELL:
