@@ -436,7 +436,8 @@ bool Trigger::Save(int hFile)
             if (m_lData1 != 0 && m_pEvent != 0 && g_timed_events.IndexOf(m_pEvent) != -1) {
                 float progress = m_pEvent->timer.GetProgress();
                 if (progress <= g_trigger_progress_limit) {
-                    progress_delay = static_cast<unsigned int>(m_pEvent->timer.GetProgress());
+                    progress_delay = static_cast<unsigned int>(
+                        m_pEvent->timer.GetProgress() * g_float_one_thousand + g_float_one);
                 } else {
                     progress_delay = 64000;
                 }
