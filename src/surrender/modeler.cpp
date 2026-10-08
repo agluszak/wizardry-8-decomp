@@ -1387,9 +1387,9 @@ void srModeler::setShader(srShader shader, long pass)
 }
 
 // FUNCTION: SURRENDER 0x1003B160
-void srModeler::convert(srMeshModel& model, int preserve)
+void srModeler::convert(srMeshModel& model, int remove_degenerate)
 {
-    if (preserve == 0) {
+    if (remove_degenerate != 0) {
         disableDegenerateTriangles();
         removeDisabledTriangles();
     }
