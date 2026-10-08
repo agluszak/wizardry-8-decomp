@@ -3400,7 +3400,7 @@ stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_f
         return 0;
     }
 
-    stTextureAnim* animation = SR_NEW(stTextureAnim)();
+    stTextureAnim* animation = new stTextureAnim;
     animation->autoRelease();
     animation->setName("VideoVObjecttoTextureAnim");
     animation->setMipmapBias(-8.0f);
@@ -3622,7 +3622,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     srFilter* filter = srCore.getFilter();
     srPixelConvert::mapPixelFormat(srPixelConvert::SURFACE_ARGB4444, format);
 
-    stMeshModel* model = SR_NEW(stMeshModel)(0, 0);
+    stMeshModel* model = new stMeshModel(0, 0);
     if (model == 0) {
         return 0;
     }
@@ -3650,7 +3650,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     model->setTexture(texture, 0, 0);
     model->setShader(shader, 0);
 
-    stModelInstance* instance = SR_NEW(stModelInstance)(static_cast<srNode*>(0));
+    stModelInstance* instance = new stModelInstance(static_cast<srNode*>(0));
     instance->setName("VideoMakePoster");
     if (instance != 0) {
         instance->setModel(model);
