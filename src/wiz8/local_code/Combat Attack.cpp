@@ -4231,7 +4231,7 @@ int ResolveCharacterAttack(int party_slot)
                             ApplyEffectConditions(&source, &g_combat_state->TargetHit, &effect,
                                                   verbose, false, report);
                             if (character->EquippedItem[row->current_equip_slot].iItemNo == 0x1f8) {
-                                unsigned int heal = damage / 3;
+                                unsigned int heal = applied / 3;
                                 unsigned int missing = character->uiHPMax - character->hp_current;
                                 if (missing < heal) {
                                     heal = missing;
