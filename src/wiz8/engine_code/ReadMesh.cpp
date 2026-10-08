@@ -107,7 +107,9 @@ static srShader* g_multi_mesh_render_flags;
    its static initializer at 0x00485AF0 constructs it with capacity five and
    its destructor is run through atexit. The element type is srMaterialIFace*
    (the material arrays' own element type), which keeps this specialization
-   distinct from AutomapScreen's W8GrowableVector<srClass*>. */
+   distinct from AutomapScreen's W8GrowableVector<srClass*>; retail's two
+   retention passes nevertheless store the mesh textures in it (released
+   through srClass::release, which does not care). */
 // GLOBAL: WIZ8 0x0065b9d0
 static W8GrowableVector<srMaterialIFace*> g_retained_materials(5);
 
@@ -1046,11 +1048,16 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         }
     }
 
+    /* Retail 0x0048662b walks the texture array (the [esp+0x54] slot that
+       ReadMeshMaterials filled as its third argument) with the material
+       count: textures nothing references yet are kept alive here. */
     for (int index = 0; index < material_count; ++index) {
-        srMaterialIFace* material = materials[index];
-        if (material != 0 && material->getReferenceCount() == 0) {
-            g_retained_materials.Add(material);
-            material->addReference();
+        srTextureIFace* texture = textures[index];
+        if (texture != 0 && texture->getReferenceCount() == 0) {
+            // reinterpret-ok: retail keeps textures in the material vector
+            srMaterialIFace* retained = reinterpret_cast<srMaterialIFace*>(texture);
+            g_retained_materials.Add(retained);
+            texture->addReference();
         }
     }
 
@@ -1153,11 +1160,15 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
                      "NewReadMesh: Incorrect offset in file at end of mesh.");
     }
 
+    /* Retail 0x0048853e reads g_multi_mesh_textures (0x0065B9FC), not the
+       material array, for the same retention pass. */
     for (int index = 0; index < g_read_mesh_material_count; ++index) {
-        srMaterialIFace* material = g_multi_mesh_materials[index];
-        if (material != 0 && material->getReferenceCount() == 0) {
-            g_retained_materials.Add(material);
-            material->addReference();
+        srTextureIFace* texture = g_multi_mesh_textures[index];
+        if (texture != 0 && texture->getReferenceCount() == 0) {
+            // reinterpret-ok: retail keeps textures in the material vector
+            srMaterialIFace* retained = reinterpret_cast<srMaterialIFace*>(texture);
+            g_retained_materials.Add(retained);
+            texture->addReference();
         }
     }
 
