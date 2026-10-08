@@ -1816,6 +1816,12 @@ void W8Monster::ProcessScript()
     unsigned int monster_index;
     int command_count;
     bool stop;
+    /* 0x004C8116 clears this byte once per call, not per command: every
+       POINTPATROL/RANDOMPOINTPATROL resolved point in the same pass counts,
+       so a later patrol line appends to the earlier one instead of clearing
+       the list, and the signed byte test at 0x004C9855/0x004C9A49 decides
+       whether the mode is set. */
+    signed char patrol_points = 0;
 
     if (script == 0) {
         return;
@@ -2334,19 +2340,21 @@ void W8Monster::ProcessScript()
                             script->GetSourceLine(script_line - 1), token));
                         continue;
                     }
-                    if ((command == MONSCR_POINTPATROL || command == MONSCR_RANDOMPOINTPATROL) &&
-                        added == 0) {
+                    if (command == MONSCR_GUARD) {
+                        if (vector.Add(position) != -1)
+                            ++added;
+                        break;
+                    }
+                    if (patrol_points == 0) {
                         vector.Clear();
                     }
-                    if (vector.Add(position) != -1)
-                        ++added;
-                    if (command == MONSCR_GUARD)
-                        break;
+                    ++patrol_points;
+                    vector.Add(position);
                 }
                 if (command == MONSCR_GUARD && added != 0) {
                     orders_finished = false;
                     order_mode = W8_MONSTER_ORDER_GUARD;
-                } else if (added != 0) {
+                } else if (command != MONSCR_GUARD && patrol_points > 0) {
                     order_mode = command == MONSCR_POINTPATROL
                                      ? W8_MONSTER_ORDER_POINT_PATROL
                                      : W8_MONSTER_ORDER_RANDOM_POINT_PATROL;
