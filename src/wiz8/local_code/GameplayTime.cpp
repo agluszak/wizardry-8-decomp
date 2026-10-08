@@ -1036,7 +1036,9 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes,
                 location2 = monster->GetPosition();
                 probe = location2;
                 probe.y += g_float_one_thousand;
-                if (ProjectPointThroughCamera(&location2) == 0 &&
+                /* Both on-screen tests take the representation location read at the top of
+                   the watch block, not the navigator position (0x00503e90, 0x00503f40). */
+                if (ProjectPointThroughCamera(&location) == 0 &&
                     !g_octree->HasLineOfSight(&camera, &probe, true)) {
                     if (monster->formation.x == g_float_zero &&
                         monster->formation.y == g_float_zero &&
@@ -1045,7 +1047,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes,
                     }
                     probe = monster->formation;
                     probe.y += g_float_one_thousand;
-                    if (ProjectPointThroughCamera(&location2) == 0 &&
+                    if (ProjectPointThroughCamera(&location) == 0 &&
                         !g_octree->HasLineOfSight(&camera, &probe, true)) {
                         if (monster->formation.x == g_float_zero &&
                             monster->formation.y == g_float_zero &&
