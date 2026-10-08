@@ -1610,7 +1610,7 @@ static void SelectNpcDialogueKeyword(W8NoticeWord* word, int line)
     word->keyword = W8_NOTICE_WORD_SELECTED;
     CopyNoticeWordText(word, word_text, 0xc8, 3, line);
     Get16BitStringFromField(0, field_text);
-    StripNpcKeywordPunctuation(field_text);
+    StripNpcKeywordPunctuation(word_text);
     if (wcslen(field_text) != 0) {
         swprintf(combined, L"%s %s", field_text, word_text);
         SetInputFieldStringWith16BitString(0, combined);
