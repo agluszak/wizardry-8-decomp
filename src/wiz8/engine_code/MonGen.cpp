@@ -891,9 +891,9 @@ void SaveMonsterGenerators(int handle)
 // FUNCTION: WIZ8 0x0048b520
 void MonGen::Save(int handle)
 {
-    unsigned char leading;
+    unsigned char version = 3;
 
-    FileWrite(handle, &leading, 1, 0);
+    FileWrite(handle, &version, 1, 0);
     FileWrite(handle, name, 0x20, 0);
     FileWrite(handle, &generation_enabled, 1, 0);
     FileWrite(handle, &flags, 4, 0);
