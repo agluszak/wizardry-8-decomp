@@ -2327,11 +2327,26 @@ void W8Monster::ProcessScript()
                 script_wait = MONSCR_ENDORDERS;
                 break;
             case MONSCR_GUARD:
+                /* 0x004C94CE: one location; the list is cleared and the point
+                   added only after it resolves (0x004C9568), the mode is
+                   written even if the Add fails (0x004C95D4/0x004C965E), and
+                   orders_finished is left alone. No token: nothing changes. */
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    srVector3T<float> position;
+                    if (!ResolveScriptPosition(token, &position)) {
+                        ShutdownWithErrorBox(FormatString(
+                            "MonScript %s Line %d: Unknown location %s", script->getName(),
+                            script->GetSourceLine(script_line - 1), token));
+                        break;
+                    }
+                    vector.Clear();
+                    vector.Add(position);
+                    order_mode = W8_MONSTER_ORDER_GUARD;
+                }
+                break;
             case MONSCR_POINTPATROL:
             case MONSCR_RANDOMPOINTPATROL: {
-                int added = 0;
-                if (command == MONSCR_GUARD)
-                    vector.Clear();
                 while ((token = strtok(0, " \t")) != 0) {
                     srVector3T<float> position;
                     if (!ResolveScriptPosition(token, &position)) {
@@ -2340,21 +2355,13 @@ void W8Monster::ProcessScript()
                             script->GetSourceLine(script_line - 1), token));
                         continue;
                     }
-                    if (command == MONSCR_GUARD) {
-                        if (vector.Add(position) != -1)
-                            ++added;
-                        break;
-                    }
                     if (patrol_points == 0) {
                         vector.Clear();
                     }
                     ++patrol_points;
                     vector.Add(position);
                 }
-                if (command == MONSCR_GUARD && added != 0) {
-                    orders_finished = false;
-                    order_mode = W8_MONSTER_ORDER_GUARD;
-                } else if (command != MONSCR_GUARD && patrol_points > 0) {
+                if (patrol_points > 0) {
                     order_mode = command == MONSCR_POINTPATROL
                                      ? W8_MONSTER_ORDER_POINT_PATROL
                                      : W8_MONSTER_ORDER_RANDOM_POINT_PATROL;
