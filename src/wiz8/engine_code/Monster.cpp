@@ -629,8 +629,10 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                         float duration = 1.0f;
                         float intensity = 1.0f;
                         float value = 10.0f;
-                        sscanf(line, "%s %s %d %f %f %f", command, cycle_name, &frame, &duration,
-                               &intensity, &value);
+                        /* 0x004C1569..0x004C1621: the first float is the intensity and
+                           the second the duration, as in the spell and missile tables. */
+                        sscanf(line, "%s %s %d %f %f %f", command, cycle_name, &frame, &intensity,
+                               &duration, &value);
                         W8MonsterCycle shake_cycle = ParseMonsterCycleName(cycle_name, &subcycle);
                         W8CameraShakeEffect* effect = new W8CameraShakeEffect(
                             duration, true, intensity, value * g_world_scale, 0);
