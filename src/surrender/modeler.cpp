@@ -680,7 +680,15 @@ void srModeler::rotate(const srMatrix3T<float>& matrix)
     Triangle* triangle = &triangles[0];
     for (unsigned long index = 0; index < triangle_count; ++index) {
         for (int vertex = 0; vertex < 3; ++vertex) {
-            triangle->vertices[vertex].position.Transform(matrix);
+            /* Retail's per-row summation order (0x10039D20). */
+            srVector3T<float>& p = triangle->vertices[vertex].position;
+            const srVector3T<float>* m = matrix.vectors;
+            float x = (p.z * m[0].z + p.x * m[0].x) + p.y * m[0].y;
+            float y = (p.y * m[1].y + p.x * m[1].x) + p.z * m[1].z;
+            float z = (p.z * m[2].z + p.x * m[2].x) + p.y * m[2].y;
+            p.x = x;
+            p.y = y;
+            p.z = z;
         }
         ++triangle;
     }
@@ -692,7 +700,15 @@ void srModeler::rotate(unsigned long triangle, const srMatrix3T<float>& matrix)
     if (triangle < triangle_count) {
         Triangle* element = &triangles[triangle];
         for (int index = 0; index < 3; ++index) {
-            element->vertices[index].position = matrix.Transform(element->vertices[index].position);
+            /* Retail's per-row summation order (0x1003A010). */
+            srVector3T<float>& p = element->vertices[index].position;
+            const srVector3T<float>* m = matrix.vectors;
+            float x = (p.z * m[0].z + p.y * m[0].y) + p.x * m[0].x;
+            float y = (p.z * m[1].z + p.y * m[1].y) + p.x * m[1].x;
+            float z = (p.x * m[2].x + p.z * m[2].z) + p.y * m[2].y;
+            p.x = x;
+            p.y = y;
+            p.z = z;
         }
     }
 }
