@@ -466,7 +466,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     /* Retail left these unset on the nonzero-background/no-palette path and
        still consumed them; the recovery keeps that read. */
     unsigned char colour;
-    bool foreground;
+    bool shadow;
     unsigned short count;
     unsigned short x;
     unsigned short y;
@@ -631,18 +631,21 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         BltVideoObject(bubble->surface, object, 7, width_px - 0x10, height_px - 0x10, 2, 0);
         if (background_index == 0) {
             colour = 0xd0;
-            foreground = false;
+            shadow = false;
         }
         if (bubble->palette != 0xffffffff) {
             colour = static_cast<unsigned char>(bubble->palette);
         }
         SetFont(g_font12point1);
-        SetFontForeground(foreground);
+        /* Retail 0x005cfe87 and 0x005cfefd call SetFontShadow (0x00406C90):
+           the bubble text drops its shadow on a plain background, and the
+           default shadow index 2 is restored afterwards. */
+        SetFontShadow(shadow);
         SetFontDestBuffer(bubble->surface, 0, 0, width_px, height_px, 0);
         DrawWrappedText(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1, colour, text,
                         0, 0, 1);
         SetFontDestBuffer(FRAME_BUFFER, 0, 0, 0x280, 0x1e0, 0);
-        SetFontForeground(2);
+        SetFontShadow(2);
         if (quote_handle == -1 && bubble != 0) {
             for (index = 0; index < 10; ++index) {
                 if (g_portrait_quotes[index] == 0) {
