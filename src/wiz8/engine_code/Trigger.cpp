@@ -2855,7 +2855,7 @@ void Trigger::Run(int source)
                 W8WorldItem* item;
                 int contained_items = 0;
 
-                if (item_count != 1 && m_pProp->Rep()->subcycle != 0) {
+                if (item_count != 0 && m_pProp->Rep()->subcycle != 0) {
                     action_succeeded = false;
                 }
 
@@ -2876,13 +2876,13 @@ void Trigger::Run(int source)
                     gold = 0;
                 }
 
-                if (item_count == 1) {
+                if (item_count == 0) {
                     if (m_pProp->Rep()->subcycle == 0) {
                         ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_container_event
                                                                         : g_container_event_alt,
                                                          -1, 0, g_character_event_no_flags);
                     }
-                } else if (item_count == 2 && !g_status.item_in_cursor) {
+                } else if (item_count == 1 && !g_status.item_in_cursor) {
                     item = world_item_group->next;
                     CopyItemInstance(&g_status.item_in_hand, &item->item, 0, true);
                     ItemInfoRemoveFromGroup(world_item_group, item);
