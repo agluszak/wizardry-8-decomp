@@ -1146,31 +1146,39 @@ int g_monster_cycle_registry_weight;
 
 // FUNCTION: WIZ8 0x004bfb00
 W8Monster::W8Monster()
+    : runtime_flags(0), value_1e0(-1), location_id(-1), scale_x(1.0f), scale_y(1.0f),
+      scale_z(1.0f), missile_frame(0), spell_frame(0), talking(0), animate_mouth(false),
+      mouth_frame_clock(0), mouth_frame(0), talk_start(0), talk_state(-1), inactive(false),
+      pending_finalize(1), disabled(0), nearest_to_party(false), spell_vertex_warned(0),
+      missile_point_warned(0), script(0), script_wait(MONSCR_NONE), trigger(0), registry_weight(0),
+      spell_effect_armed(0), sector_mesh(0), fade_state(W8_MONSTER_FADE_IDLE),
+      target_highlighted(false), hostility_preserved(false), sound(0)
 {
-    memset(&value_1e0, 0, 0x58);
-    memset(&defining_orders, 0, 0x10);
-    memset(&patrol_index, 0, 0x2c);
-    memset(&target_scale, 0, 0x10);
-    memset(&fade_state, 0, 4);
-
-    runtime_flags = 0;
-    value_1e0 = -1;
-    location_id = -1;
-    scale_x = 1.0f;
-    scale_y = 1.0f;
-    scale_z = 1.0f;
-    talk_state = -1;
-    pending_finalize = true;
-    script = 0;
-    script_line = 0;
-    script_wait = MONSCR_NONE;
-    trigger = 0;
-    registry_weight = 0;
     formation.SetZero();
-    sound = 0;
+    kind = 1;
 
     m_pRep = new W8MonsterRep;
     m_pRep->spell_icons = PLCreate();
+
+    trace_mask = 2;
+    direction_x = 0;
+    direction_y = 0;
+    direction_z = 0;
+    target_scale = 1.0f;
+    current_scale = 1.0f;
+    sunlit_state = W8_MONSTER_SUNLIGHT_UNKNOWN;
+    orders_finished = false;
+    defining_orders = false;
+    deaf = false;
+    face_party = false;
+    stay_home = false;
+    patrol_index = 0;
+    look_frequency = 0;
+    look_duration = 0;
+    removal_state = W8_MONSTER_REMOVAL_NONE;
+    cycle_callback = 0;
+    move_dirty = true;
+    order_mode = W8_MONSTER_ORDER_NONE;
 }
 
 // FUNCTION: WIZ8 0x004bfe00
