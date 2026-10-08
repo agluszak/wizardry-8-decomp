@@ -539,16 +539,25 @@ void srMeshModel::calculatePolygonNormals()
     srVector3i* polygons = getPolyVertex();
     srVector3T<float>* vertices = getVertexLoc();
     for (long polygon = 0; polygon < polygon_count; polygon++) {
-        srVector3T<float>* v0 = vertices + polygons[polygon].x;
-        srVector3T<float>* v1 = vertices + polygons[polygon].y;
-        srVector3T<float>* v2 = vertices + polygons[polygon].z;
-        float a = (v2->z - v0->z) * (v1->y - v0->y) - (v2->y - v0->y) * (v1->z - v0->z);
-        float b = (v2->x - v0->x) * (v1->z - v0->z) - (v2->z - v0->z) * (v1->x - v0->x);
-        float c = (v2->y - v0->y) * (v1->x - v0->x) - (v2->x - v0->x) * (v1->y - v0->y);
+        const srVector3T<float>* v0 = vertices + polygons[polygon].x;
+        const srVector3T<float>* v1 = vertices + polygons[polygon].y;
+        const srVector3T<float>* v2 = vertices + polygons[polygon].z;
+        float x0 = v0->x;
+        float y0 = v0->y;
+        float z0 = v0->z;
+        float e1x = v1->x - x0;
+        float e1y = v1->y - y0;
+        float e1z = v1->z - z0;
+        float e2x = v2->x - x0;
+        float e2y = v2->y - y0;
+        float e2z = v2->z - z0;
+        float a = e2z * e1y - e2y * e1z;
+        float b = e2x * e1z - e2z * e1x;
+        float c = e2y * e1x - e2x * e1y;
         equations[polygon].x = a;
         equations[polygon].y = b;
         equations[polygon].z = c;
-        equations[polygon].w = -(a * v0->x + b * v0->y + c * v0->z);
+        equations[polygon].w = -(c * z0 + b * y0 + a * x0);
     }
 }
 
