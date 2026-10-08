@@ -2311,12 +2311,15 @@ void W8Monster::ProcessScript()
                 }
                 break;
             case MONSCR_PATROL:
+                /* 0x004C9463: both values are parsed first and stored together
+                   (0x004C94B6/0x004C94BC) only when the second token exists. */
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    patrol_distance = static_cast<float>(atof(token)) * g_world_scale;
+                    float distance = static_cast<float>(atof(token)) * g_world_scale;
                     token = strtok(0, " \t");
                     if (token != 0) {
                         patrol_variation = static_cast<float>(atof(token)) * g_world_scale;
+                        patrol_distance = distance;
                         order_mode = W8_MONSTER_ORDER_PATROL;
                     }
                 }
