@@ -103,15 +103,12 @@ static srTextureIFace** g_multi_mesh_textures;
 
 // GLOBAL: WIZ8 0x0065BA04
 static srShader* g_multi_mesh_render_flags;
-/* The retained-material list is a real W8GrowableVector object at 0x0065B9D0:
-   its static initializer at 0x00485AF0 constructs it with capacity five and
-   its destructor is run through atexit. The element type is srMaterialIFace*
-   (the material arrays' own element type), which keeps this specialization
-   distinct from AutomapScreen's W8GrowableVector<srClass*>; retail's two
-   retention passes nevertheless store the mesh textures in it (released
-   through srClass::release, which does not care). */
+/* The retained-texture list is a W8GrowableVector at 0x0065B9D0,
+   constructed with capacity five by the initializer at 0x00485AF0.
+   Both retention passes store srTextureIFace pointers and release them
+   through the inherited srClass interface. */
 // GLOBAL: WIZ8 0x0065b9d0
-static W8GrowableVector<srMaterialIFace*> g_retained_materials(5);
+static W8GrowableVector<srTextureIFace*> g_retained_textures(5);
 
 namespace {
 
@@ -1057,9 +1054,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
     for (int index = 0; index < material_count; ++index) {
         srTextureIFace* texture = textures[index];
         if (texture != 0 && texture->getReferenceCount() == 0) {
-            // reinterpret-ok: retail keeps textures in the material vector
-            srMaterialIFace* retained = reinterpret_cast<srMaterialIFace*>(texture);
-            g_retained_materials.Add(retained);
+            g_retained_textures.Add(texture);
             texture->addReference();
         }
     }
@@ -1168,9 +1163,7 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
     for (int index = 0; index < g_read_mesh_material_count; ++index) {
         srTextureIFace* texture = g_multi_mesh_textures[index];
         if (texture != 0 && texture->getReferenceCount() == 0) {
-            // reinterpret-ok: retail keeps textures in the material vector
-            srMaterialIFace* retained = reinterpret_cast<srMaterialIFace*>(texture);
-            g_retained_materials.Add(retained);
+            g_retained_textures.Add(texture);
             texture->addReference();
         }
     }
@@ -1182,9 +1175,9 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
 // FUNCTION: WIZ8 0x00489920
 void ReleaseRetainedMaterials()
 {
-    while (g_retained_materials.GetCount() != 0) {
-        (*g_retained_materials.GetAt(0))->release();
-        g_retained_materials.RemoveAt(0);
+    while (g_retained_textures.GetCount() != 0) {
+        (*g_retained_textures.GetAt(0))->release();
+        g_retained_textures.RemoveAt(0);
     }
 }
 
