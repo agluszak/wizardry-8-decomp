@@ -659,7 +659,9 @@ void CalcAttacks(W8Character* character)
             attack->attacks = 2;
         }
 
-        score = (character->attributes[W8_ATTRIBUTE_SPEED].effective + attack->swings * 10 +
+        /* Retail reads damage_bonus here before it is reset below, so the swing score sees the
+           value left by the previous CalcAttacks pass (0x004ee5ef). */
+        score = (character->attributes[W8_ATTRIBUTE_SPEED].effective + attack->damage_bonus * 10 +
                  dual_penalty + physical_experience + load_penalty + attack->combined_skill) /
                 3;
         attack->swings = 1;
