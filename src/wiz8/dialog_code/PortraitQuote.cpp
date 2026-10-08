@@ -280,8 +280,9 @@ static int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_sp
                               int alternate_font, const wchar_t* text, int, int, int,
                               unsigned int* out_edge)
 {
-    wchar_t line[0x140];
-    wchar_t word[0x140];
+    /* Retail reserves 0x500 bytes for each buffer (0x140-dword clears). */
+    wchar_t line[0x280];
+    wchar_t word[0x280];
     unsigned int position = 0;
     unsigned int word_length = 0;
     unsigned int line_width = 0;
