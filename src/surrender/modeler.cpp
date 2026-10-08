@@ -680,7 +680,15 @@ void srModeler::rotate(const srMatrix3T<float>& matrix)
     Triangle* triangle = &triangles[0];
     for (unsigned long index = 0; index < triangle_count; ++index) {
         for (int vertex = 0; vertex < 3; ++vertex) {
-            triangle->vertices[vertex].position.Transform(matrix);
+            /* Retail's per-row summation order (0x10039D20). */
+            srVector3T<float>& p = triangle->vertices[vertex].position;
+            const srVector3T<float>* m = matrix.vectors;
+            float x = (p.z * m[0].z + p.x * m[0].x) + p.y * m[0].y;
+            float y = (p.y * m[1].y + p.x * m[1].x) + p.z * m[1].z;
+            float z = (p.z * m[2].z + p.x * m[2].x) + p.y * m[2].y;
+            p.x = x;
+            p.y = y;
+            p.z = z;
         }
         ++triangle;
     }
@@ -692,7 +700,15 @@ void srModeler::rotate(unsigned long triangle, const srMatrix3T<float>& matrix)
     if (triangle < triangle_count) {
         Triangle* element = &triangles[triangle];
         for (int index = 0; index < 3; ++index) {
-            element->vertices[index].position = matrix.Transform(element->vertices[index].position);
+            /* Retail's per-row summation order (0x1003A010). */
+            srVector3T<float>& p = element->vertices[index].position;
+            const srVector3T<float>* m = matrix.vectors;
+            float x = (p.z * m[0].z + p.y * m[0].y) + p.x * m[0].x;
+            float y = (p.z * m[1].z + p.y * m[1].y) + p.x * m[1].x;
+            float z = (p.x * m[2].x + p.z * m[2].z) + p.y * m[2].y;
+            p.x = x;
+            p.y = y;
+            p.z = z;
         }
     }
 }
@@ -725,10 +741,17 @@ void srModeler::findClosestVertex(const srVector3T<float>& position, unsigned lo
     vertex = 0;
     if (triangle_count != 0) {
         Triangle* current = &triangles[0];
-        float best = (current->vertices[0].position - position).LengthSquared();
+        /* Retail keeps the differences and squared lengths on the x87 stack
+           and the best distance in a double; nothing is rounded to float. */
+        const srVector3T<float>& first = current->vertices[0].position;
+        srVector3T<double> delta(first.x - position.x, first.y - position.y, first.z - position.z);
+        double best = delta.LengthSquared();
         for (unsigned long index = 0; index < triangle_count; ++index) {
             for (unsigned long slot = 0; slot < 3; ++slot) {
-                float distance = (current->vertices[slot].position - position).LengthSquared();
+                const srVector3T<float>& location = current->vertices[slot].position;
+                srVector3T<double> offset(location.x - position.x, location.y - position.y,
+                                          location.z - position.z);
+                double distance = offset.LengthSquared();
                 if (distance < best) {
                     triangle = index;
                     vertex = slot;
@@ -743,21 +766,22 @@ void srModeler::findClosestVertex(const srVector3T<float>& position, unsigned lo
 // FUNCTION: SURRENDER 0x1003AA80
 double srModeler::getMaxVertexDist()
 {
-    if (triangle_count != 0) {
-        double maximum = 0.0;
-        Triangle* triangle = &triangles[0];
-        for (unsigned long index = 0; index < triangle_count; ++index) {
-            for (int vertex = 0; vertex < 3; ++vertex) {
-                float distance = triangle->vertices[vertex].position.LengthSquared();
-                if (maximum < distance) {
-                    maximum = distance;
-                }
-            }
-            ++triangle;
-        }
-        return sqrt(maximum);
+    if (triangle_count == 0) {
+        return 0.0;
     }
-    return 0.0;
+    Triangle* triangle = &triangles[0];
+    double maximum = 0.0;
+    for (unsigned long index = 0; index < triangle_count; ++index) {
+        for (int vertex = 0; vertex < 3; ++vertex) {
+            /* Retail compares and keeps the unrounded register sum. */
+            double distance = triangle->vertices[vertex].position.LengthSquared();
+            if (distance > maximum) {
+                maximum = distance;
+            }
+        }
+        ++triangle;
+    }
+    return sqrt(maximum);
 }
 
 // FUNCTION: SURRENDER 0x1003AB30
@@ -1054,8 +1078,10 @@ void srModeler::planarMapAbsolute(long pass, long layer, const MappingInfo& mapp
                 float* position = &triangle->vertices[vertex].position.x;
                 triangle->vertices[vertex].uv[pass * 2 + layer].x =
                     position[mapping.axis_u] * mapping.u_scale + mapping.u_offset;
+                /* Retail scales v by u_scale too (both fmuls read
+                   MappingInfo+8); v_scale is unused here. */
                 triangle->vertices[vertex].uv[pass * 2 + layer].y =
-                    -(position[mapping.axis_v] * mapping.v_scale) + mapping.v_offset;
+                    -(position[mapping.axis_v] * mapping.u_scale) + mapping.v_offset;
             }
             ++triangle;
         }
@@ -1113,12 +1139,15 @@ void srModeler::cylinderMap(long pass, long layer, const MappingInfo& mapping)
         for (vertex = 0; vertex < 3; ++vertex) {
             float* position = &triangle->vertices[vertex].position.x;
             srVector2T<float>* uv = &triangle->vertices[vertex].uv[pass * 2 + layer];
-            float angle = (float)atan2(position[second_axis], position[third_axis]);
+            /* fpatan with the third axis in ST(1): atan2(third, second),
+               kept at register precision. */
+            double angle = atan2(position[third_axis], position[second_axis]);
             uv->x = (position[axis] - u_minimum) * u_scale + mapping.u_offset;
-            uv->y = -(angle / (float)(pi * 2.0)) * mapping.v_scale + mapping.v_offset;
+            uv->y = -(angle / (pi * 2.0)) * mapping.v_scale + mapping.v_offset;
         }
         float* previous = &triangle->vertices[0].uv[pass * 2 + layer].y;
-        for (vertex = 1; vertex < 3; ++vertex) {
+        /* Edges 0-1, 1-2 and the closing edge 2-0. */
+        for (vertex = 1; vertex < 4; ++vertex) {
             float* current = &triangle->vertices[vertex % 3].uv[pass * 2 + layer].y;
             if (mapping.v_scale * 0.8f < fabs(*current - *previous)) {
                 if (*previous <= *current) {
@@ -1387,9 +1416,9 @@ void srModeler::setShader(srShader shader, long pass)
 }
 
 // FUNCTION: SURRENDER 0x1003B160
-void srModeler::convert(srMeshModel& model, int preserve)
+void srModeler::convert(srMeshModel& model, int remove_degenerate)
 {
-    if (preserve == 0) {
+    if (remove_degenerate != 0) {
         disableDegenerateTriangles();
         removeDisabledTriangles();
     }

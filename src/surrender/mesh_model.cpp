@@ -539,16 +539,25 @@ void srMeshModel::calculatePolygonNormals()
     srVector3i* polygons = getPolyVertex();
     srVector3T<float>* vertices = getVertexLoc();
     for (long polygon = 0; polygon < polygon_count; polygon++) {
-        srVector3T<float>* v0 = vertices + polygons[polygon].x;
-        srVector3T<float>* v1 = vertices + polygons[polygon].y;
-        srVector3T<float>* v2 = vertices + polygons[polygon].z;
-        float a = (v2->z - v0->z) * (v1->y - v0->y) - (v2->y - v0->y) * (v1->z - v0->z);
-        float b = (v2->x - v0->x) * (v1->z - v0->z) - (v2->z - v0->z) * (v1->x - v0->x);
-        float c = (v2->y - v0->y) * (v1->x - v0->x) - (v2->x - v0->x) * (v1->y - v0->y);
+        const srVector3T<float>* v0 = vertices + polygons[polygon].x;
+        const srVector3T<float>* v1 = vertices + polygons[polygon].y;
+        const srVector3T<float>* v2 = vertices + polygons[polygon].z;
+        float x0 = v0->x;
+        float y0 = v0->y;
+        float z0 = v0->z;
+        float e1x = v1->x - x0;
+        float e1y = v1->y - y0;
+        float e1z = v1->z - z0;
+        float e2x = v2->x - x0;
+        float e2y = v2->y - y0;
+        float e2z = v2->z - z0;
+        float a = e2z * e1y - e2y * e1z;
+        float b = e2x * e1z - e2z * e1x;
+        float c = e2y * e1x - e2x * e1y;
         equations[polygon].x = a;
         equations[polygon].y = b;
         equations[polygon].z = c;
-        equations[polygon].w = -(a * v0->x + b * v0->y + c * v0->z);
+        equations[polygon].w = -(c * z0 + b * y0 + a * x0);
     }
 }
 
@@ -625,7 +634,15 @@ void srMeshModel::applyMatrix(const srMatrix3T<float>& matrix)
 {
     srVector3T<float>* vertices = getVertexLoc();
     for (long index = 0; index < vertex_location_count; index++) {
-        vertices[index].Transform(matrix);
+        /* Retail's per-row summation order (0x1003E780). */
+        srVector3T<float>& p = vertices[index];
+        const srVector3T<float>* m = matrix.vectors;
+        float x = (p.x * m[0].x + p.y * m[0].y) + p.z * m[0].z;
+        float y = (p.z * m[1].z + p.x * m[1].x) + p.y * m[1].y;
+        float z = (p.x * m[2].x + p.y * m[2].y) + p.z * m[2].z;
+        p.x = x;
+        p.y = y;
+        p.z = z;
     }
     setDirty(DIRTY_BOUNDS);
     setDirty(DIRTY_POLYGON_NORMALS);
@@ -646,25 +663,37 @@ void srMeshModel::relocateVertices(const srVector3T<float>& offset)
     setDirty(DIRTY_TRI_MESH);
 }
 
+/* Retail (0x1003E9B0) accumulates all three sums on the x87 stack. At the
+   end it spills only the y sum to float, then scales each sum by 1/count
+   and stores it as a float. That spill is a VC6 register-allocation side
+   effect, and none of the plain float formulations tried reproduced it. So
+   the sums are doubles (what the 53-bit stack holds), and float
+   consistency keeps the one explicit rounding of the y sum. */
+#pragma optimize("p", on)
 // FUNCTION: SURRENDER 0x1003E9B0
 void srMeshModel::centerVertices()
 {
     if (vertex_location_count != 0) {
-        srVector3T<float> sum;
-        sum.SetZero();
         srVector3T<float>* vertices = getVertexLoc();
         long count = vertex_location_count;
-        if (0 < count) {
-            for (long index = 0; index < count; index++) {
-                sum += vertices[index];
-            }
+        double sum_x = 0.0;
+        double sum_y = 0.0;
+        double sum_z = 0.0;
+        for (long index = 0; index < count; index++) {
+            sum_x += vertices[index].x;
+            sum_y += vertices[index].y;
+            sum_z += vertices[index].z;
         }
+        float spilled_y = static_cast<float>(sum_y);
         double inverse = 1.0 / count;
         srVector3T<float> offset;
-        offset = -(sum * inverse);
+        offset.x = static_cast<float>(-(sum_x * inverse));
+        offset.y = static_cast<float>(-(spilled_y * inverse));
+        offset.z = static_cast<float>(-(sum_z * inverse));
         relocateVertices(offset);
     }
 }
+#pragma optimize("", on)
 
 // FUNCTION: SURRENDER 0x1003EA90
 double srMeshModel::getAverageRadius()
@@ -691,22 +720,19 @@ double srMeshModel::getAverageRadius()
 double srMeshModel::getMaxRadius()
 {
     double maximum = 0.0;
-    if (vertex_location_count != 0) {
-        srVector3T<float>* vertices = getVertexLoc();
-        long count = vertex_location_count;
-        if (0 < count) {
-            for (long index = 0; index < count; index++) {
-                float radius = vertices[index].y * vertices[index].y +
-                               vertices[index].z * vertices[index].z +
-                               vertices[index].x * vertices[index].x;
-                if ((float)maximum <= radius) {
-                    maximum = radius;
-                }
-            }
-        }
-        return sqrt(maximum);
+    if (vertex_location_count == 0) {
+        return 0.0;
     }
-    return 0.0;
+    srVector3T<float>* vertices = getVertexLoc();
+    long count = vertex_location_count;
+    for (long index = 0; index < count; index++) {
+        /* Retail compares and keeps the unrounded register sum. */
+        double radius = vertices[index].LengthSquared();
+        if (maximum <= radius) {
+            maximum = radius;
+        }
+    }
+    return sqrt(maximum);
 }
 
 // FUNCTION: SURRENDER 0x1003EBB0

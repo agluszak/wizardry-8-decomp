@@ -4,6 +4,7 @@
 #include "surrender/srDebug.h"
 #include "surrender/srGERD.h"
 
+#include <math.h>
 #include <ostream>
 #include <string.h>
 
@@ -12,6 +13,32 @@ srCriticalSection srNode::sceneGraphCSect;
 
 // GLOBAL: SURRENDER 0x100A49FC
 long srNode::sceneGraphLockCount;
+
+/* Retail's world-space setters measure the column vectors with Length inlined
+   and summed z, y, x; one call in setWorldSpaceRotation goes through the
+   out-of-line srVector3T<double>::Length (0x10055450), which sums x, y, z. */
+static double columnLengthZYX(const srVector3T<double>& column)
+{
+    return sqrt((column.z * column.z + column.y * column.y) + column.x * column.x);
+}
+
+static double columnLengthXYZ(const srVector3T<double>& column)
+{
+    return sqrt((column.x * column.x + column.y * column.y) + column.z * column.z);
+}
+
+/* Retail srNode constructs the axis-angle rotation matrix through the
+   srVector3T default-constructor iterator, so sin and cos are spilled to double
+   temporaries around that call (setRotation reaches the out-of-line
+   srMatrix3T<double>::RotateAroundAxis, 0x10055D40, with them as double
+   arguments). The rebuilt compiler expands the empty constructor and the
+   template inline and would use the unrounded fsin/fcos results; passing them
+   through double parameters restores the rounding. */
+static void rotateAroundAxis(srMatrix3T<double>& matrix, double sine, double cosine,
+                             const srVector3T<double>& axis)
+{
+    matrix.RotateAroundAxis(sine, cosine, axis);
+}
 
 /* Comma-separated flag/notify name lists dumped beside the bit values; the constructor lazily
    installs the flag names. */
@@ -245,7 +272,19 @@ int srNode::setParent(srNode* parent, int preserve_world_transform)
             srVector3T<double> parent_location;
             srVector3T<double> parent_scale;
             parent->getWorldSpaceCoordinates(parent_rotation, parent_location, parent_scale);
-            rotation.MultiplyBy(parent_rotation);
+            /* The new local rotation is transpose(parent) * world: each element is the
+               out-of-line DotProduct (0x10055cb0, summed z, y, x) of a parent column
+               with a world column. */
+            srMatrix3T<double> local;
+            for (int column = 0; column < 3; ++column) {
+                for (int row = 0; row < 3; ++row) {
+                    (&local.vectors[row].x)[column] =
+                        ((&parent_rotation.vectors[2].x)[row] * (&rotation.vectors[2].x)[column] +
+                         (&parent_rotation.vectors[1].x)[row] * (&rotation.vectors[1].x)[column]) +
+                        (&parent_rotation.vectors[0].x)[row] * (&rotation.vectors[0].x)[column];
+                }
+            }
+            rotation = local;
             rotation.OrthonormalizeRows();
             srVector3T<double> inverse_scale;
             inverse_scale.x = 1.0 / parent_scale.x;
@@ -494,7 +533,9 @@ void srNode::setWSDirty()
 double srNode::getDistance(const srNode& node) const
 {
     srVector3T<double> other = node.getWorldSpaceLocation();
-    return (getWorldSpaceLocation() - other).Length();
+    srVector3T<double> offset = getWorldSpaceLocation() - other;
+    /* Retail's inlined Length sums z, x, then y here. */
+    return sqrt((offset.z * offset.z + offset.x * offset.x) + offset.y * offset.y);
 }
 
 // FUNCTION: SURRENDER 0x100536B0
@@ -534,7 +575,7 @@ void srNode::setRotation(double amount, const srVector3T<double>& direction)
     axis.Normalize();
     rotation.SetIdentity();
     if (amount != 0.0) {
-        rotation.RotateAroundAxis(sin(amount), cos(amount), axis);
+        rotateAroundAxis(rotation, sin(amount), cos(amount), axis);
     }
     setWSDirty();
 }
@@ -845,19 +886,48 @@ void srNode::updateTransformation() const
         if ((parent->notifications.value & 2) != 0) {
             parent->updateTransformation();
         }
-        srVector3T<double> x_axis(rotation.vectors[0].x, rotation.vectors[1].x,
-                                  rotation.vectors[2].x);
-        srVector3T<double> y_axis(rotation.vectors[0].y, rotation.vectors[1].y,
-                                  rotation.vectors[2].y);
-        srVector3T<double> z_axis(rotation.vectors[0].z, rotation.vectors[1].z,
-                                  rotation.vectors[2].z);
-        for (int row = 0; row < 3; ++row) {
-            srVector3T<double> basis = parent->world_transform0.rows[row].xyz();
-            world_transform0.rows[row].x = DotProduct(basis, x_axis) * scale.x;
-            world_transform0.rows[row].y = DotProduct(basis, y_axis) * scale.y;
-            world_transform0.rows[row].z = DotProduct(basis, z_axis) * scale.z;
-        }
-        world_transform0.SetTranslation(parent->world_transform0.TransformPoint(location));
+        /* Retail writes the parent * local product out element by element (columns
+           first) and each element's three-term sum has its own association; the
+           parenthesization below follows retail's x87 sequence term for term. */
+        const srMatrix4x3T<double>& outer = parent->world_transform0;
+        const srVector3T<double>* local = rotation.vectors;
+        srMatrix4x3T<double>& world = world_transform0;
+        world.rows[0].x = ((local[0].x * outer.rows[0].x + outer.rows[0].y * local[1].x) +
+                           outer.rows[0].z * local[2].x) *
+                          scale.x;
+        world.rows[1].x = ((local[2].x * outer.rows[1].z + local[0].x * outer.rows[1].x) +
+                           outer.rows[1].y * local[1].x) *
+                          scale.x;
+        world.rows[2].x = ((outer.rows[2].y * local[1].x + outer.rows[2].z * local[2].x) +
+                           outer.rows[2].x * local[0].x) *
+                          scale.x;
+        world.rows[0].y = ((outer.rows[0].z * local[2].y + outer.rows[0].y * local[1].y) +
+                           outer.rows[0].x * local[0].y) *
+                          scale.y;
+        world.rows[1].y = ((outer.rows[1].x * local[0].y + local[2].y * outer.rows[1].z) +
+                           local[1].y * outer.rows[1].y) *
+                          scale.y;
+        world.rows[2].y = ((outer.rows[2].z * local[2].y + outer.rows[2].y * local[1].y) +
+                           outer.rows[2].x * local[0].y) *
+                          scale.y;
+        world.rows[0].z = ((local[2].z * outer.rows[0].z + outer.rows[0].x * local[0].z) +
+                           local[1].z * outer.rows[0].y) *
+                          scale.z;
+        world.rows[1].z = ((local[2].z * outer.rows[1].z + local[1].z * outer.rows[1].y) +
+                           outer.rows[1].x * local[0].z) *
+                          scale.z;
+        world.rows[2].z = ((local[2].z * outer.rows[2].z + local[1].z * outer.rows[2].y) +
+                           outer.rows[2].x * local[0].z) *
+                          scale.z;
+        world.rows[0].w = ((location.x * outer.rows[0].x + location.z * outer.rows[0].z) +
+                           location.y * outer.rows[0].y) +
+                          outer.rows[0].w;
+        world.rows[1].w = ((location.z * outer.rows[1].z + location.y * outer.rows[1].y) +
+                           location.x * outer.rows[1].x) +
+                          outer.rows[1].w;
+        world.rows[2].w = ((outer.rows[2].z * location.z + outer.rows[2].y * location.y) +
+                           outer.rows[2].x * location.x) +
+                          outer.rows[2].w;
     } else {
         parent->getWorldSpaceMatrix(world_transform0);
     }
@@ -1161,7 +1231,7 @@ void srNode::rotate(double angle, const srVector3T<double>& axis)
     if (angle != 0.0) {
         srVector3T<double> normalized = axis;
         normalized.Normalize();
-        rotation.RotateAroundAxis(sin(angle), cos(angle), normalized);
+        rotateAroundAxis(rotation, sin(angle), cos(angle), normalized);
         setWSDirty();
     }
 }
@@ -1236,8 +1306,8 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         column_x = srVector3T<double>(this->rotation.vectors[0].x, this->rotation.vectors[1].x,
                                       this->rotation.vectors[2].x);
         srVector3T<double> inverse_scale;
-        inverse_scale.Set(1.0 / column_x.Length(), 1.0 / column_y.Length(),
-                          1.0 / column_z.Length());
+        inverse_scale.Set(1.0 / columnLengthXYZ(column_x), 1.0 / columnLengthZYX(column_y),
+                          1.0 / columnLengthZYX(column_z));
         this->rotation.vectors[0] *= inverse_scale;
         this->rotation.vectors[1] *= inverse_scale;
         this->rotation.vectors[2] *= inverse_scale;
@@ -1271,7 +1341,7 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
         srVector3T<double>(rotation.vectors[0].y, rotation.vectors[1].y, rotation.vectors[2].y);
     column_x =
         srVector3T<double>(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x);
-    scale.Set(column_x.Length(), column_y.Length(), column_z.Length());
+    scale.Set(columnLengthZYX(column_x), columnLengthZYX(column_y), columnLengthZYX(column_z));
     srVector3T<double> inverse_scale;
     inverse_scale.Set(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z);
     rotation.vectors[0] *= inverse_scale;
@@ -1289,7 +1359,8 @@ void srNode::pitchAt(const srVector3T<double>& target, double amount)
     direction.Normalize();
     srVector3T<double> up(rotation.vectors[0].y, rotation.vectors[1].y, rotation.vectors[2].y);
     srVector3T<double> forward(rotation.vectors[0].z, rotation.vectors[1].z, rotation.vectors[2].z);
-    float toward = DotProduct(forward, direction);
+    /* Retail stores the forward component to a float slot and reloads it. */
+    volatile float toward = static_cast<float>(DotProduct(forward, direction));
     double angle = -atan2(DotProduct(up, direction), toward) * amount;
     if (angle != 0.0) {
         rotation.RotateAboutX(sin(angle), cos(angle));
@@ -1313,7 +1384,8 @@ void srNode::yawAt(const srVector3T<double>& target, double amount)
     direction.Normalize();
     srVector3T<double> right(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x);
     srVector3T<double> forward(rotation.vectors[0].z, rotation.vectors[1].z, rotation.vectors[2].z);
-    float toward = DotProduct(forward, direction);
+    /* Retail stores the forward component to a float slot and reloads it. */
+    volatile float toward = static_cast<float>(DotProduct(forward, direction));
     double angle = atan2(DotProduct(right, direction), toward) * amount;
     if (angle != 0.0) {
         rotation.RotateAboutY(sin(angle), cos(angle));
@@ -1333,7 +1405,7 @@ void srNode::rollUp(double amount)
 {
     srMatrix3T<double> rotation;
     getWorldSpaceRotation(rotation);
-    float vertical = rotation.vectors[1].y;
+    volatile float vertical = static_cast<float>(rotation.vectors[1].y);
     double angle = -atan2(rotation.vectors[1].x, vertical) * amount;
     if (angle != 0.0) {
         rotation.RotateAboutZ(sin(angle), cos(angle));
@@ -1349,7 +1421,10 @@ void srNode::rollAt(const srVector3T<double>& target, double amount)
     getWorldSpaceRotation(rotation);
     srVector3T<double> right(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x);
     srVector3T<double> up(rotation.vectors[0].y, rotation.vectors[1].y, rotation.vectors[2].y);
-    double angle = -atan2(DotProduct(right, target), DotProduct(up, target)) * amount;
+    /* Retail's inlined dot products associate (z + x) + y and (x + z) + y. */
+    double across = (right.z * target.z + right.x * target.x) + right.y * target.y;
+    double along = (up.x * target.x + up.z * target.z) + up.y * target.y;
+    double angle = -atan2(across, along) * amount;
     if (angle != 0.0) {
         rotation.RotateAboutZ(sin(angle), cos(angle));
     }

@@ -152,13 +152,14 @@ void srBounder::updateBounds()
             getChildBoundingBox(child);
         }
         if (bounds.state == 1) {
-            bounds.center.x = (bounds.maximum.x + bounds.minimum.x) * 0.5;
-            bounds.center.y = (bounds.maximum.y + bounds.minimum.y) * 0.5;
-            bounds.center.z = (bounds.maximum.z + bounds.minimum.z) * 0.5;
-            float dx = bounds.minimum.x - bounds.center.x;
-            float dy = bounds.minimum.y - bounds.center.y;
-            float dz = bounds.minimum.z - bounds.center.z;
-            bounds.radius = (float)sqrt(dx * dx + dy * dy + dz * dz);
+            /* Retail builds the center through the float vector operators (the sums
+               and the halves are rounded to float) and measures the radius from the
+               stored center, summing the squares z, y, then x. */
+            bounds.center = (bounds.maximum + bounds.minimum) * 0.5;
+            double dx = bounds.minimum.x - bounds.center.x;
+            double dy = bounds.minimum.y - bounds.center.y;
+            double dz = bounds.minimum.z - bounds.center.z;
+            bounds.radius = static_cast<float>(sqrt((dz * dz + dy * dy) + dx * dx));
         }
     }
     clearNotify(NOTIFY_BOUNDS_DIRTY);

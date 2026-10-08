@@ -1185,7 +1185,7 @@ WIZ8|00484720||srClientSupport<srFog,4624>::getClassNode|template|src/wiz8/engin
 WIZ8|004847c0||srClientSupport<srFog,4624>::vClone|template|src/wiz8/engine_code/Environment.cpp|legacy-marker|srClientSupport<srFog,4624>::vClone|false
 WIZ8|00484840||srClientSupport<srFog,4624>::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/Environment.cpp|legacy-marker|srClientSupport<srFog,4624>::`scalar deleting destructor'|false
 WIZ8|00484870||W8Vector<T>::W8Vector (four-byte capacity)|template|include/wiz8/vector.h|legacy-marker|??0?$W8Vector@PAVstLight@@@@QAE@H@Z|true
-WIZ8|004848d0||srMatrix3T<float>::RotateAboutY(double,double)|template|src/wiz8/engine_code/Environment.cpp|legacy-marker|srMatrix3T<float>::RotateAboutY(double,double)|false
+WIZ8|004848d0||srMatrix3T<float>::RotateAboutZ(double,double)|template|src/wiz8/engine_code/Environment.cpp|legacy-marker|srMatrix3T<float>::RotateAboutZ(double,double)|false
 WIZ8|00485040||stTextureAnim::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/stTextureAnim.cpp|legacy-marker|stTextureAnim::`scalar deleting destructor'|false
 WIZ8|004857f0||srClassSupport<stTextureAnim,srTexture,0,65536>::getClassID|template|src/wiz8/engine_code/stTextureAnim.cpp|legacy-marker|srClassSupport<stTextureAnim,srTexture,0,65536>::getClassID|false
 WIZ8|00485800||srClassSupport<stTextureAnim,srTexture,0,65536>::getClassName|template|src/wiz8/engine_code/stTextureAnim.cpp|legacy-marker|srClassSupport<stTextureAnim,srTexture,0,65536>::getClassName|false

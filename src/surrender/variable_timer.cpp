@@ -19,7 +19,7 @@ srVariableTimer::srVariableTimer(int force_system_timer, int unused, int save_ca
     m_step_ticks = static_cast<unsigned __int64>((double)m_step_ticks * m_step_scale);
 }
 
-// FUNCTION: SURRENDER 0x10063450
+// FUNCTION: SURRENDER 0x10063550
 srVariableTimer::srVariableTimer(const srVariableTimer& other) : srTimer(other)
 {
     m_multiplier = other.m_multiplier;
@@ -32,7 +32,7 @@ srVariableTimer::srVariableTimer(const srVariableTimer& other) : srTimer(other)
     m_step_ticks = other.m_step_ticks;
 }
 
-// FUNCTION: SURRENDER 0x10063550
+// FUNCTION: SURRENDER 0x10063450
 srVariableTimer::srVariableTimer(const srTimer& other) : srTimer(other)
 {
     m_multiplier = 1.0f;
@@ -61,9 +61,8 @@ srVariableTimer& srVariableTimer::operator=(const srTimer& other)
     m_tick = other.m_tick;
     m_pause = other.m_pause;
     m_units_per_interval = other.m_units_per_interval;
-    m_seconds_per_tick = other.m_seconds_per_tick;
-    m_units_per_tick = other.m_units_per_tick;
-    m_cpu_count = other.m_cpu_count;
+    /* Retail skips m_seconds_per_tick, m_units_per_tick and m_cpu_count
+       (0x830..0x843); the destination keeps its own values. */
     m_read_tick = other.m_read_tick;
     m_kernel32 = other.m_kernel32 == 0 ? 0 : LoadLibraryA("kernel32");
     for (index = 0; index < 0xd; ++index) {

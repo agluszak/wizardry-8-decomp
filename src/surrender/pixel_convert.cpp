@@ -100,10 +100,17 @@ unsigned char lutExpand2[2];
 unsigned char lutExpand4[4];
 // GLOBAL: SURRENDER 0x100A1ABC
 unsigned char lutExpand16[16];
+/* readRGB555 indexes the 5-bit table with the unmasked pixel >> 10 (retail 0x1000AED3), so a pixel
+   with the unused bit 15 set reads indices 32..63, which in retail are the first half of the 6-bit
+   table placed directly after it (0x100A1ACC + 0x20 = 0x100A1AEC). The two tables share one object
+   so that adjacency is part of the layout rather than an accident of BSS ordering. */
+struct ExpandTables5And6 {
+    unsigned char expand32[32];
+    unsigned char expand64[64];
+};
+static_assert(sizeof(ExpandTables5And6) == 0x60, "ExpandTables5And6_must_be_0x60");
 // GLOBAL: SURRENDER 0x100A1ACC
-unsigned char lutExpand32[32];
-// GLOBAL: SURRENDER 0x100A1AEC
-unsigned char lutExpand64[64];
+ExpandTables5And6 lutExpand5And6;
 // GLOBAL: SURRENDER 0x100A1B2C
 unsigned char lutExpand8[8];
 // GLOBAL: SURRENDER 0x100A1B34
@@ -171,8 +178,15 @@ int formats_initialized;
    identity table. */
 // GLOBAL: SURRENDER 0x1009832C
 const unsigned char* const channel_expand[] = {
-    lutExpand1,  lutExpand2,  lutExpand4,   lutExpand8,  lutExpand16,
-    lutExpand32, lutExpand64, lutExpand128, lutIdentity,
+    lutExpand1,
+    lutExpand2,
+    lutExpand4,
+    lutExpand8,
+    lutExpand16,
+    lutExpand5And6.expand32,
+    lutExpand5And6.expand64,
+    lutExpand128,
+    lutIdentity,
 };
 // GLOBAL: SURRENDER 0x10098350
 const unsigned char* const channel_reduce[] = {
@@ -244,10 +258,10 @@ void __cdecl initPixelTables(void)
         lutExpand16[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 15.0f) + 0.5f);
     }
     for (i = 0; i < 32; ++i) {
-        lutExpand32[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 31.0f) + 0.5f);
+        lutExpand5And6.expand32[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 31.0f) + 0.5f);
     }
     for (i = 0; i < 64; ++i) {
-        lutExpand64[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 63.0f) + 0.5f);
+        lutExpand5And6.expand64[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 63.0f) + 0.5f);
     }
     for (i = 0; i < 128; ++i) {
         lutExpand128[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 127.0f) + 0.5f);
@@ -1349,22 +1363,27 @@ void __cdecl readRGB555(const srPixelConvert::ConversionInfo& info)
     unsigned long i = 0;
     for (; i < (info.count & ~3UL); i += 4) {
         unsigned long pixel = source[i];
-        dest[i] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
-                  lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+        dest[i] = 0xff000000 | lutExpand5And6.expand32[pixel >> 10] << 16 |
+                  lutExpand5And6.expand32[pixel >> 5 & 0x1f] << 8 |
+                  lutExpand5And6.expand32[pixel & 0x1f];
         pixel = source[i + 1];
-        dest[i + 1] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
-                      lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+        dest[i + 1] = 0xff000000 | lutExpand5And6.expand32[pixel >> 10] << 16 |
+                      lutExpand5And6.expand32[pixel >> 5 & 0x1f] << 8 |
+                      lutExpand5And6.expand32[pixel & 0x1f];
         pixel = source[i + 2];
-        dest[i + 2] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
-                      lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+        dest[i + 2] = 0xff000000 | lutExpand5And6.expand32[pixel >> 10] << 16 |
+                      lutExpand5And6.expand32[pixel >> 5 & 0x1f] << 8 |
+                      lutExpand5And6.expand32[pixel & 0x1f];
         pixel = source[i + 3];
-        dest[i + 3] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
-                      lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+        dest[i + 3] = 0xff000000 | lutExpand5And6.expand32[pixel >> 10] << 16 |
+                      lutExpand5And6.expand32[pixel >> 5 & 0x1f] << 8 |
+                      lutExpand5And6.expand32[pixel & 0x1f];
     }
     for (; i < info.count; i++) {
         unsigned long pixel = source[i];
-        dest[i] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
-                  lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+        dest[i] = 0xff000000 | lutExpand5And6.expand32[pixel >> 10] << 16 |
+                  lutExpand5And6.expand32[pixel >> 5 & 0x1f] << 8 |
+                  lutExpand5And6.expand32[pixel & 0x1f];
     }
 }
 

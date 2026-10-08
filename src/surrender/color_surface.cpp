@@ -2593,12 +2593,14 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
                 float b = 0.0f;
                 for (; 0 < count; count--) {
                     float weight = slot->weight;
-                    const srVector4T<float>& source_pixel = channel_vectors[slot->index];
+                    /* The weighted sample is a float vector temporary: retail rounds each
+                       product to float before accumulating (0x10059F22, 0x1005A6AF). */
+                    srVector4T<float> weighted = channel_vectors[slot->index] * weight;
                     ++slot;
-                    a = source_pixel.x * weight + a;
-                    r = source_pixel.y * weight + r;
-                    g = source_pixel.z * weight + g;
-                    b = source_pixel.w * weight + b;
+                    a = weighted.x + a;
+                    r = weighted.y + r;
+                    g = weighted.z + g;
+                    b = weighted.w + b;
                 }
                 row_colors[x].alpha = static_cast<unsigned char>(srFloatToInt(a));
                 row_colors[x].red = static_cast<unsigned char>(srFloatToInt(r));
@@ -2633,6 +2635,8 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
         unsigned long* column = (unsigned long*)column_colors;
         srVector4T<float>* channel_vectors = new srVector4T<float>[source_height];
         SampleWeight* storage;
+        /* Unlike scaleHorizontal, both branches center the source window at y / scale + 0.5
+           (retail 0x1005A501 and 0x1005A3AD). */
         if (1.0 <= scale) {
             long entries = 1 - (long)(support * -2.0);
             storage = new SampleWeight[entries * height];
@@ -2640,7 +2644,7 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                 SampleContributions* entry = counts + y;
                 entry->count = 0;
                 entry->samples = storage + y * entries;
-                double center = y / scale - 0.5;
+                double center = y / scale + 0.5;
                 double total = 0.0;
                 long first = (long)ceil(center - support);
                 long last = (long)floor(center + support);
@@ -2697,12 +2701,14 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                 float b = 0.0f;
                 for (; 0 < count; count--) {
                     float weight = slot->weight;
-                    const srVector4T<float>& source_pixel = channel_vectors[slot->index];
+                    /* The weighted sample is a float vector temporary: retail rounds each
+                       product to float before accumulating (0x10059F22, 0x1005A6AF). */
+                    srVector4T<float> weighted = channel_vectors[slot->index] * weight;
                     ++slot;
-                    a = source_pixel.x * weight + a;
-                    r = source_pixel.y * weight + r;
-                    g = source_pixel.z * weight + g;
-                    b = source_pixel.w * weight + b;
+                    a = weighted.x + a;
+                    r = weighted.y + r;
+                    g = weighted.z + g;
+                    b = weighted.w + b;
                 }
                 column_colors[y].alpha = static_cast<unsigned char>(srFloatToInt(a));
                 column_colors[y].red = static_cast<unsigned char>(srFloatToInt(r));
@@ -3303,25 +3309,25 @@ void srColorSurfaceIFace::magnify(srColorSurfaceIFace& source)
         }
         even[(source_width - 1) * 2] = buffer[source_width - 1];
         even[(source_width - 1) * 2 + 1] = buffer[source_width - 1];
-        setPixelRow(even, 0, 0, width);
-        for (long y = 1; y < source_height; y++) {
-            source.getPixelRow(buffer, y, 0, source_width);
+        /* Each pass writes the widened row y and the average of rows y and y + 1; the widened last
+           source row is never written, so the bottom two destination rows keep their contents. */
+        for (long y = 0; y < source_height - 1; y++) {
+            source.getPixelRow(buffer, y + 1, 0, source_width);
             for (x = 0; x < source_width - 1; x++) {
                 odd[x * 2] = buffer[x];
                 odd[x * 2 + 1] = (buffer[x + 1] >> 1 & 0x7f7f7f7f) + (buffer[x] >> 1 & 0x7f7f7f7f);
             }
             odd[(source_width - 1) * 2] = buffer[source_width - 1];
             odd[(source_width - 1) * 2 + 1] = buffer[source_width - 1];
+            setPixelRow(even, y * 2, 0, width);
             for (x = 0; x < width; x++) {
-                even[x] = (even[x] >> 1 & 0x7f7f7f7f) + (odd[x] >> 1 & 0x7f7f7f7f);
+                even[x] = (odd[x] >> 1 & 0x7f7f7f7f) + (even[x] >> 1 & 0x7f7f7f7f);
             }
-            setPixelRow(even, y * 2 - 1, 0, width);
-            setPixelRow(odd, y * 2, 0, width);
+            setPixelRow(even, y * 2 + 1, 0, width);
             unsigned long* swap = even;
             even = odd;
             odd = swap;
         }
-        setPixelRow(even, height - 1, 0, width);
         delete[] buffer_colors;
     }
 }

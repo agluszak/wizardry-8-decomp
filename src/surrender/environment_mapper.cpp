@@ -29,15 +29,24 @@ void srEnvironmentMapper::process(srVertexPipe& pipe)
     srCore.getStatisticsManager()->statistics.texture_coordinate_operations += count;
     pipe.lazy_setup_mask |= 1 << srVertexProcessor::CHANNEL_ST0;
     for (unsigned long index = 0; index < count; ++index) {
-        float projection = DotProduct(directions[index], normals[index]);
+        const srVector3T<float>& direction = directions[index];
+        const srVector3T<float>& normal = normals[index];
+        /* Retail keeps the doubled projection, rz and the magnitude on the x87
+           stack but stores n.x * projection, n.y * projection, rx and ry to float
+           stack slots and reloads them; volatile reproduces those roundings. The
+           dot product sums z, y, x and the squared length y, x, z. */
+        double projection =
+            (direction.z * normal.z + direction.y * normal.y) + direction.x * normal.x;
         projection = projection + projection;
-        float rx = directions[index].x - normals[index].x * projection;
-        float ry = directions[index].y - normals[index].y * projection;
-        float rz = (directions[index].z - projection * normals[index].z) + 1.0f;
-        float magnitude = sqrtf(rz * rz + rx * rx + ry * ry);
+        volatile float scaled_x = normal.x * projection;
+        volatile float scaled_y = normal.y * projection;
+        volatile float rx = direction.x - scaled_x;
+        volatile float ry = direction.y - scaled_y;
+        double rz = (direction.z - projection * normal.z) + 1.0f;
+        double magnitude = sqrt((ry * ry + rx * rx) + rz * rz);
         magnitude = 1.0f / (magnitude + magnitude);
-        st[index].x = rx * magnitude + 0.5f;
-        st[index].y = ry * magnitude + 0.5f;
+        st[index].x = static_cast<float>(rx * magnitude + 0.5f);
+        st[index].y = static_cast<float>(ry * magnitude + 0.5f);
     }
 }
 

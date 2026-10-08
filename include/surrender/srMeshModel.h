@@ -47,7 +47,7 @@ public:
     /* Detached triangle-mesh view: updateTriMesh fills it from the live tables, getTriMesh copies
        or returns it and renderTriMesh feeds srTriMeshPipeline from it. */
     struct TriMesh {
-        TriMesh() : poly_vertices(0) {}
+        TriMesh() : control_flags(0) {}
 
         long vertex_count;
         long polygon_count;

@@ -160,7 +160,9 @@ public:
     void setMaterial(srMaterialIFace* material, long pass, srMeshModel::e_side side);
     void setTexture(srTextureIFace* texture, long pass, long layer);
     void setShader(srShader shader, long pass);
-    void convert(srMeshModel& model, int preserve);
+    /* A nonzero remove_degenerate disables and drops triangles with
+       coincident corners before building the mesh (the game passes 1). */
+    void convert(srMeshModel& model, int remove_degenerate);
 
     /* getUniqueVertexList's deduplication table: a raw entry pool, 1024
        position-hash buckets chaining entries, and the per-source-vertex

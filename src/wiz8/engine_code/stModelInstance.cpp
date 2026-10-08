@@ -269,23 +269,47 @@ static void ApplyModelViewMatrix(srModelInstance* instance, srGERD* renderer, fl
 
         srVector3T<float> location;
         location = world_location;
-        transformed_location = view.Transform(location);
+        srVector3T<float> scale;
+        scale = world_scale;
+        /* Retail expands the view transform, the column lengths and the
+           handedness test inline here: every row sums y, z, x before the
+           translation; the column lengths start from a different pair each;
+           the handedness test is the first column dotted with the cross of the
+           other two, summed from the z term. Retail also rounds the cross's x
+           and y to float before the dot product. */
+        const srVector4T<float>* rows = view.vectors;
+        transformed_location.Set(
+            ((rows[0].y * location.y + rows[0].z * location.z) + rows[0].x * location.x) +
+                rows[0].w,
+            ((rows[1].y * location.y + rows[1].z * location.z) + rows[1].x * location.x) +
+                rows[1].w,
+            ((rows[2].y * location.y + rows[2].z * location.z) + rows[2].x * location.x) +
+                rows[2].w,
+            ((rows[3].y * location.y + rows[3].z * location.z) + rows[3].x * location.x) +
+                rows[3].w);
 
-        srVector3T<float> column_x(view.vectors[0].x, view.vectors[1].x, view.vectors[2].x);
-        srVector3T<float> column_y(view.vectors[0].y, view.vectors[1].y, view.vectors[2].y);
-        srVector3T<float> column_z(view.vectors[0].z, view.vectors[1].z, view.vectors[2].z);
-        basis_x = column_x.Length();
-        basis_y = column_y.Length();
-        basis_z = column_z.Length();
+        srVector3T<float> column_x(rows[0].x, rows[1].x, rows[2].x);
+        srVector3T<float> column_y(rows[0].y, rows[1].y, rows[2].y);
+        srVector3T<float> column_z(rows[0].z, rows[1].z, rows[2].z);
+        basis_x = static_cast<float>(
+            sqrt((column_x.y * column_x.y + column_x.z * column_x.z) + column_x.x * column_x.x));
+        basis_y = static_cast<float>(
+            sqrt((column_y.z * column_y.z + column_y.x * column_y.x) + column_y.y * column_y.y));
+        basis_z = static_cast<float>(
+            sqrt((column_z.x * column_z.x + column_z.y * column_z.y) + column_z.z * column_z.z));
 
-        float determinant = Det3(view.vectors[0].x, view.vectors[0].y, view.vectors[0].z,
-                                 view.vectors[1].x, view.vectors[1].y, view.vectors[1].z,
-                                 view.vectors[2].x, view.vectors[2].y, view.vectors[2].z);
-        if (determinant > g_double_zero) {
+        float normal_x = column_y.y * column_z.z - column_y.z * column_z.y;
+        float normal_y = column_y.z * column_z.x - column_y.x * column_z.z;
+        if ((column_x.z * (column_y.x * column_z.y - column_y.y * column_z.x) +
+             column_x.y * normal_y) +
+                column_x.x * normal_x >
+            g_double_zero) {
             basis_x = -basis_x;
             basis_y = -basis_y;
             basis_z = -basis_z;
         }
+        /* Retail narrows the world scale to float and rounds each product to float. */
+        scale *= srVector3T<float>(basis_x, basis_y, basis_z);
 
         renderer->loadIdentity();
         translation = transformed_location.xyz();
@@ -293,8 +317,75 @@ static void ApplyModelViewMatrix(srModelInstance* instance, srGERD* renderer, fl
         if (align_angle != g_float_zero) {
             renderer->rotate(align_angle, align_axis);
         }
-        renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
-                        -(world_scale.z * basis_z));
+        renderer->scale(scale.x, scale.y, -scale.z);
+    }
+}
+
+/* stModelInstance2D::process's copy of ApplyModelViewMatrix. Retail expands
+   the two copies inline with different arithmetic, so each process function
+   has its own. */
+static void ApplyModelViewMatrix2D(srModelInstance* instance, srGERD* renderer, float align_angle,
+                                   const srVector3T<float>& align_axis)
+{
+    if ((instance->alignment_flags.value & 1) == 0) {
+        instance->applyWorldSpaceMatrix(*renderer);
+    } else {
+        srMatrix4T<float> view;
+        srVector3T<double> world_location;
+        srVector3T<double> world_scale;
+        srVector4T<float> transformed_location;
+        srVector3T<float> translation;
+        srVector3T<float> basis;
+
+        renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
+        renderer->pushMatrix();
+        renderer->getMatrix(srGERD::MATRIX_MODELVIEW, view);
+        world_location = instance->getWorldSpaceLocation();
+        world_scale = instance->getWorldSpaceScale();
+
+        srVector3T<float> location;
+        location = world_location;
+        srVector3T<float> scale;
+        scale = world_scale;
+        /* Retail expands the view transform, the column lengths and the
+           handedness test inline here, each with its own association: rows 1-3
+           sum z, y, x before the translation and row 0 sums x, z, y; every column
+           length sums x, y, z; the determinant expands down the first column as
+           (m10 * b + m20 * a) + m00 * c and is compared before any rounding. */
+        const srVector4T<float>* rows = view.vectors;
+        transformed_location.Set(
+            ((rows[0].x * location.x + rows[0].z * location.z) + rows[0].y * location.y) +
+                rows[0].w,
+            ((rows[1].z * location.z + rows[1].y * location.y) + rows[1].x * location.x) +
+                rows[1].w,
+            ((rows[2].z * location.z + rows[2].y * location.y) + rows[2].x * location.x) +
+                rows[2].w,
+            ((rows[3].z * location.z + rows[3].y * location.y) + rows[3].x * location.x) +
+                rows[3].w);
+
+        basis.x = static_cast<float>(
+            sqrt((rows[0].x * rows[0].x + rows[1].x * rows[1].x) + rows[2].x * rows[2].x));
+        basis.y = static_cast<float>(
+            sqrt((rows[0].y * rows[0].y + rows[1].y * rows[1].y) + rows[2].y * rows[2].y));
+        basis.z = static_cast<float>(
+            sqrt((rows[0].z * rows[0].z + rows[1].z * rows[1].z) + rows[2].z * rows[2].z));
+
+        if ((rows[1].x * (rows[0].z * rows[2].y - rows[0].y * rows[2].z) +
+             rows[2].x * (rows[0].y * rows[1].z - rows[0].z * rows[1].y)) +
+                rows[0].x * (rows[1].y * rows[2].z - rows[1].z * rows[2].y) >
+            g_double_zero) {
+            basis = -basis;
+        }
+        /* Retail narrows the world scale to float and rounds each product to float. */
+        scale *= basis;
+
+        renderer->loadIdentity();
+        translation = transformed_location.xyz();
+        renderer->translate(translation);
+        if (align_angle != g_float_zero) {
+            renderer->rotate(align_angle, align_axis);
+        }
+        renderer->scale(scale.x, scale.y, -scale.z);
     }
 }
 
@@ -309,7 +400,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
     srMeshModel::TriMesh mesh;
     srGERD* renderer = info.renderer;
 
-    ApplyModelViewMatrix(this, renderer, align_angle, align_axis);
+    ApplyModelViewMatrix2D(this, renderer, align_angle, align_axis);
 
     srMeshModel* model = static_cast<srMeshModel*>(getModel());
     model->getTriMesh(mesh);
@@ -333,10 +424,9 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
                       static_cast<double>(static_cast<int>(render_state.render_depth))) *
                      g_camera_angle_period)));
         float base_weight = g_float_one - glow_weight;
-        srVector4T<float> emissive;
-        emissive.x = glow_color_base->x * base_weight + glow_color_peak->x * glow_weight;
-        emissive.y = glow_color_base->y * base_weight + glow_color_peak->y * glow_weight;
-        emissive.z = glow_color_base->z * base_weight + glow_color_peak->z * glow_weight;
+        /* Each weighted colour is rounded to float before the sum. */
+        srVector4T<float> emissive =
+            *glow_color_base * base_weight + *glow_color_peak * glow_weight;
         emissive.w = g_float_one;
         m_pGlowMaterial->setEmissive(emissive);
         mesh.materials[0][0] = m_pGlowMaterial;
