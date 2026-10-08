@@ -8262,8 +8262,8 @@ unsigned char UpdateSurpriseFade(void)
             srColorSurface* surface = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_ARGB1555,
                                                              pixels, 0x280, 0x1e0, pitch);
             g_surprise_snapshot_surface = surface;
-            g_surprise_snapshot_overlay = SR_NEW(stSurface2D)(g_surprise_snapshot_surface, 0x280,
-                                                              0x1e0, g_scene_fullscreen, 0x80);
+            g_surprise_snapshot_overlay = new stSurface2D(g_surprise_snapshot_surface, 0x280, 0x1e0,
+                                                          g_scene_fullscreen, 0x80);
             g_surprise_snapshot_overlay->updateRectangle(g_gerd, pixels, pitch, 0, 0, 0x280, 0x1e0);
             UnlockCatalogFrameSurface(0x1e0, 0);
             g_world_render_enabled = 0;
