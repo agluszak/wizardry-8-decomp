@@ -140,6 +140,12 @@ the blobs in FILE; the driver uses this for cross-reads), `--list`.
   `getAxialBounds`.
 * `modeler.xform.v<n>`: random whole-modeler and per-triangle `scale`,
   `move` and `rotate`, followed by `findClosestVertex` and `findVertex`.
+* `modeler.rotate.v<n>`, `mesh.apply.v<n>`: four chained random 3x3
+  transforms through `srModeler::rotate` (whole modeler, or every triangle
+  through the per-triangle overload) and `srMeshModel::applyMatrix`.
+  Different summation orders change the float result only rarely, so a
+  clean run here is weak evidence; the fixes were checked against the
+  retail instructions.
 * `modeler.tesselate.v<n>`, `modeler.smooth.v<n>`, `modeler.map.v<n>`,
   `modeler.polygon.v<n>`, `modeler.manage.v<n>`: `tesselateEdges` (whole
   modeler and per triangle), `autoSmooth` followed by `convert`,

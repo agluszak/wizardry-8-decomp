@@ -278,6 +278,47 @@ static void modelerTransforms()
     }
 }
 
+/* Repeated rotations isolate the 3x3 transform's summation order. */
+static void modelerRotate()
+{
+    srModeler modeler;
+    srMatrix3T<float> rotation;
+    int step;
+    buildShape(modeler, g_model_variant);
+    modeler.scale(randomVector(4.0f));
+    for (step = 0; step < 4; ++step) {
+        randomRotation(rotation);
+        rotation.vectors[step % 3].y *= 1.25f;
+        if ((g_model_variant & 1) != 0 && modeler.getTriangleCount() != 0) {
+            unsigned long index;
+            for (index = 0; index < modeler.getTriangleCount(); ++index) {
+                modeler.rotate(index, rotation);
+            }
+        } else {
+            modeler.rotate(rotation);
+        }
+    }
+    dumpModeler("rotate", modeler);
+}
+
+static void meshApply()
+{
+    srModeler modeler;
+    srMeshModel* mesh = new srMeshModel(0, 0);
+    srMatrix3T<float> rotation;
+    int step;
+    buildShape(modeler, g_model_variant);
+    modeler.scale(randomVector(4.0f));
+    modeler.convert(*mesh, 0);
+    for (step = 0; step < 4; ++step) {
+        randomRotation(rotation);
+        rotation.vectors[step % 3].z *= 0.75f;
+        mesh->applyMatrix(rotation);
+    }
+    printFloats("apply loc", &mesh->getVertexLoc()->x, mesh->getVertexCount() * 3, 3);
+    mesh->release();
+}
+
 static void modelerTesselate()
 {
     srModeler modeler;
@@ -307,6 +348,7 @@ static void modelerSmooth()
         modeler.rotate(rotation);
         modeler.scale(randomVector(2.0f));
     }
+    dumpModeler("pre-smooth", modeler);
     modeler.autoSmooth(threshold, g_model_variant & 1);
     dumpModeler("smooth", modeler);
     mesh = new srMeshModel(0, 0);
@@ -570,6 +612,8 @@ static void meshOperations()
             break;
         }
         }
+        printf("after-op loc fnv %08lx\n",
+               fnv(2166136261UL, mesh->getVertexLoc(), mesh->getVertexCount() * 12));
     }
     dumpMesh("ops", *mesh);
     mesh->release();
@@ -886,6 +930,10 @@ void modelCases()
         sprintf(label, "v%d", variant);
         runModel("modeler.xform", label, variant, modelerTransforms);
     }
+    for (variant = 0; variant < 32; ++variant) {
+        sprintf(label, "v%d", variant);
+        runModel("modeler.rotate", label, variant, modelerRotate);
+    }
     for (variant = 0; variant < 48; ++variant) {
         sprintf(label, "v%d", variant);
         runModel("modeler.tesselate", label, variant, modelerTesselate);
@@ -913,6 +961,10 @@ void modelCases()
     for (variant = 0; variant < 32; ++variant) {
         sprintf(label, "v%d", variant);
         runModel("mesh.ops", label, variant, meshOperations);
+    }
+    for (variant = 0; variant < 24; ++variant) {
+        sprintf(label, "v%d", variant);
+        runModel("mesh.apply", label, variant, meshApply);
     }
     for (variant = 0; variant < 48; ++variant) {
         sprintf(label, "v%d", variant);
