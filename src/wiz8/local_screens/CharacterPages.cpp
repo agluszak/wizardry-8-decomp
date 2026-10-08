@@ -197,6 +197,9 @@ void W8CharacterPageEntry::OnPrimary(W8TextControl* control)
     } else if (control == m_decrement) {
         if (m_listener != 0)
             m_listener->AdjustEntry(this, -1);
+    } else {
+        /* Retail ignores clicks on any other control. */
+        return;
     }
     UpdateButtons();
     MarkDirty();
