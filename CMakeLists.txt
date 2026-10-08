@@ -28,6 +28,7 @@ add_subdirectory(src/surrender)
 add_subdirectory(src/srext_jpegimporter)
 add_subdirectory(src/wiz8)
 add_subdirectory(src/srext_unzip)
+add_subdirectory(tests/differential)
 
 if(NOT WIZ8_ANALYSIS_BUILD)
     reccmp_configure(SURRENDER SREXT_JPEGIMPORTER WIZ8 SREXT_UNZIP)

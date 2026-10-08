@@ -435,8 +435,66 @@ def register(app: typer.Typer) -> None:
     app.command("runtime-test")(runtime_test_command)
     app.command("run")(run_command)
     app.command("debug")(debug_command)
+    app.command("sr-difftest")(sr_difftest_command)
     app.add_typer(analyze_app, name="analyze")
     analyze_app.command("source-index")(source_index_command)
+
+
+def sr_difftest_command(
+    cases: Annotated[
+        list[str] | None,
+        typer.Argument(help="Case names; a trailing '*' selects a prefix. Default: all."),
+    ] = None,
+    dlls: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--dll",
+            help="NAME=PATH SR.DLL variant; the first is the reference. "
+            "Default: retail=<work>/variants/gog-base/sr.dll rebuilt=<build>/sr.dll.",
+        ),
+    ] = None,
+    seed: int = typer.Option(1, "--seed", help="Seed for generated inputs."),
+    generated: int = typer.Option(2, "--generated", help="Generated rounds per op/alias/count."),
+    build: bool = typer.Option(False, "--build", help="Build SURRENDER and the runner first."),
+    as_json: bool = typer.Option(False, "--json", help="Emit the full JSON report."),
+) -> None:
+    """Run the vector-processor differential runner against retail and rebuilt SR.DLL."""
+    from .. import command_support as cli
+    from ..build import build_target
+    from ..differential import Variant, compare, render
+
+    settings = cli.settings()
+    if build:
+        build_target(settings, "SURRENDER")
+        build_target(settings, "SR_DIFFTEST")
+    gog_base = settings.work_dir / "variants" / "gog-base"
+    variants: list[Variant] = []
+    for value in dlls or [
+        f"retail={gog_base / 'sr.dll'}",
+        f"rebuilt={settings.product_build_dir / 'sr.dll'}",
+    ]:
+        name, separator, path = value.partition("=")
+        if not separator or not name or not path:
+            raise typer.BadParameter(f"expected NAME=PATH, got {value!r}")
+        dll = Path(path).expanduser().resolve()
+        if not dll.is_file():
+            raise typer.BadParameter(f"{name}: {dll} does not exist")
+        variants.append(Variant(name, dll))
+    runner = settings.product_build_dir / "sr_difftest.exe"
+    if not runner.is_file():
+        raise typer.BadParameter(f"{runner} is missing; build SR_DIFFTEST or pass --build")
+    report = compare(
+        variants,
+        runner,
+        gog_base,
+        settings.build_dir / "differential" / "sr-vp",
+        seed=seed,
+        generated=generated,
+        cases=cases or (),
+    )
+    cli.emit(report, as_json=as_json, text=None if as_json else render(report))
+    if any(result["divergent"] or result["header_divergence"] for result in report["results"]):
+        raise typer.Exit(1)
 
 
 def source_index_command(
