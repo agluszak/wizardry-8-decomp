@@ -839,7 +839,8 @@ void W8Monster::RandomizeAppearanceAndMotion()
 {
     unsigned int random_value;
 
-    mirror_x = Random(100) < static_cast<UINT32>(m_pRep->left_handed);
+    /* 0x004C1D3D: cmp/setl - a signed test against the LEFTHANDED percent. */
+    mirror_x = static_cast<int>(Random(100)) < m_pRep->left_handed;
 
     if (m_pRep->minimum_scale != g_float_zero && m_pRep->maximum_scale != g_float_zero) {
         float minimum = m_pRep->minimum_scale;
