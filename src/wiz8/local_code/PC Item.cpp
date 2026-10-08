@@ -3325,7 +3325,9 @@ bool AddItemToParty(W8ItemInstance* item, bool announce, bool skip_stacking)
             }
             ++index;
         }
-        if (partially_merged) {
+        /* Retail re-runs the encumbrance pass after any complete merge as
+           well as after a partial one (0x00521f64 -> 0x00522089 -> 0x00521f7f). */
+        if (stored || partially_merged) {
             RedistributePartyEncumbrance();
         }
     }
