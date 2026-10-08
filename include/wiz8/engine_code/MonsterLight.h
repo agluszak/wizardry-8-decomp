@@ -2,12 +2,15 @@
 
 #include "surrender/srLight.h"
 
-/* Monster's copy constructor establishes ownership of this complete object.
-   Its registry identity deliberately remains srLight: the concrete vtable is
-   the evidence that distinguishes this specialization. */
-// VTABLE: WIZ8 0x005ECD18 MonsterLight
-// VTABLE: WIZ8 0x005ECD0C srVertexProcessor
-class MonsterLight : public srLight {
+/* Monster's light: srLight plus colour-cycle/fade state. Retail never
+   installs a vtable of its own: the constructor at 0x0049D500 leaves the
+   imported srLight vtables that ??0srLight stored, and the copy constructor
+   at 0x0049D660 ends on the srLight vtables it reloads from SR.DLL. Every
+   virtual call (srLight::isActive/process vertex lighting, the deleting
+   destructor) therefore goes to srLight, so the class is novtable and adds
+   no overrides. The tables at 0x005ECD18/0x005ECD0C are the local
+   srClassSupport<srLight> instantiation (see MonsterLight.cpp). */
+class __declspec(novtable) MonsterLight : public srLight {
 public:
     MonsterLight(srNode* parent, bool cycle_color, float range,
                  const srVector3T<float>* first_color,
@@ -17,19 +20,6 @@ public:
     void SetRange(float range);
     void Update(const srVector3T<float>* position);
     void StartFadeOut();
-
-    /* The retail secondary table at 0x005ECD0C carries real override slots for
-       both vertex-processor hooks: isActive's body (0x004D6190) is the
-       constant-return-1 frame folded across the identically-shaped overrides
-       that survive in the image, and process's (0x005B1BE0) is the shared
-       ret-4 no-op. Neither has a surviving MonsterLight name, so the bodies
-       remain inert here while their emissions stay owned by the folded
-       originals they collided with. */
-    virtual int isActive(srVertexPipe&) override
-    {
-        return 1;
-    }
-    virtual void process(srVertexPipe&) override {}
 
 public:
     float m_vertical_offset;          /* 0x228 */

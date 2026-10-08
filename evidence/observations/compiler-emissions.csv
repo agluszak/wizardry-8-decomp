@@ -1265,13 +1265,13 @@ WIZ8|0049dd60||srClassSupport<stLight,srLight,0,65542>::vClone|template|src/wiz8
 WIZ8|0049dd80||srClassSupport<stLight,srLight,0,65542>::~srClassSupport|template|src/wiz8/engine_code/stLight.cpp|legacy-marker|srClassSupport<stLight,srLight,0,65542>::~srClassSupport|false
 WIZ8|0049dfb0||srClassSupport<srIlluminator,srNode,0,4608>::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/stLight.cpp|legacy-marker|srClassSupport<srIlluminator,srNode,0,4608>::`scalar deleting destructor'|false
 WIZ8|0049dfe0||srClassSupport<srIlluminator,srNode,0,4608>::~srClassSupport|template|src/wiz8/engine_code/stLight.cpp|legacy-marker|srClassSupport<srIlluminator,srNode,0,4608>::~srClassSupport|false
-WIZ8|0049e0a0||MonsterLight::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/MonsterLight.cpp|legacy-marker|MonsterLight::`scalar deleting destructor'|false
-WIZ8|0049e0d0||MonsterLight::~MonsterLight|synthetic|src/wiz8/engine_code/MonsterLight.cpp|legacy-marker|MonsterLight::~MonsterLight|false
+WIZ8|0049e0a0||srClassSupport<srLight,srIlluminator,0,4640>::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/MonsterLight.cpp|legacy-marker|srClassSupport<srLight,srIlluminator,0,4640>::`scalar deleting destructor'|false
+WIZ8|0049e0d0||srClassSupport<srLight,srIlluminator,0,4640>::~srClassSupport|template|src/wiz8/engine_code/MonsterLight.cpp|legacy-marker|srClassSupport<srLight,srIlluminator,0,4640>::~srClassSupport<srLight,srIlluminator,0,4640>|false
 WIZ8|0049e260||srClassSupport<stLight,srLight,0,65542>::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/stLight.cpp|legacy-marker|srClassSupport<stLight,srLight,0,65542>::`scalar deleting destructor'|false
 WIZ8|0049e290||srArray<T>::setCapacity|template|src/wiz8/engine_code/stLight.cpp|legacy-marker|srArray<srNode*>::setCapacity|false
 WIZ8|0049e300||srClassSupport<srLight,srIlluminator,0,4640>::getClassNode|template|src/wiz8/engine_code/MonsterLight.cpp|legacy-marker|srClassSupport<srLight,srIlluminator,0,4640>::getClassNode|false
 WIZ8|0049e400||stLight::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/stLight.cpp|legacy-marker|stLight::`scalar deleting destructor'|false
-WIZ8|0049e440||MonsterLight::`vector deleting destructor'`adjustor{312}'|synthetic|src/wiz8/engine_code/MonsterLight.cpp|legacy-marker|MonsterLight::`vector deleting destructor'`adjustor{312}'|false
+WIZ8|0049e440||srClassSupport<srLight,srIlluminator,0,4640>::`vector deleting destructor'`adjustor{312}'|synthetic|src/wiz8/engine_code/MonsterLight.cpp|legacy-marker|srClassSupport<srLight,srIlluminator,0,4640>::`vector deleting destructor'`adjustor{312}'|false
 WIZ8|0049e450||stLight::`scalar deleting destructor'`adjustor{312}'|synthetic|src/wiz8/engine_code/stLight.cpp|legacy-marker|stLight::`scalar deleting destructor'`adjustor{312}'|false
 WIZ8|0049f100||W8ItemRep::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/Item.cpp|legacy-marker|W8ItemRep::`scalar deleting destructor'|false
 WIZ8|0049f420||W8Item::`scalar deleting destructor'|synthetic|src/wiz8/engine_code/Item.cpp|legacy-marker|W8Item::`scalar deleting destructor'|false
