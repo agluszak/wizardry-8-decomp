@@ -624,7 +624,7 @@ unsigned char W8CharacterEvent::IsConditionMet(unsigned int event_type)
             return character->gender != W8_GENDER_FEMALE;
         case 56:
             return character->hp_current >= static_cast<unsigned int>(trigger_value) &&
-                   character->highest_condition >= static_cast<unsigned int>(trigger_value_2);
+                   character->highest_condition <= static_cast<unsigned int>(trigger_value_2);
         case 84:
             return static_cast<unsigned int>(trigger_value) > character->highest_condition;
         case 85:
