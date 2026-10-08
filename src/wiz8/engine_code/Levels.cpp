@@ -737,13 +737,18 @@ unsigned char UnloadLevel(const char* save_directory)
     g_runtime_world_scale = 500.0f;
     ClearActiveWorldCursorNode();
 
+    /* Walk every registered clip plane through the instance overload of
+       find (class, relative-to); the by-name overload with a null name is not
+       an instance walk. */
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = srClientSupport<srClipPlane, 0x1500>::sGetClassNode();
-    srClass* clip_plane = static_cast<srClass*>(registry->find(node, 0, 0));
+    srClass* clip_plane =
+        static_cast<srClass*>(registry->find(node, static_cast<const srRuntimeClass*>(0)));
 
     while (clip_plane != 0) {
         srClass* next = static_cast<srClass*>(
-            registry->find(srClientSupport<srClipPlane, 0x1500>::sGetClassNode(), 0, clip_plane));
+            registry->find(srClientSupport<srClipPlane, 0x1500>::sGetClassNode(),
+                           static_cast<const srRuntimeClass*>(clip_plane)));
         clip_plane->release();
         clip_plane = next;
     }
