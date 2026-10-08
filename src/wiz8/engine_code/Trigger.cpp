@@ -3254,6 +3254,9 @@ void Trigger::Run(int source)
             }
         }
         g_timed_events.Add(m_pEvent);
+        if (trigger_kind == 2) {
+            flags |= W8_TRIGGER_RUNNING;
+        }
         break;
 
     case 0x40:
