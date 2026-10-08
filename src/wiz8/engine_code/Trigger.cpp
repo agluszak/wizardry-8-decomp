@@ -444,8 +444,9 @@ bool Trigger::Save(int hFile)
             }
             FileWrite(hFile, &progress_delay, 2, 0);
             {
-                unsigned short zero = 0;
-                FileWrite(hFile, &zero, sizeof(zero), 0);
+                unsigned int item = static_cast<unsigned short>(
+                    static_cast<W8DoorTriggerActionData*>(action_data)->item);
+                FileWrite(hFile, &item, 2, 0);
             }
         }
     }
