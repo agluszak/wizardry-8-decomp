@@ -14,65 +14,6 @@ srCriticalSection srNode::sceneGraphCSect;
 // GLOBAL: SURRENDER 0x100A49FC
 long srNode::sceneGraphLockCount;
 
-/* srMatrix3T<double>::OrthonormalizeRows as retail's srNode code computes
-   it. The inlined dot product sums z, y, then x, and the row length goes
-   through the out-of-line srVector3T<double>::Length (0x10055450), which
-   sums x, y, then z. The header template's inline DotProduct and Length
-   get reassociated differently by VC6. */
-static void orthonormalizeRows(srMatrix3T<double>& matrix)
-{
-    for (int row = 0; row < 3; ++row) {
-        srVector3T<double>& vector = matrix.vectors[row];
-        for (int earlier = 0; earlier < row; ++earlier) {
-            const srVector3T<double>& basis = matrix.vectors[earlier];
-            double dot = (vector.z * basis.z + vector.y * basis.y) + vector.x * basis.x;
-            vector.x -= basis.x * dot;
-            vector.y -= basis.y * dot;
-            vector.z -= basis.z * dot;
-        }
-        double inverse =
-            1.0 / sqrt((vector.x * vector.x + vector.y * vector.y) + vector.z * vector.z);
-        vector.x *= inverse;
-        vector.y *= inverse;
-        vector.z *= inverse;
-    }
-}
-
-/* srMatrix4T<double>::MultiplyBy as retail's out-of-line instance (0x10055a60,
-   called only from setWorldSpaceRotation and setWorldSpaceMatrix) sums it.
-   Each element's four-term sum has a fixed association; row 0 differs from
-   rows 1-3. The header template's loop sums every element x, y, z, w. */
-static void multiplyBy4(srMatrix4T<double>& matrix, const srMatrix4T<double>& other)
-{
-    const srVector4T<double>* o = other.vectors;
-    for (int row = 0; row < 4; ++row) {
-        srVector4T<double>& target = matrix.vectors[row];
-        double x = target.x;
-        double y = target.y;
-        double z = target.z;
-        double w = target.w;
-        double rx;
-        double ry;
-        double rz;
-        double rw;
-        if (row == 0) {
-            rw = ((z * o[2].w + y * o[1].w) + w * o[3].w) + x * o[0].w;
-            rz = ((y * o[1].z + z * o[2].z) + x * o[0].z) + w * o[3].z;
-            ry = ((w * o[3].y + y * o[1].y) + z * o[2].y) + x * o[0].y;
-            rx = ((x * o[0].x + w * o[3].x) + y * o[1].x) + z * o[2].x;
-        } else {
-            rw = ((w * o[3].w + y * o[1].w) + z * o[2].w) + x * o[0].w;
-            rz = ((w * o[3].z + z * o[2].z) + y * o[1].z) + x * o[0].z;
-            ry = ((y * o[1].y + w * o[3].y) + z * o[2].y) + x * o[0].y;
-            rx = ((w * o[3].x + z * o[2].x) + x * o[0].x) + y * o[1].x;
-        }
-        target.x = rx;
-        target.y = ry;
-        target.z = rz;
-        target.w = rw;
-    }
-}
-
 /* Retail's world-space setters measure the column vectors with Length inlined
    and summed z, y, x; one call in setWorldSpaceRotation goes through the
    out-of-line srVector3T<double>::Length (0x10055450), which sums x, y, z. */
@@ -86,117 +27,17 @@ static double columnLengthXYZ(const srVector3T<double>& column)
     return sqrt((column.x * column.x + column.y * column.y) + column.z * column.z);
 }
 
-/* Retail inlines Normalize (rotate(angle, axis), setRotation(amount, direction),
-   pitchAt, yawAt) and DotProduct (pitchAt, yawAt) with the three terms summed
-   z, y, x; the header templates sum x, y, z. */
-static void normalizeZYX(srVector3T<double>& vector)
-{
-    double length_squared = (vector.z * vector.z + vector.y * vector.y) + vector.x * vector.x;
-    if (length_squared != 0.0) {
-        double scale = 1.0 / sqrt(length_squared);
-        vector.x *= scale;
-        vector.y *= scale;
-        vector.z *= scale;
-    }
-}
-
-static double dotZYX(const srVector3T<double>& first, const srVector3T<double>& second)
-{
-    return (first.z * second.z + first.y * second.y) + first.x * second.x;
-}
-
-/* srMatrix3T<double>::MultiplyBy as retail's out-of-line instance
-   (0x10055930) sums it: every element is (z + y) + x over the left row. The
-   header template's loop associates the rows differently once VC6 has
-   scheduled it, so srNode's rotation updates go through this copy. */
-static void multiplyBy3(srMatrix3T<double>& matrix, const srMatrix3T<double>& other)
-{
-    srMatrix3T<double> result;
-    for (int column = 0; column < 3; ++column) {
-        double x = (&other.vectors[0].x)[column];
-        double y = (&other.vectors[1].x)[column];
-        double z = (&other.vectors[2].x)[column];
-        for (int row = 0; row < 3; ++row) {
-            const srVector3T<double>& left = matrix.vectors[row];
-            (&result.vectors[row].x)[column] = (z * left.z + y * left.y) + x * left.x;
-        }
-    }
-    matrix = result;
-}
-
-static void rotateAboutX(srMatrix3T<double>& matrix, double sine, double cosine)
-{
-    srMatrix3T<double> rotation;
-    rotation.SetRows(srVector3T<double>(1.0, 0.0, 0.0), srVector3T<double>(0.0, cosine, -sine),
-                     srVector3T<double>(0.0, sine, cosine));
-    multiplyBy3(matrix, rotation);
-}
-
-static void rotateAboutY(srMatrix3T<double>& matrix, double sine, double cosine)
-{
-    srMatrix3T<double> rotation;
-    rotation.SetRows(srVector3T<double>(cosine, 0.0, sine), srVector3T<double>(0.0, 1.0, 0.0),
-                     srVector3T<double>(-sine, 0.0, cosine));
-    multiplyBy3(matrix, rotation);
-}
-
-static void rotateAboutZ(srMatrix3T<double>& matrix, double sine, double cosine)
-{
-    srMatrix3T<double> rotation;
-    rotation.SetRows(srVector3T<double>(cosine, -sine, 0.0), srVector3T<double>(sine, cosine, 0.0),
-                     srVector3T<double>(0.0, 0.0, 1.0));
-    multiplyBy3(matrix, rotation);
-}
-
-static void rotateAboutX(srMatrix3T<double>& matrix, double angle)
-{
-    if (angle != 0.0) {
-        rotateAboutX(matrix, sin(angle), cos(angle));
-    }
-}
-
-static void rotateAboutY(srMatrix3T<double>& matrix, double angle)
-{
-    if (angle != 0.0) {
-        rotateAboutY(matrix, sin(angle), cos(angle));
-    }
-}
-
-static void rotateAboutZ(srMatrix3T<double>& matrix, double angle)
-{
-    if (angle != 0.0) {
-        rotateAboutZ(matrix, sin(angle), cos(angle));
-    }
-}
-
-/* The axis-angle rotation as retail builds it, both inline in
-   srNode::rotate and in the out-of-line srMatrix3T<double>::RotateAroundAxis
-   (0x10055d40): the off-diagonal products are (omc * a) * b, where the
-   header forms (a * b) * omc. */
+/* Retail srNode constructs the axis-angle rotation matrix through the
+   srVector3T default-constructor iterator, so sin and cos are spilled to double
+   temporaries around that call (setRotation reaches the out-of-line
+   srMatrix3T<double>::RotateAroundAxis, 0x10055D40, with them as double
+   arguments). The rebuilt compiler expands the empty constructor and the
+   template inline and would use the unrounded fsin/fcos results; passing them
+   through double parameters restores the rounding. */
 static void rotateAroundAxis(srMatrix3T<double>& matrix, double sine, double cosine,
                              const srVector3T<double>& axis)
 {
-    srMatrix3T<double> rotation;
-    double x = axis.x;
-    double y = axis.y;
-    double z = axis.z;
-    double one_minus_cosine = 1.0 - cosine;
-    double xy = one_minus_cosine * y * x;
-    double zs = z * sine;
-    double xz = one_minus_cosine * z * x;
-    double ys = y * sine;
-    double yz = one_minus_cosine * z * y;
-    double xs = x * sine;
-    rotation.vectors[0].x = (1.0 - x * x) * cosine + x * x;
-    rotation.vectors[0].y = xy - zs;
-    rotation.vectors[0].z = ys + xz;
-    rotation.vectors[1].x = zs + xy;
-    rotation.vectors[1].y = (1.0 - y * y) * cosine + y * y;
-    rotation.vectors[1].z = yz - xs;
-    rotation.vectors[2].x = xz - ys;
-    rotation.vectors[2].y = xs + yz;
-    rotation.vectors[2].z = (1.0 - z * z) * cosine + z * z;
-    multiplyBy3(matrix, rotation);
+    matrix.RotateAroundAxis(sine, cosine, axis);
 }
 
 /* Comma-separated flag/notify name lists dumped beside the bit values; the constructor lazily
@@ -444,22 +285,14 @@ int srNode::setParent(srNode* parent, int preserve_world_transform)
                 }
             }
             rotation = local;
-            orthonormalizeRows(rotation);
+            rotation.OrthonormalizeRows();
             srVector3T<double> inverse_scale;
             inverse_scale.x = 1.0 / parent_scale.x;
             inverse_scale.y = 1.0 / parent_scale.y;
             inverse_scale.z = 1.0 / parent_scale.z;
             location -= parent_location;
             location *= inverse_scale;
-            /* Out-of-line srMatrix3T<double>::TransformTransposed (0x100555c0) sums
-               z, y, then x. */
-            {
-                const srVector3T<double>* p = parent_rotation.vectors;
-                srVector3T<double> moved = location;
-                location.x = (p[2].x * moved.z + p[1].x * moved.y) + p[0].x * moved.x;
-                location.y = (p[2].y * moved.z + p[1].y * moved.y) + p[0].y * moved.x;
-                location.z = (p[2].z * moved.z + p[1].z * moved.y) + p[0].z * moved.x;
-            }
+            location = parent_rotation.TransformTransposed(location);
             scale *= inverse_scale;
         }
     }
@@ -729,9 +562,9 @@ void srNode::setRotation(const srMatrix3T<float>& rotation)
 void srNode::setRotation(double x, double y, double z)
 {
     rotation.SetIdentity();
-    rotateAboutX(rotation, x);
-    rotateAboutY(rotation, y);
-    rotateAboutZ(rotation, z);
+    rotation.RotateAboutX(x);
+    rotation.RotateAboutY(y);
+    rotation.RotateAboutZ(z);
     setWSDirty();
 }
 
@@ -739,7 +572,7 @@ void srNode::setRotation(double x, double y, double z)
 void srNode::setRotation(double amount, const srVector3T<double>& direction)
 {
     srVector3T<double> axis = direction;
-    normalizeZYX(axis);
+    axis.Normalize();
     rotation.SetIdentity();
     if (amount != 0.0) {
         rotateAroundAxis(rotation, sin(amount), cos(amount), axis);
@@ -755,15 +588,15 @@ void srNode::setRotation(const srVector3T<double>& direction, double amount)
     rotation.SetIdentity();
     double angle = atan2(axis.x, axis.z);
     if (angle != 0.0) {
-        rotateAboutY(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutY(sin(angle), cos(angle));
     }
     axis = rotation.TransformTransposed(axis);
     angle = -atan2(axis.y, axis.z);
     if (angle != 0.0) {
-        rotateAboutX(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutX(sin(angle), cos(angle));
     }
     if (amount != 0.0) {
-        rotateAboutZ(rotation, amount);
+        rotation.RotateAboutZ(amount);
     }
     setWSDirty();
 }
@@ -777,12 +610,12 @@ void srNode::setRotation(const srVector3T<double>& first, const srVector3T<doubl
     rotation.SetIdentity();
     double angle = atan2(axis.x, axis.z);
     if (angle != 0.0) {
-        rotateAboutY(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutY(sin(angle), cos(angle));
     }
     axis = rotation.TransformTransposed(axis);
-    rotateAboutX(rotation, -atan2(axis.y, axis.z));
+    rotation.RotateAboutX(-atan2(axis.y, axis.z));
     if (amount != 0.0) {
-        rotateAboutZ(rotation, amount);
+        rotation.RotateAboutZ(amount);
     }
     setWSDirty();
 }
@@ -1387,7 +1220,7 @@ void srNode::rotate(const srMatrix3T<double>& rotation)
     srMatrix3T<double> identity;
     identity.SetIdentity();
     if (!(rotation == identity)) {
-        multiplyBy3(this->rotation, rotation);
+        this->rotation.MultiplyBy(rotation);
         setWSDirty();
     }
 }
@@ -1397,7 +1230,7 @@ void srNode::rotate(double angle, const srVector3T<double>& axis)
 {
     if (angle != 0.0) {
         srVector3T<double> normalized = axis;
-        normalizeZYX(normalized);
+        normalized.Normalize();
         rotateAroundAxis(rotation, sin(angle), cos(angle), normalized);
         setWSDirty();
     }
@@ -1407,7 +1240,7 @@ void srNode::rotate(double angle, const srVector3T<double>& axis)
 void srNode::rotateX(double angle)
 {
     if (angle != 0.0) {
-        rotateAboutX(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutX(sin(angle), cos(angle));
         setWSDirty();
     }
 }
@@ -1416,7 +1249,7 @@ void srNode::rotateX(double angle)
 void srNode::rotateY(double angle)
 {
     if (angle != 0.0) {
-        rotateAboutY(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutY(sin(angle), cos(angle));
         setWSDirty();
     }
 }
@@ -1425,7 +1258,7 @@ void srNode::rotateY(double angle)
 void srNode::rotateZ(double angle)
 {
     if (angle != 0.0) {
-        rotateAboutZ(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutZ(sin(angle), cos(angle));
         setWSDirty();
     }
 }
@@ -1459,7 +1292,7 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         srMatrix4T<double> inverse;
         inverse.Inverse(local);
         local = inverse;
-        multiplyBy4(local, world);
+        local.MultiplyBy(world);
         srMatrix3T<double> result;
         result.SetRows(local.vectors[0].xyz(), local.vectors[1].xyz(), local.vectors[2].xyz());
         this->rotation = result;
@@ -1493,7 +1326,7 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
         srMatrix4T<double> inverse;
         inverse.Inverse(local);
         local = inverse;
-        multiplyBy4(local, matrix);
+        local.MultiplyBy(matrix);
     }
     srMatrix3T<double> result;
     result.SetRows(local.vectors[0].xyz(), local.vectors[1].xyz(), local.vectors[2].xyz());
@@ -1523,16 +1356,16 @@ void srNode::pitchAt(const srVector3T<double>& target, double amount)
     srMatrix3T<double> rotation;
     getWorldSpaceRotation(rotation);
     srVector3T<double> direction = target - getWorldSpaceLocation();
-    normalizeZYX(direction);
+    direction.Normalize();
     srVector3T<double> up(rotation.vectors[0].y, rotation.vectors[1].y, rotation.vectors[2].y);
     srVector3T<double> forward(rotation.vectors[0].z, rotation.vectors[1].z, rotation.vectors[2].z);
     /* Retail stores the forward component to a float slot and reloads it. */
-    volatile float toward = (float)dotZYX(forward, direction);
-    double angle = -atan2(dotZYX(up, direction), toward) * amount;
+    volatile float toward = (float)DotProduct(forward, direction);
+    double angle = -atan2(DotProduct(up, direction), toward) * amount;
     if (angle != 0.0) {
-        rotateAboutX(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutX(sin(angle), cos(angle));
     }
-    orthonormalizeRows(rotation);
+    rotation.OrthonormalizeRows();
     setWorldSpaceRotation(rotation);
 }
 
@@ -1548,16 +1381,16 @@ void srNode::yawAt(const srVector3T<double>& target, double amount)
     srMatrix3T<double> rotation;
     getWorldSpaceRotation(rotation);
     srVector3T<double> direction = target - getWorldSpaceLocation();
-    normalizeZYX(direction);
+    direction.Normalize();
     srVector3T<double> right(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x);
     srVector3T<double> forward(rotation.vectors[0].z, rotation.vectors[1].z, rotation.vectors[2].z);
     /* Retail stores the forward component to a float slot and reloads it. */
-    volatile float toward = (float)dotZYX(forward, direction);
-    double angle = atan2(dotZYX(right, direction), toward) * amount;
+    volatile float toward = (float)DotProduct(forward, direction);
+    double angle = atan2(DotProduct(right, direction), toward) * amount;
     if (angle != 0.0) {
-        rotateAboutY(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutY(sin(angle), cos(angle));
     }
-    orthonormalizeRows(rotation);
+    rotation.OrthonormalizeRows();
     setWorldSpaceRotation(rotation);
 }
 
@@ -1575,9 +1408,9 @@ void srNode::rollUp(double amount)
     volatile float vertical = (float)rotation.vectors[1].y;
     double angle = -atan2(rotation.vectors[1].x, vertical) * amount;
     if (angle != 0.0) {
-        rotateAboutZ(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutZ(sin(angle), cos(angle));
     }
-    orthonormalizeRows(rotation);
+    rotation.OrthonormalizeRows();
     setWorldSpaceRotation(rotation);
 }
 
@@ -1593,9 +1426,9 @@ void srNode::rollAt(const srVector3T<double>& target, double amount)
     double along = (up.x * target.x + up.z * target.z) + up.y * target.y;
     double angle = -atan2(across, along) * amount;
     if (angle != 0.0) {
-        rotateAboutZ(rotation, sin(angle), cos(angle));
+        rotation.RotateAboutZ(sin(angle), cos(angle));
     }
-    orthonormalizeRows(rotation);
+    rotation.OrthonormalizeRows();
     setWorldSpaceRotation(rotation);
 }
 
