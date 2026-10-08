@@ -547,7 +547,7 @@ static void cameraProbe(const char* tag, double x, double y, double z, double an
 
 /* ------------------------------------------------------------------------ */
 
-static void runProbe(const char* name, void (*probe)())
+void runProbe(const char* name, void (*probe)())
 {
     unsigned long code = 0;
     if (!probeSelected(name)) {
@@ -591,6 +591,8 @@ static void cameraTranslatedRotated()
     cameraProbe("translated-rotated", -4, 0.5, 10, 1.25, srVector3T<double>(1, 0, 0));
 }
 
+void surfaceCases();
+
 void probeCases()
 {
     runProbe("probe.registry.grow-shrink", registryProbe);
@@ -600,4 +602,5 @@ void probeCases()
     runProbe("probe.camera.translated", cameraTranslated);
     runProbe("probe.camera.rotated", cameraRotated);
     runProbe("probe.camera.translated-rotated", cameraTranslatedRotated);
+    surfaceCases();
 }

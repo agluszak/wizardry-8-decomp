@@ -67,7 +67,8 @@ enum Domain {
     DOM_BYTE,      /* bytes 0..255 */
     DOM_SMALLBYTE, /* bytes 0..3, with zeros */
     DOM_INDEX,     /* filled by the case: index into an indexed pool */
-    DOM_PERM       /* filled by the case: permutation 0..n-1 */
+    DOM_PERM,      /* filled by the case: permutation 0..n-1 */
+    DOM_SMALLINDEX /* words 0..15: vertex indices into a 16-entry table */
 };
 
 static float randomFloat(int domain)
@@ -105,6 +106,8 @@ static void fillWords(unsigned char* storage, int bytes, int domain)
             word = nextRandom();
         } else if (domain == DOM_SMALLBYTE) {
             word = nextRandom() & 0x03030303UL;
+        } else if (domain == DOM_SMALLINDEX) {
+            word = nextRandom() & 15;
         } else {
             word = floatBits(randomFloat(domain));
         }
@@ -197,6 +200,7 @@ static int thunkOffset(const void* pointer_storage)
 #define B(n) static_cast<SRBYTE*>(c.n)
 #define CB(i) static_cast<const SRBYTE*>(c.source[i])
 #define K3 (*reinterpret_cast<const srVector3*>(c.constants))
+#define K2 (*reinterpret_cast<const srVector2*>(c.constants))
 #define K4 (*reinterpret_cast<const srVector4*>(c.constants))
 #define K4B (*reinterpret_cast<const srVector4*>(c.constants + 4))
 
@@ -493,6 +497,225 @@ DEFINE_OP(subSK, _subS, void (srVP::*pointer_subSK)(SRBYTE*, const SRBYTE*, SRBY
           vp->_subS(B(destination), CB(0), static_cast<SRBYTE>(floatBits(c.constants[0])), c.count))
 DEFINE_OP(toFloat, _toFloat, void (srVP::*pointer_toFloat)(float*, const SRBYTE*, SRDWORD),
           vp->_toFloat(F(destination), CB(0), c.count))
+
+/* Remaining srVP overloads (memory, copy, integer, indexed and vector forms). */
+static const SRDWORD g_remap_table[16] = {7, 3, 11, 0, 15, 2, 9, 4, 13, 1, 8, 14, 5, 10, 6, 12};
+
+DEFINE_OP(memcmp, _memcmp, int (srVP::*pointer_memcmp)(const void*, const void*, SRDWORD),
+          c.has_word = 1;
+          c.word = vp->_memcmp(CB(0), CB(1), c.count))
+DEFINE_OP(memcmpSame, _memcmp, int (srVP::*pointer_memcmpSame)(const void*, const void*, SRDWORD),
+          c.has_word = 1;
+          c.word = vp->_memcmp(CB(0), CB(0), c.count))
+DEFINE_OP(memcopy, _memcopy, void (srVP::*pointer_memcopy)(void*, const void*, SRDWORD),
+          vp->_memcopy(c.destination, CB(0), c.count))
+DEFINE_OP(memfill, _memcopy, void (srVP::*pointer_memfill)(void*, int, SRDWORD),
+          vp->_memcopy(c.destination, static_cast<int>(floatBits(c.constants[0])), c.count))
+DEFINE_OP(copyInterleaved, _copyInterleaved,
+          void (srVP::*pointer_copyInterleaved)(void*, const void*, SRDWORD, SRDWORD, SRDWORD,
+                                                SRDWORD),
+          vp->_copyInterleaved(c.destination, CB(0), 20, 12, floatBits(c.constants[0]) % 13,
+                               c.count))
+DEFINE_OP(swap, _swap, void (srVP::*pointer_swap)(void*, void*, SRDWORD),
+          memcpy(c.destination, CB(0), c.count);
+          memcpy(c.destination_1, CB(1), c.count);
+          vp->_swap(c.destination, c.destination_1, c.count))
+DEFINE_OP(copyDW, _copy, void (srVP::*pointer_copyDW)(SRDWORD*, SRDWORD, SRDWORD),
+          vp->_copy(DW(destination), floatBits(c.constants[0]), c.count))
+DEFINE_OP(copy2K, _copy, void (srVP::*pointer_copy2K)(srVector2*, const srVector2&, SRDWORD),
+          vp->_copy(V2(destination), K2, c.count))
+DEFINE_OP(copy3K, _copy, void (srVP::*pointer_copy3K)(srVector3*, const srVector3&, SRDWORD),
+          vp->_copy(V3(destination), K3, c.count))
+DEFINE_OP(copy3from4, _copy,
+          void (srVP::*pointer_copy3from4)(srVector3*, const srVector4*, SRDWORD),
+          vp->_copy(V3(destination), CV4(0), c.count))
+DEFINE_OP(copy4K, _copy, void (srVP::*pointer_copy4K)(srVector4*, const srVector4&, SRDWORD),
+          vp->_copy(V4(destination), K4, c.count))
+DEFINE_OP(copy4from3K, _copy,
+          void (srVP::*pointer_copy4from3K)(srVector4*, const srVector3*, float, SRDWORD),
+          vp->_copy(V4(destination), CV3(0), c.constants[0], c.count))
+DEFINE_OP(copy4from3F, _copy,
+          void (srVP::*pointer_copy4from3F)(srVector4*, const srVector3*, const float*, SRDWORD),
+          vp->_copy(V4(destination), CV3(0), CF(1), c.count))
+DEFINE_OP(andV, _and, void (srVP::*pointer_andV)(SRDWORD*, const SRDWORD*, const SRDWORD*, SRDWORD),
+          vp->_and(DW(destination), CDW(0), CDW(1), c.count))
+DEFINE_OP(orV, _or, void (srVP::*pointer_orV)(SRDWORD*, const SRDWORD*, const SRDWORD*, SRDWORD),
+          vp->_or(DW(destination), CDW(0), CDW(1), c.count))
+DEFINE_OP(xorK, _xor, void (srVP::*pointer_xorK)(SRDWORD*, const SRDWORD*, SRDWORD, SRDWORD),
+          vp->_xor(DW(destination), CDW(0), floatBits(c.constants[0]), c.count))
+DEFINE_OP(asrAnd, _asrAnd,
+          void (srVP::*pointer_asrAnd)(SRDWORD*, const SRDWORD*, SRDWORD, SRDWORD, SRDWORD),
+          vp->_asrAnd(DW(destination), CDW(0), floatBits(c.constants[0]) & 31,
+                      floatBits(c.constants[1]), c.count))
+DEFINE_OP(lsl, _lsl, void (srVP::*pointer_lsl)(SRDWORD*, const SRDWORD*, SRDWORD, SRDWORD),
+          vp->_lsl(DW(destination), CDW(0), floatBits(c.constants[0]) & 31, c.count))
+DEFINE_OP(isEqualV, _isEqual,
+          int (srVP::*pointer_isEqualV)(const SRDWORD*, const SRDWORD*, SRDWORD), c.has_word = 1;
+          c.word = vp->_isEqual(CDW(0), CDW(1), c.count))
+DEFINE_OP(isEqualSame, _isEqual,
+          int (srVP::*pointer_isEqualSame)(const SRDWORD*, const SRDWORD*, SRDWORD), c.has_word = 1;
+          c.word = vp->_isEqual(CDW(0), CDW(0), c.count))
+DEFINE_OP(isEqualKSplat, _isEqual,
+          int (srVP::*pointer_isEqualKSplat)(const SRDWORD*, SRDWORD, SRDWORD), c.has_word = 1;
+          c.word = vp->_isEqual(CDW(0), 0x03030303UL & CDW(0)[0], c.count))
+DEFINE_OP(maxF, _max, float (srVP::*pointer_maxF)(const float*, SRDWORD), c.has_word = 1;
+          c.word = floatBits(vp->_max(CF(0), c.count)))
+DEFINE_OP(minDW, _min, SRDWORD (srVP::*pointer_minDW)(const SRDWORD*, SRDWORD), c.has_word = 1;
+          c.word = vp->_min(CDW(0), c.count))
+DEFINE_OP(copyIndexedDW, _copyIndexed,
+          void (srVP::*pointer_copyIndexedDW)(SRDWORD*, const SRDWORD*, const SRDWORD*, SRDWORD),
+          vp->_copyIndexed(DW(destination), CDW(0), c.indices, c.count))
+DEFINE_OP(copyIndexed2, _copyIndexed,
+          void (srVP::*pointer_copyIndexed2)(srVector2*, const srVector2*, const SRDWORD*, SRDWORD),
+          vp->_copyIndexed(V2(destination), CV2(0), c.indices, c.count))
+DEFINE_OP(copyIndexed3from2, _copyIndexed,
+          void (srVP::*pointer_copyIndexed3from2)(srVector3*, const srVector2*, const SRDWORD*,
+                                                  SRDWORD),
+          vp->_copyIndexed(V3(destination), CV2(0), c.indices, c.count))
+DEFINE_OP(copyIndexed3from4, _copyIndexed,
+          void (srVP::*pointer_copyIndexed3from4)(srVector3*, const srVector4*, const SRDWORD*,
+                                                  SRDWORD),
+          vp->_copyIndexed(V3(destination), CV4(0), c.indices, c.count))
+DEFINE_OP(copyIndexed4from2, _copyIndexed,
+          void (srVP::*pointer_copyIndexed4from2)(srVector4*, const srVector2*, const SRDWORD*,
+                                                  SRDWORD),
+          vp->_copyIndexed(V4(destination), CV2(0), c.indices, c.count))
+DEFINE_OP(copyIndexed4, _copyIndexed,
+          void (srVP::*pointer_copyIndexed4)(srVector4*, const srVector4*, const SRDWORD*, SRDWORD),
+          vp->_copyIndexed(V4(destination), CV4(0), c.indices, c.count))
+DEFINE_OP(addSK, _addS, void (srVP::*pointer_addSK)(SRBYTE*, const SRBYTE*, SRBYTE, SRDWORD),
+          vp->_addS(B(destination), CB(0), static_cast<SRBYTE>(floatBits(c.constants[0])), c.count))
+DEFINE_OP(subSKS, _subS, void (srVP::*pointer_subSKS)(SRBYTE*, SRBYTE, const SRBYTE*, SRDWORD),
+          vp->_subS(B(destination), static_cast<SRBYTE>(floatBits(c.constants[0])), CB(0), c.count))
+DEFINE_OP(subSV, _subS, void (srVP::*pointer_subSV)(SRBYTE*, const SRBYTE*, const SRBYTE*, SRDWORD),
+          vp->_subS(B(destination), CB(0), CB(1), c.count))
+DEFINE_OP(add3KF, _add,
+          void (srVP::*pointer_add3KF)(srVector3*, const srVector3&, const float*, SRDWORD),
+          vp->_add(V3(destination), K3, CF(0), c.count))
+DEFINE_OP(add3VF, _add,
+          void (srVP::*pointer_add3VF)(srVector3*, const srVector3*, const float*, SRDWORD),
+          vp->_add(V3(destination), CV3(0), CF(1), c.count))
+DEFINE_OP(add4K, _add,
+          void (srVP::*pointer_add4K)(srVector4*, const srVector4&, const srVector4*, SRDWORD),
+          vp->_add(V4(destination), K4, CV4(0), c.count))
+DEFINE_OP(add4KF, _add,
+          void (srVP::*pointer_add4KF)(srVector4*, const srVector4&, const float*, SRDWORD),
+          vp->_add(V4(destination), K4, CF(0), c.count))
+DEFINE_OP(sub3KF, _sub,
+          void (srVP::*pointer_sub3KF)(srVector3*, const srVector3&, const float*, SRDWORD),
+          vp->_sub(V3(destination), K3, CF(0), c.count))
+DEFINE_OP(sub3VF, _sub,
+          void (srVP::*pointer_sub3VF)(srVector3*, const srVector3*, const float*, SRDWORD),
+          vp->_sub(V3(destination), CV3(0), CF(1), c.count))
+DEFINE_OP(sub3FV, _sub,
+          void (srVP::*pointer_sub3FV)(srVector3*, const float*, const srVector3*, SRDWORD),
+          vp->_sub(V3(destination), CF(0), CV3(1), c.count))
+DEFINE_OP(sub4K, _sub,
+          void (srVP::*pointer_sub4K)(srVector4*, const srVector4&, const srVector4*, SRDWORD),
+          vp->_sub(V4(destination), K4, CV4(0), c.count))
+DEFINE_OP(sub4KF, _sub,
+          void (srVP::*pointer_sub4KF)(srVector4*, const srVector4&, const float*, SRDWORD),
+          vp->_sub(V4(destination), K4, CF(0), c.count))
+DEFINE_OP(sub4VF, _sub,
+          void (srVP::*pointer_sub4VF)(srVector4*, const srVector4*, const float*, SRDWORD),
+          vp->_sub(V4(destination), CV4(0), CF(1), c.count))
+DEFINE_OP(sub4FV, _sub,
+          void (srVP::*pointer_sub4FV)(srVector4*, const float*, const srVector4*, SRDWORD),
+          vp->_sub(V4(destination), CF(0), CV4(1), c.count))
+DEFINE_OP(mul3KF, _mul,
+          void (srVP::*pointer_mul3KF)(srVector3*, const srVector3&, const float*, SRDWORD),
+          vp->_mul(V3(destination), K3, CF(0), c.count))
+DEFINE_OP(mul4K, _mul,
+          void (srVP::*pointer_mul4K)(srVector4*, const srVector4&, const srVector4*, SRDWORD),
+          vp->_mul(V4(destination), K4, CV4(0), c.count))
+DEFINE_OP(mul4VF, _mul,
+          void (srVP::*pointer_mul4VF)(srVector4*, const srVector4*, const float*, SRDWORD),
+          vp->_mul(V4(destination), CV4(0), CF(1), c.count))
+DEFINE_OP(div2VF, _div,
+          void (srVP::*pointer_div2VF)(srVector2*, const srVector2*, const float*, SRDWORD),
+          vp->_div(V2(destination), CV2(0), CF(1), c.count))
+DEFINE_OP(div3K, _div,
+          void (srVP::*pointer_div3K)(srVector3*, const srVector3&, const srVector3*, SRDWORD),
+          vp->_div(V3(destination), K3, CV3(0), c.count))
+DEFINE_OP(div3KF, _div,
+          void (srVP::*pointer_div3KF)(srVector3*, const srVector3&, const float*, SRDWORD),
+          vp->_div(V3(destination), K3, CF(0), c.count))
+DEFINE_OP(div3VF, _div,
+          void (srVP::*pointer_div3VF)(srVector3*, const srVector3*, const float*, SRDWORD),
+          vp->_div(V3(destination), CV3(0), CF(1), c.count))
+DEFINE_OP(div3FV, _div,
+          void (srVP::*pointer_div3FV)(srVector3*, const float*, const srVector3*, SRDWORD),
+          vp->_div(V3(destination), CF(0), CV3(1), c.count))
+DEFINE_OP(div4KF, _div,
+          void (srVP::*pointer_div4KF)(srVector4*, const srVector4&, const float*, SRDWORD),
+          vp->_div(V4(destination), K4, CF(0), c.count))
+DEFINE_OP(div4VF, _div,
+          void (srVP::*pointer_div4VF)(srVector4*, const srVector4*, const float*, SRDWORD),
+          vp->_div(V4(destination), CV4(0), CF(1), c.count))
+DEFINE_OP(div4FV, _div,
+          void (srVP::*pointer_div4FV)(srVector4*, const float*, const srVector4*, SRDWORD),
+          vp->_div(V4(destination), CF(0), CV4(1), c.count))
+DEFINE_OP(axpyKKF, _axpy,
+          void (srVP::*pointer_axpyKKF)(float*, float, float, const float*, SRDWORD),
+          vp->_axpy(F(destination), c.constants[0], c.constants[1], CF(0), c.count))
+DEFINE_OP(axpyKFF, _axpy,
+          void (srVP::*pointer_axpyKFF)(float*, float, const float*, const float*, SRDWORD),
+          vp->_axpy(F(destination), c.constants[0], CF(0), CF(1), c.count))
+DEFINE_OP(axpyKKFF, _axpy,
+          void (srVP::*pointer_axpyKKFF)(float*, float, float, const float*, const float*, SRDWORD),
+          vp->_axpy(F(destination), c.constants[0], c.constants[1], CF(0), CF(1), c.count))
+DEFINE_OP(axpyFKFF, _axpy,
+          void (srVP::*pointer_axpyFKFF)(float*, const float*, float, const float*, const float*,
+                                         SRDWORD),
+          vp->_axpy(F(destination), CF(0), c.constants[0], CF(1), CF(2), c.count))
+DEFINE_OP(axpy4KKF, _axpy,
+          void (srVP::*pointer_axpy4KKF)(srVector4*, const srVector4&, const srVector4&,
+                                         const float*, SRDWORD),
+          vp->_axpy(V4(destination), K4, K4B, CF(0), c.count))
+DEFINE_OP(axpy4KVF, _axpy,
+          void (srVP::*pointer_axpy4KVF)(srVector4*, const srVector4&, const srVector4*,
+                                         const float*, SRDWORD),
+          vp->_axpy(V4(destination), K4, CV4(0), CF(1), c.count))
+DEFINE_OP(axpy4VVF, _axpy,
+          void (srVP::*pointer_axpy4VVF)(srVector4*, const srVector4*, const srVector4*,
+                                         const float*, SRDWORD),
+          vp->_axpy(V4(destination), CV4(0), CV4(1), CF(2), c.count))
+DEFINE_OP(axpy4KKFF, _axpy,
+          void (srVP::*pointer_axpy4KKFF)(srVector4*, const srVector4&, const srVector4&,
+                                          const float*, const float*, SRDWORD),
+          vp->_axpy(V4(destination), K4, K4B, CF(0), CF(1), c.count))
+DEFINE_OP(mulIndexedKF, _mulIndexed,
+          void (srVP::*pointer_mulIndexedKF)(float*, float, const float*, const SRDWORD*, SRDWORD),
+          vp->_mulIndexed(F(destination), c.constants[0], CF(0), c.indices, c.count))
+DEFINE_OP(mulIndexed3V, _mulIndexed,
+          void (srVP::*pointer_mulIndexed3V)(srVector3*, const srVector3*, const srVector3*,
+                                             const SRDWORD*, SRDWORD),
+          vp->_mulIndexed(V3(destination), CV3(0), CV3(1), c.indices, c.count))
+DEFINE_OP(mulIndexed3K, _mulIndexed,
+          void (srVP::*pointer_mulIndexed3K)(srVector3*, const srVector3&, const srVector3*,
+                                             const SRDWORD*, SRDWORD),
+          vp->_mulIndexed(V3(destination), K3, CV3(0), c.indices, c.count))
+DEFINE_OP(dot4V, _dot,
+          void (srVP::*pointer_dot4V)(float*, const srVector4*, const srVector4*, SRDWORD),
+          vp->_dot(F(destination), CV4(0), CV4(1), c.count))
+DEFINE_OP(mulAddVKV, _mulAdd,
+          void (srVP::*pointer_mulAddVKV)(srVector4*, const srVector4*, const srVector4&,
+                                          const srVector4*, SRDWORD),
+          vp->_mulAdd(V4(destination), CV4(0), K4, CV4(1), c.count))
+DEFINE_OP(mulAddKVV, _mulAdd,
+          void (srVP::*pointer_mulAddKVV)(srVector4*, const srVector4&, const srVector4*,
+                                          const srVector4*, SRDWORD),
+          vp->_mulAdd(V4(destination), K4, CV4(0), CV4(1), c.count))
+DEFINE_OP(copyIndexedRemap, _srCopyIndexedRemap,
+          void (srVP::*pointer_copyIndexedRemap)(srVector3i*, const srVector3i*, const SRDWORD*,
+                                                 const SRDWORD*, SRDWORD),
+          vp->_srCopyIndexedRemap(static_cast<srVector3i*>(c.destination),
+                                  static_cast<const srVector3i*>(c.source[0]), c.indices,
+                                  g_remap_table, c.count))
+DEFINE_OP(setIndexed, _srSetIndexed,
+          void (srVP::*pointer_setIndexed)(SRBYTE*, const srVector3i*, const SRDWORD*, SRDWORD),
+          vp->_srSetIndexed(B(destination), static_cast<const srVector3i*>(c.source[0]), c.indices,
+                            c.count))
 
 #define NO {0, DOM_NONE}
 #define FL(n) {4 * (n), DOM_FLOAT}
@@ -983,6 +1206,316 @@ static const Operation g_operations[] = {
     {"addS", BY(1), NO, {BY(1), BY(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(addS)},
     {"subSK", BY(1), NO, {BY(1), NO, NO}, 1, DOM_DWORD, 0, -1, ALIAS_NONE, 0, ENTRY(subSK)},
     {"toFloat", FL(1), NO, {BY(1), NO, NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(toFloat)},
+    {"memcmp", NO, NO, {SB(1), SB(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(memcmp)},
+    {"memcmpSame", NO, NO, {BY(1), NO, NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(memcmpSame)},
+    {"memcopy", BY(1), NO, {BY(1), NO, NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(memcopy)},
+    {"memfill", BY(1), NO, {NO, NO, NO}, 1, DOM_DWORD, 0, -1, ALIAS_NONE, 0, ENTRY(memfill)},
+    {"copyInterleaved",
+     {20, DOM_BYTE},
+     NO,
+     {{12, DOM_BYTE}, NO, NO},
+     1,
+     DOM_DWORD,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(copyInterleaved)},
+    {"swap", BY(1), BY(1), {BY(1), BY(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(swap)},
+    {"copyDW", DWA(1), NO, {NO, NO, NO}, 1, DOM_DWORD, 0, -1, ALIAS_NONE, 0, ENTRY(copyDW)},
+    {"copy2K", FL(2), NO, {NO, NO, NO}, 2, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(copy2K)},
+    {"copy3K", FL(3), NO, {NO, NO, NO}, 3, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(copy3K)},
+    {"copy3from4",
+     FL(3),
+     NO,
+     {FL(4), NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(copy3from4)},
+    {"copy4K", FL(4), NO, {NO, NO, NO}, 4, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(copy4K)},
+    {"copy4from3K",
+     FL(4),
+     NO,
+     {FL(3), NO, NO},
+     1,
+     DOM_FLOAT,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(copy4from3K)},
+    {"copy4from3F",
+     FL(4),
+     NO,
+     {FL(3), FL(1), NO},
+     0,
+     DOM_NONE,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(copy4from3F)},
+    {"andV", DWA(1), NO, {DWA(1), DWA(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(andV)},
+    {"orV", DWA(1), NO, {DWA(1), DWA(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(orV)},
+    {"xorK", DWA(1), NO, {DWA(1), NO, NO}, 1, DOM_DWORD, 0, -1, ALIAS_NONE, 0, ENTRY(xorK)},
+    {"asrAnd", DWA(1), NO, {DWA(1), NO, NO}, 2, DOM_DWORD, 0, -1, ALIAS_NONE, 0, ENTRY(asrAnd)},
+    {"lsl", DWA(1), NO, {DWA(1), NO, NO}, 1, DOM_SHIFT, 0, -1, ALIAS_NONE, 0, ENTRY(lsl)},
+    {"isEqualV", NO, NO, {SB(4), SB(4), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(isEqualV)},
+    {"isEqualSame",
+     NO,
+     NO,
+     {DWA(1), NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(isEqualSame)},
+    {"isEqualKSplat",
+     NO,
+     NO,
+     {SB(4), NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     -1,
+     ALIAS_NONE,
+     1,
+     ENTRY(isEqualKSplat)},
+    {"maxF", NO, NO, {FL(1), NO, NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 1, ENTRY(maxF)},
+    {"minDW", NO, NO, {DWA(1), NO, NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 1, ENTRY(minDW)},
+    {"copyIndexedDW",
+     DWA(1),
+     NO,
+     {DWA(1), NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     0,
+     ALIAS_NONE,
+     0,
+     ENTRY(copyIndexedDW)},
+    {"copyIndexed2",
+     FL(2),
+     NO,
+     {FL(2), NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     0,
+     ALIAS_NONE,
+     0,
+     ENTRY(copyIndexed2)},
+    {"copyIndexed3from2",
+     FL(3),
+     NO,
+     {FL(2), NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     0,
+     ALIAS_NONE,
+     0,
+     ENTRY(copyIndexed3from2)},
+    {"copyIndexed3from4",
+     FL(3),
+     NO,
+     {FL(4), NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     0,
+     ALIAS_NONE,
+     0,
+     ENTRY(copyIndexed3from4)},
+    {"copyIndexed4from2",
+     FL(4),
+     NO,
+     {FL(2), NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     0,
+     ALIAS_NONE,
+     0,
+     ENTRY(copyIndexed4from2)},
+    {"copyIndexed4",
+     FL(4),
+     NO,
+     {FL(4), NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     0,
+     ALIAS_NONE,
+     0,
+     ENTRY(copyIndexed4)},
+    {"addSK", BY(1), NO, {BY(1), NO, NO}, 1, DOM_DWORD, 0, -1, ALIAS_NONE, 0, ENTRY(addSK)},
+    {"subSKS", BY(1), NO, {BY(1), NO, NO}, 1, DOM_DWORD, 0, -1, ALIAS_NONE, 0, ENTRY(subSKS)},
+    {"subSV", BY(1), NO, {BY(1), BY(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(subSV)},
+    {"add3KF", FL(3), NO, {FL(1), NO, NO}, 3, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(add3KF)},
+    {"add3VF", FL(3), NO, {FL(3), FL(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(add3VF)},
+    {"add4K", FL(4), NO, {FL(4), NO, NO}, 4, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(add4K)},
+    {"add4KF", FL(4), NO, {FL(1), NO, NO}, 4, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(add4KF)},
+    {"sub3KF", FL(3), NO, {FL(1), NO, NO}, 3, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(sub3KF)},
+    {"sub3VF", FL(3), NO, {FL(3), FL(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(sub3VF)},
+    {"sub3FV", FL(3), NO, {FL(1), FL(3), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(sub3FV)},
+    {"sub4K", FL(4), NO, {FL(4), NO, NO}, 4, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(sub4K)},
+    {"sub4KF", FL(4), NO, {FL(1), NO, NO}, 4, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(sub4KF)},
+    {"sub4VF", FL(4), NO, {FL(4), FL(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(sub4VF)},
+    {"sub4FV", FL(4), NO, {FL(1), FL(4), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(sub4FV)},
+    {"mul3KF", FL(3), NO, {FL(1), NO, NO}, 3, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(mul3KF)},
+    {"mul4K", FL(4), NO, {FL(4), NO, NO}, 4, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(mul4K)},
+    {"mul4VF", FL(4), NO, {FL(4), FL(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(mul4VF)},
+    {"div2VF", FL(2), NO, {FL(2), PO(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(div2VF)},
+    {"div3K", FL(3), NO, {PO(3), NO, NO}, 3, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(div3K)},
+    {"div3KF", FL(3), NO, {PO(1), NO, NO}, 3, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(div3KF)},
+    {"div3VF", FL(3), NO, {FL(3), PO(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(div3VF)},
+    {"div3FV", FL(3), NO, {FL(1), PO(3), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(div3FV)},
+    {"div4KF", FL(4), NO, {PO(1), NO, NO}, 4, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(div4KF)},
+    {"div4VF", FL(4), NO, {FL(4), PO(1), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(div4VF)},
+    {"div4FV", FL(4), NO, {FL(1), PO(4), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(div4FV)},
+    {"axpyKKF", FL(1), NO, {FL(1), NO, NO}, 2, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(axpyKKF)},
+    {"axpyKFF", FL(1), NO, {FL(1), FL(1), NO}, 1, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(axpyKFF)},
+    {"axpyKKFF",
+     FL(1),
+     NO,
+     {FL(1), FL(1), NO},
+     2,
+     DOM_FLOAT,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(axpyKKFF)},
+    {"axpyFKFF",
+     FL(1),
+     NO,
+     {FL(1), FL(1), FL(1)},
+     1,
+     DOM_FLOAT,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(axpyFKFF)},
+    {"axpy4KKF", FL(4), NO, {FL(1), NO, NO}, 8, DOM_FLOAT, 0, -1, ALIAS_NONE, 0, ENTRY(axpy4KKF)},
+    {"axpy4KVF",
+     FL(4),
+     NO,
+     {FL(4), FL(1), NO},
+     4,
+     DOM_FLOAT,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(axpy4KVF)},
+    {"axpy4VVF",
+     FL(4),
+     NO,
+     {FL(4), FL(4), FL(1)},
+     0,
+     DOM_NONE,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(axpy4VVF)},
+    {"axpy4KKFF",
+     FL(4),
+     NO,
+     {FL(1), FL(1), NO},
+     8,
+     DOM_FLOAT,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(axpy4KKFF)},
+    {"mulIndexedKF",
+     FL(1),
+     NO,
+     {FL(1), NO, NO},
+     1,
+     DOM_FLOAT,
+     0,
+     0,
+     ALIAS_NONE,
+     0,
+     ENTRY(mulIndexedKF)},
+    {"mulIndexed3V",
+     FL(3),
+     NO,
+     {FL(3), FL(3), NO},
+     0,
+     DOM_NONE,
+     0,
+     1,
+     ALIAS_NONE,
+     0,
+     ENTRY(mulIndexed3V)},
+    {"mulIndexed3K",
+     FL(3),
+     NO,
+     {FL(3), NO, NO},
+     3,
+     DOM_FLOAT,
+     0,
+     0,
+     ALIAS_NONE,
+     0,
+     ENTRY(mulIndexed3K)},
+    {"dot4V", FL(1), NO, {FL(4), FL(4), NO}, 0, DOM_NONE, 0, -1, ALIAS_NONE, 0, ENTRY(dot4V)},
+    {"mulAddVKV",
+     FL(4),
+     NO,
+     {FL(4), FL(4), NO},
+     4,
+     DOM_FLOAT,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(mulAddVKV)},
+    {"mulAddKVV",
+     FL(4),
+     NO,
+     {FL(4), FL(4), NO},
+     4,
+     DOM_FLOAT,
+     0,
+     -1,
+     ALIAS_NONE,
+     0,
+     ENTRY(mulAddKVV)},
+    {"copyIndexedRemap",
+     DWA(3),
+     NO,
+     {{12, DOM_SMALLINDEX}, NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     0,
+     ALIAS_NONE,
+     0,
+     ENTRY(copyIndexedRemap)},
+    {"setIndexed",
+     {16, DOM_BYTE},
+     NO,
+     {{12, DOM_SMALLINDEX}, NO, NO},
+     0,
+     DOM_NONE,
+     0,
+     0,
+     ALIAS_NONE,
+     1,
+     ENTRY(setIndexed)},
 };
 
 static const int g_operation_count = sizeof(g_operations) / sizeof(g_operations[0]);
@@ -1351,6 +1884,35 @@ static const float g_vector4_many[16] = {1,    2,     3,       1,  -4, 5, -6, 2,
                                          0.5f, 0.25f, -0.125f, -1, 7,  8, 9,  0.5f};
 static const SRDWORD g_indices_repeat[4] = {2, 0, 2, 1};
 
+/* Axis permutations with a nonzero translation: x'=y+1, y'=z-2, z'=x+3 etc. */
+static const float g_perm_yzx[16] = {0, 1, 0, 1, 0, 0, 1, -2, 1, 0, 0, 3, 0, 0, 0, 1};
+static const float g_perm_zxy[16] = {0, 0, 1, -5, 1, 0, 0, 0.5f, 0, 1, 0, 7, 0, 0, 0, 1};
+static const float g_perm_xzy[16] = {1, 0, 0, 0, 0, 0, 1, 4, 0, 1, 0, -4, 0, 0, 0, 1};
+static const float g_perm_zyx[16] = {0, 0, -1, 2, 0, 1, 0, 0, -1, 0, 0, 0.25f, 0, 0, 0, 1};
+static const float g_swap_translate[16] = {0, 1, 0, 10, 1, 0, 0, -20, 0, 0, 1, 30, 0, 0, 0, 1};
+/* Scale with a projective bottom row (w' = z). */
+static const float g_projective_w[16] = {2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1, -1, 0, 0, 1, 0};
+
+/* Homogeneous points on, just inside and just outside each clip plane, plus
+   w = 0 and negative w. */
+static const float g_clip_points[4 * 20] = {
+    1,         0,    0,           1,    -1, 0,          0,           1,     1.0000001f, 0,
+    0,         1,    -1.0000001f, 0,    0,  1,          0,           1,     0,          1,
+    0,         -1,   0,           1,    0,  1.0000001f, 0,           1,     0,          -1.0000001f,
+    0,         1,    0,           0,    1,  1,          0,           0,     -1,         1,
+    0,         0,    1.0000001f,  1,    0,  0,          -1.0000001f, 1,     0,          0,
+    0,         0,    0,           0,    0,  -1,         2,           -2,    2,          -1,
+    0.5f,      0.5f, 0.5f,        0.5f, 0,  0,          0,           1,     0.999999f,  -0.999999f,
+    0.999999f, 1,    3,           0,    0,  2,          -0.0f,       -0.0f, -0.0f,      1};
+
+/* Bounding boxes (min xyz, max xyz) inside, straddling, outside and exactly
+   on the unit clip volume. */
+static const float g_boxes[6 * 8] = {
+    -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,  -0.5f, -0.5f, 1.5f, 0.5f, 0.5f,
+    2,     2,     2,     3,    3,    3,    -1,    -1,    -1,    1,    1,    1,
+    -3,    -0.5f, -0.5f, -2,   0.5f, 0.5f, -0.5f, -0.5f, 1,     0.5f, 0.5f, 2,
+    -4,    -4,    -4,    4,    4,    4,    0,     0,     0,     0,    0,    0};
+
 void probeCases();
 
 static int g_selected_count;
@@ -1421,6 +1983,60 @@ static void fixedTransform(const char* op_name, const char* tag, const float* ma
     }
 }
 
+static void fixedSpec(const char* op_name, const char* tag, const float* matrix,
+                      const float* source, const float* constants, SRDWORD count)
+{
+    CaseSpec spec;
+    memset(&spec, 0, sizeof(spec));
+    sprintf(spec.name, "fixed.%s.%s", op_name, tag);
+    spec.operation = findOperation(op_name);
+    spec.count = count;
+    spec.matrix = matrix;
+    spec.source0 = source;
+    spec.constants = constants;
+    submit(spec);
+}
+
+static void fixedBoundaryCases()
+{
+    static const char* box_names[] = {"inside",    "straddle-x", "outside",   "on-planes",
+                                      "outside-x", "touch-z",    "enclosing", "point"};
+    static const float* const box_matrices[] = {g_identity, g_perspective, g_ortho, g_rotate_x30};
+    static const char* box_matrix_names[] = {"identity", "persp", "ortho", "rotx30"};
+    static const char* perm_names[] = {"yzx",         "zxy", "xzy", "zyx", "swapxy-translate",
+                                       "projective-w"};
+    static const float* const perms[] = {g_perm_yzx, g_perm_zxy,       g_perm_xzy,
+                                         g_perm_zyx, g_swap_translate, g_projective_w};
+    static const char* transform_ops[] = {
+        "transform3",           "transform4",        "transform3to4",       "transformOrtho",
+        "transformPerspective", "transformIndexed3", "transformIndexed3to4"};
+    int box;
+    int m;
+    int op;
+    char tag[64];
+    fixedSpec("clipFlags", "boundaries", 0, g_clip_points, 0, 20);
+    fixedSpec("divByW", "boundaries", 0, g_clip_points, 0, 20);
+    fixedSpec("transformPerspective", "clip-points.persp", g_perspective, g_clip_points, 0, 20);
+    for (m = 0; m < 4; ++m) {
+        for (box = 0; box < 8; ++box) {
+            sprintf(tag, "%s.%s", box_matrix_names[m], box_names[box]);
+            fixedSpec("testBoundingBox", tag, box_matrices[m], 0, g_boxes + 6 * box, 1);
+        }
+    }
+    for (op = 0; op < 7; ++op) {
+        int vector4 = strcmp(transform_ops[op], "transform4") == 0 ||
+                      strcmp(transform_ops[op], "transformOrtho") == 0 ||
+                      strcmp(transform_ops[op], "transformPerspective") == 0;
+        int indexed = strncmp(transform_ops[op], "transformIndexed", 16) == 0;
+        for (m = 0; m < 6; ++m) {
+            sprintf(tag, "%s.n4", perm_names[m]);
+            fixedTransform(transform_ops[op], tag, perms[m],
+                           vector4 ? g_vector4_many : g_vector3_many, 4,
+                           indexed ? g_indices_repeat : 0, indexed ? 4 : 0);
+        }
+    }
+}
+
 static void fixedCases()
 {
     static const char* transform_ops[] = {"transform3", "transform4", "transform3to4",
@@ -1452,6 +2068,7 @@ static void fixedCases()
                    g_indices_repeat, 4);
     fixedTransform("transformIndexed3", "general.n0", g_general, g_vector3_many, 0,
                    g_indices_repeat, 4);
+    fixedBoundaryCases();
 }
 
 /* Every operation in each permitted alias mode at counts covering zero, one

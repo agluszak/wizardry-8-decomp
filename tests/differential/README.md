@@ -18,7 +18,7 @@ uv run wiz8 sr-difftest \
 uv run wiz8 sr-difftest 'fixed.transform3*' 'probe.*'
 ```
 
-Output goes to `build/differential/sr-vp/`: one directory per variant, each
+Output goes to `build/differential/sr/`: one directory per variant, each
 holding its staged DLL set and `trace.txt`, plus `report.json`. The command
 exits 1 on any divergence. Each variant directory contains only the runner,
 that variant's `sr.dll`, and the retail `MSVCRT.DLL`/`MSVCP60.DLL`, loaded
@@ -55,6 +55,30 @@ minimized reproducers), `--list`.
   sees it.
 * `probe.camera.*`: `srCamera::processPush` and the MODELVIEW matrix for
   identity, translated, rotated and translated+rotated cameras.
+* `fixed.clipFlags.boundaries`, `fixed.divByW.boundaries`,
+  `fixed.transformPerspective.clip-points.persp`: homogeneous points on, just
+  inside and just outside each clip plane, plus `w = 0` and negative `w`.
+* `fixed.testBoundingBox.<matrix>.<box>`: boxes inside, straddling, outside,
+  exactly on the clip volume, enclosing it, and degenerate (a point), each
+  under four matrices.
+* `fixed.<transform op>.<yzx|zxy|xzy|zyx|swapxy-translate|projective-w>.n4`:
+  axis permutations with nonzero translation, and a projective bottom row.
+* `surface.read.<type>` / `surface.write.<type>`: every `e_surfaceType` at
+  7x5. The read case fills raw bytes (unused bits included) and decodes them
+  with getPixel, getPixelRow, getPixelColumn and getPixels. The write case
+  encodes with fill, setPixel, setPixelRow, setPixelColumn, setPixels and
+  setPixelRaw.
+* `surface.copy.<A>.<B>` and `surface.format.<A>.<B>`: every type pair, run
+  through `copy` (same size) and through `changePixelFormat(..., 1)`.
+* `surface.scale.<type>.<src>-<dst>.<filter>` and `surface.rescale.*`: six
+  types, ten size pairs (2x up, 2x down, mixed, 1x1 edge cases) and five
+  filter settings, through `copy` and `rescale`. With the triangle filter at
+  exactly 2x, `copy` dispatches to `magnify`/`minify`.
+* `surface.op.<type>.<op>`: lines (including clipped and reversed endpoints),
+  flips, rotate180, swapPixelRows, flipRectangle, remapPixels, the channel
+  copy and swap, adjust, adjustSaturation, getChannelStatistics, both blit
+  forms, composite, clamping, and addNoise with a fixed `srand` seed.
+* `palette.quantize`: srPalette quantize and matchPalette.
 
 ## Aliasing scope
 
@@ -92,5 +116,7 @@ compiled vcall thunk. These offsets match the retail call sites above.
   (0x10018FE0) instructions. Retail provider DLLs were not checked.
 * Every variant shares the same Wine build and the same retail CRT, so CRT
   and loader behaviour cannot differ between variants.
+* After `resize`, surface contents are uninitialized heap memory, so the
+  rescale case prints only the result and the size at that point.
 * Clean traces show agreement only on these inputs. They do not prove
   equivalence.

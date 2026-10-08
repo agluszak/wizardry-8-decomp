@@ -1,6 +1,6 @@
-"""Differential execution of SurRender's vector-processor API.
+"""Differential execution of exported SurRender APIs (vector processor, probes, surfaces).
 
-The VC6 runner (tests/differential/sr_vp_runner.cpp) is staged once per
+The VC6 runner (tests/differential/sr_difftest.cpp) is staged once per
 SR.DLL variant in its own directory, so Windows DLL search binds the runner to
 that variant, and each variant runs in a separate Wine process. The first
 variant is the reference (normally retail); every other variant is compared

@@ -458,7 +458,7 @@ def sr_difftest_command(
     build: bool = typer.Option(False, "--build", help="Build SURRENDER and the runner first."),
     as_json: bool = typer.Option(False, "--json", help="Emit the full JSON report."),
 ) -> None:
-    """Run the vector-processor differential runner against retail and rebuilt SR.DLL."""
+    """Run the SurRender differential runner against retail and rebuilt SR.DLL."""
     from .. import command_support as cli
     from ..build import build_target
     from ..differential import Variant, compare, render
@@ -487,7 +487,7 @@ def sr_difftest_command(
         variants,
         runner,
         gog_base,
-        settings.build_dir / "differential" / "sr-vp",
+        settings.build_dir / "differential" / "sr",
         seed=seed,
         generated=generated,
         cases=cases or (),
