@@ -584,7 +584,8 @@ unsigned int LoadWorldCursorNodes(int handle)
     }
     if (static_cast<unsigned int>(version) == 0xdeadd00d) {
         version = 1;
-    } else if (version > 2) {
+    }
+    if (version > 2) {
         FileRead(handle, &gXStatus.mipe_cube_serial, 4, 0);
     } else {
         gXStatus.mipe_cube_serial = 100;
