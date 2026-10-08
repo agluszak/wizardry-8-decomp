@@ -615,6 +615,9 @@ srMatrix3T<T>* srMatrix3T<T>::SetRows(const srVector3T<T>& first, const srVector
     return this;
 }
 
+/* Every element sums z, y, then x. Retail's out-of-line copies (sr.dll double
+   0x10055930, Wiz8.exe float 0x00421A40) and every copy srNode inlines associate
+   each row that way. */
 template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>& other)
 {
     srMatrix3T<T> result;
@@ -627,9 +630,9 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>&
         T y = right[index + 3];
         T z = right[index + 6];
 
-        output[index] = x * left[0] + y * left[1] + z * left[2];
-        output[index + 3] = x * left[3] + y * left[4] + z * left[5];
-        output[index + 6] = x * left[6] + y * left[7] + z * left[8];
+        output[index] = (z * left[2] + y * left[1]) + x * left[0];
+        output[index + 3] = (z * left[5] + y * left[4]) + x * left[3];
+        output[index + 6] = (z * left[8] + y * left[7]) + x * left[6];
     }
     *this = result;
     return this;
@@ -767,22 +770,38 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double angle, const srVector3T<T>
     return this;
 }
 
+/* The off-diagonal products associate differently in the two retail binaries. sr.dll's
+   double instance (0x10055D40) forms (1 - cos) * a first and then multiplies by b; the
+   Wiz8.exe float instance (0x0042B910) multiplies the two float axis components first
+   and then by the double (1 - cos). */
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
                                                const srVector3T<T>& axis)
 {
     srMatrix3T<T> rotation;
-    T one_minus_cosine = (T)1 - (T)cosine;
+    double one_minus_cosine = 1.0 - cosine;
 
-    rotation.vectors[0].x = axis.x * axis.x + ((T)1 - axis.x * axis.x) * (T)cosine;
-    rotation.vectors[0].y = axis.x * axis.y * one_minus_cosine - axis.z * (T)sine;
-    rotation.vectors[0].z = axis.x * axis.z * one_minus_cosine + axis.y * (T)sine;
-    rotation.vectors[1].x = axis.y * axis.x * one_minus_cosine + axis.z * (T)sine;
-    rotation.vectors[1].y = axis.y * axis.y + ((T)1 - axis.y * axis.y) * (T)cosine;
-    rotation.vectors[1].z = axis.y * axis.z * one_minus_cosine - axis.x * (T)sine;
-    rotation.vectors[2].x = axis.z * axis.x * one_minus_cosine - axis.y * (T)sine;
-    rotation.vectors[2].y = axis.z * axis.y * one_minus_cosine + axis.x * (T)sine;
-    rotation.vectors[2].z = axis.z * axis.z + ((T)1 - axis.z * axis.z) * (T)cosine;
+#if defined(SURRENDER_BUILD)
+    rotation.vectors[0].x = (T)(axis.x * axis.x + ((T)1 - axis.x * axis.x) * cosine);
+    rotation.vectors[0].y = (T)((one_minus_cosine * axis.y) * axis.x - axis.z * sine);
+    rotation.vectors[0].z = (T)((one_minus_cosine * axis.z) * axis.x + axis.y * sine);
+    rotation.vectors[1].x = (T)((one_minus_cosine * axis.y) * axis.x + axis.z * sine);
+    rotation.vectors[1].y = (T)(axis.y * axis.y + ((T)1 - axis.y * axis.y) * cosine);
+    rotation.vectors[1].z = (T)((one_minus_cosine * axis.z) * axis.y - axis.x * sine);
+    rotation.vectors[2].x = (T)((one_minus_cosine * axis.z) * axis.x - axis.y * sine);
+    rotation.vectors[2].y = (T)((one_minus_cosine * axis.z) * axis.y + axis.x * sine);
+    rotation.vectors[2].z = (T)(axis.z * axis.z + ((T)1 - axis.z * axis.z) * cosine);
+#else
+    rotation.vectors[0].x = (T)(axis.x * axis.x + ((T)1 - axis.x * axis.x) * cosine);
+    rotation.vectors[0].y = (T)(axis.x * axis.y * one_minus_cosine - axis.z * sine);
+    rotation.vectors[0].z = (T)(axis.x * axis.z * one_minus_cosine + axis.y * sine);
+    rotation.vectors[1].x = (T)(axis.y * axis.x * one_minus_cosine + axis.z * sine);
+    rotation.vectors[1].y = (T)(axis.y * axis.y + ((T)1 - axis.y * axis.y) * cosine);
+    rotation.vectors[1].z = (T)(axis.y * axis.z * one_minus_cosine - axis.x * sine);
+    rotation.vectors[2].x = (T)(axis.z * axis.x * one_minus_cosine - axis.y * sine);
+    rotation.vectors[2].y = (T)(axis.z * axis.y * one_minus_cosine + axis.x * sine);
+    rotation.vectors[2].z = (T)(axis.z * axis.z + ((T)1 - axis.z * axis.z) * cosine);
+#endif
     MultiplyBy(rotation);
     return this;
 }
@@ -796,13 +815,15 @@ template <class T> srVector3T<T> srMatrix3T<T>::Transform(const srVector3T<T>& v
     return result;
 }
 
+/* Each column sums z, y, then x, as retail sr.dll's out-of-line double instance
+   (0x100555C0) does. */
 template <class T>
 srVector3T<T> srMatrix3T<T>::TransformTransposed(const srVector3T<T>& value) const
 {
     srVector3T<T> result;
-    result.x = vectors[0].x * value.x + vectors[1].x * value.y + vectors[2].x * value.z;
-    result.y = vectors[0].y * value.x + vectors[1].y * value.y + vectors[2].y * value.z;
-    result.z = vectors[0].z * value.x + vectors[1].z * value.y + vectors[2].z * value.z;
+    result.x = (vectors[2].x * value.z + vectors[1].x * value.y) + vectors[0].x * value.x;
+    result.y = (vectors[2].y * value.z + vectors[1].y * value.y) + vectors[0].y * value.x;
+    result.z = (vectors[2].z * value.z + vectors[1].z * value.y) + vectors[0].z * value.x;
     return result;
 }
 
@@ -853,24 +874,45 @@ public:
 
     srMatrix4T<T>* Invert();
     srMatrix4T<T>* Inverse(srMatrix4T<T>& source);
-    /* Each completed row is stored before reading the source for the next row; the matrices must
-       not alias. Mixed-precision multiplication keeps the source coefficient width. */
+    /* One Set per row, written out: each row's four results are computed from the
+       unmodified row before Set stores them, and rows are updated in order; the matrices
+       must not alias. Mixed-precision multiplication keeps the source coefficient width
+       until Set narrows to T. sr.dll's out-of-line double instance (0x10055A60) is this
+       unrolled form. */
     template <class U> srMatrix4T<T>* MultiplyBy(const srMatrix4T<U>& other)
     {
-        for (int row = 0; row != 4; ++row) {
-            T x = vectors[row].x;
-            T y = vectors[row].y;
-            T z = vectors[row].z;
-            T w = vectors[row].w;
-            vectors[row].x = static_cast<T>(x * other.vectors[0].x + y * other.vectors[1].x +
-                                            z * other.vectors[2].x + w * other.vectors[3].x);
-            vectors[row].y = static_cast<T>(x * other.vectors[0].y + y * other.vectors[1].y +
-                                            z * other.vectors[2].y + w * other.vectors[3].y);
-            vectors[row].z = static_cast<T>(x * other.vectors[0].z + y * other.vectors[1].z +
-                                            z * other.vectors[2].z + w * other.vectors[3].z);
-            vectors[row].w = static_cast<T>(x * other.vectors[0].w + y * other.vectors[1].w +
-                                            z * other.vectors[2].w + w * other.vectors[3].w);
-        }
+        vectors[0].Set(vectors[0].x * other.vectors[0].x + vectors[0].y * other.vectors[1].x +
+                           vectors[0].z * other.vectors[2].x + vectors[0].w * other.vectors[3].x,
+                       vectors[0].x * other.vectors[0].y + vectors[0].y * other.vectors[1].y +
+                           vectors[0].z * other.vectors[2].y + vectors[0].w * other.vectors[3].y,
+                       vectors[0].x * other.vectors[0].z + vectors[0].y * other.vectors[1].z +
+                           vectors[0].z * other.vectors[2].z + vectors[0].w * other.vectors[3].z,
+                       vectors[0].x * other.vectors[0].w + vectors[0].y * other.vectors[1].w +
+                           vectors[0].z * other.vectors[2].w + vectors[0].w * other.vectors[3].w);
+        vectors[1].Set(vectors[1].x * other.vectors[0].x + vectors[1].y * other.vectors[1].x +
+                           vectors[1].z * other.vectors[2].x + vectors[1].w * other.vectors[3].x,
+                       vectors[1].x * other.vectors[0].y + vectors[1].y * other.vectors[1].y +
+                           vectors[1].z * other.vectors[2].y + vectors[1].w * other.vectors[3].y,
+                       vectors[1].x * other.vectors[0].z + vectors[1].y * other.vectors[1].z +
+                           vectors[1].z * other.vectors[2].z + vectors[1].w * other.vectors[3].z,
+                       vectors[1].x * other.vectors[0].w + vectors[1].y * other.vectors[1].w +
+                           vectors[1].z * other.vectors[2].w + vectors[1].w * other.vectors[3].w);
+        vectors[2].Set(vectors[2].x * other.vectors[0].x + vectors[2].y * other.vectors[1].x +
+                           vectors[2].z * other.vectors[2].x + vectors[2].w * other.vectors[3].x,
+                       vectors[2].x * other.vectors[0].y + vectors[2].y * other.vectors[1].y +
+                           vectors[2].z * other.vectors[2].y + vectors[2].w * other.vectors[3].y,
+                       vectors[2].x * other.vectors[0].z + vectors[2].y * other.vectors[1].z +
+                           vectors[2].z * other.vectors[2].z + vectors[2].w * other.vectors[3].z,
+                       vectors[2].x * other.vectors[0].w + vectors[2].y * other.vectors[1].w +
+                           vectors[2].z * other.vectors[2].w + vectors[2].w * other.vectors[3].w);
+        vectors[3].Set(vectors[3].x * other.vectors[0].x + vectors[3].y * other.vectors[1].x +
+                           vectors[3].z * other.vectors[2].x + vectors[3].w * other.vectors[3].x,
+                       vectors[3].x * other.vectors[0].y + vectors[3].y * other.vectors[1].y +
+                           vectors[3].z * other.vectors[2].y + vectors[3].w * other.vectors[3].y,
+                       vectors[3].x * other.vectors[0].z + vectors[3].y * other.vectors[1].z +
+                           vectors[3].z * other.vectors[2].z + vectors[3].w * other.vectors[3].z,
+                       vectors[3].x * other.vectors[0].w + vectors[3].y * other.vectors[1].w +
+                           vectors[3].z * other.vectors[2].w + vectors[3].w * other.vectors[3].w);
         return this;
     }
     srMatrix4T<T>* Multiply(const srMatrix4T<T>& other, srMatrix4T<T>& result);
