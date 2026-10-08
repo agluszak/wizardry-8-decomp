@@ -167,6 +167,16 @@ the blobs in FILE; the driver uses this for cross-reads), `--list`.
   float, local and world rotation, location, scale and DOF, then repeats
   after `setParent` (with and without preserving the world transform) and
   after `setWorldSpaceMatrix`.
+* `node.single.op<k>.v<n>`: one of the 20 `node.xform` operations (`k`)
+  on a node whose parent and own rotation and location are already
+  random, so each operation's rounding is visible on its own. The probe
+  prints the local rotation rows and the location as hex doubles.
+* `node.worldspace.v<n>`: a node under a rotated, translated and (odd
+  variants) non-uniformly scaled parent. The probe prints
+  `getWorldSpaceRotation` and `getWorldSpaceMatrix`, then the local
+  rotation after `setWorldSpaceRotation` of its own world rotation and of
+  another node's rotation, and the local rotation, location and scale
+  after `setWorldSpaceMatrix` of a scaled node's world matrix.
 * `bounder.v<n>`: an `srBounder` over `srModelInstance` children (direct
   and under a rotated, scaled group) holding converted meshes. The probe
   prints each child's `getLocalBounds`, then the bounder's bounds after

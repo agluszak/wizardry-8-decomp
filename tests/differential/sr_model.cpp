@@ -660,9 +660,8 @@ static srVector3T<double> randomDouble3(float range)
     return value;
 }
 
-static void nodeStep(srNode& node, srNode& other)
+static void nodeOperation(srNode& node, srNode& other, int operation)
 {
-    int operation = static_cast<int>(modelRandom() % 20);
     double amount = modelFloat(2.0f);
     srVector3T<double> vector = randomDouble3(3.0f);
     printf("node-op %d\n", operation);
@@ -731,6 +730,118 @@ static void nodeStep(srNode& node, srNode& other)
     default:
         node.yawAt(&other, 0.5);
         break;
+    }
+}
+
+static void nodeStep(srNode& node, srNode& other)
+{
+    nodeOperation(node, other, static_cast<int>(modelRandom() % 20));
+    {
+        srMatrix3T<double> rotation;
+        srVector3T<double> location = node.getLocation();
+        srVector3T<double> scale = node.getScale();
+        node.getRotation(rotation);
+        printf("after node-op rotation %08lx location %08lx scale %08lx\n",
+               fnv(2166136261UL, &rotation, sizeof(rotation)),
+               fnv(2166136261UL, &location, sizeof(location)),
+               fnv(2166136261UL, &scale, sizeof(scale)));
+    }
+}
+
+/* One operation on a node whose parent and rotation are already non-trivial;
+   prints the full local rotation and location afterwards. */
+static void nodeSingleOperation()
+{
+    srNode* parent = new srNode(0);
+    srNode* node = new srNode(parent);
+    srNode* other = new srNode(0);
+    srMatrix3T<double> rotation;
+    srVector3T<double> location;
+    int row;
+    parent->setRotation(modelFloat(2.0f), modelFloat(2.0f), modelFloat(2.0f));
+    parent->setLocation(modelFloat(3.0f), modelFloat(3.0f), modelFloat(3.0f));
+    node->setRotation(modelFloat(2.0f), modelFloat(2.0f), modelFloat(2.0f));
+    node->setLocation(modelFloat(3.0f), modelFloat(3.0f), modelFloat(3.0f));
+    other->setLocation(modelFloat(3.0f), modelFloat(3.0f), modelFloat(3.0f));
+    nodeOperation(*node, *other, g_model_variant % 20);
+    node->getRotation(rotation);
+    for (row = 0; row < 3; ++row) {
+        unsigned long words[6];
+        memcpy(words, &rotation.vectors[row], 24);
+        printf("rotation[%d] %08lx%08lx %08lx%08lx %08lx%08lx\n", row, words[1], words[0], words[3],
+               words[2], words[5], words[4]);
+    }
+    location = node->getLocation();
+    {
+        unsigned long words[6];
+        memcpy(words, &location, 24);
+        printf("location %08lx%08lx %08lx%08lx %08lx%08lx\n", words[1], words[0], words[3],
+               words[2], words[5], words[4]);
+    }
+}
+
+static void printDoubleRow(const char* label, int row, const double* values, int count)
+{
+    int index;
+    printf("%s[%d]", label, row);
+    for (index = 0; index < count; ++index) {
+        unsigned long words[2];
+        memcpy(words, &values[index], 8);
+        printf(" %08lx%08lx", words[1], words[0]);
+    }
+    printf("\n");
+}
+
+/* World-space rotation and matrix accessors on a node under a rotated,
+   translated and (for odd variants) scaled parent. */
+static void nodeWorldSpace()
+{
+    srNode* parent = new srNode(0);
+    srNode* node = new srNode(parent);
+    srNode* other = new srNode(0);
+    srMatrix3T<double> rotation;
+    srMatrix4T<double> matrix;
+    int row;
+    parent->setRotation(modelFloat(2.0f), modelFloat(2.0f), modelFloat(2.0f));
+    parent->setLocation(modelFloat(3.0f), modelFloat(3.0f), modelFloat(3.0f));
+    if (g_model_variant & 1) {
+        parent->setScale(srVector3T<double>(1.25, 0.75, 1.5));
+    }
+    node->setRotation(modelFloat(2.0f), modelFloat(2.0f), modelFloat(2.0f));
+    node->setLocation(modelFloat(3.0f), modelFloat(3.0f), modelFloat(3.0f));
+    other->setRotation(modelFloat(2.0f), modelFloat(2.0f), modelFloat(2.0f));
+    node->getWorldSpaceRotation(rotation);
+    for (row = 0; row < 3; ++row) {
+        printDoubleRow("ws-rotation", row, &rotation.vectors[row].x, 3);
+    }
+    node->getWorldSpaceMatrix(matrix);
+    for (row = 0; row < 4; ++row) {
+        printDoubleRow("ws-matrix", row, &matrix.vectors[row].x, 4);
+    }
+    node->setWorldSpaceRotation(rotation);
+    node->getRotation(rotation);
+    for (row = 0; row < 3; ++row) {
+        printDoubleRow("roundtrip-rotation", row, &rotation.vectors[row].x, 3);
+    }
+    other->getRotation(rotation);
+    node->setWorldSpaceRotation(rotation);
+    node->getRotation(rotation);
+    for (row = 0; row < 3; ++row) {
+        printDoubleRow("set-rotation", row, &rotation.vectors[row].x, 3);
+    }
+    other->setLocation(modelFloat(3.0f), modelFloat(3.0f), modelFloat(3.0f));
+    other->setScale(srVector3T<double>(0.5 + (g_model_variant & 3) * 0.25, 1.0, 1.25));
+    other->getWorldSpaceMatrix(matrix);
+    node->setWorldSpaceMatrix(matrix);
+    node->getRotation(rotation);
+    for (row = 0; row < 3; ++row) {
+        printDoubleRow("set-matrix-rotation", row, &rotation.vectors[row].x, 3);
+    }
+    {
+        srVector3T<double> location = node->getLocation();
+        srVector3T<double> scale = node->getScale();
+        printDoubleRow("set-matrix-location", 0, &location.x, 3);
+        printDoubleRow("set-matrix-scale", 0, &scale.x, 3);
     }
 }
 
@@ -969,6 +1080,14 @@ void modelCases()
     for (variant = 0; variant < 48; ++variant) {
         sprintf(label, "v%d", variant);
         runModel("node.xform", label, variant, nodeTransforms);
+    }
+    for (variant = 0; variant < 120; ++variant) {
+        sprintf(label, "op%d.v%d", variant % 20, variant / 20);
+        runModel("node.single", label, variant, nodeSingleOperation);
+    }
+    for (variant = 0; variant < 16; ++variant) {
+        sprintf(label, "v%d", variant);
+        runModel("node.worldspace", label, variant, nodeWorldSpace);
     }
     for (variant = 0; variant < 24; ++variant) {
         sprintf(label, "v%d", variant);
