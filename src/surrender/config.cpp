@@ -556,7 +556,7 @@ void srConfig::Index::resize(long bucket_count)
 
         if (this->buckets != 0 && old_bucket_count != 0) {
             for (long index = 0; index < old_bucket_count; ++index) {
-                for (NameEntry* old_node = buckets[index]; old_node != 0;
+                for (NameEntry* old_node = this->buckets[index]; old_node != 0;
                      old_node = old_node->next) {
                     char* name = old_node->name;
                     NameEntry* node = allocateEntry();
