@@ -700,22 +700,19 @@ double srMeshModel::getAverageRadius()
 double srMeshModel::getMaxRadius()
 {
     double maximum = 0.0;
-    if (vertex_location_count != 0) {
-        srVector3T<float>* vertices = getVertexLoc();
-        long count = vertex_location_count;
-        if (0 < count) {
-            for (long index = 0; index < count; index++) {
-                float radius = vertices[index].y * vertices[index].y +
-                               vertices[index].z * vertices[index].z +
-                               vertices[index].x * vertices[index].x;
-                if ((float)maximum <= radius) {
-                    maximum = radius;
-                }
-            }
-        }
-        return sqrt(maximum);
+    if (vertex_location_count == 0) {
+        return 0.0;
     }
-    return 0.0;
+    srVector3T<float>* vertices = getVertexLoc();
+    long count = vertex_location_count;
+    for (long index = 0; index < count; index++) {
+        /* Retail compares and keeps the unrounded register sum. */
+        double radius = vertices[index].LengthSquared();
+        if (maximum <= radius) {
+            maximum = radius;
+        }
+    }
+    return sqrt(maximum);
 }
 
 // FUNCTION: SURRENDER 0x1003EBB0
