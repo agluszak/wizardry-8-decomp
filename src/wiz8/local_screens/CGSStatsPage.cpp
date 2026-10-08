@@ -622,7 +622,9 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
 }
 
 /* One attribute entry was adjusted: apply the point through the shared
-   creation-state helper, then show every skill the maxed attribute gates. */
+   creation-state helper, then show every skill the maxed attribute gates.
+   Only skills 0x22..0x27 are walked: retail's end bound is the attribute
+   field of g_skill_attributes[0x28], so the last skill is never offered. */
 // FUNCTION: WIZ8 0x005ca730
 void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 {
@@ -633,7 +635,7 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
     Invalidate(0);
     m_screen->UpdateNavigation(this);
     if (m_character->attributes[entry->m_id].base >= 100) {
-        for (int skill = 0x22; skill < 0x29; ++skill) {
+        for (int skill = 0x22; skill < 0x28; ++skill) {
             if (g_skill_attributes[skill].attribute_1 == static_cast<int>(entry->m_id) &&
                 m_character->skills[skill].active) {
                 m_screen->ShowDescription(entry->m_id, skill);
