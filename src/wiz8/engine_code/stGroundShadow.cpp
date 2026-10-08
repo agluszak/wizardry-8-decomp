@@ -22,8 +22,11 @@
 static srTexture* g_ground_shadow_texture;
 // GLOBAL: WIZ8 0x006834d0
 static srMaterial* g_ground_shadow_material;
+/* A default-constructed srShader: retail's dynamic initializer (0x004D61A0)
+   stores the srShader default 0x0100241b before the constructor masks in
+   the shadow bits, so the 0x13 bits survive into the shadow shader. */
 // GLOBAL: WIZ8 0x006834c8
-static unsigned long g_ground_shadow_shader;
+static srShader g_ground_shadow_shader;
 
 /* The material mapper installed for ground shadows: process projects each
    indexed vertex's world x/z through a rotated scale matrix into the first
@@ -106,7 +109,7 @@ stGroundShadow::stGroundShadow(srNode* parent)
         srMaterial* material = SR_NEW(srMaterial);
         g_ground_shadow_material = material;
         material->setMapper(&g_ground_shadow_material_parameters);
-        g_ground_shadow_shader = (g_ground_shadow_shader & 0xfeff9277UL) | 0x00808260UL;
+        g_ground_shadow_shader.value = (g_ground_shadow_shader.value & 0xfeff9277UL) | 0x00808260UL;
     }
 }
 
@@ -217,7 +220,7 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
         mesh.textures[0][0] = g_ground_shadow_texture;
         mesh.vertex_materials[0][0] = 0;
         mesh.poly_shaders[0] = 0;
-        mesh.shaders[0].value = g_ground_shadow_shader;
+        mesh.shaders[0] = g_ground_shadow_shader;
         mesh.poly_uv[0] = 0;
         g_ground_shadow_material_parameters.vertices = model->getVertexLoc();
         model->RenderTriMeshWithEquations(*renderer, mesh, 0);
