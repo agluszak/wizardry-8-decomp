@@ -1533,8 +1533,9 @@ bool CanSpellBackfire(int spell_id)
 // FUNCTION: WIZ8 0x004acc10
 unsigned char InitializeSpellDatabase(void)
 {
-    /* Retail read allocation_count/database_version uninitialised when the
-       header FileRead pair short-circuited; the recovery keeps that read. */
+    /* Retail reads allocation_count/database_version uninitialised when the
+       header FileRead pair short-circuits; preserve that behavior. The global
+       receives the allocation count despite its older misleading name. */
     int handle;
     unsigned int index;
     bool ok;
@@ -1571,6 +1572,6 @@ unsigned char InitializeSpellDatabase(void)
         g_spell_records = 0;
     }
     FileClose(handle);
-    g_spell_database_version = database_version;
+    g_spell_database_version = allocation_count;
     return ok;
 }
