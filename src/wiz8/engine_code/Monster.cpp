@@ -586,7 +586,16 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                                 }
                             }
                             if (animation_scale > 0.0f) {
-                                int current = (*monster)->m_pRep->current_subcycle;
+                                W8MonsterRep* rep = (*monster)->m_pRep;
+                                int current = rep->current_subcycle;
+                                /* 0x004C128A: a missing subcycle is fatal, as in
+                                   every other retail cycle lookup. */
+                                if (rep->animations[cycle].GetCount() <= current) {
+                                    ShutdownWithErrorBox(reinterpret_cast<const char*>(
+                                        String( // reinterpret-ok: String returns a logging buffer
+                                            "Monster %s: Missing CYCLE_%s, sub-cycle %d", rep->name,
+                                            g_cycle_names[cycle].name, current)));
+                                }
                                 W8AnimObj* animation =
                                     *(*monster)->m_pRep->animations[cycle].GetAt(current);
                                 animation->playback_scale = animation_scale;
