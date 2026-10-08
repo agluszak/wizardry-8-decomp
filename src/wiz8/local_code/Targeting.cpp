@@ -2465,7 +2465,9 @@ static int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates,
         srVector3T<float> position = monster_info->p3D->GetPosition();
 
         sorted[index].location_id = location_id;
-        sorted[index].angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&party, &position)));
+        /* Whole degrees: sorting on the radian heading would leave seven buckets. */
+        sorted[index].angle =
+            static_cast<int>(NormalizeAngle(GetHeadingAngle(&party, &position)) * 57.295776f);
     }
     qsort(sorted, count, sizeof(W8GroupMemberByAngle), CompareSignedAscending);
 
