@@ -43,7 +43,7 @@ extern const float g_monster_motion_push;
 /* 0x005EC510: 127.0, the SGP full-volume scale the positional-sound factory
    multiplies its loudness fraction by. */
 extern const float g_sound_node_full_volume;
-extern const float g_path_overlap_tolerance;
+extern const double g_path_overlap_tolerance;
 extern const float g_float_negative_one_third;
 extern const float g_float_fifty_thousand;
 /* 0x005EC29C: pi/4, the arc bound the targeting cone tests compare
@@ -137,8 +137,8 @@ extern const float g_path_heuristic_scale;
 extern const float g_float_one_and_a_half;
 extern const float g_path_gap_penalty_scale;
 extern const float g_float_one_million;
-extern const float g_path_blocking_alignment_upper_bound;
-extern const float g_path_blocking_alignment_lower_bound;
+extern const double g_path_blocking_alignment_upper_bound;
+extern const double g_path_blocking_alignment_lower_bound;
 extern const float g_float_one_third;
 extern const float g_region_axis_alignment_threshold;
 extern const float g_particle_random_unit_scale;
