@@ -1169,7 +1169,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             record->equip_class != W8_ITEM_EQUIP_CLASS_GADGET) {
             /* An ordinary item carries the spell's own power, and the one use
                kind whose presentation skill is nine costs a flat ten. */
-            if (g_item_spell_presentation[record->category] == 9) {
+            if (GetItemSpellPresentation(record) == 9) {
                 fatigue_cost = 10;
             }
             power = record->spell_power;
