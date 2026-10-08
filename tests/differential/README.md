@@ -186,8 +186,13 @@ the blobs in FILE; the driver uses this for cross-reads), `--list`.
   eye-normal scratch already marked ready. Inputs include unit and
   non-unit normals, direction == normal, and reflections onto (0, 0, -1),
   where the divisor is zero. The probe prints the generated ST0 range, the
-  lazy-setup mask and a checksum of the whole guarded ST buffer. The
-  setupEyeSpace* paths are not reached.
+  lazy-setup mask and a checksum of the whole guarded ST buffer.
+* `envmap.setup.v<n>`: the same mapper with the eye-space scratch not (or
+  only partly) ready, so `process` runs `srVertexPipe::setupEyeSpaceDirAndDist`
+  (eye-space locations through the base vector processor's `_dir`) and/or
+  `setupEyeSpaceNormal` with no normals, direct normals (`_transform`) or
+  indexed normals (`_transformIndexed` through the AVT). The probe also prints
+  the scratch directions, distances and normals for the batch.
 
 ## Aliasing scope
 

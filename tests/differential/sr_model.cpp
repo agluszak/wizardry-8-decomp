@@ -15,6 +15,7 @@
 #include "surrender/srModeler.h"
 #include "surrender/srNode.h"
 #include "surrender/srVertexPipe.h"
+#include "surrender/srVectorProcessor.h"
 #include "surrender/srVertexProcessor.h"
 
 void runProbe(const char* name, void (*probe)());
@@ -1029,6 +1030,93 @@ static void environmentMapperCase()
     printf("st fnv %08lx\n", sum);
 }
 
+/* srEnvironmentMapper::process with the eye-space scratch not ready, so it
+   goes through srVertexPipe::setupEyeSpaceDirAndDist (eye-space locations ->
+   direction and distance through the base vector processor) and/or
+   setupEyeSpaceNormal (no normals -> (0, 0, -1); direct normals through
+   _transform; indexed normals through _transformIndexed with the AVT). */
+static void environmentMapperSetupCase()
+{
+    static PipeScratch scratch;
+    static srVector2T<float> st[0x100];
+    static srVector4T<float> locations[0x80];
+    static srVector3T<float> normals[0x80];
+    static unsigned long avt[0x40];
+    srVertexArray array;
+    srVertexPipe::Input input;
+    srMatrix4T<float> normal_matrix;
+    unsigned char pipe[sizeof(srVertexPipe)];
+    int normal_mode = g_model_variant % 3;
+    int ready_mode = (g_model_variant / 3) % 4;
+    unsigned long count = 1 + modelRandom() % 0x20;
+    unsigned long sub_offset = modelRandom() % (0x40 - count + 1);
+    unsigned long batch_base = modelRandom() % 0x40;
+    unsigned long batch_count = sub_offset + count;
+    unsigned long index;
+    unsigned long result = 0;
+    unsigned long sum = 2166136261UL;
+    HMODULE module = GetModuleHandleA("sr.dll");
+    void* process = reinterpret_cast<void*>(
+        GetProcAddress(module, "?process@srEnvironmentMapper@@UAEXAAVsrVertexPipe@@@Z"));
+    srVP** exported_vp =
+        reinterpret_cast<srVP**>(GetProcAddress(module, "?vp@srVectorProcessor@@0PAVsrVP@@A"));
+    srVectorProcessor::initBaseVP();
+    memset(&scratch, 0, sizeof(scratch));
+    memset(st, 0xa7, sizeof(st));
+    memset(&array, 0, sizeof(array));
+    memset(&input, 0, sizeof(input));
+    memset(pipe, 0, sizeof(pipe));
+    for (index = 0; index < 0x80; ++index) {
+        srVector3T<float> position = randomVector(4.0f);
+        locations[index].Set(position.x, position.y, position.z - 6.0f, 1.0f);
+        normals[index] = randomVector(1.0f);
+    }
+    for (index = 0; index < 0x40; ++index) {
+        avt[index] = modelRandom() % 0x80;
+        scratch.dir[index] = randomVector(1.0f);
+        scratch.normals[index] = randomVector(1.0f);
+    }
+    for (index = 0; index < 4; ++index) {
+        srVector3T<float> row = randomVector(1.5f);
+        normal_matrix.vectors[index].Set(row.x, row.y, row.z, index == 3 ? 1.0f : 0.0f);
+    }
+    input.normals = normal_mode == 0 ? 0 : normals;
+    input.direct_vertex_indices = normal_mode == 1;
+    input.normal_matrix = &normal_matrix;
+    scratch.flags = ready_mode == 1 ? 0x01 : ready_mode == 2 ? 0x08 : 0;
+    array.st0 = st;
+    *reinterpret_cast<PipeScratch**>(pipe + 0x00) = &scratch;
+    *reinterpret_cast<srVertexPipe::Input**>(pipe + 0x6c) = &input;
+    *reinterpret_cast<unsigned long**>(pipe + 0x70) = avt;
+    *reinterpret_cast<srVertexArray**>(pipe + 0x78) = &array;
+    *reinterpret_cast<srVector4T<float>**>(pipe + 0x7c) = locations;
+    *reinterpret_cast<unsigned long*>(pipe + 0x80) = batch_base;
+    *reinterpret_cast<unsigned long*>(pipe + 0x84) = sub_offset;
+    *reinterpret_cast<unsigned long*>(pipe + 0x88) = count;
+    *reinterpret_cast<unsigned long*>(pipe + 0x8c) = batch_count;
+    *reinterpret_cast<srVP**>(pipe + 0x98) = exported_vp != 0 ? *exported_vp : 0;
+    printf("setup normals %d ready %d count %lu offset %lu base %lu\n", normal_mode, ready_mode,
+           count, sub_offset, batch_base);
+    callPipe(process, pipe, &result);
+    printf("lazy %08lx flags %08lx\n", *reinterpret_cast<unsigned long*>(pipe + 0x10),
+           scratch.flags);
+    for (index = 0; index < batch_count; ++index) {
+        printf("eye[%lu] dir %08lx %08lx %08lx dist %08lx n %08lx %08lx %08lx\n", index,
+               floatBits(scratch.dir[index].x), floatBits(scratch.dir[index].y),
+               floatBits(scratch.dir[index].z), floatBits(scratch.dist[index]),
+               floatBits(scratch.normals[index].x), floatBits(scratch.normals[index].y),
+               floatBits(scratch.normals[index].z));
+    }
+    for (index = 0; index < 0x100; ++index) {
+        sum = fnv(sum, &st[index], sizeof(st[index]));
+        if (index >= batch_base + sub_offset && index < batch_base + sub_offset + count) {
+            printf("st[%lu] %08lx %08lx\n", index, floatBits(st[index].x), floatBits(st[index].y));
+        }
+    }
+    printf("st fnv %08lx\n", sum);
+    srVectorProcessor::release();
+}
+
 void modelCases()
 {
     int variant;
@@ -1096,5 +1184,9 @@ void modelCases()
     for (variant = 0; variant < 16; ++variant) {
         sprintf(label, "v%d", variant);
         runModel("envmap", label, variant, environmentMapperCase);
+    }
+    for (variant = 0; variant < 24; ++variant) {
+        sprintf(label, "v%d", variant);
+        runModel("envmap.setup", label, variant, environmentMapperSetupCase);
     }
 }
