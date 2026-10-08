@@ -378,6 +378,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
     W8SoundEvent* last_sound = 0;
     int damage_stage = -1;
     int skin_stage = 0;
+    bool skins_started = false;
 
     char path[256];
     sprintf(path, "data\\Monsters\\%s.mls", monster_name);
@@ -516,14 +517,15 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                 light_pulsing = _stricmp(light_mode, "pulsing") == 0;
                 has_light = true;
             } else if (_stricmp(command, "skin") == 0) {
-                if (damage_stage == -1) {
+                if (!skins_started) {
+                    skin_stage = 0;
                     damage_stage = (*monster)->AddDamageStage(monster_name, 0);
                     W8Vector<stModelInstance*> instances;
                     (*monster)->CollectModelInstances(&instances);
                     for (int index = 0; index < instances.GetCount(); ++index) {
                         (*instances.GetAt(index))->damage_stage = damage_stage;
                     }
-                    skin_stage = 0;
+                    skins_started = true;
                 }
                 if (_stricmp(argument, "default") != 0) {
                     ++skin_stage;
@@ -532,6 +534,18 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
             } else if (_stricmp(command, "skinswap") == 0) {
                 char old_name[64];
                 char new_name[64];
+                /* 0x004C0FA8..0x004C1070: a SKINSWAP with no SKIN before it
+                   creates the base stage first, then swaps into that stage. */
+                if (!skins_started) {
+                    skin_stage = 0;
+                    damage_stage = (*monster)->AddDamageStage(monster_name, 0);
+                    W8Vector<stModelInstance*> instances;
+                    (*monster)->CollectModelInstances(&instances);
+                    for (int index = 0; index < instances.GetCount(); ++index) {
+                        (*instances.GetAt(index))->damage_stage = damage_stage;
+                    }
+                    skins_started = true;
+                }
                 sscanf(line, "%s %s %s", command, old_name, new_name);
                 if (damage_stage != -1 &&
                     !(*monster)->ReplaceSkinTexture(damage_stage, old_name, new_name)) {
