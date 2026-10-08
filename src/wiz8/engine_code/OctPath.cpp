@@ -180,7 +180,7 @@ void W8PathHeapHandle::DeleteRoot(W8PathSearchNode* node)
     } else {
         root_node = heap->Delete().node;
     }
-    node->flags |= W8_PATH_SEARCH_EXPANDED;
+    node->flags |= W8_PATH_SEARCH_CLOSED;
 }
 
 /* Write the path hash serialization and its five conditional tables. Counts
@@ -2255,8 +2255,8 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
                 existing->path_cost = path_cost;
                 existing->parent_node = static_cast<unsigned short>(best_node);
                 UpdateSearchNodeScore(existing_index, &target, existing->clearance, radius);
-                if ((existing->flags & 0x0400) != 0) {
-                    existing->flags &= 0xfbff;
+                if ((existing->flags & W8_PATH_SEARCH_CLOSED) != 0) {
+                    existing->flags &= ~W8_PATH_SEARCH_CLOSED;
                     entry.node = existing->node_index;
                     entry.priority = static_cast<unsigned int>(existing->score);
                     heap->Insert(&entry);
