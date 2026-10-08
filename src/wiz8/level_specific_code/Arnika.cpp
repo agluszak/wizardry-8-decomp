@@ -85,7 +85,8 @@ static W8Monster* g_mookholo_monster;
 /* Level init: clears the laser-scanner and exit-door caches, runs both
    elevator setups, then restores the laser scan, the warning sound, the
    Screg flag and the inside-the-inn NPC teleport from the persisted
-   location variables and fact 0xc1. */
+   location variables and fact 0xc1.  An active Screg ambush whose monster
+   is still present ends setup before the teleport. */
 // FUNCTION: WIZ8 0x004E06D0
 void ArnikaLevelSetup(void)
 {
@@ -119,9 +120,10 @@ void ArnikaLevelSetup(void)
     if (GetLocationVarIDByName("ScregActive") != -1 &&
         GetLocationVarValueByName("ScregActive") == 1) {
         npc = GetNpcStateByKind(0x17);
-        if (npc == 0 || (monster_info = GetNpcMonsterInfo(npc)) == 0 || monster_info->p3D == 0) {
-            SetTriggerVariableByName("ScregActive", 0);
+        if (npc != 0 && (monster_info = GetNpcMonsterInfo(npc)) != 0 && monster_info->p3D != 0) {
+            return;
         }
+        SetTriggerVariableByName("ScregActive", 0);
     }
     if (GetFact(W8_FACT_VI_RESCUED) != 0) {
         npc = GetNpcStateByKind(0x18);
