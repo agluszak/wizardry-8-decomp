@@ -1147,15 +1147,15 @@ bool IsCombatEffectSlotSpell(int spell_id)
     }
 }
 
-/* Release the spell database and forget its record count with it, so the two
-   are never out of step. */
+/* Release the spell database and forget the version with it, so the two are
+   never out of step. */
 // FUNCTION: WIZ8 0x004acd50
 void ReleaseSpellDatabase(void)
 {
     if (g_spell_records != 0) {
         delete[] g_spell_records;
         g_spell_records = 0;
-        g_spell_record_count = 0;
+        g_spell_database_version = 0;
     }
 }
 
@@ -1533,8 +1533,9 @@ bool CanSpellBackfire(int spell_id)
 // FUNCTION: WIZ8 0x004acc10
 unsigned char InitializeSpellDatabase(void)
 {
-    /* Retail read allocation_count/database_version uninitialised when the
-       header FileRead pair short-circuited; the recovery keeps that read. */
+    /* Retail reads allocation_count/database_version uninitialised when the
+       header FileRead pair short-circuits; preserve that behavior. The global
+       receives the allocation count despite its older misleading name. */
     int handle;
     unsigned int index;
     bool ok;
@@ -1571,8 +1572,6 @@ unsigned char InitializeSpellDatabase(void)
         g_spell_records = 0;
     }
     FileClose(handle);
-    /* Retail 0x004acd39 publishes the first header dword (the record count the
-       allocation used), not the second; database_version is read and dropped. */
-    g_spell_record_count = allocation_count;
+    g_spell_database_version = allocation_count;
     return ok;
 }
