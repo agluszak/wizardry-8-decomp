@@ -700,7 +700,9 @@ void srNode::setWSDirty()
 double srNode::getDistance(const srNode& node) const
 {
     srVector3T<double> other = node.getWorldSpaceLocation();
-    return (getWorldSpaceLocation() - other).Length();
+    srVector3T<double> offset = getWorldSpaceLocation() - other;
+    /* Retail's inlined Length sums z, x, then y here. */
+    return sqrt((offset.z * offset.z + offset.x * offset.x) + offset.y * offset.y);
 }
 
 // FUNCTION: SURRENDER 0x100536B0
