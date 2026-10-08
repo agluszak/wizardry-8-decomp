@@ -4256,41 +4256,45 @@ int ResolveCharacterAttack(int party_slot)
                         }
                     }
                 }
-            }
-            if (damage == 0) {
-                MakePCMeleeHitSound(party_slot, &character->Hand[hand], &g_combat_state->TargetHit,
-                                    hit_location, 0x2a);
-                if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                    MonsterReactsToBeingStruck(monster_info, &source, false);
-                }
-                if (!verbose) {
-                    ++report->count;
-                } else {
-                    ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[message_id]);
-                }
-            }
-            if (range < W8_RANGE_LONG) {
-                if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                    W8Enchantment* enchantment =
-                        &monster_info->enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
-                    if (enchantment->turns != 0) {
-                        SetTargetSourceToMonster(monster_info, &target_source);
-                        ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
-                        if (--enchantment->power == 0) {
-                            ClearMonsterEnchantmentSlot(monster_info->location_id,
-                                                        W8_ENCHANTMENT_RAZOR_CLOAK);
-                        }
+                /* Only a swing that hit plays the glance sound, posts the no-damage
+                   notice and draws the Razor Cloak backlash; a missed swing goes
+                   straight to the queued fatigue. */
+                if (damage == 0) {
+                    MakePCMeleeHitSound(party_slot, &character->Hand[hand],
+                                        &g_combat_state->TargetHit, hit_location, 0x2a);
+                    if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
+                        MonsterReactsToBeingStruck(monster_info, &source, false);
                     }
-                } else {
-                    W8Enchantment* enchantment =
-                        &g_status.buffers.Char[g_combat_state->TargetHit.iChar]
-                             .enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
-                    if (enchantment->turns != 0) {
-                        SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &target_source);
-                        ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
-                        if (--enchantment->power == 0) {
-                            ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar,
-                                                          W8_ENCHANTMENT_RAZOR_CLOAK);
+                    if (!verbose) {
+                        ++report->count;
+                    } else {
+                        ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[message_id]);
+                    }
+                }
+                if (range < W8_RANGE_LONG) {
+                    if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
+                        W8Enchantment* enchantment =
+                            &monster_info->enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
+                        if (enchantment->turns != 0) {
+                            SetTargetSourceToMonster(monster_info, &target_source);
+                            ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
+                            if (--enchantment->power == 0) {
+                                ClearMonsterEnchantmentSlot(monster_info->location_id,
+                                                            W8_ENCHANTMENT_RAZOR_CLOAK);
+                            }
+                        }
+                    } else {
+                        W8Enchantment* enchantment =
+                            &g_status.buffers.Char[g_combat_state->TargetHit.iChar]
+                                 .enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
+                        if (enchantment->turns != 0) {
+                            SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar,
+                                                       &target_source);
+                            ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
+                            if (--enchantment->power == 0) {
+                                ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar,
+                                                              W8_ENCHANTMENT_RAZOR_CLOAK);
+                            }
                         }
                     }
                 }
