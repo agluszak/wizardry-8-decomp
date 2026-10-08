@@ -79,6 +79,36 @@ minimized reproducers), `--list`.
   copy and swap, adjust, adjustSaturation, getChannelStatistics, both blit
   forms, composite, clamping, and addNoise with a fixed `srand` seed.
 * `palette.quantize`: srPalette quantize and matchPalette.
+* `huffman.roundtrip.<distribution>.n<count>`: an `srHuffman::Sampler`,
+  `Compressor` and `Decompressor` round trip over `srBinOMStream` /
+  `srBinIMStream`, using the game's BitArray header (symbol count, 6-bit code
+  width, data count) before the symbol table. Distributions: one symbol, two
+  symbols, uniform 16, geometric, bytes, wide 32-bit values, Fibonacci
+  frequencies (deepest tree). The case prints the sampler table, the packed
+  bytes and the decoded symbols.
+* `huffman.bitstream`: `BitOStream::put` / `BitIStream::get` at widths 0..32,
+  plus `rewind` and `getBit`.
+* `culler.setClipFlags.v<n>`, `culler.getClipMask.spheres`,
+  `culler.transformClipPlane.matrices` (256 planes, including `z = 0` and
+  `w = 0`, under identity, translation, general affine and projective
+  matrices), `culler.buildAVT.v<n>` (with `setupLinearArray`) and
+  `culler.cull.v<n>` (cull modes 0/1/2, with and without an active-triangle
+  list and object-space clipping): the exported `srTriangleCuller` statics.
+* `triangulator.v<n>`: `srTriangulator` over convex, star, comb and
+  collinear-edge polygons with 3 to 17 points.
+* `memorypool.v<n>`: 400-step allocate/free/lock/unlock sequences on an
+  `srMemoryPool`, over four alignments, first and best fit, with and without
+  `maskArea`.
+* `stringtable.v<n>`: `addString`, `addSeparatedStrings` (empty fields,
+  several separators, `append_slash`), growth past 64 entries, copy
+  assignment and `reset`.
+* `exponent.table.v<n>` / `exponent.cached.sequence`: `srExponentTable`
+  values across [0, 1], and the `srCachedExponentTable` reuse, release and
+  free sequence.
+* `palette.quantizer.v<n>` / `palette.sampler.v<n>`: `srPalette::Quantizer`
+  over 1 to 256 colours and four channel-bit layouts, and
+  `Sampler::createOptimalPalette` over random, clustered, grey and
+  coarsely sampled colour sets.
 
 ## Aliasing scope
 
@@ -118,5 +148,8 @@ compiled vcall thunk. These offsets match the retail call sites above.
   and loader behaviour cannot differ between variants.
 * After `resize`, surface contents are uninitialized heap memory, so the
   rescale case prints only the result and the size at that point.
+* `srExponentTable::getValue` does not clamp, and an exponent of 0 leaves
+  the table unfilled, so the cases stay inside [0, 1] and skip exponent 0.
+  Anything else reads stack garbage in both builds.
 * Clean traces show agreement only on these inputs. They do not prove
   equivalence.

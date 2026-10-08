@@ -592,6 +592,8 @@ static void cameraTranslatedRotated()
 }
 
 void surfaceCases();
+void huffmanCases();
+void miscCases();
 
 void probeCases()
 {
@@ -603,4 +605,6 @@ void probeCases()
     runProbe("probe.camera.rotated", cameraRotated);
     runProbe("probe.camera.translated-rotated", cameraTranslatedRotated);
     surfaceCases();
+    huffmanCases();
+    miscCases();
 }
