@@ -510,7 +510,7 @@ int calibrate(srTimerConfig* config)
         config->frequency.hi = 0;
     }
     if ((config->frequency.lo | config->frequency.hi) != 0) {
-        __int64 tolerance =
+        unsigned __int64 tolerance =
             (__int64)(config->frequency * 0.01 * (srTimer::cpuFreqVariancePct & 0xffff));
         SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
@@ -538,7 +538,7 @@ int calibrate(srTimerConfig* config)
         } else {
             drift = config->frequency - measured;
         }
-        if ((__int64)quadWord64(drift) > tolerance) {
+        if (quadWord64(drift) > tolerance) {
             config->frequency.lo = 0;
             config->frequency.hi = 0;
         }
