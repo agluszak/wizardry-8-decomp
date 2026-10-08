@@ -634,7 +634,15 @@ void srMeshModel::applyMatrix(const srMatrix3T<float>& matrix)
 {
     srVector3T<float>* vertices = getVertexLoc();
     for (long index = 0; index < vertex_location_count; index++) {
-        vertices[index].Transform(matrix);
+        /* Retail's per-row summation order (0x1003E780). */
+        srVector3T<float>& p = vertices[index];
+        const srVector3T<float>* m = matrix.vectors;
+        float x = (p.x * m[0].x + p.y * m[0].y) + p.z * m[0].z;
+        float y = (p.z * m[1].z + p.x * m[1].x) + p.y * m[1].y;
+        float z = (p.x * m[2].x + p.y * m[2].y) + p.z * m[2].z;
+        p.x = x;
+        p.y = y;
+        p.z = z;
     }
     setDirty(DIRTY_BOUNDS);
     setDirty(DIRTY_POLYGON_NORMALS);
