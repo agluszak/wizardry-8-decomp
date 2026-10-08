@@ -770,9 +770,15 @@ int srTimer::retrieve()
         }
         type = REG_BINARY;
         size = 4;
-        float variance;
+        DWORD variance;
         if (RegQueryValueExA(key, RegCpuVariance, 0, &type, (BYTE*)&variance, &size) == 0) {
-            cpuFreqVariancePct = (unsigned short)variance;
+            double pct = variance;
+            if (pct <= 1.0f) {
+                pct = 1.0f;
+            } else if (pct >= 100.0f) {
+                pct = 100.0f;
+            }
+            cpuFreqVariancePct = (unsigned short)pct;
         }
         RegCloseKey(key);
     }
