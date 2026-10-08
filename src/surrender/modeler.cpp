@@ -725,10 +725,17 @@ void srModeler::findClosestVertex(const srVector3T<float>& position, unsigned lo
     vertex = 0;
     if (triangle_count != 0) {
         Triangle* current = &triangles[0];
-        float best = (current->vertices[0].position - position).LengthSquared();
+        /* Retail keeps the differences and squared lengths on the x87 stack
+           and the best distance in a double; nothing is rounded to float. */
+        const srVector3T<float>& first = current->vertices[0].position;
+        srVector3T<double> delta(first.x - position.x, first.y - position.y, first.z - position.z);
+        double best = delta.LengthSquared();
         for (unsigned long index = 0; index < triangle_count; ++index) {
             for (unsigned long slot = 0; slot < 3; ++slot) {
-                float distance = (current->vertices[slot].position - position).LengthSquared();
+                const srVector3T<float>& location = current->vertices[slot].position;
+                srVector3T<double> offset(location.x - position.x, location.y - position.y,
+                                          location.z - position.z);
+                double distance = offset.LengthSquared();
                 if (distance < best) {
                     triangle = index;
                     vertex = slot;
