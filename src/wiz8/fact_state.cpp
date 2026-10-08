@@ -84,6 +84,24 @@ unsigned char EvaluateFact(W8FactId fact_id)
     unsigned char value;
     unsigned char count;
 
+    if (fact_id == W8_FACT_DEVICE_ONE || fact_id == W8_FACT_DEVICE_TWO ||
+        fact_id == W8_FACT_DEVICE_THREE) {
+        count = FindItemOnParty(0x243, 0, 0, 2, 0);
+        if (FindItemOnParty(0x242, 0, 0, 2, 0)) {
+            ++count;
+        }
+        if (FindItemOnParty(0x244, 0, 0, 2, 0)) {
+            ++count;
+        }
+        if (fact_id == W8_FACT_DEVICE_ONE) {
+            return count == 1;
+        }
+        if (fact_id == W8_FACT_DEVICE_TWO) {
+            return count == 2;
+        }
+        return count == 3;
+    }
+
     if (fact_id < W8_FACT_FACTION_HIGARDI_FELLOW_FRIENDLY) {
         if (fact_id == W8_FACT_FACTION_HIGARDI_BANK_FRIENDLY) {
             return GetFactionDisposition(W8_FACTION_HIGARDI_BANK) == W8_FACTION_FRIENDLY;
@@ -168,26 +186,6 @@ unsigned char EvaluateFact(W8FactId fact_id)
                 ++count;
             }
             return count >= 2;
-        case W8_FACT_DEVICE_THREE:
-        case W8_FACT_DEVICE_TWO:
-        triple:
-            count = FindItemOnParty(0x243, 0, 0, 2, 0);
-            if (FindItemOnParty(0x242, 0, 0, 2, 0)) {
-                ++count;
-            }
-            if (FindItemOnParty(0x244, 0, 0, 2, 0)) {
-                ++count;
-            }
-            if (fact_id == W8_FACT_DEVICE_ONE) {
-                return count == 1;
-            }
-            if (fact_id == W8_FACT_DEVICE_TWO) {
-                return count == 2;
-            }
-            if (fact_id == W8_FACT_DEVICE_THREE) {
-                return count == 3;
-            }
-            return 0;
         default:
             break;
         }
@@ -232,8 +230,6 @@ unsigned char EvaluateFact(W8FactId fact_id)
                 return 1;
             }
             return 0;
-        case W8_FACT_DEVICE_ONE:
-            goto triple;
         default:
             break;
         }

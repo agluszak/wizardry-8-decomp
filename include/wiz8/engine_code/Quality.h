@@ -10,8 +10,11 @@
    additional animations selects the richer monster-cycle values, and blurred
    text applies the half-pixel 2D correction. */
 enum W8RenderOption {
+    W8_RENDER_OPTION_TEXTURE_MAG_FILTER = 2,
+    W8_RENDER_OPTION_TEXTURE_MIN_FILTER = 3,
     W8_RENDER_OPTION_MIP_MAPPING = 4,
     W8_RENDER_OPTION_DITHER = 5,
+    W8_RENDER_OPTION_BRIGHTNESS = 6,
     W8_RENDER_OPTION_MISSILE_LIGHTS = 9,
     W8_RENDER_OPTION_MESH_SKY = 10,
     W8_RENDER_OPTION_HIGH_TEXTURE_DETAIL = 11,

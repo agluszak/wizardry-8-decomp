@@ -111,38 +111,26 @@ void IntroScreenFrame(void)
 static void AdvanceIntroScreen(void)
 {
     char path[500];
-    W8BinkVideo* video;
+    bool first_video_available = false;
 
     if (g_intro_video_index == 6 && !g_settings.intro_seen) {
         g_intro_video_index = 0;
         sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index]);
-        if (!FileExists(path)) {
-            if (!FindGameDataPath(gzCdDirectory, 3)) {
-                goto ordinary_destroy;
-            }
+        first_video_available = FileExists(path);
+        if (!first_video_available && FindGameDataPath(gzCdDirectory, 3)) {
             sprintf(path, "%sData\\Flics\\Intro\\%s", gzCdDirectory,
                     g_intro_video_names[g_intro_video_index]);
-            if (!FileExists(path)) {
-                goto ordinary_destroy;
-            }
+            first_video_available = FileExists(path);
         }
-        if (gpVideo != 0 && gpVideo->Open(path, 0)) {
+        if (first_video_available && gpVideo != 0 && gpVideo->Open(path, 0)) {
             return;
         }
-        FinishVideoPresentation();
-        video = gpVideo;
-    } else {
-    ordinary_destroy:
-        if (gpVideo == 0) {
-            goto cleared;
-        }
-        FinishVideoPresentation();
-        video = gpVideo;
     }
-    if (video != 0) {
-        delete video;
+    /* A valid first-video path also closes the presentation when gpVideo is null. */
+    if (gpVideo != 0 || first_video_available) {
+        FinishVideoPresentation();
     }
-cleared:
+    delete gpVideo;
     gpVideo = 0;
     RequestScreenTransition();
     switch (g_intro_video_index) {
