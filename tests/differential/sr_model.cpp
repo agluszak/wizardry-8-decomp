@@ -9,6 +9,7 @@
 #include <windows.h>
 
 #include "surrender/srBounder.h"
+#include "surrender/srMaterial.h"
 #include "surrender/srMath.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
@@ -938,6 +939,39 @@ static void bounderCase()
     printBounds("bounder-local", bounds);
 }
 
+/* ---- srMaterial ---- */
+
+/* srMaterial's constructor runs reset(); the probe builds the material over
+   storage pre-filled with a pattern, so any field reset leaves alone shows up
+   as the fill (0x00 zeroes fog_scale, which makes updateParms disable
+   CHANNEL_FOG). Odd variants change the colours first so getMaterialInfo runs
+   updateParms on edited parameters. */
+static void materialResetCase()
+{
+    static const unsigned char fills[4] = {0x00, 0xcd, 0x3f, 0xff};
+    static double storage[(sizeof(srMaterial) + 7) / 8];
+    srVertexProcessor::MaterialInfo info;
+    srMaterial* material;
+    memset(storage, fills[(g_model_variant / 2) % 4], sizeof(storage));
+    material = new (storage) srMaterial;
+    if ((g_model_variant & 1) != 0) {
+        srVector4T<float> color;
+        color.Set(modelFloat(1.0f), modelFloat(1.0f), modelFloat(1.0f), modelFloat(1.0f));
+        material->setDiffuse(color);
+        color.Set(modelFloat(1.0f), modelFloat(1.0f), modelFloat(1.0f), modelFloat(1.0f));
+        material->setAmbient(color);
+    }
+    memset(&info, 0xa5, sizeof(info));
+    material->getMaterialInfo(info);
+    printFloats("diffuse", &info.diffuse.x, 4, 4);
+    printFloats("ambient", &info.ambient.x, 4, 4);
+    printFloats("specular", &info.specular.x, 4, 4);
+    printFloats("emissive", &info.emissive.x, 4, 4);
+    printf("translucency %08lx shininess %08lx value_38 %08lx fog_scale %08lx disabled %08lx\n",
+           floatBits(info.translucency), floatBits(info.shininess), floatBits(info.value_38),
+           floatBits(info.fog_scale), info.disabled_channels);
+}
+
 /* ---- srEnvironmentMapper ---- */
 
 /* process() reads only these srVertexPipe members (private; the mapper is a
@@ -1180,6 +1214,10 @@ void modelCases()
     for (variant = 0; variant < 24; ++variant) {
         sprintf(label, "v%d", variant);
         runModel("bounder", label, variant, bounderCase);
+    }
+    for (variant = 0; variant < 8; ++variant) {
+        sprintf(label, "v%d", variant);
+        runModel("material.reset", label, variant, materialResetCase);
     }
     for (variant = 0; variant < 16; ++variant) {
         sprintf(label, "v%d", variant);

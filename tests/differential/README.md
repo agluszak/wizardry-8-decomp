@@ -181,6 +181,11 @@ the blobs in FILE; the driver uses this for cross-reads), `--list`.
   and under a rotated, scaled group) holding converted meshes. The probe
   prints each child's `getLocalBounds`, then the bounder's bounds after
   `forceUpdateBounds` and again after a child moves and `updateBounds` runs.
+* `material.reset.v<n>`: an `srMaterial` constructed (so `reset` runs)
+  over storage pre-filled with 0x00, 0xCD, 0x3F or 0xFF; odd variants then
+  set the diffuse and ambient colours. The probe prints every
+  `getMaterialInfo` field, including `fog_scale` and `disabled_channels`
+  (a fog_scale of 0 makes `updateParms` disable CHANNEL_FOG).
 * `envmap.v<n>`: `srEnvironmentMapper::isActive`/`process` (called through
   their exports) on a raw `srVertexPipe` image with the eye-direction and
   eye-normal scratch already marked ready. Inputs include unit and
