@@ -101,12 +101,12 @@ wheels = [
 [[package]]
 name = "ghidriff"
 version = "1.0.0"
-source = { url = "https://github.com/agluszak/ghidriff/archive/a1ddd07630bfb4ac9b56057a24808e92acc6ab97.tar.gz" }
+source = { url = "https://github.com/agluszak/ghidriff/archive/f30885eaf4cd734c0de588c0ef0aadf32c67a234.tar.gz" }
 dependencies = [
     { name = "mdutils" },
     { name = "pyghidra" },
 ]
-sdist = { hash = "sha256:90ddaf1f1fa31b8a1eb1c06373991b6f60c7be1d45b71574ea99eebe12d69e75" }
+sdist = { hash = "sha256:2aae96ef66ff87dec50c04474471ad30f1a5f32865979204da40be2b29a88602" }
 
 [package.metadata]
 requires-dist = [
@@ -420,7 +420,7 @@ wheels = [
 [[package]]
 name = "reccmp"
 version = "0.1.7"
-source = { git = "https://github.com/agluszak/reccmp?rev=6f51001f6ac80d7ad4b165887305be3af4d0dcb1#6f51001f6ac80d7ad4b165887305be3af4d0dcb1" }
+source = { git = "https://github.com/agluszak/reccmp?rev=2801f2d87b7e323152a8ccd90a142e5cf78eb220#2801f2d87b7e323152a8ccd90a142e5cf78eb220" }
 dependencies = [
     { name = "capstone" },
     { name = "colorama" },
@@ -566,6 +566,6 @@ dev = [
     { name = "cmake", specifier = ">=3.26,<5" },
     { name = "pyright", specifier = ">=1.1.403,<2" },
     { name = "pytest", specifier = ">=8.4,<10" },
-    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=6f51001f6ac80d7ad4b165887305be3af4d0dcb1" },
+    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=2801f2d87b7e323152a8ccd90a142e5cf78eb220" },
     { name = "ruff", specifier = ">=0.12,<1" },
 ]
