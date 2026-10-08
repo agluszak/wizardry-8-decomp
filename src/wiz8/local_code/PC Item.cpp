@@ -1769,11 +1769,12 @@ bool GiveHeldItemToCharacterOrParty(int uiChar, bool party_first)
         stored = AddItemToParty(item, true, false);
     }
 
-    gXStatus.held_item_source = -1;
-    gXStatus.held_item_origin = W8_ITEM_ORIGIN_NONE;
-    gXStatus.held_item_slot = 0xffff;
-    ClearHeldItemDisplay();
+    /* Only a stored item releases the cursor; a refused one stays held. */
     if (stored) {
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = W8_ITEM_ORIGIN_NONE;
+        gXStatus.held_item_slot = 0xffff;
+        ClearHeldItemDisplay();
         return stored;
     }
 
