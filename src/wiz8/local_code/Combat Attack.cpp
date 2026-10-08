@@ -3687,11 +3687,9 @@ bool StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
         srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 0x66, 0);
     }
     hand = row->current_hand;
-    if (!character->Hand[hand].in_play) {
-        if (GetCharAttackRange(character, hand) == W8_RANGE_NONE) {
-            row->hand_attack_values[hand] = 0;
-            return false;
-        }
+    if (!character->Hand[hand].in_play || GetCharAttackRange(character, hand) == W8_RANGE_NONE) {
+        row->hand_attack_values[hand] = 0;
+        return false;
     }
     if (attack_mode == W8_ATTACK_MODE_NONE) {
         mode = CharChooseHandAttackMode(character, hand);
