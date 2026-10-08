@@ -290,12 +290,12 @@ public:
     unsigned char padding_219[3];
     /* 0x21c/0x220: hover base-height random range (scaled by
        g_world_scale into movement.vertical_base). */
-    int hover_base_min;
-    int hover_base_max;
+    float hover_base_min;
+    float hover_base_max;
     /* 0x224/0x228: bob-amplitude random range (scaled into
        movement.vertical_amplitude). */
-    int bob_amplitude_min;
-    int bob_amplitude_max;
+    float bob_amplitude_min;
+    float bob_amplitude_max;
     /* 0x22c: the missing spell-launch-vertex warning already fired once. */
     bool spell_vertex_warned;
     /* 0x22d: the missing missile-start-point warning already fired once. */
