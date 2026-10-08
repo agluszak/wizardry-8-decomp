@@ -873,7 +873,7 @@ static srMeshModel::TriMesh* g_shadow_mesh;
 // FUNCTION: WIZ8 0x004813F0
 static void BuildShadowMesh()
 {
-    stMaterial* material = SR_NEW(stMaterial)();
+    stMaterial* material = new stMaterial;
     srShader shader;
     shader.value = 0x44b3;
     if (g_shadow_mesh == 0) {
