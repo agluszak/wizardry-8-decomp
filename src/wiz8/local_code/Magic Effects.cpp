@@ -1725,8 +1725,8 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, W8Condition condition
                     effect->applied = true;
                     effect->reported = true;
                     if (condition == W8_CONDITION_DEAD) {
-                        restored = (character->attributes[W8_ATTRIBUTE_INTELLIGENCE].effective +
-                                    character->attributes[W8_ATTRIBUTE_STRENGTH].effective) >>
+                        restored = (character->attributes[W8_ATTRIBUTE_PIETY].effective +
+                                    character->attributes[W8_ATTRIBUTE_VITALITY].effective) >>
                                    2;
                         turns = (character->uiHPMax * restored) / 100;
                         if (turns < 2) {
