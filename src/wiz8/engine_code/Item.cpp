@@ -423,9 +423,8 @@ void W8Item::LightRadarBlip()
     countdown = SetCountdownClock(10000);
 }
 
-/* Fire the item's trigger with no source and report its action state. States
-   1 and 4 propagate; a finished trigger, a missing trigger or a missing item
-   collapse to 1/0. */
+/* Run an item's trigger without a source. Action states 1 and 4 return zero
+   so a world-item interaction waits instead of taking the item. */
 // FUNCTION: WIZ8 0x004A0070
 unsigned char RunItemTrigger(W8Item* item)
 {
@@ -440,7 +439,7 @@ unsigned char RunItemTrigger(W8Item* item)
     }
     trigger->Run(-1);
     if (trigger->action_state == 1 || trigger->action_state == 4) {
-        return trigger->action_state;
+        return 0;
     }
     return 1;
 }

@@ -1068,7 +1068,7 @@ bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from, float 
     GetCameraPosition(&eye);
 
     srVector3T<float> delta = position - *from;
-    if (delta.LengthSquared() < radius * radius) {
+    if (delta.Length() < radius) {
         owner->GetCachedLocalBounds(&lower, &upper);
         lower += position;
         upper += position;
