@@ -983,6 +983,10 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes,
                 if (delta.Length() < 500.0f) {
                     srVector3T<float> navigator_position = monster->GetPosition();
 
+                    /* Retail resets the AI mode and pathing cooldown only once the
+                       short-move test passes; a long move leaves both alone. */
+                    flags_cleared = true;
+
                     if (!g_pathing->SnapWaypointPosition(&navigator_position, false) &&
                         !monster_info->party_threat.visible_to_player) {
                         srVector3T<float> next_position;
@@ -1023,7 +1027,6 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes,
                     }
                 }
                 cycle_cleared = cleared;
-                flags_cleared = true;
             } else {
                 srVector3T<float> camera;
                 srVector3T<float> probe;
