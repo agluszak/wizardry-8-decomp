@@ -1521,9 +1521,8 @@ BOOLEAN BlitVideoObjectToColorSurface(UINT32 video_object, UINT16 region,
     if (!GetVideoObjectETRLEProperties(object, &properties, region)) {
         return FALSE;
     }
-    BltVideoObjectToBuffer(static_cast<UINT16*>(destination->getDataPtr()),
-                           destination->getPitch(), object, region, x, y,
-                           VO_BLT_SRCTRANSPARENCY, 0);
+    BltVideoObjectToBuffer(static_cast<UINT16*>(destination->getDataPtr()), destination->getPitch(),
+                           object, region, x, y, VO_BLT_SRCTRANSPARENCY, 0);
     return TRUE;
 }
 
