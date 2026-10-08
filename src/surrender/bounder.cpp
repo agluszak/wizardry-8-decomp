@@ -159,7 +159,7 @@ void srBounder::updateBounds()
             double dx = bounds.minimum.x - bounds.center.x;
             double dy = bounds.minimum.y - bounds.center.y;
             double dz = bounds.minimum.z - bounds.center.z;
-            bounds.radius = (float)sqrt((dz * dz + dy * dy) + dx * dx);
+            bounds.radius = static_cast<float>(sqrt((dz * dz + dy * dy) + dx * dx));
         }
     }
     clearNotify(NOTIFY_BOUNDS_DIRTY);

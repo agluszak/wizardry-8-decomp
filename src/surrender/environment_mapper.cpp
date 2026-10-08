@@ -45,8 +45,8 @@ void srEnvironmentMapper::process(srVertexPipe& pipe)
         double rz = (direction.z - projection * normal.z) + 1.0f;
         double magnitude = sqrt((ry * ry + rx * rx) + rz * rz);
         magnitude = 1.0f / (magnitude + magnitude);
-        st[index].x = (float)(rx * magnitude + 0.5f);
-        st[index].y = (float)(ry * magnitude + 0.5f);
+        st[index].x = static_cast<float>(rx * magnitude + 0.5f);
+        st[index].y = static_cast<float>(ry * magnitude + 0.5f);
     }
 }
 

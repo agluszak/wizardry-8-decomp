@@ -1360,7 +1360,7 @@ void srNode::pitchAt(const srVector3T<double>& target, double amount)
     srVector3T<double> up(rotation.vectors[0].y, rotation.vectors[1].y, rotation.vectors[2].y);
     srVector3T<double> forward(rotation.vectors[0].z, rotation.vectors[1].z, rotation.vectors[2].z);
     /* Retail stores the forward component to a float slot and reloads it. */
-    volatile float toward = (float)DotProduct(forward, direction);
+    volatile float toward = static_cast<float>(DotProduct(forward, direction));
     double angle = -atan2(DotProduct(up, direction), toward) * amount;
     if (angle != 0.0) {
         rotation.RotateAboutX(sin(angle), cos(angle));
@@ -1385,7 +1385,7 @@ void srNode::yawAt(const srVector3T<double>& target, double amount)
     srVector3T<double> right(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x);
     srVector3T<double> forward(rotation.vectors[0].z, rotation.vectors[1].z, rotation.vectors[2].z);
     /* Retail stores the forward component to a float slot and reloads it. */
-    volatile float toward = (float)DotProduct(forward, direction);
+    volatile float toward = static_cast<float>(DotProduct(forward, direction));
     double angle = atan2(DotProduct(right, direction), toward) * amount;
     if (angle != 0.0) {
         rotation.RotateAboutY(sin(angle), cos(angle));
@@ -1405,7 +1405,7 @@ void srNode::rollUp(double amount)
 {
     srMatrix3T<double> rotation;
     getWorldSpaceRotation(rotation);
-    volatile float vertical = (float)rotation.vectors[1].y;
+    volatile float vertical = static_cast<float>(rotation.vectors[1].y);
     double angle = -atan2(rotation.vectors[1].x, vertical) * amount;
     if (angle != 0.0) {
         rotation.RotateAboutZ(sin(angle), cos(angle));
