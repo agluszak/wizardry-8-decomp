@@ -3182,16 +3182,16 @@ void Trigger::Run(int source)
             srVector3T<float> source_position;
             srVector3T<float> target_position;
             srVector3T<float> transformed;
-            srVector3T<float> axis;
             srMatrix3T<float> rotation;
 
             source_position.Set(this->position.x, this->position.y, this->position.z);
             target_position = source_position;
             target_position.z += 100.0f;
             rotation.SetIdentity();
-            axis = rotation.vectors[2];
+            /* Retail rotates the identity matrix around the trigger's direction
+               field (ebp+0x100), not around identity Z. */
             if (angle != 0.0f) {
-                rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
+                rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
             }
             transformed = rotation.Transform(target_position);
             FireMissile(static_cast<unsigned int>(m_lData1), &source_position, &transformed, 0, 1,
