@@ -552,18 +552,18 @@ bool CanPartySlotPray(int party_slot)
 // GLOBAL: WIZ8 0x0061DD38
 static int g_pray_roll_weights[14] = {5, 5, 10, 10, 10, 20, 10, 10, 10, 5, 5, 5, 5, 5};
 
+/* Fourteen cumulative weights followed by their grand total (0x0068D84C).
+   Retail folds the table with one walk to the end of this single block. */
+#define PRAY_ROLL_TIERS 14
 // GLOBAL: WIZ8 0x0068D814
-static int g_pray_roll_sums[14];
-
-// GLOBAL: WIZ8 0x0068D84C
-static int g_pray_roll_total;
+static int g_pray_roll_sums[PRAY_ROLL_TIERS + 1];
 
 // GLOBAL: WIZ8 0x00619788
 static wchar_t g_pray_dash[] = L" -- ";
 
 /* Pray: the trait-eleven once-per-combat divine intervention. The flat
-   weight table is folded into cumulative sums on first use - the slot one
-   past the sums array doubles as the grand total - and the roll is biased by
+   weight table is folded into cumulative sums on first use - the block's
+   last slot is the grand total - and the roll is biased by
    how long the fight has run and by the combat difficulty. The selected tier
    retries downward through the table until an action lands. */
 // FUNCTION: WIZ8 0x00547FE0
@@ -588,9 +588,9 @@ int CharacterPrayAction(int party_slot)
     if (!CanPartySlotPray(party_slot)) {
         return 0;
     }
-    if (g_pray_roll_total == 0) {
-        int* const end = &g_pray_roll_total + 1;
-        for (index = 0; index < 14; ++index) {
+    if (g_pray_roll_sums[PRAY_ROLL_TIERS] == 0) {
+        int* const end = g_pray_roll_sums + PRAY_ROLL_TIERS + 1;
+        for (index = 0; index < PRAY_ROLL_TIERS; ++index) {
             const int weight = g_pray_roll_weights[index];
             for (int* sum = &g_pray_roll_sums[index]; sum < end; ++sum) {
                 *sum += weight;
@@ -613,7 +613,7 @@ int CharacterPrayAction(int party_slot)
         AppendToLastTextLine(g_pray_dash, -1);
         SetTextBoxMode(1, -1);
     }
-    roll = Random(g_pray_roll_total);
+    roll = Random(g_pray_roll_sums[PRAY_ROLL_TIERS]);
     if (g_combat_state->round_count < 4) {
         roll += (g_combat_state->round_count * 3 - 12) * 5;
     } else if (g_combat_state->round_count > 8) {
