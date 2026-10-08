@@ -228,6 +228,7 @@ def stage_game(
     *,
     name: str,
     executable: Path,
+    renderer_dll: Path | None = None,
     objects: Path | None = None,
     reset_saves: bool = False,
     input_pinned: bool = False,
@@ -245,6 +246,8 @@ def stage_game(
             raise RuntimeError(f"missing retail asset directory: {source / asset}")
     if not executable.is_file():
         raise RuntimeError(f"runtime executable is not built: {executable}")
+    if renderer_dll is not None and not renderer_dll.is_file():
+        raise RuntimeError(f"runtime renderer is not built: {renderer_dll}")
     stage = settings.runtime_stage(name)
     stage.mkdir(parents=True, exist_ok=True)
     if reset_saves:
@@ -256,6 +259,8 @@ def stage_game(
         if candidate.exists():
             _managed_link(candidate, stage / asset)
     for candidate in sorted(path for path in source.iterdir() if path.is_file()):
+        if renderer_dll is not None and candidate.name.lower() == "sr.dll":
+            continue
         if candidate.name in RUNTIME_EXECUTABLES or candidate.name == executable.name:
             continue
         if candidate.name in {"3DVideo.CFG", "Wiz8.CFG"}:
@@ -287,6 +292,11 @@ def stage_game(
             staged_map = stage / "diagnostics" / f"{executable.stem}-{identity}.map"
             map_written = write_if_changed(staged_map, map_bytes)
         executable_written = write_if_changed(staged_executable, executable_bytes)
+        if renderer_dll is not None:
+            staged_renderer = stage / "sr.dll"
+            if staged_renderer.is_symlink():
+                staged_renderer.unlink()
+            write_if_changed(staged_renderer, renderer_dll.read_bytes())
 
     # The linker writes both files while holding this same lock. Publish the
     # complete executable only after its MAP snapshot is safely in place. A
@@ -327,6 +337,7 @@ def run_product(
             settings,
             name="wiz8",
             executable=settings.product_build_dir / "Wiz8Runtime.exe",
+            renderer_dll=settings.product_build_dir / "sr.dll",
             objects=settings.recovered_objects_dir,
         )
         map_path = staged.map
@@ -1334,11 +1345,11 @@ def _run_runtime_batch(
 
 
 def _pin_suite_executable(settings: Settings, executable: Path, stage: Path) -> tuple[Path, str]:
-    """Snapshot the suite executable and its MAP once per invocation.
+    """Snapshot the suite executable, its MAP and rebuilt renderer once per invocation.
 
-    Every staged case copies from this pinned pair instead of the live build
+    Every staged case copies these pinned inputs instead of the live build
     output, so a concurrent relink cannot make one reported suite exercise two
-    different binaries. stage_game re-verifies the same immutable pair per
+    different binaries. stage_game re-verifies the immutable executable/MAP pair per
     case, retaining the executable/MAP timestamp check.
     """
 
@@ -1347,8 +1358,12 @@ def _pin_suite_executable(settings: Settings, executable: Path, stage: Path) -> 
     if not executable.is_file():
         raise RuntimeError(f"runtime executable is not built: {executable}")
     map_file = executable.with_suffix(".map")
+    renderer_dll = settings.product_build_dir / "sr.dll"
+    if not renderer_dll.is_file():
+        raise RuntimeError(f"runtime renderer is not built: {renderer_dll}")
     with build_lock(settings):
         executable_bytes = executable.read_bytes()
+        renderer_bytes = renderer_dll.read_bytes()
         map_bytes = map_file.read_bytes() if map_file.is_file() else None
         if map_bytes is not None:
             timestamp = LinkerMap.read(map_file).timestamp
@@ -1359,10 +1374,11 @@ def _pin_suite_executable(settings: Settings, executable: Path, stage: Path) -> 
                 or timestamp != image.header.time_date_stamp
             ):
                 raise RuntimeError(f"executable/MAP link timestamp mismatch; rebuild {executable}")
-        digest = hashlib.sha256(executable_bytes + (map_bytes or b"")).hexdigest()
+        digest = hashlib.sha256(executable_bytes + (map_bytes or b"") + renderer_bytes).hexdigest()
     pinned = stage / "pinned"
     pinned.mkdir(parents=True, exist_ok=True)
     write_if_changed(pinned / executable.name, executable_bytes)
+    write_if_changed(pinned / "sr.dll", renderer_bytes)
     if map_bytes is not None:
         write_if_changed(pinned / map_file.name, map_bytes)
     return pinned / executable.name, digest
@@ -1393,7 +1409,7 @@ def run_runtime_suite(
     another's server), and its own virtual display (the game uses real OS
     input and window focus, so sharing a display is unsafe). Fewer workers
     than requested spawn when fewer jobs exist, so a single-case run pays for
-    no second display or prefix. The suite executable and MAP are pinned once
+    no second display or prefix. The suite executable, MAP and renderer are pinned once
     per invocation so a concurrent relink cannot mix binaries within a run."""
 
     suite_started = time.monotonic()
@@ -1450,6 +1466,7 @@ def run_runtime_suite(
             settings,
             name="runtime-test/registry",
             executable=pinned_executable,
+            renderer_dll=pinned_executable.with_name("sr.dll"),
             objects=object_root,
             reset_saves=True,
             input_pinned=True,
@@ -1540,6 +1557,7 @@ def run_runtime_suite(
                 settings,
                 name=f"runtime-test/{stage_key}",
                 executable=pinned_executable,
+                renderer_dll=pinned_executable.with_name("sr.dll"),
                 objects=object_root,
                 reset_saves=True,
                 input_pinned=True,
@@ -1609,6 +1627,7 @@ def run_runtime_suite(
             settings,
             name=f"runtime-test/{batch_stage_key}",
             executable=pinned_executable,
+            renderer_dll=pinned_executable.with_name("sr.dll"),
             objects=object_root,
             reset_saves=True,
             input_pinned=True,

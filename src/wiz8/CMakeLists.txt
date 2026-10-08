@@ -153,6 +153,7 @@ if(NOT WIZ8_ANALYSIS_BUILD)
         $<TARGET_OBJECTS:wiz8_runtime_test_objects>
     )
     wiz8_configure_executable(WIZ8_RUNTIME_TEST Wiz8RuntimeTest)
+    add_dependencies(WIZ8_RUNTIME_TEST SURRENDER)
     target_link_options(WIZ8_RUNTIME_TEST PRIVATE
         /DEBUG /DEBUGTYPE:CV /PDBTYPE:SEPT /INCREMENTAL:NO /OPT:REF /OPT:NOICF /FIXED
         /BASE:0x400000 /FILEALIGN:0x1000

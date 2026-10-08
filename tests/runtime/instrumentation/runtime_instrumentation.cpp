@@ -31,6 +31,19 @@ static void StoreEvent(const RuntimeEvent& value)
 
 void RuntimeObserve(RuntimeEventKind kind, unsigned long a, unsigned long b, unsigned long c)
 {
+    /* Xvfb does not pace presentation. Keep the harness frames at least
+       16 ms apart using real elapsed time: the retail motion integration
+       drops sub-threshold displacements at unrestricted frame rates.
+       Neither the game timers nor the DLL are replaced or adjusted. */
+    if (kind == RUNTIME_FRAME_BEGIN) {
+        static unsigned long previous_frame;
+        unsigned long now = GetTickCount();
+        unsigned long elapsed = now - previous_frame;
+        if (previous_frame != 0 && elapsed < 16) {
+            Sleep(16 - elapsed);
+        }
+        previous_frame = GetTickCount();
+    }
     RuntimeEvent event;
     memset(&event, 0, sizeof(event));
     event.kind = kind;
@@ -89,16 +102,16 @@ void RuntimeWriteRecentEvents(FILE* stream, const char* scenario)
         const RuntimeEvent& event = recent[index];
         fprintf(stream,
                 "WIZ8_RUNTIME_EVENT scenario=%s sequence=%lu kind=%s a=%lu b=%lu c=%lu "
-                "level=%d children=%lu visible=%lu flags=%lu viewport=%d,%d,%d,%d "
+                "level=%d children=%lu visible=%lu draws=%lu flags=%lu viewport=%d,%d,%d,%d "
                 "renderer=%lu,%lu applied=%lu,%lu,%lu,%lu camera=%.2f,%.2f,%.2f\n",
                 scenario, event.sequence, RuntimeEventName(event.kind), event.a, event.b, event.c,
                 event.world.level, event.world.scene_children, event.world.visible_meshes,
-                event.world.flags, event.world.viewport[0], event.world.viewport[1],
-                event.world.viewport[2], event.world.viewport[3], event.world.renderer_size[0],
-                event.world.renderer_size[1], event.world.applied_viewport[0],
-                event.world.applied_viewport[1], event.world.applied_viewport[2],
-                event.world.applied_viewport[3], event.world.camera[0], event.world.camera[1],
-                event.world.camera[2]);
+                event.world.draw_calls, event.world.flags, event.world.viewport[0],
+                event.world.viewport[1], event.world.viewport[2], event.world.viewport[3],
+                event.world.renderer_size[0], event.world.renderer_size[1],
+                event.world.applied_viewport[0], event.world.applied_viewport[1],
+                event.world.applied_viewport[2], event.world.applied_viewport[3],
+                event.world.camera[0], event.world.camera[1], event.world.camera[2]);
     }
 }
 

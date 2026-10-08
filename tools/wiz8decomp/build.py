@@ -473,7 +473,7 @@ def build_target(
             _configure(settings)
         tick = mark("configure_ms", tick)
         provider_objects: dict[str, Any] | None = None
-        if resolved_target == "SURRENDER":
+        if resolved_target in {"SURRENDER", "WIZ8_RUNTIME_TEST"}:
             from .source_index import write_source_index
 
             # Provider export validation consumes current compiler-owned declarations.

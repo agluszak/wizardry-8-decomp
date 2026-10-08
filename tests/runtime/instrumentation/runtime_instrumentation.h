@@ -33,6 +33,7 @@ struct RuntimeWorldRenderData {
     unsigned long flags;
     unsigned long scene_children;
     unsigned long visible_meshes;
+    unsigned long draw_calls;
     int viewport[4];
     unsigned long renderer_size[2];
     unsigned long applied_viewport[4];

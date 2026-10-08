@@ -95,10 +95,8 @@ def _prepare_sources(settings: Settings) -> None:
             (mount.host / sentinel).write_text("/* prepared source */\n")
 
 
-@pytest.mark.parametrize("target", ["runtime", "runtime-test"])
-def test_runtime_build_needs_only_its_cmake_target(
-    tmp_path: Path, monkeypatch, target: str
-) -> None:
+def test_runtime_build_needs_only_its_cmake_target(tmp_path: Path, monkeypatch) -> None:
+    target = "runtime"
     settings = _settings(tmp_path)
     _prepare_sources(settings)
     output = settings.product_build_dir
@@ -324,9 +322,8 @@ def test_old_nmake_cache_requires_fresh_jom_configuration(tmp_path: Path) -> Non
     assert "-DCMAKE_MAKE_PROGRAM=C:/jom/jom.exe" in command
 
 
-def test_surrender_build_indexes_before_provider_validation_on_a_fresh_runner(
-    tmp_path, monkeypatch
-):
+@pytest.mark.parametrize("target", ["SURRENDER", "runtime-test"])
+def test_provider_build_indexes_before_validation_on_a_fresh_runner(tmp_path, monkeypatch, target):
     settings = _settings(tmp_path)
     _prepare_sources(settings)
     output = settings.product_build_dir
@@ -337,7 +334,7 @@ def test_surrender_build_indexes_before_provider_validation_on_a_fresh_runner(
     os.utime(provider, (1, 1))
     events = []
     monkeypatch.setattr(build, "_product_cache_ready", lambda _: True)
-    monkeypatch.setattr(build, "run", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(build, "run", lambda *_args, **_kwargs: os.utime(provider, None))
     monkeypatch.setattr(
         "wiz8decomp.source_index.write_source_index",
         lambda _, *, jobs: events.append(("index", jobs)),
@@ -353,7 +350,7 @@ def test_surrender_build_indexes_before_provider_validation_on_a_fresh_runner(
         "wiz8decomp.surrender_exports.validate_built_surrender_exports",
         lambda *_: events.append("exports") or {"ok": True},
     )
-    result = build.build_target(settings, "SURRENDER", jobs=1)
+    result = build.build_target(settings, target, jobs=1)
     assert events == [("index", 1), "provider", "exports"]
     assert result["provider_objects"]["compiler_exports_absent_from_retail"] == ["implicit"]
 

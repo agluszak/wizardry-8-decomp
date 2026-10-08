@@ -337,13 +337,18 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     GameplaySnapshot* s = request->snapshot;
     W8CameraAngleRecord yaw, pitch;
     s->position.Set(0, 0, 0);
-    s->yaw = s->input_motion = s->world_motion = 0;
+    s->yaw = s->input_motion = s->world_motion = s->camera_scale = 0;
+    s->motion_velocity.SetZero();
+    s->level_flags = 0;
     if (g_level_data != 0) {
         GetCameraPosition(&s->position);
         GetCameraOrientation(yaw, pitch);
         s->yaw = yaw[0];
         s->input_motion = g_level_data->motion_input.Length();
         s->world_motion = g_level_data->motion_displacement.Length();
+        s->camera_scale = g_level_data->camera_scale;
+        s->motion_velocity = g_level_data->motion_velocity;
+        s->level_flags = g_level_data->flags;
     }
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
@@ -567,6 +572,10 @@ bool RuntimeCase::fail(const char* step, const char* reason)
     }
     if (has_snapshot_) {
         const GameplaySnapshot& s = last_snapshot_;
+        fprintf(stderr,
+                "runtime-case %s: camera_scale=%.6f velocity=(%.3f %.3f %.3f) level_flags=%08x\n",
+                name_, s.camera_scale, s.motion_velocity.x, s.motion_velocity.y,
+                s.motion_velocity.z, s.level_flags);
         fprintf(stderr,
                 "runtime-case %s: observed screen=%d pending=%d position=(%.2f %.2f %.2f) "
                 "yaw=%.3f combat=%u movement_ui=%u budget=%d input=%.2f world=%.2f "
