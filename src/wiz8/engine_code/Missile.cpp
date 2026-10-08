@@ -959,7 +959,7 @@ unsigned long W8Missile::GetAnimationState(int mode)
     case 0:
         return m_pRep->ApplyEmitterSetting(m_pRep->current_cycle);
     case 1:
-        return GetNumSubCycles();
+        return GetTotalAnimationCount();
     case 2:
         return m_pRep->subcycle == m_pRep->ApplyEmitterSetting(m_pRep->current_cycle) - 1;
     case 3:
