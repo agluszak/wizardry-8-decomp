@@ -96,20 +96,6 @@ if(NOT WIZ8_ANALYSIS_BUILD)
         /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
         "/MAP:${CMAKE_BINARY_DIR}/Wiz8.map" /MAPINFO:LINES
     )
-
-    add_executable(WIZ8_RUNTIME WIN32
-        $<TARGET_OBJECTS:wiz8_recovered_objects>
-        $<TARGET_OBJECTS:wiz8_recovered_instrumentable_objects>
-        "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_crash_report.cpp"
-    )
-    wiz8_configure_executable(WIZ8_RUNTIME Wiz8Runtime)
-    target_link_options(WIZ8_RUNTIME PRIVATE
-        /DEBUG /DEBUGTYPE:CV /PDBTYPE:SEPT /INCREMENTAL:NO /OPT:REF /OPT:NOICF /FIXED
-        /BASE:0x400000 /FILEALIGN:0x1000
-        /OSVERSION:4.0 /SUBSYSTEM:WINDOWS,4.0
-        /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
-        "/MAP:${CMAKE_BINARY_DIR}/Wiz8Runtime.map" /MAPINFO:LINES
-    )
 endif()
 
 # Test products share the same recovered objects but do not belong to the game source model.
