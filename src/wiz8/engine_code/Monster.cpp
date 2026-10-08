@@ -2269,20 +2269,9 @@ void W8Monster::ProcessScript()
                 break;
             }
             case MONSCR_FADEOUT:
-                runtime_flags |= W8_MONSTER_REMOVE_AFTER_FADE;
-                if (fade_state >= W8_MONSTER_FADE_IDLE) {
-                    fade_timer.SetDuration(3.0f);
-                    fade_timer.Restart();
-                    if (fade_state < W8_MONSTER_FADE_IN) {
-                        m_pRep->instance_scale = 1.0f;
-                        m_pRep->apply_instance_scale = true;
-                    } else {
-                        fade_timer.SetProgress(1.0f - m_pRep->instance_scale);
-                    }
-                    fade_state = W8_MONSTER_FADE_OUT;
-                }
-                RemoveMonster(MonsterGetIndexByLocationID(0x1021, MONSTER_CPP, location_id, true),
-                              false);
+                /* 0x004C88F1..0x004C8993 is BeginFadeOutAndRemove(NONE) inlined,
+                   including the removal_state store at 0x004C8993. */
+                BeginFadeOutAndRemove(W8_MONSTER_REMOVAL_NONE);
                 stop = true;
                 script_line = script->lines.GetCount();
                 break;
