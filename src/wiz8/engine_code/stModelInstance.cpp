@@ -333,10 +333,9 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
                       static_cast<double>(static_cast<int>(render_state.render_depth))) *
                      g_camera_angle_period)));
         float base_weight = g_float_one - glow_weight;
-        srVector4T<float> emissive;
-        emissive.x = glow_color_base->x * base_weight + glow_color_peak->x * glow_weight;
-        emissive.y = glow_color_base->y * base_weight + glow_color_peak->y * glow_weight;
-        emissive.z = glow_color_base->z * base_weight + glow_color_peak->z * glow_weight;
+        /* Each weighted colour is rounded to float before the sum. */
+        srVector4T<float> emissive =
+            *glow_color_base * base_weight + *glow_color_peak * glow_weight;
         emissive.w = g_float_one;
         m_pGlowMaterial->setEmissive(emissive);
         mesh.materials[0][0] = m_pGlowMaterial;
