@@ -803,9 +803,11 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
         navigation_mode = 6;
     (*monster)->SetNavigationMode(navigation_mode);
     if (spice_monster) {
+        /* 0x004C1CC5..0x004C1CD7: byte stores to +0x332, +0xa0 (navigator
+           active) and +0x14e (movement boundary_enabled). */
         (*monster)->hostility_preserved = true;
-        (*monster)->owned_object = 0;
-        (*monster)->movement.pitch_enabled = false;
+        (*monster)->active = false;
+        (*monster)->movement.boundary_enabled = false;
     }
 
     (*monster)->RandomizeAppearanceAndMotion();
