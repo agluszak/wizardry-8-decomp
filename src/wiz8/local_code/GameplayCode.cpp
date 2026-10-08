@@ -382,12 +382,13 @@ void CalcCharacterTableValue(W8Character* character)
 static char s_fall_impact_wav[] = "Data\\Sound\\Misc\\Fall Impact.wav";
 
 /* Level-motion override landing: the accumulated fall magnitude becomes
-   pow(8.0, fall + 0.7) six-sided dice of damage against the whole party,
-   with a notice and the fall-impact sound. */
+   pow(fall + 0.7, 8.0) six-sided dice of damage against the whole party,
+   with a notice and the fall-impact sound. The eighth power keeps a short
+   drop to a die or two and lets a long one grow steeply. */
 // FUNCTION: WIZ8 0x004EF9A0
 void HandleLevelOverride(float fall)
 {
-    unsigned int count = static_cast<unsigned int>(pow(8.0, fall + 0.7));
+    unsigned int count = static_cast<unsigned int>(pow(fall + 0.7, 8.0));
     if (count > 0) {
         SOUNDPARMS sound_parms;
         memset(&sound_parms, 0xff, sizeof(sound_parms));
