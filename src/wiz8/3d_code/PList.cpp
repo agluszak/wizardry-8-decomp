@@ -197,13 +197,10 @@ int PListIndexOf(W8PList* ppl, void* pEntry)
     count = ppl->iNumUsed;
     for (index = 0; index < count; ++index) {
         if (ppl->data[index] == pEntry) {
-            goto done;
+            return index;
         }
     }
-    index = -1;
-
-done:
-    return index;
+    return -1;
 }
 
 /* Retail ICF folds this ordinary PList.cpp function with ILLength. The retained

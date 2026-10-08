@@ -176,11 +176,8 @@ int IListIndexOf(W8IList* pls, int value)
     count = pls->iNumUsed;
     for (index = 0; index < count; ++index) {
         if (pls->data[index] == value) {
-            goto done;
+            return index;
         }
     }
-    index = -1;
-
-done:
-    return index;
+    return -1;
 }

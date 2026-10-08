@@ -54,10 +54,9 @@ void EnableRenderOption(W8RenderOption option)
 // FUNCTION: WIZ8 0x0047b630
 void SetRenderOption(W8RenderOption option, int enabled)
 {
-    /* The option record also contains unnamed internal slots. Keep their
-       numeric dispatch while the public option ids retain their enum type. */
+    /* The remaining numeric cases have not been assigned reliable option names. */
     switch (static_cast<int>(option)) {
-    case 6:
+    case W8_RENDER_OPTION_BRIGHTNESS:
         g_render_brightness = enabled ? 1.0f : 0.8f;
         break;
     case 7:
@@ -80,11 +79,11 @@ void SetRenderOption(W8RenderOption option, int enabled)
             g_gerd->toggle(srGERD::ENABLE_POSITIONAL_0);
         }
         break;
-    case 2:
+    case W8_RENDER_OPTION_TEXTURE_MAG_FILTER:
         g_gerd->setTextureDefaultMagFilter(enabled ? srTextureIFace::FILTER_BEST
                                                    : srTextureIFace::FILTER_NONE);
         break;
-    case 3:
+    case W8_RENDER_OPTION_TEXTURE_MIN_FILTER:
         g_gerd->setTextureDefaultMinFilter(enabled ? srTextureIFace::FILTER_BEST
                                                    : srTextureIFace::FILTER_NONE);
         break;
