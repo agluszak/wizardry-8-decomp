@@ -1115,12 +1115,15 @@ void srModeler::cylinderMap(long pass, long layer, const MappingInfo& mapping)
         for (vertex = 0; vertex < 3; ++vertex) {
             float* position = &triangle->vertices[vertex].position.x;
             srVector2T<float>* uv = &triangle->vertices[vertex].uv[pass * 2 + layer];
-            float angle = (float)atan2(position[second_axis], position[third_axis]);
+            /* fpatan with the third axis in ST(1): atan2(third, second),
+               kept at register precision. */
+            double angle = atan2(position[third_axis], position[second_axis]);
             uv->x = (position[axis] - u_minimum) * u_scale + mapping.u_offset;
-            uv->y = -(angle / (float)(pi * 2.0)) * mapping.v_scale + mapping.v_offset;
+            uv->y = -(angle / (pi * 2.0)) * mapping.v_scale + mapping.v_offset;
         }
         float* previous = &triangle->vertices[0].uv[pass * 2 + layer].y;
-        for (vertex = 1; vertex < 3; ++vertex) {
+        /* Edges 0-1, 1-2 and the closing edge 2-0. */
+        for (vertex = 1; vertex < 4; ++vertex) {
             float* current = &triangle->vertices[vertex % 3].uv[pass * 2 + layer].y;
             if (mapping.v_scale * 0.8f < fabs(*current - *previous)) {
                 if (*previous <= *current) {
