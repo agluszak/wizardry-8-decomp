@@ -562,7 +562,7 @@ void UpdateRoofButtons(void)
     }
     g_roof_buttons[1]->SetEnabled(enabled);
     SyncRoofButtonPressedState();
-    for (button = g_roof_buttons; button < &g_options_disk_button; ++button) {
+    for (button = g_roof_buttons; button < &g_roof_buttons[3]; ++button) {
         (*button)->Draw();
     }
 }
