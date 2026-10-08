@@ -424,9 +424,10 @@ W8GrCycle::W8GrCycle()
 }
 
 /* A copy keeps none of the source's live scene state. The model instance, the
-   light vector and both event vectors start empty and are rebuilt; the ground
-   shadow is not carried over at all. What comes across is configuration: the
-   delete-lights flag, the two bytes beside it, and the scale.
+   light vector and both event vectors start empty and are rebuilt, and a
+   source ground shadow is duplicated last through stGroundShadow's copy
+   constructor. What comes across is configuration: the delete-lights flag, the
+   two bytes beside it, and the scale.
 
    Each of the three vectors is rebuilt the same way - a fresh growable vector at
    capacity five, then one owned element per source element. The lights are only
@@ -520,6 +521,9 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
             }
             m_plsParticles->Add(event);
         }
+    }
+    if (other.m_ground_shadow != 0) {
+        m_ground_shadow = new stGroundShadow(*other.m_ground_shadow);
     }
 }
 

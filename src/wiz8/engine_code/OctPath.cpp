@@ -3354,7 +3354,8 @@ W8PathingService::W8PathingService()
 }
 
 /* Take the octree's own minimum/maximum bounds pair and level name. The span is the vertical extent
-   of that box scaled, and the cell count is that span plus one. */
+   of that box scaled down to one height unit; the cell count is how many of those units fit in
+   1.25 grid cells, plus one, and bounds the vertical band the height lookups accept. */
 // FUNCTION: WIZ8 0x00458a50
 void W8PathingService::ConfigureForLevel(int size, float grid_scale, float path_clearance,
                                          const srVector3T<float>* bounds, const char* name)
@@ -3365,7 +3366,7 @@ void W8PathingService::ConfigureForLevel(int size, float grid_scale, float path_
     level_bounds.minimum = bounds[0];
     level_bounds.maximum = bounds[1];
     span = (level_bounds.maximum.y - level_bounds.minimum.y) * g_path_span_scale;
-    cell_count = static_cast<short>(static_cast<int>(span)) + 1;
+    cell_count = static_cast<short>(static_cast<int>(grid_scale * 1.25f / span) + 1);
     level_name = name;
 }
 

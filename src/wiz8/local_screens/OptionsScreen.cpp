@@ -592,7 +592,7 @@ W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, W8MGSCommand pr
 }
 
 W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode)
-    : W8TextControl(owner, 0xffffffff, 10, top, 0, 0, 0xf9, 0, save_mode ? 2 : 0, save_mode ? 3 : 1,
+    : W8TextControl(owner, 0xffffffff, 10, top, 0, 0, 0xf9, 0, save_mode ? 0 : 2, save_mode ? 1 : 3,
                     -1, -1, 4),
       m_save_mode(save_mode), m_editing(0), m_save(0), m_save_listener(0)
 {

@@ -34,6 +34,9 @@ public:
     virtual void setModel(srModel* model) override; /* 0x0047F0C0 */
     virtual srClass* vInstance() override;
 
+    /* Queues opaque models ahead of their siblings and sorted-rendering
+       models after them. */
+    virtual void traverse(TraverseInfo& info) override;                         /* 0x004803F0 */
     virtual void process(const ProcessInfo& info, e_processType type) override; /* 0x0047F560 */
     /* Mesh-chain submit reached from process(): frustum culling, ambient and
        highlight state, the linked stMeshModel list, then the optional

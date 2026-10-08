@@ -363,7 +363,7 @@ void UpdateRadarBlips(void)
                     delta = position - party;
                     float distance = delta.Length();
                     if (distance - monster->radius < g_radar_outer_radius) {
-                        distance /= distance - monster->radius;
+                        distance = (distance - monster->radius) / distance;
                         delta.x *= distance;
                         delta.z *= distance;
                         PlaceRadarBlip(&delta, 3, hostile);
@@ -389,7 +389,7 @@ void UpdateRadarBlips(void)
                 delta = position - party;
                 float distance = delta.Length();
                 if (distance - monster->radius < g_radar_outer_radius) {
-                    distance /= distance - monster->radius;
+                    distance = (distance - monster->radius) / distance;
                     delta.x *= distance;
                     delta.z *= distance;
                     PlaceRadarBlip(&delta, g_radar_disposition_class[info->ubDisposition], hostile);
