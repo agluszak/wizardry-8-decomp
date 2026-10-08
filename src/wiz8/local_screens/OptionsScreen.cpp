@@ -591,9 +591,20 @@ W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, W8MGSCommand pr
                                g_W8TextBufferAlignTop);
 }
 
+/* Sprite indices within catalog object 0xf9, frame 0. */
+enum W8OptionsSaveRowSprite {
+    W8_OPTIONS_SAVE_ROW_SAVE_NORMAL = 0,
+    W8_OPTIONS_SAVE_ROW_SAVE_PRESSED = 1,
+    W8_OPTIONS_SAVE_ROW_LOAD_NORMAL = 2,
+    W8_OPTIONS_SAVE_ROW_LOAD_PRESSED = 3,
+    W8_OPTIONS_SAVE_ROW_DISABLED = 4
+};
+
 W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode)
-    : W8TextControl(owner, 0xffffffff, 10, top, 0, 0, 0xf9, 0, save_mode ? 0 : 2, save_mode ? 1 : 3,
-                    -1, -1, 4),
+    : W8TextControl(owner, 0xffffffff, 10, top, 0, 0, 0xf9, 0,
+                    save_mode ? W8_OPTIONS_SAVE_ROW_SAVE_NORMAL : W8_OPTIONS_SAVE_ROW_LOAD_NORMAL,
+                    save_mode ? W8_OPTIONS_SAVE_ROW_SAVE_PRESSED : W8_OPTIONS_SAVE_ROW_LOAD_PRESSED,
+                    -1, -1, W8_OPTIONS_SAVE_ROW_DISABLED),
       m_save_mode(save_mode), m_editing(0), m_save(0), m_save_listener(0)
 {
     AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
