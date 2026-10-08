@@ -269,6 +269,8 @@ static void ApplyModelViewMatrix(srModelInstance* instance, srGERD* renderer, fl
 
         srVector3T<float> location;
         location = world_location;
+        srVector3T<float> scale;
+        scale = world_scale;
         transformed_location = view.Transform(location);
 
         srVector3T<float> column_x(view.vectors[0].x, view.vectors[1].x, view.vectors[2].x);
@@ -286,6 +288,8 @@ static void ApplyModelViewMatrix(srModelInstance* instance, srGERD* renderer, fl
             basis_y = -basis_y;
             basis_z = -basis_z;
         }
+        /* Retail narrows the world scale to float and rounds each product to float. */
+        scale *= srVector3T<float>(basis_x, basis_y, basis_z);
 
         renderer->loadIdentity();
         translation = transformed_location.xyz();
@@ -293,8 +297,7 @@ static void ApplyModelViewMatrix(srModelInstance* instance, srGERD* renderer, fl
         if (align_angle != g_float_zero) {
             renderer->rotate(align_angle, align_axis);
         }
-        renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
-                        -(world_scale.z * basis_z));
+        renderer->scale(scale.x, scale.y, -scale.z);
     }
 }
 
