@@ -655,25 +655,37 @@ void srMeshModel::relocateVertices(const srVector3T<float>& offset)
     setDirty(DIRTY_TRI_MESH);
 }
 
+/* Retail (0x1003E9B0) accumulates all three sums on the x87 stack. At the
+   end it spills only the y sum to float, then scales each sum by 1/count
+   and stores it as a float. That spill is a VC6 register-allocation side
+   effect, and none of the plain float formulations tried reproduced it. So
+   the sums are doubles (what the 53-bit stack holds), and float
+   consistency keeps the one explicit rounding of the y sum. */
+#pragma optimize("p", on)
 // FUNCTION: SURRENDER 0x1003E9B0
 void srMeshModel::centerVertices()
 {
     if (vertex_location_count != 0) {
-        srVector3T<float> sum;
-        sum.SetZero();
         srVector3T<float>* vertices = getVertexLoc();
         long count = vertex_location_count;
-        if (0 < count) {
-            for (long index = 0; index < count; index++) {
-                sum += vertices[index];
-            }
+        double sum_x = 0.0;
+        double sum_y = 0.0;
+        double sum_z = 0.0;
+        for (long index = 0; index < count; index++) {
+            sum_x += vertices[index].x;
+            sum_y += vertices[index].y;
+            sum_z += vertices[index].z;
         }
+        float spilled_y = static_cast<float>(sum_y);
         double inverse = 1.0 / count;
         srVector3T<float> offset;
-        offset = -(sum * inverse);
+        offset.x = static_cast<float>(-(sum_x * inverse));
+        offset.y = static_cast<float>(-(spilled_y * inverse));
+        offset.z = static_cast<float>(-(sum_z * inverse));
         relocateVertices(offset);
     }
 }
+#pragma optimize("", on)
 
 // FUNCTION: SURRENDER 0x1003EA90
 double srMeshModel::getAverageRadius()
