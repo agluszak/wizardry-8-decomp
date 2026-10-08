@@ -2737,8 +2737,10 @@ void Trigger::Run(int source)
             int tag = source == -1 ? m_lData1 : source;
 
             if (m_bRepType == W8_TRIGGER_REP_PROP && m_pProp != 0 && tag != -1) {
-                m_pProp->Rep()->SelectAnimationSlot(static_cast<unsigned char>(tag));
-                m_pProp->SetRepresentationActive(1, true);
+                /* Retail looks the slot up by the raw source argument, not by
+                   the resolved tag, so a Run(-1) asks for tag 0xFF. */
+                m_pProp->Rep()->SelectAnimationSlot(static_cast<unsigned char>(source));
+                m_pProp->SetRepresentationActive(1, false);
                 state_index = static_cast<unsigned char>(tag);
                 goto commit_action;
             }
