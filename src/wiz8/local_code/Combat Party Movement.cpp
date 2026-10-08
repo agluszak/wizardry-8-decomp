@@ -77,8 +77,10 @@ void UpdateActivePartyMovement(void)
     if (gXStatus.flPartyMoveDistLimit <= g_float_zero) {
         srAssertFail("gXStatus.flPartyMoveDistLimit > 0.0f", COMBAT_MOVEMENT_CPP, 359, 0);
     }
-    g_level_block->move_percent = static_cast<int>(100.0f - gXStatus.party_move_distance * 100.0f /
-                                                                gXStatus.flPartyMoveDistLimit);
+    g_level_block->move_percent =
+        static_cast<int>(100.0f - gXStatus.party_move_distance * 100.0f /
+                                      gXStatus.flPartyMoveDistLimit +
+                         g_double_half);
     ClampInteger(&g_level_block->move_percent, 0, 100);
     if (g_level_block->move_percent != g_level_block->move_percent_shown) {
         InvalidatePartyMovementPanel();
