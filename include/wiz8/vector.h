@@ -85,12 +85,12 @@
 // class W8GrowableVector<W8Navigator*>
 // VTABLE: WIZ8 0x005ec514
 // class W8GrowableVector<stMeshModel*>
-/* Engine Code\ReadMesh.cpp's g_retained_materials: the static
-   initializer at 0x00485AF0 constructs it with capacity five; the stores
-   feed it srMaterialIFace* entries out of the mesh material arrays.
-   0x005ECA60 is this specialization's construction-phase table. */
-// VTABLE: WIZ8 0x005eca5c
-// class W8GrowableVector<srMaterialIFace*>
+/* ReadMesh.cpp's retained vector at 0x0065B9D0 stores srTextureIFace*
+   pointers (both retention passes), not srMaterialIFace* entries.
+   0x005ECA5C is a separate one-slot vector table in this emission span.
+   Its element type remains unproven; the earlier material-pointer attribution
+   was based on the incorrect type of the retained vector, and the texture
+   specialization is already evidenced at 0x005EC9BC above. */
 /* MonGen.cpp's active monster-group list at 0x0065BA10. GenerateEncounter at
    0x0048AD20 stores W8MonsterGroup* elements through g_active_groups. */
 // VTABLE: WIZ8 0x005eca98
