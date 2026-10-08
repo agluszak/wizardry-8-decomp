@@ -3146,7 +3146,7 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, bool choose_character,
     }
     default:
         if (choose_character || !CanCharacterUseItem(character, item->iItemNo) ||
-            g_item_records[item->iItemNo].value / character->uiExpLevel < 500 ||
+            g_item_records[item->iItemNo].value / character->uiExpLevel <= 500 ||
             !item->identified) {
             return;
         }
