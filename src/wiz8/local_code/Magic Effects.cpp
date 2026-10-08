@@ -1069,9 +1069,8 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
             case W8_CONDITION_TURNCOAT:
                 if (CharacterHasTrait(character, W8_TRAIT_MENTAL_CONDITION_IMMUNITY)) {
                     if (announce_resistance) {
-                        PostCharacterNotice(
-                            target->iChar, gppStringList[0x181],
-                            gppStringList[g_condition_notices[condition_id].name]);
+                        PostCharacterNotice(target->iChar, gppStringList[0x181],
+                                            gppStringList[g_condition_notices[condition_id].name]);
                     }
                     return true;
                 }
