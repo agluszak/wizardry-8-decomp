@@ -3017,7 +3017,7 @@ void Trigger::Run(int source)
         }
 
         group->members_active = true;
-        monster_info->p3D->m_pRep->animation_playing = 1;
+        monster_info->p3D->m_pRep->active = 1;
         monster_info->p3D->m_pRep->animation_playing = 1;
         monster_info->p3D->m_pRep->timer =
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
