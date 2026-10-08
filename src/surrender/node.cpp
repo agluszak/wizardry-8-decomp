@@ -845,19 +845,48 @@ void srNode::updateTransformation() const
         if ((parent->notifications.value & 2) != 0) {
             parent->updateTransformation();
         }
-        srVector3T<double> x_axis(rotation.vectors[0].x, rotation.vectors[1].x,
-                                  rotation.vectors[2].x);
-        srVector3T<double> y_axis(rotation.vectors[0].y, rotation.vectors[1].y,
-                                  rotation.vectors[2].y);
-        srVector3T<double> z_axis(rotation.vectors[0].z, rotation.vectors[1].z,
-                                  rotation.vectors[2].z);
-        for (int row = 0; row < 3; ++row) {
-            srVector3T<double> basis = parent->world_transform0.rows[row].xyz();
-            world_transform0.rows[row].x = DotProduct(basis, x_axis) * scale.x;
-            world_transform0.rows[row].y = DotProduct(basis, y_axis) * scale.y;
-            world_transform0.rows[row].z = DotProduct(basis, z_axis) * scale.z;
-        }
-        world_transform0.SetTranslation(parent->world_transform0.TransformPoint(location));
+        /* Retail writes the parent * local product out element by element (columns
+           first) and each element's three-term sum has its own association; the
+           parenthesization below follows retail's x87 sequence term for term. */
+        const srMatrix4x3T<double>& outer = parent->world_transform0;
+        const srVector3T<double>* local = rotation.vectors;
+        srMatrix4x3T<double>& world = world_transform0;
+        world.rows[0].x = ((local[0].x * outer.rows[0].x + outer.rows[0].y * local[1].x) +
+                           outer.rows[0].z * local[2].x) *
+                          scale.x;
+        world.rows[1].x = ((local[2].x * outer.rows[1].z + local[0].x * outer.rows[1].x) +
+                           outer.rows[1].y * local[1].x) *
+                          scale.x;
+        world.rows[2].x = ((outer.rows[2].y * local[1].x + outer.rows[2].z * local[2].x) +
+                           outer.rows[2].x * local[0].x) *
+                          scale.x;
+        world.rows[0].y = ((outer.rows[0].z * local[2].y + outer.rows[0].y * local[1].y) +
+                           outer.rows[0].x * local[0].y) *
+                          scale.y;
+        world.rows[1].y = ((outer.rows[1].x * local[0].y + local[2].y * outer.rows[1].z) +
+                           local[1].y * outer.rows[1].y) *
+                          scale.y;
+        world.rows[2].y = ((outer.rows[2].z * local[2].y + outer.rows[2].y * local[1].y) +
+                           outer.rows[2].x * local[0].y) *
+                          scale.y;
+        world.rows[0].z = ((local[2].z * outer.rows[0].z + outer.rows[0].x * local[0].z) +
+                           local[1].z * outer.rows[0].y) *
+                          scale.z;
+        world.rows[1].z = ((local[2].z * outer.rows[1].z + local[1].z * outer.rows[1].y) +
+                           outer.rows[1].x * local[0].z) *
+                          scale.z;
+        world.rows[2].z = ((local[2].z * outer.rows[2].z + local[1].z * outer.rows[2].y) +
+                           outer.rows[2].x * local[0].z) *
+                          scale.z;
+        world.rows[0].w = ((location.x * outer.rows[0].x + location.z * outer.rows[0].z) +
+                           location.y * outer.rows[0].y) +
+                          outer.rows[0].w;
+        world.rows[1].w = ((location.z * outer.rows[1].z + location.y * outer.rows[1].y) +
+                           location.x * outer.rows[1].x) +
+                          outer.rows[1].w;
+        world.rows[2].w = ((outer.rows[2].z * location.z + outer.rows[2].y * location.y) +
+                           outer.rows[2].x * location.x) +
+                          outer.rows[2].w;
     } else {
         parent->getWorldSpaceMatrix(world_transform0);
     }
