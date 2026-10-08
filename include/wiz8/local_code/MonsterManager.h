@@ -296,8 +296,13 @@ struct W8PartyThreatRecord {
        camouflage checks run. */
     bool party_detected;
     int last_seen_clock; /* cleared by the per-turn reset */
-    srVector3T<float> camera_position;
+    /* Where the monster stood (eye height) when the party last saw it;
+       the radar places a recently-seen blip from it (retail 0x005A2B8D
+       reads +0x0c). Sight's store at 0x0050531E fills it from the
+       monster's own position. */
     srVector3T<float> own_position;
+    /* The camera position at that sighting (stored at 0x00505304). */
+    srVector3T<float> camera_position;
     /* The use-bounds mode the last UpdateMonsterSight pass handed to
        IsVisibleToPlayer. */
     bool use_bounds;

@@ -1638,6 +1638,8 @@ W8MainGameTextPanel::W8MainGameTextPanel()
 {
     int index;
 
+    m_marker_anim_time = 0;
+    m_target_changed = false;
     m_target_marker_pending = false;
     AcquireRegionSet(&g_main_game_text_panel_region_set);
     for (index = 0; index < 8; ++index) {

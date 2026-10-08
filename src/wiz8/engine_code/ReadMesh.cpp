@@ -103,13 +103,12 @@ static srTextureIFace** g_multi_mesh_textures;
 
 // GLOBAL: WIZ8 0x0065BA04
 static srShader* g_multi_mesh_render_flags;
-/* The retained-material list is a real W8GrowableVector object at 0x0065B9D0:
-   its static initializer at 0x00485AF0 constructs it with capacity five and
-   its destructor is run through atexit. The element type is srMaterialIFace*
-   (the material arrays' own element type), which keeps this specialization
-   distinct from AutomapScreen's W8GrowableVector<srClass*>. */
+/* The retained-texture list is a W8GrowableVector at 0x0065B9D0,
+   constructed with capacity five by the initializer at 0x00485AF0.
+   Both retention passes store srTextureIFace pointers and release them
+   through the inherited srClass interface. */
 // GLOBAL: WIZ8 0x0065b9d0
-static W8GrowableVector<srMaterialIFace*> g_retained_materials(5);
+static W8GrowableVector<srTextureIFace*> g_retained_textures(5);
 
 namespace {
 
@@ -893,8 +892,11 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         for (short index = 0; index < mapping_count; ++index) {
             short value;
             short key;
-            if (success == 0 || !FileRead(file, &value, sizeof(value), 0) ||
-                !FileRead(file, &key, sizeof(key), 0)) {
+            /* Retail 0x00485e06/0x00485e1b: the mapping key (the vertex
+               marker id GetCycleMappedPosition asks for) comes first in the
+               file, then the original vertex index. */
+            if (success == 0 || !FileRead(file, &key, sizeof(key), 0) ||
+                !FileRead(file, &value, sizeof(value), 0)) {
                 success = 0;
             }
             mapped_values.Add(value);
@@ -1046,11 +1048,14 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         }
     }
 
+    /* Retail 0x0048662b walks the texture array (the [esp+0x54] slot that
+       ReadMeshMaterials filled as its third argument) with the material
+       count: textures nothing references yet are kept alive here. */
     for (int index = 0; index < material_count; ++index) {
-        srMaterialIFace* material = materials[index];
-        if (material != 0 && material->getReferenceCount() == 0) {
-            g_retained_materials.Add(material);
-            material->addReference();
+        srTextureIFace* texture = textures[index];
+        if (texture != 0 && texture->getReferenceCount() == 0) {
+            g_retained_textures.Add(texture);
+            texture->addReference();
         }
     }
 
@@ -1153,11 +1158,13 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
                      "NewReadMesh: Incorrect offset in file at end of mesh.");
     }
 
+    /* Retail 0x0048853e reads g_multi_mesh_textures (0x0065B9FC), not the
+       material array, for the same retention pass. */
     for (int index = 0; index < g_read_mesh_material_count; ++index) {
-        srMaterialIFace* material = g_multi_mesh_materials[index];
-        if (material != 0 && material->getReferenceCount() == 0) {
-            g_retained_materials.Add(material);
-            material->addReference();
+        srTextureIFace* texture = g_multi_mesh_textures[index];
+        if (texture != 0 && texture->getReferenceCount() == 0) {
+            g_retained_textures.Add(texture);
+            texture->addReference();
         }
     }
 
@@ -1168,9 +1175,9 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
 // FUNCTION: WIZ8 0x00489920
 void ReleaseRetainedMaterials()
 {
-    while (g_retained_materials.GetCount() != 0) {
-        (*g_retained_materials.GetAt(0))->release();
-        g_retained_materials.RemoveAt(0);
+    while (g_retained_textures.GetCount() != 0) {
+        (*g_retained_textures.GetAt(0))->release();
+        g_retained_textures.RemoveAt(0);
     }
 }
 

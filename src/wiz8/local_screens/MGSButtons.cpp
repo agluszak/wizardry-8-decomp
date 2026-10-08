@@ -562,7 +562,7 @@ void UpdateRoofButtons(void)
     }
     g_roof_buttons[1]->SetEnabled(enabled);
     SyncRoofButtonPressedState();
-    for (button = g_roof_buttons; button < &g_options_disk_button; ++button) {
+    for (button = g_roof_buttons; button < &g_roof_buttons[3]; ++button) {
         (*button)->Draw();
     }
 }
@@ -953,8 +953,8 @@ void DrawSubMenuCharacterAction(void)
     character = &g_status.buffers.Char[slot];
     swprintf(text, L"%s - %s", character->name,
              gppStringList[g_profession_name_message_ids[character->iProfession]]);
-    gprintf((0xb9 - StringPixLength(text, g_smfnt_font)) / 2 + 0x157, 0x1c6,
-            Wiz8ToSgpWideText(g_format_s), text);
+    gprintfDirty((0xb9 - StringPixLength(text, g_smfnt_font)) / 2 + 0x157, 0x1c6,
+                 Wiz8ToSgpWideText(g_format_s), text);
     if (!gXStatus.fCombatMode) {
         if (character->highest_condition == W8_CONDITION_NONE) {
             return;
@@ -1033,7 +1033,7 @@ void DrawSubMenuCharacterAction(void)
             break;
         }
     }
-    gprintf((0xb9 - StringPixLength(text, g_smfnt_font)) / 2 + 0x157, 0x1d1, text);
+    gprintfDirty((0xb9 - StringPixLength(text, g_smfnt_font)) / 2 + 0x157, 0x1d1, text);
 }
 
 /* Enable the fight/review panel buttons from combat engagement and mode

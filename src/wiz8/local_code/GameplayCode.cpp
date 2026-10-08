@@ -382,12 +382,13 @@ void CalcCharacterTableValue(W8Character* character)
 static char s_fall_impact_wav[] = "Data\\Sound\\Misc\\Fall Impact.wav";
 
 /* Level-motion override landing: the accumulated fall magnitude becomes
-   pow(8.0, fall + 0.7) six-sided dice of damage against the whole party,
-   with a notice and the fall-impact sound. */
+   pow(fall + 0.7, 8.0) six-sided dice of damage against the whole party,
+   with a notice and the fall-impact sound. The eighth power keeps a short
+   drop to a die or two and lets a long one grow steeply. */
 // FUNCTION: WIZ8 0x004EF9A0
 void HandleLevelOverride(float fall)
 {
-    unsigned int count = static_cast<unsigned int>(pow(8.0, fall + 0.7));
+    unsigned int count = static_cast<unsigned int>(pow(fall + 0.7, 8.0));
     if (count > 0) {
         SOUNDPARMS sound_parms;
         memset(&sound_parms, 0xff, sizeof(sound_parms));
@@ -658,7 +659,9 @@ void CalcAttacks(W8Character* character)
             attack->attacks = 2;
         }
 
-        score = (character->attributes[W8_ATTRIBUTE_SPEED].effective + attack->swings * 10 +
+        /* Retail reads damage_bonus here before it is reset below, so the swing score sees the
+           value left by the previous CalcAttacks pass (0x004ee5ef). */
+        score = (character->attributes[W8_ATTRIBUTE_SPEED].effective + attack->damage_bonus * 10 +
                  dual_penalty + physical_experience + load_penalty + attack->combined_skill) /
                 3;
         attack->swings = 1;
@@ -707,6 +710,7 @@ void CalcAttacks(W8Character* character)
         }
 
         divisor = 1;
+        bool strength_applies = true;
         if (records[hand] != 0 && (records[hand]->attack_flags & 0xfe6f) == 0) {
             switch (records[hand]->unidentified_name_index) {
             case 0x68:
@@ -714,13 +718,16 @@ void CalcAttacks(W8Character* character)
             case 0x72:
             case 0x83:
             case 0x90:
+                strength_applies = false;
                 break;
             default:
                 divisor = 2;
             }
         }
 
-        if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective < 50) {
+        if (!strength_applies) {
+            /* These kinds skip the strength terms entirely (0x004ee78a -> 0x004ee7fe). */
+        } else if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective < 50) {
             attack->hit_bonus -=
                 (50 - character->attributes[W8_ATTRIBUTE_STRENGTH].effective) / (divisor * 10);
             attack->damage_percent -=

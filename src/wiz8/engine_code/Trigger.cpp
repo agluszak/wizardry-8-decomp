@@ -436,15 +436,17 @@ bool Trigger::Save(int hFile)
             if (m_lData1 != 0 && m_pEvent != 0 && g_timed_events.IndexOf(m_pEvent) != -1) {
                 float progress = m_pEvent->timer.GetProgress();
                 if (progress <= g_trigger_progress_limit) {
-                    progress_delay = static_cast<unsigned int>(m_pEvent->timer.GetProgress());
+                    progress_delay = static_cast<unsigned int>(
+                        m_pEvent->timer.GetProgress() * g_float_one_thousand + g_float_one);
                 } else {
                     progress_delay = 64000;
                 }
             }
             FileWrite(hFile, &progress_delay, 2, 0);
             {
-                unsigned short zero = 0;
-                FileWrite(hFile, &zero, sizeof(zero), 0);
+                unsigned int item = static_cast<unsigned short>(
+                    static_cast<W8DoorTriggerActionData*>(action_data)->item);
+                FileWrite(hFile, &item, 2, 0);
             }
         }
     }
@@ -1410,10 +1412,11 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &minimum_range, 4, 0);
             FileRead(handle, surface_id, sizeof(surface_id), 0);
             /* The id is the four characters after a leading NUL: retail stores
-               a terminator at surface_id[5] before atoi, and tests the world
-               geometry without a null check on its owner. */
+               a terminator at surface_id[5] before atoi. Retail 0x00441c99
+               only requires the world's game data, not its build-time
+               geometry index (null once a level runs from its octree). */
             if (surface_id[0] == 0) {
-                if (world->game_data->geometry_index != 0) {
+                if (world->game_data != 0) {
                     surface_id[5] = 0;
                     id = atoi(surface_id + 1);
                 }
@@ -1582,8 +1585,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             trigger->flags |= W8_TRIGGER_PLANE;
         trigger->m_pacRecipients = new char[strlen(recipients) + 1];
         strcpy(trigger->m_pacRecipients, recipients);
-        if ((trigger->flags & W8_TRIGGER_PLANE) != 0 && world->game_data != 0 &&
-            world->game_data->geometry_index != 0) {
+        /* Retail 0x00442483 hands plane triggers to the game data whenever it
+           exists; AddTriggerPlane itself picks the octree or build path. */
+        if ((trigger->flags & W8_TRIGGER_PLANE) != 0 && world->game_data != 0) {
             world->game_data->AddTriggerPlane(trigger->representation_vectors, trigger);
         }
         if (trigger->initial_action == 0x34 && trigger->m_pacRecipients[0] == 0) {
@@ -1898,8 +1902,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             }
         }
 
-        if (representation_kind == 2 && world->game_data != 0 &&
-            world->game_data->geometry_index != 0) {
+        /* Retail 0x0044342d: the legacy representation path has the same
+           game-data-only guard. */
+        if (representation_kind == 2 && world->game_data != 0) {
             world->game_data->AddTriggerPlane(trigger->representation_vectors, trigger);
         }
         if (trigger->initial_action == 0x34 && trigger->m_pacRecipients == 0) {
@@ -2636,7 +2641,9 @@ void Trigger::Run(int source)
                 break;
             }
             state_index = state_index == 1 ? 0 : 1;
-            m_pProp->SetRepresentationActive(state_index, true);
+            /* Retail starts the representation for both toggle directions; it
+               never passes the new state, which would stop it on 1 -> 0. */
+            m_pProp->SetRepresentationActive(1, true);
             if (m_pWorld != 0 && m_pWorld->game_data != 0 && surface_id >= 0) {
                 m_pWorld->game_data->SetInterfaceState(surface_id, state_index);
             }
@@ -2735,8 +2742,10 @@ void Trigger::Run(int source)
             int tag = source == -1 ? m_lData1 : source;
 
             if (m_bRepType == W8_TRIGGER_REP_PROP && m_pProp != 0 && tag != -1) {
-                m_pProp->Rep()->SelectAnimationSlot(static_cast<unsigned char>(tag));
-                m_pProp->SetRepresentationActive(1, true);
+                /* Retail looks the slot up by the raw source argument, not by
+                   the resolved tag, so a Run(-1) asks for tag 0xFF. */
+                m_pProp->Rep()->SelectAnimationSlot(static_cast<unsigned char>(source));
+                m_pProp->SetRepresentationActive(1, false);
                 state_index = static_cast<unsigned char>(tag);
                 goto commit_action;
             }
@@ -2853,7 +2862,7 @@ void Trigger::Run(int source)
                 W8WorldItem* item;
                 int contained_items = 0;
 
-                if (item_count != 1 && m_pProp->Rep()->subcycle != 0) {
+                if (item_count != 0 && m_pProp->Rep()->subcycle != 0) {
                     action_succeeded = false;
                 }
 
@@ -2874,13 +2883,13 @@ void Trigger::Run(int source)
                     gold = 0;
                 }
 
-                if (item_count == 1) {
+                if (item_count == 0) {
                     if (m_pProp->Rep()->subcycle == 0) {
                         ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_container_event
                                                                         : g_container_event_alt,
                                                          -1, 0, g_character_event_no_flags);
                     }
-                } else if (item_count == 2 && !g_status.item_in_cursor) {
+                } else if (item_count == 1 && !g_status.item_in_cursor) {
                     item = world_item_group->next;
                     CopyItemInstance(&g_status.item_in_hand, &item->item, 0, true);
                     ItemInfoRemoveFromGroup(world_item_group, item);
@@ -3013,7 +3022,7 @@ void Trigger::Run(int source)
         }
 
         group->members_active = true;
-        monster_info->p3D->m_pRep->animation_playing = 1;
+        monster_info->p3D->m_pRep->active = 1;
         monster_info->p3D->m_pRep->animation_playing = 1;
         monster_info->p3D->m_pRep->timer =
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
@@ -3126,13 +3135,13 @@ void Trigger::Run(int source)
                 srVector3T<double> position = g_world->camera->getLocation();
 
                 if (action == 0x28) {
-                    spell_id = W8_SPELL_HEAL_ALL;
-                } else if (action == 0x29) {
                     spell_id = W8_SPELL_HEX;
-                } else if (action == 0x2a) {
+                } else if (action == 0x29) {
                     spell_id = W8_SPELL_SLEEP;
-                } else {
+                } else if (action == 0x2a) {
                     spell_id = W8_SPELL_NOXIOUS_FUMES;
+                } else {
+                    spell_id = W8_SPELL_HEAL_ALL;
                 }
                 PointCastSpell(srVector3T<float>(static_cast<float>(position.x),
                                                  static_cast<float>(position.y),
@@ -3178,16 +3187,16 @@ void Trigger::Run(int source)
             srVector3T<float> source_position;
             srVector3T<float> target_position;
             srVector3T<float> transformed;
-            srVector3T<float> axis;
             srMatrix3T<float> rotation;
 
             source_position.Set(this->position.x, this->position.y, this->position.z);
             target_position = source_position;
             target_position.z += 100.0f;
             rotation.SetIdentity();
-            axis = rotation.vectors[2];
+            /* Retail rotates the identity matrix around the trigger's direction
+               field (ebp+0x100), not around identity Z. */
             if (angle != 0.0f) {
-                rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
+                rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
             }
             transformed = rotation.Transform(target_position);
             FireMissile(static_cast<unsigned int>(m_lData1), &source_position, &transformed, 0, 1,
@@ -3250,6 +3259,9 @@ void Trigger::Run(int source)
             }
         }
         g_timed_events.Add(m_pEvent);
+        if (trigger_kind == 2) {
+            flags |= W8_TRIGGER_RUNNING;
+        }
         break;
 
     case 0x40:

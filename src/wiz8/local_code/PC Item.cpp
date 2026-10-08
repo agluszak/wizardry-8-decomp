@@ -1103,7 +1103,8 @@ W8Skill GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
    Everything else aims the item and casts the spell it carries, which is where
    the spell's presentation skill and the character's own level in it decide how
    hard the attempt is. `out_uses` receives the fatigue cost of the attempt, and
-   stays -1 when nothing was attempted. */
+   stays -1 when nothing was attempted; a casting aid's attempt costs eight per
+   level of its spell plus twenty, even when it fails. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored                                                                   \
     "-Wsometimes-uninitialized" // uninit-ok: retail returns the unset used byte on rejected/spent-item paths; callers observe that indeterminate result.
@@ -1168,7 +1169,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             record->equip_class != W8_ITEM_EQUIP_CLASS_GADGET) {
             /* An ordinary item carries the spell's own power, and the one use
                kind whose presentation skill is nine costs a flat ten. */
-            if (g_item_spell_presentation[record->category] == 9) {
+            if (GetItemSpellPresentation(record) == 9) {
                 fatigue_cost = 10;
             }
             power = record->spell_power;
@@ -1179,6 +1180,9 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
                succeeds ends the search. Bug: spells 0x58 and 0x74 have no
                presentation skill, and still index skills[-1] here. */
             skill = GetItemSpellPresentation(record);
+            /* The attempt costs fatigue by the carried spell's level, whether
+               or not it succeeds. */
+            fatigue_cost = g_spell_records[record->spell_id].spell_level * 8 + 0x14;
             power = 7;
             do {
                 if (GetItemUseDifficulty(character, skill, character->skills[skill].level,
@@ -1197,7 +1201,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             if (power == 0) {
                 PostCharacterNotice(party_slot, gppStringList[0x1f3], GetItemDisplayName(item));
                 PracticeCharacterSkill(character, skill, 1, false);
-                *out_uses = -1;
+                *out_uses = fatigue_cost;
                 return 0;
             }
         }
@@ -1480,10 +1484,12 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, bool equip
             } else {
                 stored = MergeItemStacks(destination, item, 0);
             }
-            if (character->fInParty) {
-                RebuildEquipmentAndDerivedStatsForSlot(CharacterPointerToPartySlot(character));
-            }
+            /* A refused merge leaves the equipment untouched; retail skips
+               the stats rebuild for it (0x0051c379). */
             if (stored) {
+                if (character->fInParty) {
+                    RebuildEquipmentAndDerivedStatsForSlot(CharacterPointerToPartySlot(character));
+                }
                 return true;
             }
         }
@@ -1531,8 +1537,11 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, bool equip
         PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x1e8],
                             display_name);
     }
-    UpdateFactsAfterAcquiringItem(stored_item);
-    DeliverExceptionalItemReaction(stored_item, false, character);
+    /* Retail always reports the backpack cell at the stored index, even when
+       the stack was merged into the equipped slot with that index. */
+    W8ItemInstance* reported_item = &character->backpack[stored_index];
+    UpdateFactsAfterAcquiringItem(reported_item);
+    DeliverExceptionalItemReaction(reported_item, false, character);
     return true;
 }
 
@@ -1769,11 +1778,12 @@ bool GiveHeldItemToCharacterOrParty(int uiChar, bool party_first)
         stored = AddItemToParty(item, true, false);
     }
 
-    gXStatus.held_item_source = -1;
-    gXStatus.held_item_origin = W8_ITEM_ORIGIN_NONE;
-    gXStatus.held_item_slot = 0xffff;
-    ClearHeldItemDisplay();
+    /* Only a stored item releases the cursor; a refused one stays held. */
     if (stored) {
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = W8_ITEM_ORIGIN_NONE;
+        gXStatus.held_item_slot = 0xffff;
+        ClearHeldItemDisplay();
         return stored;
     }
 
@@ -3145,7 +3155,7 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, bool choose_character,
     }
     default:
         if (choose_character || !CanCharacterUseItem(character, item->iItemNo) ||
-            g_item_records[item->iItemNo].value / character->uiExpLevel < 500 ||
+            g_item_records[item->iItemNo].value / character->uiExpLevel <= 500 ||
             !item->identified) {
             return;
         }
@@ -3324,7 +3334,9 @@ bool AddItemToParty(W8ItemInstance* item, bool announce, bool skip_stacking)
             }
             ++index;
         }
-        if (partially_merged) {
+        /* Retail re-runs the encumbrance pass after any complete merge as
+           well as after a partial one (0x00521f64 -> 0x00522089 -> 0x00521f7f). */
+        if (stored || partially_merged) {
             RedistributePartyEncumbrance();
         }
     }

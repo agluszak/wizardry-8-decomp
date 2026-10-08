@@ -1106,7 +1106,10 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char*
             for (index = 0; index < section_count; ++index) {
                 Trigger::CreateAndLoadLevelTrigger(info.hFile, world);
             }
-            if (world->game_data != 0 && world->game_data->geometry_index != 0) {
+            /* Retail 0x004bb565 integrates whenever the world has game data;
+               IntegrateTriggers returns at once when the octree path took the
+               triggers (no trigger vertices were banked). */
+            if (world->game_data != 0) {
                 world->game_data->IntegrateTriggers();
             }
         }

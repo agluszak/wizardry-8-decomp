@@ -3687,11 +3687,9 @@ bool StartCharacterAttack(int party_slot, W8AttackMode attack_mode)
         srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 0x66, 0);
     }
     hand = row->current_hand;
-    if (!character->Hand[hand].in_play) {
-        if (GetCharAttackRange(character, hand) == W8_RANGE_NONE) {
-            row->hand_attack_values[hand] = 0;
-            return false;
-        }
+    if (!character->Hand[hand].in_play || GetCharAttackRange(character, hand) == W8_RANGE_NONE) {
+        row->hand_attack_values[hand] = 0;
+        return false;
     }
     if (attack_mode == W8_ATTACK_MODE_NONE) {
         mode = CharChooseHandAttackMode(character, hand);
@@ -4055,6 +4053,8 @@ int ResolveCharacterAttack(int party_slot)
                 wcscpy(location_name, gppStringList[g_pc_hit_location_labels[hit_location][0]]);
             }
             if (!guaranteed_hit && to_hit < roll) {
+                /* Retail hands the weapon's material, not its attack sound
+                   class, to BlockedForSpecialReason as the impact-table row. */
                 int weapon_class;
                 if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == -1) {
                     weapon_class = 9;
@@ -4062,7 +4062,7 @@ int ResolveCharacterAttack(int party_slot)
                     weapon_class =
                         g_item_records[character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON]
                                            .iItemNo]
-                            .weapon_sound_class;
+                            .material;
                 }
                 if (!BlockedForSpecialReason(weapon_class, &g_combat_state->TargetHit, roll, to_hit,
                                              8)) {
@@ -4231,7 +4231,7 @@ int ResolveCharacterAttack(int party_slot)
                             ApplyEffectConditions(&source, &g_combat_state->TargetHit, &effect,
                                                   verbose, false, report);
                             if (character->EquippedItem[row->current_equip_slot].iItemNo == 0x1f8) {
-                                unsigned int heal = damage / 3;
+                                unsigned int heal = applied / 3;
                                 unsigned int missing = character->uiHPMax - character->hp_current;
                                 if (missing < heal) {
                                     heal = missing;
@@ -4256,41 +4256,45 @@ int ResolveCharacterAttack(int party_slot)
                         }
                     }
                 }
-            }
-            if (damage == 0) {
-                MakePCMeleeHitSound(party_slot, &character->Hand[hand], &g_combat_state->TargetHit,
-                                    hit_location, 0x2a);
-                if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                    MonsterReactsToBeingStruck(monster_info, &source, false);
-                }
-                if (!verbose) {
-                    ++report->count;
-                } else {
-                    ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[message_id]);
-                }
-            }
-            if (range < W8_RANGE_LONG) {
-                if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                    W8Enchantment* enchantment =
-                        &monster_info->enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
-                    if (enchantment->turns != 0) {
-                        SetTargetSourceToMonster(monster_info, &target_source);
-                        ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
-                        if (--enchantment->power == 0) {
-                            ClearMonsterEnchantmentSlot(monster_info->location_id,
-                                                        W8_ENCHANTMENT_RAZOR_CLOAK);
-                        }
+                /* Only a swing that hit plays the glance sound, posts the no-damage
+                   notice and draws the Razor Cloak backlash; a missed swing goes
+                   straight to the queued fatigue. */
+                if (damage == 0) {
+                    MakePCMeleeHitSound(party_slot, &character->Hand[hand],
+                                        &g_combat_state->TargetHit, hit_location, 0x2a);
+                    if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
+                        MonsterReactsToBeingStruck(monster_info, &source, false);
                     }
-                } else {
-                    W8Enchantment* enchantment =
-                        &g_status.buffers.Char[g_combat_state->TargetHit.iChar]
-                             .enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
-                    if (enchantment->turns != 0) {
-                        SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &target_source);
-                        ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
-                        if (--enchantment->power == 0) {
-                            ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar,
-                                                          W8_ENCHANTMENT_RAZOR_CLOAK);
+                    if (!verbose) {
+                        ++report->count;
+                    } else {
+                        ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[message_id]);
+                    }
+                }
+                if (range < W8_RANGE_LONG) {
+                    if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
+                        W8Enchantment* enchantment =
+                            &monster_info->enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
+                        if (enchantment->turns != 0) {
+                            SetTargetSourceToMonster(monster_info, &target_source);
+                            ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
+                            if (--enchantment->power == 0) {
+                                ClearMonsterEnchantmentSlot(monster_info->location_id,
+                                                            W8_ENCHANTMENT_RAZOR_CLOAK);
+                            }
+                        }
+                    } else {
+                        W8Enchantment* enchantment =
+                            &g_status.buffers.Char[g_combat_state->TargetHit.iChar]
+                                 .enchantments[W8_ENCHANTMENT_RAZOR_CLOAK];
+                        if (enchantment->turns != 0) {
+                            SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar,
+                                                       &target_source);
+                            ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
+                            if (--enchantment->power == 0) {
+                                ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar,
+                                                              W8_ENCHANTMENT_RAZOR_CLOAK);
+                            }
                         }
                     }
                 }

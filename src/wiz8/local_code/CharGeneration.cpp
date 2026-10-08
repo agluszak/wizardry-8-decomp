@@ -330,32 +330,34 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
     }
 
     if (creation_state->attribute_points_total + character->attribute_point_deficit < 0) {
+        /* Paying down the debt still falls through to the pool refresh and
+           limit recompute below. */
         PayDownAttributeDebt(character, creation_state);
-        return;
-    }
-
-    character->attribute_point_deficit = 0;
-    character->level_band_base = 0;
-    for (index = 0; index < 7; ++index) {
-        int deficit = deficits[index];
-        if (deficit < 1) {
-            if (character->uiExpLevel > 1) {
-                int minimum = g_profession_attribute_minimums[character->iProfession].values[index];
-                int value = creation_state->attribute_values[index];
-                while (character->attributes[index].base - value <
-                       static_cast<unsigned int>(minimum)) {
-                    creation_state->attribute_values[index] = value - 1;
-                    --creation_state->attribute_points_total;
-                    ++creation_state->attribute_baselines[index];
-                    value = creation_state->attribute_values[index];
+    } else {
+        character->attribute_point_deficit = 0;
+        character->level_band_base = 0;
+        for (index = 0; index < 7; ++index) {
+            int deficit = deficits[index];
+            if (deficit < 1) {
+                if (character->uiExpLevel > 1) {
+                    int minimum =
+                        g_profession_attribute_minimums[character->iProfession].values[index];
+                    int value = creation_state->attribute_values[index];
+                    while (character->attributes[index].base - value <
+                           static_cast<unsigned int>(minimum)) {
+                        creation_state->attribute_values[index] = value - 1;
+                        --creation_state->attribute_points_total;
+                        ++creation_state->attribute_baselines[index];
+                        value = creation_state->attribute_values[index];
+                    }
                 }
-            }
-        } else {
-            character->attributes[index].base += deficit;
-            character->attributes[index].effective += deficit;
-            creation_state->attribute_points_total -= deficit;
-            if (character->uiExpLevel > 1) {
-                creation_state->attribute_baselines[index] = deficit;
+            } else {
+                character->attributes[index].base += deficit;
+                character->attributes[index].effective += deficit;
+                creation_state->attribute_points_total -= deficit;
+                if (character->uiExpLevel > 1) {
+                    creation_state->attribute_baselines[index] = deficit;
+                }
             }
         }
     }
@@ -769,9 +771,9 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
                 for (index = 0; index < 0x72; ++index) {
                     saved[index] = character->spell_learned[index];
                 }
-                for (index = 0; index < 0x72; ++index) {
-                    character->spell_learned[index] = 0;
-                }
+                /* Retail clears 0x72 bytes, not 0x72 entries: only the first
+                   28 flags and half of the 29th are zeroed for the trial. */
+                memset(character->spell_learned, 0, 0x72);
                 static const int trial_spells[6] = {0xc, 6, 7, 5, 3, 0xb};
                 for (index = 0; index < 6; ++index) {
                     if (CanCharacterLearnSpell(character, trial_spells[index])) {
@@ -1221,8 +1223,8 @@ void AddCharacterStartingEquipment(W8Character* character)
 
     switch (character->iProfession) {
     case W8_PROFESSION_PRIEST:
-        if (character->skills[W8_SKILL_STAFF_WAND].level >
-            character->skills[W8_SKILL_MACE_FLAIL].level) {
+        if (character->skills[W8_SKILL_MACE_FLAIL].level >
+            character->skills[W8_SKILL_STAFF_WAND].level) {
             ReplaceOrCreateItem(&item, 0x16, true, true, true);
         } else {
             ReplaceOrCreateItem(&item, 0x52, true, true, true);

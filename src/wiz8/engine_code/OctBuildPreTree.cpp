@@ -491,14 +491,14 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* arg_spat
                                                const srVector3T<float>* geometry, short value,
                                                short mode)
 {
-    W8OctSpatialState child(spatial);
+    W8OctSpatialState child(arg_spatial);
     bool changed = false;
 
-    if (child.m_depth >= 16) {
+    if (arg_spatial->m_depth >= 16) {
         return 0;
     }
 
-    if (child.m_depth < this->spatial.m_depth) {
+    if (arg_spatial->m_depth < this->spatial.m_depth) {
         int child_index = 0;
         for (int x = 0; x != 2; ++x) {
             for (int y = 0; y != 2; ++y) {
@@ -536,7 +536,7 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* arg_spat
             }
         }
     } else {
-        W8OctBuildNode* node = child.m_root;
+        W8OctBuildNode* node = arg_spatial->m_root;
         unsigned short region = node->region;
         if (region != 0) {
             if (mode == 6) {
@@ -1087,7 +1087,7 @@ unsigned short OctBuildPreTree::BuildRegions()
 // FUNCTION: WIZ8 0x004b1d90
 void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* arg_spatial)
 {
-    W8OctSpatialState child(spatial);
+    W8OctSpatialState child(arg_spatial);
     if (arg_spatial->m_depth >= 16) {
         return;
     }
@@ -1385,7 +1385,7 @@ void OctBuildPreTree::FinalizeRegionMapping()
 // FUNCTION: WIZ8 0x004b3050
 void OctBuildPreTree::AssignRegionFromSurfaces(const W8OctSpatialState* arg_spatial)
 {
-    W8OctSpatialState child(spatial);
+    W8OctSpatialState child(arg_spatial);
     if (arg_spatial->m_depth > 15) {
         return;
     }
@@ -1436,6 +1436,11 @@ void OctBuildPreTree::AssignRegionFromSurfaces(const W8OctSpatialState* arg_spat
             selected_region = regions[slot];
             selected_count = counts[slot];
         }
+    }
+
+    /* Retail stores a zero count when no nonzero region won the vote. */
+    if (selected_region == 0) {
+        selected_count = 0;
     }
 
     g_poly_list_count = unique_count;

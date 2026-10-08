@@ -1408,7 +1408,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
     unsigned char option_byte = 0;
     unsigned char attach_flag = 0;
     float playback_scale = 0.0f;
-    float flag_bits = 0.0f;
+    unsigned int flag_bits = 0;
     W8AnimObj* animation = 0;
     bool result = false;
     long fail_line;
@@ -1476,7 +1476,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
         signed char slot_count;
         int slot_i;
 
-        flag_bits = 0.0f;
+        flag_bits = 0;
         info->mesh_filename = 0;
         if (success) {
             FileRead(hFile, &frame_count, 1, 0);
@@ -1502,7 +1502,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
         }
         if (version > 5) {
             FileRead(hFile, &flag_bits, 4, 0);
-            prop->flags |= static_cast<unsigned int>(flag_bits);
+            prop->flags |= flag_bits;
         }
         if (version > 6) {
             char* buffer = new char[0x40];

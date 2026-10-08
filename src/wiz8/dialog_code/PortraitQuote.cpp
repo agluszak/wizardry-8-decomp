@@ -280,8 +280,9 @@ static int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_sp
                               int alternate_font, const wchar_t* text, int, int, int,
                               unsigned int* out_edge)
 {
-    wchar_t line[0x140];
-    wchar_t word[0x140];
+    /* Retail reserves 0x500 bytes for each buffer (0x140-dword clears). */
+    wchar_t line[0x280];
+    wchar_t word[0x280];
     unsigned int position = 0;
     unsigned int word_length = 0;
     unsigned int line_width = 0;
@@ -465,7 +466,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     /* Retail left these unset on the nonzero-background/no-palette path and
        still consumed them; the recovery keeps that read. */
     unsigned char colour;
-    bool foreground;
+    bool shadow;
     unsigned short count;
     unsigned short x;
     unsigned short y;
@@ -630,18 +631,21 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         BltVideoObject(bubble->surface, object, 7, width_px - 0x10, height_px - 0x10, 2, 0);
         if (background_index == 0) {
             colour = 0xd0;
-            foreground = false;
+            shadow = false;
         }
         if (bubble->palette != 0xffffffff) {
             colour = static_cast<unsigned char>(bubble->palette);
         }
         SetFont(g_font12point1);
-        SetFontForeground(foreground);
+        /* Retail 0x005cfe87 and 0x005cfefd call SetFontShadow (0x00406C90):
+           the bubble text drops its shadow on a plain background, and the
+           default shadow index 2 is restored afterwards. */
+        SetFontShadow(shadow);
         SetFontDestBuffer(bubble->surface, 0, 0, width_px, height_px, 0);
         DrawWrappedText(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1, colour, text,
                         0, 0, 1);
         SetFontDestBuffer(FRAME_BUFFER, 0, 0, 0x280, 0x1e0, 0);
-        SetFontForeground(2);
+        SetFontShadow(2);
         if (quote_handle == -1 && bubble != 0) {
             for (index = 0; index < 10; ++index) {
                 if (g_portrait_quotes[index] == 0) {

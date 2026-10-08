@@ -1061,15 +1061,16 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
                 }
                 break;
             case W8_CONDITION_INSANE:
-                if (duration == W8_CONDITION_INDEFINITE) {
+                /* Indefinite insanity gets past the mental-condition
+                   immunity; the turns ride in `magnitude`. */
+                if (magnitude == W8_CONDITION_INDEFINITE) {
                     break;
                 }
             case W8_CONDITION_TURNCOAT:
                 if (CharacterHasTrait(character, W8_TRAIT_MENTAL_CONDITION_IMMUNITY)) {
                     if (announce_resistance) {
-                        PostCharacterNotice(
-                            target->iChar, gppStringList[0x181],
-                            gppStringList[g_condition_notices[condition_id].name * 4]);
+                        PostCharacterNotice(target->iChar, gppStringList[0x181],
+                                            gppStringList[g_condition_notices[condition_id].name]);
                     }
                     return true;
                 }
@@ -1725,8 +1726,8 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, W8Condition condition
                     effect->applied = true;
                     effect->reported = true;
                     if (condition == W8_CONDITION_DEAD) {
-                        restored = (character->attributes[W8_ATTRIBUTE_INTELLIGENCE].effective +
-                                    character->attributes[W8_ATTRIBUTE_STRENGTH].effective) >>
+                        restored = (character->attributes[W8_ATTRIBUTE_PIETY].effective +
+                                    character->attributes[W8_ATTRIBUTE_VITALITY].effective) >>
                                    2;
                         turns = (character->uiHPMax * restored) / 100;
                         if (turns < 2) {
@@ -3259,11 +3260,13 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         break;
     case W8_SPELL_CURE_LESSER_COND:
         if (!effect->Source.fBackfire) {
-            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_IRRITATED, false) &
-                       TryCureConditionOnTargets(effect, W8_CONDITION_NAUSEATED, false) &
-                       TryCureConditionOnTargets(effect, W8_CONDITION_AFRAID, false) &
-                       TryCureConditionOnTargets(effect, W8_CONDITION_ASLEEP, false) &
-                       TryCureConditionOnTargets(effect, W8_CONDITION_BLIND, false);
+            /* Retail tries the cures in this order; each one rolls and
+               reports, so the sequence is spelled out. */
+            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_IRRITATED, false);
+            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_NAUSEATED, false);
+            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_AFRAID, false);
+            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_ASLEEP, false);
+            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_BLIND, false);
         } else {
             switch (Random(5)) {
             case W8_SPELL_NONE:
@@ -3374,8 +3377,8 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         break;
     case W8_SPELL_CURE_PARALYSIS:
         if (!effect->Source.fBackfire) {
-            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_PARALYZED, false) &
-                       TryCureConditionOnTargets(effect, W8_CONDITION_WEBBED, false);
+            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_PARALYZED, false);
+            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_WEBBED, false);
         } else {
             InflictConditionAttack(effect, W8_CONDITION_PARALYZED, 100, 0);
         }
@@ -3463,8 +3466,8 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         break;
     case W8_SPELL_SANE_MIND:
         if (!effect->Source.fBackfire) {
-            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_INSANE, false) &
-                       TryCureConditionOnTargets(effect, W8_CONDITION_TURNCOAT, false);
+            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_INSANE, false);
+            applied &= TryCureConditionOnTargets(effect, W8_CONDITION_TURNCOAT, false);
         } else {
             InflictConditionAttack(effect, W8_CONDITION_INSANE, 100, 0);
         }
@@ -3548,7 +3551,8 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         ApplyDamageToTargets(effect);
         break;
     case W8_SPELL_RESTORATION:
-        applied &= HealTargets(effect) & RestoreTargetsStamina(effect);
+        applied &= HealTargets(effect);
+        applied &= RestoreTargetsStamina(effect);
         for (condition = 2; condition < 0x12; ++condition) {
             if (condition != W8_CONDITION_INFATUATED) {
                 applied &=
@@ -3577,8 +3581,8 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         effect->applied = true;
         break;
     case W8_SPELL_SMELLING_SALTS:
-        applied &= TryCureConditionOnTargets(effect, W8_CONDITION_UNCONSCIOUS, false) &
-                   TryCureConditionOnTargets(effect, W8_CONDITION_ASLEEP, false);
+        applied &= TryCureConditionOnTargets(effect, W8_CONDITION_UNCONSCIOUS, false);
+        applied &= TryCureConditionOnTargets(effect, W8_CONDITION_ASLEEP, false);
         break;
     case W8_SPELL_RENEWAL:
         TryCureConditionOnTargets(effect, W8_CONDITION_DRAINED, true);
@@ -3597,10 +3601,10 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
                 SetTextBoxMode(1, -1);
             }
             if (percent_roll < 100) {
-                AppendToLastTextLine(gppStringList[0x1d5], -1);
+                AppendToLastTextLine(gppStringList[0x1b5], -1);
                 effect->reported = true;
             } else {
-                AppendToLastTextLine(gppStringList[0x1d6], -1);
+                AppendToLastTextLine(gppStringList[0x1b6], -1);
                 effect->reported = true;
             }
         }

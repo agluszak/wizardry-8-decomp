@@ -983,6 +983,10 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes,
                 if (delta.Length() < 500.0f) {
                     srVector3T<float> navigator_position = monster->GetPosition();
 
+                    /* Retail resets the AI mode and pathing cooldown only once the
+                       short-move test passes; a long move leaves both alone. */
+                    flags_cleared = true;
+
                     if (!g_pathing->SnapWaypointPosition(&navigator_position, false) &&
                         !monster_info->party_threat.visible_to_player) {
                         srVector3T<float> next_position;
@@ -1023,7 +1027,6 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes,
                     }
                 }
                 cycle_cleared = cleared;
-                flags_cleared = true;
             } else {
                 srVector3T<float> camera;
                 srVector3T<float> probe;
@@ -1033,7 +1036,9 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes,
                 location2 = monster->GetPosition();
                 probe = location2;
                 probe.y += g_float_one_thousand;
-                if (ProjectPointThroughCamera(&location2) == 0 &&
+                /* Both on-screen tests take the representation location read at the top of
+                   the watch block, not the navigator position (0x00503e90, 0x00503f40). */
+                if (ProjectPointThroughCamera(&location) == 0 &&
                     !g_octree->HasLineOfSight(&camera, &probe, true)) {
                     if (monster->formation.x == g_float_zero &&
                         monster->formation.y == g_float_zero &&
@@ -1042,7 +1047,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes,
                     }
                     probe = monster->formation;
                     probe.y += g_float_one_thousand;
-                    if (ProjectPointThroughCamera(&location2) == 0 &&
+                    if (ProjectPointThroughCamera(&location) == 0 &&
                         !g_octree->HasLineOfSight(&camera, &probe, true)) {
                         if (monster->formation.x == g_float_zero &&
                             monster->formation.y == g_float_zero &&
