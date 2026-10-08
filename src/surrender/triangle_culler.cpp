@@ -3,32 +3,83 @@
 #include "surrender/srVectorProcessor.h"
 #include "surrender/srRendererDefs.h"
 
+/* Retail (0x10029740) rounds the object-space points, delta, cross and the
+   transformed positive point to float, but keeps the transformed point and
+   the first edge on the x87 stack through the whole cross product; the
+   second edge's z is used once from the stack and once from its float spill.
+   Every matrix row is summed z, y, x, then w. The in-plane offset is folded
+   into point_1 without a float rounding of its own. The double locals hold
+   exactly what the 53-bit x87 stack holds, and float consistency keeps VC6
+   from dropping the float roundings or reassociating the sums. */
+#pragma optimize("p", on)
 // FUNCTION: SURRENDER 0x10029740
 srVector4 srTriangleCuller::transformClipPlane(const srVector4& plane, const srMatrix4& matrix,
                                                srMatrix4::e_scaleType scale_type)
 {
-    srVector3 normal(plane.x, plane.y, plane.z);
-    srVector3 point = normal * -plane.w;
-    srVector3 positive = point + normal;
-    srVector3 offset;
-    if (normal.z == 0.0f) {
-        offset.Set(-normal.y - normal.z, normal.x, normal.x);
+    srVector4 normal = plane;
+    srVector3 point(-(normal.x * normal.w), -(normal.y * normal.w), -(normal.z * normal.w));
+    srVector3 positive(point.x + normal.x, point.y + normal.y, point.z + normal.z);
+    srVector3 point_1;
+    if (normal.z != 0.0f) {
+        point_1 =
+            srVector3(point.x + normal.z, point.y + normal.z, point.z + (-normal.x - normal.y));
     } else {
-        offset.Set(normal.z, normal.z, -normal.x - normal.y);
+        point_1 =
+            srVector3(point.x + (-normal.y - normal.z), point.y + normal.x, point.z + normal.x);
     }
-    srVector3 point_1 = point + offset;
-    srVector3 point_2 = point + CrossProduct(normal, point_1 - point);
-    srVector3 transformed = matrix.TransformPoint(point);
-    srVector3 edge_1 = matrix.TransformPoint(point_1) - transformed;
-    srVector3 edge_2 = matrix.TransformPoint(point_2) - transformed;
-    srVector3 new_normal = CrossProduct(edge_1, edge_2);
+    srVector3 delta(point_1.x - point.x, point_1.y - point.y, point_1.z - point.z);
+    srVector3 cross(normal.y * delta.z - normal.z * delta.y,
+                    normal.z * delta.x - normal.x * delta.z,
+                    normal.x * delta.y - normal.y * delta.x);
+    srVector3 point_2(point.x + cross.x, point.y + cross.y, point.z + cross.z);
+    const srVector4* rows = matrix.vectors;
+    double transformed_x =
+        ((point.z * rows[0].z + point.y * rows[0].y) + point.x * rows[0].x) + rows[0].w;
+    double transformed_y =
+        ((point.z * rows[1].z + point.y * rows[1].y) + point.x * rows[1].x) + rows[1].w;
+    double transformed_z =
+        ((point.z * rows[2].z + point.y * rows[2].y) + point.x * rows[2].x) + rows[2].w;
+    srVector3 transformed_positive(
+        ((positive.z * rows[0].z + positive.y * rows[0].y) + positive.x * rows[0].x) + rows[0].w,
+        ((positive.z * rows[1].z + positive.y * rows[1].y) + positive.x * rows[1].x) + rows[1].w,
+        ((positive.z * rows[2].z + positive.y * rows[2].y) + positive.x * rows[2].x) + rows[2].w);
+    double edge_1_x =
+        (((point_1.z * rows[0].z + point_1.y * rows[0].y) + point_1.x * rows[0].x) + rows[0].w) -
+        transformed_x;
+    double edge_1_y =
+        (((point_1.z * rows[1].z + point_1.y * rows[1].y) + point_1.x * rows[1].x) + rows[1].w) -
+        transformed_y;
+    double edge_1_z =
+        (((point_1.z * rows[2].z + point_1.y * rows[2].y) + point_1.x * rows[2].x) + rows[2].w) -
+        transformed_z;
+    float edge_2_x = static_cast<float>(
+        (((point_2.z * rows[0].z + point_2.y * rows[0].y) + point_2.x * rows[0].x) + rows[0].w) -
+        transformed_x);
+    float edge_2_y = static_cast<float>(
+        (((point_2.z * rows[1].z + point_2.y * rows[1].y) + point_2.x * rows[1].x) + rows[1].w) -
+        transformed_y);
+    double edge_2_z_wide =
+        (((point_2.z * rows[2].z + point_2.y * rows[2].y) + point_2.x * rows[2].x) + rows[2].w) -
+        transformed_z;
+    float edge_2_z = static_cast<float>(edge_2_z_wide);
     srVector4 result;
-    result.Set(new_normal.x, new_normal.y, new_normal.z, -DotProduct(new_normal, transformed));
-    if (DotProduct(new_normal, matrix.TransformPoint(positive)) + result.w < 0.0) {
-        result *= -1.0;
+    result.x = static_cast<float>(edge_2_z_wide * edge_1_y - edge_2_y * edge_1_z);
+    result.y = static_cast<float>(edge_2_x * edge_1_z - edge_2_z * edge_1_x);
+    result.z = static_cast<float>(edge_2_y * edge_1_x - edge_2_x * edge_1_y);
+    result.w = static_cast<float>(
+        -((result.z * transformed_z + result.y * transformed_y) + result.x * transformed_x));
+    if (((result.z * transformed_positive.z + result.y * transformed_positive.y) +
+         result.x * transformed_positive.x) +
+            result.w <
+        0.0f) {
+        result.x = -result.x;
+        result.y = -result.y;
+        result.z = -result.z;
+        result.w = -result.w;
     }
     return result;
 }
+#pragma optimize("", on)
 
 // FUNCTION: SURRENDER 0x10029BF0
 int srTriangleCuller::setClipFlags(unsigned long* clip_flags, float* distances,
