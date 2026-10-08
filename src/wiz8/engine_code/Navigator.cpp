@@ -2099,12 +2099,12 @@ void W8Navigator::UpdateNavigation(unsigned char skip_movement, bool slowed)
 
     case 9:
         if (target_navigator != 0) {
-            /* 0x004559A2 takes the separation from the linked navigator, not
-               from this navigator's collision margin: FLD dword ptr [EAX+0x84]
-               with EAX loaded from +0x5c. The load is unguarded in the retail
-               and stays that way here. */
+            /* 0x004556C7: FLD qword ptr [ESI+0x10] - the separation is this
+               navigator's collision margin (the value LinkToNavigator stored),
+               narrowed to float. The linked navigator's radius load at
+               0x004559A2 belongs to the 0x201 case below. */
             movement_result =
-                g_octree->AdvanceNavigator(&movement, radius, linked_navigator->radius);
+                g_octree->AdvanceNavigator(&movement, radius, static_cast<float>(collision_margin));
             if (movement_result == 1 ||
                 (movement_result == 3 &&
                  LinkToNavigator(target_navigator, collision_margin) == 0)) {
