@@ -84,6 +84,38 @@ int stModelInstance::FindDamageStage(const char* name)
     return mesh->FindSkinTable(name);
 }
 
+/* The scene entry is queued before the sibling chain is walked for an opaque
+   model, and after it for a model flagged W8_MESH_SORTED_RENDERING, so the
+   sorted models are processed after every opaque sibling, in reverse sibling
+   order. Children follow unless the node terminates. */
+// FUNCTION: WIZ8 0x004803F0
+void stModelInstance::traverse(TraverseInfo& info)
+{
+    stMeshModel* model = static_cast<stMeshModel*>(getModel());
+
+    if (!testFlag(FLAG_DISABLE) && model != 0 && (model->flags & W8_MESH_SORTED_RENDERING) == 0) {
+        TraverseInfo::Entry& entry = info.entries[info.entry_count];
+        entry.node = this;
+        entry.value = 0;
+        ++info.entry_count;
+    }
+
+    if (next_sibling_ != 0) {
+        next_sibling_->traverse(info);
+    }
+
+    if (!testFlag(FLAG_DISABLE) && model != 0 && (model->flags & W8_MESH_SORTED_RENDERING) != 0) {
+        TraverseInfo::Entry& entry = info.entries[info.entry_count];
+        entry.node = this;
+        entry.value = 0;
+        ++info.entry_count;
+    }
+
+    if (!testFlag(FLAG_TERMINATE) && first_child_ != 0) {
+        first_child_->traverse(info);
+    }
+}
+
 /* Add a stage by cloning the first stage's table across the complete linked
    mesh chain. The instance stores the table id shared by that chain. */
 // FUNCTION: WIZ8 0x00480560
