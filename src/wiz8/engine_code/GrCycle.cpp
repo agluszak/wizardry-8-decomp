@@ -470,7 +470,9 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
             }
             copied_light->ConfigureMonsterCopy();
             copied_light->setLocation(x, y, z);
-            copied_light->setFlag(srNode::FLAG_TERMINATE);
+            /* Monster lights light group 2, like the ones AnimObjReadFromFile
+               builds; the copy is not terminated. */
+            copied_light->setGroupMask(2);
             PLAdoptAppend(&g_world->transient_lights, copied_light);
             if (copied_light->definition() != 0) {
                 g_world->lights_to_update->Add(copied_light);
