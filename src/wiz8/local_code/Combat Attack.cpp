@@ -4053,6 +4053,8 @@ int ResolveCharacterAttack(int party_slot)
                 wcscpy(location_name, gppStringList[g_pc_hit_location_labels[hit_location][0]]);
             }
             if (!guaranteed_hit && to_hit < roll) {
+                /* Retail hands the weapon's material, not its attack sound
+                   class, to BlockedForSpecialReason as the impact-table row. */
                 int weapon_class;
                 if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == -1) {
                     weapon_class = 9;
@@ -4060,7 +4062,7 @@ int ResolveCharacterAttack(int party_slot)
                     weapon_class =
                         g_item_records[character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON]
                                            .iItemNo]
-                            .weapon_sound_class;
+                            .material;
                 }
                 if (!BlockedForSpecialReason(weapon_class, &g_combat_state->TargetHit, roll, to_hit,
                                              8)) {
