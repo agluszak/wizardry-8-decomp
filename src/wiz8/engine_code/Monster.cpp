@@ -555,7 +555,8 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                             monster_name)));
                 }
             } else {
-                if (strlen(argument) <= 2) {
+                /* 0x004C10FB: the length test is on the whole line, not the argument. */
+                if (strlen(line) <= 2) {
                     continue;
                 }
                 signed char subcycle;
