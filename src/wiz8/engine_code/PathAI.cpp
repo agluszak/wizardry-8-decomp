@@ -584,10 +584,9 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
     }
     if (path->animated == 0) {
         if (path->discrete_mode == 0) {
-            index =
-                static_cast<int>((path->nodes->GetCount() - 1) * path->position + g_double_half);
+            index = srFloatToInt((path->nodes->GetCount() - 1) * path->position + g_double_half);
         } else {
-            index = static_cast<int>(path->position + g_double_one_tenth);
+            index = srFloatToInt(path->position + g_double_one_tenth);
         }
         if (index >= path->nodes->GetCount()) {
             index = path->nodes->GetCount() - 1;
@@ -657,7 +656,7 @@ void PathAIApply(W8PathAI* path, srNode* target)
             blend = path->interpolation_fraction;
             index = path->point_index;
         } else {
-            index = static_cast<int>(path->position + g_double_one_tenth);
+            index = srFloatToInt(path->position + g_double_one_tenth);
             blend = -1.0f;
         }
         if (path->nodes->GetCount() - 1 <= index) {
