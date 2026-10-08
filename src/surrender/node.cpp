@@ -4,6 +4,7 @@
 #include "surrender/srDebug.h"
 #include "surrender/srGERD.h"
 
+#include <math.h>
 #include <ostream>
 #include <string.h>
 
@@ -12,6 +13,54 @@ srCriticalSection srNode::sceneGraphCSect;
 
 // GLOBAL: SURRENDER 0x100A49FC
 long srNode::sceneGraphLockCount;
+
+/* srMatrix4T<double>::MultiplyBy as retail's out-of-line instance (0x10055a60,
+   called only from setWorldSpaceRotation and setWorldSpaceMatrix) sums it.
+   Each element's four-term sum has a fixed association; row 0 differs from
+   rows 1-3. The header template's loop sums every element x, y, z, w. */
+static void multiplyBy4(srMatrix4T<double>& matrix, const srMatrix4T<double>& other)
+{
+    const srVector4T<double>* o = other.vectors;
+    for (int row = 0; row < 4; ++row) {
+        srVector4T<double>& target = matrix.vectors[row];
+        double x = target.x;
+        double y = target.y;
+        double z = target.z;
+        double w = target.w;
+        double rx;
+        double ry;
+        double rz;
+        double rw;
+        if (row == 0) {
+            rw = ((z * o[2].w + y * o[1].w) + w * o[3].w) + x * o[0].w;
+            rz = ((y * o[1].z + z * o[2].z) + x * o[0].z) + w * o[3].z;
+            ry = ((w * o[3].y + y * o[1].y) + z * o[2].y) + x * o[0].y;
+            rx = ((x * o[0].x + w * o[3].x) + y * o[1].x) + z * o[2].x;
+        } else {
+            rw = ((w * o[3].w + y * o[1].w) + z * o[2].w) + x * o[0].w;
+            rz = ((w * o[3].z + z * o[2].z) + y * o[1].z) + x * o[0].z;
+            ry = ((y * o[1].y + w * o[3].y) + z * o[2].y) + x * o[0].y;
+            rx = ((w * o[3].x + z * o[2].x) + x * o[0].x) + y * o[1].x;
+        }
+        target.x = rx;
+        target.y = ry;
+        target.z = rz;
+        target.w = rw;
+    }
+}
+
+/* Retail's world-space setters measure the column vectors with Length inlined
+   and summed z, y, x; one call in setWorldSpaceRotation goes through the
+   out-of-line srVector3T<double>::Length (0x10055450), which sums x, y, z. */
+static double columnLengthZYX(const srVector3T<double>& column)
+{
+    return sqrt((column.z * column.z + column.y * column.y) + column.x * column.x);
+}
+
+static double columnLengthXYZ(const srVector3T<double>& column)
+{
+    return sqrt((column.x * column.x + column.y * column.y) + column.z * column.z);
+}
 
 /* Comma-separated flag/notify name lists dumped beside the bit values; the constructor lazily
    installs the flag names. */
@@ -1251,7 +1300,7 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         srMatrix4T<double> inverse;
         inverse.Inverse(local);
         local = inverse;
-        local.MultiplyBy(world);
+        multiplyBy4(local, world);
         srMatrix3T<double> result;
         result.SetRows(local.vectors[0].xyz(), local.vectors[1].xyz(), local.vectors[2].xyz());
         this->rotation = result;
@@ -1265,8 +1314,8 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         column_x = srVector3T<double>(this->rotation.vectors[0].x, this->rotation.vectors[1].x,
                                       this->rotation.vectors[2].x);
         srVector3T<double> inverse_scale;
-        inverse_scale.Set(1.0 / column_x.Length(), 1.0 / column_y.Length(),
-                          1.0 / column_z.Length());
+        inverse_scale.Set(1.0 / columnLengthXYZ(column_x), 1.0 / columnLengthZYX(column_y),
+                          1.0 / columnLengthZYX(column_z));
         this->rotation.vectors[0] *= inverse_scale;
         this->rotation.vectors[1] *= inverse_scale;
         this->rotation.vectors[2] *= inverse_scale;
@@ -1285,7 +1334,7 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
         srMatrix4T<double> inverse;
         inverse.Inverse(local);
         local = inverse;
-        local.MultiplyBy(matrix);
+        multiplyBy4(local, matrix);
     }
     srMatrix3T<double> result;
     result.SetRows(local.vectors[0].xyz(), local.vectors[1].xyz(), local.vectors[2].xyz());
@@ -1300,7 +1349,7 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
         srVector3T<double>(rotation.vectors[0].y, rotation.vectors[1].y, rotation.vectors[2].y);
     column_x =
         srVector3T<double>(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x);
-    scale.Set(column_x.Length(), column_y.Length(), column_z.Length());
+    scale.Set(columnLengthZYX(column_x), columnLengthZYX(column_y), columnLengthZYX(column_z));
     srVector3T<double> inverse_scale;
     inverse_scale.Set(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z);
     rotation.vectors[0] *= inverse_scale;
