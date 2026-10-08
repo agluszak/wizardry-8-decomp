@@ -271,19 +271,39 @@ static void ApplyModelViewMatrix(srModelInstance* instance, srGERD* renderer, fl
         location = world_location;
         srVector3T<float> scale;
         scale = world_scale;
-        transformed_location = view.Transform(location);
+        /* Retail expands the view transform, the column lengths and the
+           handedness test inline here: every row sums y, z, x before the
+           translation; the column lengths start from a different pair each;
+           the handedness test is the first column dotted with the cross of the
+           other two, summed from the z term. Retail also rounds the cross's x
+           and y to float before the dot product. */
+        const srVector4T<float>* rows = view.vectors;
+        transformed_location.Set(
+            ((rows[0].y * location.y + rows[0].z * location.z) + rows[0].x * location.x) +
+                rows[0].w,
+            ((rows[1].y * location.y + rows[1].z * location.z) + rows[1].x * location.x) +
+                rows[1].w,
+            ((rows[2].y * location.y + rows[2].z * location.z) + rows[2].x * location.x) +
+                rows[2].w,
+            ((rows[3].y * location.y + rows[3].z * location.z) + rows[3].x * location.x) +
+                rows[3].w);
 
-        srVector3T<float> column_x(view.vectors[0].x, view.vectors[1].x, view.vectors[2].x);
-        srVector3T<float> column_y(view.vectors[0].y, view.vectors[1].y, view.vectors[2].y);
-        srVector3T<float> column_z(view.vectors[0].z, view.vectors[1].z, view.vectors[2].z);
-        basis_x = column_x.Length();
-        basis_y = column_y.Length();
-        basis_z = column_z.Length();
+        srVector3T<float> column_x(rows[0].x, rows[1].x, rows[2].x);
+        srVector3T<float> column_y(rows[0].y, rows[1].y, rows[2].y);
+        srVector3T<float> column_z(rows[0].z, rows[1].z, rows[2].z);
+        basis_x = static_cast<float>(
+            sqrt((column_x.y * column_x.y + column_x.z * column_x.z) + column_x.x * column_x.x));
+        basis_y = static_cast<float>(
+            sqrt((column_y.z * column_y.z + column_y.x * column_y.x) + column_y.y * column_y.y));
+        basis_z = static_cast<float>(
+            sqrt((column_z.x * column_z.x + column_z.y * column_z.y) + column_z.z * column_z.z));
 
-        float determinant = Det3(view.vectors[0].x, view.vectors[0].y, view.vectors[0].z,
-                                 view.vectors[1].x, view.vectors[1].y, view.vectors[1].z,
-                                 view.vectors[2].x, view.vectors[2].y, view.vectors[2].z);
-        if (determinant > g_double_zero) {
+        float normal_x = column_y.y * column_z.z - column_y.z * column_z.y;
+        float normal_y = column_y.z * column_z.x - column_y.x * column_z.z;
+        if ((column_x.z * (column_y.x * column_z.y - column_y.y * column_z.x) +
+             column_x.y * normal_y) +
+                column_x.x * normal_x >
+            g_double_zero) {
             basis_x = -basis_x;
             basis_y = -basis_y;
             basis_z = -basis_z;
