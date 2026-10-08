@@ -2062,8 +2062,14 @@ void W8Monster::ProcessScript()
             case MONSCR_IF: {
                 bool invert = false;
                 bool value;
+                /* 0x004C8A52: a bare IF is skipped without pushing a condition.
+                   After NOT, a missing name is still passed through
+                   (0x004C8A86 keeps %edi = 0). */
                 token = strtok(0, " \t");
-                if (token != 0 && _strnicmp(token, "NOT", 3) == 0) {
+                if (token == 0) {
+                    break;
+                }
+                if (_strnicmp(token, "NOT", 3) == 0) {
                     invert = true;
                     token = strtok(0, " \t");
                 }
