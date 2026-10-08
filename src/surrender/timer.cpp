@@ -511,7 +511,7 @@ int calibrate(srTimerConfig* config)
     }
     if ((config->frequency.lo | config->frequency.hi) != 0) {
         __int64 tolerance =
-            (__int64)((double)config->frequency * (srTimer::cpuFreqVariancePct & 0xffff) * 0.01);
+            (__int64)(config->frequency * 0.01 * (srTimer::cpuFreqVariancePct & 0xffff));
         SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
         unsigned long edge = timeGetTime();
