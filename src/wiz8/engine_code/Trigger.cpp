@@ -2638,7 +2638,9 @@ void Trigger::Run(int source)
                 break;
             }
             state_index = state_index == 1 ? 0 : 1;
-            m_pProp->SetRepresentationActive(state_index, true);
+            /* Retail starts the representation for both toggle directions; it
+               never passes the new state, which would stop it on 1 -> 0. */
+            m_pProp->SetRepresentationActive(1, true);
             if (m_pWorld != 0 && m_pWorld->game_data != 0 && surface_id >= 0) {
                 m_pWorld->game_data->SetInterfaceState(surface_id, state_index);
             }
