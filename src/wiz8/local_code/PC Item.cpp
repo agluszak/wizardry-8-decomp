@@ -1480,10 +1480,12 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, bool equip
             } else {
                 stored = MergeItemStacks(destination, item, 0);
             }
-            if (character->fInParty) {
-                RebuildEquipmentAndDerivedStatsForSlot(CharacterPointerToPartySlot(character));
-            }
+            /* A refused merge leaves the equipment untouched; retail skips
+               the stats rebuild for it (0x0051c379). */
             if (stored) {
+                if (character->fInParty) {
+                    RebuildEquipmentAndDerivedStatsForSlot(CharacterPointerToPartySlot(character));
+                }
                 return true;
             }
         }
