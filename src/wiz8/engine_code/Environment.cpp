@@ -161,7 +161,7 @@ void AdvanceEnvironmentTime(int elapsed)
 
     angle -= 3.141592653589793 * (1.0f / 180.0f) * 40.0;
     if (angle != 0.0) {
-        rotation.RotateAboutY(sin(angle), cos(angle));
+        rotation.RotateAboutZ(sin(angle), cos(angle));
     }
 
     srVector3T<float> position = rotation.Transform(direction) + g_celestial_origin;
