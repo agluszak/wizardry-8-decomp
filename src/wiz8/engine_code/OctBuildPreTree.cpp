@@ -1438,6 +1438,11 @@ void OctBuildPreTree::AssignRegionFromSurfaces(const W8OctSpatialState* arg_spat
         }
     }
 
+    /* Retail stores a zero count when no nonzero region won the vote. */
+    if (selected_region == 0) {
+        selected_count = 0;
+    }
+
     g_poly_list_count = unique_count;
     node->region = selected_region;
     node->leaf_kind = selected_count;
