@@ -3597,10 +3597,10 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
                 SetTextBoxMode(1, -1);
             }
             if (percent_roll < 100) {
-                AppendToLastTextLine(gppStringList[0x1d5], -1);
+                AppendToLastTextLine(gppStringList[0x1b5], -1);
                 effect->reported = true;
             } else {
-                AppendToLastTextLine(gppStringList[0x1d6], -1);
+                AppendToLastTextLine(gppStringList[0x1b6], -1);
                 effect->reported = true;
             }
         }
