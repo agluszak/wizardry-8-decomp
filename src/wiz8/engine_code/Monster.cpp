@@ -1762,10 +1762,12 @@ bool W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_index,
     }
     animation = *animations->GetAt(subcycle);
 
+    /* 0x004C7A3A..0x004C7A50: the missile vertex (5) is sampled on
+       missile_frame (0x1f4) and the spell vertex (6) on spell_frame (0x1f8). */
     if (mapped_index == 5) {
-        dispatch_value = static_cast<int>(runtime_flags);
+        dispatch_value = missile_frame;
     } else if (mapped_index == 6) {
-        dispatch_value = navigation_mode;
+        dispatch_value = spell_frame;
     } else {
         dispatch_value = 0;
     }
