@@ -1531,8 +1531,11 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, bool equip
         PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x1e8],
                             display_name);
     }
-    UpdateFactsAfterAcquiringItem(stored_item);
-    DeliverExceptionalItemReaction(stored_item, false, character);
+    /* Retail always reports the backpack cell at the stored index, even when
+       the stack was merged into the equipped slot with that index. */
+    W8ItemInstance* reported_item = &character->backpack[stored_index];
+    UpdateFactsAfterAcquiringItem(reported_item);
+    DeliverExceptionalItemReaction(reported_item, false, character);
     return true;
 }
 
