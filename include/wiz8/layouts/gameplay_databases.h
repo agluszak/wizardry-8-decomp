@@ -614,6 +614,6 @@ extern W8FactDatabaseRecord* g_fact_records;
 extern W8LevelDatabaseRecord* g_level_records;
 extern W8NpcDatabaseRecord* g_npc_records;
 extern W8SpellRuntimeRecord* g_spell_records;
-extern unsigned int g_spell_record_count;
+extern unsigned int g_spell_database_version;
 
 #endif
