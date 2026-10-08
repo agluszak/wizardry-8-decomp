@@ -204,18 +204,17 @@ void TellNpcFact(W8NpcState* npc, short fact)
     }
 }
 
-/* Whether the NPC has already been told a fact. The scan stops at the first
-   empty slot, so the list is packed from the front. */
+/* Whether the NPC has already been told a fact. Every slot is checked; an
+   empty one is skipped rather than ending the scan, so a hole in the list
+   does not hide the facts after it. */
 // FUNCTION: WIZ8 0x0050dd10
 bool NpcKnowsFact(W8NpcState* npc, W8FactId fact)
 {
     int slot;
 
     for (slot = 0; slot < W8_NPC_FACT_SLOTS; ++slot) {
-        if (npc->known_facts[slot] == 0) {
-            return false;
-        }
-        if (static_cast<unsigned int>(npc->known_facts[slot]) == fact) {
+        if (npc->known_facts[slot] != 0 &&
+            static_cast<unsigned short>(npc->known_facts[slot]) == fact) {
             return true;
         }
     }
