@@ -1054,8 +1054,10 @@ void srModeler::planarMapAbsolute(long pass, long layer, const MappingInfo& mapp
                 float* position = &triangle->vertices[vertex].position.x;
                 triangle->vertices[vertex].uv[pass * 2 + layer].x =
                     position[mapping.axis_u] * mapping.u_scale + mapping.u_offset;
+                /* Retail scales v by u_scale too (both fmuls read
+                   MappingInfo+8); v_scale is unused here. */
                 triangle->vertices[vertex].uv[pass * 2 + layer].y =
-                    -(position[mapping.axis_v] * mapping.v_scale) + mapping.v_offset;
+                    -(position[mapping.axis_v] * mapping.u_scale) + mapping.v_offset;
             }
             ++triangle;
         }
