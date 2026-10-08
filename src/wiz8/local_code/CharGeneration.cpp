@@ -1223,8 +1223,8 @@ void AddCharacterStartingEquipment(W8Character* character)
 
     switch (character->iProfession) {
     case W8_PROFESSION_PRIEST:
-        if (character->skills[W8_SKILL_STAFF_WAND].level >
-            character->skills[W8_SKILL_MACE_FLAIL].level) {
+        if (character->skills[W8_SKILL_MACE_FLAIL].level >
+            character->skills[W8_SKILL_STAFF_WAND].level) {
             ReplaceOrCreateItem(&item, 0x16, true, true, true);
         } else {
             ReplaceOrCreateItem(&item, 0x52, true, true, true);
