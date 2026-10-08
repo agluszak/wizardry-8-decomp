@@ -3634,12 +3634,18 @@ void W8Monster::UpdateAttachedObjects()
     }
 
     if (attachment_layout != 0) {
+        /* 0x004C40C4 indexes the layout row with a count of the markers
+           already placed (0x28(%esp), bumped at 0x004C4243 only for a present
+           slot), so the live markers pack into the first row entries
+           whatever party slots they belong to. */
+        int placed = 0;
+
         for (index = 0; index < 8; ++index) {
             W8Item* item = representation->objects[index];
 
             if (item != 0) {
                 const W8AttachmentOffset& raw =
-                    g_monster_attachment_offsets[attachment_layout - 1][index];
+                    g_monster_attachment_offsets[attachment_layout - 1][placed];
                 srVector3T<float> source(raw.x, raw.y, raw.z);
                 srVector3T<float> offset;
                 srVector3T<float> location;
@@ -3664,6 +3670,7 @@ void W8Monster::UpdateAttachedObjects()
                     mesh->setFlag(srNode::FLAG_DISABLE);
                 }
                 item->ApplyRepTransform();
+                ++placed;
             }
         }
     }
