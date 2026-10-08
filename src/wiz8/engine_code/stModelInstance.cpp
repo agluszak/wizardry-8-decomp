@@ -301,6 +301,74 @@ static void ApplyModelViewMatrix(srModelInstance* instance, srGERD* renderer, fl
     }
 }
 
+/* stModelInstance2D::process's copy of ApplyModelViewMatrix. Retail expands
+   the two copies inline with different arithmetic, so each process function
+   has its own. */
+static void ApplyModelViewMatrix2D(srModelInstance* instance, srGERD* renderer, float align_angle,
+                                   const srVector3T<float>& align_axis)
+{
+    if ((instance->alignment_flags.value & 1) == 0) {
+        instance->applyWorldSpaceMatrix(*renderer);
+    } else {
+        srMatrix4T<float> view;
+        srVector3T<double> world_location;
+        srVector3T<double> world_scale;
+        srVector4T<float> transformed_location;
+        srVector3T<float> translation;
+        srVector3T<float> basis;
+
+        renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
+        renderer->pushMatrix();
+        renderer->getMatrix(srGERD::MATRIX_MODELVIEW, view);
+        world_location = instance->getWorldSpaceLocation();
+        world_scale = instance->getWorldSpaceScale();
+
+        srVector3T<float> location;
+        location = world_location;
+        srVector3T<float> scale;
+        scale = world_scale;
+        /* Retail expands the view transform, the column lengths and the
+           handedness test inline here, each with its own association: rows 1-3
+           sum z, y, x before the translation and row 0 sums x, z, y; every column
+           length sums x, y, z; the determinant expands down the first column as
+           (m10 * b + m20 * a) + m00 * c and is compared before any rounding. */
+        const srVector4T<float>* rows = view.vectors;
+        transformed_location.Set(
+            ((rows[0].x * location.x + rows[0].z * location.z) + rows[0].y * location.y) +
+                rows[0].w,
+            ((rows[1].z * location.z + rows[1].y * location.y) + rows[1].x * location.x) +
+                rows[1].w,
+            ((rows[2].z * location.z + rows[2].y * location.y) + rows[2].x * location.x) +
+                rows[2].w,
+            ((rows[3].z * location.z + rows[3].y * location.y) + rows[3].x * location.x) +
+                rows[3].w);
+
+        basis.x = static_cast<float>(
+            sqrt((rows[0].x * rows[0].x + rows[1].x * rows[1].x) + rows[2].x * rows[2].x));
+        basis.y = static_cast<float>(
+            sqrt((rows[0].y * rows[0].y + rows[1].y * rows[1].y) + rows[2].y * rows[2].y));
+        basis.z = static_cast<float>(
+            sqrt((rows[0].z * rows[0].z + rows[1].z * rows[1].z) + rows[2].z * rows[2].z));
+
+        if ((rows[1].x * (rows[0].z * rows[2].y - rows[0].y * rows[2].z) +
+             rows[2].x * (rows[0].y * rows[1].z - rows[0].z * rows[1].y)) +
+                rows[0].x * (rows[1].y * rows[2].z - rows[1].z * rows[2].y) >
+            g_double_zero) {
+            basis = -basis;
+        }
+        /* Retail narrows the world scale to float and rounds each product to float. */
+        scale *= basis;
+
+        renderer->loadIdentity();
+        translation = transformed_location.xyz();
+        renderer->translate(translation);
+        if (align_angle != g_float_zero) {
+            renderer->rotate(align_angle, align_axis);
+        }
+        renderer->scale(scale.x, scale.y, -scale.z);
+    }
+}
+
 /* Render the instance through SurRender's detached TriMesh value. Aligned
    instances retain their screen-facing orientation while preserving the
    current view matrix's translation, scale and handedness. The optional glow
@@ -312,7 +380,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
     srMeshModel::TriMesh mesh;
     srGERD* renderer = info.renderer;
 
-    ApplyModelViewMatrix(this, renderer, align_angle, align_axis);
+    ApplyModelViewMatrix2D(this, renderer, align_angle, align_axis);
 
     srMeshModel* model = static_cast<srMeshModel*>(getModel());
     model->getTriMesh(mesh);
