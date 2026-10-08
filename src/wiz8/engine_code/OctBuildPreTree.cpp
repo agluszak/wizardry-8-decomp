@@ -1385,7 +1385,7 @@ void OctBuildPreTree::FinalizeRegionMapping()
 // FUNCTION: WIZ8 0x004b3050
 void OctBuildPreTree::AssignRegionFromSurfaces(const W8OctSpatialState* arg_spatial)
 {
-    W8OctSpatialState child(spatial);
+    W8OctSpatialState child(arg_spatial);
     if (arg_spatial->m_depth > 15) {
         return;
     }
