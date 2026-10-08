@@ -2593,12 +2593,14 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
                 float b = 0.0f;
                 for (; 0 < count; count--) {
                     float weight = slot->weight;
-                    const srVector4T<float>& source_pixel = channel_vectors[slot->index];
+                    /* The weighted sample is a float vector temporary: retail rounds each
+                       product to float before accumulating (0x10059F22, 0x1005A6AF). */
+                    srVector4T<float> weighted = channel_vectors[slot->index] * weight;
                     ++slot;
-                    a = source_pixel.x * weight + a;
-                    r = source_pixel.y * weight + r;
-                    g = source_pixel.z * weight + g;
-                    b = source_pixel.w * weight + b;
+                    a = weighted.x + a;
+                    r = weighted.y + r;
+                    g = weighted.z + g;
+                    b = weighted.w + b;
                 }
                 row_colors[x].alpha = static_cast<unsigned char>(srFloatToInt(a));
                 row_colors[x].red = static_cast<unsigned char>(srFloatToInt(r));
@@ -2699,12 +2701,14 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                 float b = 0.0f;
                 for (; 0 < count; count--) {
                     float weight = slot->weight;
-                    const srVector4T<float>& source_pixel = channel_vectors[slot->index];
+                    /* The weighted sample is a float vector temporary: retail rounds each
+                       product to float before accumulating (0x10059F22, 0x1005A6AF). */
+                    srVector4T<float> weighted = channel_vectors[slot->index] * weight;
                     ++slot;
-                    a = source_pixel.x * weight + a;
-                    r = source_pixel.y * weight + r;
-                    g = source_pixel.z * weight + g;
-                    b = source_pixel.w * weight + b;
+                    a = weighted.x + a;
+                    r = weighted.y + r;
+                    g = weighted.z + g;
+                    b = weighted.w + b;
                 }
                 column_colors[y].alpha = static_cast<unsigned char>(srFloatToInt(a));
                 column_colors[y].red = static_cast<unsigned char>(srFloatToInt(r));
