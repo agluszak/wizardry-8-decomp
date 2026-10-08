@@ -1103,7 +1103,8 @@ W8Skill GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
    Everything else aims the item and casts the spell it carries, which is where
    the spell's presentation skill and the character's own level in it decide how
    hard the attempt is. `out_uses` receives the fatigue cost of the attempt, and
-   stays -1 when nothing was attempted. */
+   stays -1 when nothing was attempted; a casting aid's attempt costs eight per
+   level of its spell plus twenty, even when it fails. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored                                                                   \
     "-Wsometimes-uninitialized" // uninit-ok: retail returns the unset used byte on rejected/spent-item paths; callers observe that indeterminate result.
@@ -1179,6 +1180,9 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
                succeeds ends the search. Bug: spells 0x58 and 0x74 have no
                presentation skill, and still index skills[-1] here. */
             skill = GetItemSpellPresentation(record);
+            /* The attempt costs fatigue by the carried spell's level, whether
+               or not it succeeds. */
+            fatigue_cost = g_spell_records[record->spell_id].spell_level * 8 + 0x14;
             power = 7;
             do {
                 if (GetItemUseDifficulty(character, skill, character->skills[skill].level,
@@ -1197,7 +1201,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             if (power == 0) {
                 PostCharacterNotice(party_slot, gppStringList[0x1f3], GetItemDisplayName(item));
                 PracticeCharacterSkill(character, skill, 1, false);
-                *out_uses = -1;
+                *out_uses = fatigue_cost;
                 return 0;
             }
         }
