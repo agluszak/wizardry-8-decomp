@@ -1071,7 +1071,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
                     if (announce_resistance) {
                         PostCharacterNotice(
                             target->iChar, gppStringList[0x181],
-                            gppStringList[g_condition_notices[condition_id].name * 4]);
+                            gppStringList[g_condition_notices[condition_id].name]);
                     }
                     return true;
                 }
