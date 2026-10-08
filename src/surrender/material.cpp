@@ -285,6 +285,7 @@ void srMaterial::reset()
     parms.shininess = 1.0f;
     parms.translucency = 0.0f;
     parms.disabled_channels = 0;
+    parms.fog_scale = 1.0f;
     parms.value_38 = 0.0f;
     dirty = 1;
     operations.value = 0;
