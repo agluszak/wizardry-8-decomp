@@ -3128,13 +3128,13 @@ void Trigger::Run(int source)
                 srVector3T<double> position = g_world->camera->getLocation();
 
                 if (action == 0x28) {
-                    spell_id = W8_SPELL_HEAL_ALL;
-                } else if (action == 0x29) {
                     spell_id = W8_SPELL_HEX;
-                } else if (action == 0x2a) {
+                } else if (action == 0x29) {
                     spell_id = W8_SPELL_SLEEP;
-                } else {
+                } else if (action == 0x2a) {
                     spell_id = W8_SPELL_NOXIOUS_FUMES;
+                } else {
+                    spell_id = W8_SPELL_HEAL_ALL;
                 }
                 PointCastSpell(srVector3T<float>(static_cast<float>(position.x),
                                                  static_cast<float>(position.y),
