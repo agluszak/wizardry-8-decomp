@@ -1061,7 +1061,9 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
                 }
                 break;
             case W8_CONDITION_INSANE:
-                if (duration == W8_CONDITION_INDEFINITE) {
+                /* Indefinite insanity gets past the mental-condition
+                   immunity; the turns ride in `magnitude`. */
+                if (magnitude == W8_CONDITION_INDEFINITE) {
                     break;
                 }
             case W8_CONDITION_TURNCOAT:
