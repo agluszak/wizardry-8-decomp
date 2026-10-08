@@ -1630,7 +1630,6 @@ bool W8Monster::EvaluateScriptCondition(const char* expression)
 bool W8Monster::SetScript(const char* script_name, bool reset_orders)
 {
     srRegistry* registry;
-    char path[256] = "Data\\Monsters\\Scripts\\";
 
     ReleaseRendererObject(script);
     runtime_flags &= ~W8_MONSTER_SCRIPT_WAIT;
@@ -1644,6 +1643,8 @@ bool W8Monster::SetScript(const char* script_name, bool reset_orders)
     registry = srCore.getRegistry();
     script = static_cast<stScript*>(registry->find(stScript::sGetClassNode(), script_name, 0));
     if (script == 0) {
+        /* Retail builds the path only on a registry miss, in a MAX_PATH buffer. */
+        char path[MAX_PATH] = "Data\\Monsters\\Scripts\\";
         strcat(path, script_name);
         script = new stScript;
         if (script != 0) {
