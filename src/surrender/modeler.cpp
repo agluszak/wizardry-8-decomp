@@ -743,21 +743,22 @@ void srModeler::findClosestVertex(const srVector3T<float>& position, unsigned lo
 // FUNCTION: SURRENDER 0x1003AA80
 double srModeler::getMaxVertexDist()
 {
-    if (triangle_count != 0) {
-        double maximum = 0.0;
-        Triangle* triangle = &triangles[0];
-        for (unsigned long index = 0; index < triangle_count; ++index) {
-            for (int vertex = 0; vertex < 3; ++vertex) {
-                float distance = triangle->vertices[vertex].position.LengthSquared();
-                if (maximum < distance) {
-                    maximum = distance;
-                }
-            }
-            ++triangle;
-        }
-        return sqrt(maximum);
+    if (triangle_count == 0) {
+        return 0.0;
     }
-    return 0.0;
+    Triangle* triangle = &triangles[0];
+    double maximum = 0.0;
+    for (unsigned long index = 0; index < triangle_count; ++index) {
+        for (int vertex = 0; vertex < 3; ++vertex) {
+            /* Retail compares and keeps the unrounded register sum. */
+            double distance = triangle->vertices[vertex].position.LengthSquared();
+            if (distance > maximum) {
+                maximum = distance;
+            }
+        }
+        ++triangle;
+    }
+    return sqrt(maximum);
 }
 
 // FUNCTION: SURRENDER 0x1003AB30
