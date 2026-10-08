@@ -2633,6 +2633,8 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
         unsigned long* column = (unsigned long*)column_colors;
         srVector4T<float>* channel_vectors = new srVector4T<float>[source_height];
         SampleWeight* storage;
+        /* Unlike scaleHorizontal, both branches center the source window at y / scale + 0.5
+           (retail 0x1005A501 and 0x1005A3AD). */
         if (1.0 <= scale) {
             long entries = 1 - (long)(support * -2.0);
             storage = new SampleWeight[entries * height];
@@ -2640,7 +2642,7 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                 SampleContributions* entry = counts + y;
                 entry->count = 0;
                 entry->samples = storage + y * entries;
-                double center = y / scale - 0.5;
+                double center = y / scale + 0.5;
                 double total = 0.0;
                 long first = (long)ceil(center - support);
                 long last = (long)floor(center + support);
