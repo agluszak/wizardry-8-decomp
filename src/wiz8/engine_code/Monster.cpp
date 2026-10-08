@@ -3224,7 +3224,11 @@ void W8Monster::UpdateRepresentation(W8World* world)
         g_octree->UpdateMonsterLocation(static_cast<unsigned short>(location_id), &position);
     }
 
-    if ((node == 0 || node->testFlag(srNode::FLAG_DISABLE) == 0) && IsRenderable(false)) {
+    /* Only a monster whose current world sector mesh is enabled (or that has
+       none yet) is re-attached; this is the octree sector cache at 0x308, not
+       the navigator's scene node. */
+    if ((sector_mesh == 0 || sector_mesh->testFlag(srNode::FLAG_DISABLE) == 0) &&
+        IsRenderable(false)) {
         W8GrCycle::UpdateRepresentation(world);
         model = GetCurrentModelInstance();
         if (model != 0) {
