@@ -28,4 +28,4 @@ private:
     unsigned char m_shorten_mask; /* raw shortening bit from text-area behavior flags */
     bool m_marked;                /* marked transcript entry palette */
 };
-static_assert(sizeof(W8DialogTextEntry) == 0x64, "W8DialogTextEntry_size");
+W8_ABI_ASSERT(sizeof(W8DialogTextEntry) == 0x64, "W8DialogTextEntry_size");

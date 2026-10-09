@@ -13,6 +13,6 @@ struct W8PList {
     int iNumUsed; /* 0x08 */
 };
 
-static_assert(sizeof(W8PList) == 0x0c, "W8PList_must_be_0x0c");
+W8_ABI_ASSERT(sizeof(W8PList) == 0x0c, "W8PList_must_be_0x0c");
 
 #endif

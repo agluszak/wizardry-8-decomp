@@ -15,7 +15,7 @@ public:
         virtual void cancel() = 0;
     };
 
-    static_assert(sizeof(Job) == 0x04, "srScheduler_Job_must_be_0x04");
+    W8_ABI_ASSERT(sizeof(Job) == 0x04, "srScheduler_Job_must_be_0x04");
 
     SR_DLL_IMPORT srScheduler();
     SR_DLL_IMPORT ~srScheduler();
@@ -25,11 +25,11 @@ public:
     SR_DLL_IMPORT void cancelAll();
     SR_DLL_IMPORT void finish(Job& job);
     SR_DLL_IMPORT void finishAll();
-    SR_DLL_IMPORT long getJobCount() const;
+    SR_DLL_IMPORT w8_long getJobCount() const;
 
 private:
     struct WorkerSlot {
-        long thread_handle;
+        w8_long thread_handle;
         srScheduler* scheduler;
     };
 
@@ -42,9 +42,9 @@ private:
         State state;
     };
 
-    static_assert(sizeof(WorkerSlot) == 0x08, "srScheduler_WorkerSlot_must_be_0x08");
-    static_assert(sizeof(QueueEntry) == 0x10, "srScheduler_QueueEntry_must_be_0x10");
-    static_assert(sizeof(srHashTable<Job*, QueueEntry*>) == 0x10,
+    W8_ABI_ASSERT(sizeof(WorkerSlot) == 0x08, "srScheduler_WorkerSlot_must_be_0x08");
+    W8_ABI_ASSERT(sizeof(QueueEntry) == 0x10, "srScheduler_QueueEntry_must_be_0x10");
+    W8_ABI_ASSERT(sizeof(srHashTable<Job*, QueueEntry*>) == 0x10,
                   "srScheduler_lookup_table_must_be_0x10");
     /* starts a worker thread on the first idle slot when queued
        jobs outnumber busy workers. */
@@ -69,7 +69,7 @@ private:
     void waitForJob(Job* job);
     /* pops the head job, executes it and retires its entry;
        returns 0 when the queue is empty. */
-    long executeNextJob();
+    w8_long executeNextJob();
     /* worker thread entry; drains the queue then clears the
        slot's handle. Takes the WorkerSlot as the raw void* thread argument. */
     static void __cdecl workerEntry(void* argument);
@@ -78,9 +78,9 @@ private:
     srHashTable<Job*, QueueEntry*> lookup;
     QueueEntry* first_job;
     QueueEntry* last_job;
-    long job_count;
-    long worker_count;
+    w8_long job_count;
+    w8_long worker_count;
     srCriticalSection* critical_section;
 };
 
-static_assert(sizeof(srScheduler) == 0x44, "srScheduler_must_be_0x44");
+W8_ABI_ASSERT(sizeof(srScheduler) == 0x44, "srScheduler_must_be_0x44");

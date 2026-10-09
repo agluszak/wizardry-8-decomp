@@ -37,13 +37,13 @@ void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8Tg
     }
 
     int rle = header->image_type == 9 || header->image_type == 10 || header->image_type == 11;
-    long pixel_step = surface->pixel_format.pixel_size + 1;
-    long file_bpp = header->pixel_depth >> 3;
+    w8_long pixel_step = surface->pixel_format.pixel_size + 1;
+    w8_long file_bpp = header->pixel_depth >> 3;
     if (file_bpp <= 0 || file_bpp > 4) {
         return;
     }
 
-    long row_step = 0;
+    w8_long row_step = 0;
     if ((header->image_descriptor & 0x20) == 0) {
         row_step = header->width * pixel_step * -2;
         destination += (header->height - 1) * header->width * pixel_step;
@@ -79,14 +79,14 @@ void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8Tg
 
     unsigned int file_offset = 0;
     unsigned int step = file_bpp;
-    for (long row = 0; row < header->height; ++row) {
+    for (w8_long row = 0; row < header->height; ++row) {
         if (!rle) {
             unsigned int row_bytes = header->width * file_bpp;
             memcpy(scratch, file_data + file_offset, row_bytes);
             file_offset += header->width * file_bpp;
         }
 
-        long column = 0;
+        w8_long column = 0;
         unsigned char* source = scratch;
         while (column < header->width) {
             if (carry == 0) {
@@ -129,7 +129,7 @@ void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8Tg
 }
 
 // FUNCTION: WIZ8 0x0047C090
-srColorSurface* __stdcall LoadSurface(int handle, long*)
+srColorSurface* __stdcall LoadSurface(int handle, w8_long*)
 {
     W8TgaHeader header;
     unsigned short width;
@@ -284,7 +284,7 @@ stTextureFile& stTextureFile::operator=(const stTextureFile& other)
 }
 
 // FUNCTION: WIZ8 0x0047C5F0
-unsigned long stTextureFile::getTextureFrameHandle()
+w8_ulong stTextureFile::getTextureFrameHandle()
 {
     if ((texture_flags_ & LOAD_FAILED) != 0) {
         return 0;
@@ -353,7 +353,7 @@ void stTextureFile::loadSurface()
 {
     /* The second LoadSurface argument is an out-pointer the callee ignores;
        the caller still initializes the dword it passes. */
-    long unused = 0;
+    w8_long unused = 0;
 
     if (surface != 0) {
         invalidate();
@@ -396,7 +396,7 @@ void stTextureFile::getMipmapData(MultiRequest& request)
 
     /* 0x0047CA85 and 0x0047CAAB compare the level against last_level
        unsigned, and last_level is already unsigned in the request record. */
-    unsigned long level = static_cast<unsigned long>(request.mipmap_level);
+    w8_ulong level = static_cast<w8_ulong>(request.mipmap_level);
     if (request.destinations[level] != 0) {
         request.destinations[level]->copy(*surface);
     }

@@ -35,7 +35,7 @@ typedef wchar_t* STR16;
 // flags (individual bits used)
 typedef unsigned char FLAGS8;
 typedef unsigned short FLAGS16;
-typedef unsigned long FLAGS32;
+typedef w8_ulong FLAGS32;
 // other
 typedef unsigned char BOOLEAN;
 typedef void* PTR;

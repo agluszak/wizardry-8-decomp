@@ -19,14 +19,15 @@
 #endif
 
 /* Zero fill that pre-aligns the destination to an 8-byte boundary. */
-inline void srZeroMemory(void* destination, long size)
+inline void srZeroMemory(void* destination, w8_long size)
 {
     if (size > 0) {
         /* reinterpret-ok: raw address alignment is storage the type system
            cannot express. */
-        unsigned long misalign = reinterpret_cast<unsigned long>(destination) & 7;
+        // reinterpret-ok: address bits determine the existing eight-byte alignment prefix
+        w8_ulong misalign = reinterpret_cast<w8_ulong_ptr>(destination) & 7;
         if (size >= 8 && misalign != 0) {
-            unsigned long head = 8 - misalign;
+            w8_ulong head = 8 - misalign;
             memset(destination, 0, head);
             /* reinterpret-ok: byte-granular advance past the head fill. */
             memset(reinterpret_cast<unsigned char*>(destination) + head, 0, size - head);
@@ -37,9 +38,9 @@ inline void srZeroMemory(void* destination, long size)
 }
 
 /* Float-to-int through the FPU's current rounding mode (round to nearest, not truncation). */
-inline long srFloatToInt(float value)
+inline w8_long srFloatToInt(float value)
 {
-    long result;
+    w8_long result;
     __asm {
         fld value
         fistp result
@@ -47,9 +48,9 @@ inline long srFloatToInt(float value)
     return result;
 }
 
-inline long srFloatToInt(double value)
+inline w8_long srFloatToInt(double value)
 {
-    long result;
+    w8_long result;
     __asm {
         fld value
         fistp result
@@ -62,11 +63,11 @@ public:
     SR_DLL_IMPORT srHeap();
     SR_DLL_IMPORT ~srHeap();
 
-    SR_DLL_IMPORT void* allocate(unsigned long size);
+    SR_DLL_IMPORT void* allocate(w8_ulong size);
     SR_DLL_IMPORT void free(void* allocation);
     SR_DLL_IMPORT void free(void* allocation, unsigned int size);
     SR_DLL_IMPORT void freeAll();
-    SR_DLL_IMPORT unsigned long msize(void* allocation);
+    SR_DLL_IMPORT w8_ulong msize(void* allocation);
     SR_DLL_IMPORT void dump(std::ostream& stream);
 
 private:
@@ -74,46 +75,46 @@ private:
 
     struct Block {
         void* allocation;
-        unsigned long alloc_size;
+        w8_ulong alloc_size;
         Block* next;
         Block* previous;
-        unsigned long largest_free_size;
+        w8_ulong largest_free_size;
         Chunk* largest_free_block;
-        unsigned long guard0;
-        unsigned long guard1;
+        w8_ulong guard0;
+        w8_ulong guard1;
     };
 
-    static_assert(sizeof(Block) == 0x20, "srHeap_Block_must_be_0x20");
+    W8_ABI_ASSERT(sizeof(Block) == 0x20, "srHeap_Block_must_be_0x20");
 
     /* In-block allocation record for the pooled mid-size path. The header sits immediately before
        the user pointer; its last byte is the allocation tag read by free(). */
     struct Chunk {
         Block* owner;
-        unsigned long size;
+        w8_ulong size;
         Chunk* previous;
         Chunk* next;
         Chunk* free_previous;
         Chunk* free_next;
-        unsigned long free;
+        w8_ulong free;
         char unused[3];
         char tag;
     };
 
-    static_assert(sizeof(Chunk) == 0x20, "srHeap_Chunk_must_be_0x20");
+    W8_ABI_ASSERT(sizeof(Chunk) == 0x20, "srHeap_Chunk_must_be_0x20");
 
-    Block* allocateBlock(unsigned long size);
+    Block* allocateBlock(w8_ulong size);
     void releaseBlock(Block* block);
     void releaseCachedBlock();
     void freeSystemBlock(void* allocation);
     void checkBlock(Block* block);
-    void* splitFree(Block* block, unsigned long size);
-    void* allocatePooled(unsigned long size);
+    void* splitFree(Block* block, w8_ulong size);
+    void* allocatePooled(w8_ulong size);
     void freePooled(void* allocation);
-    void* allocateSystem(unsigned long size);
+    void* allocateSystem(w8_ulong size);
     void freeSystem(void* allocation);
 
     void* small_free_lists[32];
-    unsigned long current_block_offset;
+    w8_ulong current_block_offset;
     Block* current_block;
     Block* small_blocks;
     Block* partial_blocks;
@@ -121,13 +122,13 @@ private:
     Block* medium_blocks;
     Block* large_blocks;
     Block* cached_block;
-    unsigned long active_block_count;
-    unsigned long block_size;
-    unsigned long block_sequence;
-    unsigned long system_block_count;
+    w8_ulong active_block_count;
+    w8_ulong block_size;
+    w8_ulong block_sequence;
+    w8_ulong system_block_count;
     srCriticalSection* critical_section;
 };
 
-static_assert(sizeof(srHeap) == 0xb4, "srHeap_must_be_0xb4");
+W8_ABI_ASSERT(sizeof(srHeap) == 0xb4, "srHeap_must_be_0xb4");
 
 extern SR_DLL_IMPORT class srHeap srHeap;

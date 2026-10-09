@@ -14,7 +14,7 @@
 srVP* srVectorProcessor::vp = 0;
 srVP* srVectorProcessor::base = 0;
 srDebugVP* srVectorProcessor::debug = 0;
-unsigned long srVectorProcessor::debug_active = 0;
+w8_ulong srVectorProcessor::debug_active = 0;
 void* srVectorProcessor::module = 0;
 
 // FUNCTION: SURRENDER 0x10064370
@@ -95,8 +95,8 @@ void srVectorProcessor::dump(std::ostream& stream)
     if (used == 0 || total == 0.0) {
         return;
     }
-    SRDWORD* scores = static_cast<SRDWORD*>(operator new(used * 4));
-    int* order = static_cast<int*>(operator new(used * 4));
+    SRDWORD* scores = static_cast<SRDWORD*>(operator new(used * sizeof(*scores)));
+    int* order = static_cast<int*>(operator new(used * sizeof(*order)));
     index = 0;
     for (command = 0; command < 0xa6; ++command) {
         if (debug->call_counts[command] != 0) {
@@ -208,7 +208,7 @@ void srVectorProcessor::initBaseVP()
 }
 
 // FUNCTION: SURRENDER 0x10064A40
-long srVectorProcessor::getID(const char* filename)
+w8_long srVectorProcessor::getID(const char* filename)
 {
     if (filename == 0) {
         return -1;
@@ -227,7 +227,7 @@ long srVectorProcessor::getID(const char* filename)
         srDynamicLibrary::free(probe_module);
         return -1;
     }
-    long id = get_id();
+    w8_long id = get_id();
     srDynamicLibrary::free(probe_module);
     return id;
 }
@@ -236,15 +236,15 @@ long srVectorProcessor::getID(const char* filename)
 int srVectorProcessor::loadBest(const char* path)
 {
     srStringTable libraries;
-    long best = 0;
-    long count;
+    w8_long best = 0;
+    w8_long count;
     int index;
 
     install(0);
     srSystem::scanLibraries(libraries, path, "srVP_*");
     count = libraries.getCount();
     for (index = 0; index < count; ++index) {
-        long id = getID(libraries.getString(index));
+        w8_long id = getID(libraries.getString(index));
         if (best <= id) {
             if (load(libraries.getString(index)) != 0) {
                 best = id;

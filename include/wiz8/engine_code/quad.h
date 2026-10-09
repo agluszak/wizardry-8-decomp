@@ -16,14 +16,14 @@ struct W8QuadCell {
     unsigned char padding_0d[3];
 };
 
-static_assert(sizeof(W8QuadCell) == 0x10, "W8QuadCell_must_be_0x10");
+W8_ABI_ASSERT(sizeof(W8QuadCell) == 0x10, "W8QuadCell_must_be_0x10");
 
 struct W8QuadRow {
     W8QuadCell* cells;
     unsigned int count;
 };
 
-static_assert(sizeof(W8QuadRow) == 0x8, "W8QuadRow_must_be_0x8");
+W8_ABI_ASSERT(sizeof(W8QuadRow) == 0x8, "W8QuadRow_must_be_0x8");
 
 struct W8Quad {
     unsigned int row_count;
@@ -34,7 +34,7 @@ struct W8Quad {
     unsigned int dirty;
 };
 
-static_assert(sizeof(W8Quad) == 0x1c, "W8Quad_must_be_0x1c");
+W8_ABI_ASSERT(sizeof(W8Quad) == 0x1c, "W8Quad_must_be_0x1c");
 
 void DestroyWorldQuad(W8Quad* quad);
 W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x, float minimum_y,

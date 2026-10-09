@@ -37,7 +37,7 @@ public:
     char** m_pLinkStrings;
 };
 
-static_assert(sizeof(OctPrePathLog) == 0x20, "OctPrePathLog_must_be_0x20");
+W8_ABI_ASSERT(sizeof(OctPrePathLog) == 0x20, "OctPrePathLog_must_be_0x20");
 
 // FUNCTION: WIZ8 0x004CCE00
 OctPrePathLog::OctPrePathLog(float scale, const W8BoundingBox* bounds)
@@ -49,7 +49,7 @@ OctPrePathLog::OctPrePathLog(float scale, const W8BoundingBox* bounds)
         width = static_cast<int>((bounds->maximum.x - bounds->minimum.x) / scale) + 1;
         rows = static_cast<int>((bounds->maximum.z - bounds->minimum.z) / scale) + 1;
         m_minimum = bounds->minimum;
-        m_pPathStrings = static_cast<char**>(malloc(rows << 2));
+        m_pPathStrings = static_cast<char**>(malloc(rows * sizeof(*m_pPathStrings)));
         if (m_pPathStrings == 0) {
             ReportBuildStatus(7, "OctPrePathLog: Could not allocate m_pPathStrings.\n");
             return;
@@ -59,7 +59,7 @@ OctPrePathLog::OctPrePathLog(float scale, const W8BoundingBox* bounds)
             memset(m_pPathStrings[i], ' ', width);
             m_pPathStrings[i][width] = 0;
         }
-        m_pLinkStrings = static_cast<char**>(malloc(rows << 2));
+        m_pLinkStrings = static_cast<char**>(malloc(rows * sizeof(*m_pLinkStrings)));
         if (m_pLinkStrings == 0) {
             ReportBuildStatus(7, "OctPrePathLog: Could not allocate m_pLinkStrings.\n");
             return;
@@ -185,7 +185,8 @@ unsigned char PrePathing::BuildPathList(W8PrePathNode* nodes,
 {
     this->cell_map = cell_map;
     path_log = new OctPrePathLog(grid_scale, &level_bounds);
-    path_node_list = static_cast<W8PrePathNode**>(malloc(path_node_count << 2));
+    path_node_list =
+        static_cast<W8PrePathNode**>(malloc(path_node_count * sizeof(*path_node_list)));
     if (path_node_list == 0) {
         char message[0x100];
         sprintf(message, "BuildPathList: Could not allocate path node list, length %d nodes.\n",
@@ -559,7 +560,8 @@ unsigned char PrePathing::CreateAutomapNodes(W8LevelFile* level)
     ReportStartupMessage(message);
     sprintf(message, "  %d Total Automap Nodes.\n", level->num_automap_nodes);
     ReportBuildStatus(6, message);
-    level->automap_nodes = static_cast<unsigned long*>(malloc(level->num_automap_nodes << 2));
+    level->automap_nodes =
+        static_cast<w8_ulong*>(malloc(level->num_automap_nodes * sizeof(*level->automap_nodes)));
     if (level->automap_nodes == 0) {
         level->num_automap_nodes = 0;
     } else {
@@ -594,12 +596,13 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
         m_pPathValues->Insert(&file_path_nodes[i].cell, &file_path_nodes[i].level_flags);
     }
 
-    GDPropCondPaths** ppCondPaths = static_cast<GDPropCondPaths**>(malloc(lNumProps * 4 + 8));
+    GDPropCondPaths** ppCondPaths =
+        static_cast<GDPropCondPaths**>(malloc((lNumProps + 2) * sizeof(*ppCondPaths)));
     if (ppCondPaths == 0) {
         srAssertFail("ppCondPaths", OCTPREPATH_CPP, 1037,
                      "LinkCollideableProps: Couldn't allocate GDPropCondPaths objects.");
     }
-    memset(ppCondPaths, 0, lNumProps * 4 + 8);
+    memset(ppCondPaths, 0, (lNumProps + 2) * sizeof(*ppCondPaths));
 
     int ulOriginalCount = 0;
     for (i = 0; i < lNumProps; ++i) {
@@ -702,27 +705,31 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
         }
     }
 
-    m_pulCondLookup = static_cast<unsigned int*>(malloc(m_ulNumCondFrames << 2));
+    m_pulCondLookup =
+        static_cast<unsigned int*>(malloc(m_ulNumCondFrames * sizeof(*m_pulCondLookup)));
     if (m_pulCondLookup == 0) {
         srAssertFail("m_pulCondLookup", OCTPREPATH_CPP, 1127, 0);
     }
-    memcpy(m_pulCondLookup, aiLookup + 1, m_ulNumCondFrames << 2);
+    memcpy(m_pulCondLookup, aiLookup + 1, m_ulNumCondFrames * sizeof(*m_pulCondLookup));
 
-    m_pusCondNodeFrames = static_cast<unsigned short*>(malloc(m_ulNumCondFrames << 1));
+    m_pusCondNodeFrames =
+        static_cast<unsigned short*>(malloc(m_ulNumCondFrames * sizeof(*m_pusCondNodeFrames)));
     if (m_pusCondNodeFrames == 0) {
         srAssertFail("m_pusCondNodeFrames", OCTPREPATH_CPP, 1130, 0);
     }
-    memcpy(m_pusCondNodeFrames, ausFrames, m_ulNumCondFrames << 1);
+    memcpy(m_pusCondNodeFrames, ausFrames, m_ulNumCondFrames * sizeof(*m_pusCondNodeFrames));
 
-    m_pulCondNodeKeys = static_cast<unsigned int*>(malloc(m_ulNumCondNodes << 2));
+    m_pulCondNodeKeys =
+        static_cast<unsigned int*>(malloc(m_ulNumCondNodes * sizeof(*m_pulCondNodeKeys)));
     if (m_pulCondNodeKeys == 0) {
         srAssertFail("m_pulCondNodeKeys", OCTPREPATH_CPP, 1134, 0);
     }
-    memcpy(m_pulCondNodeKeys, aulKeys, m_ulNumCondNodes << 2);
+    memcpy(m_pulCondNodeKeys, aulKeys, m_ulNumCondNodes * sizeof(*m_pulCondNodeKeys));
 
-    m_pulCondNodeValues = static_cast<unsigned int*>(malloc(m_ulNumCondNodes << 2));
+    m_pulCondNodeValues =
+        static_cast<unsigned int*>(malloc(m_ulNumCondNodes * sizeof(*m_pulCondNodeValues)));
     if (m_pulCondNodeValues == 0) {
         srAssertFail("m_pulCondNodeValues", OCTPREPATH_CPP, 1137, 0);
     }
-    memcpy(m_pulCondNodeValues, aulValues, m_ulNumCondNodes << 2);
+    memcpy(m_pulCondNodeValues, aulValues, m_ulNumCondNodes * sizeof(*m_pulCondNodeValues));
 }

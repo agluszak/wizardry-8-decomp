@@ -613,7 +613,7 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
     ApplyModelViewMatrix(this, renderer, align_angle, align_axis);
 
     if (exclusion_mask != 0) {
-        unsigned long previous_mask = renderer->getExclusionMask();
+        w8_ulong previous_mask = renderer->getExclusionMask();
         renderer->setExclusionMask(exclusion_mask | previous_mask);
         RenderMeshes(*renderer);
         renderer->setExclusionMask(previous_mask);
@@ -722,8 +722,8 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         }
         srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures;
         if (poly_textures != 0 && mesh.active_polygons == 0) {
-            long active_count;
-            unsigned long* active;
+            w8_long active_count;
+            w8_ulong* active;
             if (damage_stage >= 0) {
                 mesh.poly_textures[0][0] =
                     model->GetTextureTable(damage_stage_tables.data[damage_stage]);
@@ -800,7 +800,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     }
                     /* Retail expresses the scratch grow as vertex_count*3
                        floats but stores it as the vec3 element capacity. */
-                    unsigned long needed = mesh.vertex_count * 3 * sizeof(float);
+                    w8_ulong needed = mesh.vertex_count * 3 * sizeof(float);
                     if (g_vertex_scratch->capacity < needed) {
                         g_vertex_scratch->setCapacity(needed, 0);
                     }
@@ -814,8 +814,8 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     }
                     srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures;
                     if (poly_textures != 0 && mesh.active_polygons == 0) {
-                        long active_count;
-                        unsigned long* active;
+                        w8_long active_count;
+                        w8_ulong* active;
                         if (damage_stage >= 0) {
                             active = model->GetActivePolygons(
                                 &active_count, damage_stage_tables.data[damage_stage], true);
@@ -925,7 +925,8 @@ static void BuildShadowMesh()
                 material->setDiffuse(color);
                 material->m_surface_flags = 0;
             }
-            srVector3i* triangles = static_cast<srVector3i*>(srHeap.allocate(6 * sizeof(long)));
+            srVector3i* triangles =
+                static_cast<srVector3i*>(srHeap.allocate(2 * sizeof(*triangles)));
             g_shadow_mesh->poly_vertices = triangles;
             triangles[0].x = 0;
             triangles[0].y = 1;
@@ -933,7 +934,8 @@ static void BuildShadowMesh()
             triangles[1].x = 3;
             triangles[1].y = 4;
             triangles[1].z = 5;
-            srVector3T<float>* positions = static_cast<srVector3T<float>*>(srHeap.allocate(0x48));
+            srVector3T<float>* positions =
+                static_cast<srVector3T<float>*>(srHeap.allocate(6 * sizeof(*positions)));
             g_shadow_mesh->positions = positions;
             positions[0].Set(-250.0f, 250.0f, 0.0f);
             positions[1].Set(0.0f, -250.0f, 0.0f);

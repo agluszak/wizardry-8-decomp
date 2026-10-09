@@ -48,7 +48,7 @@ struct W8LevelLoadDescriptor {
     bool waiting;    /* 0x0fc, gates the polling path */
     char name[0x3f]; /* 0x0fd, bounded only by the next field */
     W8SaveScreenshot* save_payload;
-    unsigned long entered_tick;
+    w8_ulong entered_tick;
     int caption_y;
 };
 
@@ -348,7 +348,7 @@ unsigned char PleaseWaitScreenLeave(int leaving)
 // FUNCTION: WIZ8 0x005915A0
 void UpdatePleaseWaitLoadFrame(void)
 {
-    unsigned long tick;
+    w8_ulong tick;
 
     SoundServiceStreams();
     ServiceMusicPlaylist();

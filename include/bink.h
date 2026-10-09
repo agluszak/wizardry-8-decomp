@@ -12,9 +12,8 @@
  */
 
 #include <windows.h>
-
-typedef signed long S32;
-typedef unsigned long U32;
+typedef w8_long S32;
+typedef w8_ulong U32;
 
 struct BINK;
 struct BINKSND;

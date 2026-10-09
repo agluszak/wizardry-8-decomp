@@ -389,10 +389,11 @@ srDebugVP::ScopeTimer::ScopeTimer(srDebugVP* owner, SRDWORD elements, e_command 
     this->index = index;
     if (owner->check_misalignments != 0) {
         /* reinterpret-ok: one mask over all pointer arguments reports any misaligned address. */
-        unsigned long mask = reinterpret_cast<unsigned long>(pointer_0) |
-                             reinterpret_cast<unsigned long>(pointer_1) |
-                             reinterpret_cast<unsigned long>(pointer_2) |
-                             reinterpret_cast<unsigned long>(pointer_3);
+        w8_ulong_ptr mask =
+            // reinterpret-ok: raw addresses provide the existing combined alignment test
+            reinterpret_cast<w8_ulong_ptr>(pointer_0) | reinterpret_cast<w8_ulong_ptr>(pointer_1) |
+            // reinterpret-ok: raw addresses provide the existing combined alignment test
+            reinterpret_cast<w8_ulong_ptr>(pointer_2) | reinterpret_cast<w8_ulong_ptr>(pointer_3);
         if ((mask & 7) != 0) {
             ++owner->misaligned8[index];
         }

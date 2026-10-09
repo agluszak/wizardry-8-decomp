@@ -77,16 +77,16 @@ struct W8Item : public W8GrObject {
 
 /* 0x0049F350 allocates the 0x94-byte representation; 0x0049F5D0 allocates
    the 0x20-byte item. */
-static_assert(sizeof(W8ItemRep) == 0x94, "W8ItemRep_size");
-static_assert(sizeof(W8Item) == 0x20, "W8Item_size");
-static_assert(offsetof(W8ItemRep, m_psrMesh) == 0x64, "W8ItemRep_m_psrMesh_offset");
-static_assert(offsetof(W8ItemRep, bounds_minimum) == 0x68, "W8ItemRep_bounds_minimum_offset");
-static_assert(offsetof(W8ItemRep, bounds_maximum) == 0x74, "W8ItemRep_bounds_maximum_offset");
-static_assert(offsetof(W8ItemRep, bounds_radius) == 0x80, "W8ItemRep_bounds_radius_offset");
-static_assert(offsetof(W8ItemRep, pulse_level) == 0x88, "W8ItemRep_pulse_level_offset");
-static_assert(offsetof(W8ItemRep, flags) == 0x90, "W8ItemRep_flags_offset");
-static_assert(offsetof(W8Item, trigger) == 0x18, "W8Item_trigger_offset");
-static_assert(offsetof(W8Item, countdown) == 0x1c, "W8Item_countdown_01c_offset");
+W8_ABI_ASSERT(sizeof(W8ItemRep) == 0x94, "W8ItemRep_size");
+W8_ABI_ASSERT(sizeof(W8Item) == 0x20, "W8Item_size");
+W8_ABI_ASSERT(offsetof(W8ItemRep, m_psrMesh) == 0x64, "W8ItemRep_m_psrMesh_offset");
+W8_ABI_ASSERT(offsetof(W8ItemRep, bounds_minimum) == 0x68, "W8ItemRep_bounds_minimum_offset");
+W8_ABI_ASSERT(offsetof(W8ItemRep, bounds_maximum) == 0x74, "W8ItemRep_bounds_maximum_offset");
+W8_ABI_ASSERT(offsetof(W8ItemRep, bounds_radius) == 0x80, "W8ItemRep_bounds_radius_offset");
+W8_ABI_ASSERT(offsetof(W8ItemRep, pulse_level) == 0x88, "W8ItemRep_pulse_level_offset");
+W8_ABI_ASSERT(offsetof(W8ItemRep, flags) == 0x90, "W8ItemRep_flags_offset");
+W8_ABI_ASSERT(offsetof(W8Item, trigger) == 0x18, "W8Item_trigger_offset");
+W8_ABI_ASSERT(offsetof(W8Item, countdown) == 0x1c, "W8Item_countdown_01c_offset");
 
 bool ReadItemFromFile(W8ReadLevelInfo* info, W8Item** item, bool anonymous_mesh);
 /* Run the item's trigger, if any, and report its action state. */

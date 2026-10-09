@@ -4,14 +4,14 @@
 
 class SR_DLL_EXPORT srThread {
 public:
-    static unsigned long begin(void(__cdecl* entry)(void*), void* argument);
+    static w8_ulong begin(void(__cdecl* entry)(void*), void* argument);
     static void end();
-    static unsigned long getHandle();
-    static long getYieldCount();
-    static void yield(unsigned long milliseconds);
+    static w8_ulong getHandle();
+    static w8_long getYieldCount();
+    static void yield(w8_ulong milliseconds);
 
 private:
-    static long yieldCount;
+    static w8_long yieldCount;
 };
 
 static_assert(sizeof(srThread) == 0x01, "srThread_must_be_0x01");

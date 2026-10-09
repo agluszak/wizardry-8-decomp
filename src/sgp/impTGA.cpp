@@ -6,15 +6,15 @@
 //		20nov96:HJH				- Creation
 //				Includes
 
-#include "types.h"
-#include "Fileman.h"
-#include "memman.h"
+#include "Types.h"
+#include "FileMan.h"
+#include "MemMan.h"
 #include "WCheck.h"
 #include "himage.h"
 #include "impTGA.h"
 #include "string.h"
-#include "debug.h"
-#include "video2.h"
+#include "DEBUG.H"
+#include "Video2.h"
 //				Defines
 //				Typedefs
 //				Function Prototypes

@@ -38,7 +38,7 @@ private:
     W8HashTable<unsigned int, MGSKeyBinding*> m_command_index;
 };
 
-static_assert(sizeof(MGSKeyboard) == 0x24, "MGSKeyboard_size");
+W8_ABI_ASSERT(sizeof(MGSKeyboard) == 0x24, "MGSKeyboard_size");
 
 extern MGSKeyboard* g_mgs_keyboard;
 

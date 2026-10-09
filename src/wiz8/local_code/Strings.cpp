@@ -69,7 +69,7 @@ unsigned char GetStringFromStringDatabase(const char* path, int index, wchar_t* 
 }
 
 // FUNCTION: WIZ8 0x005300e0
-void DecodeLocalizedText(unsigned short* text, int character_count)
+void DecodeLocalizedText(CHAR16* text, int character_count)
 {
     while (character_count-- > 0) {
         *text = static_cast<unsigned short>(~*text + 0x9697);

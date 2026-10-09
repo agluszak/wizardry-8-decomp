@@ -55,4 +55,4 @@ protected:
     e_clip clip_type_;             /* 0x148 */
 };
 
-static_assert(sizeof(srClipPlane) == 0x150, "srClipPlane_must_be_0x150");
+W8_ABI_ASSERT(sizeof(srClipPlane) == 0x150, "srClipPlane_must_be_0x150");

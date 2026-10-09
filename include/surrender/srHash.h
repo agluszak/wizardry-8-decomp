@@ -2,21 +2,21 @@
 
 /* The open-chained hash table the SurRender SDK carries for its own code. Entries double as the
    free list: next_index links a bucket chain while live and the next unused slot while free. */
-inline unsigned int srHashValue(unsigned long key)
+inline unsigned int srHashValue(w8_ulong key)
 {
-    unsigned long mixed = (key >> 10) ^ key;
+    w8_ulong mixed = (key >> 10) ^ key;
     return (mixed >> 10) ^ key;
 }
 
 inline unsigned int srHashValue(unsigned short key)
 {
-    return srHashValue(static_cast<unsigned long>(key));
+    return srHashValue(static_cast<w8_ulong>(key));
 }
 
 inline unsigned int srHashValue(const void* key)
 {
     // reinterpret-ok: pointer-keyed hashing mixes the pointer's integer value
-    return srHashValue(reinterpret_cast<unsigned long>(key));
+    return srHashValue(static_cast<w8_ulong>(reinterpret_cast<w8_ulong_ptr>(key)));
 }
 
 template <class Key, class Value> struct srHashEntry {

@@ -3,7 +3,7 @@
 #include <windows.h>
 
 // FUNCTION: SURRENDER 0x100459D0
-long srWindow::getWidth(unsigned long handle)
+w8_long srWindow::getWidth(w8_ulong_ptr handle)
 {
     RECT client;
     /* reinterpret-ok: Win32 window handle arrives as a raw ulong across the
@@ -17,7 +17,7 @@ long srWindow::getWidth(unsigned long handle)
 }
 
 // FUNCTION: SURRENDER 0x10045A00
-long srWindow::getHeight(unsigned long handle)
+w8_long srWindow::getHeight(w8_ulong_ptr handle)
 {
     RECT client;
     /* reinterpret-ok: Win32 window handle arrives as a raw ulong across the
@@ -31,7 +31,7 @@ long srWindow::getHeight(unsigned long handle)
 }
 
 // FUNCTION: SURRENDER 0x10045A30
-int srWindow::isWindow(unsigned long handle)
+int srWindow::isWindow(w8_ulong_ptr handle)
 {
     /* reinterpret-ok: Win32 window handle arrives as a raw ulong across the
        srGERD ABI boundary. */

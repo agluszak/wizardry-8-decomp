@@ -5,6 +5,7 @@
 
 #include "Types.h"
 #include "windows.h"
+#include <windows.h>
 #include "FileMan.h"
 
 #define FILENAME_SIZE 256
@@ -134,7 +135,7 @@ typedef struct {
     UINT32 uiLength;
     UINT8 ubState;
     UINT8 ubReserved;
-    FILETIME sFileTime;
+    SGP_FILETIME sFileTime;
     UINT16 usReserved2;
 } DIRENTRY;
 

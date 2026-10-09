@@ -19,32 +19,32 @@ public:
     /* srTexture::getDimensions copies this block wholesale; palette is assigned through
        srPtr::operator=, so the output object must be constructed. */
     struct Dimensions {
-        unsigned long width;
-        unsigned long height;
+        w8_ulong width;
+        w8_ulong height;
         srPtr<srPalette> palette;
         srPixelConvert::PixelFormat format;
-        unsigned long hints;
+        w8_ulong hints;
         e_compression compression;
         srFilter* filter;
     };
-    static_assert(sizeof(Dimensions) == 0x2c, "srTextureIFace_Dimensions_must_be_0x2c");
+    W8_ABI_ASSERT(sizeof(Dimensions) == 0x2c, "srTextureIFace_Dimensions_must_be_0x2c");
     struct MultiRequest {
-        long mipmap_level;
+        w8_long mipmap_level;
         /* Last mipmap level filled; iterated level <= last_level. */
-        unsigned long last_level;
+        w8_ulong last_level;
         srColorSurfaceIFace* destinations[12];
     };
-    static_assert(sizeof(MultiRequest) == 0x38, "srTextureIFace_MultiRequest_must_be_0x38");
+    W8_ABI_ASSERT(sizeof(MultiRequest) == 0x38, "srTextureIFace_MultiRequest_must_be_0x38");
     /* srGERD::setTextureSubImage packs the level-0 dimensions and the target
        mipmap level ahead of the clipped destination rect. */
     struct PartialRequest {
-        unsigned long width;
-        unsigned long height;
-        long mipmap_level;
-        long destination_x;
-        long destination_y;
-        long source_right;
-        long source_bottom;
+        w8_ulong width;
+        w8_ulong height;
+        w8_long mipmap_level;
+        w8_long destination_x;
+        w8_long destination_y;
+        w8_long source_right;
+        w8_long source_bottom;
         srColorSurfaceIFace* destination;
     };
     /* Packed filter/wrap/mipmap state and the mipmap bias. */
@@ -62,10 +62,10 @@ public:
             WRAP_T_SHIFT = 13,
             WRAP_T_MASK = 0x2000u
         };
-        unsigned long packed_state;
+        w8_ulong packed_state;
         float mipmap_bias;
     };
-    static_assert(sizeof(Parameters) == 0x08, "srTextureIFace_Parameters_must_be_0x08");
+    W8_ABI_ASSERT(sizeof(Parameters) == 0x08, "srTextureIFace_Parameters_must_be_0x08");
     /* srTexture::dump: NONE / FASTEST / GOOD / BEST, else DEFAULT.
        setTextureDefaultMagFilter remaps DEFAULT (4) to GOOD. */
     enum e_filter {
@@ -106,7 +106,7 @@ public:
 
     /* Slot 8. Slot 6 is srClass::vInstance; slot 7 is clone. srTextureFile's
        17-slot vftable (0 through 16) is this interface exactly. */
-    virtual unsigned long getTextureFrameHandle() = 0;
+    virtual w8_ulong getTextureFrameHandle() = 0;
     virtual float getPriority() = 0;
     virtual void getDimensions(Dimensions& dimensions) = 0;
     virtual void getMipmapData(MultiRequest& request) = 0;

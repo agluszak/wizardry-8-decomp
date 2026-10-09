@@ -9,12 +9,12 @@ public:
     public:
         class Node {
         public:
-            long index;
+            w8_long index;
             Node* next;
             Node* prev;
         };
 
-        static_assert(sizeof(Node) == 0xc, "CircularList_Node_must_be_0xc");
+        W8_ABI_ASSERT(sizeof(Node) == 0xc, "CircularList_Node_must_be_0xc");
 
         /* Value-type iterator; operator+ walks next and operator- walks
            prev the requested number of links. */
@@ -25,7 +25,7 @@ public:
 
             Node* node;
         };
-        static_assert(sizeof(ListIterator) == 0x04,
+        W8_ABI_ASSERT(sizeof(ListIterator) == 0x04,
                       "srTriangulator_CircularList_ListIterator_must_be_0x04");
 
         CircularList(int count);
@@ -33,11 +33,11 @@ public:
 
         void erase(ListIterator position);
 
-        long count;
+        w8_long count;
         Node* nodes;
     };
 
-    static_assert(sizeof(CircularList) == 0x8, "CircularList_must_be_0x8");
+    W8_ABI_ASSERT(sizeof(CircularList) == 0x8, "CircularList_must_be_0x8");
 
     srTriangulator(srVector2T<float>* points, int count);
 
@@ -55,4 +55,4 @@ private:
     srVector2T<float>* points;
 };
 
-static_assert((sizeof(srTriangulator) == 0x10), "srTriangulator_must_be_0x10");
+W8_ABI_ASSERT((sizeof(srTriangulator) == 0x10), "srTriangulator_must_be_0x10");

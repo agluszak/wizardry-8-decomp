@@ -125,23 +125,23 @@ bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materi
    and first use, and optionally walks shared edges within each polygon group so
    consecutive polygons form strips. */
 struct W8MeshOrderInfo {
-    long polygon_count;
+    w8_long polygon_count;
     unsigned int polygon_key_count;
     srVector3i* polygon_vertices;
     const void* polygon_keys[4];
-    long vertex_count;
+    w8_long vertex_count;
     unsigned int vertex_key_count;
     srVector3T<float>* vertex_locations;
     const void* vertex_keys[4];
 };
 
 struct W8MeshOrder {
-    unsigned long* polygons;
-    unsigned long* vertices;
+    w8_ulong* polygons;
+    w8_ulong* vertices;
 };
 
 struct W8MeshStripPolygon {
-    unsigned long polygon;
+    w8_ulong polygon;
     int visited;
 };
 
@@ -176,12 +176,11 @@ struct W8MeshStripBuilder {
 
 /* Sorts each run of equal group ids by its key, then renumbers the groups so
    equal keys within a group stay together. */
-static void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned long* groups,
-                            long count)
+static void SortGroupsByKey(w8_ulong* order, w8_ulong* keys, w8_ulong* groups, w8_long count)
 {
     unsigned int index;
     unsigned int start = 0;
-    for (index = 1; index < static_cast<unsigned long>(count); ++index) {
+    for (index = 1; index < static_cast<w8_ulong>(count); ++index) {
         if (groups[index] != groups[index - 1]) {
             SortByKey(order + start, keys + start, index - start);
             start = index;
@@ -191,7 +190,7 @@ static void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned 
 
     int group = 0;
     groups[0] = 0;
-    for (index = 1; index < static_cast<unsigned long>(count); ++index) {
+    for (index = 1; index < static_cast<w8_ulong>(count); ++index) {
         if (keys[index] != keys[index - 1]) {
             ++group;
         }
@@ -276,7 +275,7 @@ void W8MeshStripBuilder::BuildEdgeTable()
 }
 
 // FUNCTION: WIZ8 0x00486970
-static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
+static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, w8_ulong flags)
 {
     unsigned int index;
     unsigned int polygon;
@@ -287,27 +286,27 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
 
     W8MeshOrder* order = new W8MeshOrder;
     if (order != 0) {
-        order->polygons = new unsigned long[info->polygon_count];
-        order->vertices = new unsigned long[info->vertex_count];
+        order->polygons = new w8_ulong[info->polygon_count];
+        order->vertices = new w8_ulong[info->vertex_count];
     }
-    for (index = 0; index < static_cast<unsigned long>(info->polygon_count); ++index) {
+    for (index = 0; index < static_cast<w8_ulong>(info->polygon_count); ++index) {
         order->polygons[index] = index;
     }
-    for (index = 0; index < static_cast<unsigned long>(info->vertex_count); ++index) {
+    for (index = 0; index < static_cast<w8_ulong>(info->vertex_count); ++index) {
         order->vertices[index] = index;
     }
     if ((flags & W8_MESH_ORDER_POLYGONS) == 0 && (flags & W8_MESH_ORDER_VERTICES) == 0) {
         return order;
     }
 
-    unsigned long* polygon_groups = new unsigned long[info->polygon_count];
-    unsigned long* vertex_groups = new unsigned long[info->vertex_count];
-    memset(polygon_groups, 0, info->polygon_count * sizeof(unsigned long));
-    memset(vertex_groups, 0, info->vertex_count * sizeof(unsigned long));
+    w8_ulong* polygon_groups = new w8_ulong[info->polygon_count];
+    w8_ulong* vertex_groups = new w8_ulong[info->vertex_count];
+    memset(polygon_groups, 0, info->polygon_count * sizeof(w8_ulong));
+    memset(vertex_groups, 0, info->vertex_count * sizeof(w8_ulong));
 
     if ((flags & W8_MESH_ORDER_POLYGONS) != 0) {
         if (info->polygon_key_count != 0) {
-            unsigned long* keys = new unsigned long[info->polygon_count];
+            w8_ulong* keys = new w8_ulong[info->polygon_count];
             for (unsigned int table = 0; table < info->polygon_key_count; ++table) {
                 if (info->polygon_count != 0) {
                     srVectorProcessor::copyIndexed(
@@ -320,9 +319,9 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
         }
 
         if ((flags & W8_MESH_ORDER_TRIANGLE_STRIPS) != 0) {
-            for (unsigned int start = 0; start < static_cast<unsigned long>(info->polygon_count);) {
+            for (unsigned int start = 0; start < static_cast<w8_ulong>(info->polygon_count);) {
                 unsigned int end = start;
-                while (end < static_cast<unsigned long>(info->polygon_count) &&
+                while (end < static_cast<w8_ulong>(info->polygon_count) &&
                        polygon_groups[end] == polygon_groups[start]) {
                     ++end;
                 }
@@ -333,10 +332,10 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
                         builder.polygons[index].polygon = order->polygons[start + index];
                         builder.polygons[index].visited = 0;
                     }
-                    unsigned long* output = order->polygons + start;
+                    w8_ulong* output = order->polygons + start;
 
                     builder.BuildEdgeTable();
-                    unsigned long* neighbors = new unsigned long[builder.count];
+                    w8_ulong* neighbors = new w8_ulong[builder.count];
                     for (index = 0; index < builder.count; ++index) {
                         neighbors[index] = builder.CountNeighbors(index);
                     }
@@ -375,7 +374,7 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
 
     if ((flags & W8_MESH_ORDER_VERTICES) != 0) {
         if (info->vertex_key_count != 0) {
-            unsigned long* keys = new unsigned long[info->vertex_count];
+            w8_ulong* keys = new w8_ulong[info->vertex_count];
             for (unsigned int table = 0; table < info->vertex_key_count; ++table) {
                 if (info->vertex_count != 0) {
                     srVectorProcessor::copyIndexed(
@@ -389,12 +388,12 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
 
         srVector3T<int>* remapped = new srVector3T<int>[info->polygon_count];
         int* inverse = new int[info->vertex_count];
-        unsigned long* first_use = new unsigned long[info->vertex_count];
-        for (index = 0; index < static_cast<unsigned long>(info->vertex_count); ++index) {
+        w8_ulong* first_use = new w8_ulong[info->vertex_count];
+        for (index = 0; index < static_cast<w8_ulong>(info->vertex_count); ++index) {
             inverse[order->vertices[index]] = index;
             first_use[index] = 0;
         }
-        for (polygon = 0; polygon < static_cast<unsigned long>(info->polygon_count); ++polygon) {
+        for (polygon = 0; polygon < static_cast<w8_ulong>(info->polygon_count); ++polygon) {
             const int* source = &info->polygon_vertices[order->polygons[polygon]].x;
             int* destination = &remapped[polygon].x;
             for (int corner = 0; corner < 3; ++corner) {
@@ -402,7 +401,7 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
             }
         }
         unsigned int used = 0;
-        for (polygon = 0; polygon < static_cast<unsigned long>(info->polygon_count); ++polygon) {
+        for (polygon = 0; polygon < static_cast<w8_ulong>(info->polygon_count); ++polygon) {
             const int* corners = &remapped[polygon].x;
             for (int corner = 0; corner < 3; ++corner) {
                 if (first_use[corners[corner]] == 0) {
@@ -412,7 +411,7 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
         }
 
         unsigned int start = 0;
-        for (index = 1; index < static_cast<unsigned long>(info->vertex_count); ++index) {
+        for (index = 1; index < static_cast<w8_ulong>(info->vertex_count); ++index) {
             if (vertex_groups[index] != vertex_groups[index - 1]) {
                 SortByKey(order->vertices + start, first_use + start, index - start);
                 start = index;
@@ -431,7 +430,7 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
 }
 
 // FUNCTION: WIZ8 0x004867F0
-void OptimizeMeshOrder(srMeshModel* model, unsigned long flags)
+void OptimizeMeshOrder(srMeshModel* model, w8_ulong flags)
 {
     if (model == 0) {
         return;
@@ -451,7 +450,7 @@ void OptimizeMeshOrder(srMeshModel* model, unsigned long flags)
     info.polygon_vertices = model->getPolyVertex();
     info.vertex_locations = model->getVertexLoc();
 
-    for (unsigned int pass = 0; pass < static_cast<unsigned long>(model->pass_count); ++pass) {
+    for (unsigned int pass = 0; pass < static_cast<w8_ulong>(model->pass_count); ++pass) {
         if (model->getPolyShader(pass, 0) != 0 && info.polygon_key_count < 4) {
             info.polygon_keys[info.polygon_key_count++] = model->getPolyShader(pass, 1);
         }
@@ -502,7 +501,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
     srVector2T<float>* extra_uvs[8];
     srVector3i* polygon_vertices[8];
     srVector3i* polygon_shades[8];
-    unsigned long* vertex_shades[8];
+    w8_ulong* vertex_shades[8];
     stMeshModel* models[8];
     stMeshModel* first_model = 0;
     stMeshModel* previous_model = 0;
@@ -555,8 +554,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
         polygon_vertices[type] =
             static_cast<srVector3i*>(malloc(capacity * 3 * sizeof(srVector3i)));
         polygon_shades[type] = static_cast<srVector3i*>(malloc(capacity * sizeof(srVector3i)));
-        vertex_shades[type] =
-            static_cast<unsigned long*>(malloc(capacity * 3 * sizeof(unsigned long)));
+        vertex_shades[type] = static_cast<w8_ulong*>(malloc(capacity * 3 * sizeof(w8_ulong)));
         (*vertex_maps)[type] = static_cast<int*>(malloc(capacity * 3 * sizeof(int)));
     }
 
@@ -571,9 +569,11 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
         srVector3i& shade = polygon_shades[type][polygon_counts[type]];
         for (int corner = 0; corner < 3; ++corner) {
             int original_vertex = face.vertices[corner];
-            unsigned int key =
-                (reinterpret_cast<unsigned int>(materials[face.material_index]) & 0xfff) |
-                (original_vertex << 12);
+            // reinterpret-ok: the historical mesh key hashes the material address
+            unsigned int key = (static_cast<unsigned int>(reinterpret_cast<w8_ulong_ptr>(
+                                    materials[face.material_index])) &
+                                0xfff) |
+                               (original_vertex << 12);
             int vertex = vertex_indices[type].Lookup(&key) - 1;
             if (vertex == -1) {
                 vertex = vertex_counts[type];
@@ -692,9 +692,9 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
                                                   : model_uv_indices[uv_polygon].z)) = index;
             }
         }
-        unsigned long* model_shades = model->getVertexShadeIndex(1);
+        w8_ulong* model_shades = model->getVertexShadeIndex(1);
         memcpy(model_polygons, polygon_shades[type], polygon_counts[type] * sizeof(srVector3i));
-        memcpy(model_shades, vertex_shades[type], vertex_counts[type] * sizeof(unsigned long));
+        memcpy(model_shades, vertex_shades[type], vertex_counts[type] * sizeof(w8_ulong));
 
         srShader shader;
         shader = *polygon_types.GetAt(type);
@@ -1083,7 +1083,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
 
 // FUNCTION: WIZ8 0x00488240
 unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** instances,
-                                      unsigned long count, const char* name)
+                                      w8_ulong count, const char* name)
 {
     OctMeshModel reader;
     unsigned int mesh_count;

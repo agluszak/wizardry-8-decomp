@@ -55,7 +55,7 @@ public:
         int operator!=(const Vertex& other) const;
 
         srVector3T<float> position;
-        unsigned long shade_index;
+        w8_ulong shade_index;
         srMaterialIFace* materials[4][2];
         srVector3T<float> dcg[4];
         srVector3T<float> dig[4];
@@ -77,8 +77,8 @@ public:
         srTextureIFace* textures[4][2];
         srShader shaders[4];
         Vertex vertices[3];
-        unsigned long flags;
-        unsigned long disabled;
+        w8_ulong flags;
+        w8_ulong disabled;
     };
 
     class
@@ -98,8 +98,8 @@ public:
            after Polygon(4) allocates it. */
         Vertex* vertices;
         int vertex_count;
-        unsigned long flags;
-        unsigned long disabled;
+        w8_ulong flags;
+        w8_ulong disabled;
         int capacity;
     };
 
@@ -108,58 +108,57 @@ public:
 
     void discard();
 
-    unsigned long getTriangleCount() const;
-    void setTriangleCount(unsigned long triangles);
-    unsigned long addTriangle(const Triangle& triangle);
-    int getTriangle(unsigned long index, Triangle& triangle);
-    void setTriangle(unsigned long index, const Triangle& triangle);
-    void setTriangleVertex(unsigned long triangle, unsigned long vertex, const Vertex& value);
-    void flipTriangle(unsigned long triangle);
+    w8_ulong getTriangleCount() const;
+    void setTriangleCount(w8_ulong triangles);
+    w8_ulong addTriangle(const Triangle& triangle);
+    int getTriangle(w8_ulong index, Triangle& triangle);
+    void setTriangle(w8_ulong index, const Triangle& triangle);
+    void setTriangleVertex(w8_ulong triangle, w8_ulong vertex, const Vertex& value);
+    void flipTriangle(w8_ulong triangle);
     void flipTriangles();
-    void enableTriangle(unsigned long triangle);
-    void disableTriangle(unsigned long triangle);
-    unsigned long getEnabledTriangleCount();
+    void enableTriangle(w8_ulong triangle);
+    void disableTriangle(w8_ulong triangle);
+    w8_ulong getEnabledTriangleCount();
     void removeDisabledTriangles();
     void disableDegenerateTriangles();
     void addFromModeler(srModeler& other);
 
     void scale(const srVector3T<float>& scale);
-    void scale(unsigned long triangle, const srVector3T<float>& scale);
+    void scale(w8_ulong triangle, const srVector3T<float>& scale);
     void move(const srVector3T<float>& delta);
-    void move(unsigned long triangle, const srVector3T<float>& delta);
+    void move(w8_ulong triangle, const srVector3T<float>& delta);
     void rotate(const srMatrix3T<float>& matrix);
-    void rotate(unsigned long triangle, const srMatrix3T<float>& matrix);
-    int findVertex(const srVector3T<float>& position, unsigned long& triangle,
-                   unsigned long& vertex, unsigned long start_triangle);
-    void findClosestVertex(const srVector3T<float>& position, unsigned long& triangle,
-                           unsigned long& vertex);
+    void rotate(w8_ulong triangle, const srMatrix3T<float>& matrix);
+    int findVertex(const srVector3T<float>& position, w8_ulong& triangle, w8_ulong& vertex,
+                   w8_ulong start_triangle);
+    void findClosestVertex(const srVector3T<float>& position, w8_ulong& triangle, w8_ulong& vertex);
     double getMaxVertexDist();
     void getAxialBounds(e_axis axis, float& minimum, float& maximum);
 
-    long getPassCount() const;
-    void setPassCount(long passes);
+    w8_long getPassCount() const;
+    void setPassCount(w8_long passes);
 
-    unsigned long getUniqueVertexCount();
+    w8_ulong getUniqueVertexCount();
 
-    void createSphere(long detail);
-    void createTorus(long major_segments, long minor_segments, double radius);
-    void createGrid(long columns, long rows);
+    void createSphere(w8_long detail);
+    void createTorus(w8_long major_segments, w8_long minor_segments, double radius);
+    void createGrid(w8_long columns, w8_long rows);
     void tesselateEdges(double threshold);
-    void tesselateEdges(unsigned long triangle, double threshold);
+    void tesselateEdges(w8_ulong triangle, double threshold);
     /* Delegates to the file-local AutoSmoother worker in modeler.cpp: it
        builds per-shade-vertex triangle adjacency, tests each coincident pair's
        facing/materials, and floods group bits back into flags. */
     void autoSmooth(double threshold, int smooth);
 
     void addPolygon(const Polygon& polygon);
-    void planarMap(long pass, long layer, const MappingInfo& mapping);
-    void planarMapAbsolute(long pass, long layer, const MappingInfo& mapping);
-    void cylinderMap(long pass, long layer, const MappingInfo& mapping);
-    void removeMapping(long pass, long layer);
+    void planarMap(w8_long pass, w8_long layer, const MappingInfo& mapping);
+    void planarMapAbsolute(w8_long pass, w8_long layer, const MappingInfo& mapping);
+    void cylinderMap(w8_long pass, w8_long layer, const MappingInfo& mapping);
+    void removeMapping(w8_long pass, w8_long layer);
 
-    void setMaterial(srMaterialIFace* material, long pass, srMeshModel::e_side side);
-    void setTexture(srTextureIFace* texture, long pass, long layer);
-    void setShader(srShader shader, long pass);
+    void setMaterial(srMaterialIFace* material, w8_long pass, srMeshModel::e_side side);
+    void setTexture(srTextureIFace* texture, w8_long pass, w8_long layer);
+    void setShader(srShader shader, w8_long pass);
     /* A nonzero remove_degenerate disables and drops triangles with
        coincident corners before building the mesh (the game passes 1). */
     void convert(srMeshModel& model, int remove_degenerate);
@@ -171,40 +170,40 @@ public:
        table. */
     struct VertexHash {
         struct Entry {
-            unsigned long flags;
+            w8_ulong flags;
             /* Signed: the AutoSmoother worker's max scan in modeler.cpp
                compares it against its long vertex count with a signed JGE. */
-            long shade_index;
+            w8_long shade_index;
             Vertex* vertex;
             Entry* next;
-            unsigned long index;
+            w8_ulong index;
         };
 
-        VertexHash(unsigned long vertex_count);
+        VertexHash(w8_ulong vertex_count);
         ~VertexHash();
 
-        static unsigned long hash(double x, double y, double z);
+        static w8_ulong hash(double x, double y, double z);
 
         Entry* entries;
         Entry* buckets[1024];
         Entry** table;
-        unsigned long unique_count;
+        w8_ulong unique_count;
     };
 
 private:
     VertexHash* getUniqueVertexList();
     int isClockwise(srVector2T<float>* points, int count);
 
-    unsigned long triangle_count;
+    w8_ulong triangle_count;
     srArray<Triangle> triangles;
-    long pass_count;
+    w8_long pass_count;
 };
 
-static_assert((sizeof(srModeler) == 0x14), "srModeler_must_be_0x14");
+W8_ABI_ASSERT((sizeof(srModeler) == 0x14), "srModeler_must_be_0x14");
 static_assert((sizeof(srModeler::MappingInfo) == 0x18), "srModeler_MappingInfo_must_be_0x18");
-static_assert((sizeof(srModeler::Vertex) == 0x110), "srModeler_Vertex_must_be_0x110");
-static_assert((sizeof(srModeler::Triangle) == 0x368), "srModeler_Triangle_must_be_0x368");
-static_assert((sizeof(srModeler::Polygon) == 0x44), "srModeler_Polygon_must_be_0x44");
-static_assert((sizeof(srModeler::VertexHash) == 0x100c), "srModeler_VertexHash_must_be_0x100c");
-static_assert((sizeof(srModeler::VertexHash::Entry) == 0x14),
+W8_ABI_ASSERT((sizeof(srModeler::Vertex) == 0x110), "srModeler_Vertex_must_be_0x110");
+W8_ABI_ASSERT((sizeof(srModeler::Triangle) == 0x368), "srModeler_Triangle_must_be_0x368");
+W8_ABI_ASSERT((sizeof(srModeler::Polygon) == 0x44), "srModeler_Polygon_must_be_0x44");
+W8_ABI_ASSERT((sizeof(srModeler::VertexHash) == 0x100c), "srModeler_VertexHash_must_be_0x100c");
+W8_ABI_ASSERT((sizeof(srModeler::VertexHash::Entry) == 0x14),
               "srModeler_VertexHash_Entry_must_be_0x14");

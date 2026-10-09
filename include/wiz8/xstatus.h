@@ -125,43 +125,43 @@ struct W8XStatus {
 #pragma pack(pop)
 
 static_assert(offsetof(W8XStatus, monster_manager_entries) == 0x0, "W8XStatus_entries_offset");
-static_assert(offsetof(W8XStatus, uiItemsInDatabase) == 0x8c0, "W8XStatus_items_offset");
-static_assert(offsetof(W8XStatus, uiMonstersInDatabase) == 0x8cc, "W8XStatus_monster_count_offset");
-static_assert(offsetof(W8XStatus, fCombatMode) == 0x8dc, "W8XStatus_combat_mode_offset");
-static_assert(offsetof(W8XStatus, fCampMode) == 0x8e3, "W8XStatus_camp_mode_offset");
-static_assert(offsetof(W8XStatus, plsMonsterList) == 0x8f5, "W8XStatus_monster_list_offset");
-static_assert(offsetof(W8XStatus, plsMonsterGroupList) == 0x8f9,
+W8_ABI_ASSERT(offsetof(W8XStatus, uiItemsInDatabase) == 0x8c0, "W8XStatus_items_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, uiMonstersInDatabase) == 0x8cc, "W8XStatus_monster_count_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, fCombatMode) == 0x8dc, "W8XStatus_combat_mode_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, fCampMode) == 0x8e3, "W8XStatus_camp_mode_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, plsMonsterList) == 0x8f5, "W8XStatus_monster_list_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, plsMonsterGroupList) == 0x8f9,
               "W8XStatus_monster_group_list_offset");
-static_assert(offsetof(W8XStatus, plsItemList) == 0x8fd, "W8XStatus_item_list_offset");
-static_assert(offsetof(W8XStatus, plsUnbornMonsterList) == 0x901,
+W8_ABI_ASSERT(offsetof(W8XStatus, plsItemList) == 0x8fd, "W8XStatus_item_list_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, plsUnbornMonsterList) == 0x901,
               "W8XStatus_unborn_monster_list_offset");
-static_assert(offsetof(W8XStatus, fSurprisePossible) == 0x90d,
+W8_ABI_ASSERT(offsetof(W8XStatus, fSurprisePossible) == 0x90d,
               "W8XStatus_surprise_possible_offset");
-static_assert(offsetof(W8XStatus, surprise_unengaged) == 0x90e,
+W8_ABI_ASSERT(offsetof(W8XStatus, surprise_unengaged) == 0x90e,
               "W8XStatus_surprise_unengaged_offset");
-static_assert(offsetof(W8XStatus, surprise_deadline_turns) == 0x90f,
+W8_ABI_ASSERT(offsetof(W8XStatus, surprise_deadline_turns) == 0x90f,
               "W8XStatus_surprise_deadline_turns_offset");
-static_assert(offsetof(W8XStatus, surprise_phase) == 0x913, "W8XStatus_surprise_phase_offset");
-static_assert(offsetof(W8XStatus, fPartyMovementUi) == 0x915, "W8XStatus_party_movement_ui_offset");
-static_assert(offsetof(W8XStatus, fPartyMovementMode) == 0x916,
+W8_ABI_ASSERT(offsetof(W8XStatus, surprise_phase) == 0x913, "W8XStatus_surprise_phase_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, fPartyMovementUi) == 0x915, "W8XStatus_party_movement_ui_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, fPartyMovementMode) == 0x916,
               "W8XStatus_party_movement_mode_offset");
-static_assert(offsetof(W8XStatus, flPartyMoveDistLimit) == 0x917,
+W8_ABI_ASSERT(offsetof(W8XStatus, flPartyMoveDistLimit) == 0x917,
               "W8XStatus_party_movement_limit_offset");
-static_assert(offsetof(W8XStatus, character_event_queue) == 0x91f,
+W8_ABI_ASSERT(offsetof(W8XStatus, character_event_queue) == 0x91f,
               "W8XStatus_character_event_queue_offset");
-static_assert(offsetof(W8XStatus, iCurrentCursor) == 0x923, "W8XStatus_cursor_offset");
-static_assert(offsetof(W8XStatus, iTargetingMode) == 0x92f, "W8XStatus_targeting_mode_offset");
-static_assert(offsetof(W8XStatus, edited_formation) == 0x933, "W8XStatus_edited_formation_offset");
-static_assert(offsetof(W8XStatus, target_markers) == 0x9b7, "W8XStatus_target_markers_offset");
-static_assert(offsetof(W8XStatus, target_position) == 0x9c7, "W8XStatus_target_position_offset");
-static_assert(offsetof(W8XStatus, monster_record_cache) == 0xa0f,
+W8_ABI_ASSERT(offsetof(W8XStatus, iCurrentCursor) == 0x923, "W8XStatus_cursor_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, iTargetingMode) == 0x92f, "W8XStatus_targeting_mode_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, edited_formation) == 0x933, "W8XStatus_edited_formation_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, target_markers) == 0x9b7, "W8XStatus_target_markers_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, target_position) == 0x9c7, "W8XStatus_target_position_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, monster_record_cache) == 0xa0f,
               "W8XStatus_monster_record_cache_offset");
-static_assert(offsetof(W8XStatus, gameplay_timer) == 0x19af, "W8XStatus_timer_offset");
-static_assert(offsetof(W8XStatus, spell_cooldown_clocks) == 0x19c0,
+W8_ABI_ASSERT(offsetof(W8XStatus, gameplay_timer) == 0x19af, "W8XStatus_timer_offset");
+W8_ABI_ASSERT(offsetof(W8XStatus, spell_cooldown_clocks) == 0x19c0,
               "W8XStatus_spell_cooldown_clocks_offset");
-static_assert(offsetof(W8XStatus, hostile_group_count) == 0x1a06,
+W8_ABI_ASSERT(offsetof(W8XStatus, hostile_group_count) == 0x1a06,
               "W8XStatus_hostile_group_count_offset");
-static_assert(sizeof(W8XStatus) == 0x1a0a, "W8XStatus_size");
+W8_ABI_ASSERT(sizeof(W8XStatus) == 0x1a0a, "W8XStatus_size");
 
 extern W8XStatus gXStatus;
 

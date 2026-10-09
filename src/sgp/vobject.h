@@ -3,8 +3,8 @@
 #ifndef __VOBJECT_H
 #define __VOBJECT_H
 
-#include "types.h"
-#include "container.h"
+#include "Types.h"
+#include "Container.h"
 #include "himage.h"
 
 // ************************************************************************************

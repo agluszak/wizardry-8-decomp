@@ -49,4 +49,4 @@ public:
     float density;    /* 0x160 */
 };
 
-static_assert(sizeof(srFog) == 0x168, "srFog_must_be_0x168");
+W8_ABI_ASSERT(sizeof(srFog) == 0x168, "srFog_must_be_0x168");

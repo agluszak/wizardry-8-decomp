@@ -18,18 +18,18 @@ srMemoryPool::Entry* srMemoryPool::addEntry(Entry* previous, Entry* next)
 }
 
 // FUNCTION: SURRENDER 0x10036AA0
-void* srMemoryPool::allocate(long size)
+void* srMemoryPool::allocate(w8_long size)
 {
     if (size < 1) {
         return 0;
     }
-    long aligned = ((alignment - 1 + size) / alignment) * alignment;
+    w8_long aligned = ((alignment - 1 + size) / alignment) * alignment;
     Entry* space = findSpace(aligned);
     if (space == 0) {
         return 0;
     }
-    long offset = space->offset;
-    unsigned long bucket = hashVal(offset);
+    w8_long offset = space->offset;
+    w8_ulong bucket = hashVal(offset);
     Entry* entry = addEntry(0, allocations[bucket]);
     allocations[bucket] = entry;
     largest_free_dirty = 1;
@@ -51,11 +51,12 @@ void* srMemoryPool::allocate(long size)
 }
 
 // FUNCTION: SURRENDER 0x10036DE0
-srMemoryPool::srMemoryPool(void* memory, long size, long alignment)
+srMemoryPool::srMemoryPool(void* memory, w8_long size, w8_long alignment)
 {
     this->memory = memory;
     /* reinterpret-ok: pool alignment arithmetic requires the raw address. */
-    long padding = reinterpret_cast<long>(memory) % alignment;
+    // reinterpret-ok: the historical allocator represents area locations as integer addresses
+    w8_long padding = static_cast<w8_long>(reinterpret_cast<ptrdiff_t>(memory) % alignment);
     this->alignment = alignment;
     if (padding > 0) {
         padding = alignment - padding;
@@ -89,7 +90,7 @@ srMemoryPool::~srMemoryPool()
         delete entry;
         entry = next;
     }
-    for (unsigned long i = 0; i < 256; i++) {
+    for (w8_ulong i = 0; i < 256; i++) {
         entry = allocations[i];
         while (entry != 0) {
             Entry* next = entry->next;
@@ -137,14 +138,14 @@ void srMemoryPool::dump()
         srPrintf("%08p %06d\n", static_cast<char*>(memory) + entry->offset, entry->size);
     }
     srPrintf("\nUsed blocks:\n\n");
-    for (unsigned long i = 0; i < 256; i++) {
+    for (w8_ulong i = 0; i < 256; i++) {
         for (Entry* entry = allocations[i]; entry != 0; entry = entry->next) {
             srPrintf("%08p %06d (%03d)\n", static_cast<char*>(memory) + entry->offset, entry->size,
                      hashVal(entry->offset));
         }
     }
     srPrintf("memory  used       : %d bytes (%d kB)\n", used, used / 1024);
-    long free_total = size - used;
+    w8_long free_total = size - used;
     srPrintf("memory  free       : %d bytes (%d kB)\n", free_total, free_total / 1024);
     srPrintf("largest free block : %d bytes (%d kB)\n", memAvail(), memAvail() / 1024);
     srPrintf("total memory       : %d bytes (%d kB)\n", size, size / 1024);
@@ -152,7 +153,7 @@ void srMemoryPool::dump()
 }
 
 // FUNCTION: SURRENDER 0x10036930
-srMemoryPool::Entry* srMemoryPool::find(long offset) const
+srMemoryPool::Entry* srMemoryPool::find(w8_long offset) const
 {
     if (offset >= 0 && offset < size) {
         for (Entry* entry = allocations[hashVal(offset)]; entry != 0; entry = entry->next) {
@@ -165,7 +166,7 @@ srMemoryPool::Entry* srMemoryPool::find(long offset) const
 }
 
 // FUNCTION: SURRENDER 0x100369A0
-srMemoryPool::Entry* srMemoryPool::findArea(long offset) const
+srMemoryPool::Entry* srMemoryPool::findArea(w8_long offset) const
 {
     for (Entry* entry = first_free; entry != 0; entry = entry->next) {
         if (entry->offset <= offset && offset < entry->size + entry->offset) {
@@ -176,12 +177,12 @@ srMemoryPool::Entry* srMemoryPool::findArea(long offset) const
 }
 
 // FUNCTION: SURRENDER 0x10036880
-srMemoryPool::Entry* srMemoryPool::findBestFit(long size) const
+srMemoryPool::Entry* srMemoryPool::findBestFit(w8_long size) const
 {
     Entry* best = 0;
-    long best_size = 0x40000000;
+    w8_long best_size = 0x40000000;
     for (Entry* entry = first_free; entry != 0; entry = entry->next) {
-        long entry_size = entry->size;
+        w8_long entry_size = entry->size;
         if (entry_size >= size && entry_size < best_size) {
             if (entry_size == size) {
                 return entry;
@@ -194,7 +195,7 @@ srMemoryPool::Entry* srMemoryPool::findBestFit(long size) const
 }
 
 // FUNCTION: SURRENDER 0x100368C0
-srMemoryPool::Entry* srMemoryPool::findFirstFit(long size) const
+srMemoryPool::Entry* srMemoryPool::findFirstFit(w8_long size) const
 {
     for (Entry* entry = first_free; entry != 0; entry = entry->next) {
         if (size <= entry->size) {
@@ -205,7 +206,7 @@ srMemoryPool::Entry* srMemoryPool::findFirstFit(long size) const
 }
 
 // FUNCTION: SURRENDER 0x10036B90
-srMemoryPool::Entry* srMemoryPool::findPlacing(long offset) const
+srMemoryPool::Entry* srMemoryPool::findPlacing(w8_long offset) const
 {
     Entry* previous = 0;
     for (Entry* entry = first_free; entry != 0 && entry->offset <= offset; entry = entry->next) {
@@ -215,7 +216,7 @@ srMemoryPool::Entry* srMemoryPool::findPlacing(long offset) const
 }
 
 // FUNCTION: SURRENDER 0x100368E0
-srMemoryPool::Entry* srMemoryPool::findSpace(long size) const
+srMemoryPool::Entry* srMemoryPool::findSpace(w8_long size) const
 {
     switch (policy) {
     case FIT_FIRST:
@@ -258,7 +259,7 @@ void srMemoryPool::freeInternal(Entry* entry)
         if (entry->next != 0) {
             entry->next->previous = entry->previous;
         }
-        unsigned long bucket = hashVal(entry->offset);
+        w8_ulong bucket = hashVal(entry->offset);
         if (entry == allocations[bucket]) {
             allocations[bucket] = entry->next;
         }
@@ -269,7 +270,7 @@ void srMemoryPool::freeInternal(Entry* entry)
 }
 
 // FUNCTION: SURRENDER 0x10036990
-long srMemoryPool::getAlignment() const
+w8_long srMemoryPool::getAlignment() const
 {
     return alignment;
 }
@@ -291,13 +292,13 @@ srMemoryPool::e_fit srMemoryPool::getPolicy() const
 }
 
 // FUNCTION: SURRENDER 0x10036960
-long srMemoryPool::getSize() const
+w8_long srMemoryPool::getSize() const
 {
     return size;
 }
 
 // FUNCTION: SURRENDER 0x10036B70
-long srMemoryPool::getSize(const void* allocation) const
+w8_long srMemoryPool::getSize(const void* allocation) const
 {
     Entry* entry = find(convertPtr(allocation));
     if (entry == 0) {
@@ -316,9 +317,9 @@ void srMemoryPool::lock(void* allocation)
 }
 
 // FUNCTION: SURRENDER 0x100369F0
-int srMemoryPool::maskArea(const void* memory, long size)
+int srMemoryPool::maskArea(const void* memory, w8_long size)
 {
-    long offset = convertPtr(memory);
+    w8_long offset = convertPtr(memory);
     if (size < 1) {
         return 0;
     }
@@ -326,12 +327,13 @@ int srMemoryPool::maskArea(const void* memory, long size)
     if (area == 0) {
         return 0;
     }
-    long old_size = area->size;
+    w8_long old_size = area->size;
     used += size;
     largest_free_dirty = 1;
     /* reinterpret-ok: stores the absolute pointer minus the relative entry offset. */
-    area->size = reinterpret_cast<long>(memory) - area->offset;
-    long end = offset + size;
+    // reinterpret-ok: the historical allocator represents area locations as integer addresses
+    area->size = reinterpret_cast<w8_long>(memory) - area->offset;
+    w8_long end = offset + size;
     if (end < area->offset + old_size) {
         Entry* tail = addEntry(area, area->next);
         tail->size = (old_size - area->size) - size;
@@ -341,12 +343,12 @@ int srMemoryPool::maskArea(const void* memory, long size)
 }
 
 // FUNCTION: SURRENDER 0x10036EC0
-long srMemoryPool::memAvail()
+w8_long srMemoryPool::memAvail()
 {
     if (!largest_free_dirty) {
         return largest_free;
     }
-    long largest = 0;
+    w8_long largest = 0;
     for (Entry* entry = first_free; entry != 0; entry = entry->next) {
         if (largest < entry->size) {
             largest = entry->size;
@@ -358,13 +360,13 @@ long srMemoryPool::memAvail()
 }
 
 // FUNCTION: SURRENDER 0x10036910
-long srMemoryPool::memFreeTotal() const
+w8_long srMemoryPool::memFreeTotal() const
 {
     return size - used;
 }
 
 // FUNCTION: SURRENDER 0x10036920
-long srMemoryPool::memUsed() const
+w8_long srMemoryPool::memUsed() const
 {
     return used;
 }

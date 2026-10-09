@@ -494,7 +494,7 @@ bool MonGen::CanGenerateEncounter(bool force)
                                 spawn_position.z - 5000.0f);
         srVector3T<float> upper(spawn_position.x + 5000.0f, spawn_position.y + 5000.0f,
                                 spawn_position.z + 5000.0f);
-        unsigned long* locations = 0;
+        w8_ulong* locations = 0;
         if (g_octree->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
             return false;
         }

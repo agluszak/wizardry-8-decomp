@@ -53,7 +53,7 @@ public:
 
     int m_main_text_box_image;
 };
-static_assert(sizeof(W8NpcDialogueOptionsPanel) == 0x50, "W8NpcDialogueOptionsPanel_size");
+W8_ABI_ASSERT(sizeof(W8NpcDialogueOptionsPanel) == 0x50, "W8NpcDialogueOptionsPanel_size");
 
 /* The typed-dialogue panel. Enabling it starts text-input scheme 1 and
    installs the input field; Redraw draws the input frame one row lower while
@@ -69,7 +69,7 @@ public:
     virtual void SetEnabled(bool enable) override;
     virtual void Redraw() override;
 };
-static_assert(sizeof(W8NpcTypedDialoguePanel) == 0x4c, "W8NpcTypedDialoguePanel_size");
+W8_ABI_ASSERT(sizeof(W8NpcTypedDialoguePanel) == 0x4c, "W8NpcTypedDialoguePanel_size");
 
 struct W8PendingNoticeLine {
     wchar_t* text;
@@ -270,30 +270,30 @@ struct W8NpcInteractionState {
     bool dialogue_panel_hidden;
     int last_notice_npc_kind;
 };
-static_assert(offsetof(W8NpcInteractionState, dialogue_controls) == 0x10c,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, dialogue_controls) == 0x10c,
               "W8NpcInteractionState_dialogue_controls");
-static_assert(offsetof(W8NpcInteractionState, dialogue_panels) == 0x1a8,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, dialogue_panels) == 0x1a8,
               "W8NpcInteractionState_dialogue_panels");
-static_assert(sizeof(W8NpcInteractionState) == 0x268, "W8NpcInteractionState_size");
-static_assert(offsetof(W8NpcInteractionState, script_busy) == 0x1fa,
+W8_ABI_ASSERT(sizeof(W8NpcInteractionState) == 0x268, "W8NpcInteractionState_size");
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, script_busy) == 0x1fa,
               "W8NpcInteractionState_script_busy");
-static_assert(offsetof(W8NpcInteractionState, dialogue_npc) == 0x1d4,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, dialogue_npc) == 0x1d4,
               "W8NpcInteractionState_dialogue_npc");
-static_assert(offsetof(W8NpcInteractionState, quote_bubble) == 0x208,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, quote_bubble) == 0x208,
               "W8NpcInteractionState_quote_bubble");
-static_assert(offsetof(W8NpcInteractionState, quote_visible) == 0x214,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, quote_visible) == 0x214,
               "W8NpcInteractionState_quote_visible");
-static_assert(offsetof(W8NpcInteractionState, quote_notice_kind) == 0x248,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, quote_notice_kind) == 0x248,
               "W8NpcInteractionState_quote_notice_kind");
-static_assert(offsetof(W8NpcInteractionState, quote_notice_payload) == 0x24c,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, quote_notice_payload) == 0x24c,
               "W8NpcInteractionState_quote_notice_payload");
-static_assert(offsetof(W8NpcInteractionState, pending_notice_lines) == 0x218,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, pending_notice_lines) == 0x218,
               "W8NpcInteractionState_pending_notice_lines");
-static_assert(offsetof(W8NpcInteractionState, dialogue_hidden) == 0x228,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, dialogue_hidden) == 0x228,
               "W8NpcInteractionState_dialogue_hidden");
-static_assert(offsetof(W8NpcInteractionState, dialogue_panel_hidden) == 0x262,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, dialogue_panel_hidden) == 0x262,
               "W8NpcInteractionState_dialogue_panel_hidden");
-static_assert(offsetof(W8NpcInteractionState, last_notice_npc_kind) == 0x264,
+W8_ABI_ASSERT(offsetof(W8NpcInteractionState, last_notice_npc_kind) == 0x264,
               "W8NpcInteractionState_last_notice_npc_kind");
 
 extern W8NpcInteractionState* g_npc_interaction_state;

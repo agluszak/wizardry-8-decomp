@@ -89,7 +89,7 @@ void srJPEG_encode_adapter(JpegCodecState* state)
     jpeg_default_colorspace(&compress);
     jpeg_start_compress(&compress, TRUE);
 
-    const unsigned long row_stride = state->width * 3;
+    const w8_ulong row_stride = state->width * 3;
     while (compress.next_scanline < compress.image_height) {
         JSAMPROW row = state->pixels + compress.next_scanline * row_stride;
         jpeg_write_scanlines(&compress, &row, 1);
@@ -117,7 +117,7 @@ void srJPEG_decode_adapter(JpegCodecState* state)
     jpeg_stdio_src(&decompress, reinterpret_cast<FILE*>(state->input_stdio_cookie));
     jpeg_read_header(&decompress, TRUE);
     jpeg_start_decompress(&decompress);
-    const unsigned long row_stride = decompress.output_width * decompress.output_components;
+    const w8_ulong row_stride = decompress.output_width * decompress.output_components;
     state->components = decompress.num_components;
     JSAMPARRAY scanline = (*decompress.mem->alloc_sarray)(
         reinterpret_cast<j_common_ptr>(&decompress), JPOOL_IMAGE, row_stride, 1);

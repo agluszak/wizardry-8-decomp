@@ -51,10 +51,10 @@ public:
     float center_z;
     float center_x;
     srVector3T<float>* vertices;
-    unsigned long polygons[0x1e];
+    w8_ulong polygons[0x1e];
 };
 
-static_assert(sizeof(W8GroundShadowMapper) == 0x98, "W8GroundShadowMapper004D6180_must_be_0x98");
+W8_ABI_ASSERT(sizeof(W8GroundShadowMapper) == 0x98, "W8GroundShadowMapper004D6180_must_be_0x98");
 
 // GLOBAL: WIZ8 0x00683430
 static W8GroundShadowMapper g_ground_shadow_material_parameters;
@@ -68,9 +68,9 @@ void W8GroundShadowMapper::process(srVertexPipe& pipe)
     srCore.getStatisticsManager()->statistics.texture_coordinate_operations += pipe.vertex_count;
     pipe.lazy_setup_mask |= 1 << CHANNEL_ST0;
 
-    const unsigned long* index = pipe.avt + pipe.sub_batch_offset;
+    const w8_ulong* index = pipe.avt + pipe.sub_batch_offset;
     srVector2T<float>* output = pipe.vertex_array->st0 + pipe.batch_base + pipe.sub_batch_offset;
-    unsigned long count = pipe.vertex_count;
+    w8_ulong count = pipe.vertex_count;
     if (count == 0) {
         return;
     }
@@ -169,9 +169,9 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
     float radius;
     float cosine;
     float sine;
-    long saved_offset;
-    unsigned long* polygons;
-    unsigned long mesh_index;
+    w8_long saved_offset;
+    w8_ulong* polygons;
+    w8_ulong mesh_index;
     stMeshModel* model;
 
     getLocation(position);

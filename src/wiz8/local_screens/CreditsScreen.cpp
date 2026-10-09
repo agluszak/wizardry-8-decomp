@@ -25,7 +25,7 @@ static int g_credit_elapsed_steps;
 // GLOBAL: WIZ8 0x0069C498
 static bool g_credit_redraw;
 // GLOBAL: WIZ8 0x0069C49C
-static unsigned long g_credit_started_at;
+static w8_ulong g_credit_started_at;
 // GLOBAL: WIZ8 0x0069C4A0
 static int g_credit_y;
 // GLOBAL: WIZ8 0x0069C4A4

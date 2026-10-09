@@ -66,7 +66,7 @@ public:
     virtual void process(srVertexPipe& pipe) override;
 };
 
-static_assert(sizeof(W8NormalTexcoordMapper) == 4, "W8NormalTexcoordMapper004B89A0_must_be_4");
+W8_ABI_ASSERT(sizeof(W8NormalTexcoordMapper) == 4, "W8NormalTexcoordMapper004B89A0_must_be_4");
 
 // GLOBAL: WIZ8 0x0065BEA8
 static W8NormalTexcoordMapper g_normal_texcoord_mapper;
@@ -88,8 +88,8 @@ void W8NormalTexcoordMapper::process(srVertexPipe& pipe)
 {
     const srVector3T<float>* normals;
     srVector2T<float>* coordinates;
-    unsigned long count;
-    unsigned long index;
+    w8_ulong count;
+    w8_ulong index;
 
     if (!pipe.isChannelAvailable(srVertexProcessor::CHANNEL_ST0)) {
         return;
@@ -494,12 +494,13 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                         }
                         --sun_count;
                         if (sun_count != 0) {
-                            sun_pool =
-                                static_cast<float*>(malloc(geometry.vertex_count * sun_count * 4));
+                            sun_pool = static_cast<float*>(
+                                malloc(geometry.vertex_count * sun_count * sizeof(*sun_pool)));
                             if (sun_pool == 0) {
                                 ReportBuildStatus(7, "Could not allocate pflSunLights!\n");
                             }
-                            memset(sun_pool, 0, geometry.vertex_count * sun_count * 4);
+                            memset(sun_pool, 0,
+                                   geometry.vertex_count * sun_count * sizeof(*sun_pool));
                             float* run = sun_pool;
                             for (i = 0; i < static_cast<int>(geometry.vertex_count); ++i) {
                                 vertices[i].m_sun_lights = run;
@@ -1008,7 +1009,7 @@ void ReportStartupMessage(const char* message)
         ClearSurfaceRect(0, 400, 0x27f, 0x1df);
         index = 0x191;
         for (top = 0; top < 6; ++top) {
-            gprintfDirty(1, index, const_cast<UINT16*>(L"%s"), g_status_lines[top]);
+            gprintfDirty(1, index, const_cast<CHAR16*>(L"%s"), g_status_lines[top]);
             index += 0xd;
         }
         InvalidateRegion(0, 400, 0x27f, 0x1df, 4);
@@ -1016,7 +1017,7 @@ void ReportStartupMessage(const char* message)
         index = (g_status_cursor - 1) * 0xd;
         top = index + 400;
         ClearSurfaceRect(0, top, 0x27f, g_status_cursor * 0xd + 400);
-        gprintfDirty(1, index + 0x191, const_cast<UINT16*>(L"%s"), line);
+        gprintfDirty(1, index + 0x191, const_cast<CHAR16*>(L"%s"), line);
         InvalidateRegion(0, top, 0x27f, g_status_cursor * 0xd + 400, 4);
     }
     g_status_scroll = scroll;
@@ -1135,7 +1136,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
     int degenerate_count;
     int ordinal;
     int last_percent;
-    unsigned long axis;
+    w8_ulong axis;
     float largest;
     float length;
     float offset;
@@ -2174,8 +2175,9 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
             source->emission, source->emission, static_cast<int>(source->surface_flags),
             /* Retail passes the string's address for %c, so the name ends in
                that address's low byte. */
-            reinterpret_cast<int>( // reinterpret-ok: retail formats the pointer
-                texture_path[0] == '\0' ? "F" : "T"));
+            static_cast<int>(
+                reinterpret_cast<w8_ulong_ptr>( // reinterpret-ok: retail formats the pointer
+                    texture_path[0] == '\0' ? "F" : "T")));
 
     {
         srRegistry* registry = srCore.getRegistry();

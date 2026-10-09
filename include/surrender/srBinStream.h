@@ -26,10 +26,10 @@ public:
     // FUNCTION: SURRENDER 0x1002E950 SYMBOL
     // RECOMP: ??1srBinStream@@UAE@XZ
     virtual ~srBinStream() {}
-    virtual unsigned long getSize();
-    virtual srBinStream& seek(unsigned long position, e_seekDir direction) = 0;
-    virtual srBinStream& seek(unsigned long position) = 0;
-    virtual unsigned long tell() = 0;
+    virtual w8_ulong getSize();
+    virtual srBinStream& seek(w8_ulong position, e_seekDir direction) = 0;
+    virtual srBinStream& seek(w8_ulong position) = 0;
+    virtual w8_ulong tell() = 0;
 
     void clear();
     bool exceptions(bool enabled);
@@ -53,4 +53,4 @@ private:
     e_byteOrder byte_order;
 };
 
-static_assert(sizeof(srBinStream) == 0x10, "srBinStream_must_be_0x10");
+W8_ABI_ASSERT(sizeof(srBinStream) == 0x10, "srBinStream_must_be_0x10");

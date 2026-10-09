@@ -9,7 +9,7 @@ struct srInlineString {
     srInlineString();
     srInlineString(const char* source);
     srInlineString(const srInlineString& source);
-    srInlineString(const srInlineString& source, long begin, long end);
+    srInlineString(const srInlineString& source, w8_long begin, w8_long end);
     ~srInlineString();
 
     void init();
@@ -22,9 +22,9 @@ struct srInlineString {
     srInlineString& operator=(const srInlineString& source);
     srInlineString& operator+=(const char* suffix);
 
-    long find(const srInlineString& needle, unsigned long offset) const;
-    void erase(unsigned long begin, unsigned long end);
-    void insert(const srInlineString& text, unsigned long position);
+    w8_long find(const srInlineString& needle, w8_ulong offset) const;
+    void erase(w8_ulong begin, w8_ulong end);
+    void insert(const srInlineString& text, w8_ulong position);
 
     int replace(const srInlineString& needle, const srInlineString& replacement);
 
@@ -36,12 +36,12 @@ struct srInlineString {
     {
         return data_;
     }
-    unsigned long size() const
+    w8_ulong size() const
     {
         return size_;
     }
 
-    void erasePrefix(unsigned long count)
+    void erasePrefix(w8_ulong count)
     {
         if (count == 0 || count >= size_) {
             operator=("");
@@ -52,11 +52,11 @@ struct srInlineString {
     }
 
     char inline_[4];
-    unsigned long size_;
+    w8_ulong size_;
     char* data_;
 };
 
-static_assert((sizeof(srInlineString) == 0x0c), "srInlineString_must_be_0x0c");
+W8_ABI_ASSERT((sizeof(srInlineString) == 0x0c), "srInlineString_must_be_0x0c");
 
 srInlineString operator+(const srInlineString& left, const srInlineString& right);
 
@@ -81,7 +81,7 @@ inline srInlineString::srInlineString(const srInlineString& source)
     }
 }
 
-inline srInlineString::srInlineString(const srInlineString& source, long begin, long end)
+inline srInlineString::srInlineString(const srInlineString& source, w8_long begin, w8_long end)
 {
     init();
     char* temporary = static_cast<char*>(srHeap.allocate(end - begin + 2));
@@ -121,7 +121,7 @@ inline srInlineString& srInlineString::operator=(const srInlineString& source)
     return *this;
 }
 
-inline void srInlineString::erase(unsigned long begin, unsigned long end)
+inline void srInlineString::erase(w8_ulong begin, w8_ulong end)
 {
     if (begin != end) {
         strncpy(data_ + begin, data_ + end, size_ - end);
@@ -134,7 +134,7 @@ inline void srInlineString::erase(unsigned long begin, unsigned long end)
 inline srInlineString& srInlineString::operator+=(const char* suffix)
 {
     if (suffix != 0 && *suffix != '\0') {
-        const unsigned long needed = strlen(suffix) + size_;
+        const w8_ulong needed = strlen(suffix) + size_;
         char* buffer = static_cast<char*>(srHeap.allocate(needed));
         strcpy(buffer, data_);
         strcpy(buffer + size_ - 1, suffix);
@@ -147,11 +147,11 @@ inline srInlineString& srInlineString::operator+=(const char* suffix)
 
 // FUNCTION: SURRENDER 0x100467E0 SYMBOL
 // RECOMP: ?find@srInlineString@@QBEJABU1@K@Z
-inline long srInlineString::find(const srInlineString& needle, unsigned long offset) const
+inline w8_long srInlineString::find(const srInlineString& needle, w8_ulong offset) const
 {
     const char* found = strstr(data_ + offset, needle.data_);
     if (found != 0) {
-        return static_cast<long>(found - data_);
+        return static_cast<w8_long>(found - data_);
     }
     return -1;
 }

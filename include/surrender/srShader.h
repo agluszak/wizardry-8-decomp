@@ -124,7 +124,7 @@ public:
                  (value >> DETAILALPHA1_SHIFT & 0x7) > DETAILALPHA_INVSCALE);
     }
 
-    unsigned long value;
+    w8_ulong value;
 };
 
-static_assert(sizeof(srShader) == 0x04, "srShader_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srShader) == 0x04, "srShader_must_be_0x04");

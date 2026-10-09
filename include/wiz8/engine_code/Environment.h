@@ -35,7 +35,7 @@ public:
     float scroll_v;              /* 0x18 */
 };
 
-static_assert(sizeof(W8MaterialMapper) == 0x1c, "W8MaterialMapper00482010_must_be_0x1c");
+W8_ABI_ASSERT(sizeof(W8MaterialMapper) == 0x1c, "W8MaterialMapper00482010_must_be_0x1c");
 
 /* ABS 0x0065AD78: the three light-direction words as one colour triple.
    Produced from the day-phase colour table and consumed as fog-vector
@@ -114,7 +114,7 @@ extern bool g_fog_enabled;
 /* 1/duration while the lighting transition body at 0x00484300 runs, zero when
    idle: UpdateEnvironment hands off to that body while it is not zero. */
 extern float g_environment_transition_rate;
-extern unsigned long g_environment_transition_tick;
+extern w8_ulong g_environment_transition_tick;
 /* Last day phase the light direction was published from. */
 extern int g_last_light_phase;
 /* Last day phase the world's environment colour was refreshed from. */

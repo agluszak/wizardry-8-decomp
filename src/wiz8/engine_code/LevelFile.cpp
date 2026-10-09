@@ -1999,7 +1999,7 @@ W8LevelFileProp* ReadPropsFile(int hFile, int count)
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x931, 0);
         }
         if (pProp->has_trigger != 0) {
-            pProp->pTrigger = static_cast<W8LevelFileTrigger*>(malloc(6));
+            pProp->pTrigger = static_cast<W8LevelFileTrigger*>(malloc(sizeof(*pProp->pTrigger)));
             if (pProp->pTrigger == 0) {
                 srAssertFail("pProps[i1].pTrigger", LEVELFILE_CPP, 0x935, 0);
             }

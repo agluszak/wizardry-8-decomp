@@ -338,11 +338,11 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not read Sunlight array.\n");
     }
 
-    unsigned long* shade_indices = model->getVertexShadeIndex(1);
+    w8_ulong* shade_indices = model->getVertexShadeIndex(1);
     if (m_vertex_locations == 0) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex location array.\n");
     }
-    for (unsigned long shade_index = 0; shade_index < static_cast<unsigned long>(m_vertex_count);
+    for (w8_ulong shade_index = 0; shade_index < static_cast<w8_ulong>(m_vertex_count);
          ++shade_index) {
         shade_indices[shade_index] = shade_index;
     }

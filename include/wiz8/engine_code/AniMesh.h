@@ -41,7 +41,7 @@ struct W8AniMesh {
 
 static_assert(sizeof(W8AniMesh::State) == 1, "W8AniMesh_state_size");
 static_assert(offsetof(W8AniMesh, frame_count) == 1, "W8AniMesh_frame_count_offset");
-static_assert(sizeof(W8AniMesh) == 0x40, "W8AniMesh_minimum_size_must_be_0x40");
+W8_ABI_ASSERT(sizeof(W8AniMesh) == 0x40, "W8AniMesh_minimum_size_must_be_0x40");
 
 extern int g_animesh_cache_stamp;
 extern int g_animesh_cache_bytes;

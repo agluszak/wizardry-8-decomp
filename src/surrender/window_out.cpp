@@ -13,18 +13,18 @@
    RichEdit child, a File menu and a periodic timer. */
 class srWindowOutStreamBuf : public std::basic_streambuf<char, std::char_traits<char> > {
 public:
-    srWindowOutStreamBuf(unsigned long instance, unsigned long parent, const char* title,
-                         long width, unsigned long height);
+    srWindowOutStreamBuf(w8_ulong instance, w8_ulong parent, const char* title, w8_long width,
+                         w8_ulong height);
     virtual ~srWindowOutStreamBuf();
 
 private:
     /* Pending output text. '\n' flushes the whole buffer into the RichEdit; a trailing partial line
        stays pending until the next newline, Clear or Save. */
     struct Pending {
-        char* text;             /* 0x88 */
-        unsigned long capacity; /* 0x8c */
+        char* text;        /* 0x88 */
+        w8_ulong capacity; /* 0x8c */
 
-        void reserve(unsigned long size);
+        void reserve(w8_ulong size);
         char* c_str()
         {
             if (capacity == 0)
@@ -35,12 +35,12 @@ private:
 
     /* The "srDebugWndClass" window procedure; the constructor stores this
        object's pointer in GWL_USERDATA. */
-    static long __stdcall windowProc(HWND window, unsigned int message, WPARAM wparam,
-                                     LPARAM lparam);
+    static w8_long __stdcall windowProc(HWND window, unsigned int message, WPARAM wparam,
+                                        LPARAM lparam);
     static void __stdcall timerProc(HWND window, unsigned int message, unsigned int timer,
-                                    unsigned long time);
-    static unsigned long __stdcall streamOutCallback(unsigned long stream, LPBYTE buffer,
-                                                     long count, long* written);
+                                    w8_ulong time);
+    static w8_ulong __stdcall streamOutCallback(w8_ulong stream, LPBYTE buffer, w8_long count,
+                                                w8_long* written);
 
     virtual int overflow(int ch);
     virtual int underflow();
@@ -59,30 +59,30 @@ private:
     void saveText();
 
     /* Grow-then-store one character. */
-    void put(unsigned long index, char ch)
+    void put(w8_ulong index, char ch)
     {
         if (pending.capacity <= index)
             pending.reserve(pending.capacity + 8 + index);
         pending.text[index] = ch;
     }
 
-    unsigned long disabled;    /* 0x38: emit()/clear/save gate */
-    WNDCLASSA window_class;    /* 0x3c */
-    HINSTANCE instance;        /* 0x64 */
-    HWND parent;               /* 0x68 */
-    HWND edit_window;          /* 0x6c */
-    HWND frame_window;         /* 0x70 */
-    unsigned long field_74;    /* 0x74 */
-    HFONT font;                /* 0x78 */
-    HMENU menu;                /* 0x7c */
-    HMENU file_menu;           /* 0x80 */
-    HMODULE riched_module;     /* 0x84 */
-    Pending pending;           /* 0x88 */
-    unsigned long length;      /* 0x90: used bytes in pending */
-    unsigned long scroll;      /* 0x94: caret scroll needed */
-    char* line_buffer;         /* 0x98: allocated but unused */
-    unsigned long buffer_size; /* 0x9c */
-    unsigned long font_height; /* 0xa0 */
+    w8_ulong disabled;      /* 0x38: emit()/clear/save gate */
+    WNDCLASSA window_class; /* 0x3c */
+    HINSTANCE instance;     /* 0x64 */
+    HWND parent;            /* 0x68 */
+    HWND edit_window;       /* 0x6c */
+    HWND frame_window;      /* 0x70 */
+    w8_ulong field_74;      /* 0x74 */
+    HFONT font;             /* 0x78 */
+    HMENU menu;             /* 0x7c */
+    HMENU file_menu;        /* 0x80 */
+    HMODULE riched_module;  /* 0x84 */
+    Pending pending;        /* 0x88 */
+    w8_ulong length;        /* 0x90: used bytes in pending */
+    w8_ulong scroll;        /* 0x94: caret scroll needed */
+    char* line_buffer;      /* 0x98: allocated but unused */
+    w8_ulong buffer_size;   /* 0x9c */
+    w8_ulong font_height;   /* 0xa0 */
 };
 
 // GLOBAL: SURRENDER 0x100A49B0
@@ -90,7 +90,7 @@ private:
 static int class_counter;
 
 // FUNCTION: SURRENDER 0x10047C80
-void srWindowOutStreamBuf::Pending::reserve(unsigned long size)
+void srWindowOutStreamBuf::Pending::reserve(w8_ulong size)
 {
     if (capacity == size)
         return;
@@ -98,8 +98,8 @@ void srWindowOutStreamBuf::Pending::reserve(unsigned long size)
     if (size != 0) {
         next = new char[size];
         if (text != 0 && capacity != 0) {
-            unsigned long copy = size <= capacity ? size : capacity;
-            for (unsigned long index = 0; index < copy; ++index)
+            w8_ulong copy = size <= capacity ? size : capacity;
+            for (w8_ulong index = 0; index < copy; ++index)
                 next[index] = text[index];
         }
     }
@@ -110,7 +110,7 @@ void srWindowOutStreamBuf::Pending::reserve(unsigned long size)
 
 // FUNCTION: SURRENDER 0x10046810
 void __stdcall srWindowOutStreamBuf::timerProc(HWND window, unsigned int message,
-                                               unsigned int timer, unsigned long time)
+                                               unsigned int timer, w8_ulong time)
 {
     if (message != WM_TIMER || timer != 0x1ce7ea)
         return;
@@ -122,8 +122,8 @@ void __stdcall srWindowOutStreamBuf::timerProc(HWND window, unsigned int message
 }
 
 // FUNCTION: SURRENDER 0x10046870
-long __stdcall srWindowOutStreamBuf::windowProc(HWND window, unsigned int message, WPARAM wparam,
-                                                LPARAM lparam)
+w8_long __stdcall srWindowOutStreamBuf::windowProc(HWND window, unsigned int message, WPARAM wparam,
+                                                   LPARAM lparam)
 {
     // reinterpret-ok: GWL_USERDATA holds this object's pointer.
     srWindowOutStreamBuf* self =
@@ -138,7 +138,7 @@ long __stdcall srWindowOutStreamBuf::windowProc(HWND window, unsigned int messag
             }
         } else if (message == WM_SIZE && self != 0 && self->edit_window != 0) {
             MoveWindow(self->edit_window, 0, 0, lparam & 0xffff,
-                       static_cast<unsigned long>(lparam) >> 0x10, 1);
+                       static_cast<w8_ulong>(lparam) >> 0x10, 1);
             return DefWindowProcA(window, message, wparam, lparam);
         }
     } else if (message == WM_KEYDOWN) {
@@ -159,8 +159,8 @@ long __stdcall srWindowOutStreamBuf::windowProc(HWND window, unsigned int messag
 }
 
 // FUNCTION: SURRENDER 0x10046990
-unsigned long __stdcall srWindowOutStreamBuf::streamOutCallback(unsigned long stream, LPBYTE buffer,
-                                                                long count, long* written)
+w8_ulong __stdcall srWindowOutStreamBuf::streamOutCallback(w8_ulong stream, LPBYTE buffer,
+                                                           w8_long count, w8_long* written)
 {
     if (count != 0) {
         // reinterpret-ok: the EDITSTREAM cookie carries the ofstream.
@@ -199,8 +199,8 @@ void srWindowOutStreamBuf::emit(int ch)
     if ((char)ch == '\n') {
         scroll = 1;
         SendMessageA(edit_window, EM_SETSEL, (WPARAM)-1, -1);
-        unsigned long start;
-        unsigned long end;
+        w8_ulong start;
+        w8_ulong end;
         SendMessageA(edit_window, EM_GETSEL, (WPARAM)&start, (LPARAM)&end);
         SendMessageA(edit_window, EM_SETSEL, start + end, start + end);
         put(length++, '\r');
@@ -227,7 +227,7 @@ void srWindowOutStreamBuf::saveText()
         return;
     OPENFILENAMEA info;
     char file[300];
-    for (unsigned long index = 0; index < 300; ++index)
+    for (w8_ulong index = 0; index < 300; ++index)
         file[index] = 0;
     info.hwndOwner = frame_window;
     info.hInstance = instance;
@@ -254,8 +254,8 @@ void srWindowOutStreamBuf::saveText()
     std::ofstream* stream = new std::ofstream(file);
     if (scroll == 0 && length != 0) {
         SendMessageA(edit_window, EM_SETSEL, (WPARAM)-1, -1);
-        unsigned long start;
-        unsigned long end;
+        w8_ulong start;
+        w8_ulong end;
         SendMessageA(edit_window, EM_GETSEL, (WPARAM)&start, (LPARAM)&end);
         SendMessageA(edit_window, EM_SETSEL, start + end, start + end + 1);
         SendMessageA(edit_window, EM_REPLACESEL, 0, (LPARAM)pending.c_str());
@@ -264,7 +264,7 @@ void srWindowOutStreamBuf::saveText()
     }
     EDITSTREAM output;
     // reinterpret-ok: the EDITSTREAM cookie carries the ofstream.
-    output.dwCookie = reinterpret_cast<unsigned long>(stream);
+    output.dwCookie = reinterpret_cast<w8_ulong>(stream);
     output.dwError = 0;
     output.pfnCallback = streamOutCallback;
     SendMessageA(edit_window, EM_STREAMOUT, SF_TEXT, (LPARAM)&output);
@@ -277,7 +277,7 @@ void srWindowOutStreamBuf::closeWindow()
     disabled = 1;
     if (frame_window == 0)
         return;
-    if (srWindow::isWindow((unsigned long)frame_window)) {
+    if (srWindow::isWindow((w8_ulong)frame_window)) {
         SetMenu(frame_window, 0);
         DestroyMenu(file_menu);
         DestroyMenu(menu);
@@ -290,8 +290,8 @@ void srWindowOutStreamBuf::closeWindow()
 }
 
 // FUNCTION: SURRENDER 0x10047150
-srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long parent,
-                                           const char* title, long width, unsigned long height)
+srWindowOutStreamBuf::srWindowOutStreamBuf(w8_ulong instance, w8_ulong parent, const char* title,
+                                           w8_long width, w8_ulong height)
 {
     pending.text = 0;
     pending.capacity = 0;
@@ -345,7 +345,7 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
                         WS_VISIBLE | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
                         rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
                         (HWND)parent, 0, (HINSTANCE)instance, 0);
-    SetWindowLongA(frame_window, GWL_USERDATA, (long)this);
+    SetWindowLongA(frame_window, GWL_USERDATA, (w8_long)this);
     edit_window = CreateWindowExA(0, "RichEdit", "",
                                   WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | ES_READONLY |
                                       ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_MULTILINE,
@@ -405,7 +405,7 @@ srWindowOutStreamBuf::~srWindowOutStreamBuf()
 {
     if (font != 0)
         DeleteObject(font);
-    if (frame_window != 0 && srWindow::isWindow((unsigned long)frame_window))
+    if (frame_window != 0 && srWindow::isWindow((w8_ulong)frame_window))
         DestroyWindow(frame_window);
     delete line_buffer;
     if (riched_module != 0)
@@ -436,10 +436,11 @@ int srWindowOutStreamBuf::underflow()
 }
 
 // FUNCTION: SURRENDER 0x10047810
-srWindowOut::srWindowOut(unsigned long handle, const char* title, long width, unsigned long height)
+srWindowOut::srWindowOut(w8_ulong handle, const char* title, w8_long width, w8_ulong height)
     : std::basic_ostream<char, std::char_traits<char> >(new srWindowOutStreamBuf(
           /* reinterpret-ok: raw window handle. */
-          static_cast<unsigned long>(GetWindowLongA(reinterpret_cast<HWND>(handle), GWL_HINSTANCE)),
+          // reinterpret-ok: the window handle retains its historical Win32 representation
+          static_cast<w8_ulong>(GetWindowLongA(reinterpret_cast<HWND>(handle), GWL_HINSTANCE)),
           handle, title, width, height))
 {
     /* reinterpret-ok: raw window handle. */

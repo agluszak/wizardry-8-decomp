@@ -9,17 +9,17 @@ public:
     SR_DLL_IMPORT srGlobalRecycler();
     SR_DLL_IMPORT ~srGlobalRecycler();
 
-    SR_DLL_IMPORT void* allocate(unsigned long size);
+    SR_DLL_IMPORT void* allocate(w8_ulong size);
     SR_DLL_IMPORT void free(void* allocation);
     SR_DLL_IMPORT void releaseAllUnused();
-    SR_DLL_IMPORT void setLimit(unsigned long limit);
+    SR_DLL_IMPORT void setLimit(w8_ulong limit);
 
 private:
-    void freeEntry(unsigned long index);
+    void freeEntry(w8_ulong index);
 
     struct CacheEntry {
         void* allocation;
-        unsigned long size;
+        w8_ulong size;
     };
 
     /* By-value critical section with a trivial constructor and a draining destructor; the owner
@@ -37,10 +37,10 @@ private:
     };
 
     CacheEntry entries[16];
-    unsigned long used_mask;
-    unsigned long cached_bytes;
-    unsigned long limit;
+    w8_ulong used_mask;
+    w8_ulong cached_bytes;
+    w8_ulong limit;
     CriticalSection critical_section;
 };
 
-static_assert(sizeof(srGlobalRecycler) == 0xa4, "srGlobalRecycler_must_be_0xa4");
+W8_ABI_ASSERT(sizeof(srGlobalRecycler) == 0xa4, "srGlobalRecycler_must_be_0xa4");

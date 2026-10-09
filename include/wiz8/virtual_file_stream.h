@@ -23,16 +23,16 @@ public:
     explicit W8VirtualFileBinIStream(const char* path);
     virtual ~W8VirtualFileBinIStream() override;
 
-    unsigned long vread(void* buffer, unsigned long size) override;
-    srBinStream& seek(unsigned long position, e_seekDir direction) override;
-    srBinStream& seek(unsigned long position) override;
-    unsigned long tell() override;
+    w8_ulong vread(void* buffer, w8_ulong size) override;
+    srBinStream& seek(w8_ulong position, e_seekDir direction) override;
+    srBinStream& seek(w8_ulong position) override;
+    w8_ulong tell() override;
 
 private:
     int m_hFile; /* 0x08; vtordisp at 0x0c; virtual srBinStream at 0x10 */
 };
 
-static_assert(sizeof(W8VirtualFileBinIStream) == 0x20, "W8VirtualFileBinIStream_size_must_be_0x20");
+W8_ABI_ASSERT(sizeof(W8VirtualFileBinIStream) == 0x20, "W8VirtualFileBinIStream_size_must_be_0x20");
 
 class W8VirtualFileStreamOpener : public srIStreamOpener::Opener {
 public:

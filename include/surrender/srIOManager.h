@@ -57,8 +57,8 @@ private:
         ExporterRegistration* previous;
     };
 
-    static_assert(sizeof(ImporterRegistration) == 0x10, "srIOManager_ImporterRegistration_size");
-    static_assert(sizeof(ExporterRegistration) == 0x10, "srIOManager_ExporterRegistration_size");
+    W8_ABI_ASSERT(sizeof(ImporterRegistration) == 0x10, "srIOManager_ImporterRegistration_size");
+    W8_ABI_ASSERT(sizeof(ExporterRegistration) == 0x10, "srIOManager_ExporterRegistration_size");
 
     struct ImporterList {
         ImporterList() : first(new ImporterRegistration()), sentinel(first)
@@ -113,7 +113,7 @@ private:
             return 0;
         }
 
-        unsigned long count;
+        w8_ulong count;
         ImporterRegistration* first;
         ImporterRegistration* sentinel;
         void insert(ImporterRegistration* position, char* extension, Importer* importer);
@@ -172,7 +172,7 @@ private:
             return 0;
         }
 
-        unsigned long count;
+        w8_ulong count;
         ExporterRegistration* first;
         ExporterRegistration* sentinel;
         void insert(ExporterRegistration* position, char* extension, Exporter* exporter);
@@ -238,7 +238,7 @@ protected:
     SR_DLL_IMPORT void removeFromExporters(srIOManager* manager);
 };
 
-static_assert(sizeof(srIOManager) == 0x1c, "srIOManager_must_be_0x1c");
-static_assert(sizeof(srIOManager::Error) == 0x04, "srIOManager_Error_must_be_0x04");
-static_assert(sizeof(srIOManager::Importer) == 0x04, "srIOManager_Importer_must_be_0x04");
-static_assert(sizeof(srIOManager::Exporter) == 0x04, "srIOManager_Exporter_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srIOManager) == 0x1c, "srIOManager_must_be_0x1c");
+W8_ABI_ASSERT(sizeof(srIOManager::Error) == 0x04, "srIOManager_Error_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srIOManager::Importer) == 0x04, "srIOManager_Importer_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srIOManager::Exporter) == 0x04, "srIOManager_Exporter_must_be_0x04");

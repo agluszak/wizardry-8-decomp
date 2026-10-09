@@ -12,9 +12,9 @@
 #include "soundman.h"
 #include "FileMan.h"
 #include "LibraryDataBase.h"
-#include "debug.h"
+#include "DEBUG.H"
 #include "MemMan.h"
-#include "mss.h"
+#include "Mss.h"
 #include "random.h"
 
 // Uncomment this to disable the startup of sound hardware
@@ -1375,7 +1375,7 @@ UINT32 SoundStartSample(UINT32 uiSample, UINT32 uiChannel, SOUNDPARMS* pParms)
     else
         pSoundList[uiChannel].uiPriority = PRIORITY_MAX;
 
-    if ((pParms != NULL) && ((UINT32)pParms->EOSCallback != SOUND_PARMS_DEFAULT)) {
+    if ((pParms != NULL) && ((w8_ulong_ptr)pParms->EOSCallback != (w8_ulong_ptr)-1)) {
         pSoundList[uiChannel].EOSCallback = pParms->EOSCallback;
         pSoundList[uiChannel].pCallbackData = pParms->pCallbackData;
     } else {
@@ -1459,7 +1459,7 @@ UINT32 SoundStartStream(STR pFilename, UINT32 uiChannel, SOUNDPARMS* pParms)
     else
         pSoundList[uiChannel].uiPriority = SOUND_PARMS_DEFAULT;
 
-    if ((pParms != NULL) && ((UINT32)pParms->EOSCallback != SOUND_PARMS_DEFAULT)) {
+    if ((pParms != NULL) && ((w8_ulong_ptr)pParms->EOSCallback != (w8_ulong_ptr)-1)) {
         pSoundList[uiChannel].EOSCallback = pParms->EOSCallback;
         pSoundList[uiChannel].pCallbackData = pParms->pCallbackData;
     } else {
@@ -1954,7 +1954,7 @@ UINT32 Sound3DStartSample(UINT32 uiSample, UINT32 uiChannel, SOUND3DPARMS* pParm
     else
         pSoundList[uiChannel].uiPriority = PRIORITY_MAX;
 
-    if ((pParms != NULL) && ((UINT32)pParms->EOSCallback != SOUND_PARMS_DEFAULT)) {
+    if ((pParms != NULL) && ((w8_ulong_ptr)pParms->EOSCallback != (w8_ulong_ptr)-1)) {
         pSoundList[uiChannel].EOSCallback = pParms->EOSCallback;
         pSoundList[uiChannel].pCallbackData = pParms->pCallbackData;
     } else {

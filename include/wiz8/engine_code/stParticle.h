@@ -130,7 +130,7 @@ public:
     unsigned int update_flags;
     /* Index pairs, two per still-active particle, rebuilt whenever
        update_flags carries bit 1. */
-    unsigned long* active_triangles;
+    w8_ulong* active_triangles;
     /* Last accepted particle-integration tick. */
     unsigned int last_integration_tick;
     /* Emission schedule tick. */
@@ -146,7 +146,7 @@ public:
     unsigned char padding_27c[4];
 };
 
-static_assert(sizeof(stParticle) == 0x280, "stParticle_size_must_be_0x280");
+W8_ABI_ASSERT(sizeof(stParticle) == 0x280, "stParticle_size_must_be_0x280");
 
 stParticle* FindRegisteredParticle(const char* name);
 void SaveParticleStates(unsigned int handle);

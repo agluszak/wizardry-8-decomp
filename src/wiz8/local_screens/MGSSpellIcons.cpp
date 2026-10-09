@@ -293,7 +293,8 @@ static void ShowEffectIconHelp(const W8EffectSlot* slot, bool show_duration, int
         detail = FormatWideString(gppStringList[0x79d], amount);
     }
     unsigned int detail_len = wcslen(detail);
-    wchar_t* text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
+    wchar_t* text = static_cast<wchar_t*>(operator new((name_len + detail_len) * sizeof(*text) +
+                                                       sizeof(*text)));
     if (text == 0) {
         srAssertFail("pText", MGSSPELLICONS_CPP, assertion_line, 0);
     }

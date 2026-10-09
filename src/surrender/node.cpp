@@ -12,7 +12,7 @@
 srCriticalSection srNode::sceneGraphCSect;
 
 // GLOBAL: SURRENDER 0x100A49FC
-long srNode::sceneGraphLockCount;
+w8_long srNode::sceneGraphLockCount;
 
 /* Retail's world-space setters measure the column vectors with Length inlined
    and summed z, y, x; one call in setWorldSpaceRotation goes through the
@@ -81,7 +81,7 @@ void srNode::notifyChildren(const srFlags<e_notify>& notifications)
 {
     /* Only the bits this node has not seen yet propagate; the new set is
        re-masked at every recursion level. */
-    unsigned long pending = ~this->notifications.value & notifications.value;
+    w8_ulong pending = ~this->notifications.value & notifications.value;
     if (pending != 0) {
         this->notifications.value |= pending;
         for (srNode* child = first_child_; child != 0; child = child->next_sibling_) {
@@ -93,7 +93,7 @@ void srNode::notifyChildren(const srFlags<e_notify>& notifications)
 // FUNCTION: SURRENDER 0x10050410
 void srNode::notifyParents(const srFlags<e_notify>& notifications)
 {
-    unsigned long pending = ~this->notifications.value & notifications.value;
+    w8_ulong pending = ~this->notifications.value & notifications.value;
     if (pending != 0) {
         this->notifications.value |= pending;
         if (parent_ != 0) {
@@ -170,13 +170,13 @@ srNode& srNode::operator=(const srNode& other)
 }
 
 // FUNCTION: SURRENDER 0x10050690
-int srNode::processSignal(unsigned long signal, void* value)
+int srNode::processSignal(w8_ulong signal, void* value)
 {
     return 1;
 }
 
 // FUNCTION: SURRENDER 0x100506A0
-void srNode::signalInternal(unsigned long signal, void* value)
+void srNode::signalInternal(w8_ulong signal, void* value)
 {
     /* Depth-first walk: at each level the sibling chain is recursed first,
        then the first-child chain is iterated while processSignal keeps
@@ -194,7 +194,7 @@ void srNode::signalInternal(unsigned long signal, void* value)
 }
 
 // FUNCTION: SURRENDER 0x100506E0
-void srNode::signal(unsigned long signal, void* value)
+void srNode::signal(w8_ulong signal, void* value)
 {
     if (processSignal(signal, value) != 0 && first_child_ != 0) {
         first_child_->signalInternal(signal, value);
@@ -202,9 +202,9 @@ void srNode::signal(unsigned long signal, void* value)
 }
 
 // FUNCTION: SURRENDER 0x10050710
-long srNode::getHierarchyLevel() const
+w8_long srNode::getHierarchyLevel() const
 {
-    long level = 0;
+    w8_long level = 0;
     for (srNode* node = parent_; node != 0; node = node->parent_) {
         ++level;
     }
@@ -305,9 +305,9 @@ int srNode::setParent(srNode* parent, int preserve_world_transform)
 }
 
 // FUNCTION: SURRENDER 0x10050B70
-long srNode::getChildCount() const
+w8_long srNode::getChildCount() const
 {
-    long count = 0;
+    w8_long count = 0;
     for (srNode* child = first_child_; child != 0; child = child->next_sibling_) {
         count += 1 + child->getChildCount();
     }
@@ -361,7 +361,7 @@ static std::ostream& operator<<(std::ostream& stream, const srVector3T<double>& 
     return stream << '{' << vector.x << ',' << vector.y << ',' << vector.z << '}';
 }
 
-static void dumpFlags(std::ostream& stream, unsigned long flags, const char* names)
+static void dumpFlags(std::ostream& stream, w8_ulong flags, const char* names)
 {
     if (flags == 0) {
         stream << "[NONE]";
@@ -369,7 +369,7 @@ static void dumpFlags(std::ostream& stream, unsigned long flags, const char* nam
     }
     stream << '[';
     bool first = true;
-    for (unsigned long bit = 0; bit < 0x20; ++bit) {
+    for (w8_ulong bit = 0; bit < 0x20; ++bit) {
         if ((flags & (1 << bit)) != 0) {
             if (first) {
                 first = false;
@@ -410,7 +410,7 @@ void srNode::dump(std::ostream& stream)
     srVector3T<double> ws_location;
     srVector3T<double> ws_scale;
     getWorldSpaceCoordinates(ws_rotation, ws_location, ws_scale);
-    long flags = stream.flags();
+    w8_long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
     stream << "  FullPath: " << path << '\n';
@@ -1015,19 +1015,19 @@ void srNode::getFullPathInternal(char* path) const
 }
 
 // FUNCTION: SURRENDER 0x10050AD0
-long srNode::getFullPathLength() const
+w8_long srNode::getFullPathLength() const
 {
     return (parent_ != 0 ? parent_->getFullPathLengthInternal() : 0) + strlen(getName());
 }
 
 // FUNCTION: SURRENDER 0x10050A90
-long srNode::getFullPathLengthInternal() const
+w8_long srNode::getFullPathLengthInternal() const
 {
     return (parent_ != 0 ? parent_->getFullPathLengthInternal() : 0) + strlen(getName()) + 1;
 }
 
 // FUNCTION: SURRENDER 0x10050B10
-void srNode::dumpHierarchy(std::ostream& stream, long indent) const
+void srNode::dumpHierarchy(std::ostream& stream, w8_long indent) const
 {
     const srNode* node = this;
     do {
@@ -1068,7 +1068,7 @@ srNode* srNode::findChildInternal(const char* name)
 }
 
 // FUNCTION: SURRENDER 0x10050860
-srNode* srNode::findChildByNameAndType(const char* name, unsigned long class_id) const
+srNode* srNode::findChildByNameAndType(const char* name, w8_ulong class_id) const
 {
     if (name != 0 && first_child_ != 0) {
         return first_child_->findChildByNameAndTypeInternal(name, class_id);
@@ -1077,7 +1077,7 @@ srNode* srNode::findChildByNameAndType(const char* name, unsigned long class_id)
 }
 
 // FUNCTION: SURRENDER 0x100507D0
-srNode* srNode::findChildByNameAndTypeInternal(const char* name, unsigned long class_id)
+srNode* srNode::findChildByNameAndTypeInternal(const char* name, w8_ulong class_id)
 {
     if (strcmp(name, getName()) == 0 && matchClassID(class_id) != 0) {
         return this;
@@ -1118,7 +1118,7 @@ srNode* srNode::findParentInternal(const char* name)
 }
 
 // FUNCTION: SURRENDER 0x10050990
-srNode* srNode::findParentByType(unsigned long class_id) const
+srNode* srNode::findParentByType(w8_ulong class_id) const
 {
     if (parent_ == 0) {
         return 0;
@@ -1127,7 +1127,7 @@ srNode* srNode::findParentByType(unsigned long class_id) const
 }
 
 // FUNCTION: SURRENDER 0x10050950
-srNode* srNode::findParentByTypeInternal(unsigned long class_id)
+srNode* srNode::findParentByTypeInternal(w8_ulong class_id)
 {
     srNode* node = this;
     while (node->matchClassID(class_id) == 0) {

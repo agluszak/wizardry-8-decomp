@@ -49,7 +49,7 @@ public:
         /* Generic converter family; pixel_size stores (bits per pixel / 8) - 1. */
         e_colorModel color_model;
         e_pixelSize pixel_size;
-        unsigned long fourcc;
+        w8_ulong fourcc;
 
         PixelFormat() : fourcc(0) {}
 
@@ -58,13 +58,13 @@ public:
 #endif
         void getName(char* const name);
         int isValid() const;
-        unsigned long match(const PixelFormat* formats, unsigned long count) const;
+        w8_ulong match(const PixelFormat* formats, w8_ulong count) const;
 
         int operator==(const PixelFormat& other) const
         {
-            const unsigned long* a = reinterpret_cast<const unsigned long*>(
+            const w8_ulong* a = reinterpret_cast<const w8_ulong*>(
                 this); // reinterpret-ok: packed pixel-format block compare
-            const unsigned long* b = reinterpret_cast<const unsigned long*>(
+            const w8_ulong* b = reinterpret_cast<const w8_ulong*>(
                 &other); // reinterpret-ok: packed pixel-format block compare
             return a[4] == b[4] && b[0] == a[0] && b[1] == a[1] && a[3] == b[3] && a[2] == b[2];
         }
@@ -75,7 +75,7 @@ public:
     struct ConversionInfo {
         void* dest;
         const void* source;
-        unsigned long count;
+        w8_ulong count;
         srPalette* palette;
         const PixelFormat* format;
     };
@@ -86,9 +86,9 @@ public:
     static void selectFuncs(const PixelFormat& format, ConversionFunc& write, ConversionFunc& read);
 };
 
-static_assert(sizeof(srPixelConvert::PixelFormat) == 0x14,
+W8_ABI_ASSERT(sizeof(srPixelConvert::PixelFormat) == 0x14,
               "srPixelConvert_PixelFormat_must_be_0x14");
-static_assert(sizeof(srPixelConvert::ConversionInfo) == 0x14,
+W8_ABI_ASSERT(sizeof(srPixelConvert::ConversionInfo) == 0x14,
               "srPixelConvert_ConversionInfo_must_be_0x14");
 
 /* Builds the conversion lookup tables (channel expansion/reduction ramps,

@@ -1,8 +1,8 @@
 /* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
-#include "types.h"
+#include "Types.h"
 #include <windows.h>
-#include "video2.h"
+#include "Video2.h"
 #include "timer.h"
 
 #ifndef WIN32_LEAN_AND_MEAN

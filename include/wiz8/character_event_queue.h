@@ -83,7 +83,7 @@ struct W8CharacterEvent {
     unsigned char PlayEventSound();                        /* 0x0052D260 */
 };
 
-static_assert(sizeof(W8CharacterEvent) == 0x38, "W8CharacterEvent_must_be_0x38");
+W8_ABI_ASSERT(sizeof(W8CharacterEvent) == 0x38, "W8CharacterEvent_must_be_0x38");
 
 /* The character-event queue. Construction is at 0x0052D460; QueueEntry and the
    later methods occupy the following 0x52Dxxx block. The whole 0x52C810-0x52FEE0
@@ -146,6 +146,6 @@ struct W8CharacterEventQueue {
     void ProcessFollowUpEvents(); /* 0x0052E1C0 */
 };
 
-static_assert(sizeof(W8CharacterEventQueue) == 0x6c, "W8CharacterEventQueue_must_be_0x6c");
+W8_ABI_ASSERT(sizeof(W8CharacterEventQueue) == 0x6c, "W8CharacterEventQueue_must_be_0x6c");
 
 #endif

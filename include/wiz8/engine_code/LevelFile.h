@@ -87,7 +87,7 @@ struct W8LevelFileMesh {
 };
 
 static_assert(sizeof(srVector3T<float>) == 0xc, "Level mesh position record size");
-static_assert(offsetof(W8LevelFileMesh, pstVertices) == 0x4c, "Level mesh position pointer offset");
+W8_ABI_ASSERT(offsetof(W8LevelFileMesh, pstVertices) == 0x4c, "Level mesh position pointer offset");
 
 /* The 0x3c-byte serialized block covering stParametricLightDefinition fields
    flags through subcycle_max: the runtime object's first 8 bytes
@@ -171,6 +171,9 @@ struct W8LevelFileMonster {
     int num_mon_path;
     W8LevelFilePathNode* MonPath; /* num_mon_path records */
 };
+// ReadLevelFile transfers only this prefix; MonPath is installed afterwards.
+static_assert(offsetof(W8LevelFileMonster, MonPath) == 0x22,
+              "W8LevelFileMonster_serialized_prefix");
 
 struct W8LevelFileTriggerPosition { /* 0x1c: placement_kind == 1 payload */
     srVector3T<float> position;
@@ -614,7 +617,7 @@ struct W8LevelFile {
     /* PrePathing::CreateAutomapNodes fills these with the sorted automap
        cell keys; LevelFile.cpp writes them after the named positions. */
     int num_automap_nodes;
-    unsigned long* automap_nodes; /* num_automap_nodes * 4 */
+    w8_ulong* automap_nodes; /* num_automap_nodes * 4 */
     unsigned char unknown_6b9[4];
     int read_end_position; /* FileGetPos result on read */
     int num_switch_triggers;

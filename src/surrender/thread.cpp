@@ -3,10 +3,10 @@
 #include <process.h>
 
 // GLOBAL: SURRENDER 0x100A49A4
-long srThread::yieldCount;
+w8_long srThread::yieldCount;
 
 // FUNCTION: SURRENDER 0x10045B10
-unsigned long srThread::begin(void(__cdecl* entry)(void*), void* argument)
+w8_ulong srThread::begin(void(__cdecl* entry)(void*), void* argument)
 {
     return _beginthread(entry, 0, argument);
 }
@@ -20,19 +20,19 @@ void srThread::end()
 
 // FUNCTION: SURRENDER 0x10045B40 SYMBOL
 // RECOMP: ?getHandle@srThread@@SAKXZ
-unsigned long srThread::getHandle()
+w8_ulong srThread::getHandle()
 {
     return GetCurrentThreadId();
 }
 
 // FUNCTION: SURRENDER 0x100458B0
-long srThread::getYieldCount()
+w8_long srThread::getYieldCount()
 {
     return yieldCount;
 }
 
 // FUNCTION: SURRENDER 0x10045B50
-void srThread::yield(unsigned long milliseconds)
+void srThread::yield(w8_ulong milliseconds)
 {
     yieldCount = yieldCount + 1;
     Sleep(milliseconds);

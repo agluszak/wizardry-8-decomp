@@ -83,13 +83,13 @@ const char* srIlluminator::sGetClassName()
 }
 
 // FUNCTION: SURRENDER 0x1004CAF0
-void srIlluminator::setGroupMask(unsigned long mask)
+void srIlluminator::setGroupMask(w8_ulong mask)
 {
     group_mask = mask;
 }
 
 // FUNCTION: SURRENDER 0x1004CB00
-unsigned long srIlluminator::getGroupMask() const
+w8_ulong srIlluminator::getGroupMask() const
 {
     return group_mask;
 }

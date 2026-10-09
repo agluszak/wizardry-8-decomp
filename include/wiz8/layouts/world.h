@@ -86,7 +86,7 @@ struct W8World {
     unsigned char m_unknown_0d4[8];
 };
 
-static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
+W8_ABI_ASSERT(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 
 extern W8World* g_world;
 extern W8World* g_secondary_world;

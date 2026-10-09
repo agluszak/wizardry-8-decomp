@@ -3,8 +3,8 @@
 
 /* Wizardry's recovered call surface for the SurRender DLL. */
 
-typedef void(__cdecl* srAssertHandler)(const char* expression, const char* source_path, long line,
-                                       const char* message);
+typedef void(__cdecl* srAssertHandler)(const char* expression, const char* source_path,
+                                       w8_long line, const char* message);
 
 /* These imports are declared once here so every first-party caller sees the
    same recovered SurRender ABI. */
@@ -21,6 +21,6 @@ __declspec(dllimport) void __cdecl srAssertSetFunc(srAssertHandler handler);
  * the provider export is variadic (?srAssertFail@@YAXPBD0J0ZZ).
  */
 __declspec(dllimport) void __cdecl srAssertFail(const char* expression, const char* source_path,
-                                                long line, const char* message);
+                                                w8_long line, const char* message);
 
 #endif

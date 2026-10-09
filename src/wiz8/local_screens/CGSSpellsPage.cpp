@@ -66,7 +66,7 @@ public:
     int m_x;
     int m_y;
 };
-static_assert(sizeof(W8CharacterSpellList) == 0x60, "W8CharacterSpellList_size");
+W8_ABI_ASSERT(sizeof(W8CharacterSpellList) == 0x60, "W8CharacterSpellList_size");
 W8_ASSERT_BASE_END(W8CharacterSpellList, W8RangeListener, m_range, 0x34);
 
 W8CharacterSpellList::W8CharacterSpellList(Controls* owner, int x, int y,

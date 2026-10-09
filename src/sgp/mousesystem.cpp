@@ -8,15 +8,15 @@
 //	Written by Bret Rowdon, Jan 30 '97
 //  Re-Written by Kris Morness, since...
 
-#include "types.h"
+#include "Types.h"
 #include <windows.h>
 #include <stdio.h>
 #include <memory.h>
-#include "debug.h"
+#include "DEBUG.H"
 #include "input.h"
-#include "memman.h"
+#include "MemMan.h"
 #include "line.h"
-#include "video2.h"
+#include "Video2.h"
 #define BASE_REGION_FLAGS MSYS_REGION_ENABLED // Wiz doesn't ever want MSYS_SET_CURSOR to be on...
 #include "english.h"
 // Include mouse system defs and macros
@@ -946,7 +946,7 @@ void MSYS_ReleaseMouse(MOUSE_REGION* region)
 */
 
 // FUNCTION: WIZ8 0x0040c040
-void SetRegionFastHelpText(MOUSE_REGION* region, UINT16* szText)
+void SetRegionFastHelpText(MOUSE_REGION* region, CHAR16* szText)
 {
     Assert(region);
 
@@ -964,7 +964,7 @@ void SetRegionFastHelpText(MOUSE_REGION* region, UINT16* szText)
         return; //blank (or clear)
 
     // Allocate memory for the button's FastHelp text string...
-    region->FastHelpText = (UINT16*)MemAlloc((wcslen(szText) + 1) * sizeof(UINT16));
+    region->FastHelpText = (CHAR16*)MemAlloc((wcslen(szText) + 1) * sizeof(UINT16));
     Assert(region->FastHelpText);
 
     wcscpy(region->FastHelpText, szText);

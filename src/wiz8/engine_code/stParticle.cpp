@@ -230,7 +230,7 @@ stParticle::stParticle(srNode* parent, int count)
     release_when_done = false;
     replace_when_full = false;
     emission_count = 0;
-    active_triangles = new unsigned long[texture_frame_count];
+    active_triangles = new w8_ulong[texture_frame_count];
     active_particle_count = 0;
     velocities =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
@@ -394,7 +394,7 @@ stParticle::stParticle(const stParticle& other)
     bounds_origin = other.bounds_origin;
     bounds_radius = other.bounds_radius;
     update_flags = W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
-    active_triangles = new unsigned long[texture_frame_count];
+    active_triangles = new w8_ulong[texture_frame_count];
     last_integration_tick = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     last_emission_tick = last_integration_tick;
     attachment_key = other.attachment_key;

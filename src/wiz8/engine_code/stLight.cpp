@@ -264,7 +264,7 @@ void stLight::Update()
         return;
     }
 
-    unsigned long ticks = GetTickCount();
+    w8_ulong ticks = GetTickCount();
     W8PathAI* path = path_ai;
     float seconds = ticks * g_float_one_thousandth;
     stParametricLightDefinition* definition =

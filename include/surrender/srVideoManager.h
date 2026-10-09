@@ -11,7 +11,7 @@ public:
     public:
         /* Per-frame target built by VStream::decompress; the leading dword is always 0. */
         struct Target {
-            long flags;
+            w8_long flags;
             srColorSurfaceIFace::Rectangle source;
             srColorSurfaceIFace::Rectangle surface;
         };
@@ -19,17 +19,17 @@ public:
         /* Stream description the importer fills through getInfo. */
         struct Info {
             srPixelConvert::PixelFormat pixel_format;
-            unsigned long width;
-            unsigned long height;
-            unsigned long frame_count;
+            w8_ulong width;
+            w8_ulong height;
+            w8_ulong frame_count;
             float frames_per_second;
             char description[0x40];
-            unsigned long field_64;
-            unsigned long field_68;
-            unsigned long field_6c;
-            unsigned long field_70;
-            unsigned long field_74;
-            unsigned long field_78;
+            w8_ulong field_64;
+            w8_ulong field_68;
+            w8_ulong field_6c;
+            w8_ulong field_70;
+            w8_ulong field_74;
+            w8_ulong field_78;
 
             Info()
             {
@@ -51,39 +51,40 @@ public:
             reset_pending = 1;
         }
         // FUNCTION: SURRENDER 0x1002DFB0
-        virtual long getIndex()
+        virtual w8_long getIndex()
         {
             return index;
         }
         // FUNCTION: SURRENDER 0x1002DFC0
-        virtual void setParameter(long parameter)
+        virtual void setParameter(w8_long parameter)
         {
             this->parameter = parameter;
         }
         /* Nonzero clamps an out-of-range frame request; zero wraps it and
            rewinds (srEXT_FLIC). */
         // FUNCTION: SURRENDER 0x1002DFD0
-        virtual void setClamp(long clamp)
+        virtual void setClamp(w8_long clamp)
         {
             this->clamp = clamp;
         }
         // FUNCTION: SURRENDER 0x1002DFE0
-        virtual void setPosition(long position)
+        virtual void setPosition(w8_long position)
         {
             this->position = position;
         }
         virtual void getInfo(Info* info) = 0;
-        virtual void decompress(srColorSurfaceIFace& surface, const Target& target, long frame) = 0;
+        virtual void decompress(srColorSurfaceIFace& surface, const Target& target,
+                                w8_long frame) = 0;
 
     protected:
         SR_DLL_EXPORT Stream(const char* path = 0);
 
-        long loaded;
-        long parameter;
-        long index;
-        long reset_pending;
-        long clamp;
-        long position;
+        w8_long loaded;
+        w8_long parameter;
+        w8_long index;
+        w8_long reset_pending;
+        w8_long clamp;
+        w8_long position;
     };
 
     /* Importer-side video entry: the video extensions register a subclass whose openStream
@@ -109,5 +110,5 @@ public:
     VStream* openVStream(const char* path);
 };
 
-static_assert((sizeof(srVideoManager::VStream) == 0x80), "srVideoManager_VStream_must_be_0x80");
-static_assert((sizeof(srVideoManager::Stream::Info) == 0x7c), "srStreamInfo_must_be_0x7c");
+W8_ABI_ASSERT((sizeof(srVideoManager::VStream) == 0x80), "srVideoManager_VStream_must_be_0x80");
+W8_ABI_ASSERT((sizeof(srVideoManager::Stream::Info) == 0x7c), "srStreamInfo_must_be_0x7c");

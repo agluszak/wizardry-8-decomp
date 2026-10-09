@@ -21,7 +21,7 @@
 //
 //**************************************************************************
 
-#include "types.h"
+#include "Types.h"
 
 //**************************************************************************
 //
@@ -47,7 +47,7 @@ typedef struct WizSharedtag {
     INT32 iNumMessages;  // # messages
     INT32 iLastIndex;
 
-    CHAR cMessages[NUM_MESSAGES][MAX_MSG_LENGTH];
+    CHAR8 cMessages[NUM_MESSAGES][MAX_MSG_LENGTH];
 } WizShared;
 
 #pragma pack(pop)

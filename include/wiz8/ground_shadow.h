@@ -30,4 +30,4 @@ private:
     void renderGroundShadow(srGERD* renderer); /* 0x004D66A0 */
 };
 
-static_assert((sizeof(stGroundShadow) == 0x148), "stGroundShadow_must_be_0x148");
+W8_ABI_ASSERT((sizeof(stGroundShadow) == 0x148), "stGroundShadow_must_be_0x148");

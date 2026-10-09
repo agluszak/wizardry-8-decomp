@@ -280,7 +280,8 @@ int g_cursor_hotspot_y;
 bool g_system_cursor_visible;
 
 // FUNCTION: WIZ8 0x00428ab0
-void AssertFailureHandler(const char* expression, const char* file, long line, const char* message)
+void AssertFailureHandler(const char* expression, const char* file, w8_long line,
+                          const char* message)
 {
     char text[2048];
     strcpy(text, "ERROR: You are viewing a message intended for the developers of "
@@ -348,9 +349,8 @@ void ResetVideoFrameState(void)
 unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_command,
                                      void* window_proc)
 {
-    MEMORYSTATUS status;
     unsigned int active;
-
+    MEMORYSTATUS status;
     memset(&status, 0, sizeof(status));
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
@@ -713,7 +713,7 @@ unsigned char InitializeVideoDevice(void)
     }
 
     // reinterpret-ok: SurRender takes the window handle as an integer
-    g_gerd->createContext(reinterpret_cast<unsigned long>(ghWindow));
+    g_gerd->createContext(reinterpret_cast<w8_ulong_ptr>(ghWindow));
     OpenRendererWindow();
     srAssertSetFunc(AssertFailureHandler);
     if (_strnicmp(sound_provider, "none", 4) == 0) {
@@ -731,7 +731,7 @@ unsigned char InitializeVideoDevice(void)
 unsigned char OpenRendererWindow(void)
 {
     srGERD::e_error error;
-    long mode;
+    w8_long mode;
     LPSTR error_message;
 
     if (!g_fullscreen) {
@@ -821,7 +821,7 @@ unsigned char FinishVideoPresentation(void)
     }
     g_direct_draw2->SetCooperativeLevel(NULL, DDSCL_NORMAL);
     // reinterpret-ok: SurRender takes the window handle as an integer
-    g_gerd->createContext(reinterpret_cast<unsigned long>(ghWindow));
+    g_gerd->createContext(reinterpret_cast<w8_ulong_ptr>(ghWindow));
     return OpenRendererWindow();
 }
 
@@ -1008,17 +1008,17 @@ static RuntimeWorldRenderData ObserveWorldRenderState();
 // FUNCTION: WIZ8 0x00427850
 void RenderScene(srScene* scene, srCamera* camera, const int* viewport, bool preserve_fog)
 {
-    unsigned long width = g_gerd->getWidth();
-    unsigned long height = g_gerd->getHeight();
+    w8_ulong width = g_gerd->getWidth();
+    w8_ulong height = g_gerd->getHeight();
 
     if (scene == 0 || scene->getChildCount() == 0) {
         return;
     }
     if (viewport != 0) {
-        unsigned long left = viewport[0] * width / 640;
-        unsigned long top = viewport[1] * height / 480;
-        unsigned long viewport_width = (viewport[2] - viewport[0]) * width / 640;
-        unsigned long viewport_height = (viewport[3] - viewport[1]) * height / 480;
+        w8_ulong left = viewport[0] * width / 640;
+        w8_ulong top = viewport[1] * height / 480;
+        w8_ulong viewport_width = (viewport[2] - viewport[0]) * width / 640;
+        w8_ulong viewport_height = (viewport[3] - viewport[1]) * height / 480;
         g_gerd->setViewPort(left, top, viewport_width, viewport_height);
         g_gerd->setScissor(left, top, viewport_width, viewport_height);
 #ifdef WIZ8_RUNTIME_TESTS
@@ -1061,7 +1061,7 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
                  (g_render_mesh_sky ? 16UL : 0UL) | (g_world_pick_enabled ? 32UL : 0UL);
     data.scene_children = g_world->static_scene->getChildCount();
     if (g_world->octree != 0 && g_world->psrMeshes != 0) {
-        for (unsigned long index = 0; index < g_world->octree->m_meshCount; ++index) {
+        for (w8_ulong index = 0; index < g_world->octree->m_meshCount; ++index) {
             srModelInstance* instance = g_world->psrMeshes[index];
             if (instance != 0 && !instance->testFlag(srNode::FLAG_DISABLE)) {
                 ++data.visible_meshes;
@@ -1096,7 +1096,7 @@ void RenderFrame(void)
     srVector3T<float> saved_world_position;
     srVector3T<float> shifted_world_position;
     unsigned int next_page;
-    unsigned long now;
+    w8_ulong now;
     float elapsed;
     float frames_per_second;
     srScene* first_page;
@@ -1145,8 +1145,8 @@ void RenderFrame(void)
         }
     } else if (g_world_blacked_out || !g_render_mesh_sky || g_secondary_world == 0) {
     clear_viewport: {
-        unsigned long height = g_gerd->getHeight();
-        unsigned long width = g_gerd->getWidth();
+        w8_ulong height = g_gerd->getHeight();
+        w8_ulong width = g_gerd->getWidth();
         g_gerd->setScissor(g_viewport.left * width / 640, g_viewport.top * height / 480,
                            (g_viewport.right - g_viewport.left) * width / 640,
                            (g_viewport.bottom - g_viewport.top) * height / 480);
@@ -2488,9 +2488,9 @@ unsigned char InitializeRendererSceneObjects(void)
     surface_description.dwSize = sizeof(surface_description);
     DDLockSurface(g_primary_surface, 0, &surface_description, 0, 0);
     DDUnlockSurface(g_primary_surface, 0);
-    g_primary_color_surface = SR_NEW(W8ColorSurface)(
-        srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface, 640UL, 480UL,
-        static_cast<unsigned long>(surface_description.lPitch));
+    g_primary_color_surface =
+        SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface,
+                               640UL, 480UL, static_cast<w8_ulong>(surface_description.lPitch));
     if (!g_primary_color_surface)
         return 0;
 
@@ -2548,7 +2548,7 @@ void PurgeInactiveSceneInstances(srScene* scene)
     node = scene->first_child_;
     while (node) {
         srNode* next = node->next_sibling_;
-        unsigned long class_id = node->getClassID();
+        w8_ulong class_id = node->getClassID();
         unsigned char display_state = 0;
         if (class_id == 0x10004) {
             /* Retail also applies the 2D byte test to 3D highlight alpha.
@@ -2876,10 +2876,10 @@ void PositionToolTipNode(srNode* node, int x, int y, bool positional)
 
     if (positional && g_gerd != 0) {
         double whole;
-        long width = g_gerd->getWidth();
+        w8_long width = g_gerd->getWidth();
         double fraction = modf(width * position_x, &whole);
         position_x -= fraction / width;
-        long height = g_gerd->getHeight();
+        w8_long height = g_gerd->getHeight();
         fraction = modf(height * position_y, &whole);
         position_y -= fraction / height;
     }
@@ -2919,7 +2919,7 @@ srModelInstance* Video2DRectToSquarePolygon(const W8ControlsRect* rect, void* so
         extent = width_extent;
     }
     if (extent <= 0x100) {
-        unsigned long size;
+        w8_ulong size;
         if (extent > 0x80) {
             size = 0x100;
         } else if (extent > 0x40) {
@@ -3215,8 +3215,8 @@ srModelInstance* Video2DRectToPolygon(const W8ControlsRect* rect, void* source, 
     }
 
     srColorSurface* surface =
-        SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, static_cast<unsigned long>(extent),
-                               static_cast<unsigned long>(extent));
+        SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, static_cast<w8_ulong>(extent),
+                               static_cast<w8_ulong>(extent));
     if (surface == 0) {
         return 0;
     }
@@ -3254,7 +3254,7 @@ srModelInstance* Video2DRectToPolygon(const W8ControlsRect* rect, void* source, 
    tooltip objects and positions them above the cursor. Only one tooltip is
    alive at a time. */
 // FUNCTION: WIZ8 0x00429290
-void VideoToolTip(UINT16* text)
+void VideoToolTip(CHAR16* text)
 {
     if (g_screen_transition_object_count != 0) {
         return;
@@ -3281,11 +3281,11 @@ void VideoToolTip(UINT16* text)
     unsigned char colour[4];
     for (int y = 0; y < g_help_box_height; ++y) {
         PackColourBytes(colour, 1.0, 0.0, 0.0, 0.0);
-        surface->setHLine(0, y, g_help_box_width, *(unsigned long*)colour);
+        surface->setHLine(0, y, g_help_box_width, *(w8_ulong*)colour);
     }
     buffer->RenderText(static_cast<unsigned char*>(data),
                        static_cast<unsigned int>(surface->getPitch()), 2, 1, true);
-    unsigned long border_colour;
+    w8_ulong border_colour;
     PackColourToLong(&border_colour, 1.0, 0.93, 0.6, 0.33);
     surface->setHLine(0, 0, g_help_box_width, border_colour);
     PackColourToLong(&border_colour, 1.0, 0.93, 0.6, 0.33);
@@ -3364,7 +3364,7 @@ void SetSwapInterval(bool enabled)
 }
 
 // FUNCTION: WIZ8 0x00426740
-void SetTextureCacheSize(unsigned long bytes)
+void SetTextureCacheSize(w8_ulong bytes)
 {
     if (bytes > 0x7fffff && bytes != g_gerd->getTextureCacheSize()) {
         g_gerd->invalidateResidentTextures();
@@ -3393,7 +3393,7 @@ stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_f
     ETRLEObject properties;
     unsigned short frame;
     unsigned short end_frame;
-    unsigned long extent;
+    w8_ulong extent;
     unsigned short largest;
 
     if (!gfVideoObjectsInit) {
@@ -3428,7 +3428,7 @@ stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_f
                     extent = 0x100;
                 }
             } else {
-                extent = static_cast<unsigned long>(-1);
+                extent = static_cast<w8_ulong>(-1);
             }
 
             srColorSurface* surface;
@@ -3662,8 +3662,8 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
 /* Exception-scope cleanup for the small MakePosterQuad local whose managed
    pointer lives at +0x08 (the palette slot). */
 struct Video2PosterQuadInfo {
-    unsigned long width;
-    unsigned long height;
+    w8_ulong width;
+    w8_ulong height;
     srClass* pointer;
 };
 
@@ -3704,7 +3704,7 @@ store:
 }
 
 // FUNCTION: WIZ8 0x00426490
-void DrawBufferLine(long x0, long y0, long x1, long y1, unsigned long* pixel)
+void DrawBufferLine(w8_long x0, w8_long y0, w8_long x1, w8_long y1, w8_ulong* pixel)
 {
     if (x0 != 0 && y0 != 0 && x1 != 0 && y1 != 0) {
         srColorSurfaceIFace* surface = g_gerd->lockBuffer();
@@ -3729,7 +3729,7 @@ void SetPickKey(void* key)
 {
     if (g_gerd) {
         g_gerd->setPickKey(
-            reinterpret_cast<unsigned long>(key)); // reinterpret-ok: opaque pick token
+            reinterpret_cast<w8_ulong_ptr>(key)); // reinterpret-ok: opaque pick token
     }
 }
 

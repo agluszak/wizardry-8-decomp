@@ -2,15 +2,15 @@
    Distributed under the accompanying SFI Source Code license agreement. */
 #include <math.h>
 #include <stdlib.h>
-#include "types.h"
+#include "Types.h"
 #include "string.h"
-#include "debug.h"
-#include "fileman.h"
+#include "DEBUG.H"
+#include "FileMan.h"
 #include "himage.h"
 #include "impTGA.h"
 #include "pcx.h"
 #include "STCI.h"
-#include "wcheck.h"
+#include "WCheck.h"
 #include "Compression.h"
 #include "vobject.h"
 

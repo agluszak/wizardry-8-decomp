@@ -29,7 +29,7 @@ static_assert(sizeof(W8TgaHeader) == 20, "W8TgaHeader_must_be_20");
 /* Both loaders clean their own stack arguments. LoadSurface's second
    parameter is not dereferenced in the inspected body; the observed caller
    passes the address of a zeroed dword. */
-srColorSurface* __stdcall LoadSurface(int handle, long*);
+srColorSurface* __stdcall LoadSurface(int handle, w8_long*);
 void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8TgaHeader* header);
 
 /* Wizardry's virtual-file-backed texture. SR.DLL exports a parallel
@@ -83,7 +83,7 @@ public:
 
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;                      /* 0x0047C7A0 */
-    virtual unsigned long getTextureFrameHandle() override;     /* 0x0047C5F0 */
+    virtual w8_ulong getTextureFrameHandle() override;          /* 0x0047C5F0 */
     virtual void getMipmapData(MultiRequest& request) override; /* 0x0047CA50 */
     virtual void getMipmapLevelPartial(PartialRequest& request) override;
     virtual void invalidate() override; /* 0x0047C8B0 */
@@ -102,9 +102,9 @@ private:
     int cached;
     char* file_name;
     srColorSurface* surface;
-    unsigned long frame_handle;
+    w8_ulong frame_handle;
     bool has_alpha;
     unsigned char padding_65[3];
 };
 
-static_assert(sizeof(stTextureFile) == 0x68, "stTextureFile_must_be_0x68");
+W8_ABI_ASSERT(sizeof(stTextureFile) == 0x68, "stTextureFile_must_be_0x68");

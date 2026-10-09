@@ -91,7 +91,7 @@ void srFog::process(srVertexPipe& pipe)
         float radius;
         pipe.getEyeSpaceBoundingSphere(center, radius);
         double limit = radius + fog_end;
-        long count = (long)pipe.getVertexCount();
+        w8_long count = (w8_long)pipe.getVertexCount();
         if (center.LengthSquared() <= limit * limit) {
             if (fog_end == fog_start) {
                 scale = 1e+08f;
@@ -169,7 +169,7 @@ srFog::srFog(srNode* parent)
 void srFog::dump(std::ostream& stream)
 {
     srNode::dump(stream);
-    long flags = stream.flags();
+    w8_long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
     stream << "Density: " << density << '\n';

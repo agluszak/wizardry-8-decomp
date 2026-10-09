@@ -17,7 +17,7 @@ W8GDSurface** g_oct_build_scratch;
 /* The running count of surfaces appended into the scratch buffer by the
    leaf collector. Saved and restored around nested collects. */
 // GLOBAL: WIZ8 0x00659a38
-static unsigned long g_oct_build_count;
+static w8_ulong g_oct_build_count;
 /* The caller's result slot during a segment collect; retail writes it but
    no recovered reader exists. */
 // GLOBAL: WIZ8 0x00659a44
@@ -62,7 +62,7 @@ W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(void* surface)
 // FUNCTION: WIZ8 0x00446330
 W8OctBuildNode::W8OctBuildNode()
 {
-    memset(this, 0, 10 * sizeof(unsigned long));
+    memset(this, 0, 10 * sizeof(w8_ulong));
     leaf_kind = 0;
     region = 0;
     provisional_region = 0;
@@ -72,7 +72,7 @@ W8OctBuildNode::W8OctBuildNode()
 W8OctBuildNode::~W8OctBuildNode()
 {
     if (leaf_kind != 0) {
-        memset(this, 0, 10 * sizeof(unsigned long));
+        memset(this, 0, 10 * sizeof(w8_ulong));
         return;
     }
     for (int child = 0; child != 8; ++child) {
@@ -172,7 +172,8 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
         spatial.m_cell_size = spatial.m_node_extent * g_octree_cell_extent_scale;
         spatial.m_maximum.Set(minimum->x + spatial.m_extent, minimum->y + spatial.m_extent,
                               minimum->z + spatial.m_extent);
-        g_oct_build_scratch = static_cast<W8GDSurface**>(malloc(40000));
+        g_oct_build_scratch =
+            static_cast<W8GDSurface**>(malloc(10000 * sizeof(*g_oct_build_scratch)));
         spatial.m_polygon_count = 1;
         spatial.m_item_count = 0;
         spatial.m_root = 0;
@@ -212,7 +213,7 @@ W8OctBuildTree::~W8OctBuildTree()
 /* Reject triangles outside the build domain, lazily create the root node, and
    then hand the complete typed working record to the recursive inserter. */
 // FUNCTION: WIZ8 0x00446820
-unsigned char W8OctBuildTree::InsertSurface(W8GDSurface* surface, unsigned long mode)
+unsigned char W8OctBuildTree::InsertSurface(W8GDSurface* surface, w8_ulong mode)
 {
     W8OctSpatialState working(&spatial);
     srVector3T<float> vertices[3];
@@ -253,8 +254,7 @@ unsigned char W8OctBuildTree::InsertSurface(W8GDSurface* surface, unsigned long 
 // FUNCTION: WIZ8 0x004469f0
 unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
                                                      W8GDSurface* surface,
-                                                     srVector3T<float>* plane_point,
-                                                     unsigned long mode)
+                                                     srVector3T<float>* plane_point, w8_ulong mode)
 {
     W8OctSpatialState child(working);
     bool inserted = false;
@@ -339,7 +339,7 @@ int W8OctBuildTree::CollectObjectsAlongSegment(W8GDSurface*** results,
 {
     W8OctSpatialState state(&spatial);
     srVector3T<float> bounds[2];
-    unsigned long saved = 0;
+    w8_ulong saved = 0;
     unsigned int index;
 
     if (*results == 0) {
@@ -441,7 +441,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
     W8OctBuildLink* link;
     W8GDSurface* surface;
     W8GDSurface** scan;
-    unsigned long index;
+    w8_ulong index;
     int collected = 0;
     int second;
 
@@ -603,7 +603,7 @@ char CollectSurfacePredicate(W8GDSurface* surface, short kind)
     bool result = false;
     if (kind != 3) {
         if (g_oct_build_count != 0) {
-            for (unsigned long index = 0; index < g_oct_build_count; ++index) {
+            for (w8_ulong index = 0; index < g_oct_build_count; ++index) {
                 if (surface == g_oct_build_scratch[index]) {
                     return 0;
                 }

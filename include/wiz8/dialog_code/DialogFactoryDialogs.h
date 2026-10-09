@@ -8,6 +8,7 @@
 
 #include "Button System.h"
 #include "input.h"
+#include <windows.h>
 
 struct W8WorldItem;
 struct W8ItemInstance;
@@ -58,7 +59,7 @@ public:
     /* Echoed back as the argument of m_dialog->OnNumericInputChanged. */
     int m_control_id;
 };
-static_assert(sizeof(W8DialogNumericInput) == 0x30, "W8DialogNumericInput_size");
+W8_ABI_ASSERT(sizeof(W8DialogNumericInput) == 0x30, "W8DialogNumericInput_size");
 
 // VTABLE: WIZ8 0x005ef7c8
 class W8ListBoxDialog : public W8DialogBase {
@@ -184,8 +185,8 @@ private:
     W8SplitDialogResult m_result; /* 1 confirms, 2 cancels */
 };
 
-static_assert(sizeof(W8ListBoxDialog) == 0xfc, "W8ListBoxDialog005CBB40_must_be_0xfc");
-static_assert(sizeof(W8SplitAmountDialog) == 0x90, "W8SplitAmountDialog_must_be_0x90");
+W8_ABI_ASSERT(sizeof(W8ListBoxDialog) == 0xfc, "W8ListBoxDialog005CBB40_must_be_0xfc");
+W8_ABI_ASSERT(sizeof(W8SplitAmountDialog) == 0x90, "W8SplitAmountDialog_must_be_0x90");
 
 /* The trigger-owned item picker. The item group is what the trigger hands in
    and the destroy callback hands back. */
@@ -255,7 +256,7 @@ public:
     W8WorldItem* m_item_group;
 };
 
-static_assert(sizeof(W8TriggerItemPickerDialog) == 0xb0, "W8TriggerItemPickerDialog_must_be_0xb0");
+W8_ABI_ASSERT(sizeof(W8TriggerItemPickerDialog) == 0xb0, "W8TriggerItemPickerDialog_must_be_0xb0");
 
 /* The item-split dialog opened for stackable item stacks. The destroy
    callback reads back split_count and tests split_result. */
@@ -317,7 +318,7 @@ private:
     bool m_first_draw; /* draw the item icon once */
 };
 
-static_assert(sizeof(W8SplitItemDialog) == 0xd8, "W8SplitItemDialog_must_be_0xd8");
+W8_ABI_ASSERT(sizeof(W8SplitItemDialog) == 0xd8, "W8SplitItemDialog_must_be_0xd8");
 
 extern const W8SplitDialogResult g_amount_split_confirm_result;
 extern const W8SplitDialogResult g_item_split_confirm_result;

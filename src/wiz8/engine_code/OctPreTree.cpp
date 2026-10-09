@@ -97,7 +97,7 @@ void OctPreTree::CollectLeafPolygons(const srVector3T<int>* cell)
     m_gd_result_count = 0;
     unsigned int leaf_index = LeafIndexForCell(cell);
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
-        const unsigned long* stream = m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
+        const w8_ulong* stream = m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
         for (int remaining = *stream; remaining != 0; --remaining) {
             ++stream;
             if (!m_visited_polygon_bits->Set(*stream)) {
@@ -210,7 +210,7 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
     float limit = trace->length - g_float_one;
     bool blocked = false;
 
-    for (unsigned long index = 0; index < m_gd_result_count; ++index) {
+    for (w8_ulong index = 0; index < m_gd_result_count; ++index) {
         if (blocked) {
             break;
         }
@@ -263,11 +263,11 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
 {
     unsigned char written;
     int file;
-    unsigned long sentinel = 0xffffffff;
+    w8_ulong sentinel = 0xffffffff;
     W8OctFileHeader header;
 
     if (m_leaf_count != 0) {
-        for (unsigned long index = 0; index < m_leaf_count; ++index) {
+        for (w8_ulong index = 0; index < m_leaf_count; ++index) {
             m_leaves[index].flags &= 0xfffffffe;
         }
     }
@@ -447,7 +447,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
 
 /* Releases the two per-record id runs SplitMeshes allocates; retail inlines
    this same loop at every CreateSubMeshes exit. */
-static void FreeSubmeshBuildArrays(W8OctSubmeshBuild* records, unsigned long count)
+static void FreeSubmeshBuildArrays(W8OctSubmeshBuild* records, w8_ulong count)
 {
     for (unsigned int index = 0; index < count; ++index) {
         if (records[index].m_vertex_ids != 0) {
@@ -490,7 +490,8 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
         memset(records, 0, (m_spatial.submesh_count + 1) * 3 * sizeof(W8OctSubmeshBuild));
         AllocateSubMesh(records);
         SplitMeshes(geometry, records);
-        m_aulPolyLookup = static_cast<unsigned long*>(malloc(geometry->m_polygon_count * 4 + 4));
+        m_aulPolyLookup = static_cast<w8_ulong*>(malloc(
+            geometry->m_polygon_count * sizeof(*m_aulPolyLookup) + sizeof(*m_aulPolyLookup)));
         if (m_aulPolyLookup == 0) {
             ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate m_aulPolyLookup.\n");
             FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
@@ -535,23 +536,23 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                         }
                         model->next_link = record->m_next_link - 1;
                         model->m_vertex_locations = static_cast<srVector3T<float>*>(
-                            srHeap.allocate(record->vertex_count * 0xc));
+                            srHeap.allocate(record->vertex_count * sizeof(srVector3T<float>)));
                         model->m_vertex_map = record->m_uv_map;
                         model->m_poly_vertices = record->m_poly_vertices;
                         model->m_poly_uv_index = record->m_poly_uv_index;
-                        model->m_poly_equations = static_cast<srVector4T<float>*>(
-                            srHeap.allocate(record->m_polygon_count << 4));
+                        model->m_poly_equations = static_cast<srVector4T<float>*>(srHeap.allocate(
+                            record->m_polygon_count * sizeof(*model->m_poly_equations)));
                         model->m_vertex_normals = static_cast<srVector3T<float>*>(
-                            srHeap.allocate(record->vertex_count * 0xc));
+                            srHeap.allocate(record->vertex_count * sizeof(srVector3T<float>)));
                         model->m_vertex_lights = static_cast<srVector3T<float>*>(
-                            srHeap.allocate(record->vertex_count * 0xc));
+                            srHeap.allocate(record->vertex_count * sizeof(srVector3T<float>)));
                         model->m_vertex_materials =
-                            static_cast<int*>(malloc(record->vertex_count << 2));
-                        model->m_poly_textures =
-                            static_cast<int*>(malloc(record->m_polygon_count << 2));
+                            static_cast<int*>(malloc(record->vertex_count * sizeof(int)));
+                        model->m_poly_textures = static_cast<int*>(
+                            malloc(record->m_polygon_count * sizeof(*model->m_poly_textures)));
                         if (m_sun_count != 0) {
-                            model->m_sun_lights =
-                                static_cast<float**>(malloc(static_cast<int>(m_sun_count) << 2));
+                            model->m_sun_lights = static_cast<float**>(malloc(
+                                static_cast<int>(m_sun_count) * sizeof(*model->m_sun_lights)));
                             if (model->m_sun_lights == 0) {
                                 ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate "
                                                      "ppsrSunLights.\n");
@@ -559,8 +560,8 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                                 goto cleanup;
                             }
                             for (short sun = 0; sun < static_cast<short>(m_sun_count); ++sun) {
-                                model->m_sun_lights[sun] =
-                                    static_cast<float*>(malloc(record->vertex_count << 2));
+                                model->m_sun_lights[sun] = static_cast<float*>(malloc(
+                                    record->vertex_count * sizeof(*model->m_sun_lights[sun])));
                                 if (model->m_sun_lights[sun] == 0) {
                                     ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate "
                                                          "ppsrSunLights array.\n");
@@ -578,9 +579,8 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                             FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
                             goto cleanup;
                         }
-                        for (unsigned long polygon = 0; polygon < record->m_polygon_count;
-                             ++polygon) {
-                            unsigned long id = record->m_polygon_ids[polygon];
+                        for (w8_ulong polygon = 0; polygon < record->m_polygon_count; ++polygon) {
+                            w8_ulong id = record->m_polygon_ids[polygon];
                             m_aulPolyLookup[id] = model_index * 0x10000 + polygon;
                             model->m_poly_textures[polygon] = geometry->m_polygons[id].texture;
                             model->m_poly_equations[polygon].x =
@@ -593,7 +593,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                         }
                         model->m_material_index =
                             geometry->m_vertices[record->m_vertex_ids[0]].m_material;
-                        for (unsigned long vertex = 0; vertex < record->vertex_count; ++vertex) {
+                        for (w8_ulong vertex = 0; vertex < record->vertex_count; ++vertex) {
                             W8OctPreTreeVertex* source =
                                 &geometry->m_vertices[record->m_vertex_ids[vertex]];
                             model->m_vertex_locations[vertex] = source->position;
@@ -650,26 +650,26 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
    SplitUVMaps.  Retail leaks the five sort arrays on the allocation-failure
    paths; kept as-is. */
 // FUNCTION: WIZ8 0x00469670
-unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records)
+w8_ulong OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records)
 {
-    unsigned long count = m_spatial.submesh_count;
+    w8_ulong count = m_spatial.submesh_count;
     if (count == 0) {
         return 0;
     }
 
-    unsigned long max_polygons = 0;
+    w8_ulong max_polygons = 0;
     if (count > 1) {
-        for (unsigned long index = 1; index < count; ++index) {
+        for (w8_ulong index = 1; index < count; ++index) {
             if (max_polygons < records[index].m_polygon_count) {
                 max_polygons = records[index].m_polygon_count;
             }
         }
     }
-    unsigned long* staging = static_cast<unsigned long*>(malloc((max_polygons + 5) * 4));
-    int* vertex_ids = static_cast<int*>(malloc((max_polygons + 5) * 0xc));
-    unsigned long* keys = static_cast<unsigned long*>(malloc((max_polygons + 5) * 0xc));
-    unsigned long* scratch = static_cast<unsigned long*>(malloc((max_polygons + 5) * 0xc));
-    unsigned long* order = static_cast<unsigned long*>(malloc((max_polygons + 5) * 0xc));
+    w8_ulong* staging = static_cast<w8_ulong*>(malloc((max_polygons + 5) * sizeof(*staging)));
+    int* vertex_ids = static_cast<int*>(malloc((max_polygons + 5) * (3 * sizeof(*vertex_ids))));
+    w8_ulong* keys = static_cast<w8_ulong*>(malloc((max_polygons + 5) * (3 * sizeof(w8_ulong))));
+    w8_ulong* scratch = static_cast<w8_ulong*>(malloc((max_polygons + 5) * (3 * sizeof(w8_ulong))));
+    w8_ulong* order = static_cast<w8_ulong*>(malloc((max_polygons + 5) * (3 * sizeof(w8_ulong))));
     if (staging == 0 || vertex_ids == 0 || keys == 0 || scratch == 0 || order == 0) {
         ReportBuildStatus(7, "SplitMeshes: Error in allocating sort arrays.\n");
         return 0;
@@ -679,7 +679,7 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
     count = m_spatial.submesh_count;
     m_meshCount = count;
     m_root_mesh_count = count;
-    unsigned long kind_counts[4];
+    w8_ulong kind_counts[4];
     kind_counts[0] = count;
     kind_counts[1] = 0;
     kind_counts[2] = 0;
@@ -687,9 +687,9 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
        kind == 3 targets) but never initialised or read - the slot stays a
        dead stack increment under MSVC6. Deliberately left uninitialised. */
 
-    unsigned long next_free = count;
-    for (unsigned long kind = 1; kind < 4; ++kind) {
-        for (unsigned long index = 1; index < count; ++index) {
+    w8_ulong next_free = count;
+    for (w8_ulong kind = 1; kind < 4; ++kind) {
+        for (w8_ulong index = 1; index < count; ++index) {
             W8OctSubmeshBuild* record = records + index;
             W8OctSubmeshBuild* target = records + next_free;
             if (record->m_polygon_count == 0) {
@@ -701,8 +701,8 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
             record->index = index;
             record->m_kind = 0;
             record->m_prev_link = 0;
-            for (unsigned long face = 0; face < record->m_polygon_count; ++face) {
-                unsigned long id = record->m_polygon_ids[face];
+            for (w8_ulong face = 0; face < record->m_polygon_count; ++face) {
+                w8_ulong id = record->m_polygon_ids[face];
                 if (geometry->m_polygons[id].kind == kind) {
                     staging[target->m_polygon_count] = id;
                     ++target->m_polygon_count;
@@ -710,17 +710,20 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
                 }
             }
             if (target->m_polygon_count != 0) {
-                target->m_polygon_ids = static_cast<int*>(malloc(target->m_polygon_count * 4 + 4));
+                target->m_polygon_ids = static_cast<int*>(
+                    malloc(target->m_polygon_count * sizeof(*target->m_polygon_ids) +
+                           sizeof(*target->m_polygon_ids)));
                 if (target->m_polygon_ids == 0) {
                     ReportBuildStatus(
                         7, "SplitMeshes: Could not allocate pMeshes[uiFinal].aulFaces.\n");
                     return 0;
                 }
-                memcpy(target->m_polygon_ids, staging, target->m_polygon_count * 4);
+                memcpy(target->m_polygon_ids, staging,
+                       target->m_polygon_count * sizeof(*target->m_polygon_ids));
                 target->m_polygon_ids[target->m_polygon_count] = 0;
                 target->m_kind = kind;
-                unsigned long tail = index;
-                unsigned long link = record->m_next_link;
+                w8_ulong tail = index;
+                w8_ulong link = record->m_next_link;
                 while (link != 0) {
                     tail = link;
                     link = records[tail].m_next_link;
@@ -728,8 +731,8 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
                 records[tail].m_next_link = next_free;
                 target->m_prev_link = tail;
             }
-            unsigned long kept = 0;
-            for (unsigned long i = 0; i < record->m_polygon_count; ++i) {
+            w8_ulong kept = 0;
+            for (w8_ulong i = 0; i < record->m_polygon_count; ++i) {
                 int id = record->m_polygon_ids[i];
                 if (id != 0) {
                     record->m_polygon_ids[kept] = id;
@@ -751,10 +754,10 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
         m_spatial.submesh_count = next_free;
     } else {
         m_spatial.submesh_count = next_free;
-        unsigned long new_index = 1;
+        w8_ulong new_index = 1;
         if (next_free > 1) {
-            for (unsigned long index = 1; index < next_free; ++index) {
-                unsigned long slot = index;
+            for (w8_ulong index = 1; index < next_free; ++index) {
+                w8_ulong slot = index;
                 while (slot != 0) {
                     W8OctSubmeshBuild* candidate = records + slot;
                     if (candidate->m_polygon_count == 0) {
@@ -770,14 +773,14 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
                     }
                     if (slot != index || (candidate->flags & 1) == 0) {
                         if (slot > 1) {
-                            for (unsigned long i = 1; i < slot; ++i) {
+                            for (w8_ulong i = 1; i < slot; ++i) {
                                 if (records[i].m_next_link == slot) {
                                     records[i].m_next_link = new_index;
                                 }
                             }
                         }
                         if (slot + 1 < next_free) {
-                            for (unsigned long i = slot + 1; i < next_free; ++i) {
+                            for (w8_ulong i = slot + 1; i < next_free; ++i) {
                                 if (records[i].m_prev_link == slot) {
                                     records[i].m_prev_link = new_index;
                                 }
@@ -796,27 +799,26 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
         }
     }
 
-    unsigned long total_maps = 0;
-    unsigned long total_vertices = 0;
+    w8_ulong total_maps = 0;
+    w8_ulong total_vertices = 0;
     if (m_spatial.submesh_count > 1) {
-        for (unsigned long index = 1; index < m_spatial.submesh_count; ++index) {
+        for (w8_ulong index = 1; index < m_spatial.submesh_count; ++index) {
             W8OctSubmeshBuild* record = records + index;
-            record->m_poly_vertices =
-                static_cast<srVector3i*>(srHeap.allocate(record->m_polygon_count * 0xc));
+            record->m_poly_vertices = static_cast<srVector3i*>(
+                srHeap.allocate(record->m_polygon_count * sizeof(srVector3i)));
             if (record->m_poly_vertices == 0) {
                 ReportBuildStatus(7, "SplitMeshes: Could not allocate psrPolyVertex.\n");
                 return 0;
             }
-            unsigned long vertex_count = 0;
-            for (unsigned long poly = 0; poly < record->m_polygon_count; ++poly) {
-                unsigned long id = record->m_polygon_ids[poly];
-                unsigned long texture = geometry->m_polygons[id].texture;
+            w8_ulong vertex_count = 0;
+            for (w8_ulong poly = 0; poly < record->m_polygon_count; ++poly) {
+                w8_ulong id = record->m_polygon_ids[poly];
+                w8_ulong texture = geometry->m_polygons[id].texture;
                 scratch[poly] = texture;
                 keys[poly] = texture;
-                for (unsigned long corner = 0; corner < 3; ++corner) {
-                    unsigned long vertex_id =
-                        geometry->m_polygons[id].vertices[corner]->m_vertex_index;
-                    unsigned long slot = 0;
+                for (w8_ulong corner = 0; corner < 3; ++corner) {
+                    w8_ulong vertex_id = geometry->m_polygons[id].vertices[corner]->m_vertex_index;
+                    w8_ulong slot = 0;
                     while (slot < vertex_count && vertex_ids[slot] != static_cast<int>(vertex_id)) {
                         ++slot;
                     }
@@ -836,30 +838,31 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
             QuickSortByKey(record->m_poly_vertices, scratch, 0,
                            static_cast<int>(record->m_polygon_count) - 1);
 
-            for (unsigned long i = 0; i < vertex_count; ++i) {
-                unsigned long material = geometry->m_vertices[vertex_ids[i]].m_material;
+            for (w8_ulong i = 0; i < vertex_count; ++i) {
+                w8_ulong material = geometry->m_vertices[vertex_ids[i]].m_material;
                 scratch[i] = material;
                 keys[i] = material;
                 order[i] = i;
             }
             QuickSortByKey(vertex_ids, scratch, 0, static_cast<int>(vertex_count) - 1);
-            memcpy(scratch, order, vertex_count * 4);
+            memcpy(scratch, order, vertex_count * sizeof(*scratch));
             QuickSortByKey(scratch, keys, 0, static_cast<int>(vertex_count) - 1);
             QuickSortByKey(order, scratch, 0, static_cast<int>(vertex_count) - 1);
 
-            for (unsigned long face = 0; face < record->m_polygon_count; ++face) {
+            for (w8_ulong face = 0; face < record->m_polygon_count; ++face) {
                 for (int c = 0; c < 3; ++c) {
                     int* slot = &(&record->m_poly_vertices[face].x)[c];
                     *slot = order[*slot];
                 }
             }
 
-            record->m_vertex_ids = static_cast<int*>(malloc(vertex_count * 4 + 4));
+            record->m_vertex_ids = static_cast<int*>(malloc(
+                vertex_count * sizeof(*record->m_vertex_ids) + sizeof(*record->m_vertex_ids)));
             if (record->m_vertex_ids == 0) {
                 ReportBuildStatus(7, "SplitMeshes: Could not allocate aulVertices.\n");
                 return 0;
             }
-            memcpy(record->m_vertex_ids, vertex_ids, vertex_count * 4);
+            memcpy(record->m_vertex_ids, vertex_ids, vertex_count * sizeof(*record->m_vertex_ids));
             total_vertices += vertex_count;
             total_maps += SplitUVMaps(record, geometry);
         }
@@ -887,7 +890,7 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
    heads (link -1 = unused, 0 = chain end, N = next pool index); overflow
    entries chain from the running uv count upward. */
 struct W8OctUvPoolEntry {
-    long link;
+    w8_long link;
     float u;
     float v;
 };
@@ -899,28 +902,29 @@ static_assert(sizeof(W8OctUvPoolEntry) == 0xc, "W8OctUvPoolEntry_must_be_0xc");
    triplets plus the final srVector2 map.  Returns the uv count. */
 
 // FUNCTION: WIZ8 0x0046a4b0
-unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry)
+w8_ulong OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry)
 {
-    W8OctUvPoolEntry* table =
-        static_cast<W8OctUvPoolEntry*>(malloc(record->m_polygon_count * 0x30));
+    /* Retail reserves four UV-pool entries per polygon. */ W8OctUvPoolEntry* table =
+        static_cast<W8OctUvPoolEntry*>(malloc(record->m_polygon_count * (4 * sizeof(*table))));
     if (table == 0) {
         ReportBuildStatus(7, "SplitUVMaps: Could not allocate pUVMaps.\n");
         return 0;
     }
-    memset(table, 0, record->m_polygon_count * 0x30);
-    srVector3i* uv_index = static_cast<srVector3i*>(srHeap.allocate(record->m_polygon_count * 0xc));
+    memset(table, 0, record->m_polygon_count * (4 * sizeof(*table)));
+    srVector3i* uv_index =
+        static_cast<srVector3i*>(srHeap.allocate(record->m_polygon_count * sizeof(srVector3i)));
     if (uv_index == 0) {
         ReportBuildStatus(7, "SplitUVMaps: Could not allocate psrPolyUVIndex.\n");
         return 0;
     }
-    for (unsigned long i = 0; i < record->vertex_count; ++i) {
+    for (w8_ulong i = 0; i < record->vertex_count; ++i) {
         table[i].link = -1;
     }
-    unsigned long uv_count = record->vertex_count;
-    for (unsigned long poly = 0; poly < record->m_polygon_count; ++poly) {
+    w8_ulong uv_count = record->vertex_count;
+    for (w8_ulong poly = 0; poly < record->m_polygon_count; ++poly) {
         const srVector2T<float>* uvs =
             geometry->m_polygons[record->m_polygon_ids[poly]].face.texture_coordinates;
-        for (unsigned long corner = 0; corner < 3; ++corner) {
+        for (w8_ulong corner = 0; corner < 3; ++corner) {
             int vertex = (&record->m_poly_vertices[poly].x)[corner];
             int chain = vertex + 1;
             int last = vertex;
@@ -971,13 +975,14 @@ unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeo
     }
     record->m_poly_uv_index = uv_index;
     record->m_map_count = uv_count;
-    record->m_uv_map = static_cast<srVector2T<float>*>(srHeap.allocate(uv_count * 8));
+    record->m_uv_map =
+        static_cast<srVector2T<float>*>(srHeap.allocate(uv_count * sizeof(*record->m_uv_map)));
     if (record->m_uv_map == 0) {
         ReportBuildStatus(7, "SplitUVMaps: Could not allocate pMesh->psrMaps.\n");
         free(table);
         return 0;
     }
-    for (unsigned long uv = 0; uv < uv_count; ++uv) {
+    for (w8_ulong uv = 0; uv < uv_count; ++uv) {
         record->m_uv_map[uv].Set(table[uv].u, table[uv].v);
     }
     free(table);
@@ -989,10 +994,10 @@ unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeo
    corner bounds, then checks every automesh cell keyed by the region id
    overlaps those bounds. */
 // FUNCTION: WIZ8 0x0046a790
-unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
+w8_ulong OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
 {
     if (m_spatial.m_polygon_count > 1) {
-        for (unsigned long poly = 1; poly < m_spatial.m_polygon_count; ++poly) {
+        for (w8_ulong poly = 1; poly < m_spatial.m_polygon_count; ++poly) {
             unsigned short region = game_data->m_polygons[poly].region;
             if (region == 0 || region >= m_spatial.submesh_count) {
                 char text[1024];
@@ -1004,7 +1009,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             }
         }
     }
-    for (unsigned long index = 1; index < m_spatial.submesh_count; ++index) {
+    for (w8_ulong index = 1; index < m_spatial.submesh_count; ++index) {
         W8OctSubmeshBuild* record = records + index;
         /* Retail initialises the bounds only on this path; for empty records
            the cell check below reads whatever the stack held. */
@@ -1013,15 +1018,19 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
         if (record->m_polygon_count != 0) {
             minimum = 1e+06f;
             maximum = -1e+06f;
-            record->m_polygon_ids = static_cast<int*>(malloc(record->m_polygon_count * 4 + 8));
+            record->m_polygon_ids =
+                static_cast<int*>(malloc(record->m_polygon_count * sizeof(*record->m_polygon_ids) +
+                                         2 * sizeof(*record->m_polygon_ids)));
             if (record->m_polygon_ids == 0) {
                 ReportBuildStatus(7, "\nAllocateSubMesh: Could not allocate aulFaces.\n");
                 return 0;
             }
-            memset(record->m_polygon_ids, 0, record->m_polygon_count * 4 + 8);
+            memset(record->m_polygon_ids, 0,
+                   record->m_polygon_count * sizeof(*record->m_polygon_ids) +
+                       2 * sizeof(*record->m_polygon_ids));
             unsigned short found = 0;
             if (m_spatial.m_polygon_count > 1) {
-                for (unsigned long poly = 1; poly < m_spatial.m_polygon_count; ++poly) {
+                for (w8_ulong poly = 1; poly < m_spatial.m_polygon_count; ++poly) {
                     if (game_data->m_polygons[poly].region == index) {
                         record->m_polygon_ids[found] = poly;
                         ++found;
@@ -1061,10 +1070,10 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             record->m_polygon_count = found;
         }
         unsigned short key = static_cast<unsigned short>(index);
-        W8HashTable<unsigned short, unsigned long>* cells = automesh_cells;
+        W8HashTable<unsigned short, w8_ulong>* cells = automesh_cells;
         int slot = cells->FindNextEntry(&key, -1);
         while (slot != -1) {
-            unsigned long cell = cells->entries[slot].value;
+            w8_ulong cell = cells->entries[slot].value;
             float cell_x =
                 ((cell >> 0x10) & 0xff) * m_spatial.m_region_grid_cell + m_spatial.m_minimum.x;
             float cell_y =
@@ -1088,10 +1097,10 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
 void OctPreTree::VerifyPolygonRegions()
 {
     m_region_mask = 0;
-    for (unsigned long level = m_spatial.m_leaf_level; level != 0; --level) {
+    for (w8_ulong level = m_spatial.m_leaf_level; level != 0; --level) {
         m_region_mask = m_region_mask * 2 + 1;
     }
-    for (unsigned long poly = 1; poly < game_data->m_polygon_count; ++poly) {
+    for (w8_ulong poly = 1; poly < game_data->m_polygon_count; ++poly) {
         W8OctRegionPolygon* polygon = &game_data->m_polygons[poly];
         if (polygon->region >= m_spatial.m_region_count) {
             unsigned int cell[4];
@@ -1118,12 +1127,12 @@ void OctPreTree::VerifyPolygonRegions()
 // FUNCTION: WIZ8 0x0046ad10
 void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records)
 {
-    for (unsigned long mesh = 1; mesh < m_meshCount; ++mesh) {
+    for (w8_ulong mesh = 1; mesh < m_meshCount; ++mesh) {
         unsigned short key = static_cast<unsigned short>(mesh);
         int slot = automesh_cells->FindNextEntry(&key, -1);
         while (slot != -1) {
             unsigned int cell[4];
-            unsigned long packed = automesh_cells->entries[slot].value;
+            w8_ulong packed = automesh_cells->entries[slot].value;
             cell[0] = packed >> 0x18;
             cell[1] = packed >> 0x10 & 0xff;
             cell[2] = packed >> 8 & 0xff;
@@ -1138,9 +1147,9 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
                 }
                 srVector3T<float> minimum(g_float_one_million, 1e+06f, 1e+06f);
                 srVector3T<float> maximum(-1e+06f, -1e+06f, -1e+06f);
-                for (unsigned long link = mesh; link != 0; link = records[link].m_next_link) {
+                for (w8_ulong link = mesh; link != 0; link = records[link].m_next_link) {
                     W8OctSubmeshBuild* record = records + link;
-                    for (unsigned long i = 0; i < record->vertex_count; ++i) {
+                    for (w8_ulong i = 0; i < record->vertex_count; ++i) {
                         const srVector3T<float>* position =
                             &geometry->m_vertices[record->m_vertex_ids[i]].position;
                         if (maximum.x < position->x) {
@@ -1466,7 +1475,7 @@ unsigned char OctPreTree::InsertConditionalNodes(W8HashTable<unsigned int, CondP
 char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
                                     const srVector3T<float>* maximum)
 {
-    unsigned long* ids = 0;
+    w8_ulong* ids = 0;
     srVector3T<float> bounds[2];
     srVector3T<float> triangle[3];
     unsigned char hit = 0;

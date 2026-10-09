@@ -9,5 +9,5 @@ public:
 };
 
 // Undecorated exports at ordinals 1 and 2.
-typedef unsigned long(__cdecl* srGetLibraryVersionCdeclFn)();
+typedef w8_ulong(__cdecl* srGetLibraryVersionCdeclFn)();
 typedef srPlugin*(__cdecl* srInitPluginCdeclFn)();

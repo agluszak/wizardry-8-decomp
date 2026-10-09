@@ -94,7 +94,7 @@ public:
     float far_attenuation;   /* 0x184 */
 
     srVector3T<float> opengl_attenuation; /* 0x188 */
-    unsigned long enable_flags;           /* 0x194 */
+    w8_ulong enable_flags;                /* 0x194 */
     srVector3T<float> ambient;            /* 0x198 */
     srVector3T<float> diffuse;            /* 0x1a4 */
     srVector3T<float> specular;           /* 0x1b0 */
@@ -117,8 +117,8 @@ public:
         DERIVED_CONSTANT_ATTENUATION = 0x10u,
         DERIVED_RANGE_CULL = 0x20u
     };
-    unsigned long derived_flags; /* 0x21c */
-    unsigned long channel_mask;  /* 0x220 */
+    w8_ulong derived_flags; /* 0x21c */
+    w8_ulong channel_mask;  /* 0x220 */
 };
 
-static_assert(sizeof(srLight) == 0x228, "srLight_must_be_0x228");
+W8_ABI_ASSERT(sizeof(srLight) == 0x228, "srLight_must_be_0x228");

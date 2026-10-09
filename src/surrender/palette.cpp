@@ -14,17 +14,17 @@
 /* Squared channel distance scaled by the luma weights 299/587/114; the biased
    pointers index by (channel - reference) so negative differences work. */
 // GLOBAL: SURRENDER 0x100A02A8
-static unsigned long dist_green_table[0x200];
+static w8_ulong dist_green_table[0x200];
 // GLOBAL: SURRENDER 0x100A0AA8
-static unsigned long dist_blue_table[0x200];
+static w8_ulong dist_blue_table[0x200];
 // GLOBAL: SURRENDER 0x100A12A8
-static unsigned long dist_red_table[0x200];
+static w8_ulong dist_red_table[0x200];
 // GLOBAL: SURRENDER 0x10098320
-static unsigned long* dist_red = dist_red_table + 0x100;
+static w8_ulong* dist_red = dist_red_table + 0x100;
 // GLOBAL: SURRENDER 0x10098324
-static unsigned long* dist_green = dist_green_table + 0x100;
+static w8_ulong* dist_green = dist_green_table + 0x100;
 // GLOBAL: SURRENDER 0x10098328
-static unsigned long* dist_blue = dist_blue_table + 0x100;
+static w8_ulong* dist_blue = dist_blue_table + 0x100;
 // GLOBAL: SURRENDER 0x100A1AA8
 int srPalette::Quantizer::initialized = 0;
 
@@ -32,9 +32,9 @@ int srPalette::Quantizer::initialized = 0;
 void srPalette::Quantizer::checkLuts()
 {
     if (initialized == 0) {
-        for (long index = 0; index < 0x200; ++index) {
+        for (w8_long index = 0; index < 0x200; ++index) {
             float delta = index - 256.0f;
-            long squared = (long)(delta * delta);
+            w8_long squared = (w8_long)(delta * delta);
             dist_red_table[index] = squared * 299;
             dist_green_table[index] = squared * 587;
             dist_blue_table[index] = squared * 114;
@@ -44,36 +44,37 @@ void srPalette::Quantizer::checkLuts()
 }
 
 // FUNCTION: SURRENDER 0x100069C0
-void srPalette::Quantizer::initRG(long red_lo, long red_hi, long green_lo, long green_hi)
+void srPalette::Quantizer::initRG(w8_long red_lo, w8_long red_hi, w8_long green_lo,
+                                  w8_long green_hi)
 {
-    long best = 0x40000000;
-    long index;
+    w8_long best = 0x40000000;
+    w8_long index;
     for (index = 0; index < color_count; ++index) {
-        long red_bound = red_hi;
+        w8_long red_bound = red_hi;
         if ((red_lo + red_hi) / 2 <= palette[index].red) {
             red_bound = red_lo;
         }
-        long green_bound = green_hi;
+        w8_long green_bound = green_hi;
         if ((green_lo + green_hi) / 2 <= palette[index].green) {
             green_bound = green_lo;
         }
-        long dist = dist_red[palette[index].red - red_bound] +
-                    dist_green[palette[index].green - green_bound];
+        w8_long dist = dist_red[palette[index].red - red_bound] +
+                       dist_green[palette[index].green - green_bound];
         if (dist < best) {
             best = dist;
         }
     }
-    long count = 0;
+    w8_long count = 0;
     for (index = 0; index < color_count; ++index) {
-        unsigned long red = palette[index].red;
-        unsigned long green = palette[index].green;
-        long dist = 0;
-        long bound = red_lo;
-        if ((long)red < red_lo || (bound = red_hi, red_hi < (long)red)) {
+        w8_ulong red = palette[index].red;
+        w8_ulong green = palette[index].green;
+        w8_long dist = 0;
+        w8_long bound = red_lo;
+        if ((w8_long)red < red_lo || (bound = red_hi, red_hi < (w8_long)red)) {
             dist = dist_red[red - bound];
         }
         bound = green_lo;
-        if ((long)green < green_lo || (bound = green_hi, green_hi < (long)green)) {
+        if ((w8_long)green < green_lo || (bound = green_hi, green_hi < (w8_long)green)) {
             dist += dist_green[green - bound];
         }
         if (dist < best) {
@@ -88,12 +89,13 @@ void srPalette::Quantizer::initRG(long red_lo, long red_hi, long green_lo, long 
 }
 
 // FUNCTION: SURRENDER 0x10006B20
-unsigned char srPalette::Quantizer::findRG(long red, long green)
+unsigned char srPalette::Quantizer::findRG(w8_long red, w8_long green)
 {
-    long best = 0x40000000;
-    long selected = 0;
-    for (long index = 0; index < entry_count; ++index) {
-        long dist = dist_red[entries[index].red - red] + dist_green[entries[index].green - green];
+    w8_long best = 0x40000000;
+    w8_long selected = 0;
+    for (w8_long index = 0; index < entry_count; ++index) {
+        w8_long dist =
+            dist_red[entries[index].red - red] + dist_green[entries[index].green - green];
         if (dist < best) {
             best = dist;
             selected = index;
@@ -105,27 +107,27 @@ unsigned char srPalette::Quantizer::findRG(long red, long green)
 // FUNCTION: SURRENDER 0x10006BB0
 void srPalette::Quantizer::createRGTable()
 {
-    long red_steps = 1 << (red_bits & 0x1f);
-    long green_steps = 1 << (green_bits & 0x1f);
-    long red_blocks = (red_steps + ((red_steps >> 0x1f) & 0xf)) >> 4;
-    long green_blocks = (green_steps + ((green_steps >> 0x1f) & 0xf)) >> 4;
-    long red_size = 0x10;
+    w8_long red_steps = 1 << (red_bits & 0x1f);
+    w8_long green_steps = 1 << (green_bits & 0x1f);
+    w8_long red_blocks = (red_steps + ((red_steps >> 0x1f) & 0xf)) >> 4;
+    w8_long green_blocks = (green_steps + ((green_steps >> 0x1f) & 0xf)) >> 4;
+    w8_long red_size = 0x10;
     if (red_blocks == 0) {
         red_blocks = 1;
         red_size = red_steps;
     }
-    long green_size = 0x10;
+    w8_long green_size = 0x10;
     if (green_blocks == 0) {
         green_blocks = 1;
         green_size = green_steps;
     }
-    long green_base = 0;
-    for (long green_block = 0; green_block < green_blocks; ++green_block) {
-        long red_base = 0;
-        for (long red_block = 0; red_block < red_blocks; ++red_block) {
+    w8_long green_base = 0;
+    for (w8_long green_block = 0; green_block < green_blocks; ++green_block) {
+        w8_long red_base = 0;
+        for (w8_long red_block = 0; red_block < red_blocks; ++red_block) {
             initRG(red_base, red_base + red_size - 1, green_base, green_base + green_size - 1);
-            for (long red = 0; red < red_size; ++red) {
-                for (long green = 0; green < green_size; ++green) {
+            for (w8_long red = 0; red < red_size; ++red) {
+                for (w8_long green = 0; green < green_size; ++green) {
                     lut_rg[red_base + red + (green_base + green) * 0x100] =
                         findRG(red_base + red, green_base + green);
                 }
@@ -137,12 +139,12 @@ void srPalette::Quantizer::createRGTable()
 }
 
 // FUNCTION: SURRENDER 0x10006D30
-unsigned char srPalette::Quantizer::findRGB(long blue)
+unsigned char srPalette::Quantizer::findRGB(w8_long blue)
 {
-    long best = 0x40000000;
-    long selected = 0;
-    for (long index = 0; index < entry_count; ++index) {
-        long dist = dist_blue[entries[index].blue - blue] + rg_dist[index];
+    w8_long best = 0x40000000;
+    w8_long selected = 0;
+    for (w8_long index = 0; index < entry_count; ++index) {
+        w8_long dist = dist_blue[entries[index].blue - blue] + rg_dist[index];
         if (dist < best) {
             best = dist;
             selected = index;
@@ -152,32 +154,33 @@ unsigned char srPalette::Quantizer::findRGB(long blue)
 }
 
 // FUNCTION: SURRENDER 0x10006DB0
-void srPalette::Quantizer::initRGB(long red, long green, long blue_lo, long blue_hi)
+void srPalette::Quantizer::initRGB(w8_long red, w8_long green, w8_long blue_lo, w8_long blue_hi)
 {
-    long best = 0x40000000;
-    long index;
+    w8_long best = 0x40000000;
+    w8_long index;
     for (index = 0; index < color_count; ++index) {
         if (duplicate[index] == 0) {
-            long blue_bound = blue_hi;
+            w8_long blue_bound = blue_hi;
             if ((blue_hi + blue_lo) / 2 <= palette[index].blue) {
                 blue_bound = blue_lo;
             }
-            long dist = dist_red[palette[index].red - red] +
-                        dist_green[palette[index].green - green] +
-                        dist_blue[palette[index].blue - blue_bound];
+            w8_long dist = dist_red[palette[index].red - red] +
+                           dist_green[palette[index].green - green] +
+                           dist_blue[palette[index].blue - blue_bound];
             if (dist < best) {
                 best = dist;
             }
         }
     }
-    long count = 0;
+    w8_long count = 0;
     for (index = 0; index < color_count; ++index) {
         if (duplicate[index] == 0) {
-            long rg = dist_red[palette[index].red - red] + dist_green[palette[index].green - green];
-            unsigned long blue = palette[index].blue;
-            long dist = rg;
-            long bound = blue_lo;
-            if ((long)blue < blue_lo || (bound = blue_hi, blue_hi < (long)blue)) {
+            w8_long rg =
+                dist_red[palette[index].red - red] + dist_green[palette[index].green - green];
+            w8_ulong blue = palette[index].blue;
+            w8_long dist = rg;
+            w8_long bound = blue_lo;
+            if ((w8_long)blue < blue_lo || (bound = blue_hi, blue_hi < (w8_long)blue)) {
                 dist = rg + dist_blue[blue - bound];
             }
             if (dist < best) {
@@ -194,11 +197,11 @@ void srPalette::Quantizer::initRGB(long red, long green, long blue_lo, long blue
 }
 
 // FUNCTION: SURRENDER 0x10006F60
-void srPalette::Quantizer::partitionRGB(long blue_lo, long blue_hi)
+void srPalette::Quantizer::partitionRGB(w8_long blue_lo, w8_long blue_hi)
 {
     lut_row[blue_lo] = findRGB(blue_lo);
     lut_row[blue_hi] = findRGB(blue_hi);
-    long next = blue_lo + 1;
+    w8_long next = blue_lo + 1;
     if (next < blue_hi) {
         while (lut_row[blue_lo] != lut_row[blue_hi]) {
             blue_lo = (blue_lo + blue_hi) / 2;
@@ -218,20 +221,20 @@ void srPalette::Quantizer::partitionRGB(long blue_lo, long blue_hi)
 // FUNCTION: SURRENDER 0x10007080
 void srPalette::Quantizer::createRGBTable()
 {
-    long blue_steps = 1 << (blue_bits & 0x1f);
-    long blue_blocks = (blue_steps + ((blue_steps >> 0x1f) & 0x7f)) >> 7;
-    long blue_size = 0x80;
+    w8_long blue_steps = 1 << (blue_bits & 0x1f);
+    w8_long blue_blocks = (blue_steps + ((blue_steps >> 0x1f) & 0x7f)) >> 7;
+    w8_long blue_size = 0x80;
     if (blue_blocks == 0) {
         blue_blocks = 1;
         blue_size = blue_steps;
     }
     unsigned char* row = lut_rgb;
-    for (long index = 0; index < 0x100; ++index) {
+    for (w8_long index = 0; index < 0x100; ++index) {
         lut_row = row;
         unsigned char red = palette[index].red;
         unsigned char green = palette[index].green;
-        for (long block = 0; block < blue_blocks; ++block) {
-            long blue_lo = block * blue_size;
+        for (w8_long block = 0; block < blue_blocks; ++block) {
+            w8_long blue_lo = block * blue_size;
             initRGB(red, green, blue_lo, blue_lo + blue_size - 1);
             partitionRGB(blue_lo, blue_lo + blue_size - 1);
         }
@@ -240,9 +243,9 @@ void srPalette::Quantizer::createRGBTable()
 }
 
 // FUNCTION: SURRENDER 0x10007160
-void srPalette::Quantizer::setPalette(srARGB* colors, long color_count_, unsigned char* duplicates,
-                                      unsigned char red_bits_, unsigned char green_bits_,
-                                      unsigned char blue_bits_)
+void srPalette::Quantizer::setPalette(srARGB* colors, w8_long color_count_,
+                                      unsigned char* duplicates, unsigned char red_bits_,
+                                      unsigned char green_bits_, unsigned char blue_bits_)
 {
     checkLuts();
     color_count = color_count_;
@@ -263,12 +266,12 @@ void srPalette::Quantizer::setPalette(srARGB* colors, long color_count_, unsigne
     if (0 < color_count * 4) {
         memcpy(palette, colors, color_count * 4);
     }
-    long index;
+    w8_long index;
     for (index = 0; index < color_count; ++index) {
         palette[index].alpha = 0xff;
     }
     for (index = 0; index < color_count; ++index) {
-        for (long prior = 0; prior < index && duplicate[index] == 0; ++prior) {
+        for (w8_long prior = 0; prior < index && duplicate[index] == 0; ++prior) {
             if (palette[prior].red == palette[index].red &&
                 palette[prior].green == palette[index].green &&
                 palette[prior].blue == palette[index].blue) {
@@ -299,9 +302,10 @@ unsigned char srPalette::Quantizer::quantize(unsigned char red, unsigned char gr
 }
 
 // FUNCTION: SURRENDER 0x10007590
-void srPalette::Quantizer::quantize(unsigned char* indices, const srARGB* colors, long color_count)
+void srPalette::Quantizer::quantize(unsigned char* indices, const srARGB* colors,
+                                    w8_long color_count)
 {
-    for (long index = 0; index < color_count; ++index) {
+    for (w8_long index = 0; index < color_count; ++index) {
         indices[index] = quantize(colors[index].red, colors[index].green, colors[index].blue);
     }
 }
@@ -318,7 +322,7 @@ srPalette::Quantizer::~Quantizer() {}
 // FUNCTION: SURRENDER 0x10004D00
 srPalette::Quantizer::Quantizer(const Quantizer& other)
 {
-    long index;
+    w8_long index;
     for (index = 0; index < 0x10000; ++index) {
         lut_rg[index] = other.lut_rg[index];
     }
@@ -346,15 +350,16 @@ srPalette::Quantizer::Quantizer(const Quantizer& other)
 }
 
 // FUNCTION: SURRENDER 0x10004160
-int srPalette::matchPalette(const srARGB* const colors, long color_count) const
+int srPalette::matchPalette(const srARGB* const colors, w8_long color_count) const
 {
     if (color_count != this->color_count) {
         return 0;
     }
-    for (long index = 0; index < color_count; ++index) {
+    for (w8_long index = 0; index < color_count; ++index) {
         // reinterpret-ok: retail compares the packed color dwords
-        if (reinterpret_cast<const unsigned long&>(this->colors[index]) !=
-            reinterpret_cast<const unsigned long&>(colors[index])) {
+        if (reinterpret_cast<const w8_ulong&>(this->colors[index]) !=
+            // reinterpret-ok: the historical palette implementation uses packed pixel words
+            reinterpret_cast<const w8_ulong&>(colors[index])) {
             return 0;
         }
     }
@@ -362,7 +367,7 @@ int srPalette::matchPalette(const srARGB* const colors, long color_count) const
 }
 
 // FUNCTION: SURRENDER 0x100041A0
-srPalette* srPalette::findMatchingPalette(const srARGB* const colors, long color_count)
+srPalette* srPalette::findMatchingPalette(const srARGB* const colors, w8_long color_count)
 {
     srPalette* palette = 0;
     while (true) {
@@ -413,7 +418,7 @@ void srPalette::update()
    skipped (216 - 6 = 210 entries), then a 46-entry gray ramp for the rest of the 256. A non-cube
    count gets a linear ramp. */
 // FUNCTION: SURRENDER 0x10004310
-srPalette::srPalette(srARGB* colors, long color_count)
+srPalette::srPalette(srARGB* colors, w8_long color_count)
     : srClassSupport<srPalette, srClass, 1, 0x2900>(), flags(0)
 {
     this->colors = new srARGB[color_count];
@@ -421,10 +426,10 @@ srPalette::srPalette(srARGB* colors, long color_count)
     quantizer = 0;
     if (colors == 0) {
         if (color_count == 0x100) {
-            long index = 0;
-            for (long red = 0; red < 6; ++red) {
-                for (long green = 0; green < 6; ++green) {
-                    for (long blue = 0; blue < 6; ++blue) {
+            w8_long index = 0;
+            for (w8_long red = 0; red < 6; ++red) {
+                for (w8_long green = 0; green < 6; ++green) {
+                    for (w8_long blue = 0; blue < 6; ++blue) {
                         if (red != green || red != blue) {
                             srARGB& color = this->colors[index++];
                             color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
@@ -438,7 +443,7 @@ srPalette::srPalette(srARGB* colors, long color_count)
                     }
                 }
             }
-            for (long gray = 0; gray < 0x2e; ++gray) {
+            for (w8_long gray = 0; gray < 0x2e; ++gray) {
                 srARGB& color = this->colors[0xd2 + gray];
                 color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
                 double value = gray * 0.022222223f * 255.0;
@@ -451,7 +456,7 @@ srPalette::srPalette(srARGB* colors, long color_count)
             if (1 < color_count) {
                 step = 1.0 / (color_count - 1);
             }
-            for (long index = 0; index < color_count; ++index) {
+            for (w8_long index = 0; index < color_count; ++index) {
                 srARGB& color = this->colors[index];
                 double value = index * step * 255.0;
                 color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
@@ -499,7 +504,7 @@ srPalette& srPalette::operator=(const srPalette& other)
     colors = 0;
     if (0 < color_count) {
         colors = new srARGB[color_count];
-        for (long index = 0; index < color_count; ++index) {
+        for (w8_long index = 0; index < color_count; ++index) {
             colors[index] = other.colors[index];
         }
     }
@@ -522,10 +527,11 @@ void srPalette::dump(std::ostream& stream)
 }
 
 // FUNCTION: SURRENDER 0x10004850
-void srPalette::setColors(long destination_index, const srARGB* const colors, long color_count)
+void srPalette::setColors(w8_long destination_index, const srARGB* const colors,
+                          w8_long color_count)
 {
     if (0 <= destination_index && destination_index + color_count <= this->color_count) {
-        for (long index = 0; index < color_count; ++index) {
+        for (w8_long index = 0; index < color_count; ++index) {
             this->colors[destination_index + index] = colors[index];
         }
         flags = flags | 1;
@@ -533,19 +539,19 @@ void srPalette::setColors(long destination_index, const srARGB* const colors, lo
 }
 
 // FUNCTION: SURRENDER 0x100048A0
-srARGB srPalette::getColor(long index) const
+srARGB srPalette::getColor(w8_long index) const
 {
     return colors[index];
 }
 
 // FUNCTION: SURRENDER 0x100048C0
-long srPalette::getPaletteSize() const
+w8_long srPalette::getPaletteSize() const
 {
     return color_count;
 }
 
 // FUNCTION: SURRENDER 0x100048D0
-void srPalette::setColor(long index, const srARGB& color)
+void srPalette::setColor(w8_long index, const srARGB& color)
 {
     if (0 <= index && index < color_count) {
         colors[index] = color;
@@ -563,7 +569,8 @@ unsigned char srPalette::quantize(const srARGB& color)
 }
 
 // FUNCTION: SURRENDER 0x10004920
-void srPalette::quantize(unsigned char* const indices, const srARGB* const colors, long color_count)
+void srPalette::quantize(unsigned char* const indices, const srARGB* const colors,
+                         w8_long color_count)
 {
     if ((flags & 1) != 0) {
         update();
@@ -590,7 +597,7 @@ srClass* srPalette::vInstance()
 }
 
 // FUNCTION: SURRENDER 0x100067D0
-srPalette::Sampler::Sampler(long sample_limit)
+srPalette::Sampler::Sampler(w8_long sample_limit)
 {
     this->sample_limit = sample_limit;
     if (sample_limit < 0) {
@@ -632,19 +639,19 @@ srPalette::Sampler::~Sampler()
 }
 
 // FUNCTION: SURRENDER 0x10004AF0
-long srPalette::Sampler::getColorCount()
+w8_long srPalette::Sampler::getColorCount()
 {
     return color_count;
 }
 
 // FUNCTION: SURRENDER 0x10004B00
-long srPalette::Sampler::getOutputPaletteSize()
+w8_long srPalette::Sampler::getOutputPaletteSize()
 {
     return output_palette_size;
 }
 
 // FUNCTION: SURRENDER 0x10004B10
-long srPalette::Sampler::getSampleCount()
+w8_long srPalette::Sampler::getSampleCount()
 {
     return sample_count;
 }
@@ -656,13 +663,13 @@ double srPalette::Sampler::getSampleFactor()
 }
 
 // FUNCTION: SURRENDER 0x10004B30
-long srPalette::Sampler::getSampleBits()
+w8_long srPalette::Sampler::getSampleBits()
 {
     return sample_bits;
 }
 
 // FUNCTION: SURRENDER 0x10006710
-void srPalette::Sampler::setOutputPaletteSize(long size)
+void srPalette::Sampler::setOutputPaletteSize(w8_long size)
 {
     if (size < 1) {
         size = 1;
@@ -674,7 +681,7 @@ void srPalette::Sampler::setOutputPaletteSize(long size)
 }
 
 // FUNCTION: SURRENDER 0x10006740
-void srPalette::Sampler::setSampleBits(long bits)
+void srPalette::Sampler::setSampleBits(w8_long bits)
 {
     if (bits < 1) {
         bits = 1;
@@ -700,7 +707,7 @@ void srPalette::Sampler::setSampleFactor(double factor)
 // FUNCTION: SURRENDER 0x100068D0
 void srPalette::Sampler::discard()
 {
-    for (long index = 0; index < 0x8000; ++index) {
+    for (w8_long index = 0; index < 0x8000; ++index) {
         buckets[index] = -1;
     }
     if (colors != 0) {
@@ -717,20 +724,20 @@ void srPalette::Sampler::discard()
 }
 
 // FUNCTION: SURRENDER 0x10006630
-void srPalette::Sampler::reallocColors(long new_capacity)
+void srPalette::Sampler::reallocColors(w8_long new_capacity)
 {
     ColorEntry* new_colors = new ColorEntry[new_capacity];
     /* Only the first allocation is tested, and failure is ignored. */
-    long* new_links = new long[new_capacity];
+    w8_long* new_links = new w8_long[new_capacity];
     srARGB empty_color;
     memset(&empty_color, 0, sizeof(empty_color));
-    for (long index = 0; index < new_capacity; ++index) {
+    for (w8_long index = 0; index < new_capacity; ++index) {
         new_colors[index].color = empty_color;
         new_colors[index].count = 0;
         new_links[index] = -1;
     }
     if (colors != 0) {
-        for (long index = 0; index < color_count; ++index) {
+        for (w8_long index = 0; index < color_count; ++index) {
             new_colors[index] = colors[index];
             new_links[index] = links[index];
         }
@@ -743,7 +750,7 @@ void srPalette::Sampler::reallocColors(long new_capacity)
 }
 
 // FUNCTION: SURRENDER 0x10006300
-void srPalette::Sampler::removeMaskColor(long index)
+void srPalette::Sampler::removeMaskColor(w8_long index)
 {
     if ((0 <= index) && (index <= 0xff)) {
         mask_flags[index] = 0;
@@ -755,7 +762,7 @@ void srPalette::Sampler::removeMaskColor(long index)
 }
 
 // FUNCTION: SURRENDER 0x10006320
-void srPalette::Sampler::setMaskColor(long index, const srARGB& color)
+void srPalette::Sampler::setMaskColor(w8_long index, const srARGB& color)
 {
     if ((0 <= index) && (index <= 0xff)) {
         mask_flags[index] = 1;
@@ -767,7 +774,7 @@ void srPalette::Sampler::setMaskColor(long index, const srARGB& color)
 void srPalette::Sampler::shiftDown(srARGB& color)
 {
     if (sample_bits != 8) {
-        long shift = 8 - sample_bits;
+        w8_long shift = 8 - sample_bits;
         color.blue >>= shift;
         color.green >>= shift;
         color.red >>= shift;
@@ -779,7 +786,7 @@ void srPalette::Sampler::shiftDown(srARGB& color)
 void srPalette::Sampler::shiftUp(srARGB& color)
 {
     if (sample_bits != 8) {
-        long shift = 8 - sample_bits;
+        w8_long shift = 8 - sample_bits;
         color.blue <<= shift;
         color.green <<= shift;
         color.red <<= shift;
@@ -788,18 +795,18 @@ void srPalette::Sampler::shiftUp(srARGB& color)
 }
 
 // FUNCTION: SURRENDER 0x10006530
-void srPalette::Sampler::addColor(const srARGB& source, long weight)
+void srPalette::Sampler::addColor(const srARGB& source, w8_long weight)
 {
     if (weight > 0) {
         srARGB color = source;
         sample_count += weight;
         color.alpha = 0xff;
         shiftDown(color);
-        unsigned long packed =
-            reinterpret_cast<unsigned long&>(color); /* reinterpret-ok: packed color dword */
-        long bucket = ((packed >> 6) & 0x7c00) + ((packed >> 3) & 0x3e0) + (packed & 0x1f);
-        for (long index = buckets[bucket]; index != -1; index = links[index]) {
-            if (reinterpret_cast<unsigned long&>(
+        w8_ulong packed =
+            reinterpret_cast<w8_ulong&>(color); /* reinterpret-ok: packed color dword */
+        w8_long bucket = ((packed >> 6) & 0x7c00) + ((packed >> 3) & 0x3e0) + (packed & 0x1f);
+        for (w8_long index = buckets[bucket]; index != -1; index = links[index]) {
+            if (reinterpret_cast<w8_ulong&>(
                     colors[index].color) == /* reinterpret-ok: packed color dword */
                 packed) {
                 colors[index].count += weight;
@@ -807,7 +814,7 @@ void srPalette::Sampler::addColor(const srARGB& source, long weight)
             }
         }
         if (color_count >= capacity) {
-            long new_capacity = capacity * 2;
+            w8_long new_capacity = capacity * 2;
             if (new_capacity < 0x200) {
                 new_capacity = 0x200;
             }
@@ -827,7 +834,7 @@ void srPalette::Sampler::addColor(const srARGB& source, long weight)
 }
 
 // FUNCTION: SURRENDER 0x10006500
-void srPalette::Sampler::addColors(const srARGB* colors, long color_count, long weight)
+void srPalette::Sampler::addColors(const srARGB* colors, w8_long color_count, w8_long weight)
 {
     if ((colors != 0) && (color_count > 0)) {
         do {
@@ -839,8 +846,8 @@ void srPalette::Sampler::addColors(const srARGB* colors, long color_count, long 
 }
 
 // FUNCTION: SURRENDER 0x10006350
-void srPalette::Sampler::addSurfaces(srColorSurfaceIFace** surfaces, long surface_count,
-                                     long weight)
+void srPalette::Sampler::addSurfaces(srColorSurfaceIFace** surfaces, w8_long surface_count,
+                                     w8_long weight)
 {
     if ((surfaces != 0) && (surface_count > 0)) {
         do {
@@ -854,7 +861,7 @@ void srPalette::Sampler::addSurfaces(srColorSurfaceIFace** surfaces, long surfac
 }
 
 // FUNCTION: SURRENDER 0x10006390
-void srPalette::Sampler::addSurface(const char* name, long weight)
+void srPalette::Sampler::addSurface(const char* name, w8_long weight)
 {
     if ((name != 0) && (*name != '\0')) {
         srSurfaceIOManager::ImportInfo options;
@@ -868,27 +875,28 @@ void srPalette::Sampler::addSurface(const char* name, long weight)
 }
 
 // FUNCTION: SURRENDER 0x100063E0
-void srPalette::Sampler::addSurface(srColorSurfaceIFace& surface, long weight)
+void srPalette::Sampler::addSurface(srColorSurfaceIFace& surface, w8_long weight)
 {
-    long width = surface.getWidth();
-    long height = surface.getHeight();
-    long samples = 1;
+    w8_long width = surface.getWidth();
+    w8_long height = surface.getHeight();
+    w8_long samples = 1;
     if ((sample_factor > 0.0) &&
-        ((samples = (long)(width * height * sample_factor)), samples < 1)) {
+        ((samples = (w8_long)(width * height * sample_factor)), samples < 1)) {
         samples = 1;
     }
     if (sample_factor == 1.0) {
         srARGB* pixels = new srARGB[width];
-        for (long y = 0; y < height; ++y) {
+        for (w8_long y = 0; y < height; ++y) {
             /* reinterpret-ok: the surface API exchanges packed srARGB rows as dwords */
-            surface.getPixelRow(reinterpret_cast<unsigned long*>(pixels), y, 0, width);
+            // reinterpret-ok: the historical palette implementation uses packed pixel words
+            surface.getPixelRow(reinterpret_cast<w8_ulong*>(pixels), y, 0, width);
             addColors(pixels, width, weight);
         }
         delete[] pixels;
         return;
     }
     for (; samples > 0; --samples) {
-        unsigned long pixel = surface.getPixel(rand() % width, rand() % height);
+        w8_ulong pixel = surface.getPixel(rand() % width, rand() % height);
         addColor(
             reinterpret_cast<srARGB&>(pixel), /* reinterpret-ok: packed pixel value as srARGB */
             weight);
@@ -898,7 +906,7 @@ void srPalette::Sampler::addSurface(srColorSurfaceIFace& surface, long weight)
 // FUNCTION: SURRENDER 0x10006010
 void srPalette::Sampler::dump(std::ostream& stream)
 {
-    long flags = stream.flags();
+    w8_long flags = stream.flags();
     stream.flags((flags & ~0x180L) | 0x40);
     stream << "Sampling frequency:       " << sample_factor << '\n';
     stream << "Sampling bit depth:       " << sample_bits << '\n';
@@ -927,7 +935,7 @@ srPalette* srPalette::Sampler::createOptimalPalette()
     info.mask_flags = 0;
     info.mask_count = 0;
     srARGB shifted[0x100];
-    long index;
+    w8_long index;
     for (index = 0; index < 0x100; ++index) {
         shifted[index] = mask_colors[index];
         shiftDown(shifted[index]);
@@ -991,7 +999,7 @@ void srPalette::Optimizer::findOptimalColor(Node* node, const LUT& lut)
         node->err_total = 0.0;
         node->err_min = 0.0;
         if (node->leaves == 0) {
-            for (long index = 0; index < 8; ++index) {
+            for (w8_long index = 0; index < 8; ++index) {
                 if (node->children[index] != 0) {
                     findOptimalColor(node->children[index], lut);
                 }
@@ -999,7 +1007,7 @@ void srPalette::Optimizer::findOptimalColor(Node* node, const LUT& lut)
         } else {
             node->color = node->leaves[0].color;
             double best = 0.0;
-            for (long index = 0; index < node->leaf_count; ++index) {
+            for (w8_long index = 0; index < node->leaf_count; ++index) {
                 Leaf* leaf = node->leaves + index;
                 unsigned char* bytes =
                     (unsigned char*)&leaf->color; /* reinterpret-ok: packed leaf color bytes */
@@ -1051,18 +1059,16 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     srZeroMemory(buckets, 0x20000);
     srZeroMemory(rehash, 0x20000);
 
-    long distinct = 0;
+    w8_long distinct = 0;
     HashEntry* entry = entries;
-    long index;
+    w8_long index;
     for (index = 0; index < info.color_count; ++index) {
-        long weight = info.colors[index].count;
+        w8_long weight = info.colors[index].count;
         if (weight > 0) {
             srARGB opaque = info.colors[index].color;
             opaque.alpha = 0xff;
-            unsigned long color =
-                reinterpret_cast<unsigned long&>(opaque); /* reinterpret-ok: packed dword */
-            unsigned long bucket =
-                ((color & 0x1f0000) >> 6) + ((color & 0x1f00) >> 3) + (color & 0x1f);
+            w8_ulong color = reinterpret_cast<w8_ulong&>(opaque); /* reinterpret-ok: packed dword */
+            w8_ulong bucket = ((color & 0x1f0000) >> 6) + ((color & 0x1f00) >> 3) + (color & 0x1f);
             HashEntry* link;
             for (link = buckets[bucket]; link != 0; link = link->next) {
                 if (link->color == color) {
@@ -1080,14 +1086,14 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     next_color:;
     }
 
-    long leaf_nodes = 0;
+    w8_long leaf_nodes = 0;
     for (index = 0; index < 0x8000; ++index) {
         HashEntry* link = buckets[index];
         while (link != 0) {
-            unsigned long color = link->color;
+            w8_ulong color = link->color;
             HashEntry* next = link->next;
-            unsigned long bucket = ((color >> 0x13 & 0x1f) * 0x20 + (color >> 0xb & 0x1f)) * 0x20 +
-                                   (color >> 3 & 0x1f);
+            w8_ulong bucket = ((color >> 0x13 & 0x1f) * 0x20 + (color >> 0xb & 0x1f)) * 0x20 +
+                              (color >> 3 & 0x1f);
             if (rehash[bucket] == 0) {
                 ++leaf_nodes;
             }
@@ -1102,10 +1108,10 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     Node** leaf_map = new Node*[0x8000];
     srZeroMemory(leaf_map, 0x20000);
 
-    unsigned long dominant_color = 0;
-    long dominant_weight = 0;
-    long used_leaves = 0;
-    long used_nodes = 0;
+    w8_ulong dominant_color = 0;
+    w8_long dominant_weight = 0;
+    w8_long used_leaves = 0;
+    w8_long used_nodes = 0;
     for (index = 0; index < 0x8000; ++index) {
         HashEntry* link = rehash[index];
         if (link != 0) {
@@ -1113,9 +1119,9 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
             ++used_nodes;
             leaf_map[index] = node;
             node->leaves = leaves + used_leaves;
-            unsigned long bounds_lo = 0xffffffff;
-            unsigned long bounds_hi = 0;
-            long count = 0;
+            w8_ulong bounds_lo = 0xffffffff;
+            w8_ulong bounds_hi = 0;
+            w8_long count = 0;
             do {
                 Leaf* leaf = node->leaves + count;
                 leaf->color = link->color;
@@ -1125,7 +1131,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
                     dominant_color = link->color;
                     dominant_weight = link->count;
                 }
-                for (long byte = 0; byte < 4; ++byte) {
+                for (w8_long byte = 0; byte < 4; ++byte) {
                     unsigned char value =
                         ((const unsigned char*)&link->color)[byte]; /* reinterpret-ok: packed
                                                                        color bytes */
@@ -1157,18 +1163,18 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     delete[] entries;
     delete[] buckets;
 
-    static const unsigned long level_node_counts[] = {1, 8, 0x40, 0x200, 0x1000, 0x8000};
+    static const w8_ulong level_node_counts[] = {1, 8, 0x40, 0x200, 0x1000, 0x8000};
     Node* levels[5];
-    for (long level = 4; level >= 0; --level) {
-        long dim = 1 << level;
+    for (w8_long level = 4; level >= 0; --level) {
+        w8_long dim = 1 << level;
         Node* nodes = new Node[level_node_counts[level]];
         levels[level] = nodes;
         srZeroMemory(nodes, level_node_counts[level] * sizeof(Node));
-        for (long z = 0; z < dim; ++z) {
-            for (long y = 0; y < dim; ++y) {
+        for (w8_long z = 0; z < dim; ++z) {
+            for (w8_long y = 0; y < dim; ++y) {
                 Node* node = nodes + (z * dim + y) * dim;
-                unsigned long child_base = (z * 2 * dim + y) * dim * 4;
-                for (long x = 0; x < dim; ++x, ++node, child_base += 2) {
+                w8_ulong child_base = (z * 2 * dim + y) * dim * 4;
+                for (w8_long x = 0; x < dim; ++x, ++node, child_base += 2) {
                     node->bound_lo.alpha = 0xff;
                     node->bound_lo.red = 0xff;
                     node->bound_lo.green = 0xff;
@@ -1180,8 +1186,8 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
                     node->err_min = 1e9;
                     node->err_total = 1e9;
                     node->leaf_count = 0;
-                    for (long child = 0; child < 8; ++child) {
-                        unsigned long child_index = child_base;
+                    for (w8_long child = 0; child < 8; ++child) {
+                        w8_ulong child_index = child_base;
                         if ((child & 1) != 0) {
                             ++child_index;
                         }
@@ -1203,7 +1209,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
                         node->children[child] = link;
                         if (link != 0) {
                             link->parent = node;
-                            for (long byte = 0; byte < 4; ++byte) {
+                            for (w8_long byte = 0; byte < 4; ++byte) {
                                 unsigned char* child_bytes =
                                     (unsigned char*)&link
                                         ->bound_lo; /* reinterpret-ok: byte bounds merge */
@@ -1241,7 +1247,7 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     if (info.mask_count < 1) {
         levels[0]->color = dominant_color;
     } else {
-        long limit = info.palette_size;
+        w8_long limit = info.palette_size;
         if (info.mask_count < limit) {
             limit = info.mask_count;
         }

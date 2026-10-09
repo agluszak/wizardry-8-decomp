@@ -45,7 +45,7 @@ struct W8AnimObj {
     srVector3T<float>* pvecBoundMax;  /* 0x48 */
 }; /* 0x4c */
 
-static_assert(sizeof(W8AnimObj) == 0x4c, "W8AnimObj_size_must_be_0x4c");
+W8_ABI_ASSERT(sizeof(W8AnimObj) == 0x4c, "W8AnimObj_size_must_be_0x4c");
 
 W8AnimObj* CreateAnimObj();
 void DestroyAnimObj(W8AnimObj* animation);

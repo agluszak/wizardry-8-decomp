@@ -19,7 +19,7 @@ struct W8EncounterTableRuntime {
 }; /* 0x158 */
 #pragma pack(pop)
 
-static_assert(sizeof(W8EncounterTableRuntime) == 0x158,
+W8_ABI_ASSERT(sizeof(W8EncounterTableRuntime) == 0x158,
               "W8EncounterTableRuntime_size_must_be_0x158");
 
 unsigned int InitializeEncounterTables(void);

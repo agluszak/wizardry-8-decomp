@@ -20,4 +20,4 @@ public:
     W8DialogCloseListener* notify_target;
 };
 
-static_assert(sizeof(W8NotificationDialog) == 0xa0, "W8NotificationDialog_must_be_0xa0");
+W8_ABI_ASSERT(sizeof(W8NotificationDialog) == 0xa0, "W8NotificationDialog_must_be_0xa0");

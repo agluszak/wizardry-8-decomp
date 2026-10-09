@@ -52,5 +52,5 @@ private:
     TIMER m_portrait_clock;
 };
 
-static_assert(sizeof(W8CharacterSummaryDialog) == 0x1b00,
+W8_ABI_ASSERT(sizeof(W8CharacterSummaryDialog) == 0x1b00,
               "W8CharacterSummaryDialog_must_be_0x1b00");

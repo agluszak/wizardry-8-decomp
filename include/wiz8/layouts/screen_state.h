@@ -27,7 +27,7 @@ struct W8ScreenStateHandlers {
     unsigned char (*finalize)(void);
 };
 
-static_assert(sizeof(W8ScreenStateHandlers) == 0x14, "W8ScreenStateHandlers_size");
+W8_ABI_ASSERT(sizeof(W8ScreenStateHandlers) == 0x14, "W8ScreenStateHandlers_size");
 
 /* The current and pending screen records begin at the two globals whose first
    dwords the reviewed setters address directly. One storage object preserves
@@ -52,6 +52,6 @@ struct W8ScreenStateRuntime {
     char name[0x80]; /* 0x18 */
 };
 
-static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
+W8_ABI_ASSERT(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
 
 #endif

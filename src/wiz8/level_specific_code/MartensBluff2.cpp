@@ -429,7 +429,7 @@ void MartensBluff2MonsterCrusher(int command)
     srVector3T<float> bounds_min;
     srVector3T<float> bounds_max;
     srVector3T<float> position;
-    unsigned long* location_ids;
+    w8_ulong* location_ids;
     unsigned int count;
     unsigned int i;
     unsigned int index;

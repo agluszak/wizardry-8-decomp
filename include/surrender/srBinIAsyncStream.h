@@ -17,18 +17,18 @@ public:
 
     int isFinished();
 
-    virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual srBinStream& seek(unsigned long position) override;
-    virtual unsigned long tell() override;
-    virtual unsigned long vread(void* destination, unsigned long size) override;
+    virtual srBinStream& seek(w8_ulong position, srBinStream::e_seekDir direction) override;
+    virtual srBinStream& seek(w8_ulong position) override;
+    virtual w8_ulong tell() override;
+    virtual w8_ulong vread(void* destination, w8_ulong size) override;
 
 private:
     unsigned char* buffer;
     srScheduler::Job* job;
     srBinIStream* stream;
-    unsigned long position;
-    unsigned long size;
+    w8_ulong position;
+    w8_ulong size;
     int finished;
 };
 
-static_assert(sizeof(srBinIAsyncStream) == 0x34, "srBinIAsyncStream_must_be_0x34");
+W8_ABI_ASSERT(sizeof(srBinIAsyncStream) == 0x34, "srBinIAsyncStream_must_be_0x34");

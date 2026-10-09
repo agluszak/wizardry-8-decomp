@@ -19,18 +19,18 @@ struct W8OctRegionPolygon {
     enum { AXIS_MASK = 3u, MULTIPLE_REGIONS = 4u, CENTER_IN_REGION = 8u };
     /* & 3 selects the axis the plane test uses; bit2 marks a vertex shared
        across regions (cleared with bit3 after the duplicate pass). */
-    unsigned long flags;
+    w8_ulong flags;
     /* 1-based ordinal into the geometry polygon array. */
-    unsigned long ordinal;
+    w8_ulong ordinal;
     W8Plane plane; /* unit normal plus signed distance */
     srVector3T<float> position;
     /* Canonical material-group index assigned by the material sort. */
-    unsigned long material;
+    w8_ulong material;
     /* The per-polygon texture/material index CreateSubMeshes copies into
        OctMeshModel's m_plPolyTextures row. */
-    unsigned long texture;
+    w8_ulong texture;
     /* The automesh kind (1..3) SplitMeshes partitions polygon lists on. */
-    unsigned long kind;
+    w8_ulong kind;
     /* Set by the polygon builder when the face collapses. */
     unsigned char degenerate;
     bool visited;
@@ -52,10 +52,10 @@ struct W8OctRegionPolygon {
     bool ContainsPoint(const srVector3T<float>* bounds) const;
 };
 
-static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x74");
+W8_ABI_ASSERT(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x74");
 
 extern int g_build_node_instances;
-extern unsigned long g_poly_list_count;
+extern w8_ulong g_poly_list_count;
 /* Build scratch carries mode-2 region polygons and mode-3 GD surfaces. */
 extern void** g_poly_list;
 extern W8GDSurface** g_gd_surface_list;
@@ -67,7 +67,7 @@ extern unsigned short g_region_id_count;
    "m_psrvRegCenters" in Engine Code\OctBuildPreTree.cpp. */
 struct OctBuildPreTree : W8OctBuildTree {
     OctBuildPreTree(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
-                    unsigned short item_limit, unsigned long path_capacity, short extent_mode);
+                    unsigned short item_limit, w8_ulong path_capacity, short extent_mode);
     OctPreTree* BuildOctPreTree();
     unsigned short BuildRegions();
     unsigned char BuildParticleRegions(const W8LevelFileParticleSystem* particles,
@@ -91,12 +91,12 @@ struct OctBuildPreTree : W8OctBuildTree {
        repacks both arrays and re-inserts every polygon with mode 2. */
     unsigned char SortGeometry(W8OctPreTreeGeometry* geometry);
     /* Inserts one region polygon into the octree working state. */
-    unsigned char InsertSurface(W8OctRegionPolygon* polygon, unsigned long mode);
+    unsigned char InsertSurface(W8OctRegionPolygon* polygon, w8_ulong mode);
     /* Recursive inserter for InsertSurface: subdivides to the leaf, collecting
        overlapping region ids on first touch and appending the polygon to the
        leaf's mode link list. */
     unsigned char InsertSurfaceRecursive(W8OctSpatialState* working, W8OctRegionPolygon* polygon,
-                                         unsigned long mode);
+                                         w8_ulong mode);
     /* Fill the leaf's region-id list with every region volume overlapping
        `bounds`; grows a 50-entry scratch list on first use. */
     void FindLeafRegions(W8OctBuildNode* node, const W8BoundingBox* bounds);
@@ -121,12 +121,12 @@ struct OctBuildPreTree : W8OctBuildTree {
        and counts it on the volume. Answers the polygon's region. */
     unsigned short SplitSharedPolygon(W8OctPreTreeGeometry* geometry, int index);
 
-    unsigned long path_capacity;
+    w8_ulong path_capacity;
     unsigned short selected_depth;
     unsigned short padding_c2;
-    unsigned long level_counts[10];
-    unsigned long* m_pulRegPaths;
-    unsigned long region_path_count;
+    w8_ulong level_counts[10];
+    w8_ulong* m_pulRegPaths;
+    w8_ulong region_path_count;
     bool mesh_linking;
     unsigned char padding_f5[3];
     BitArray* region_bits;
@@ -142,20 +142,20 @@ struct OctBuildPreTree : W8OctBuildTree {
     unsigned short* mesh_props;
     unsigned short mesh_prop_count;
     unsigned short padding_11a;
-    unsigned long particle_count;
-    unsigned long prop_count;
-    W8HashTable<unsigned short, unsigned long>* region_path_map;
+    w8_ulong particle_count;
+    w8_ulong prop_count;
+    W8HashTable<unsigned short, w8_ulong>* region_path_map;
     /* Allocated next to region_path_map but never read, inserted into, or
        freed in recovered code - dead table kept for layout fidelity. */
     W8HashTable<unsigned int, short>* positional;
     W8HashTable<unsigned short, short>* inside_region_map;
     W8HashTable<unsigned short, short>* overlap_region_map;
     W8OctPreTreeGeometry* game_data;
-    unsigned long unknown_138;
-    unsigned long unknown_13c;
+    w8_ulong unknown_138;
+    w8_ulong unknown_13c;
 };
 
-static_assert(sizeof(OctBuildPreTree) == 0x140, "OctBuildPreTree_must_be_0x140");
+W8_ABI_ASSERT(sizeof(OctBuildPreTree) == 0x140, "OctBuildPreTree_must_be_0x140");
 
 int GetBuildNodeInstanceCount(void);
 

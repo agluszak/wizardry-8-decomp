@@ -586,7 +586,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
     W8Prop* prop;
     GDProp* gd_prop;
     W8LevelDataRecord* level;
-    unsigned long* objects;
+    w8_ulong* objects;
     unsigned int count;
     unsigned int index;
     int surface_index;
@@ -713,7 +713,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
 unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
                                                    srVector3T<float>* position, int)
 {
-    unsigned long* objects;
+    w8_ulong* objects;
     unsigned int count;
     unsigned int index;
     unsigned int monster_list_index;
@@ -812,7 +812,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     W8GDSurface* nearest_surface;
     W8GDSurface* surface;
     W8GDSurface* collisions[101];
-    unsigned long* octree_hits;
+    w8_ulong* octree_hits;
     W8GDSurface** geometry_hits;
     int hit_count;
     int collision_count;
@@ -1132,8 +1132,8 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
 /* Run the buffered prop id list through TestProp and report the id of the
    last prop that hit; an empty list reports -1. */
 // FUNCTION: WIZ8 0x0041c0d0
-int W8GameData::TestPropSurfaces(int count, unsigned long* ids, W8OctreeTrace* trace,
-                                 char skip_flag, char gate)
+int W8GameData::TestPropSurfaces(int count, w8_ulong* ids, W8OctreeTrace* trace, char skip_flag,
+                                 char gate)
 {
     int last_hit = -1;
     if (count == 0) {
@@ -1208,7 +1208,7 @@ bool W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, cha
    storing index into last_hit_surface, the contact into end and the hit
    distance into hit_limit/length. */
 // FUNCTION: WIZ8 0x0041c330
-bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
+bool W8GameData::TestTraceResult(int count, w8_ulong* surface_ids, W8OctreeTrace* trace,
                                  char skip_flag, int mode)
 {
     bool hit = false;
@@ -1216,7 +1216,7 @@ bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
 
     last_hit_surface = 0;
     if (count != 0) {
-        unsigned long* id = surface_ids;
+        w8_ulong* id = surface_ids;
         int index = 0;
         int remaining = count;
         do {
@@ -1418,7 +1418,7 @@ stModelInstance* W8GameData::CreateTraceModel()
     srVector2T<float>* texcoords = mesh->getVertexTexCoords(0, 0, 1);
     srPtr<srMaterialIFace>* vertex_materials =
         mesh->getVertexMaterial(0, srMeshModel::SIDE_FRONT, 1);
-    unsigned long* shade_indices = mesh->getVertexShadeIndex(1);
+    w8_ulong* shade_indices = mesh->getVertexShadeIndex(1);
     int vertex = 0;
     for (int index = 0; index < m_iNumSurfaces; ++index) {
         W8GDSurface* surface = m_pSurfaces + index;

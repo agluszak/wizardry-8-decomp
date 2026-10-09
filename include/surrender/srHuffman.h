@@ -15,23 +15,23 @@ public:
         BitIStream {
     public:
         SR_DLL_IMPORT BitIStream(srBinIStream& stream);
-        SR_DLL_IMPORT unsigned long get(unsigned long bits);
-        SR_DLL_IMPORT unsigned long getBit();
-        SR_DLL_IMPORT void rewind(long bits);
+        SR_DLL_IMPORT w8_ulong get(w8_ulong bits);
+        SR_DLL_IMPORT w8_ulong getBit();
+        SR_DLL_IMPORT void rewind(w8_long bits);
 
     private:
         BitIStream(const BitIStream& stream);
         BitIStream& operator=(const BitIStream& stream);
 
-        void fetchCache(long position);
-        unsigned long getByte(long position);
-        unsigned long getDWord(long position);
-        unsigned long getWordOrLess(unsigned long bits);
+        void fetchCache(w8_long position);
+        w8_ulong getByte(w8_long position);
+        w8_ulong getDWord(w8_long position);
+        w8_ulong getWordOrLess(w8_ulong bits);
 
         srBinIStream* stream;
         unsigned char cache[0x80];
-        long cache_base;
-        long bit_pos;
+        w8_long cache_base;
+        w8_long bit_pos;
     };
 
     class
@@ -42,7 +42,7 @@ public:
     public:
         SR_DLL_IMPORT BitOStream(srBinOStream& stream);
         SR_DLL_IMPORT ~BitOStream();
-        SR_DLL_IMPORT void put(unsigned long value, unsigned long bits);
+        SR_DLL_IMPORT void put(w8_ulong value, w8_ulong bits);
 
     private:
         BitOStream(const BitOStream& stream);
@@ -51,14 +51,14 @@ public:
         void flush();
         void flushByte();
         void flushBuffer();
-        void putBit(unsigned long bit);
+        void putBit(w8_ulong bit);
 
         srBinOStream* stream;
-        unsigned long bytes;
-        unsigned long bit_count;
-        unsigned long pending;
+        w8_ulong bytes;
+        w8_ulong bit_count;
+        w8_ulong pending;
         unsigned char buffer[0x40];
-        unsigned long buffered;
+        w8_ulong buffered;
     };
 
     class
@@ -68,8 +68,8 @@ public:
         Sampler {
     public:
         struct Symbol {
-            unsigned long symbol;
-            unsigned long frequency;
+            w8_ulong symbol;
+            w8_ulong frequency;
         };
 
         SR_DLL_IMPORT Sampler();
@@ -77,13 +77,13 @@ public:
 #if !defined(SURRENDER_BUILD)
         SR_DLL_IMPORT ~Sampler();
 #endif
-        SR_DLL_IMPORT void insert(unsigned long symbol);
-        SR_DLL_IMPORT unsigned long getNumSymbols() const;
-        SR_DLL_IMPORT unsigned long getSymbolValue(unsigned long index) const;
-        SR_DLL_IMPORT unsigned long getSymbolFrequency(unsigned long index) const;
+        SR_DLL_IMPORT void insert(w8_ulong symbol);
+        SR_DLL_IMPORT w8_ulong getNumSymbols() const;
+        SR_DLL_IMPORT w8_ulong getSymbolValue(w8_ulong index) const;
+        SR_DLL_IMPORT w8_ulong getSymbolFrequency(w8_ulong index) const;
 
     private:
-        srHashTable<unsigned long, int> table;
+        srHashTable<w8_ulong, int> table;
         srArray<Symbol> symbols;
         int count;
     };
@@ -95,10 +95,10 @@ public:
         Compressor {
     public:
         struct Node {
-            unsigned long symbol;
-            unsigned long frequency;
-            unsigned long code;
-            unsigned long bits;
+            w8_ulong symbol;
+            w8_ulong frequency;
+            w8_ulong code;
+            w8_ulong bits;
             Node* next;
             Node* children[2];
         };
@@ -111,7 +111,7 @@ public:
         SR_DLL_IMPORT void collectSymbols(const Sampler& sampler);
 
         // FUNCTION: SURRENDER 0x10001430
-        void compressSymbol(BitOStream& stream, unsigned long symbol)
+        void compressSymbol(BitOStream& stream, w8_ulong symbol)
         {
             Node* node = table.Lookup(&symbol);
             if (node != 0) {
@@ -119,13 +119,13 @@ public:
             }
         }
 
-        srHashTable<unsigned long, Node*> table;
+        srHashTable<w8_ulong, Node*> table;
         Node* nodes;
         Node* free_list;
         Node* root;
-        unsigned long num_symbols;
-        unsigned long code_width;
-        unsigned long total;
+        w8_ulong num_symbols;
+        w8_ulong code_width;
+        w8_ulong total;
 
     private:
         Compressor(const Compressor& other);
@@ -133,7 +133,7 @@ public:
         void dumpNode(BitOStream& stream, Node* node);
 
     public:
-        void setupPath(Node* node, unsigned long code, unsigned long depth);
+        void setupPath(Node* node, w8_ulong code, w8_ulong depth);
     };
 
     class
@@ -144,12 +144,12 @@ public:
     public:
         SR_DLL_IMPORT Decompressor(BitIStream& stream);
         SR_DLL_IMPORT ~Decompressor();
-        SR_DLL_IMPORT unsigned long decompressSymbol();
-        SR_DLL_IMPORT unsigned long getDataCount() const;
+        SR_DLL_IMPORT w8_ulong decompressSymbol();
+        SR_DLL_IMPORT w8_ulong getDataCount() const;
 
     private:
         struct Symbol {
-            unsigned long symbol;
+            w8_ulong symbol;
             Symbol* children[2];
         };
 
@@ -160,21 +160,21 @@ public:
 
         BitIStream* stream;
         Symbol* symbols;
-        unsigned long next_node;
-        unsigned long code_width;
-        unsigned long unknown_10;
-        unsigned long num_symbols;
-        unsigned long data_count;
+        w8_ulong next_node;
+        w8_ulong code_width;
+        w8_ulong unknown_10;
+        w8_ulong num_symbols;
+        w8_ulong data_count;
         Symbol* lookup[0x100];
         unsigned char depth[0x100];
     };
 };
 
-static_assert(sizeof(srHuffman::Compressor::Node) == 0x1c,
+W8_ABI_ASSERT(sizeof(srHuffman::Compressor::Node) == 0x1c,
               "srHuffman_Compressor_Node_must_be_0x1c");
-static_assert(sizeof(srHuffman::BitIStream) == 0x8c, "srHuffman_BitIStream_must_be_0x8c");
-static_assert(sizeof(srHuffman::BitOStream) == 0x54, "srHuffman_BitOStream_must_be_0x54");
-static_assert(sizeof(srHuffman::Sampler) == 0x1c, "srHuffman_Sampler_must_be_0x1c");
-static_assert(sizeof(srHuffman::Sampler::Symbol) == 0x08, "srHuffman_Sampler_Symbol_must_be_0x08");
-static_assert(sizeof(srHuffman::Compressor) == 0x28, "srHuffman_Compressor_must_be_0x28");
-static_assert(sizeof(srHuffman::Decompressor) == 0x51c, "srHuffman_Decompressor_must_be_0x51c");
+W8_ABI_ASSERT(sizeof(srHuffman::BitIStream) == 0x8c, "srHuffman_BitIStream_must_be_0x8c");
+W8_ABI_ASSERT(sizeof(srHuffman::BitOStream) == 0x54, "srHuffman_BitOStream_must_be_0x54");
+W8_ABI_ASSERT(sizeof(srHuffman::Sampler) == 0x1c, "srHuffman_Sampler_must_be_0x1c");
+W8_ABI_ASSERT(sizeof(srHuffman::Sampler::Symbol) == 0x08, "srHuffman_Sampler_Symbol_must_be_0x08");
+W8_ABI_ASSERT(sizeof(srHuffman::Compressor) == 0x28, "srHuffman_Compressor_must_be_0x28");
+W8_ABI_ASSERT(sizeof(srHuffman::Decompressor) == 0x51c, "srHuffman_Decompressor_must_be_0x51c");

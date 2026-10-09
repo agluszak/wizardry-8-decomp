@@ -4,6 +4,7 @@
 #include "input.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/wiz8_windows.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/fonts.h"
 #include "wiz8/text_input.h"
@@ -91,28 +92,28 @@ struct STACKTEXTINPUTNODE {
     STACKTEXTINPUTNODE* next;
 };
 
-static_assert(sizeof(TEXTINPUTNODE) == 0x6c, "text input field must match the retail allocation");
+W8_ABI_ASSERT(sizeof(TEXTINPUTNODE) == 0x6c, "text input field must match the retail allocation");
 static_assert(offsetof(TEXTINPUTNODE, ubID) == 0x00, "TEXTINPUTNODE.ubID");
 static_assert(offsetof(TEXTINPUTNODE, _padding01) == 0x01, "TEXTINPUTNODE._padding01");
 static_assert(offsetof(TEXTINPUTNODE, usInputType) == 0x02, "TEXTINPUTNODE.usInputType");
 static_assert(offsetof(TEXTINPUTNODE, ubMaxChars) == 0x04, "TEXTINPUTNODE.ubMaxChars");
 static_assert(offsetof(TEXTINPUTNODE, _padding05) == 0x05, "TEXTINPUTNODE._padding05");
 static_assert(offsetof(TEXTINPUTNODE, szString) == 0x08, "TEXTINPUTNODE.szString");
-static_assert(offsetof(TEXTINPUTNODE, ubStrLen) == 0x0c, "TEXTINPUTNODE.ubStrLen");
-static_assert(offsetof(TEXTINPUTNODE, fEnabled) == 0x0d, "TEXTINPUTNODE.fEnabled");
-static_assert(offsetof(TEXTINPUTNODE, fUserField) == 0x0e, "TEXTINPUTNODE.fUserField");
-static_assert(offsetof(TEXTINPUTNODE, _padding0f) == 0x0f, "TEXTINPUTNODE._padding0f");
-static_assert(offsetof(TEXTINPUTNODE, region) == 0x10, "TEXTINPUTNODE.region");
-static_assert(offsetof(TEXTINPUTNODE, InputCallback) == 0x5c, "TEXTINPUTNODE.InputCallback");
-static_assert(offsetof(TEXTINPUTNODE, fUseInactiveTextFieldColor) == 0x60,
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, ubStrLen) == 0x0c, "TEXTINPUTNODE.ubStrLen");
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, fEnabled) == 0x0d, "TEXTINPUTNODE.fEnabled");
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, fUserField) == 0x0e, "TEXTINPUTNODE.fUserField");
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, _padding0f) == 0x0f, "TEXTINPUTNODE._padding0f");
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, region) == 0x10, "TEXTINPUTNODE.region");
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, InputCallback) == 0x5c, "TEXTINPUTNODE.InputCallback");
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, fUseInactiveTextFieldColor) == 0x60,
               "TEXTINPUTNODE.fUseInactiveTextFieldColor");
-static_assert(offsetof(TEXTINPUTNODE, fBlockMouseCallbacks) == 0x61,
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, fBlockMouseCallbacks) == 0x61,
               "TEXTINPUTNODE.fBlockMouseCallbacks");
-static_assert(offsetof(TEXTINPUTNODE, _padding62) == 0x62, "TEXTINPUTNODE._padding62");
-static_assert(offsetof(TEXTINPUTNODE, next) == 0x64, "TEXTINPUTNODE.next");
-static_assert(offsetof(TEXTINPUTNODE, prev) == 0x68, "TEXTINPUTNODE.prev");
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, _padding62) == 0x62, "TEXTINPUTNODE._padding62");
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, next) == 0x64, "TEXTINPUTNODE.next");
+W8_ABI_ASSERT(offsetof(TEXTINPUTNODE, prev) == 0x68, "TEXTINPUTNODE.prev");
 static_assert(sizeof(TextInputColors) == 0x18, "text input style must match the retail allocation");
-static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
+W8_ABI_ASSERT(sizeof(STACKTEXTINPUTNODE) == 0x0c,
               "text input session must match the retail allocation");
 
 // GLOBAL: WIZ8 0x0069C808

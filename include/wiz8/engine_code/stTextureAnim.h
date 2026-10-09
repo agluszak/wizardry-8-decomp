@@ -21,7 +21,7 @@ public:
     stTextureAnim(const stTextureAnim& other); /* 0x00485070 */
 
     virtual srClass* vInstance() override;                                /* 0x00484E60 */
-    virtual unsigned long getTextureFrameHandle() override;               /* 0x004856F0 */
+    virtual w8_ulong getTextureFrameHandle() override;                    /* 0x004856F0 */
     virtual float getPriority() override;                                 /* 0x00484D60 */
     virtual void getDimensions(Dimensions& dimensions) override;          /* 0x00484D80 */
     virtual void getMipmapData(MultiRequest& request) override;           /* 0x00484DB0 */
@@ -48,10 +48,10 @@ public:
     W8TextureAnimationMode animation_mode;
     int initial_frame;
     float frame_rate;
-    unsigned long frame_tick;
+    w8_ulong frame_tick;
     W8TextureTriggerMode trigger_mode;
     float probability;
     bool running;
 };
 
-static_assert(sizeof(stTextureAnim) == 0x7c, "stTextureAnim_size_must_be_0x7c");
+W8_ABI_ASSERT(sizeof(stTextureAnim) == 0x7c, "stTextureAnim_size_must_be_0x7c");

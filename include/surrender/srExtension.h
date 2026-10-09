@@ -18,7 +18,7 @@ public:
 
     static void dumpAll(std::ostream& stream);
     static srExtension* find(const char* name);
-    static long getCount();
+    static w8_long getCount();
     const char* getDescription();
     static srExtension* getFirst();
     const char* getName();
@@ -28,7 +28,7 @@ public:
 
 private:
     // GLOBAL: SURRENDER 0x100A45F0
-    static long count;
+    static w8_long count;
     // GLOBAL: SURRENDER 0x100A45EC
     static srExtension* firstExt;
 
@@ -39,4 +39,4 @@ private:
     srExtension* next;
 };
 
-static_assert(sizeof(srExtension) == 0x14, "srExtension_must_be_0x14");
+W8_ABI_ASSERT(sizeof(srExtension) == 0x14, "srExtension_must_be_0x14");

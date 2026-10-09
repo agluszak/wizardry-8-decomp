@@ -15,7 +15,7 @@ int srEnvironmentMapper::isActive(srVertexPipe&)
 // FUNCTION: SURRENDER 0x100352f0
 void srEnvironmentMapper::process(srVertexPipe& pipe)
 {
-    unsigned long count = pipe.vertex_count;
+    w8_ulong count = pipe.vertex_count;
     srVertexPipe::Scratch* scratch = pipe.scratch;
     if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_DIRECTION) == 0) {
         pipe.setupEyeSpaceDirAndDist();
@@ -28,7 +28,7 @@ void srEnvironmentMapper::process(srVertexPipe& pipe)
     srVector2T<float>* st = pipe.vertex_array->st0 + pipe.batch_base + pipe.sub_batch_offset;
     srCore.getStatisticsManager()->statistics.texture_coordinate_operations += count;
     pipe.lazy_setup_mask |= 1 << srVertexProcessor::CHANNEL_ST0;
-    for (unsigned long index = 0; index < count; ++index) {
+    for (w8_ulong index = 0; index < count; ++index) {
         const srVector3T<float>& direction = directions[index];
         const srVector3T<float>& normal = normals[index];
         /* Retail keeps the doubled projection, rz and the magnitude on the x87

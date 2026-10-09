@@ -162,9 +162,9 @@ void srMaterial::preProcess(srVertexPipe& pipe)
 // FUNCTION: SURRENDER 0x10033C90
 void srMaterial::postProcess(srVertexPipe& pipe)
 {
-    unsigned long operations;
-    unsigned long vertex_count;
-    unsigned long blend;
+    w8_ulong operations;
+    w8_ulong vertex_count;
+    w8_ulong blend;
     srVector4T<float>* color;
     float* channel;
 
@@ -295,7 +295,7 @@ void srMaterial::reset()
 // FUNCTION: SURRENDER 0x10033FC0
 void srMaterial::dump(std::ostream& stream)
 {
-    long flags;
+    w8_long flags;
 
     srClass::dump(stream);
     flags = stream.flags();
@@ -325,7 +325,7 @@ void srMaterial::dump(std::ostream& stream)
         bool first = true;
         const char* names = s_oper_names;
         const char* name = names;
-        for (unsigned long bit = 0; bit < 0x20; ++bit) {
+        for (w8_ulong bit = 0; bit < 0x20; ++bit) {
             if ((operations.value & (1 << bit)) == 0) {
                 if (name != 0) {
                     while (*name != 0 && *name != ',') {

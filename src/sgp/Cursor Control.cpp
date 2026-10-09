@@ -2,9 +2,9 @@
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "Cursor Control.h"
 
-#include "video2.h"
+#include "Video2.h"
 
-#include "wcheck.h"
+#include "WCheck.h"
 // Cursor Database
 
 BOOLEAN gfCursorDatabaseInit = FALSE;

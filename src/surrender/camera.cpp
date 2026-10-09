@@ -311,7 +311,7 @@ void srCamera::flipHorizontal()
 void srCamera::dump(std::ostream& stream)
 {
     srNode::dump(stream);
-    long flags = stream.flags();
+    w8_long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
     stream << "Control flags: ";
@@ -321,7 +321,7 @@ void srCamera::dump(std::ostream& stream)
         stream << '[';
         int first = 1;
         const char* names = flag_names;
-        for (unsigned long bit = 0; bit < 0x20; ++bit) {
+        for (w8_ulong bit = 0; bit < 0x20; ++bit) {
             if ((this->flags.value & (1UL << bit)) != 0) {
                 if (first == 0) {
                     stream << ',';

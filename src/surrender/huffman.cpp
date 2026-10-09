@@ -2,11 +2,11 @@
 
 #include <string.h>
 
-static void sortSymbolPairs(srHuffman::Sampler::Symbol* pairs, unsigned long count);
-static void* copyMemory(void* destination, const void* source, long size);
+static void sortSymbolPairs(srHuffman::Sampler::Symbol* pairs, w8_ulong count);
+static void* copyMemory(void* destination, const void* source, w8_long size);
 
 // FUNCTION: SURRENDER 0x100013D0
-void srHuffman::BitIStream::fetchCache(long position)
+void srHuffman::BitIStream::fetchCache(w8_long position)
 {
     cache_base = position;
     stream->seek(position);
@@ -15,9 +15,9 @@ void srHuffman::BitIStream::fetchCache(long position)
 }
 
 // FUNCTION: SURRENDER 0x100015C0
-unsigned long srHuffman::BitIStream::getByte(long position)
+w8_ulong srHuffman::BitIStream::getByte(w8_long position)
 {
-    unsigned long offset = position - cache_base;
+    w8_ulong offset = position - cache_base;
     if (offset >= 0x80) {
         fetchCache(position);
         offset = 0;
@@ -26,23 +26,24 @@ unsigned long srHuffman::BitIStream::getByte(long position)
 }
 
 // FUNCTION: SURRENDER 0x10001490
-unsigned long srHuffman::BitIStream::getDWord(long position)
+w8_ulong srHuffman::BitIStream::getDWord(w8_long position)
 {
-    unsigned long offset = position - cache_base;
+    w8_ulong offset = position - cache_base;
     if (offset >= 0x7d) {
         fetchCache(position);
         offset = 0;
     }
     /* reinterpret-ok: the byte cache is read as an unaligned dword. */
-    return *reinterpret_cast<unsigned long*>(cache + offset);
+    // reinterpret-ok: the historical codec reads a word from its byte cache
+    return *reinterpret_cast<w8_ulong*>(cache + offset);
 }
 
 // FUNCTION: SURRENDER 0x10001340
-unsigned long srHuffman::BitIStream::getWordOrLess(unsigned long bits)
+w8_ulong srHuffman::BitIStream::getWordOrLess(w8_ulong bits)
 {
-    long position = bit_pos / 8;
-    unsigned long shift = bit_pos & 7;
-    unsigned long data = getDWord(position);
+    w8_long position = bit_pos / 8;
+    w8_ulong shift = bit_pos & 7;
+    w8_ulong data = getDWord(position);
     bit_pos += bits;
     return (data & ((1 << (shift + bits)) - 1)) >> shift;
 }
@@ -56,27 +57,27 @@ srHuffman::BitIStream::BitIStream(srBinIStream& stream)
 }
 
 // FUNCTION: SURRENDER 0x100010E0
-unsigned long srHuffman::BitIStream::get(unsigned long bits)
+w8_ulong srHuffman::BitIStream::get(w8_ulong bits)
 {
     if (bits <= 0x10) {
         return getWordOrLess(bits);
     }
-    unsigned long low = getWordOrLess(0x10);
-    unsigned long high = getWordOrLess(bits - 0x10);
+    w8_ulong low = getWordOrLess(0x10);
+    w8_ulong high = getWordOrLess(bits - 0x10);
     return (high << 0x10) | low;
 }
 
 // FUNCTION: SURRENDER 0x10001290
-unsigned long srHuffman::BitIStream::getBit()
+w8_ulong srHuffman::BitIStream::getBit()
 {
-    unsigned long data = getByte(bit_pos / 8);
-    unsigned long bit = (data >> (bit_pos & 7)) & 1;
+    w8_ulong data = getByte(bit_pos / 8);
+    w8_ulong bit = (data >> (bit_pos & 7)) & 1;
     ++bit_pos;
     return bit;
 }
 
 // FUNCTION: SURRENDER 0x10001320
-void srHuffman::BitIStream::rewind(long bits)
+void srHuffman::BitIStream::rewind(w8_long bits)
 {
     bit_pos -= bits;
 }
@@ -104,7 +105,7 @@ srHuffman::BitOStream::~BitOStream()
 }
 
 // FUNCTION: SURRENDER 0x10001760
-void srHuffman::BitOStream::put(unsigned long value, unsigned long bits)
+void srHuffman::BitOStream::put(w8_ulong value, w8_ulong bits)
 {
     for (; bits > 0; --bits) {
         putBit(value & 1);
@@ -144,7 +145,7 @@ void srHuffman::BitOStream::flushBuffer()
 }
 
 // FUNCTION: SURRENDER 0x10001810
-void srHuffman::BitOStream::putBit(unsigned long bit)
+void srHuffman::BitOStream::putBit(w8_ulong bit)
 {
     pending |= (bit & 1) << bit_count;
     ++bit_count;
@@ -157,7 +158,7 @@ void srHuffman::BitOStream::putBit(unsigned long bit)
 srHuffman::Sampler::Sampler() : count(0) {}
 
 // FUNCTION: SURRENDER 0x10001990
-void srHuffman::Sampler::insert(unsigned long symbol)
+void srHuffman::Sampler::insert(w8_ulong symbol)
 {
     if (table.FindNextEntry(&symbol, -1) == -1) {
         symbols[count].symbol = symbol;
@@ -170,19 +171,19 @@ void srHuffman::Sampler::insert(unsigned long symbol)
 }
 
 // FUNCTION: SURRENDER 0x10001BA0
-unsigned long srHuffman::Sampler::getNumSymbols() const
+w8_ulong srHuffman::Sampler::getNumSymbols() const
 {
     return count;
 }
 
 // FUNCTION: SURRENDER 0x10001BB0
-unsigned long srHuffman::Sampler::getSymbolValue(unsigned long index) const
+w8_ulong srHuffman::Sampler::getSymbolValue(w8_ulong index) const
 {
     return symbols.data[index].symbol;
 }
 
 // FUNCTION: SURRENDER 0x10001BC0
-unsigned long srHuffman::Sampler::getSymbolFrequency(unsigned long index) const
+w8_ulong srHuffman::Sampler::getSymbolFrequency(w8_ulong index) const
 {
     return symbols.data[index].frequency;
 }
@@ -199,7 +200,7 @@ srHuffman::Compressor::Compressor(const Sampler& sampler)
     if (num_symbols != 0) {
         nodes = static_cast<Node*>(::operator new(num_symbols * 2 * sizeof(Node)));
         free_list = nodes;
-        for (unsigned long index = 0; index < num_symbols * 2; ++index) {
+        for (w8_ulong index = 0; index < num_symbols * 2; ++index) {
             nodes[index].symbol = 0;
             nodes[index].frequency = 0;
             nodes[index].next = nodes + index + 1;
@@ -245,7 +246,7 @@ void srHuffman::Compressor::dumpNode(BitOStream& stream, Node* node)
 }
 
 // FUNCTION: SURRENDER 0x10001EC0
-void srHuffman::Compressor::setupPath(Node* node, unsigned long code, unsigned long depth)
+void srHuffman::Compressor::setupPath(Node* node, w8_ulong code, w8_ulong depth)
 {
     if (node != 0) {
         while (node->children[0] != 0) {
@@ -274,7 +275,7 @@ void srHuffman::Compressor::buildSymbolTree()
         heads[0] = nodes;
         heads[1] = 0;
         tails[1] = 0;
-        for (unsigned long merged = 0; merged < num_symbols - 1; ++merged) {
+        for (w8_ulong merged = 0; merged < num_symbols - 1; ++merged) {
             Node* node = free_list;
             free_list = node->next;
             node->next = 0;
@@ -313,10 +314,10 @@ void srHuffman::Compressor::buildSymbolTree()
 // FUNCTION: SURRENDER 0x10002080
 void srHuffman::Compressor::collectSymbols(const Sampler& sampler)
 {
-    unsigned long* symbols = static_cast<unsigned long*>(srHeap.allocate(num_symbols * 4));
-    unsigned long* frequencies = static_cast<unsigned long*>(srHeap.allocate(num_symbols * 4));
-    unsigned long max_symbol = 0;
-    unsigned long index;
+    w8_ulong* symbols = static_cast<w8_ulong*>(srHeap.allocate(num_symbols * sizeof(w8_ulong)));
+    w8_ulong* frequencies = static_cast<w8_ulong*>(srHeap.allocate(num_symbols * sizeof(w8_ulong)));
+    w8_ulong max_symbol = 0;
+    w8_ulong index;
     for (index = 0; index < num_symbols; ++index) {
         symbols[index] = sampler.getSymbolValue(index);
         frequencies[index] = sampler.getSymbolFrequency(index);
@@ -354,8 +355,9 @@ void srHuffman::Compressor::collectSymbols(const Sampler& sampler)
         code_width = 1;
     }
     if (num_symbols > 1) {
-        Sampler::Symbol* pairs = static_cast<Sampler::Symbol*>(srHeap.allocate(num_symbols * 8));
-        unsigned long bulk = num_symbols & ~3;
+        Sampler::Symbol* pairs =
+            static_cast<Sampler::Symbol*>(srHeap.allocate(num_symbols * sizeof(*pairs)));
+        w8_ulong bulk = num_symbols & ~3;
         for (index = 0; index < bulk; index += 4) {
             pairs[index].symbol = symbols[index];
             pairs[index].frequency = frequencies[index];
@@ -405,11 +407,11 @@ srHuffman::Decompressor::Decompressor(BitIStream& stream)
     code_width = this->stream->get(6);
     data_count = this->stream->get(0x20);
     if (num_symbols != 0) {
-        symbols = static_cast<Symbol*>(::operator new(num_symbols * 0x18));
+        symbols = static_cast<Symbol*>(::operator new(num_symbols * 2 * sizeof(Symbol)));
         setupSymbolTable(symbols);
-        for (unsigned long index = 0; index < 0x100; ++index) {
+        for (w8_ulong index = 0; index < 0x100; ++index) {
             Symbol* node = symbols;
-            unsigned long depth;
+            w8_ulong depth;
             for (depth = 0; depth < 8; ++depth) {
                 Symbol* next = node->children[0];
                 if (next == 0) {
@@ -433,16 +435,16 @@ srHuffman::Decompressor::~Decompressor()
 }
 
 // FUNCTION: SURRENDER 0x10002500
-unsigned long srHuffman::Decompressor::getDataCount() const
+w8_ulong srHuffman::Decompressor::getDataCount() const
 {
     return data_count;
 }
 
 // FUNCTION: SURRENDER 0x10002510
-unsigned long srHuffman::Decompressor::decompressSymbol()
+w8_ulong srHuffman::Decompressor::decompressSymbol()
 {
     BitIStream* stream = this->stream;
-    unsigned long key = stream->get(8);
+    w8_ulong key = stream->get(8);
     stream->rewind(8 - depth[key]);
     Symbol* node = lookup[key];
     while (node->children[0] != 0) {
@@ -471,22 +473,22 @@ void srHuffman::Decompressor::setupSymbolTable(Symbol* node)
 }
 
 // FUNCTION: SURRENDER 0x100027F0
-static void sortSymbolPairs(srHuffman::Sampler::Symbol* pairs, unsigned long count)
+static void sortSymbolPairs(srHuffman::Sampler::Symbol* pairs, w8_ulong count)
 {
     if (count <= 1) {
         return;
     }
-    srHuffman::Sampler::Symbol* scratch =
-        static_cast<srHuffman::Sampler::Symbol*>(srHeap.allocate(count * 8));
-    unsigned long counts[0x100];
+    srHuffman::Sampler::Symbol* scratch = static_cast<srHuffman::Sampler::Symbol*>(
+        srHeap.allocate(count * sizeof(srHuffman::Sampler::Symbol)));
+    w8_ulong counts[0x100];
     srHuffman::Sampler::Symbol* src = pairs;
     srHuffman::Sampler::Symbol* dst = scratch;
-    unsigned long bulk = count & ~3;
-    for (unsigned long pass = 0; pass < 4; ++pass) {
+    w8_ulong bulk = count & ~3;
+    for (w8_ulong pass = 0; pass < 4; ++pass) {
         srZeroMemory(counts, sizeof(counts));
         /* reinterpret-ok: radix pass extracts byte `pass` of each key. */
         unsigned char* keys = reinterpret_cast<unsigned char*>(&src[0].frequency) + pass;
-        unsigned long index = 0;
+        w8_ulong index = 0;
         for (; index < bulk; index += 4) {
             ++counts[keys[index * 8]];
             ++counts[keys[index * 8 + 8]];
@@ -496,9 +498,9 @@ static void sortSymbolPairs(srHuffman::Sampler::Symbol* pairs, unsigned long cou
         for (; index < count; ++index) {
             ++counts[keys[index * 8]];
         }
-        unsigned long position = 0;
-        for (unsigned long bucket = 0; bucket < 0x100; bucket += 4) {
-            unsigned long saved = counts[bucket];
+        w8_ulong position = 0;
+        for (w8_ulong bucket = 0; bucket < 0x100; bucket += 4) {
+            w8_ulong saved = counts[bucket];
             counts[bucket] = position;
             position += saved;
             saved = counts[bucket + 1];
@@ -525,13 +527,13 @@ static void sortSymbolPairs(srHuffman::Sampler::Symbol* pairs, unsigned long cou
         dst = swap;
     }
     if (src != pairs) {
-        copyMemory(pairs, src, count * 8);
+        copyMemory(pairs, src, count * sizeof(*pairs));
     }
     srHeap.free(dst);
 }
 
 // FUNCTION: SURRENDER 0x10002A90
-static void* copyMemory(void* destination, const void* source, long size)
+static void* copyMemory(void* destination, const void* source, w8_long size)
 {
     if (size <= 0) {
         return 0;

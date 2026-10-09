@@ -266,7 +266,7 @@ void RefreshLevelUpReadyNotices(void)
                         size_t length;
 
                         *ready_flag = 1;
-                        text = static_cast<wchar_t*>(operator new(0x400));
+                        text = static_cast<wchar_t*>(operator new(0x200 * sizeof(*text)));
                         text[0] = L' ';
                         text[1] = 0xb4;
                         text[2] = GetPartyOrderTextColor(
@@ -278,7 +278,7 @@ void RefreshLevelUpReadyNotices(void)
                         text[length + 1] = 0xb5;
                         text[length + 2] = L' ';
                         swprintf(text + length + 3, gppStringList[0x773], text);
-                        extra = static_cast<int*>(operator new(4));
+                        extra = static_cast<int*>(operator new(sizeof(*extra)));
                         *extra = party_slot;
                         W8MessageBoxPayload level_up_payload;
                         level_up_payload.text = text;

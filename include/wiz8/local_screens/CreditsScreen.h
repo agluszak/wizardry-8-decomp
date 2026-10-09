@@ -11,7 +11,7 @@ struct W8CreditLine {
     wchar_t* primary;
     wchar_t* secondary;
 };
-static_assert(sizeof(W8CreditLine) == 0x14, "W8CreditLine_size");
+W8_ABI_ASSERT(sizeof(W8CreditLine) == 0x14, "W8CreditLine_size");
 
 unsigned char ReadWideTextLine(int handle, wchar_t* destination, int capacity, unsigned char* more);
 unsigned char CreditsScreenEnter(void);

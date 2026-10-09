@@ -17,7 +17,7 @@ static const char* s_flag_names2;
 
 /* Comma-separated bit-name walker shared by the sr dumps; each TU keeps its own
    copy. */
-static void dumpFlags(std::ostream& stream, unsigned long flags, const char* names)
+static void dumpFlags(std::ostream& stream, w8_ulong flags, const char* names)
 {
     if (flags == 0) {
         stream << "[NONE]";
@@ -25,7 +25,7 @@ static void dumpFlags(std::ostream& stream, unsigned long flags, const char* nam
     }
     stream << '[';
     bool first = true;
-    for (unsigned long bit = 0; bit < 0x20; ++bit) {
+    for (w8_ulong bit = 0; bit < 0x20; ++bit) {
         if ((flags & (1 << bit)) != 0) {
             if (first) {
                 first = false;
@@ -90,19 +90,19 @@ void* srColorSurfaceIFace::getDataPtr()
 }
 
 // FUNCTION: SURRENDER 0x10021340
-long srColorSurfaceIFace::getDataSize()
+w8_long srColorSurfaceIFace::getDataSize()
 {
     return pitch * height;
 }
 
 // FUNCTION: SURRENDER 0x10021350
-int srColorSurfaceIFace::resize(long width, long height)
+int srColorSurfaceIFace::resize(w8_long width, w8_long height)
 {
     return 0;
 }
 
 // FUNCTION: SURRENDER 0x10021360
-int srColorSurfaceIFace::rescale(long width, long height)
+int srColorSurfaceIFace::rescale(w8_long width, w8_long height)
 {
     return 0;
 }
@@ -114,9 +114,9 @@ int srColorSurfaceIFace::changePixelFormat(const srPixelConvert::PixelFormat& fo
 }
 
 // FUNCTION: SURRENDER 0x100572E0
-long srColorSurfaceIFace::getClampedX(long x) const
+w8_long srColorSurfaceIFace::getClampedX(w8_long x) const
 {
-    long width = this->width;
+    w8_long width = this->width;
     if ((clamp_modes & CLAMP_HORIZONTAL) != 0) {
         if (x < 0) {
             return 0;
@@ -136,9 +136,9 @@ long srColorSurfaceIFace::getClampedX(long x) const
 }
 
 // FUNCTION: SURRENDER 0x10057330
-long srColorSurfaceIFace::getClampedY(long y) const
+w8_long srColorSurfaceIFace::getClampedY(w8_long y) const
 {
-    long height = this->height;
+    w8_long height = this->height;
     if ((clamp_modes & CLAMP_VERTICAL) != 0) {
         if (height <= y) {
             return height - 1;
@@ -158,14 +158,14 @@ long srColorSurfaceIFace::getClampedY(long y) const
 }
 
 // FUNCTION: SURRENDER 0x10057380
-void srColorSurfaceIFace::clampCoordinates(long& x, long& y)
+void srColorSurfaceIFace::clampCoordinates(w8_long& x, w8_long& y)
 {
     x = getClampedX(x);
     y = getClampedY(y);
 }
 
 // FUNCTION: SURRENDER 0x10059860
-unsigned long srColorSurfaceIFace::getAlphaBits() const
+w8_ulong srColorSurfaceIFace::getAlphaBits() const
 {
     return pixel_format.alpha_bits;
 }
@@ -180,19 +180,19 @@ double srColorSurfaceIFace::getAspectRatio() const
 }
 
 // FUNCTION: SURRENDER 0x10059890
-long srColorSurfaceIFace::getBitsPerPixel() const
+w8_long srColorSurfaceIFace::getBitsPerPixel() const
 {
     return (pixel_format.pixel_size + 1) * 8;
 }
 
 // FUNCTION: SURRENDER 0x100598A0
-long srColorSurfaceIFace::getBlueBits() const
+w8_long srColorSurfaceIFace::getBlueBits() const
 {
     return pixel_format.blue_bits;
 }
 
 // FUNCTION: SURRENDER 0x100598B0
-long srColorSurfaceIFace::getBytesPerPixel() const
+w8_long srColorSurfaceIFace::getBytesPerPixel() const
 {
     return pixel_format.pixel_size + 1;
 }
@@ -204,7 +204,7 @@ srFilter* srColorSurfaceIFace::getFilter() const
 }
 
 // FUNCTION: SURRENDER 0x100598D0
-long srColorSurfaceIFace::getGreenBits() const
+w8_long srColorSurfaceIFace::getGreenBits() const
 {
     return pixel_format.green_bits;
 }
@@ -216,7 +216,7 @@ int srColorSurfaceIFace::getHClampMode() const
 }
 
 // FUNCTION: SURRENDER 0x100599D0
-long srColorSurfaceIFace::getRedBits() const
+w8_long srColorSurfaceIFace::getRedBits() const
 {
     return pixel_format.red_bits;
 }
@@ -299,10 +299,10 @@ void srColorSurfaceIFace::copySurfaceParameters(const srColorSurfaceIFace& sourc
 }
 
 // FUNCTION: SURRENDER 0x10057810
-void srColorSurfaceIFace::setLine(long x0, long y0, long x1, long y1, unsigned long pixel)
+void srColorSurfaceIFace::setLine(w8_long x0, w8_long y0, w8_long x1, w8_long y1, w8_ulong pixel)
 {
-    long dx = x1 - x0;
-    long dy = y1 - y0;
+    w8_long dx = x1 - x0;
+    w8_long dy = y1 - y0;
     if (dx == 0) {
         setVLine(x0, y0, y1, pixel);
         return;
@@ -311,19 +311,19 @@ void srColorSurfaceIFace::setLine(long x0, long y0, long x1, long y1, unsigned l
         setHLine(y0, x0, x1, pixel);
         return;
     }
-    long width = this->width;
-    long height = this->height;
+    w8_long width = this->width;
+    w8_long height = this->height;
     if ((dy < 0 ? -dy : dy) < (dx < 0 ? -dx : dx)) {
-        long last_x = x1;
-        long last_y = y1;
+        w8_long last_x = x1;
+        w8_long last_y = y1;
         if (dx < 0) {
             last_x = x0;
             last_y = y0;
             y0 = y1;
             x0 = x1;
         }
-        long high_y = last_y;
-        long low_y = y0;
+        w8_long high_y = last_y;
+        w8_long low_y = y0;
         if (last_y <= y0) {
             high_y = y0;
             low_y = last_y;
@@ -331,48 +331,50 @@ void srColorSurfaceIFace::setLine(long x0, long y0, long x1, long y1, unsigned l
         height = height - 1;
         if ((-1 < last_x) && (x0 < width) && (-1 < high_y) && (low_y <= height)) {
             float gradient = (float)dy / dx;
-            long step = (long)(gradient * 65536.0);
+            w8_long step = (w8_long)(gradient * 65536.0);
             if (x0 < 0) {
-                y0 = (long)(y0 - x0 * gradient);
+                y0 = (w8_long)(y0 - x0 * gradient);
                 x0 = 0;
             }
             if (y0 < last_y) {
                 if (y0 < 0) {
-                    x0 = x0 - (long)(y0 / gradient);
+                    x0 = x0 - (w8_long)(y0 / gradient);
                     y0 = 0;
                 }
                 if (height <= last_y) {
-                    last_x = (long)(last_x - (last_y - (float)height) / gradient);
+                    // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+                    last_x = (w8_long)(last_x - (last_y - (float)height) / gradient);
                 }
             } else {
                 if (last_y < 0) {
-                    last_x = last_x - (long)(last_y / gradient);
+                    last_x = last_x - (w8_long)(last_y / gradient);
                 }
                 if (height <= y0) {
-                    x0 = (long)(x0 - (y0 - (float)height) / gradient);
+                    // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+                    x0 = (w8_long)(x0 - (y0 - (float)height) / gradient);
                     y0 = height;
                 }
             }
             if (width < last_x) {
                 last_x = width;
             }
-            long y_fixed = y0 << 0x10;
+            w8_long y_fixed = y0 << 0x10;
             for (; x0 < last_x; x0 = x0 + 1) {
                 setPixel(x0, (y_fixed + (y_fixed >> 0x1f & 0xffff)) >> 0x10, pixel);
                 y_fixed = y_fixed + step;
             }
         }
     } else {
-        long last_y = x1;
-        long last_x = y1;
+        w8_long last_y = x1;
+        w8_long last_x = y1;
         if (dy < 0) {
             last_y = x0;
             last_x = y0;
             y0 = y1;
             x0 = x1;
         }
-        long high_x = last_y;
-        long low_x = x0;
+        w8_long high_x = last_y;
+        w8_long low_x = x0;
         if (last_y <= x0) {
             high_x = x0;
             low_x = last_y;
@@ -380,32 +382,34 @@ void srColorSurfaceIFace::setLine(long x0, long y0, long x1, long y1, unsigned l
         width = width - 1;
         if (((-1 < low_x) && (high_x <= width) && (-1 < last_x)) && (y0 < height)) {
             float gradient = dx / (float)dy;
-            long step = (long)(gradient * 65536.0);
+            w8_long step = (w8_long)(gradient * 65536.0);
             if (y0 < 0) {
-                x0 = (long)(x0 - y0 * gradient);
+                x0 = (w8_long)(x0 - y0 * gradient);
                 y0 = 0;
             }
             if (x0 < last_y) {
                 if (x0 < 0) {
-                    y0 = y0 - (long)(x0 / gradient);
+                    y0 = y0 - (w8_long)(x0 / gradient);
                     x0 = 0;
                 }
                 if (width <= last_y) {
-                    last_x = (long)(last_x - (last_y - (float)width) / gradient);
+                    // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+                    last_x = (w8_long)(last_x - (last_y - (float)width) / gradient);
                 }
             } else {
                 if (last_y < 0) {
-                    last_x = last_x - (long)(last_y / gradient);
+                    last_x = last_x - (w8_long)(last_y / gradient);
                 }
                 if (width <= x0) {
-                    y0 = (long)(y0 - (x0 - (float)width) / gradient);
+                    // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+                    y0 = (w8_long)(y0 - (x0 - (float)width) / gradient);
                     x0 = width;
                 }
             }
             if (height < last_x) {
                 last_x = height;
             }
-            long x_fixed = x0 << 0x10;
+            w8_long x_fixed = x0 << 0x10;
             for (; y0 < last_x; y0 = y0 + 1) {
                 setPixel((x_fixed + (x_fixed >> 0x1f & 0xffff)) >> 0x10, y0, pixel);
                 x_fixed = x_fixed + step;
@@ -430,23 +434,23 @@ srColorSurfaceIFace& srColorSurfaceIFace::operator=(const srColorSurfaceIFace& o
 }
 
 // FUNCTION: SURRENDER 0x1005B2E0
-unsigned long srColorSurfaceIFace::getPixel(long x, long y)
+w8_ulong srColorSurfaceIFace::getPixel(w8_long x, w8_long y)
 {
-    unsigned long pixel;
+    w8_ulong pixel;
     getPixelRow(&pixel, y, x, x + 1);
     return pixel;
 }
 
 // FUNCTION: SURRENDER 0x1005B470
-void srColorSurfaceIFace::setPixel(long x, long y, unsigned long pixel)
+void srColorSurfaceIFace::setPixel(w8_long x, w8_long y, w8_ulong pixel)
 {
     setPixelRow(&pixel, y, x, x + 1);
 }
 
 // FUNCTION: SURRENDER 0x1005B100
-unsigned long srColorSurfaceIFace::getPixelRaw(long x, long y)
+w8_ulong srColorSurfaceIFace::getPixelRaw(w8_long x, w8_long y)
 {
-    unsigned long pixel;
+    w8_ulong pixel;
     getPixelRowRaw(&pixel, y, x, x + 1);
     switch (pixel_format.pixel_size) {
     case srPixelConvert::PIXEL_SIZE_8:
@@ -462,7 +466,7 @@ unsigned long srColorSurfaceIFace::getPixelRaw(long x, long y)
 }
 
 // FUNCTION: SURRENDER 0x1005B1B0
-void srColorSurfaceIFace::setPixelRaw(long x, long y, unsigned long pixel)
+void srColorSurfaceIFace::setPixelRaw(w8_long x, w8_long y, w8_ulong pixel)
 {
     /* reinterpret-ok: the retail setter writes only the pixel word's low bytes
        for each raw format before passing that same word to setPixelRowRaw. */
@@ -487,7 +491,7 @@ void srColorSurfaceIFace::setPixelRaw(long x, long y, unsigned long pixel)
 }
 
 // FUNCTION: SURRENDER 0x1005B310
-void srColorSurfaceIFace::getPixels(unsigned long* pixels, const srVector2i* positions, long count)
+void srColorSurfaceIFace::getPixels(w8_ulong* pixels, const srVector2i* positions, w8_long count)
 {
     for (; count > 0; --count, ++pixels, ++positions) {
         *pixels = getPixel(positions->x, positions->y);
@@ -495,8 +499,8 @@ void srColorSurfaceIFace::getPixels(unsigned long* pixels, const srVector2i* pos
 }
 
 // FUNCTION: SURRENDER 0x1005B3A0
-void srColorSurfaceIFace::setPixels(const unsigned long* pixels, const srVector2i* positions,
-                                    long count)
+void srColorSurfaceIFace::setPixels(const w8_ulong* pixels, const srVector2i* positions,
+                                    w8_long count)
 {
     for (; count > 0; --count, ++pixels, ++positions) {
         setPixel(positions->x, positions->y, *pixels);
@@ -504,27 +508,29 @@ void srColorSurfaceIFace::setPixels(const unsigned long* pixels, const srVector2
 }
 
 // FUNCTION: SURRENDER 0x1005B350
-void srColorSurfaceIFace::getPixelsRaw(void* pixels, const srVector2i* positions, long count)
+void srColorSurfaceIFace::getPixelsRaw(void* pixels, const srVector2i* positions, w8_long count)
 {
     unsigned char* out = (unsigned char*)pixels;
-    long bytes = pixel_format.pixel_size + 1;
+    w8_long bytes = pixel_format.pixel_size + 1;
     for (; count > 0; --count, ++positions, out += bytes) {
         getPixelRowRaw(out, positions->y, positions->x, positions->x + 1);
     }
 }
 
 // FUNCTION: SURRENDER 0x1005B3E0
-void srColorSurfaceIFace::setPixelsRaw(const void* pixels, const srVector2i* positions, long count)
+void srColorSurfaceIFace::setPixelsRaw(const void* pixels, const srVector2i* positions,
+                                       w8_long count)
 {
     const unsigned char* in = (const unsigned char*)pixels;
-    long bytes = pixel_format.pixel_size + 1;
+    w8_long bytes = pixel_format.pixel_size + 1;
     for (; count > 0; --count, ++positions, in += bytes) {
         setPixelRowRaw(in, positions->y, positions->x, positions->x + 1);
     }
 }
 
 // FUNCTION: SURRENDER 0x1005B430
-void srColorSurfaceIFace::getPixelColumn(unsigned long* pixels, long x, long y_start, long y_end)
+void srColorSurfaceIFace::getPixelColumn(w8_ulong* pixels, w8_long x, w8_long y_start,
+                                         w8_long y_end)
 {
     for (; y_start < y_end; ++y_start, ++pixels) {
         *pixels = getPixel(x, y_start);
@@ -532,8 +538,8 @@ void srColorSurfaceIFace::getPixelColumn(unsigned long* pixels, long x, long y_s
 }
 
 // FUNCTION: SURRENDER 0x1005B490
-void srColorSurfaceIFace::setPixelColumn(const unsigned long* pixels, long x, long y_start,
-                                         long y_end)
+void srColorSurfaceIFace::setPixelColumn(const w8_ulong* pixels, w8_long x, w8_long y_start,
+                                         w8_long y_end)
 {
     for (; y_start < y_end; ++y_start, ++pixels) {
         setPixel(x, y_start, *pixels);
@@ -541,26 +547,26 @@ void srColorSurfaceIFace::setPixelColumn(const unsigned long* pixels, long x, lo
 }
 
 // FUNCTION: SURRENDER 0x100573B0
-void srColorSurfaceIFace::fill(unsigned long pixel)
+void srColorSurfaceIFace::fill(w8_ulong pixel)
 {
-    long width = this->width;
-    long height = this->height;
-    unsigned long* row = new unsigned long[width];
+    w8_long width = this->width;
+    w8_long height = this->height;
+    w8_ulong* row = new w8_ulong[width];
     if (width != 0) {
         srVectorProcessor::copy(row, pixel, width);
     }
-    for (long y = 0; y < height; ++y) {
+    for (w8_long y = 0; y < height; ++y) {
         setPixelRow(row, y, 0, width);
     }
     delete[] row;
 }
 
 // FUNCTION: SURRENDER 0x10057750
-void srColorSurfaceIFace::setHLine(long y, long x_start, long x_end, unsigned long pixel)
+void srColorSurfaceIFace::setHLine(w8_long y, w8_long x_start, w8_long x_end, w8_ulong pixel)
 {
     if (y >= 0 && y < height) {
         if (x_end < x_start) {
-            long swap = x_start;
+            w8_long swap = x_start;
             x_start = x_end;
             x_end = swap;
         }
@@ -577,11 +583,11 @@ void srColorSurfaceIFace::setHLine(long y, long x_start, long x_end, unsigned lo
 }
 
 // FUNCTION: SURRENDER 0x100577B0
-void srColorSurfaceIFace::setVLine(long x, long y_start, long y_end, unsigned long pixel)
+void srColorSurfaceIFace::setVLine(w8_long x, w8_long y_start, w8_long y_end, w8_ulong pixel)
 {
     if (x >= 0 && x < width) {
         if (y_end < y_start) {
-            long swap = y_start;
+            w8_long swap = y_start;
             y_start = y_end;
             y_end = swap;
         }
@@ -598,9 +604,10 @@ void srColorSurfaceIFace::setVLine(long x, long y_start, long y_end, unsigned lo
 }
 
 // FUNCTION: SURRENDER 0x10057420
-void srColorSurfaceIFace::swapPixelRows(long x0, long y0, long x1, long y1, long count)
+void srColorSurfaceIFace::swapPixelRows(w8_long x0, w8_long y0, w8_long x1, w8_long y1,
+                                        w8_long count)
 {
-    long width = this->width;
+    w8_long width = this->width;
     if (y0 >= 0 && y0 < height && y1 >= 0 && y1 < height && count > 0) {
         if (x0 < 0) {
             x1 = x1 - x0;
@@ -620,7 +627,7 @@ void srColorSurfaceIFace::swapPixelRows(long x0, long y0, long x1, long y1, long
                 count = width - x1;
             }
             if (count > 0) {
-                long bytes = (pixel_format.pixel_size + 1) * count;
+                w8_long bytes = (pixel_format.pixel_size + 1) * count;
                 unsigned char* buffer = static_cast<unsigned char*>(::operator new(bytes * 2));
                 unsigned char* second = buffer + bytes;
                 getPixelRowRaw(buffer, y0, x0, x0 + count);
@@ -636,15 +643,15 @@ void srColorSurfaceIFace::swapPixelRows(long x0, long y0, long x1, long y1, long
 // FUNCTION: SURRENDER 0x10057550
 void srColorSurfaceIFace::flipRectangle(const Rectangle& rectangle)
 {
-    long x_lo = rectangle.left;
-    long x_hi = rectangle.right;
+    w8_long x_lo = rectangle.left;
+    w8_long x_hi = rectangle.right;
     bool flip_x = x_hi < x_lo;
     if (flip_x) {
         x_lo = rectangle.right;
         x_hi = rectangle.left;
     }
-    long y_lo = rectangle.top;
-    long y_hi = rectangle.bottom;
+    w8_long y_lo = rectangle.top;
+    w8_long y_hi = rectangle.bottom;
     bool flip_y = y_hi < y_lo;
     if (flip_y) {
         y_lo = rectangle.bottom;
@@ -652,21 +659,21 @@ void srColorSurfaceIFace::flipRectangle(const Rectangle& rectangle)
     }
     if ((flip_x || flip_y) && x_lo >= 0 && y_lo >= 0 && x_hi <= this->width &&
         y_hi <= this->height) {
-        long width = x_hi - x_lo;
-        long height = y_hi - y_lo;
+        w8_long width = x_hi - x_lo;
+        w8_long height = y_hi - y_lo;
         if (width != 0 && height != 0) {
-            unsigned long* buffer = new unsigned long[width * 2];
-            long middle = y_lo + height / 2;
-            long mirror = y_hi - 1;
-            for (long row = y_lo; row < middle; ++row, --mirror) {
+            w8_ulong* buffer = new w8_ulong[width * 2];
+            w8_long middle = y_lo + height / 2;
+            w8_long mirror = y_hi - 1;
+            for (w8_long row = y_lo; row < middle; ++row, --mirror) {
                 getPixelRow(buffer, row, x_lo, width);
                 getPixelRow(buffer + width, mirror, x_lo, width);
                 if (flip_x) {
                     srVectorProcessor::reverse(buffer, buffer, width);
                     srVectorProcessor::reverse(buffer + width, buffer + width, width);
                 }
-                unsigned long* row_pixels = flip_y ? buffer + width : buffer;
-                unsigned long* mirror_pixels = flip_y ? buffer : buffer + width;
+                w8_ulong* row_pixels = flip_y ? buffer + width : buffer;
+                w8_ulong* mirror_pixels = flip_y ? buffer : buffer + width;
                 setPixelRow(row_pixels, row, x_lo, width);
                 setPixelRow(mirror_pixels, mirror, x_lo, width);
             }
@@ -685,14 +692,14 @@ void srColorSurfaceIFace::addNoise(double amplitude, int monochrome)
 {
     int magnitude = (int)fabs(amplitude * 255.0);
     if (magnitude != 0) {
-        long height = this->height;
-        long width = this->width;
+        w8_long height = this->height;
+        w8_long width = this->width;
         srARGB* row_colors = new srARGB[width];
         unsigned char* row = (unsigned char*)row_colors;
-        for (long y = 0; y < height; ++y) {
-            getPixelRow((unsigned long*)row, y, 0, width);
+        for (w8_long y = 0; y < height; ++y) {
+            getPixelRow((w8_ulong*)row, y, 0, width);
             if (monochrome == 0) {
-                for (long x = 0; x < width; ++x) {
+                for (w8_long x = 0; x < width; ++x) {
                     unsigned char* pixel = row + x * 4 + 3;
                     for (int channel = 0; channel < 4; ++channel) {
                         int value = *pixel + (rand() % (magnitude * 2) - magnitude);
@@ -706,7 +713,7 @@ void srColorSurfaceIFace::addNoise(double amplitude, int monochrome)
                     }
                 }
             } else {
-                for (long x = 0; x < width; ++x) {
+                for (w8_long x = 0; x < width; ++x) {
                     int delta = rand() % (magnitude * 2) - magnitude;
                     unsigned char* pixel = row + x * 4 + 3;
                     for (int channel = 0; channel < 4; ++channel) {
@@ -721,7 +728,7 @@ void srColorSurfaceIFace::addNoise(double amplitude, int monochrome)
                     }
                 }
             }
-            setPixelRow((const unsigned long*)row, y, 0, width);
+            setPixelRow((const w8_ulong*)row, y, 0, width);
         }
         delete[] row_colors;
     }
@@ -731,14 +738,14 @@ void srColorSurfaceIFace::addNoise(double amplitude, int monochrome)
 void srColorSurfaceIFace::adjustSaturation(double saturation)
 {
     if (saturation != 1.0) {
-        long height = this->height;
-        long width = this->width;
+        w8_long height = this->height;
+        w8_long width = this->width;
         srARGB* row_colors = new srARGB[width];
         unsigned char* row = (unsigned char*)row_colors;
-        for (long y = 0; y < height; ++y) {
-            getPixelRow((unsigned long*)row, y, 0, width);
+        for (w8_long y = 0; y < height; ++y) {
+            getPixelRow((w8_ulong*)row, y, 0, width);
             unsigned char* pixel = row + 2;
-            for (long x = 0; x < width; ++x) {
+            for (w8_long x = 0; x < width; ++x) {
                 float red = pixel[0] * 0.003921569f;
                 float green = pixel[-1] * 0.003921569f;
                 float blue = pixel[-2] * 0.003921569f;
@@ -782,7 +789,7 @@ void srColorSurfaceIFace::adjustSaturation(double saturation)
                 pixel[-2] = (unsigned char)srFloatToInt(value);
                 pixel += 4;
             }
-            setPixelRow((const unsigned long*)row, y, 0, width);
+            setPixelRow((const w8_ulong*)row, y, 0, width);
         }
         delete[] row_colors;
     }
@@ -792,8 +799,8 @@ void srColorSurfaceIFace::adjustSaturation(double saturation)
 void srColorSurfaceIFace::adjust(const srVector4T<float>& scale, const srVector4T<float>& offset,
                                  const srVector4T<float>& gamma)
 {
-    long height = this->height;
-    long width = this->width;
+    w8_long height = this->height;
+    w8_long width = this->width;
     const float* scale_v = &scale.x;
     const float* offset_v = &offset.x;
     const float* gamma_v = &gamma.x;
@@ -812,16 +819,16 @@ void srColorSurfaceIFace::adjust(const srVector4T<float>& scale, const srVector4
     }
     srARGB* row_colors = new srARGB[width];
     unsigned char* row = (unsigned char*)row_colors;
-    for (long y = 0; y < height; ++y) {
-        getPixelRow((unsigned long*)row, y, 0, width);
-        for (long x = 0; x < width; ++x) {
+    for (w8_long y = 0; y < height; ++y) {
+        getPixelRow((w8_ulong*)row, y, 0, width);
+        for (w8_long x = 0; x < width; ++x) {
             unsigned char* pixel = row + x * 4;
             pixel[2] = lut[0][pixel[2]];
             pixel[1] = lut[1][pixel[1]];
             pixel[0] = lut[2][pixel[0]];
             pixel[3] = lut[3][pixel[3]];
         }
-        setPixelRow((const unsigned long*)row, y, 0, width);
+        setPixelRow((const w8_ulong*)row, y, 0, width);
     }
     delete[] row_colors;
 }
@@ -829,16 +836,16 @@ void srColorSurfaceIFace::adjust(const srVector4T<float>& scale, const srVector4
 // FUNCTION: SURRENDER 0x1005B040
 void srColorSurfaceIFace::remapPixels(const srARGB& from, const srARGB& to)
 {
-    long width = this->width;
-    long height = this->height;
+    w8_long width = this->width;
+    w8_long height = this->height;
     srARGB* row_colors = new srARGB[width];
-    unsigned long* row = (unsigned long*)row_colors;
-    for (long y = 0; y < height; ++y) {
+    w8_ulong* row = (w8_ulong*)row_colors;
+    for (w8_long y = 0; y < height; ++y) {
         getPixelRow(row, y, 0, width);
-        long replaced = 0;
-        for (long x = 0; x < width; ++x) {
-            if (row[x] == *(const unsigned long*)&to) { /* reinterpret-ok: packed ARGB dword */
-                row[x] = *(const unsigned long*)&from;  /* reinterpret-ok: packed ARGB dword */
+        w8_long replaced = 0;
+        for (w8_long x = 0; x < width; ++x) {
+            if (row[x] == *(const w8_ulong*)&to) { /* reinterpret-ok: packed ARGB dword */
+                row[x] = *(const w8_ulong*)&from;  /* reinterpret-ok: packed ARGB dword */
                 ++replaced;
             }
         }
@@ -852,28 +859,30 @@ void srColorSurfaceIFace::remapPixels(const srARGB& from, const srARGB& to)
 // FUNCTION: SURRENDER 0x10059690
 void srColorSurfaceIFace::scaleFast(srColorSurfaceIFace& source)
 {
-    long height = this->height;
-    long source_width = source.width;
-    long source_height = source.height;
-    long width = this->width;
+    w8_long height = this->height;
+    w8_long source_width = source.width;
+    w8_long source_height = source.height;
+    w8_long width = this->width;
     if ((source_width == width) && (source_height == height)) {
         copyNoScaling(source);
         return;
     }
-    long* column_map = new long[width];
+    w8_long* column_map = new w8_long[width];
     srARGB* source_row_colors = new srARGB[source_width];
-    unsigned long* source_row = (unsigned long*)source_row_colors;
+    w8_ulong* source_row = (w8_ulong*)source_row_colors;
     srARGB* row_colors = new srARGB[width];
-    unsigned long* row = (unsigned long*)row_colors;
-    for (long x = 0; x < width; x++) {
-        column_map[x] = source.getClampedX((long)((float)x * source_width / width));
+    w8_ulong* row = (w8_ulong*)row_colors;
+    for (w8_long x = 0; x < width; x++) {
+        // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+        column_map[x] = source.getClampedX((w8_long)((float)x * source_width / width));
     }
-    long last_y = -1;
-    for (long y = 0; y < height; y++) {
-        long source_y = source.getClampedY((long)((float)y * source_height / height));
+    w8_long last_y = -1;
+    for (w8_long y = 0; y < height; y++) {
+        // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+        w8_long source_y = source.getClampedY((w8_long)((float)y * source_height / height));
         if ((source_y != last_y) && (source.getPixelRow(source_row, source_y, 0, source_width),
                                      last_y = source_y, 0 < width)) {
-            for (long x = 0; x < width; x++) {
+            for (w8_long x = 0; x < width; x++) {
                 row[x] = source_row[column_map[x]];
             }
         }
@@ -889,19 +898,19 @@ void srColorSurfaceIFace::flipColorChannels(srARGB::e_index first, srARGB::e_ind
 {
     if ((int)first >= 0 && (int)first < 4 && (int)second >= 0 && (int)second < 4 &&
         first != second) {
-        long height = this->height;
-        long width = this->width;
+        w8_long height = this->height;
+        w8_long width = this->width;
         srARGB* row_colors = new srARGB[width];
         unsigned char* row = (unsigned char*)row_colors;
-        for (long y = 0; y < height; ++y) {
-            getPixelRow((unsigned long*)row, y, 0, width);
-            for (long x = 0; x < width; ++x) {
+        for (w8_long y = 0; y < height; ++y) {
+            getPixelRow((w8_ulong*)row, y, 0, width);
+            for (w8_long x = 0; x < width; ++x) {
                 unsigned char* pixel = row + x * 4;
                 unsigned char temp = pixel[3 - second];
                 pixel[3 - second] = pixel[3 - first];
                 pixel[3 - first] = temp;
             }
-            setPixelRow((const unsigned long*)row, y, 0, width);
+            setPixelRow((const w8_ulong*)row, y, 0, width);
         }
         delete[] row_colors;
     }
@@ -912,17 +921,17 @@ void srColorSurfaceIFace::copyColorChannel(srARGB::e_index destination, srARGB::
 {
     if ((int)destination >= 0 && (int)destination < 4 && (int)source >= 0 && (int)source < 4 &&
         destination != source) {
-        long height = this->height;
-        long width = this->width;
+        w8_long height = this->height;
+        w8_long width = this->width;
         srARGB* row_colors = new srARGB[width];
         unsigned char* row = (unsigned char*)row_colors;
-        for (long y = 0; y < height; ++y) {
-            getPixelRow((unsigned long*)row, y, 0, width);
-            for (long x = 0; x < width; ++x) {
+        for (w8_long y = 0; y < height; ++y) {
+            getPixelRow((w8_ulong*)row, y, 0, width);
+            for (w8_long x = 0; x < width; ++x) {
                 unsigned char* pixel = row + x * 4;
                 pixel[3 - destination] = pixel[3 - source];
             }
-            setPixelRow((const unsigned long*)row, y, 0, width);
+            setPixelRow((const w8_ulong*)row, y, 0, width);
         }
         delete[] row_colors;
     }
@@ -932,11 +941,11 @@ void srColorSurfaceIFace::copyColorChannel(srARGB::e_index destination, srARGB::
 void srColorSurfaceIFace::copyNoScaling(srColorSurfaceIFace& source)
 {
     if (this != &source) {
-        long height = source.height;
-        long width = source.width;
+        w8_long height = source.height;
+        w8_long width = source.width;
         srARGB* row_colors = new srARGB[width];
-        unsigned long* row = (unsigned long*)row_colors;
-        for (long y = 0; y < height; y++) {
+        w8_ulong* row = (w8_ulong*)row_colors;
+        for (w8_long y = 0; y < height; y++) {
             source.getPixelRow(row, y, 0, width);
             setPixelRow(row, y, 0, width);
         }
@@ -947,8 +956,8 @@ void srColorSurfaceIFace::copyNoScaling(srColorSurfaceIFace& source)
 // FUNCTION: SURRENDER 0x10059240
 void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_index channel)
 {
-    long height = this->height;
-    long width = this->width;
+    w8_long height = this->height;
+    w8_long width = this->width;
     if ((int)channel >= 0 && (int)channel < 4) {
         srARGB* row_colors = new srARGB[width];
         unsigned char* row = (unsigned char*)row_colors;
@@ -957,9 +966,9 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
         for (i = 0; i < 0x100; ++i) {
             histogram[i] = 0;
         }
-        for (long y = 0; y < height; ++y) {
-            getPixelRow((unsigned long*)row, y, 0, width);
-            for (long x = 0; x < width; ++x) {
+        for (w8_long y = 0; y < height; ++y) {
+            getPixelRow((w8_ulong*)row, y, 0, width);
+            for (w8_long x = 0; x < width; ++x) {
                 ++histogram[row[x * 4 + 3 - channel]];
             }
         }
@@ -989,7 +998,7 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
             statistics.deviation = histogram[i] * difference * difference + statistics.deviation;
         }
         statistics.deviation = sqrt(statistics.deviation / statistics.count);
-        long running = 0;
+        w8_long running = 0;
         for (i = 0; i < 0x100; ++i) {
             running += histogram[i];
             statistics.median = i;
@@ -1006,10 +1015,10 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
 void srColorSurfaceIFace::copy(srColorSurfaceIFace& source)
 {
     if (&source != this) {
-        long width = this->width;
-        long source_width = source.width;
-        long height = this->height;
-        long source_height = source.height;
+        w8_long width = this->width;
+        w8_long source_width = source.width;
+        w8_long height = this->height;
+        w8_long source_height = source.height;
         if (source_width == width && source_height == height) {
             copyNoScaling(source);
             return;
@@ -1044,8 +1053,8 @@ void srColorSurfaceIFace::copy(srColorSurfaceIFace& source)
 // FUNCTION: SURRENDER 0x1005A7A0
 void srColorSurfaceIFace::scale(srColorSurfaceIFace& source)
 {
-    unsigned long source_height = source.height;
-    unsigned long width = this->width;
+    w8_ulong source_height = source.height;
+    w8_ulong width = this->width;
     srColorSurface* scaled =
         new srColorSurface(srPixelConvert::SURFACE_BGRA32, width, source_height);
     srColorSurfaceIFace* scaled_iface = scaled;
@@ -1122,8 +1131,8 @@ void srColorSurfaceIFace::rotate180()
 }
 
 // FUNCTION: SURRENDER 0x1005B790
-srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, unsigned long arg_width,
-                               unsigned long arg_height)
+srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, w8_ulong arg_width,
+                               w8_ulong arg_height)
 {
     surface_flags = 0;
     init(format, arg_width, arg_height, (format.pixel_size + 1) * arg_width);
@@ -1132,8 +1141,8 @@ srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, unsign
 }
 
 // FUNCTION: SURRENDER 0x1005B8A0
-srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, unsigned long arg_width,
-                               unsigned long arg_height)
+srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, w8_ulong arg_width,
+                               w8_ulong arg_height)
 {
     srPixelConvert::PixelFormat format;
     surface_flags = 0;
@@ -1146,9 +1155,8 @@ srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, unsigned long
 /* The data-taking variants borrow caller storage: flag bit 0 marks the
    non-owning path and data_size comes straight from pitch*height. */
 // FUNCTION: SURRENDER 0x1005B9C0
-srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, void* data,
-                               unsigned long arg_width, unsigned long arg_height,
-                               unsigned long arg_pitch)
+srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, void* data, w8_ulong arg_width,
+                               w8_ulong arg_height, w8_ulong arg_pitch)
 {
     srPixelConvert::PixelFormat format;
     surface_flags = 0;
@@ -1185,8 +1193,7 @@ srColorSurface& srColorSurface::operator=(const srColorSurface& other)
 
 // FUNCTION: SURRENDER 0x1005BAC0
 srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, void* data,
-                               unsigned long arg_width, unsigned long arg_height,
-                               unsigned long arg_pitch)
+                               w8_ulong arg_width, w8_ulong arg_height, w8_ulong arg_pitch)
 {
     surface_flags = 0;
     init(format, arg_width, arg_height, arg_pitch);
@@ -1209,7 +1216,7 @@ void* srColorSurface::getDataPtr()
 }
 
 // FUNCTION: SURRENDER 0x1005B560
-long srColorSurface::getDataSize()
+w8_long srColorSurface::getDataSize()
 {
     return data_size;
 }
@@ -1227,14 +1234,13 @@ void srColorSurface::setPalette(srPalette* palette)
 }
 
 // FUNCTION: SURRENDER 0x1005B5B0
-unsigned char* srColorSurface::getAddress(long x, long y)
+unsigned char* srColorSurface::getAddress(w8_long x, w8_long y)
 {
     return static_cast<unsigned char*>(data) + pitch * y + (pixel_format.pixel_size + 1) * x;
 }
 
 // FUNCTION: SURRENDER 0x1005B5D0
-void srColorSurface::convertToARGB8888(unsigned long* pixels, const void* source,
-                                       unsigned long count)
+void srColorSurface::convertToARGB8888(w8_ulong* pixels, const void* source, w8_ulong count)
 {
     srPixelConvert::ConversionInfo info;
     info.dest = pixels;
@@ -1246,8 +1252,7 @@ void srColorSurface::convertToARGB8888(unsigned long* pixels, const void* source
 }
 
 // FUNCTION: SURRENDER 0x1005B610
-void srColorSurface::convertFromARGB8888(void* pixels, const unsigned long* source,
-                                         unsigned long count)
+void srColorSurface::convertFromARGB8888(void* pixels, const w8_ulong* source, w8_ulong count)
 {
     srPixelConvert::ConversionInfo info;
     info.dest = pixels;
@@ -1277,8 +1282,8 @@ void srColorSurface::freeData()
 }
 
 // FUNCTION: SURRENDER 0x1005B6B0
-void srColorSurface::init(const srPixelConvert::PixelFormat& format, unsigned long arg_width,
-                          unsigned long arg_height, unsigned long arg_pitch)
+void srColorSurface::init(const srPixelConvert::PixelFormat& format, w8_ulong arg_width,
+                          w8_ulong arg_height, w8_ulong arg_pitch)
 {
     SurfaceDesc desc;
     srZeroMemory(&desc, sizeof(desc));
@@ -1336,7 +1341,7 @@ const char* srColorSurface::sGetClassName()
 }
 
 // FUNCTION: SURRENDER 0x1005BEC0
-int srColorSurface::resize(long arg_width, long arg_height)
+int srColorSurface::resize(w8_long arg_width, w8_long arg_height)
 {
     if (arg_width > 0 && arg_height > 0) {
         if (arg_width == width && arg_height == height) {
@@ -1360,7 +1365,7 @@ int srColorSurface::resize(long arg_width, long arg_height)
 }
 
 // FUNCTION: SURRENDER 0x1005BD10
-int srColorSurface::rescale(long arg_width, long arg_height)
+int srColorSurface::rescale(w8_long arg_width, w8_long arg_height)
 {
     if (arg_width > 0 && arg_height > 0) {
         if (arg_width == width && arg_height == height) {
@@ -1392,7 +1397,7 @@ int srColorSurface::changePixelFormat(const srPixelConvert::PixelFormat& format,
             previous = static_cast<srColorSurfaceIFace*>(vClone());
         }
         srPalette* palette = getPalette();
-        unsigned long flags = surface_flags;
+        w8_ulong flags = surface_flags;
         freeData();
         init(format, width, height, (format.pixel_size + 1) * width);
         allocData();
@@ -1424,7 +1429,7 @@ int srColorSurface::isCompatible(srColorSurfaceIFace& source)
 }
 
 // FUNCTION: SURRENDER 0x1005C460
-unsigned long srColorSurface::getPixelRaw(long x, long y)
+w8_ulong srColorSurface::getPixelRaw(w8_long x, w8_long y)
 {
     unsigned char* address = getAddress(x, y);
     switch (pixel_format.pixel_size) {
@@ -1435,14 +1440,14 @@ unsigned long srColorSurface::getPixelRaw(long x, long y)
     case srPixelConvert::PIXEL_SIZE_24:
         return address[0] | (address[1] << 8) | (address[2] << 0x10);
     case srPixelConvert::PIXEL_SIZE_32:
-        return *(unsigned long*)address;
+        return *(w8_ulong*)address;
     default:
         return 0;
     }
 }
 
 // FUNCTION: SURRENDER 0x1005C030
-void srColorSurface::setPixelRaw(long x, long y, unsigned long pixel)
+void srColorSurface::setPixelRaw(w8_long x, w8_long y, w8_ulong pixel)
 {
     unsigned char* address = getAddress(x, y);
     switch (pixel_format.pixel_size) {
@@ -1461,14 +1466,14 @@ void srColorSurface::setPixelRaw(long x, long y, unsigned long pixel)
         break;
         break;
     case srPixelConvert::PIXEL_SIZE_32:
-        *(unsigned long*)address = pixel;
+        *(w8_ulong*)address = pixel;
         break;
         break;
     }
 }
 
 // FUNCTION: SURRENDER 0x1005D940
-void srColorSurface::getPixelRow(unsigned long* pixels, long y, long x_start, long x_end)
+void srColorSurface::getPixelRow(w8_ulong* pixels, w8_long y, w8_long x_start, w8_long x_end)
 {
     if (x_start < x_end) {
         convertToARGB8888(pixels, getAddress(x_start, y), x_end - x_start);
@@ -1476,7 +1481,7 @@ void srColorSurface::getPixelRow(unsigned long* pixels, long y, long x_start, lo
 }
 
 // FUNCTION: SURRENDER 0x1005DAA0
-void srColorSurface::setPixelRow(const unsigned long* pixels, long y, long x_start, long x_end)
+void srColorSurface::setPixelRow(const w8_ulong* pixels, w8_long y, w8_long x_start, w8_long x_end)
 {
     if (x_start < x_end) {
         convertFromARGB8888(getAddress(x_start, y), pixels, x_end - x_start);
@@ -1484,10 +1489,10 @@ void srColorSurface::setPixelRow(const unsigned long* pixels, long y, long x_sta
 }
 
 // FUNCTION: SURRENDER 0x1005BF70
-void srColorSurface::getPixelRowRaw(void* pixels, long y, long x_start, long x_end)
+void srColorSurface::getPixelRowRaw(void* pixels, w8_long y, w8_long x_start, w8_long x_end)
 {
     if (y >= 0 && y < height && x_start >= 0 && x_start < x_end && x_end <= width) {
-        long count = (x_end - x_start) * (pixel_format.pixel_size + 1);
+        w8_long count = (x_end - x_start) * (pixel_format.pixel_size + 1);
         unsigned char* address = getAddress(x_start, y);
         if (count != 0 && pixels != address) {
             srVectorProcessor::memcopy(pixels, address, count);
@@ -1496,10 +1501,10 @@ void srColorSurface::getPixelRowRaw(void* pixels, long y, long x_start, long x_e
 }
 
 // FUNCTION: SURRENDER 0x1005BFD0
-void srColorSurface::setPixelRowRaw(const void* pixels, long y, long x_start, long x_end)
+void srColorSurface::setPixelRowRaw(const void* pixels, w8_long y, w8_long x_start, w8_long x_end)
 {
     if (y >= 0 && y < height && x_start >= 0 && x_start < x_end && x_end <= width) {
-        long count = (x_end - x_start) * (pixel_format.pixel_size + 1);
+        w8_long count = (x_end - x_start) * (pixel_format.pixel_size + 1);
         unsigned char* address = getAddress(x_start, y);
         if (count != 0 && address != pixels) {
             srVectorProcessor::memcopy(address, pixels, count);
@@ -1508,18 +1513,18 @@ void srColorSurface::setPixelRowRaw(const void* pixels, long y, long x_start, lo
 }
 
 // FUNCTION: SURRENDER 0x1005D970
-void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start, long y_end)
+void srColorSurface::getPixelColumn(w8_ulong* pixels, w8_long x, w8_long y_start, w8_long y_end)
 {
     unsigned char buffer[0x400];
     for (; y_start < y_end; y_start += 0x100) {
-        unsigned long count = y_end - y_start;
+        w8_ulong count = y_end - y_start;
         if (count > 0x100) {
             count = 0x100;
         }
         unsigned char* address = getAddress(x, y_start);
         switch (pixel_format.pixel_size) {
         case srPixelConvert::PIXEL_SIZE_8: {
-            for (unsigned long i = 0; i < count; ++i) {
+            for (w8_ulong i = 0; i < count; ++i) {
                 buffer[i] = *address;
                 address += pitch;
             }
@@ -1528,7 +1533,7 @@ void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start,
         case srPixelConvert::PIXEL_SIZE_16: {
             if (count != 0) {
                 unsigned char* out = buffer;
-                unsigned long i = count;
+                w8_ulong i = count;
                 do {
                     *(unsigned short*)out = *(unsigned short*)address;
                     out += 2;
@@ -1541,7 +1546,7 @@ void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start,
         case srPixelConvert::PIXEL_SIZE_24: {
             if (count != 0) {
                 unsigned char* out = buffer;
-                unsigned long i = count;
+                w8_ulong i = count;
                 do {
                     out[0] = address[0];
                     out[1] = address[1];
@@ -1556,9 +1561,9 @@ void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start,
         case srPixelConvert::PIXEL_SIZE_32: {
             if (count != 0) {
                 unsigned char* out = buffer;
-                unsigned long i = count;
+                w8_ulong i = count;
                 do {
-                    *(unsigned long*)out = *(unsigned long*)address;
+                    *(w8_ulong*)out = *(w8_ulong*)address;
                     out += 4;
                     address += pitch;
                     --i;
@@ -1573,11 +1578,12 @@ void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start,
 }
 
 // FUNCTION: SURRENDER 0x1005DAD0
-void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_start, long y_end)
+void srColorSurface::setPixelColumn(const w8_ulong* pixels, w8_long x, w8_long y_start,
+                                    w8_long y_end)
 {
     unsigned char buffer[0x400];
     for (; y_start < y_end; y_start += 0x100) {
-        unsigned long count = y_end - y_start;
+        w8_ulong count = y_end - y_start;
         if (count > 0x100) {
             count = 0x100;
         }
@@ -1585,7 +1591,7 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
         unsigned char* address = getAddress(x, y_start);
         switch (pixel_format.pixel_size) {
         case srPixelConvert::PIXEL_SIZE_8: {
-            for (unsigned long i = 0; i < count; ++i) {
+            for (w8_ulong i = 0; i < count; ++i) {
                 *address = buffer[i];
                 address += pitch;
             }
@@ -1594,7 +1600,7 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
         case srPixelConvert::PIXEL_SIZE_16: {
             if (count != 0) {
                 const unsigned char* in = buffer;
-                unsigned long i = count;
+                w8_ulong i = count;
                 do {
                     *(unsigned short*)address = *(const unsigned short*)in;
                     in += 2;
@@ -1607,7 +1613,7 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
         case srPixelConvert::PIXEL_SIZE_24: {
             if (count != 0) {
                 const unsigned char* in = buffer;
-                unsigned long i = count;
+                w8_ulong i = count;
                 do {
                     address[0] = in[0];
                     address[1] = in[1];
@@ -1622,9 +1628,9 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
         case srPixelConvert::PIXEL_SIZE_32: {
             if (count != 0) {
                 const unsigned char* in = buffer;
-                unsigned long i = count;
+                w8_ulong i = count;
                 do {
-                    *(unsigned long*)address = *(const unsigned long*)in;
+                    *(w8_ulong*)address = *(const w8_ulong*)in;
                     in += 4;
                     address += pitch;
                     --i;
@@ -1638,11 +1644,11 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
 }
 
 // FUNCTION: SURRENDER 0x1005D7A0
-void srColorSurface::getPixels(unsigned long* pixels, const srVector2i* positions, long count)
+void srColorSurface::getPixels(w8_ulong* pixels, const srVector2i* positions, w8_long count)
 {
     unsigned char buffer[0x400];
-    for (long i = 0; i < count; i += 0x100) {
-        unsigned long chunk = count - i;
+    for (w8_long i = 0; i < count; i += 0x100) {
+        w8_ulong chunk = count - i;
         if (chunk > 0x100) {
             chunk = 0x100;
         }
@@ -1654,11 +1660,11 @@ void srColorSurface::getPixels(unsigned long* pixels, const srVector2i* position
 }
 
 // FUNCTION: SURRENDER 0x1005D5F0
-void srColorSurface::setPixels(const unsigned long* pixels, const srVector2i* positions, long count)
+void srColorSurface::setPixels(const w8_ulong* pixels, const srVector2i* positions, w8_long count)
 {
     unsigned char buffer[0x400];
-    for (long i = 0; i < count; i += 0x100) {
-        unsigned long chunk = count - i;
+    for (w8_long i = 0; i < count; i += 0x100) {
+        w8_ulong chunk = count - i;
         if (chunk > 0x100) {
             chunk = 0x100;
         }
@@ -1670,25 +1676,25 @@ void srColorSurface::setPixels(const unsigned long* pixels, const srVector2i* po
 }
 
 // FUNCTION: SURRENDER 0x1005D830
-void srColorSurface::getPixelsRaw(void* pixels, const srVector2i* positions, long count)
+void srColorSurface::getPixelsRaw(void* pixels, const srVector2i* positions, w8_long count)
 {
     unsigned char* out = (unsigned char*)pixels;
-    unsigned long pixel_count = static_cast<unsigned long>(count);
+    w8_ulong pixel_count = static_cast<w8_ulong>(count);
     switch (pixel_format.pixel_size) {
     case srPixelConvert::PIXEL_SIZE_8: {
-        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, ++out) {
+        for (w8_ulong i = 0; i < pixel_count; ++i, ++positions, ++out) {
             *out = *getAddress(positions->x, positions->y);
         }
         break;
     }
     case srPixelConvert::PIXEL_SIZE_16: {
-        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, out += 2) {
+        for (w8_ulong i = 0; i < pixel_count; ++i, ++positions, out += 2) {
             *(unsigned short*)out = *(unsigned short*)getAddress(positions->x, positions->y);
         }
         break;
     }
     case srPixelConvert::PIXEL_SIZE_24: {
-        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, out += 3) {
+        for (w8_ulong i = 0; i < pixel_count; ++i, ++positions, out += 3) {
             const unsigned char* address = getAddress(positions->x, positions->y);
             out[0] = address[0];
             out[1] = address[1];
@@ -1697,8 +1703,8 @@ void srColorSurface::getPixelsRaw(void* pixels, const srVector2i* positions, lon
         break;
     }
     case srPixelConvert::PIXEL_SIZE_32: {
-        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, out += 4) {
-            *(unsigned long*)out = *(unsigned long*)getAddress(positions->x, positions->y);
+        for (w8_ulong i = 0; i < pixel_count; ++i, ++positions, out += 4) {
+            *(w8_ulong*)out = *(w8_ulong*)getAddress(positions->x, positions->y);
         }
         break;
     }
@@ -1706,25 +1712,25 @@ void srColorSurface::getPixelsRaw(void* pixels, const srVector2i* positions, lon
 }
 
 // FUNCTION: SURRENDER 0x1005D680
-void srColorSurface::setPixelsRaw(const void* pixels, const srVector2i* positions, long count)
+void srColorSurface::setPixelsRaw(const void* pixels, const srVector2i* positions, w8_long count)
 {
     const unsigned char* in = (const unsigned char*)pixels;
-    unsigned long pixel_count = static_cast<unsigned long>(count);
+    w8_ulong pixel_count = static_cast<w8_ulong>(count);
     switch (pixel_format.pixel_size) {
     case srPixelConvert::PIXEL_SIZE_8: {
-        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, ++in) {
+        for (w8_ulong i = 0; i < pixel_count; ++i, ++positions, ++in) {
             *getAddress(positions->x, positions->y) = *in;
         }
         break;
     }
     case srPixelConvert::PIXEL_SIZE_16: {
-        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, in += 2) {
+        for (w8_ulong i = 0; i < pixel_count; ++i, ++positions, in += 2) {
             *(unsigned short*)getAddress(positions->x, positions->y) = *(const unsigned short*)in;
         }
         break;
     }
     case srPixelConvert::PIXEL_SIZE_24: {
-        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, in += 3) {
+        for (w8_ulong i = 0; i < pixel_count; ++i, ++positions, in += 3) {
             unsigned char* address = getAddress(positions->x, positions->y);
             address[0] = in[0];
             address[1] = in[1];
@@ -1733,8 +1739,8 @@ void srColorSurface::setPixelsRaw(const void* pixels, const srVector2i* position
         break;
     }
     case srPixelConvert::PIXEL_SIZE_32: {
-        for (unsigned long i = 0; i < pixel_count; ++i, ++positions, in += 4) {
-            *(unsigned long*)getAddress(positions->x, positions->y) = *(const unsigned long*)in;
+        for (w8_ulong i = 0; i < pixel_count; ++i, ++positions, in += 4) {
+            *(w8_ulong*)getAddress(positions->x, positions->y) = *(const w8_ulong*)in;
         }
         break;
     }
@@ -1742,10 +1748,10 @@ void srColorSurface::setPixelsRaw(const void* pixels, const srVector2i* position
 }
 
 // FUNCTION: SURRENDER 0x1005E230
-static void reversePixelTriplets(unsigned char* pixels, unsigned long count)
+static void reversePixelTriplets(unsigned char* pixels, w8_ulong count)
 {
-    unsigned long half = count >> 1;
-    unsigned long i = 0;
+    w8_ulong half = count >> 1;
+    w8_ulong i = 0;
     for (; i < (half & ~3UL); i += 4) {
         /* reinterpret-ok: each 24-bit pixel record swaps its low word plus
            high byte separately. */
@@ -1790,13 +1796,13 @@ static void reversePixelTriplets(unsigned char* pixels, unsigned long count)
 }
 
 // FUNCTION: SURRENDER 0x1005C150
-void srColorSurface::reversePixels(void* pixels, unsigned long count)
+void srColorSurface::reversePixels(void* pixels, w8_ulong count)
 {
     unsigned char* address = (unsigned char*)pixels;
     switch (pixel_format.pixel_size) {
     case srPixelConvert::PIXEL_SIZE_8: {
-        unsigned long half = count >> 1;
-        unsigned long i = 0;
+        w8_ulong half = count >> 1;
+        w8_ulong i = 0;
         for (; i < (half & ~3UL); i += 4) {
             unsigned char t = address[i];
             address[i] = address[count - 1 - i];
@@ -1819,9 +1825,9 @@ void srColorSurface::reversePixels(void* pixels, unsigned long count)
         break;
     }
     case srPixelConvert::PIXEL_SIZE_16: {
-        unsigned long half = count >> 1;
+        w8_ulong half = count >> 1;
         unsigned short* row = (unsigned short*)address;
-        unsigned long i = 0;
+        w8_ulong i = 0;
         for (; i < (half & ~3UL); i += 4) {
             unsigned short t = row[i];
             row[i] = row[count - 1 - i];
@@ -1856,7 +1862,7 @@ void srColorSurface::reversePixels(void* pixels, unsigned long count)
 }
 
 // FUNCTION: SURRENDER 0x1005C0A0
-void srColorSurface::swapPixelRows(long x0, long y0, long x1, long y1, long count)
+void srColorSurface::swapPixelRows(w8_long x0, w8_long y0, w8_long x1, w8_long y1, w8_long count)
 {
     if (y0 >= 0 && y0 < height && y1 >= 0 && y1 < height && count > 0) {
         if (x0 < 0) {
@@ -1887,15 +1893,15 @@ void srColorSurface::swapPixelRows(long x0, long y0, long x1, long y1, long coun
 // FUNCTION: SURRENDER 0x1005C2E0
 void srColorSurface::flipRectangle(const Rectangle& rectangle)
 {
-    long x_lo = rectangle.left;
-    long x_hi = rectangle.right;
+    w8_long x_lo = rectangle.left;
+    w8_long x_hi = rectangle.right;
     bool flip_x = x_hi < x_lo;
     if (flip_x) {
         x_lo = rectangle.right;
         x_hi = rectangle.left;
     }
-    long y_lo = rectangle.top;
-    long y_hi = rectangle.bottom;
+    w8_long y_lo = rectangle.top;
+    w8_long y_hi = rectangle.bottom;
     bool flip_y = y_hi < y_lo;
     if (flip_y) {
         y_lo = rectangle.bottom;
@@ -1903,14 +1909,14 @@ void srColorSurface::flipRectangle(const Rectangle& rectangle)
     }
     if ((flip_x || flip_y) && x_lo >= 0 && y_lo >= 0 && x_hi <= this->width &&
         y_hi <= this->height) {
-        unsigned long width = x_hi - x_lo;
-        unsigned long height = y_hi - y_lo;
+        w8_ulong width = x_hi - x_lo;
+        w8_ulong height = y_hi - y_lo;
         if (width != 0 && height != 0) {
             int bpp = pixel_format.pixel_size;
-            long middle = y_lo + (long)height / 2;
+            w8_long middle = y_lo + (w8_long)height / 2;
             unsigned char* base = (unsigned char*)data + (bpp + 1) * x_lo;
-            unsigned long mirror = height;
-            for (long row = y_lo; row < middle; ++row) {
+            w8_ulong mirror = height;
+            for (w8_long row = y_lo; row < middle; ++row) {
                 --mirror;
                 void* row_address = (void*)(pitch * row + base);
                 void* mirror_address = (void*)(pitch * mirror + base);
@@ -1930,14 +1936,14 @@ void srColorSurface::flipRectangle(const Rectangle& rectangle)
 }
 
 // FUNCTION: SURRENDER 0x1005C560
-void srColorSurface::setHLine(long y, long x_start, long x_end, unsigned long pixel)
+void srColorSurface::setHLine(w8_long y, w8_long x_start, w8_long x_end, w8_ulong pixel)
 {
     if (data == 0) {
         srColorSurfaceIFace::setHLine(y, x_start, x_end, pixel);
         return;
     }
     if (y >= 0 && y < height) {
-        long x_hi = x_end;
+        w8_long x_hi = x_end;
         if (x_end < x_start) {
             x_hi = x_start;
             x_start = x_end;
@@ -1950,7 +1956,7 @@ void srColorSurface::setHLine(long y, long x_start, long x_end, unsigned long pi
         }
         if (x_start < x_hi) {
             setPixel(x_start, y, pixel);
-            unsigned long raw = getPixelRaw(x_start, y);
+            w8_ulong raw = getPixelRaw(x_start, y);
             unsigned char* address = getAddress(x_start, y);
             switch (pixel_format.pixel_size) {
             case srPixelConvert::PIXEL_SIZE_8:
@@ -1960,8 +1966,8 @@ void srColorSurface::setHLine(long y, long x_start, long x_end, unsigned long pi
                 break;
                 break;
             case srPixelConvert::PIXEL_SIZE_16: {
-                unsigned long count = x_hi - x_start;
-                unsigned long half = count >> 1;
+                w8_ulong count = x_hi - x_start;
+                w8_ulong half = count >> 1;
                 if (half != 0) {
                     srVectorProcessor::copy((SRDWORD*)address, (raw << 0x10) | (raw & 0xffff),
                                             half);
@@ -1972,9 +1978,9 @@ void srColorSurface::setHLine(long y, long x_start, long x_end, unsigned long pi
                 break;
             }
             case srPixelConvert::PIXEL_SIZE_24: {
-                unsigned long count = x_hi - x_start;
-                unsigned long i = 0;
-                unsigned long bulk = count & ~3UL;
+                w8_ulong count = x_hi - x_start;
+                w8_ulong i = 0;
+                w8_ulong bulk = count & ~3UL;
                 for (; i < bulk; i += 4) {
                     unsigned char* out = address + i * 3;
                     *(unsigned short*)out = (unsigned short)raw;
@@ -1991,7 +1997,7 @@ void srColorSurface::setHLine(long y, long x_start, long x_end, unsigned long pi
                     *(unsigned short*)out = (unsigned short)raw;
                     out[2] = (unsigned char)(raw >> 0x10);
                     unsigned char* dst = out + 3;
-                    for (unsigned long n = (count - i) * 3 - 3; n != 0; --n) {
+                    for (w8_ulong n = (count - i) * 3 - 3; n != 0; --n) {
                         *dst++ = *out++;
                     }
                 }
@@ -2009,14 +2015,14 @@ void srColorSurface::setHLine(long y, long x_start, long x_end, unsigned long pi
 }
 
 // FUNCTION: SURRENDER 0x1005C740
-void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pixel)
+void srColorSurface::setVLine(w8_long x, w8_long y_start, w8_long y_end, w8_ulong pixel)
 {
     if (data == 0) {
         srColorSurfaceIFace::setVLine(x, y_start, y_end, pixel);
         return;
     }
     if (x >= 0 && x < width) {
-        long y_hi = y_end;
+        w8_long y_hi = y_end;
         if (y_end < y_start) {
             y_hi = y_start;
             y_start = y_end;
@@ -2029,13 +2035,13 @@ void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pi
         }
         if (y_start < y_hi) {
             setPixel(x, y_start, pixel);
-            unsigned long raw = getPixelRaw(x, y_start);
+            w8_ulong raw = getPixelRaw(x, y_start);
             unsigned char* address = getAddress(x, y_start);
-            unsigned long count = y_hi - y_start;
+            w8_ulong count = y_hi - y_start;
             switch (pixel_format.pixel_size) {
             case srPixelConvert::PIXEL_SIZE_8: {
-                unsigned long i = 0;
-                unsigned long bulk = count & ~1UL;
+                w8_ulong i = 0;
+                w8_ulong bulk = count & ~1UL;
                 for (; i < bulk; i += 2) {
                     *address = (unsigned char)raw;
                     address[pitch] = (unsigned char)raw;
@@ -2047,8 +2053,8 @@ void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pi
                 break;
             }
             case srPixelConvert::PIXEL_SIZE_16: {
-                unsigned long i = 0;
-                unsigned long bulk = count & ~1UL;
+                w8_ulong i = 0;
+                w8_ulong bulk = count & ~1UL;
                 for (; i < bulk; i += 2) {
                     *(unsigned short*)address = (unsigned short)raw;
                     *(unsigned short*)(address + pitch) = (unsigned short)raw;
@@ -2060,8 +2066,8 @@ void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pi
                 break;
             }
             case srPixelConvert::PIXEL_SIZE_24: {
-                unsigned long i = 0;
-                unsigned long bulk = count & ~1UL;
+                w8_ulong i = 0;
+                w8_ulong bulk = count & ~1UL;
                 for (; i < bulk; i += 2) {
                     *(unsigned short*)address = (unsigned short)raw;
                     address[2] = (unsigned char)(raw >> 0x10);
@@ -2077,15 +2083,15 @@ void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pi
                 break;
             }
             case srPixelConvert::PIXEL_SIZE_32: {
-                unsigned long i = 0;
-                unsigned long bulk = count & ~1UL;
+                w8_ulong i = 0;
+                w8_ulong bulk = count & ~1UL;
                 for (; i < bulk; i += 2) {
-                    *(unsigned long*)address = raw;
-                    *(unsigned long*)(address + pitch) = raw;
+                    *(w8_ulong*)address = raw;
+                    *(w8_ulong*)(address + pitch) = raw;
                     address += pitch * 2;
                 }
                 if (i < count) {
-                    *(unsigned long*)address = raw;
+                    *(w8_ulong*)address = raw;
                 }
                 break;
             }
@@ -2095,22 +2101,22 @@ void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pi
 }
 
 // FUNCTION: SURRENDER 0x1005C900
-void srColorSurface::fill(unsigned long pixel)
+void srColorSurface::fill(w8_ulong pixel)
 {
     if (getDataPtr() == 0) {
         srColorSurfaceIFace::fill(pixel);
         return;
     }
     setPixel(0, 0, pixel);
-    unsigned long raw = getPixelRaw(0, 0);
+    w8_ulong raw = getPixelRaw(0, 0);
     unsigned char* data = (unsigned char*)getDataPtr();
-    long pitch = this->pitch;
-    unsigned long width = this->width;
-    long height = this->height;
-    unsigned long rows = static_cast<unsigned long>(height);
+    w8_long pitch = this->pitch;
+    w8_ulong width = this->width;
+    w8_long height = this->height;
+    w8_ulong rows = static_cast<w8_ulong>(height);
     int bpp = pixel_format.pixel_size;
-    if (pitch == (long)((bpp + 1) * width)) {
-        unsigned long count = height * width;
+    if (pitch == (w8_long)((bpp + 1) * width)) {
+        w8_ulong count = height * width;
         switch (bpp) {
         case 0:
             if (count != 0) {
@@ -2119,7 +2125,7 @@ void srColorSurface::fill(unsigned long pixel)
             break;
             break;
         case 1: {
-            unsigned long half = count >> 1;
+            w8_ulong half = count >> 1;
             if (half != 0) {
                 srVectorProcessor::copy((SRDWORD*)data, (raw << 0x10) | (raw & 0xffff), half);
             }
@@ -2129,8 +2135,8 @@ void srColorSurface::fill(unsigned long pixel)
             break;
         }
         case 2: {
-            unsigned long i = 0;
-            unsigned long bulk = count & ~3UL;
+            w8_ulong i = 0;
+            w8_ulong bulk = count & ~3UL;
             for (; i < bulk; i += 4) {
                 unsigned char* out = data + i * 3;
                 *(unsigned short*)out = (unsigned short)raw;
@@ -2147,7 +2153,7 @@ void srColorSurface::fill(unsigned long pixel)
                 *(unsigned short*)out = (unsigned short)raw;
                 out[2] = (unsigned char)(raw >> 0x10);
                 unsigned char* dst = out + 3;
-                for (unsigned long n = (count - i) * 3 - 3; n != 0; --n) {
+                for (w8_ulong n = (count - i) * 3 - 3; n != 0; --n) {
                     *dst++ = *out++;
                 }
             }
@@ -2163,7 +2169,7 @@ void srColorSurface::fill(unsigned long pixel)
     } else {
         switch (bpp) {
         case 0: {
-            for (unsigned long row = 0; row < rows; ++row) {
+            for (w8_ulong row = 0; row < rows; ++row) {
                 if (width != 0) {
                     srVectorProcessor::memcopy(data, (SRBYTE)raw, width);
                 }
@@ -2172,8 +2178,8 @@ void srColorSurface::fill(unsigned long pixel)
             break;
         }
         case 1: {
-            for (unsigned long row = 0; row < rows; ++row) {
-                unsigned long half = width >> 1;
+            for (w8_ulong row = 0; row < rows; ++row) {
+                w8_ulong half = width >> 1;
                 if (half != 0) {
                     srVectorProcessor::copy((SRDWORD*)data, (raw << 0x10) | (raw & 0xffff), half);
                 }
@@ -2185,9 +2191,9 @@ void srColorSurface::fill(unsigned long pixel)
             break;
         }
         case 2: {
-            for (unsigned long row = 0; row < rows; ++row) {
-                unsigned long i = 0;
-                unsigned long bulk = width & ~3UL;
+            for (w8_ulong row = 0; row < rows; ++row) {
+                w8_ulong i = 0;
+                w8_ulong bulk = width & ~3UL;
                 for (; i < bulk; i += 4) {
                     unsigned char* out = data + i * 3;
                     *(unsigned short*)out = (unsigned short)raw;
@@ -2204,7 +2210,7 @@ void srColorSurface::fill(unsigned long pixel)
                     *(unsigned short*)out = (unsigned short)raw;
                     out[2] = (unsigned char)(raw >> 0x10);
                     unsigned char* dst = out + 3;
-                    for (unsigned long n = (width - i) * 3 - 3; n != 0; --n) {
+                    for (w8_ulong n = (width - i) * 3 - 3; n != 0; --n) {
                         *dst++ = *out++;
                     }
                 }
@@ -2213,7 +2219,7 @@ void srColorSurface::fill(unsigned long pixel)
             break;
         }
         case 3: {
-            for (unsigned long row = 0; row < rows; ++row) {
+            for (w8_ulong row = 0; row < rows; ++row) {
                 if (width != 0) {
                     srVectorProcessor::copy((SRDWORD*)data, raw, width);
                 }
@@ -2226,8 +2232,8 @@ void srColorSurface::fill(unsigned long pixel)
 }
 
 // FUNCTION: SURRENDER 0x1005D220
-void srColorSurface::blit(long x, long y, srColorSurfaceIFace& source, long source_x, long source_y,
-                          long x_end, long y_end)
+void srColorSurface::blit(w8_long x, w8_long y, srColorSurfaceIFace& source, w8_long source_x,
+                          w8_long source_y, w8_long x_end, w8_long y_end)
 {
     if (&source != this && isCompatible(source) == 0) {
         srColorSurfaceIFace::blit(x, y, source, source_x, source_y, x_end, y_end);
@@ -2265,20 +2271,20 @@ void srColorSurface::blit(long x, long y, srColorSurfaceIFace& source, long sour
                 y_end = height - y + source_y;
             }
             if (source_x < x_end && source_y < y_end) {
-                long dest_pitch = pitch;
-                long source_pitch = source.pitch;
+                w8_long dest_pitch = pitch;
+                w8_long source_pitch = source.pitch;
                 int bpp = pixel_format.pixel_size + 1;
-                unsigned long row_bytes = (x_end - source_x) * bpp;
+                w8_ulong row_bytes = (x_end - source_x) * bpp;
                 unsigned char* dest = (unsigned char*)getDataPtr() + dest_pitch * y + bpp * x;
                 unsigned char* src =
                     (unsigned char*)source.getDataPtr() + source_pitch * source_y + bpp * source_x;
                 if (&source == this && source_y <= y) {
                     if (source_y != y || source_x != x) {
-                        long dest_right = (x - source_x) + x_end;
+                        w8_long dest_right = (x - source_x) + x_end;
                         if (source_y == y && ((source_x <= x && x < x_end) ||
                                               (source_x <= dest_right && dest_right < x_end))) {
                             unsigned char* temp = new unsigned char[row_bytes];
-                            for (long row = source_y; row < y_end; ++row) {
+                            for (w8_long row = source_y; row < y_end; ++row) {
                                 if (row_bytes != 0) {
                                     if (temp != src) {
                                         srVectorProcessor::memcopy(temp, src, row_bytes);
@@ -2293,7 +2299,7 @@ void srColorSurface::blit(long x, long y, srColorSurfaceIFace& source, long sour
                             delete[] temp;
                             return;
                         }
-                        long rows = y_end - source_y;
+                        w8_long rows = y_end - source_y;
                         src += (rows - 1) * source_pitch;
                         dest += (rows - 1) * dest_pitch;
                         do {
@@ -2308,7 +2314,7 @@ void srColorSurface::blit(long x, long y, srColorSurfaceIFace& source, long sour
                     }
                 } else {
                     if (source_y < y_end) {
-                        long rows = y_end - source_y;
+                        w8_long rows = y_end - source_y;
                         do {
                             if (row_bytes != 0 && dest != src) {
                                 srVectorProcessor::memcopy(dest, src, row_bytes);
@@ -2342,8 +2348,8 @@ void srColorSurface::copyNoScaling(srColorSurfaceIFace& source)
             pixel_format.red_shift == 0x10 && pixel_format.green_shift == 8 &&
             pixel_format.blue_shift == 0 && pixel_format.alpha_shift == 0x18) {
             unsigned char* dest = (unsigned char*)getDataPtr();
-            for (long row = 0; row < height; ++row) {
-                source.getPixelRow((unsigned long*)dest, row, 0, width);
+            for (w8_long row = 0; row < height; ++row) {
+                source.getPixelRow((w8_ulong*)dest, row, 0, width);
                 dest += pitch;
             }
             return;
@@ -2359,24 +2365,24 @@ void srColorSurface::copyNoScaling(srColorSurfaceIFace& source)
             return;
         }
         unsigned char* src = (unsigned char*)source.getDataPtr();
-        for (long row = 0; row < height; ++row) {
-            setPixelRow((const unsigned long*)src, row, 0, width);
+        for (w8_long row = 0; row < height; ++row) {
+            setPixelRow((const w8_ulong*)src, row, 0, width);
             src += source.pitch;
         }
         return;
     }
     unsigned char* dest = (unsigned char*)getDataPtr();
     unsigned char* src = (unsigned char*)source.getDataPtr();
-    long dest_pitch = pitch;
-    long source_pitch = source.pitch;
+    w8_long dest_pitch = pitch;
+    w8_long source_pitch = source.pitch;
     if (dest_pitch == source_pitch && dest_pitch == (pixel_format.pixel_size + 1) * width) {
-        long size = getDataSize();
+        w8_long size = getDataSize();
         if (size != 0 && dest != src) {
             srVectorProcessor::memcopy(dest, src, size);
         }
     } else {
-        long row_bytes = (pixel_format.pixel_size + 1) * width;
-        for (long row = height; row != 0; --row) {
+        w8_long row_bytes = (pixel_format.pixel_size + 1) * width;
+        for (w8_long row = height; row != 0; --row) {
             if (row_bytes != 0 && dest != src) {
                 srVectorProcessor::memcopy(dest, src, row_bytes);
             }
@@ -2393,29 +2399,29 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
         srColorSurfaceIFace::scaleFast(source);
         return;
     }
-    long dest_width = width;
-    long dest_height = height;
+    w8_long dest_width = width;
+    w8_long dest_height = height;
     if (source.width == dest_width && source.height == dest_height) {
         copyNoScaling(source);
         return;
     }
-    long* columns = new long[dest_width];
+    w8_long* columns = new w8_long[dest_width];
     unsigned char* dest = (unsigned char*)getDataPtr();
     unsigned char* src = (unsigned char*)source.getDataPtr();
-    long source_pitch = source.pitch;
+    w8_long source_pitch = source.pitch;
     srPixelConvert::e_pixelSize bpp = pixel_format.pixel_size;
-    long dest_pitch = pitch;
+    w8_long dest_pitch = pitch;
     double x_ratio = source.width / (double)dest_width;
     double y_ratio = source.height / (double)dest_height;
-    for (long i = 0; i < dest_width; ++i) {
-        columns[i] = source.getClampedX((long)(i * x_ratio));
+    for (w8_long i = 0; i < dest_width; ++i) {
+        columns[i] = source.getClampedX((w8_long)(i * x_ratio));
     }
-    for (long row = 0; row < dest_height; ++row) {
-        long source_y = source.getClampedY((long)(row * y_ratio));
+    for (w8_long row = 0; row < dest_height; ++row) {
+        w8_long source_y = source.getClampedY((w8_long)(row * y_ratio));
         const unsigned char* source_row = src + source_y * source_pitch;
         switch (bpp) {
         case srPixelConvert::PIXEL_SIZE_8: {
-            long x = 0;
+            w8_long x = 0;
             for (; x < (dest_width & ~3L); x += 4) {
                 dest[x] = source_row[columns[x]];
                 dest[x + 1] = source_row[columns[x + 1]];
@@ -2430,7 +2436,7 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
         case srPixelConvert::PIXEL_SIZE_16: {
             unsigned short* out = (unsigned short*)dest;
             const unsigned short* in = (const unsigned short*)source_row;
-            long x = 0;
+            w8_long x = 0;
             for (; x < (dest_width & ~3L); x += 4) {
                 out[x] = in[columns[x]];
                 out[x + 1] = in[columns[x + 1]];
@@ -2443,7 +2449,7 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
             break;
         }
         case srPixelConvert::PIXEL_SIZE_24: {
-            long x = 0;
+            w8_long x = 0;
             for (; x < (dest_width & ~3L); x += 4) {
                 const unsigned char* pixel = source_row + columns[x] * 3;
                 /* reinterpret-ok: the 24-bit pixel record copies its low word
@@ -2486,15 +2492,15 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
    and a count plus a pointer to those records. The names are descriptive. A zero total weight is
    not guarded. */
 struct SampleWeight {
-    long index;
+    w8_long index;
     float weight;
 };
 
 struct SampleContributions {
-    long count;
+    w8_long count;
     SampleWeight* samples;
 
-    void append(long index, double weight)
+    void append(w8_long index, double weight)
     {
         SampleWeight& sample = samples[count++];
         sample.index = index;
@@ -2504,46 +2510,46 @@ struct SampleContributions {
     void normalize(double total)
     {
         float scale = static_cast<float>(1.0 / total);
-        for (long index = 0; index < count; ++index) {
+        for (w8_long index = 0; index < count; ++index) {
             samples[index].weight = scale * samples[index].weight;
         }
     }
 };
 
-static_assert(sizeof(SampleWeight) == 8, "SampleWeight_must_be_8");
-static_assert(sizeof(SampleContributions) == 8, "SampleContributions_must_be_8");
+W8_ABI_ASSERT(sizeof(SampleWeight) == 8, "SampleWeight_must_be_8");
+W8_ABI_ASSERT(sizeof(SampleContributions) == 8, "SampleContributions_must_be_8");
 
 // FUNCTION: SURRENDER 0x10059AC0
 void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
 {
-    long height = source.height;
-    long width = this->width;
-    long source_width = source.width;
+    w8_long height = source.height;
+    w8_long width = this->width;
+    w8_long source_width = source.width;
     if (width != source_width) {
         double support = source.filter->getSupport();
         double scale = (double)width / source_width;
         SampleContributions* counts = new SampleContributions[width];
         srARGB* source_row_colors = new srARGB[source_width];
-        unsigned long* source_row = (unsigned long*)source_row_colors;
+        w8_ulong* source_row = (w8_ulong*)source_row_colors;
         srARGB* row_colors = new srARGB[width];
-        unsigned long* row = (unsigned long*)row_colors;
+        w8_ulong* row = (w8_ulong*)row_colors;
         srVector4T<float>* channel_vectors = new srVector4T<float>[source_width];
         SampleWeight* storage;
         if (1.0 <= scale) {
-            long entries = 1 - (long)(support * -2.0);
+            w8_long entries = 1 - (w8_long)(support * -2.0);
             storage = new SampleWeight[entries * width];
-            for (long x = 0; x < width; x++) {
+            for (w8_long x = 0; x < width; x++) {
                 SampleContributions* entry = counts + x;
                 entry->count = 0;
                 entry->samples = storage + x * entries;
                 double center = x / scale - 0.5;
                 double total = 0.0;
-                long first = (long)ceil(center - support);
-                long last = (long)floor(center + support);
+                w8_long first = (w8_long)ceil(center - support);
+                w8_long last = (w8_long)floor(center + support);
                 for (; first <= last; first++) {
                     double weight = source.filter->getWeight(center - first);
                     if (0.0 < weight) {
-                        long index = source.getClampedX(first);
+                        w8_long index = source.getClampedX(first);
                         entry->append(index, weight);
                         total = weight + total;
                     }
@@ -2553,20 +2559,20 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
         } else {
             double scaled_support = support / scale;
             double inverse = 1.0 / scale;
-            long entries = 1 - (long)(scaled_support * -2.0);
+            w8_long entries = 1 - (w8_long)(scaled_support * -2.0);
             storage = new SampleWeight[entries * width];
-            for (long x = 0; x < width; x++) {
+            for (w8_long x = 0; x < width; x++) {
                 SampleContributions* entry = counts + x;
                 entry->count = 0;
                 entry->samples = storage + x * entries;
                 double center = x / scale + 0.5;
                 double total = 0.0;
-                long first = (long)ceil(center - scaled_support);
-                long last = (long)floor(center + scaled_support);
+                w8_long first = (w8_long)ceil(center - scaled_support);
+                w8_long last = (w8_long)floor(center + scaled_support);
                 for (; first <= last; first++) {
                     double weight = source.filter->getWeight((center - first) / inverse) / inverse;
                     if (0.0 < weight) {
-                        long index = source.getClampedX(first);
+                        w8_long index = source.getClampedX(first);
                         entry->append(index, weight);
                         total = weight + total;
                     }
@@ -2574,9 +2580,9 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
                 entry->normalize(total);
             }
         }
-        for (long y = 0; y < height; y++) {
+        for (w8_long y = 0; y < height; y++) {
             source.getPixelRow(source_row, y, 0, source_width);
-            long x;
+            w8_long x;
             for (x = 0; x < source_width; x++) {
                 channel_vectors[x].x = static_cast<float>(source_row_colors[x].alpha);
                 channel_vectors[x].y = static_cast<float>(source_row_colors[x].red);
@@ -2585,7 +2591,7 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
             }
             for (x = 0; x < width; x++) {
                 SampleContributions* entry = counts + x;
-                long count = entry->count;
+                w8_long count = entry->count;
                 SampleWeight* slot = entry->samples;
                 float a = 0.0f;
                 float r = 0.0f;
@@ -2622,36 +2628,36 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
 // FUNCTION: SURRENDER 0x1005A250
 void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
 {
-    long width = this->width;
-    long height = this->height;
-    long source_height = source.height;
+    w8_long width = this->width;
+    w8_long height = this->height;
+    w8_long source_height = source.height;
     if (height != source_height) {
         double support = source.filter->getSupport();
         double scale = height / (double)source_height;
         SampleContributions* counts = new SampleContributions[height];
         srARGB* source_column_colors = new srARGB[source_height];
-        unsigned long* source_column = (unsigned long*)source_column_colors;
+        w8_ulong* source_column = (w8_ulong*)source_column_colors;
         srARGB* column_colors = new srARGB[height];
-        unsigned long* column = (unsigned long*)column_colors;
+        w8_ulong* column = (w8_ulong*)column_colors;
         srVector4T<float>* channel_vectors = new srVector4T<float>[source_height];
         SampleWeight* storage;
         /* Unlike scaleHorizontal, both branches center the source window at y / scale + 0.5
            (retail 0x1005A501 and 0x1005A3AD). */
         if (1.0 <= scale) {
-            long entries = 1 - (long)(support * -2.0);
+            w8_long entries = 1 - (w8_long)(support * -2.0);
             storage = new SampleWeight[entries * height];
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 SampleContributions* entry = counts + y;
                 entry->count = 0;
                 entry->samples = storage + y * entries;
                 double center = y / scale + 0.5;
                 double total = 0.0;
-                long first = (long)ceil(center - support);
-                long last = (long)floor(center + support);
+                w8_long first = (w8_long)ceil(center - support);
+                w8_long last = (w8_long)floor(center + support);
                 for (; first <= last; first++) {
                     double weight = source.filter->getWeight(center - first);
                     if (0.0 < weight) {
-                        long index = source.getClampedY(first);
+                        w8_long index = source.getClampedY(first);
                         entry->append(index, weight);
                         total = weight + total;
                     }
@@ -2661,20 +2667,20 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
         } else {
             double scaled_support = support / scale;
             double inverse = 1.0 / scale;
-            long entries = 1 - (long)(scaled_support * -2.0);
+            w8_long entries = 1 - (w8_long)(scaled_support * -2.0);
             storage = new SampleWeight[entries * height];
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 SampleContributions* entry = counts + y;
                 entry->count = 0;
                 entry->samples = storage + y * entries;
                 double center = y / scale + 0.5;
                 double total = 0.0;
-                long first = (long)ceil(center - scaled_support);
-                long last = (long)floor(center + scaled_support);
+                w8_long first = (w8_long)ceil(center - scaled_support);
+                w8_long last = (w8_long)floor(center + scaled_support);
                 for (; first <= last; first++) {
                     double weight = source.filter->getWeight((center - first) / inverse) / inverse;
                     if (0.0 < weight) {
-                        long index = source.getClampedY(first);
+                        w8_long index = source.getClampedY(first);
                         entry->append(index, weight);
                         total = weight + total;
                     }
@@ -2682,9 +2688,9 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                 entry->normalize(total);
             }
         }
-        for (long x = 0; x < width; x++) {
+        for (w8_long x = 0; x < width; x++) {
             source.getPixelColumn(source_column, x, 0, source_height);
-            long y;
+            w8_long y;
             for (y = 0; y < source_height; y++) {
                 channel_vectors[y].x = static_cast<float>(source_column_colors[y].alpha);
                 channel_vectors[y].y = static_cast<float>(source_column_colors[y].red);
@@ -2693,7 +2699,7 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
             }
             for (y = 0; y < height; y++) {
                 SampleContributions* entry = counts + y;
-                long count = entry->count;
+                w8_long count = entry->count;
                 SampleWeight* slot = entry->samples;
                 float a = 0.0f;
                 float r = 0.0f;
@@ -2728,13 +2734,13 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
 }
 
 // FUNCTION: SURRENDER 0x10058150
-void srColorSurfaceIFace::blit(long x, long y, srColorSurfaceIFace& source, long source_x,
-                               long source_y, long source_right, long source_bottom)
+void srColorSurfaceIFace::blit(w8_long x, w8_long y, srColorSurfaceIFace& source, w8_long source_x,
+                               w8_long source_y, w8_long source_right, w8_long source_bottom)
 {
-    long width = this->width;
-    long source_width = source.width;
-    long source_height = source.height;
-    long height = this->height;
+    w8_long width = this->width;
+    w8_long source_width = source.width;
+    w8_long source_height = source.height;
+    w8_long height = this->height;
     if ((x < width) && (y < height)) {
         if (x < 0) {
             source_x = source_x - x;
@@ -2752,17 +2758,17 @@ void srColorSurfaceIFace::blit(long x, long y, srColorSurfaceIFace& source, long
             y = y - source_y;
             source_y = 0;
         }
-        long right = source_right;
+        w8_long right = source_right;
         if (source_width < source_right) {
             right = source_width;
         }
-        long bottom = source_bottom;
+        w8_long bottom = source_bottom;
         if (source_height < source_bottom) {
             bottom = source_height;
         }
         if (((source_x < source_width) && (source_x < right)) &&
             ((source_y < source_height) && (source_y < bottom))) {
-            long dest_span = x - source_x;
+            w8_long dest_span = x - source_x;
             if (width < dest_span + right) {
                 right = (width - x) + source_x;
             }
@@ -2773,11 +2779,11 @@ void srColorSurfaceIFace::blit(long x, long y, srColorSurfaceIFace& source, long
                 if (((&source == this) && (x < right) && (y < bottom)) &&
                     (source_x < dest_span + right) &&
                     ((source_y < (y - source_y) + bottom) && (source_y <= y))) {
-                    long span = right - source_x;
+                    w8_long span = right - source_x;
                     srARGB* temp_colors = new srARGB[(bottom - source_y) * span];
-                    unsigned long* temp = (unsigned long*)temp_colors;
+                    w8_ulong* temp = (w8_ulong*)temp_colors;
                     if (source_y < bottom) {
-                        long row;
+                        w8_long row;
                         for (row = source_y; row < bottom; row++) {
                             source.getPixelRow(temp + (row - source_y) * span, row, source_x,
                                                right);
@@ -2791,7 +2797,7 @@ void srColorSurfaceIFace::blit(long x, long y, srColorSurfaceIFace& source, long
                     return;
                 }
                 srARGB* temp_colors = new srARGB[right - source_x];
-                unsigned long* temp = (unsigned long*)temp_colors;
+                w8_ulong* temp = (w8_ulong*)temp_colors;
                 for (; source_y < bottom; source_y++) {
                     source.getPixelRow(temp, source_y, source_x, right);
                     setPixelRow(temp, y, x, dest_span + right);
@@ -2827,27 +2833,27 @@ void srColorSurfaceIFace::blit(const BlitInfo& info, srColorSurfaceIFace& source
         flip_v = flip_v == 0;
     }
     Rectangle destination = info.destination;
-    long source_left = info.source.left;
-    long source_top = info.source.top;
-    long source_right = info.source.right;
-    long source_bottom = info.source.bottom;
+    w8_long source_left = info.source.left;
+    w8_long source_top = info.source.top;
+    w8_long source_right = info.source.right;
+    w8_long source_bottom = info.source.bottom;
     if (source_right < source_left) {
-        long swap = source_left;
+        w8_long swap = source_left;
         source_left = source_right;
         source_right = swap;
     }
     if (source_bottom < source_top) {
-        long swap = source_top;
+        w8_long swap = source_top;
         source_top = source_bottom;
         source_bottom = swap;
     }
     if (destination.right < destination.left) {
-        long swap = destination.left;
+        w8_long swap = destination.left;
         destination.left = destination.right;
         destination.right = swap;
     }
     if (destination.bottom < destination.top) {
-        long swap = destination.top;
+        w8_long swap = destination.top;
         destination.top = destination.bottom;
         destination.bottom = swap;
     }
@@ -2920,8 +2926,8 @@ void srColorSurfaceIFace::blit(const BlitInfo& info, srColorSurfaceIFace& source
         flipRectangle(rectangle);
         return;
     }
-    long destination_width = destination.right - destination.left;
-    long source_width = source_right - source_left;
+    w8_long destination_width = destination.right - destination.left;
+    w8_long source_width = source_right - source_left;
     srColorSurface* temporary = 0;
     if (destination_width == source_width) {
         if ((flip_h == 0) && (flip_v == 0)) {
@@ -2938,12 +2944,12 @@ void srColorSurfaceIFace::blit(const BlitInfo& info, srColorSurfaceIFace& source
             rectangle.right = destination.right;
             rectangle.bottom = destination.bottom;
             if (flip_h != 0) {
-                long swap = rectangle.left;
+                w8_long swap = rectangle.left;
                 rectangle.left = rectangle.right;
                 rectangle.right = swap;
             }
             if (flip_v != 0) {
-                long swap = rectangle.top;
+                w8_long swap = rectangle.top;
                 rectangle.top = rectangle.bottom;
                 rectangle.bottom = swap;
             }
@@ -3004,13 +3010,13 @@ void srColorSurfaceIFace::blit(const BlitInfo& info, srColorSurfaceIFace& source
 }
 
 // FUNCTION: SURRENDER 0x100589D0
-void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source, long source_x,
-                                    long source_y, long source_right, long source_bottom,
-                                    double alpha)
+void srColorSurfaceIFace::composite(w8_long x, w8_long y, srColorSurfaceIFace& source,
+                                    w8_long source_x, w8_long source_y, w8_long source_right,
+                                    w8_long source_bottom, double alpha)
 {
-    long width = this->width;
-    long height = this->height;
-    long source_height = source.height;
+    w8_long width = this->width;
+    w8_long height = this->height;
+    w8_long source_height = source.height;
     if (0.0 < alpha) {
         if (1.0 <= alpha) {
             alpha = 1.0;
@@ -3044,7 +3050,7 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
             }
             if (((source_x < source.width) && (source_x < source_right)) &&
                 ((source_y < source_height) && (source_y < source_bottom))) {
-                long dest_span = x - source_x;
+                w8_long dest_span = x - source_x;
                 if (width < dest_span + source_right) {
                     source_right = (width - x) + source_x;
                 }
@@ -3055,20 +3061,20 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
                     if ((((&source == this) && (x < source_right) && (y < source_bottom)) &&
                          (source_x < dest_span + source_right)) &&
                         ((source_y < source_bottom + (y - source_y)) && (source_y <= y))) {
-                        long rows = source_bottom - source_y;
-                        long span = source_right - source_x;
+                        w8_long rows = source_bottom - source_y;
+                        w8_long span = source_right - source_x;
                         srARGB* temp_colors = new srARGB[rows * span];
-                        unsigned long* temp = (unsigned long*)temp_colors;
+                        w8_ulong* temp = (w8_ulong*)temp_colors;
                         srARGB* row_colors = new srARGB[span];
-                        unsigned long* row = (unsigned long*)row_colors;
-                        long r;
+                        w8_ulong* row = (w8_ulong*)row_colors;
+                        w8_long r;
                         for (r = source_y; r < source_bottom; r++) {
                             source.getPixelRow(temp + (r - source_y) * span, r, source_x,
                                                source_right);
                         }
                         for (r = source_bottom - source_y; r != 0; r--) {
                             getPixelRow(row, y, x, dest_span + source_right);
-                            for (long i = 0; i < span; i++) {
+                            for (w8_long i = 0; i < span; i++) {
                                 unsigned char* source_pixel =
                                     (unsigned char*)&temp[(source_bottom - source_y - r) * span +
                                                           i];
@@ -3097,16 +3103,16 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
                         delete[] row_colors;
                         return;
                     }
-                    long span = source_right - source_x;
+                    w8_long span = source_right - source_x;
                     srARGB* source_row_colors = new srARGB[span];
-                    unsigned long* source_row = (unsigned long*)source_row_colors;
+                    w8_ulong* source_row = (w8_ulong*)source_row_colors;
                     srARGB* row_colors = new srARGB[span];
-                    unsigned long* row = (unsigned long*)row_colors;
+                    w8_ulong* row = (w8_ulong*)row_colors;
                     if (alpha == 1.0) {
                         for (; source_y < source_bottom; source_y++) {
                             getPixelRow(row, y, x, dest_span + source_right);
                             source.getPixelRow(source_row, source_y, source_x, source_right);
-                            for (long i = 0; i < span; i++) {
+                            for (w8_long i = 0; i < span; i++) {
                                 unsigned char* source_pixel = (unsigned char*)&source_row[i];
                                 unsigned char* dest_pixel = (unsigned char*)&row[i];
                                 unsigned char alpha_byte = source_pixel[3];
@@ -3134,7 +3140,7 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
                         for (; source_y < source_bottom; source_y++) {
                             getPixelRow(row, y, x, dest_span + source_right);
                             source.getPixelRow(source_row, source_y, source_x, source_right);
-                            for (long i = 0; i < span; i++) {
+                            for (w8_long i = 0; i < span; i++) {
                                 unsigned char* source_pixel = (unsigned char*)&source_row[i];
                                 unsigned char* dest_pixel = (unsigned char*)&row[i];
                                 double blend = alpha;
@@ -3167,8 +3173,8 @@ void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source,
 }
 
 // FUNCTION: SURRENDER 0x1005A840
-static void __cdecl minifyRow_MMX(unsigned long* destination, const unsigned long* first,
-                                  const unsigned long* second, unsigned long count)
+static void __cdecl minifyRow_MMX(w8_ulong* destination, const w8_ulong* first,
+                                  const w8_ulong* second, w8_ulong count)
 {
     __asm {
         mov ecx, count
@@ -3254,20 +3260,20 @@ static void __cdecl minifyRow_MMX(unsigned long* destination, const unsigned lon
 // FUNCTION: SURRENDER 0x1005A930
 void srColorSurfaceIFace::minify(srColorSurfaceIFace& source)
 {
-    long height = this->height;
-    unsigned long width = this->width;
-    long source_width = source.width;
-    if (((width == (unsigned long)(source_width / 2)) && (height == source.height / 2)) &&
+    w8_long height = this->height;
+    w8_ulong width = this->width;
+    w8_long source_width = source.width;
+    if (((width == (w8_ulong)(source_width / 2)) && (height == source.height / 2)) &&
         (this != &source)) {
         srARGB* buffer_colors = new srARGB[width + source_width * 2];
-        unsigned long* buffer = (unsigned long*)buffer_colors;
-        unsigned long* second = buffer + source_width;
-        unsigned long* row = buffer + source_width * 2;
+        w8_ulong* buffer = (w8_ulong*)buffer_colors;
+        w8_ulong* second = buffer + source_width;
+        w8_ulong* row = buffer + source_width * 2;
         if ((srCore.getTimer()->m_cpu_features & (1UL << srTimer::CPU_FEATURE_MMX)) == 0) {
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 source.getPixelRow(buffer, y * 2, 0, source_width);
                 source.getPixelRow(second, y * 2 + 1, 0, source_width);
-                for (unsigned long x = 0; x < width; x++) {
+                for (w8_ulong x = 0; x < width; x++) {
                     unsigned char* top = (unsigned char*)&buffer[x * 2];
                     unsigned char* bottom = (unsigned char*)&second[x * 2];
                     unsigned char* pixel = (unsigned char*)&row[x];
@@ -3279,7 +3285,7 @@ void srColorSurfaceIFace::minify(srColorSurfaceIFace& source)
                 setPixelRow(row, y, 0, width);
             }
         } else {
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 source.getPixelRow(buffer, y * 2, 0, source_width);
                 source.getPixelRow(second, y * 2 + 1, 0, source_width);
                 minifyRow_MMX(row, buffer, second, width);
@@ -3293,16 +3299,16 @@ void srColorSurfaceIFace::minify(srColorSurfaceIFace& source)
 // FUNCTION: SURRENDER 0x1005ABB0
 void srColorSurfaceIFace::magnify(srColorSurfaceIFace& source)
 {
-    long source_height = source.height;
-    long width = this->width;
-    long source_width = source.width;
+    w8_long source_height = source.height;
+    w8_long width = this->width;
+    w8_long source_width = source.width;
     if (width == source_width * 2 && height == source_height * 2 && this != &source) {
         srARGB* buffer_colors = new srARGB[source_width + width * 2];
-        unsigned long* buffer = (unsigned long*)buffer_colors;
-        unsigned long* even = buffer + source_width;
-        unsigned long* odd = even + width;
+        w8_ulong* buffer = (w8_ulong*)buffer_colors;
+        w8_ulong* even = buffer + source_width;
+        w8_ulong* odd = even + width;
         source.getPixelRow(buffer, 0, 0, source_width);
-        long x;
+        w8_long x;
         for (x = 0; x < source_width - 1; x++) {
             even[x * 2] = buffer[x];
             even[x * 2 + 1] = (buffer[x + 1] >> 1 & 0x7f7f7f7f) + (buffer[x] >> 1 & 0x7f7f7f7f);
@@ -3311,7 +3317,7 @@ void srColorSurfaceIFace::magnify(srColorSurfaceIFace& source)
         even[(source_width - 1) * 2 + 1] = buffer[source_width - 1];
         /* Each pass writes the widened row y and the average of rows y and y + 1; the widened last
            source row is never written, so the bottom two destination rows keep their contents. */
-        for (long y = 0; y < source_height - 1; y++) {
+        for (w8_long y = 0; y < source_height - 1; y++) {
             source.getPixelRow(buffer, y + 1, 0, source_width);
             for (x = 0; x < source_width - 1; x++) {
                 odd[x * 2] = buffer[x];
@@ -3324,7 +3330,7 @@ void srColorSurfaceIFace::magnify(srColorSurfaceIFace& source)
                 even[x] = (odd[x] >> 1 & 0x7f7f7f7f) + (even[x] >> 1 & 0x7f7f7f7f);
             }
             setPixelRow(even, y * 2 + 1, 0, width);
-            unsigned long* swap = even;
+            w8_ulong* swap = even;
             even = odd;
             odd = swap;
         }

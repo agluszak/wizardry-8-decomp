@@ -139,13 +139,13 @@ struct W8MonsterRep : public W8EmitterHost {
 /* The constructor at 0x004BEA20 initializes through 0x624; the observed
    allocation is 0x628 bytes. These bound the modeled extent, not the roles
    of every byte or the complete set of callers. */
-static_assert(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
-static_assert(offsetof(W8MonsterRep, random_idle_fps_min) == 0x608,
+W8_ABI_ASSERT(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
+W8_ABI_ASSERT(offsetof(W8MonsterRep, random_idle_fps_min) == 0x608,
               "W8MonsterRep_idle_fps_min_offset");
-static_assert(offsetof(W8MonsterRep, random_idle_fps_max) == 0x60c,
+W8_ABI_ASSERT(offsetof(W8MonsterRep, random_idle_fps_max) == 0x60c,
               "W8MonsterRep_idle_fps_max_offset");
 
-static_assert(sizeof(W8GrowableVector<W8AnimObj*>) == 0x10,
+W8_ABI_ASSERT(sizeof(W8GrowableVector<W8AnimObj*>) == 0x10,
               "W8Monster_animation_vector_must_be_0x10");
 
 /* The GrCycle factory allocates 0x348 bytes and calls the constructor at
@@ -409,7 +409,7 @@ void SetCombatInactiveFlag(unsigned char value);
 void UpdateNearestMonsterGroupMembers();
 void ApplyMonsterRepresentationScale(W8Monster* monster);
 
-static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
+W8_ABI_ASSERT(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
 /* Secondary vftable 0x005ed218 keeps the W8Navigator subobject at +0x18. */
 W8_ASSERT_BASE_OFFSET(W8Monster, W8Navigator, navigation_mode, 0x18);
 
@@ -439,7 +439,7 @@ public:
     unsigned char padding_0e[2];
 };
 
-static_assert(sizeof(W8MonsterShakeCallback) == 0x10, "W8MonsterShakeCallback_size_must_be_0x10");
+W8_ABI_ASSERT(sizeof(W8MonsterShakeCallback) == 0x10, "W8MonsterShakeCallback_size_must_be_0x10");
 
 void MonsterStopAllNavigators(void);
 unsigned char MonsterGetHighlightMask(W8Monster* monster);

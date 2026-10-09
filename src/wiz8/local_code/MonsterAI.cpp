@@ -1243,7 +1243,7 @@ static void QueueMonsterAction(W8MonsterInfo* monster_info, W8MonsterActionKind 
                                int action_detail, int attack_index, W8TargetKind target_kind,
                                int target_value)
 {
-    W8MonsterAction* entry = static_cast<W8MonsterAction*>(malloc(0x30));
+    W8MonsterAction* entry = static_cast<W8MonsterAction*>(malloc(sizeof(*entry)));
 
     if (entry == 0) {
         return;

@@ -47,7 +47,7 @@ struct W8PortraitQuoteBubble {
     UINT32 palette;
 };
 
-static_assert(sizeof(W8PortraitQuoteBubble) == 0x24, "W8PortraitQuoteBubble_size");
+W8_ABI_ASSERT(sizeof(W8PortraitQuoteBubble) == 0x24, "W8PortraitQuoteBubble_size");
 
 // GLOBAL: WIZ8 0x0069C598
 static W8PortraitQuoteBubble* g_portrait_quotes[10];
@@ -79,7 +79,7 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                     int flags);
 
 // FUNCTION: WIZ8 0x005d0590
-static int DrawWrappedTextLine(UINT16* text, int x, int top, int width, int font,
+static int DrawWrappedTextLine(CHAR16* text, int x, int top, int width, int font,
                                unsigned char foreground, unsigned char background, bool dirty,
                                unsigned int flags)
 {
@@ -129,7 +129,7 @@ static int DrawWrappedTextLine(UINT16* text, int x, int top, int width, int font
     return 1;
 }
 
-static void RenderWrappedTextLine(UINT16* text, int x, int top, int width, int font,
+static void RenderWrappedTextLine(CHAR16* text, int x, int top, int width, int font,
                                   unsigned char foreground, unsigned char background, bool dirty,
                                   unsigned int flags)
 {
@@ -528,7 +528,9 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             g_current_portrait_quote->object_index = edge_index;
         }
     }
-    g_current_portrait_quote->text = static_cast<wchar_t*>(malloc(wcslen(text) * 2 + 2));
+    g_current_portrait_quote->text =
+        static_cast<wchar_t*>(malloc(wcslen(text) * sizeof(*g_current_portrait_quote->text) +
+                                     sizeof(*g_current_portrait_quote->text)));
     wcscpy(g_current_portrait_quote->text, text);
     g_current_portrait_quote->flags = g_quote_bubble_flags;
     position = 0;

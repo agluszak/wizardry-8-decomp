@@ -65,7 +65,7 @@ void srClipPlane::traverse(TraverseInfo& info)
 // FUNCTION: SURRENDER 0x10049E40
 void srClipPlane::dump(std::ostream& stream)
 {
-    long flags;
+    w8_long flags;
 
     srNode::dump(stream);
     flags = stream.flags();

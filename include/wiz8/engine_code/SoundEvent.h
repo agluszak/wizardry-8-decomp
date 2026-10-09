@@ -74,7 +74,7 @@ public:
     int footstep_combat_volume; /* 0x34: raised volume while the tracked monster fights */
 };
 
-static_assert(sizeof(W8SoundEvent) == 0x38, "W8SoundEvent_must_be_0x38");
+W8_ABI_ASSERT(sizeof(W8SoundEvent) == 0x38, "W8SoundEvent_must_be_0x38");
 
 W8SoundEvent* CreateSoundEvent(W8SoundEventKind kind, int cycle, int frame, int subcycle,
                                const char* wave_name, bool looping); /* 0x004D57A0 */

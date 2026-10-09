@@ -1,6 +1,7 @@
 #ifndef WIZ8_GEOMETRY_H
 #define WIZ8_GEOMETRY_H
 
+#include "compat/ptr32.h"
 #include "surrender/srMath.h"
 #include "wiz8/float_constants.h"
 
@@ -58,7 +59,7 @@ struct W8GDSurface {
     W8Plane plane;
     float distance;
     /* Hit plane ProbePropsAlongMotion fills for ResolveCollision. */
-    W8Plane* hit_plane;
+    W8_PTR32(W8Plane) hit_plane;
     unsigned char footstep_surface;  /* W8FootstepSurface selector */
     unsigned char footstep_material; /* W8FootstepMaterial selector */
     unsigned char positional[2];

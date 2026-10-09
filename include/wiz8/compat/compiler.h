@@ -2,6 +2,15 @@
 
 #include <stddef.h>
 
+/* Logical MSVC long fields and pointer-carrying integers are distinct roles.
+   Both retain their original Windows types, widths and decorated names here. */
+typedef long w8_long;
+typedef unsigned long w8_ulong;
+typedef unsigned long w8_ulong_ptr;
+
+/* Executable ABI contracts, distinct from serialized-record contracts. */
+#define W8_ABI_ASSERT(condition, message) static_assert(condition, message)
+
 // Keep modern structural annotations visible to the lint compiler while
 // making them syntax-neutral for the C++98 matching toolchain.
 #if !defined(WIZ8_CLANG_LINT)

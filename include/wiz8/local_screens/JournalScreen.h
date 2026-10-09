@@ -26,7 +26,7 @@ public:
     unsigned char m_pad_065[3];
 };
 
-static_assert(sizeof(W8JournalPanel) == 0x68, "W8JournalPanel_size");
+W8_ABI_ASSERT(sizeof(W8JournalPanel) == 0x68, "W8JournalPanel_size");
 W8_ASSERT_BASE_END(W8JournalPanel, W8TextControl::Listener, m_next, 0x4c);
 
 struct W8JournalEntry {

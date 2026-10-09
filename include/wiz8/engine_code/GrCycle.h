@@ -72,7 +72,7 @@ public:
     void (*completion_callback)(void); /* 0x48 */
 };
 
-static_assert(sizeof(W8CameraShakeEffect) == 0x4c, "W8CameraShakeEffect_must_be_0x4c");
+W8_ABI_ASSERT(sizeof(W8CameraShakeEffect) == 0x4c, "W8CameraShakeEffect_must_be_0x4c");
 
 /* The live list every active effect is on, and the timer the first effect
    creates alongside it. Both are built lazily by the constructor. */
@@ -111,7 +111,7 @@ public:
     srMatrix3T<float> rotation;
 };
 
-static_assert(sizeof(W8GrCycleParticleAttachment) == 0x3c,
+W8_ABI_ASSERT(sizeof(W8GrCycleParticleAttachment) == 0x3c,
               "W8GrCycleParticleAttachment_must_be_0x3c");
 
 class W8GrCycle : public W8GrObject, public W8Navigator {
@@ -193,7 +193,7 @@ public:
     float frame_fraction;
 }; /* 0x1d8 */
 
-static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
+W8_ABI_ASSERT(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 /* Secondary vftable 0x005eceb8 places the W8Navigator subobject at +0x18. */
 W8_ASSERT_BASE_OFFSET(W8GrCycle, W8Navigator, navigation_mode, 0x18);
 

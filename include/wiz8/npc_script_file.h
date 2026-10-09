@@ -1,6 +1,7 @@
 #ifndef WIZ8_NPC_SCRIPT_FILE_H
 #define WIZ8_NPC_SCRIPT_FILE_H
 
+#include "compat/ptr32.h"
 #include <stddef.h>
 
 /* Packed NSF records replace on-disk array slots with runtime pointers. */
@@ -47,8 +48,8 @@ enum {
    entry read at 0x005251F0 consumes sub-entry pairs whose +0 dwords are the
    fact id and the expected value. */
 struct W8NpcQuoteSubEntry {
-    int operand; /* 0x00: fact id on even slots, the expected value on odd */
-    char* text;  /* 0x04 */
+    int operand;         /* 0x00: fact id on even slots, the expected value on odd */
+    W8_PTR32(char) text; /* 0x04 */
 }; /* 0x08 */
 
 /* One 0x12-byte entry. Byte 0 is the kind discriminator read by 0x00576060;
@@ -61,16 +62,16 @@ struct W8NpcQuoteEntry {
     int operand0;
     int operand1;
     int operand2;
-    unsigned char sub_entry_count;   /* 0x0d */
-    W8NpcQuoteSubEntry* sub_entries; /* 0x0e */
+    unsigned char sub_entry_count;            /* 0x0d */
+    W8_PTR32(W8NpcQuoteSubEntry) sub_entries; /* 0x0e */
 }; /* 0x12 */
 
 /* One 0x0c-byte quote record. Field roles come from the reader at 0x0055A140. */
 struct W8NpcScriptQuote {
-    unsigned char subquote_count; /* 0x00 */
-    char** subquotes;             /* 0x01: subquote_count entries */
-    W8NpcQuoteEntry* entries;     /* 0x05: entry_count entries */
-    unsigned short entry_count;   /* 0x09 */
+    unsigned char subquote_count;      /* 0x00 */
+    W8_PTR32(char*) subquotes;         /* 0x01: subquote_count entries */
+    W8_PTR32(W8NpcQuoteEntry) entries; /* 0x05: entry_count entries */
+    unsigned short entry_count;        /* 0x09 */
     /* 0x0b: selects the alert presentation - "Data\Sound\NPCs\Dialogue
        Alert.wav" path and the portrait-message/notice flow instead of the
        per-NPC voice file. */
@@ -81,9 +82,9 @@ struct W8NpcScriptQuote {
    selects the length-prefixed name that follows it. */
 struct W8NpcScriptFile {
     unsigned char unknown_00[4];
-    unsigned short quote_count; /* 0x04 */
-    char* name;                 /* 0x06 */
-    W8NpcScriptQuote* quotes;   /* 0x0a */
+    unsigned short quote_count;        /* 0x04 */
+    W8_PTR32(char) name;               /* 0x06 */
+    W8_PTR32(W8NpcScriptQuote) quotes; /* 0x0a */
 }; /* 0x0e */
 
 #pragma pack(pop)

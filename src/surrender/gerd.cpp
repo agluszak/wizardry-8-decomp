@@ -33,7 +33,7 @@ srGERD::TexturePool::TexturePool() : count(0), free(0), pool_count(0) {}
 // FUNCTION: SURRENDER 0x1001F0B0
 void srGERD::TexturePool::release()
 {
-    for (unsigned long index = 0; index < pool_count; ++index) {
+    for (w8_ulong index = 0; index < pool_count; ++index) {
         srHeap.free(chunks[index]);
     }
     chunks.release();
@@ -45,17 +45,17 @@ void srGERD::TexturePool::release()
 srGERD::Texture* srGERD::TexturePool::allocate()
 {
     if (free == 0) {
-        unsigned long chunk_count = count;
+        w8_ulong chunk_count = count;
         if (chunk_count < 2) {
             chunk_count = 1;
-        } else if (0xff < (long)chunk_count) {
+        } else if (0xff < (w8_long)chunk_count) {
             chunk_count = 0x100;
         }
         Texture* chunk = static_cast<Texture*>(srHeap.allocate(chunk_count * sizeof(Texture)));
         free = chunk;
         chunks[pool_count++] = chunk;
         Texture* link = chunk;
-        for (unsigned long index = chunk_count; index != 0; --index) {
+        for (w8_ulong index = chunk_count; index != 0; --index) {
             link->prev = link + 1;
             ++link;
         }
@@ -99,7 +99,7 @@ srGERD::srGERD(srDD* device, void* module, const char* device_name)
     vertex_arrays.clip.value = srRendererDefs::FRUSTUM_CLIP_MASK;
     vertex_arrays.count = 0;
     vertex_arrays.mask.value = 0;
-    for (unsigned long index = 0; index < 6; ++index) {
+    for (w8_ulong index = 0; index < 6; ++index) {
         vertex_arrays.components[index] = 0;
         vertex_arrays.types[index] = srRendererDefs::TYPE_FLOAT;
         vertex_arrays.strides[index] = 0;
@@ -232,7 +232,7 @@ srDD* srGERD::getDD() const
 }
 
 // FUNCTION: SURRENDER 0x10017A50
-void srGERD::setTextureReduction(long reduction)
+void srGERD::setTextureReduction(w8_long reduction)
 {
     srCriticalSection* section = state_section;
     section->getAccess();
@@ -249,7 +249,7 @@ void srGERD::setTextureReduction(long reduction)
 }
 
 // FUNCTION: SURRENDER 0x10017AC0
-void srGERD::setTexture(srTextureIFace* texture, unsigned long layer)
+void srGERD::setTexture(srTextureIFace* texture, w8_ulong layer)
 {
     srCriticalSectionAccess access(state_section);
     if (layer < device.info.max_texture_stages && texture_iface[layer] != texture) {
@@ -260,30 +260,30 @@ void srGERD::setTexture(srTextureIFace* texture, unsigned long layer)
 }
 
 // FUNCTION: SURRENDER 0x10017F30
-unsigned long srGERD::getTextureCacheSize() const
+w8_ulong srGERD::getTextureCacheSize() const
 {
     srCriticalSection* section = state_section;
     section->getAccess();
-    unsigned long size = texture_cache_size;
+    w8_ulong size = texture_cache_size;
     section->releaseAccess();
     return size;
 }
 
 // FUNCTION: SURRENDER 0x10017F50
-unsigned long srGERD::getTextureCacheUsed() const
+w8_ulong srGERD::getTextureCacheUsed() const
 {
     srCriticalSection* section = state_section;
     section->getAccess();
-    unsigned long used = texture_cache_used;
+    w8_ulong used = texture_cache_used;
     section->releaseAccess();
     return used;
 }
 
 // FUNCTION: SURRENDER 0x1001AA60
-long srGERD::getDisplayMode(unsigned long width, unsigned long height, unsigned long depth) const
+w8_long srGERD::getDisplayMode(w8_ulong width, w8_ulong height, w8_ulong depth) const
 {
     if ((state_flags & STATE_CONTEXT_CREATED) != 0) {
-        for (long i = 0; i < device.display_mode_count; i++) {
+        for (w8_long i = 0; i < device.display_mode_count; i++) {
             const srDD::WindowInfo& mode = device.display_modes[i];
             if (mode.width == width && mode.height == height && mode.depth == depth) {
                 return i;
@@ -305,7 +305,7 @@ void srGERD::getStatistics(Statistics& statistics)
     for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
         Renderer* renderer = entry->renderer;
         if (renderer != 0) {
-            unsigned long renderer_stats[7];
+            w8_ulong renderer_stats[7];
             renderer->getStatistics(renderer_stats);
             this->statistics.input_triangles += renderer_stats[1];
             this->statistics.clipped_triangles += renderer_stats[2];
@@ -374,7 +374,7 @@ void srGERD::toggle(e_enable option)
 // FUNCTION: SURRENDER 0x1001AE60
 void srGERD::popEnable()
 {
-    unsigned long flags = 0;
+    w8_ulong flags = 0;
     if (environment_state.enable_depth != 0) {
         environment_state.enable_depth -= 1;
         flags = environment_state.enable_stack[environment_state.enable_depth].value;
@@ -382,7 +382,7 @@ void srGERD::popEnable()
     if (flags != enable_flags.value) {
         for (e_enable option = static_cast<e_enable>(0); static_cast<int>(option) < 7;
              option = static_cast<e_enable>(static_cast<int>(option) + 1)) {
-            unsigned long bit = 1UL << option;
+            w8_ulong bit = 1UL << option;
             if (((flags & bit) != 0) != ((enable_flags.value & bit) != 0)) {
                 toggle(option);
             }
@@ -391,7 +391,7 @@ void srGERD::popEnable()
 }
 
 // FUNCTION: SURRENDER 0x1001AEC0
-void srGERD::setSwapInterval(unsigned long interval)
+void srGERD::setSwapInterval(w8_ulong interval)
 {
     if (interval != display.swap_interval) {
         display.swap_interval = interval;
@@ -495,7 +495,7 @@ void srGERD::getEnvironmentScaleFactor(float& scale, float& inverse_scale)
 }
 
 // FUNCTION: SURRENDER 0x1001C8A0
-void srGERD::setPolygonOffset(long offset)
+void srGERD::setPolygonOffset(w8_long offset)
 {
     if (offset != polygon_offset) {
         flushImmediateRenderers();
@@ -505,7 +505,7 @@ void srGERD::setPolygonOffset(long offset)
 }
 
 // FUNCTION: SURRENDER 0x1001C8D0
-long srGERD::getPolygonOffset() const
+w8_long srGERD::getPolygonOffset() const
 {
     return polygon_offset;
 }
@@ -542,7 +542,7 @@ void srGERD::setClearDepth(double depth)
 }
 
 // FUNCTION: SURRENDER 0x1001CC10
-void srGERD::drawArrays(srRendererDefs::e_primitive primitive, long first, unsigned long count)
+void srGERD::drawArrays(srRendererDefs::e_primitive primitive, w8_long first, w8_ulong count)
 {
     if ((enable_flags.value & 4) == 0) {
         checkViewStateChanges();
@@ -557,7 +557,7 @@ void srGERD::drawArrays(srRendererDefs::e_primitive primitive, long first, unsig
 }
 
 // FUNCTION: SURRENDER 0x1001CC90
-void srGERD::drawElements(srRendererDefs::e_primitive primitive, unsigned long count,
+void srGERD::drawElements(srRendererDefs::e_primitive primitive, w8_ulong count,
                           srRendererDefs::e_indexType type, const void* indices)
 {
     if ((enable_flags.value & 4) == 0) {
@@ -573,7 +573,7 @@ void srGERD::drawElements(srRendererDefs::e_primitive primitive, unsigned long c
 }
 
 // FUNCTION: SURRENDER 0x1001CEC0
-unsigned long srGERD::getVertexProcessorCount() const
+w8_ulong srGERD::getVertexProcessorCount() const
 {
     return vertex_processors.count;
 }
@@ -582,8 +582,8 @@ unsigned long srGERD::getVertexProcessorCount() const
 void srGERD::getVertexProcessors(srVertexProcessor** processors) const
 {
     if (processors != 0) {
-        unsigned long count = vertex_processors.count;
-        for (unsigned long i = 0; i < count; i++) {
+        w8_ulong count = vertex_processors.count;
+        for (w8_ulong i = 0; i < count; i++) {
             processors[i] = vertex_processors.data[i];
         }
     }
@@ -643,7 +643,7 @@ void srGERD::invalidateResidentTexture(Texture& texture)
             getDD()->deleteTexture(texture.device);
             texture.device.resident_data = 0;
             texture.device.resident_size = 0;
-            for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
+            for (w8_ulong stage = 0; stage < device.info.max_texture_stages; ++stage) {
                 if (texture_slots[stage] == &texture) {
                     texture_slots[stage] = 0;
                 }
@@ -657,7 +657,7 @@ void srGERD::invalidateResidentTexture(Texture& texture)
 // FUNCTION: SURRENDER 0x100280F0
 void srGERD::resetCurrentTexPointers()
 {
-    for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
+    for (w8_ulong stage = 0; stage < device.info.max_texture_stages; ++stage) {
         texture_iface[stage] = 0;
         texture_slots[stage] = 0;
     }
@@ -690,7 +690,7 @@ void srGERD::markTextureAsDeleted(Texture& texture)
 }
 
 // FUNCTION: SURRENDER 0x10018390
-void srGERD::invalidateTextureByFrameHandle(unsigned long handle)
+void srGERD::invalidateTextureByFrameHandle(w8_ulong handle)
 {
     srCriticalSectionAccess access(state_section);
     if (handle != 0 && texture_hash_enabled) {
@@ -721,7 +721,7 @@ void srGERD::invalidateResidentTexture(srTextureIFace* texture)
     flushImmediateRenderers();
     srCriticalSectionAccess access(state_section);
     if (texture != 0) {
-        unsigned long handle = texture->getTextureFrameHandle();
+        w8_ulong handle = texture->getTextureFrameHandle();
         Texture* found = texture_lookup.Lookup(&handle);
         if (found != 0) {
             invalidateResidentTexture(*found);
@@ -730,7 +730,7 @@ void srGERD::invalidateResidentTexture(srTextureIFace* texture)
 }
 
 // FUNCTION: SURRENDER 0x10017EC0
-void srGERD::setTextureCacheSize(unsigned long bytes)
+void srGERD::setTextureCacheSize(w8_ulong bytes)
 {
     srCriticalSectionAccess access(state_section);
     texture_cache_size = bytes;
@@ -740,17 +740,17 @@ void srGERD::setTextureCacheSize(unsigned long bytes)
 }
 
 // FUNCTION: SURRENDER 0x100180A0
-void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, long y, long width,
-                                long height)
+void srGERD::setTextureSubImage(srTextureIFace* texture, w8_long mipmap, w8_long x, w8_long y,
+                                w8_long width, w8_long height)
 {
     srCriticalSectionAccess access(state_section);
     if (isWindowOpen() == 0) {
         return;
     }
-    unsigned long handle = texture->getTextureFrameHandle();
+    w8_ulong handle = texture->getTextureFrameHandle();
     Texture* resident = texture_lookup.Lookup(&handle);
-    if (resident != 0 && resident->device.first_level <= (unsigned long)mipmap &&
-        (unsigned long)mipmap <= resident->device.last_level) {
+    if (resident != 0 && resident->device.first_level <= (w8_ulong)mipmap &&
+        (w8_ulong)mipmap <= resident->device.last_level) {
         srTextureIFace::PartialRequest request;
         request.width = resident->device.width;
         request.height = resident->device.height;
@@ -765,24 +765,24 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
         }
         request.destination_x = x;
         request.destination_y = y;
-        unsigned long shift = (unsigned long)((char)mipmap - (char)resident->device.first_level);
-        unsigned long level_width = request.width >> (shift & 0x1f);
+        // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+        w8_ulong shift = (w8_ulong)((char)mipmap - (char)resident->device.first_level);
+        w8_ulong level_width = request.width >> (shift & 0x1f);
         if (level_width == 0) {
             level_width = 1;
         }
-        unsigned long level_height = request.height >> (shift & 0x1f);
+        w8_ulong level_height = request.height >> (shift & 0x1f);
         if (level_height == 0) {
             level_height = 1;
         }
-        if (level_width < (unsigned long)request.source_right) {
-            request.source_right = (long)level_width;
+        if (level_width < (w8_ulong)request.source_right) {
+            request.source_right = (w8_long)level_width;
         }
-        if (level_height < (unsigned long)request.source_bottom) {
-            request.source_bottom = (long)level_height;
+        if (level_height < (w8_ulong)request.source_bottom) {
+            request.source_bottom = (w8_long)level_height;
         }
-        unsigned long bytes_per_pixel =
-            static_cast<unsigned long>(resident->pixel_format.pixel_size) + 1;
-        unsigned long pitch = bytes_per_pixel * level_width;
+        w8_ulong bytes_per_pixel = static_cast<w8_ulong>(resident->pixel_format.pixel_size) + 1;
+        w8_ulong pitch = bytes_per_pixel * level_width;
         if (resident->surface_data == 0) {
             void* staging =
                 srCore.getGlobalRecycler()->allocate(bytes_per_pixel * level_height * level_width);
@@ -826,11 +826,11 @@ void srGERD::invalidateTextureCache()
 }
 
 // FUNCTION: SURRENDER 0x10018500
-unsigned long srGERD::getResidentTextureMemUsed() const
+w8_ulong srGERD::getResidentTextureMemUsed() const
 {
     srCriticalSection* section = state_section;
     section->getAccess();
-    unsigned long used = 0;
+    w8_ulong used = 0;
     for (Texture* texture = texture_head; texture != 0; texture = texture->next) {
         if (texture->device.resident_data != 0 && texture->device.resident_size > 0) {
             used += texture->device.resident_size;
@@ -890,7 +890,7 @@ void srGERD::applyFrameStateChanges()
 {
     srDD::Update update;
     update.gamma = display.gamma;
-    update.enabled = static_cast<unsigned long>(static_cast<char>(enable_flags.value) & 1);
+    update.enabled = static_cast<w8_ulong>(static_cast<char>(enable_flags.value) & 1);
     update.swap_interval = display.swap_interval;
     update.antialias = display.antialias;
     update.flags = 0;
@@ -1084,7 +1084,7 @@ void srGERD::flipFrame()
 }
 
 // FUNCTION: SURRENDER 0x1001A860
-void srGERD::flipFrame(const Rectangle* first, const Rectangle* second, unsigned long count)
+void srGERD::flipFrame(const Rectangle* first, const Rectangle* second, w8_ulong count)
 {
     if (isWindowOpen() == 0) {
         setError(ERROR_WINDOW_NOT_OPEN);
@@ -1094,14 +1094,14 @@ void srGERD::flipFrame(const Rectangle* first, const Rectangle* second, unsigned
         return;
     }
     flush();
-    long width = getWidth();
-    long height = getHeight();
-    unsigned long window_width = srWindow::getWidth(getWindowHandle());
-    unsigned long window_height = srWindow::getHeight(getWindowHandle());
+    w8_long width = getWidth();
+    w8_long height = getHeight();
+    w8_ulong window_width = srWindow::getWidth(getWindowHandle());
+    w8_ulong window_height = srWindow::getHeight(getWindowHandle());
     if (isFullScreen() == 0 && count != 0) {
         srDD::Scissor* first_scissors = new srDD::Scissor[count * 2];
         srDD::Scissor* second_scissors = first_scissors + count;
-        for (unsigned long i = 0; i < count; i++) {
+        for (w8_ulong i = 0; i < count; i++) {
             first_scissors[i].left = first[i].x;
             first_scissors[i].top = first[i].y;
             first_scissors[i].right = first[i].x + first[i].width;
@@ -1150,19 +1150,19 @@ int srGERD::isContextCreated() const
 }
 
 // FUNCTION: SURRENDER 0x1001D020
-long srGERD::getWidth() const
+w8_long srGERD::getWidth() const
 {
     return device.open_info.width;
 }
 
 // FUNCTION: SURRENDER 0x1001D0A0
-long srGERD::getHeight() const
+w8_long srGERD::getHeight() const
 {
     return device.open_info.height;
 }
 
 // FUNCTION: SURRENDER 0x1001D0B0
-unsigned long srGERD::getWindowHandle() const
+w8_ulong_ptr srGERD::getWindowHandle() const
 {
     return device.window;
 }
@@ -1264,7 +1264,7 @@ srDD::e_hardwareID srGERD::getHardwareID() const
 // FUNCTION: SURRENDER 0x1001D1F0
 void srGERD::pushEnable()
 {
-    unsigned long depth = environment_state.enable_depth;
+    w8_ulong depth = environment_state.enable_depth;
     if (depth < 0x10) {
         environment_state.enable_depth = depth + 1;
         environment_state.enable_stack[depth] = enable_flags;
@@ -1272,8 +1272,7 @@ void srGERD::pushEnable()
 }
 
 // FUNCTION: SURRENDER 0x1001D410
-void srGERD::setViewPort(unsigned long x, unsigned long y, unsigned long width,
-                         unsigned long height)
+void srGERD::setViewPort(w8_ulong x, w8_ulong y, w8_ulong width, w8_ulong height)
 {
     if (width < 1) {
         width = 1;
@@ -1285,16 +1284,16 @@ void srGERD::setViewPort(unsigned long x, unsigned long y, unsigned long width,
     state.view_left = x;
     state.view_bottom = y + height;
     state.view_right = x + width;
-    if (state.view_left >= (unsigned long)getWidth()) {
+    if (state.view_left >= (w8_ulong)getWidth()) {
         state.view_left = getWidth();
     }
-    if (state.view_top >= (unsigned long)getHeight()) {
+    if (state.view_top >= (w8_ulong)getHeight()) {
         state.view_top = getHeight();
     }
-    if (state.view_right >= (unsigned long)getWidth()) {
+    if (state.view_right >= (w8_ulong)getWidth()) {
         state.view_right = getWidth();
     }
-    if (state.view_bottom >= (unsigned long)getHeight()) {
+    if (state.view_bottom >= (w8_ulong)getHeight()) {
         state.view_bottom = getHeight();
     }
     dirty |= DIRTY_VIEWPORT;
@@ -1303,12 +1302,12 @@ void srGERD::setViewPort(unsigned long x, unsigned long y, unsigned long width,
 // FUNCTION: SURRENDER 0x1001D630
 void srGERD::performPickTest(const PickInput& input)
 {
-    unsigned long depth = this->pick.pick_depth;
+    w8_ulong depth = this->pick.pick_depth;
     if (depth == 0) {
         return;
     }
     srVector4T<float>* vertices = pick_vertices.ensure(input.vertex_count);
-    for (unsigned long index = 0; index < input.vertex_count; index++) {
+    for (w8_ulong index = 0; index < input.vertex_count; index++) {
         float inv_w = 1.0f / input.positions[index].w;
         vertices[index].w = inv_w < 0.0f ? -1.0f : 1.0f;
         inv_w = fabs(inv_w);
@@ -1320,8 +1319,8 @@ void srGERD::performPickTest(const PickInput& input)
     do {
         float pick_x = pick->position.x;
         float pick_y = pick->position.y;
-        for (unsigned long index = 0; index < input.triangle_count; index++) {
-            unsigned long triangle_index = input.indices[index];
+        for (w8_ulong index = 0; index < input.triangle_count; index++) {
+            w8_ulong triangle_index = input.indices[index];
             const srVector3i& triangle = input.triangles[triangle_index];
             const srVector4T<float>* corner0 = &vertices[input.vertices[triangle.x]];
             const srVector4T<float>* corner1 = &vertices[input.vertices[triangle.y]];
@@ -1401,19 +1400,19 @@ void srGERD::popPick(Pick& pick)
 }
 
 // FUNCTION: SURRENDER 0x1001DB10
-void srGERD::setPickKey(unsigned long key)
+void srGERD::setPickKey(w8_ulong_ptr key)
 {
     pick.pick_key = key;
 }
 
 // FUNCTION: SURRENDER 0x1001EE50
-void srGERD::setExclusionMask(unsigned long mask)
+void srGERD::setExclusionMask(w8_ulong mask)
 {
     exclusion_mask = mask;
 }
 
 // FUNCTION: SURRENDER 0x1001EE60
-unsigned long srGERD::getExclusionMask() const
+w8_ulong srGERD::getExclusionMask() const
 {
     return exclusion_mask;
 }
@@ -1678,8 +1677,10 @@ void srGERD::accumAlloc()
 {
     if (getWidth() != 0) {
         if (getHeight() != 0) {
-            accum_buffer = static_cast<AccumPixel*>(srHeap.allocate(getWidth() * getHeight() * 8));
-            unsigned long* scratch = static_cast<unsigned long*>(srHeap.allocate(getWidth() * 4));
+            accum_buffer = static_cast<AccumPixel*>(
+                srHeap.allocate(getWidth() * getHeight() * sizeof(*accum_buffer)));
+            w8_ulong* scratch =
+                static_cast<w8_ulong*>(srHeap.allocate(getWidth() * sizeof(*scratch)));
             if (scratch != 0) {
                 accum_scratch = scratch;
                 accumClear();
@@ -1704,10 +1705,10 @@ void srGERD::accumClear()
     short second = accumConvert(clear_state.clear_values.accum.y);
     short third = accumConvert(clear_state.clear_values.accum.z);
     short fourth = accumConvert(clear_state.clear_values.accum.w);
-    unsigned long left = state.scissor.left;
-    unsigned long top = state.scissor.top;
-    unsigned long width = state.scissor.right - left;
-    unsigned long height = state.scissor.bottom - top;
+    w8_ulong left = state.scissor.left;
+    w8_ulong top = state.scissor.top;
+    w8_ulong width = state.scissor.right - left;
+    w8_ulong height = state.scissor.bottom - top;
     /* reinterpret-ok: 16-bit accumulation pixels are filled as dword lanes. */
     SRDWORD* row = reinterpret_cast<SRDWORD*>(accum_buffer) + (getWidth() * top + left) * 2;
     if (width == 0 || height == 0) {
@@ -1727,8 +1728,8 @@ void srGERD::accumClear()
         if (width != 0) {
             row[0] = (first << 16) | (fourth & 0xffff);
             row[1] = (third << 16) | (second & 0xffff);
-            unsigned long words = (width * 8 - 5) >> 2;
-            for (unsigned long i = 0; i < words; i++) {
+            w8_ulong words = (width * 8 - 5) >> 2;
+            for (w8_ulong i = 0; i < words; i++) {
                 row[i + 2] = row[i];
             }
         }
@@ -1756,24 +1757,23 @@ public:
     }
     /* Cannot construct a LockSurface without the owning GERD and pixel format. */
     virtual srClass* vInstance() override;
-    virtual void getPixelColumn(unsigned long* pixels, long x, long y0, long y1) override;
-    virtual void setPixelColumn(const unsigned long* pixels, long x, long y0, long y1) override;
+    virtual void getPixelColumn(w8_ulong* pixels, w8_long x, w8_long y0, w8_long y1) override;
+    virtual void setPixelColumn(const w8_ulong* pixels, w8_long x, w8_long y0, w8_long y1) override;
     virtual void* getDataPtr() override;
-    virtual long getDataSize() override;
-    virtual void setHLine(long y, long x0, long x1, unsigned long pixel) override;
-    virtual void getPixelRow(unsigned long* pixels, long y, long x0, long x1) override;
-    virtual void setPixelRow(const unsigned long* pixels, long y, long x0, long x1) override;
-    virtual void getPixelRowRaw(void* pixels, long y, long x0, long x1) override;
-    virtual void setPixelRowRaw(const void* pixels, long y, long x0, long x1) override;
-    void setScissor(unsigned long left, unsigned long top, unsigned long right,
-                    unsigned long bottom);
+    virtual w8_long getDataSize() override;
+    virtual void setHLine(w8_long y, w8_long x0, w8_long x1, w8_ulong pixel) override;
+    virtual void getPixelRow(w8_ulong* pixels, w8_long y, w8_long x0, w8_long x1) override;
+    virtual void setPixelRow(const w8_ulong* pixels, w8_long y, w8_long x0, w8_long x1) override;
+    virtual void getPixelRowRaw(void* pixels, w8_long y, w8_long x0, w8_long x1) override;
+    virtual void setPixelRowRaw(const void* pixels, w8_long y, w8_long x0, w8_long x1) override;
+    void setScissor(w8_ulong left, w8_ulong top, w8_ulong right, w8_ulong bottom);
 
 private:
     srGERD* gerd;
-    unsigned long left;
-    unsigned long top;
-    unsigned long right;
-    unsigned long bottom;
+    w8_ulong left;
+    w8_ulong top;
+    w8_ulong right;
+    w8_ulong bottom;
     srColorSurface* scratch;
 
 public:
@@ -1800,8 +1800,8 @@ srGERD::LockSurface::LockSurface(srGERD* gerd, const srPixelConvert::PixelFormat
     right = 0;
     bottom = 0;
     /* One row tall and as wide as the longest scissor axis. */
-    unsigned long side =
-        (long)description.width < (long)description.height ? description.height : description.width;
+    w8_ulong side = (w8_long)description.width < (w8_long)description.height ? description.height
+                                                                             : description.width;
     scratch = new srColorSurface(format, side, 1);
     argb32 = 0;
 }
@@ -1825,21 +1825,21 @@ void* srGERD::LockSurface::getDataPtr()
 }
 
 // FUNCTION: SURRENDER 0x1001F760
-long srGERD::LockSurface::getDataSize()
+w8_long srGERD::LockSurface::getDataSize()
 {
     return 0;
 }
 
 // FUNCTION: SURRENDER 0x100207A0
-void srGERD::LockSurface::setHLine(long y, long x0, long x1, unsigned long pixel)
+void srGERD::LockSurface::setHLine(w8_long y, w8_long x0, w8_long x1, w8_ulong pixel)
 {
-    if (y < (long)top || y >= (long)bottom) {
+    if (y < (w8_long)top || y >= (w8_long)bottom) {
         return;
     }
-    if (x0 < (long)left) {
+    if (x0 < (w8_long)left) {
         x0 = left;
     }
-    if (x1 > (long)right) {
+    if (x1 > (w8_long)right) {
         x1 = right;
     }
     if (x0 >= x1) {
@@ -1848,7 +1848,7 @@ void srGERD::LockSurface::setHLine(long y, long x0, long x1, unsigned long pixel
     /* Convert the pixel through the scratch surface, then hand the device a
        pointer to the converted value. */
     scratch->setPixel(0, 0, pixel);
-    unsigned long converted = scratch->getPixelRaw(0, 0);
+    w8_ulong converted = scratch->getPixelRaw(0, 0);
     srDD::BufferCommand command;
     command.flags = 0;
     command.opcode = 4;
@@ -1860,22 +1860,22 @@ void srGERD::LockSurface::setHLine(long y, long x0, long x1, unsigned long pixel
 }
 
 // FUNCTION: SURRENDER 0x10020990
-void srGERD::LockSurface::getPixelRow(unsigned long* pixels, long y, long x0, long x1)
+void srGERD::LockSurface::getPixelRow(w8_ulong* pixels, w8_long y, w8_long x0, w8_long x1)
 {
-    if (y < (long)top || y >= (long)bottom) {
+    if (y < (w8_long)top || y >= (w8_long)bottom) {
         return;
     }
-    if (x0 < (long)left) {
+    if (x0 < (w8_long)left) {
         pixels += left - x0;
         x0 = left;
     }
-    if (x1 > (long)right) {
+    if (x1 > (w8_long)right) {
         x1 = right;
     }
     if (x0 >= x1) {
         return;
     }
-    long count = x1 - x0;
+    w8_long count = x1 - x0;
     srDD::BufferCommand command;
     command.flags = 0;
     command.opcode = 2;
@@ -1893,22 +1893,22 @@ void srGERD::LockSurface::getPixelRow(unsigned long* pixels, long y, long x0, lo
 }
 
 // FUNCTION: SURRENDER 0x10020840
-void srGERD::LockSurface::setPixelRow(const unsigned long* pixels, long y, long x0, long x1)
+void srGERD::LockSurface::setPixelRow(const w8_ulong* pixels, w8_long y, w8_long x0, w8_long x1)
 {
-    if (y < (long)top || y >= (long)bottom) {
+    if (y < (w8_long)top || y >= (w8_long)bottom) {
         return;
     }
-    if (x0 < (long)left) {
+    if (x0 < (w8_long)left) {
         pixels += left - x0;
         x0 = left;
     }
-    if (x1 > (long)right) {
+    if (x1 > (w8_long)right) {
         x1 = right;
     }
     if (x0 >= x1) {
         return;
     }
-    long count = x1 - x0;
+    w8_long count = x1 - x0;
     srDD::BufferCommand command;
     command.flags = 0;
     command.opcode = 3;
@@ -1926,16 +1926,16 @@ void srGERD::LockSurface::setPixelRow(const unsigned long* pixels, long y, long 
 }
 
 // FUNCTION: SURRENDER 0x10020A70
-void srGERD::LockSurface::getPixelRowRaw(void* pixels, long y, long x0, long x1)
+void srGERD::LockSurface::getPixelRowRaw(void* pixels, w8_long y, w8_long x0, w8_long x1)
 {
-    if (y < (long)top || y >= (long)bottom) {
+    if (y < (w8_long)top || y >= (w8_long)bottom) {
         return;
     }
-    if (x0 < (long)left) {
+    if (x0 < (w8_long)left) {
         pixels = (char*)pixels + (left - x0);
         x0 = left;
     }
-    if (x1 > (long)right) {
+    if (x1 > (w8_long)right) {
         x1 = right;
     }
     if (x0 >= x1) {
@@ -1952,16 +1952,16 @@ void srGERD::LockSurface::getPixelRowRaw(void* pixels, long y, long x0, long x1)
 }
 
 // FUNCTION: SURRENDER 0x10020900
-void srGERD::LockSurface::setPixelRowRaw(const void* pixels, long y, long x0, long x1)
+void srGERD::LockSurface::setPixelRowRaw(const void* pixels, w8_long y, w8_long x0, w8_long x1)
 {
-    if (y < (long)top || y >= (long)bottom) {
+    if (y < (w8_long)top || y >= (w8_long)bottom) {
         return;
     }
-    if (x0 < (long)left) {
+    if (x0 < (w8_long)left) {
         pixels = static_cast<const char*>(pixels) + (pixel_format.pixel_size + 1) * (left - x0);
         x0 = left;
     }
-    if (x1 > (long)right) {
+    if (x1 > (w8_long)right) {
         x1 = right;
     }
     if (x0 >= x1) {
@@ -1978,22 +1978,22 @@ void srGERD::LockSurface::setPixelRowRaw(const void* pixels, long y, long x0, lo
 }
 
 // FUNCTION: SURRENDER 0x10020BB0
-void srGERD::LockSurface::getPixelColumn(unsigned long* pixels, long x, long y0, long y1)
+void srGERD::LockSurface::getPixelColumn(w8_ulong* pixels, w8_long x, w8_long y0, w8_long y1)
 {
-    if (x < (long)left || x >= (long)right) {
+    if (x < (w8_long)left || x >= (w8_long)right) {
         return;
     }
-    if (y0 < (long)top) {
+    if (y0 < (w8_long)top) {
         pixels += top - y0;
         y0 = top;
     }
-    if (y1 >= (long)bottom) {
+    if (y1 >= (w8_long)bottom) {
         y1 = bottom;
     }
     if (y0 >= y1) {
         return;
     }
-    long count = y1 - y0;
+    w8_long count = y1 - y0;
     srDD::BufferCommand command;
     command.flags = 0;
     command.opcode = 6;
@@ -2011,22 +2011,22 @@ void srGERD::LockSurface::getPixelColumn(unsigned long* pixels, long x, long y0,
 }
 
 // FUNCTION: SURRENDER 0x10020AF0
-void srGERD::LockSurface::setPixelColumn(const unsigned long* pixels, long x, long y0, long y1)
+void srGERD::LockSurface::setPixelColumn(const w8_ulong* pixels, w8_long x, w8_long y0, w8_long y1)
 {
-    if (x < (long)left || x >= (long)right) {
+    if (x < (w8_long)left || x >= (w8_long)right) {
         return;
     }
-    if (y0 < (long)top) {
+    if (y0 < (w8_long)top) {
         pixels += top - y0;
         y0 = top;
     }
-    if (y1 >= (long)bottom) {
+    if (y1 >= (w8_long)bottom) {
         y1 = bottom;
     }
     if (y0 >= y1) {
         return;
     }
-    long count = y1 - y0;
+    w8_long count = y1 - y0;
     srDD::BufferCommand command;
     command.flags = 0;
     command.opcode = 7;
@@ -2044,8 +2044,7 @@ void srGERD::LockSurface::setPixelColumn(const unsigned long* pixels, long x, lo
 }
 
 // FUNCTION: SURRENDER 0x10020780
-void srGERD::LockSurface::setScissor(unsigned long left, unsigned long top, unsigned long right,
-                                     unsigned long bottom)
+void srGERD::LockSurface::setScissor(w8_ulong left, w8_ulong top, w8_ulong right, w8_ulong bottom)
 {
     this->left = left;
     this->right = right;
@@ -2118,7 +2117,7 @@ void srGERD::clear(const srFlags<e_buffer>& buffers)
 // FUNCTION: SURRENDER 0x1001BC70
 void srGERD::applyViewStateChanges()
 {
-    unsigned long dirty = this->dirty;
+    w8_ulong dirty = this->dirty;
     statistics.view_state_applies += 1;
     if ((dirty & DIRTY_MODELVIEW) != 0) {
         classifyMatrix(MATRIX_MODELVIEW);
@@ -2167,22 +2166,22 @@ void srGERD::applyViewStateChanges()
 }
 
 // FUNCTION: SURRENDER 0x1001D580
-void srGERD::setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height)
+void srGERD::setScissor(w8_ulong x, w8_ulong y, w8_ulong width, w8_ulong height)
 {
     state.scissor.left = x;
     state.scissor.right = x + width;
     state.scissor.top = y;
     state.scissor.bottom = y + height;
-    if (state.scissor.left >= (unsigned long)getWidth()) {
+    if (state.scissor.left >= (w8_ulong)getWidth()) {
         state.scissor.left = getWidth();
     }
-    if (state.scissor.top >= (unsigned long)getHeight()) {
+    if (state.scissor.top >= (w8_ulong)getHeight()) {
         state.scissor.top = getHeight();
     }
-    if (state.scissor.right >= (unsigned long)getWidth()) {
+    if (state.scissor.right >= (w8_ulong)getWidth()) {
         state.scissor.right = getWidth();
     }
-    if (state.scissor.bottom >= (unsigned long)getHeight()) {
+    if (state.scissor.bottom >= (w8_ulong)getHeight()) {
         state.scissor.bottom = getHeight();
     }
     recalcScissor();
@@ -2192,8 +2191,8 @@ void srGERD::setScissor(unsigned long x, unsigned long y, unsigned long width, u
 // FUNCTION: SURRENDER 0x100204C0
 void srGERD::recalcScissor()
 {
-    if (state.scissor.left == 0 && state.scissor.right == (unsigned long)getWidth() &&
-        state.scissor.top == 0 && state.scissor.bottom == (unsigned long)getHeight()) {
+    if (state.scissor.left == 0 && state.scissor.right == (w8_ulong)getWidth() &&
+        state.scissor.top == 0 && state.scissor.bottom == (w8_ulong)getHeight()) {
         state.scissor_flags |= 2;
     } else {
         state.scissor_flags &= ~2UL;
@@ -2322,9 +2321,9 @@ void srGERD::classifyMatrix(e_matrixMode mode)
         return;
     }
     srMatrix4T<float>& matrix = state.matrix_current[mode];
-    unsigned long mask = 0;
-    unsigned long bit = 1;
-    for (long row = 0; row < 4; row++) {
+    w8_ulong mask = 0;
+    w8_ulong bit = 1;
+    for (w8_long row = 0; row < 4; row++) {
         if (matrix.vectors[row].x == 0.0f) {
             mask |= bit;
         }
@@ -2670,8 +2669,7 @@ void srGERD::applyClipPlaneChanges()
 }
 
 // FUNCTION: SURRENDER 0x1001D4E0
-void srGERD::getScissor(unsigned long& x, unsigned long& y, unsigned long& width,
-                        unsigned long& height) const
+void srGERD::getScissor(w8_ulong& x, w8_ulong& y, w8_ulong& width, w8_ulong& height) const
 {
     x = state.scissor.left;
     y = state.scissor.top;
@@ -2680,8 +2678,7 @@ void srGERD::getScissor(unsigned long& x, unsigned long& y, unsigned long& width
 }
 
 // FUNCTION: SURRENDER 0x1001D530
-void srGERD::getViewPort(unsigned long& x, unsigned long& y, unsigned long& width,
-                         unsigned long& height) const
+void srGERD::getViewPort(w8_ulong& x, w8_ulong& y, w8_ulong& width, w8_ulong& height) const
 {
     x = state.view_left;
     y = state.view_top;
@@ -2692,10 +2689,10 @@ void srGERD::getViewPort(unsigned long& x, unsigned long& y, unsigned long& widt
 // FUNCTION: SURRENDER 0x1001C010
 void srGERD::pushClipPlane(const srVector4T<float>& plane, e_clipMode mode)
 {
-    if ((unsigned long)state.clip_plane_count < 0x1a) {
+    if ((w8_ulong)state.clip_plane_count < 0x1a) {
         checkClipPlaneChanges();
         checkViewStateChanges();
-        unsigned long bit = 1UL << (state.clip_plane_count + 6);
+        w8_ulong bit = 1UL << (state.clip_plane_count + 6);
         float inverse_length =
             1.0 / sqrt(plane.z * plane.z + plane.x * plane.x + plane.y * plane.y);
         float x = plane.x * inverse_length;
@@ -2731,7 +2728,7 @@ void srGERD::popClipPlane()
 {
     if (state.clip_plane_count != 0) {
         state.clip_plane_count -= 1;
-        unsigned long mask = ~(1UL << (state.clip_plane_count + 6));
+        w8_ulong mask = ~(1UL << (state.clip_plane_count + 6));
         state.clip_mask &= mask;
         state.clip_mode1_mask &= mask;
     }
@@ -2745,7 +2742,7 @@ void srGERD::getClipPlanes(ClipPlanes& planes)
         planes.planes[plane] = state.clip_planes[plane];
     }
     if ((state.clip_mask & 0xffffffc0) != 0) {
-        for (unsigned long index = 6; index < 0x20; ++index) {
+        for (w8_ulong index = 6; index < 0x20; ++index) {
             if ((state.clip_mask & (1UL << index)) != 0) {
                 planes.planes[index] = state.clip_planes[index];
             }
@@ -2805,7 +2802,7 @@ void srGERD::setEnvironmentScaleFactor(float scale, float inverse_scale)
 // FUNCTION: SURRENDER 0x1001CE00
 void srGERD::pushVertexProcessor(srVertexProcessor& processor)
 {
-    unsigned long count = vertex_processors.count;
+    w8_ulong count = vertex_processors.count;
     vertex_processors[count] = &processor;
     vertex_processors.count += 1;
 }
@@ -2860,7 +2857,7 @@ void srGERD::setAmbientLight(const srVector3T<float>& light)
 }
 
 // FUNCTION: SURRENDER 0x1001DB20
-unsigned long srGERD::getPickKey() const
+w8_ulong_ptr srGERD::getPickKey() const
 {
     return pick.pick_key;
 }
@@ -2897,13 +2894,13 @@ srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center,
     if (eye_z * state.clip_planes[3].z + eye_y * state.clip_planes[3].y <= negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
-    unsigned long remaining = state.clip_mask & 0xffffffc0;
+    w8_ulong remaining = state.clip_mask & 0xffffffc0;
     if (remaining != 0) {
-        for (unsigned long index = 6; index < 0x20; ++index) {
+        for (w8_ulong index = 6; index < 0x20; ++index) {
             if (remaining == 0) {
                 break;
             }
-            unsigned long bit = 1UL << index;
+            w8_ulong bit = 1UL << index;
             if ((remaining & bit) != 0) {
                 const srVector4T<float>& plane = state.clip_planes[index];
                 if (eye_z * plane.z + eye_x * plane.x + eye_y * plane.y + plane.w <=
@@ -3020,7 +3017,7 @@ void srGERD::removeDeletedTextures()
 // FUNCTION: SURRENDER 0x100286B0
 void srGERD::releaseTextureSurfaceData(Texture& texture)
 {
-    for (long index = 0; index < 12; ++index) {
+    for (w8_long index = 0; index < 12; ++index) {
         texture.device.levels[index] = 0;
     }
     if (texture.surface_data != 0) {
@@ -3034,7 +3031,7 @@ void srGERD::releaseTextureSurfaceData(Texture& texture)
 // FUNCTION: SURRENDER 0x100286F0
 void srGERD::deleteTexture(Texture& texture)
 {
-    for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
+    for (w8_ulong stage = 0; stage < device.info.max_texture_stages; ++stage) {
         if (&texture == texture_slots[stage]) {
             texture_slots[stage] = 0;
             dirty |= 1UL << (stage + DIRTY_TEXTURE_SHIFT);
@@ -3072,7 +3069,7 @@ srGERD::Texture* srGERD::findLowestPriority()
 {
     Texture* texture = texture_head;
     Texture* found = 0;
-    unsigned long last_use = texture_sequence + 1;
+    w8_ulong last_use = texture_sequence + 1;
     float lowest = 1.01f;
     if (texture == 0) {
         return 0;
@@ -3081,7 +3078,7 @@ srGERD::Texture* srGERD::findLowestPriority()
         if (texture->device.priority < lowest ||
             (texture->device.priority == lowest && texture->device.last_use < last_use)) {
             int bound = 0;
-            for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
+            for (w8_ulong stage = 0; stage < device.info.max_texture_stages; ++stage) {
                 if (texture_slots[stage] == texture) {
                     bound = 1;
                     break;
@@ -3101,7 +3098,7 @@ srGERD::Texture* srGERD::findLowestPriority()
 }
 
 // FUNCTION: SURRENDER 0x10028990
-srGERD::Texture* srGERD::allocTexture(unsigned long id)
+srGERD::Texture* srGERD::allocTexture(w8_ulong id)
 {
     Texture* texture = texture_pool.allocate();
     memset(texture, 0, 0xa4);
@@ -3133,11 +3130,11 @@ void srGERD::invalidatePalette()
 }
 
 // FUNCTION: SURRENDER 0x10028FB0
-void srGERD::setTextureParameters(unsigned long stage, const srTextureIFace::Parameters& parameters)
+void srGERD::setTextureParameters(w8_ulong stage, const srTextureIFace::Parameters& parameters)
 {
-    unsigned long state = parameters.packed_state;
+    w8_ulong state = parameters.packed_state;
     float bias = parameters.mipmap_bias;
-    unsigned long packed =
+    w8_ulong packed =
         ((((texture_state.wrap_s_map[(state >> srTextureIFace::Parameters::WRAP_S_SHIFT) & 1] &
             0xfffffff3) |
            (texture_state.wrap_t_map[(state >> srTextureIFace::Parameters::WRAP_T_SHIFT) & 1] << 2))
@@ -3165,7 +3162,7 @@ void srGERD::setTextureParameters(unsigned long stage, const srTextureIFace::Par
 }
 
 // FUNCTION: SURRENDER 0x10029400
-void srGERD::changeTexture(srTextureIFace* texture, unsigned long stage, int apply_parms)
+void srGERD::changeTexture(srTextureIFace* texture, w8_ulong stage, int apply_parms)
 {
     if ((state_flags & STATE_CLOSING_WINDOW) != 0) {
         return;
@@ -3179,7 +3176,7 @@ void srGERD::changeTexture(srTextureIFace* texture, unsigned long stage, int app
             return;
         }
     } else {
-        unsigned long id = texture->getTextureFrameHandle();
+        w8_ulong id = texture->getTextureFrameHandle();
         if (id != 0) {
             int slot = texture_lookup.FindNextEntry(&id, -1);
             if (slot != -1) {
@@ -3208,7 +3205,7 @@ bound:
         srPalette* palette = found->palette;
         device_palette.flags = 0;
         device_palette.data = palette->getPaletteDataPtr();
-        unsigned long size = palette->getPaletteSize();
+        w8_ulong size = palette->getPaletteSize();
         device_palette.size = size;
         if (0x100 < size) {
             device_palette.size = 0x100;
@@ -3233,12 +3230,12 @@ bound:
 
 namespace {
 
-unsigned long nextTextureDimension(unsigned long value)
+w8_ulong nextTextureDimension(w8_ulong value)
 {
     if (value < 2) {
         return 1;
     }
-    unsigned long v = value - 1;
+    w8_ulong v = value - 1;
     if (v == 0) {
         return 1;
     }
@@ -3306,10 +3303,10 @@ void srGERD::initTextureFormats()
     device.texture_format_count = 0;
     srDD::PixelFormatList list;
     getDD()->getTextureFormats(list);
-    long count = list.count;
+    w8_long count = list.count;
     if (count != 0) {
         device.texture_formats = new srPixelConvert::PixelFormat[count];
-        long i;
+        w8_long i;
         for (i = 0; i < count; i++) {
             device.texture_formats[i].fourcc = 0;
         }
@@ -3332,7 +3329,7 @@ void srGERD::initDisplayModeList()
     if (list.count != 0) {
         device.display_modes = new srDD::WindowInfo[list.count];
         device.display_mode_count = list.count;
-        for (long i = 0; i < list.count; i++) {
+        for (w8_long i = 0; i < list.count; i++) {
             device.display_modes[i].width = list.entries[i].width;
             device.display_modes[i].height = list.entries[i].height;
             device.display_modes[i].depth = list.entries[i].depth;
@@ -3382,7 +3379,7 @@ void srGERD::initLights()
 void srGERD::initMatrices()
 {
     state.matrix_mode = MATRIX_MODELVIEW;
-    for (long i = 0; i < 2; i++) {
+    for (w8_long i = 0; i < 2; i++) {
         state.matrix_current[i].SetIdentity();
         state.matrix_class[i] = srMatrix4T<float>::TYPE_IDENTITY;
         state.matrix_stacks[i].depth = 0;
@@ -3423,7 +3420,7 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
         return;
     }
     if ((info.value & INFO_DEVICE) != 0) {
-        unsigned long renderers = 0;
+        w8_ulong renderers = 0;
         for (RendererEntry* entry = this->renderers; entry != 0; entry = entry->next) {
             renderers++;
         }
@@ -3532,8 +3529,8 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             srStreamPrintf(stream, "\nFunction                        Calls/sec  Time used\n");
             srStreamPrintf(stream,
                            "---------------------------------------------------------------\n");
-            for (long i = 0; i < 0x2b; i++) {
-                unsigned long calls = device.debug_dd->call_counts[i];
+            for (w8_long i = 0; i < 0x2b; i++) {
+                w8_ulong calls = device.debug_dd->call_counts[i];
                 double used = device.debug_dd->call_times[i] - calls * device.debug_dd->time_scale;
                 if (used <= 0.0) {
                     used = 0.0;
@@ -3566,7 +3563,7 @@ void srGERD::dumpTextureCache(std::ostream& stream)
         srStreamPrintf(stream, "Texture cache hibernating\n");
         return;
     }
-    unsigned long count = 0;
+    w8_ulong count = 0;
     for (Texture* texture = texture_head; texture != 0; texture = texture->next) {
         count++;
     }
@@ -3601,7 +3598,7 @@ void srGERD::dumpTextureCache(std::ostream& stream)
     srStreamPrintf(stream,
                    "-----------------------------------------------------------------------------"
                    "--------------\n");
-    long index = 0;
+    w8_long index = 0;
     for (Texture* entry = texture_head; entry != 0; entry = entry->next) {
         char format_name[64];
         format_name[0] = '\0';
@@ -3611,7 +3608,7 @@ void srGERD::dumpTextureCache(std::ostream& stream)
         index++;
         float kb = (entry->device.size + 0x3ff) * 0.0009765625f;
         if (kb >= 10.0f) {
-            srStreamPrintf(stream, "%-4d  ", static_cast<long>(kb));
+            srStreamPrintf(stream, "%-4d  ", static_cast<w8_long>(kb));
         } else {
             srStreamPrintf(stream, "%.1f   ", kb);
         }
@@ -3637,7 +3634,7 @@ void srGERD::dumpDeviceList(std::ostream& stream)
 }
 
 // FUNCTION: SURRENDER 0x10018870
-srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long device)
+srGERD* srGERD::loadDeviceWithFileName(const char* filename, w8_ulong device)
 {
     static const char* const entry_names[] = {"srDDGetDriverApiVersion", "srDDGetDriverName",
                                               "srDDConfigureDriver",     "srDDGetDeviceCount",
@@ -3665,7 +3662,7 @@ srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long devic
         srDynamicLibrary::getFunction(library, entry_names[4]));
     srDDInitDeviceFn initDevice =
         reinterpret_cast<srDDInitDeviceFn>(srDynamicLibrary::getFunction(library, entry_names[5]));
-    long missing = -1;
+    w8_long missing = -1;
     if (getDriverApiVersion == 0) {
         missing = 0;
     } else if (getDriverName == 0) {
@@ -3691,15 +3688,15 @@ srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long devic
         }
         char* key = new char[strlen(name) + 8];
         sprintf(key, "DD_%s", name);
-        long key_length = static_cast<long>(strlen(key));
-        for (long index = 0; index < key_length; index++) {
+        w8_long key_length = static_cast<w8_long>(strlen(key));
+        for (w8_long index = 0; index < key_length; index++) {
             key[index] = static_cast<char>(toupper(key[index]));
         }
         if (srConfig.get(key) != 0) {
             configureDriver(srConfig.get(key));
         }
         delete[] key;
-        unsigned long count = getDeviceCount();
+        w8_ulong count = getDeviceCount();
         if (device < count) {
             srDD* dd = initDevice(device);
             if (dd == 0) {
@@ -3750,7 +3747,7 @@ srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long devic
 }
 
 // FUNCTION: SURRENDER 0x10018B50
-srGERD* srGERD::loadDevice(const char* name, const char* path, unsigned long device)
+srGERD* srGERD::loadDevice(const char* name, const char* path, w8_ulong device)
 {
     if (name == 0) {
         return 0;
@@ -3768,9 +3765,9 @@ srGERD* srGERD::loadDevice(const char* name, const char* path, unsigned long dev
 void srGERD::loadDevices(const char* path)
 {
     srStringTable libraries;
-    unsigned long count = srSystem::scanLibraries(libraries, path, "srDD*");
-    for (unsigned long index = 0; index < count; index++) {
-        unsigned long device = 0;
+    w8_ulong count = srSystem::scanLibraries(libraries, path, "srDD*");
+    for (w8_ulong index = 0; index < count; index++) {
+        w8_ulong device = 0;
         while (loadDeviceWithFileName(libraries.getString(index), device) != 0) {
             device++;
         }
@@ -3778,7 +3775,7 @@ void srGERD::loadDevices(const char* path)
 }
 
 // FUNCTION: SURRENDER 0x10018DA0
-srGERD* srGERD::loadDevice(srStringTable& devices, unsigned long index)
+srGERD* srGERD::loadDevice(srStringTable& devices, w8_ulong index)
 {
     const char* string = devices.getString(index);
     if (string == 0) {
@@ -3786,7 +3783,7 @@ srGERD* srGERD::loadDevice(srStringTable& devices, unsigned long index)
     }
     char* filename = new char[strlen(string) + 1];
     strcpy(filename, string);
-    unsigned long device = 0;
+    w8_ulong device = 0;
     char* open = strchr(filename, '(');
     if (open != 0) {
         *open = '\0';
@@ -3802,7 +3799,7 @@ srGERD* srGERD::loadDevice(srStringTable& devices, unsigned long index)
 }
 
 // FUNCTION: SURRENDER 0x100191E0
-srGERD::e_error srGERD::createContext(unsigned long window)
+srGERD::e_error srGERD::createContext(w8_ulong_ptr window)
 {
     deleteContext();
     if (srWindow::isWindow(window) == 0) {
@@ -3962,7 +3959,7 @@ srGERD::e_error srGERD::openWindow()
 }
 
 // FUNCTION: SURRENDER 0x1001A160
-srGERD::e_error srGERD::openWindow(long width, long height)
+srGERD::e_error srGERD::openWindow(w8_long width, w8_long height)
 {
     if ((state_flags & STATE_CONTEXT_CREATED) == 0) {
         return ERROR_NO_CONTEXT;
@@ -3980,7 +3977,7 @@ srGERD::e_error srGERD::openWindow(long width, long height)
 }
 
 // FUNCTION: SURRENDER 0x1001A1F0
-srGERD::e_error srGERD::openWindow(long mode)
+srGERD::e_error srGERD::openWindow(w8_long mode)
 {
     if ((state_flags & STATE_CONTEXT_CREATED) == 0) {
         return ERROR_NO_CONTEXT;
@@ -3996,8 +3993,8 @@ srGERD::e_error srGERD::openWindow(long mode)
     }
     const srDD::WindowInfo& entry = device.display_modes[mode];
     OpenInfo info;
-    info.window_width = info.width = (long)entry.width;
-    info.window_height = info.height = (long)entry.height;
+    info.window_width = info.width = (w8_long)entry.width;
+    info.window_height = info.height = (w8_long)entry.height;
     info.display_mode = mode;
     return openWindowInternal(info);
 }
@@ -4006,8 +4003,8 @@ srGERD::e_error srGERD::openWindow(long mode)
 srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
 {
     srCriticalSectionAccess access(state_section);
-    if ((unsigned long)info.width > (unsigned long)info.window_width ||
-        (unsigned long)info.height > (unsigned long)info.window_height) {
+    if ((w8_ulong)info.width > (w8_ulong)info.window_width ||
+        (w8_ulong)info.height > (w8_ulong)info.window_height) {
         return ERROR_INVALID_VALUE;
     }
     if ((state_flags & STATE_CONTEXT_CREATED) == 0) {
@@ -4019,14 +4016,14 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
             return ERROR_INVALID_WHANDLE;
         }
         if (info.display_mode < -1 || device.display_mode_count <= info.display_mode ||
-            device.info.max_back_buffer_width < (unsigned long)info.width ||
-            device.info.max_back_buffer_height < (unsigned long)info.height) {
+            device.info.max_back_buffer_width < (w8_ulong)info.width ||
+            device.info.max_back_buffer_height < (w8_ulong)info.height) {
             return ERROR_INVALID_VALUE;
         }
         memset(&device.open_info, 0, sizeof(device.open_info));
         srDD::OpenInfo dd_info;
-        dd_info.width = (unsigned long)info.width;
-        dd_info.height = (unsigned long)info.height;
+        dd_info.width = (w8_ulong)info.width;
+        dd_info.height = (w8_ulong)info.height;
         dd_info.display_mode = info.display_mode;
         srDD::OpenResult result;
         result.back_buffer_type = 0;
@@ -4044,7 +4041,7 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
             if (firstOpen != 0) {
                 firstOpen->prev_open = this;
             }
-            unsigned long flags = state_flags & ~4UL;
+            w8_ulong flags = state_flags & ~4UL;
             firstOpen = this;
             state_flags |= STATE_WINDOW_OPEN;
             state_flags = flags | STATE_WINDOW_OPEN;
@@ -4055,7 +4052,7 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
             texture_iface[0] = 0;
             texture_iface[1] = 0;
             shader = srShader();
-            for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
+            for (w8_ulong stage = 0; stage < device.info.max_texture_stages; ++stage) {
                 texture_parms[stage].mipmap_bias = 0.0f;
                 texture_parms[stage].packed = 0x1a1;
                 texture_parms[stage].mipmap_bias = -1234567.0f;
@@ -4072,7 +4069,7 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
             state.view_bottom = getHeight();
             createRenderer(1);
             if ((enable_flags.value & (1UL << ENABLE_CLEAR_ON_OPEN)) != 0) {
-                long count;
+                w8_long count;
                 e_backBuffer back_buffer = getBackBufferType();
                 if (back_buffer == static_cast<e_backBuffer>(2)) {
                     count = 2;
@@ -4082,7 +4079,7 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
                     count = 1;
                 }
                 for (; count != 0; count--) {
-                    clear(srFlags<e_buffer>(~static_cast<unsigned long>(BUFFER_ACCUM)));
+                    clear(srFlags<e_buffer>(~static_cast<w8_ulong>(BUFFER_ACCUM)));
                     flipFrame();
                 }
                 flush();
@@ -4132,18 +4129,18 @@ void srGERD::initTexCache()
 void srGERD::evaluateTextureDimensions(srDD::Texture& device,
                                        const srTextureIFace::Dimensions& dimensions)
 {
-    unsigned long min_dim = this->device.info.texture_min_dim;
+    w8_ulong min_dim = this->device.info.texture_min_dim;
     unsigned char reduction = 0;
     if ((dimensions.hints & (1UL << srTextureIFace::HINT_NO_REDUCTION)) == 0) {
         reduction = (unsigned char)texture_reduction;
     }
-    unsigned long width = nextTextureDimension(dimensions.width) >> (reduction & 0x1f);
-    unsigned long height = nextTextureDimension(dimensions.height) >> (reduction & 0x1f);
-    unsigned long device_width = min_dim;
+    w8_ulong width = nextTextureDimension(dimensions.width) >> (reduction & 0x1f);
+    w8_ulong height = nextTextureDimension(dimensions.height) >> (reduction & 0x1f);
+    w8_ulong device_width = min_dim;
     if (min_dim <= width && width <= this->device.info.texture_max_dim) {
         device_width = width;
     }
-    unsigned long device_height = min_dim;
+    w8_ulong device_height = min_dim;
     if (min_dim <= height && height <= this->device.info.texture_max_dim) {
         device_height = height;
     }
@@ -4183,7 +4180,7 @@ void srGERD::evaluateTextureDimensions(srDD::Texture& device,
 void srGERD::evaluateTexturePixelFormat(Texture& texture,
                                         const srTextureIFace::Dimensions& dimensions)
 {
-    unsigned long flags = dimensions.hints;
+    w8_ulong flags = dimensions.hints;
     srPixelConvert::PixelFormat format = dimensions.format;
     if ((flags & (1UL << srTextureIFace::HINT_INTENSITY)) != 0) {
         srPixelConvert::mapPixelFormat(format.alpha_bits != 0 ? srPixelConvert::SURFACE_AL88
@@ -4206,8 +4203,7 @@ void srGERD::evaluateTexturePixelFormat(Texture& texture,
     }
     texture.device.resident = (dimensions.hints >> srTextureIFace::HINT_RESIDENT) & 1;
     convertPixelFormat(texture.device.format, format);
-    unsigned long index =
-        format.match(device.texture_formats, (unsigned long)device.texture_format_count);
+    w8_ulong index = format.match(device.texture_formats, (w8_ulong)device.texture_format_count);
     texture.device.format_index = index;
     texture.pixel_format = device.texture_formats[index];
     if (texture.pixel_format.color_model == srPixelConvert::COLOR_INDEXED) {
@@ -4219,12 +4215,12 @@ void srGERD::evaluateTexturePixelFormat(Texture& texture,
 }
 
 // FUNCTION: SURRENDER 0x10028E60
-void srGERD::releaseTextureMemory(long bytes)
+void srGERD::releaseTextureMemory(w8_long bytes)
 {
     if (0 < bytes) {
         Texture* texture = findLowestPriority();
         while (texture != 0) {
-            bytes -= (long)texture->device.size;
+            bytes -= (w8_long)texture->device.size;
             markTextureAsDeleted(*texture);
             deleteTexture(*texture);
             if (bytes < 1) {
@@ -4236,13 +4232,13 @@ void srGERD::releaseTextureMemory(long bytes)
 }
 
 // FUNCTION: SURRENDER 0x10028EB0
-unsigned long srGERD::getTextureBytesNeeded(Texture& texture) const
+w8_ulong srGERD::getTextureBytesNeeded(Texture& texture) const
 {
-    unsigned long width = texture.device.width;
-    unsigned long height = texture.device.height;
-    unsigned long bytes = 0;
+    w8_ulong width = texture.device.width;
+    w8_ulong height = texture.device.height;
+    w8_ulong bytes = 0;
     if (texture.device.first_level <= texture.device.last_level) {
-        long count = (long)(texture.device.last_level - texture.device.first_level) + 1;
+        w8_long count = (w8_long)(texture.device.last_level - texture.device.first_level) + 1;
         do {
             bytes += height * width * (texture.pixel_format.pixel_size + 1);
             width >>= 1;
@@ -4256,26 +4252,26 @@ unsigned long srGERD::getTextureBytesNeeded(Texture& texture) const
 // FUNCTION: SURRENDER 0x10028EF0
 void srGERD::allocTextureData(Texture& texture)
 {
-    unsigned long size = getTextureBytesNeeded(texture);
+    w8_ulong size = getTextureBytesNeeded(texture);
     if (texture_cache_size != 0 && texture_cache_size < size + texture_cache_used) {
         float priority = texture.device.priority;
         texture.device.priority = 1.2f;
-        releaseTextureMemory((long)(size - texture_cache_size + texture_cache_used));
+        releaseTextureMemory((w8_long)(size - texture_cache_size + texture_cache_used));
         texture.device.priority = priority;
     }
     texture.surface_data = srHeap.allocate(size);
     texture.device.size = size;
     texture_cache_used += size;
-    long bytes_per_pixel = texture.pixel_format.pixel_size;
+    w8_long bytes_per_pixel = texture.pixel_format.pixel_size;
     unsigned char* data = (unsigned char*)texture.surface_data;
-    unsigned long width = texture.device.width;
-    unsigned long height = texture.device.height;
-    unsigned long level = texture.device.first_level;
+    w8_ulong width = texture.device.width;
+    w8_ulong height = texture.device.height;
+    w8_ulong level = texture.device.first_level;
     if (level <= texture.device.last_level) {
         void** levels = &texture.device.levels[level];
         do {
             *levels = data;
-            data += height * width * (unsigned long)(bytes_per_pixel + 1);
+            data += height * width * (w8_ulong)(bytes_per_pixel + 1);
             width >>= 1;
             height >>= 1;
             ++level;
@@ -4314,15 +4310,15 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
     evaluateTexturePixelFormat(*result, dimensions);
     allocTextureData(*result);
     srTextureIFace::MultiRequest request;
-    request.mipmap_level = (long)result->device.first_level;
+    request.mipmap_level = (w8_long)result->device.first_level;
     request.last_level = result->device.last_level;
-    unsigned long width = result->device.width;
-    unsigned long height = result->device.height;
-    long level = request.mipmap_level;
-    for (; level <= (long)request.last_level; ++level) {
+    w8_ulong width = result->device.width;
+    w8_ulong height = result->device.height;
+    w8_long level = request.mipmap_level;
+    for (; level <= (w8_long)request.last_level; ++level) {
         srColorSurface* surface =
             new srColorSurface(result->pixel_format, result->device.levels[level], width, height,
-                               (unsigned long)(result->pixel_format.pixel_size + 1) * width);
+                               (w8_ulong)(result->pixel_format.pixel_size + 1) * width);
         request.destinations[level] = surface;
         if (result->palette != 0) {
             surface->setPalette(result->palette);
@@ -4332,7 +4328,7 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
         height >>= 1;
     }
     texture->getMipmapData(request);
-    for (level = request.mipmap_level; level <= (long)request.last_level; ++level) {
+    for (level = request.mipmap_level; level <= (w8_long)request.last_level; ++level) {
         request.destinations[level]->release();
     }
     result->device.resident_data = 0;
@@ -4342,19 +4338,19 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
 }
 
 // FUNCTION: SURRENDER 0x10017930
-long srGERD::getMaxTextureWidth() const
+w8_long srGERD::getMaxTextureWidth() const
 {
     return device.info.texture_max_dim;
 }
 
 // FUNCTION: SURRENDER 0x10017940
-long srGERD::getMaxTextureHeight() const
+w8_long srGERD::getMaxTextureHeight() const
 {
     return device.info.texture_max_dim;
 }
 
 // FUNCTION: SURRENDER 0x10017950
-long srGERD::getMaxTextureAspectRatio() const
+w8_long srGERD::getMaxTextureAspectRatio() const
 {
     return device.info.texture_max_aspect;
 }
@@ -4366,23 +4362,24 @@ void srGERD::setGlobalPalette(const srPalette& palette)
     if (palette.matchPalette(global_palette, 0x100) != 0) {
         return;
     }
-    unsigned long count = palette.getPaletteSize();
+    w8_ulong count = palette.getPaletteSize();
     if (count > 0x100) {
         count = 0x100;
     }
-    for (unsigned long i = 0; i < count; ++i) {
+    for (w8_ulong i = 0; i < count; ++i) {
         global_palette[i] = palette.getColor(i);
     }
     /* reinterpret-ok: the DD receives the palette entries as raw dwords. */
-    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette), count);
+    // reinterpret-ok: the device API reads palette storage as packed color words
+    getDD()->setGlobalPalette(reinterpret_cast<w8_ulong*>(global_palette), count);
 }
 
 // FUNCTION: SURRENDER 0x10017AA0
-long srGERD::getTextureReduction() const
+w8_long srGERD::getTextureReduction() const
 {
     srCriticalSection* section = state_section;
     section->getAccess();
-    long reduction = texture_reduction;
+    w8_long reduction = texture_reduction;
     section->releaseAccess();
     return reduction;
 }
@@ -4402,7 +4399,7 @@ int srGERD::isTextureCached(srTextureIFace* texture) const
 {
     srCriticalSectionAccess access(state_section);
     if (texture != 0) {
-        unsigned long handle = texture->getTextureFrameHandle();
+        w8_ulong handle = texture->getTextureFrameHandle();
         return texture_lookup.Lookup(&handle) != 0;
     }
     return 0;
@@ -4413,7 +4410,7 @@ int srGERD::isTextureResident(srTextureIFace* texture) const
 {
     srCriticalSectionAccess access(state_section);
     if (texture != 0 && isWindowOpen() != 0) {
-        unsigned long handle = texture->getTextureFrameHandle();
+        w8_ulong handle = texture->getTextureFrameHandle();
         Texture* resident = texture_lookup.Lookup(&handle);
         if (resident != 0 && resident->device.resident_data != 0 &&
             resident->device.resident_size != 0) {
@@ -4430,7 +4427,7 @@ int srGERD::getTextureInfo(srTextureIFace* texture, TextureInfo& info)
     if (isWindowOpen() == 0) {
         return 0;
     }
-    unsigned long handle = texture->getTextureFrameHandle();
+    w8_ulong handle = texture->getTextureFrameHandle();
     Texture* resident = texture_lookup.Lookup(&handle);
     if (resident != 0) {
         info.pixel_format = resident->pixel_format;
@@ -4446,7 +4443,7 @@ int srGERD::getTextureInfo(srTextureIFace* texture, TextureInfo& info)
 void srGERD::initGlobalPalette()
 {
     float level = 0.0f;
-    for (long i = 0; i < 0x100; ++i) {
+    for (w8_long i = 0; i < 0x100; ++i) {
         unsigned char gray = (unsigned char)srFloatToInt(level * 255.0);
         global_palette[i].blue = gray;
         global_palette[i].green = gray;
@@ -4455,7 +4452,8 @@ void srGERD::initGlobalPalette()
         level += 0.003921569f;
     }
     /* reinterpret-ok: the DD receives the palette entries as raw dwords. */
-    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette), 0x100);
+    // reinterpret-ok: the device API reads palette storage as packed color words
+    getDD()->setGlobalPalette(reinterpret_cast<w8_ulong*>(global_palette), 0x100);
 }
 
 // FUNCTION: SURRENDER 0x10018C70
@@ -4463,13 +4461,14 @@ void srGERD::scanDevices(const char* path, srStringTable& devices)
 {
     srStringTable libraries;
     char entry[512];
-    unsigned long count = srSystem::scanLibraries(libraries, path, "srDD*");
-    for (unsigned long index = 0; index < count; ++index) {
+    w8_ulong count = srSystem::scanLibraries(libraries, path, "srDD*");
+    for (w8_ulong index = 0; index < count; ++index) {
         void* library = srDynamicLibrary::load(libraries.getString(index));
-        unsigned long device = 0;
+        w8_ulong device = 0;
         srGERD* gerd = loadDeviceWithFileName(libraries.getString(index), device);
         while (gerd != 0) {
-            sprintf(entry, "%s(%ld)", libraries.getString(index), device);
+            // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+            sprintf(entry, "%s(%ld)", libraries.getString(index), (long)device);
             devices.addString(entry);
             delete gerd;
             device++;
@@ -4527,9 +4526,9 @@ const char* srGERD::errStrings[10] = {"ERROR_NONE",
                                       "ERROR_NO_CONTEXT"};
 
 // FUNCTION: SURRENDER 0x1001B400
-long srGERD::getGERDCount()
+w8_long srGERD::getGERDCount()
 {
-    long count = 0;
+    w8_long count = 0;
     for (srGERD* gerd = first; gerd != 0; gerd = gerd->getNext()) {
         count++;
     }
@@ -4537,9 +4536,9 @@ long srGERD::getGERDCount()
 }
 
 // FUNCTION: SURRENDER 0x1001B420
-srGERD* srGERD::getGERD(unsigned long index)
+srGERD* srGERD::getGERD(w8_ulong index)
 {
-    unsigned long current = 0;
+    w8_ulong current = 0;
     for (srGERD* gerd = first; gerd != 0; gerd = gerd->getNext()) {
         if (current == index) {
             return gerd;
@@ -4556,25 +4555,25 @@ int srGERD::isBufferLocked()
 }
 
 // FUNCTION: SURRENDER 0x1001C830
-long srGERD::getAccumAlphaBits() const
+w8_long srGERD::getAccumAlphaBits() const
 {
     return 0x10;
 }
 
 // FUNCTION: SURRENDER 0x1001C840
-long srGERD::getAccumRedBits() const
+w8_long srGERD::getAccumRedBits() const
 {
     return 0x10;
 }
 
 // FUNCTION: SURRENDER 0x1001C850
-long srGERD::getAccumGreenBits() const
+w8_long srGERD::getAccumGreenBits() const
 {
     return 0x10;
 }
 
 // FUNCTION: SURRENDER 0x1001C860
-long srGERD::getAccumBlueBits() const
+w8_long srGERD::getAccumBlueBits() const
 {
     return 0x10;
 }
@@ -4650,7 +4649,7 @@ void srGERD::getClearColor(srVector4T<float>& color) const
 }
 
 // FUNCTION: SURRENDER 0x1001CBE0
-void srGERD::setClearStencil(unsigned long stencil)
+void srGERD::setClearStencil(w8_ulong stencil)
 {
     clear_state.clear_values.stencil = stencil;
 }
@@ -4662,13 +4661,13 @@ double srGERD::getClearDepth() const
 }
 
 // FUNCTION: SURRENDER 0x1001CC00
-unsigned long srGERD::getClearStencil() const
+w8_ulong srGERD::getClearStencil() const
 {
     return clear_state.clear_values.stencil;
 }
 
 // FUNCTION: SURRENDER 0x1001CF00
-unsigned long srGERD::getDDAPIVersion() const
+w8_ulong srGERD::getDDAPIVersion() const
 {
     return device.driver_info.dd_api_version;
 }
@@ -4686,7 +4685,7 @@ srGERD* srGERD::getPrevOpen() const
 }
 
 // FUNCTION: SURRENDER 0x1001CFA0
-void srGERD::extCommand(unsigned long command, void* data, unsigned long size)
+void srGERD::extCommand(w8_ulong command, void* data, w8_ulong size)
 {
     getDD()->extCommand(command, data, size);
 }
@@ -4742,28 +4741,28 @@ srDD::e_driverID srGERD::getDriverID() const
 }
 
 // FUNCTION: SURRENDER 0x1001D1E0
-unsigned long srGERD::getSwapInterval() const
+w8_ulong srGERD::getSwapInterval() const
 {
     return display.swap_interval;
 }
 
 // FUNCTION: SURRENDER 0x1001D210
-void srGERD::getTextureFormat(unsigned long index, srPixelConvert::PixelFormat& format) const
+void srGERD::getTextureFormat(w8_ulong index, srPixelConvert::PixelFormat& format) const
 {
-    if (device.texture_format_count <= (long)index) {
+    if (device.texture_format_count <= (w8_long)index) {
         index = 0;
     }
     format = device.texture_formats[index];
 }
 
 // FUNCTION: SURRENDER 0x1001D240
-unsigned long srGERD::getTextureFormatCount() const
+w8_ulong srGERD::getTextureFormatCount() const
 {
     return device.texture_format_count;
 }
 
 // FUNCTION: SURRENDER 0x1001D250
-void srGERD::getDisplayModeInfo(long index, DisplayModeInfo& info) const
+void srGERD::getDisplayModeInfo(w8_long index, DisplayModeInfo& info) const
 {
     if (device.display_mode_count <= index) {
         index = 0;
@@ -4774,7 +4773,7 @@ void srGERD::getDisplayModeInfo(long index, DisplayModeInfo& info) const
 }
 
 // FUNCTION: SURRENDER 0x1001D290
-unsigned long srGERD::getDisplayModeCount() const
+w8_ulong srGERD::getDisplayModeCount() const
 {
     return device.display_mode_count;
 }
@@ -4843,8 +4842,8 @@ void srGERD::fenceVertexArrays()
 }
 
 // FUNCTION: SURRENDER 0x1001BC30
-void srGERD::setDataPtr(srRendererDefs::e_vertexArray index, long components,
-                        srRendererDefs::e_type type, unsigned long stride, const void* values)
+void srGERD::setDataPtr(srRendererDefs::e_vertexArray index, w8_long components,
+                        srRendererDefs::e_type type, w8_ulong stride, const void* values)
 {
     vertex_arrays.components[index] = components;
     vertex_arrays.types[index] = type;
@@ -4854,14 +4853,14 @@ void srGERD::setDataPtr(srRendererDefs::e_vertexArray index, long components,
 }
 
 // FUNCTION: SURRENDER 0x1001BF10
-void srGERD::setDiffusePointer(long components, srRendererDefs::e_type type, unsigned long stride,
+void srGERD::setDiffusePointer(w8_long components, srRendererDefs::e_type type, w8_ulong stride,
                                const void* values)
 {
     setDataPtr(srRendererDefs::VERTEX_ARRAY_DIFFUSE, components, type, stride, values);
 }
 
 // FUNCTION: SURRENDER 0x1001BF50
-void srGERD::setSpecularPointer(long components, srRendererDefs::e_type type, unsigned long stride,
+void srGERD::setSpecularPointer(w8_long components, srRendererDefs::e_type type, w8_ulong stride,
                                 const void* values)
 {
     vertex_arrays.components[2] = components;
@@ -4872,7 +4871,7 @@ void srGERD::setSpecularPointer(long components, srRendererDefs::e_type type, un
 }
 
 // FUNCTION: SURRENDER 0x1001BF90
-void srGERD::setFogPointer(long components, srRendererDefs::e_type type, unsigned long stride,
+void srGERD::setFogPointer(w8_long components, srRendererDefs::e_type type, w8_ulong stride,
                            const void* values)
 {
     vertex_arrays.components[3] = components;
@@ -4961,7 +4960,7 @@ srRegistry::ClassNode* srGERD::sGetClassNode()
 }
 
 // FUNCTION: SURRENDER 0x1001CDD0
-unsigned long srGERD::sGetClassID()
+w8_ulong srGERD::sGetClassID()
 {
     return srCore.getRegistry()->getClassID(sGetClassNode());
 }
@@ -4979,13 +4978,14 @@ const char* srGERD::getClassName() const
 }
 
 // FUNCTION: SURRENDER 0x1001CD50
-unsigned long srGERD::getClassID() const
+w8_ulong srGERD::getClassID() const
 {
     return sGetClassID();
 }
 
 // FUNCTION: SURRENDER 0x1001FA30
-void __cdecl srGERD::accumAccum_MMX(AccumPixel* accum, const srARGB* pixels, long scale, long count)
+void __cdecl srGERD::accumAccum_MMX(AccumPixel* accum, const srARGB* pixels, w8_long scale,
+                                    w8_long count)
 {
     __asm {
         mov edi, accum
@@ -5020,7 +5020,8 @@ void __cdecl srGERD::accumAccum_MMX(AccumPixel* accum, const srARGB* pixels, lon
 }
 
 // FUNCTION: SURRENDER 0x1001FA90
-void __cdecl srGERD::accumLoad_MMX(AccumPixel* accum, const srARGB* pixels, long scale, long count)
+void __cdecl srGERD::accumLoad_MMX(AccumPixel* accum, const srARGB* pixels, w8_long scale,
+                                   w8_long count)
 {
     __asm {
         mov edi, accum
@@ -5053,8 +5054,8 @@ void __cdecl srGERD::accumLoad_MMX(AccumPixel* accum, const srARGB* pixels, long
 }
 
 // FUNCTION: SURRENDER 0x1001FB70
-void __cdecl srGERD::accumReturn_MMX(srARGB* pixels, const AccumPixel* accum, long scale,
-                                     long count)
+void __cdecl srGERD::accumReturn_MMX(srARGB* pixels, const AccumPixel* accum, w8_long scale,
+                                     w8_long count)
 {
     __asm {
         mov edi, accum
@@ -5090,7 +5091,7 @@ void __cdecl srGERD::accumReturn_MMX(srARGB* pixels, const AccumPixel* accum, lo
 }
 
 // FUNCTION: SURRENDER 0x1001FAF0
-void __cdecl srGERD::accumAdd_MMX(AccumPixel* accum, long value, long count)
+void __cdecl srGERD::accumAdd_MMX(AccumPixel* accum, w8_long value, w8_long count)
 {
     __asm {
         mov edi, accum
@@ -5111,7 +5112,7 @@ void __cdecl srGERD::accumAdd_MMX(AccumPixel* accum, long value, long count)
 }
 
 // FUNCTION: SURRENDER 0x1001FB20
-void __cdecl srGERD::accumMult_MMX(AccumPixel* accum, long value, long count)
+void __cdecl srGERD::accumMult_MMX(AccumPixel* accum, w8_long value, w8_long count)
 {
     __asm {
         mov edi, accum
@@ -5145,8 +5146,8 @@ void srGERD::accumulate(e_accum operation, float scale)
     if (!isWindowOpen()) {
         return;
     }
-    long width = state.scissor.right - state.scissor.left;
-    long height = state.scissor.bottom - state.scissor.top;
+    w8_long width = state.scissor.right - state.scissor.left;
+    w8_long height = state.scissor.bottom - state.scissor.top;
     if (width == 0 || height == 0) {
         return;
     }
@@ -5167,12 +5168,12 @@ void srGERD::accumulate(e_accum operation, float scale)
        an ARGB pixel row. */
     srARGB* pixels = reinterpret_cast<srARGB*>(accum_scratch);
     if ((srCore.getTimer()->m_cpu_features & (1UL << srTimer::CPU_FEATURE_MMX)) != 0) {
-        long scale16 = (long)(scale * (operation == ACCUM_MULTIPLY ? 32767.0 : 65536.0));
+        w8_long scale16 = (w8_long)(scale * (operation == ACCUM_MULTIPLY ? 32767.0 : 65536.0));
         switch (operation) {
         case ACCUM_LOAD: {
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 surface->getPixelRow(
-                    reinterpret_cast<unsigned long*>(
+                    reinterpret_cast<w8_ulong*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
                     state.scissor.top + y, state.scissor.left, state.scissor.right);
                 __asm {
@@ -5210,9 +5211,9 @@ void srGERD::accumulate(e_accum operation, float scale)
             break;
         }
         case ACCUM_ACCUMULATE: {
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 surface->getPixelRow(
-                    reinterpret_cast<unsigned long*>(
+                    reinterpret_cast<w8_ulong*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
                     state.scissor.top + y, state.scissor.left, state.scissor.right);
                 __asm {
@@ -5248,7 +5249,7 @@ void srGERD::accumulate(e_accum operation, float scale)
             break;
         }
         case ACCUM_MULTIPLY: {
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 __asm {
                     mov edi, row
                     mov ecx, width
@@ -5270,7 +5271,7 @@ void srGERD::accumulate(e_accum operation, float scale)
             break;
         }
         case ACCUM_ADD: {
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 __asm {
                     mov edi, row
                     mov ecx, width
@@ -5300,7 +5301,7 @@ void srGERD::accumulate(e_accum operation, float scale)
             break;
         }
         case ACCUM_RETURN: {
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 __asm {
                     mov edi, row
                     mov esi, pixels
@@ -5333,7 +5334,7 @@ void srGERD::accumulate(e_accum operation, float scale)
                     emms
                 }
                 surface->setPixelRow(
-                    reinterpret_cast<const unsigned long*>(
+                    reinterpret_cast<const w8_ulong*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
                     state.scissor.top + y, state.scissor.left, state.scissor.right);
                 row += getWidth();
@@ -5348,15 +5349,16 @@ void srGERD::accumulate(e_accum operation, float scale)
         switch (operation) {
         case ACCUM_LOAD: {
             short table[256];
-            for (long i = 0; i < 256; i++) {
-                table[i] = (short)(long)(i * (scale * (32767.0f / 255.0f)));
+            for (w8_long i = 0; i < 256; i++) {
+                // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+                table[i] = (short)(w8_long)(i * (scale * (32767.0f / 255.0f)));
             }
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 surface->getPixelRow(
-                    reinterpret_cast<unsigned long*>(
+                    reinterpret_cast<w8_ulong*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
                     state.scissor.top + y, state.scissor.left, state.scissor.right);
-                for (long x = 0; x < width; x++) {
+                for (w8_long x = 0; x < width; x++) {
                     row[x].red = row[x].red + table[pixels[x].blue];
                     row[x].green = row[x].green + table[pixels[x].green];
                     row[x].blue = row[x].blue + table[pixels[x].red];
@@ -5368,15 +5370,16 @@ void srGERD::accumulate(e_accum operation, float scale)
         }
         case ACCUM_ACCUMULATE: {
             short table[256];
-            for (long i = 0; i < 256; i++) {
-                table[i] = (short)(long)(i * (scale * (32767.0f / 255.0f)));
+            for (w8_long i = 0; i < 256; i++) {
+                // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+                table[i] = (short)(w8_long)(i * (scale * (32767.0f / 255.0f)));
             }
-            for (long y = 0; y < height; y++) {
+            for (w8_long y = 0; y < height; y++) {
                 surface->getPixelRow(
-                    reinterpret_cast<unsigned long*>(
+                    reinterpret_cast<w8_ulong*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
                     state.scissor.top + y, state.scissor.left, state.scissor.right);
-                for (long x = 0; x < width; x++) {
+                for (w8_long x = 0; x < width; x++) {
                     row[x].red = table[pixels[x].blue];
                     row[x].green = table[pixels[x].green];
                     row[x].blue = table[pixels[x].red];
@@ -5387,8 +5390,8 @@ void srGERD::accumulate(e_accum operation, float scale)
             break;
         }
         case ACCUM_MULTIPLY: {
-            for (long y = 0; y < height; y++) {
-                for (long x = 0; x < width; x++) {
+            for (w8_long y = 0; y < height; y++) {
+                for (w8_long x = 0; x < width; x++) {
                     row[x].red = row[x].red + addend;
                     row[x].green = row[x].green + addend;
                     row[x].blue = row[x].blue + addend;
@@ -5399,8 +5402,8 @@ void srGERD::accumulate(e_accum operation, float scale)
             break;
         }
         case ACCUM_ADD: {
-            for (long y = 0; y < height; y++) {
-                for (long x = 0; x < width; x++) {
+            for (w8_long y = 0; y < height; y++) {
+                for (w8_long x = 0; x < width; x++) {
                     row[x].red = (short)srFloatToInt(row[x].red * scale);
                     row[x].green = (short)srFloatToInt(row[x].green * scale);
                     row[x].blue = (short)srFloatToInt(row[x].blue * scale);
@@ -5412,24 +5415,25 @@ void srGERD::accumulate(e_accum operation, float scale)
         }
         case ACCUM_RETURN: {
             unsigned char table[512];
-            for (long i = 0; i < 512; i++) {
+            for (w8_long i = 0; i < 512; i++) {
                 float level = i * (1.0f / 255.0f);
                 if (level <= 0.0f) {
                     level = 0.0f;
                 } else if (level >= 1.0f) {
                     level = 1.0f;
                 }
-                table[i] = (unsigned char)(long)(level * scale * 255.0f + 0.5f);
+                // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+                table[i] = (unsigned char)(w8_long)(level * scale * 255.0f + 0.5f);
             }
-            for (long y = 0; y < height; y++) {
-                for (long x = 0; x < width; x++) {
+            for (w8_long y = 0; y < height; y++) {
+                for (w8_long x = 0; x < width; x++) {
                     pixels[x].blue = table[((unsigned short)row[x].red) >> 7];
                     pixels[x].green = table[((unsigned short)row[x].green) >> 7];
                     pixels[x].red = table[((unsigned short)row[x].blue) >> 7];
                     pixels[x].alpha = table[((unsigned short)row[x].alpha) >> 7];
                 }
                 surface->setPixelRow(
-                    reinterpret_cast<const unsigned long*>(
+                    reinterpret_cast<const w8_ulong*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
                     state.scissor.top + y, state.scissor.left, state.scissor.right);
                 row += getWidth();

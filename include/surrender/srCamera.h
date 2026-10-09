@@ -86,5 +86,5 @@ private:
     float environment_far_scale;  /* 0x184 */
 };
 
-static_assert((sizeof(srCamera) == 0x188), "srCamera_must_be_0x188");
+W8_ABI_ASSERT((sizeof(srCamera) == 0x188), "srCamera_must_be_0x188");
 static_assert(sizeof(srCamera::Rect) == 0x20, "srCamera_Rect_must_be_0x20");

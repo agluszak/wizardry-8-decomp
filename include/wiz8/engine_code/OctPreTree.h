@@ -12,18 +12,18 @@ struct W8OctBuildNode;
    region id at +4 is consumed by the particle-region builder, and the six
    plane equations at +0x88 are consumed by 0x0049E460. */
 struct W8OctRegionVolume {
-    unsigned long flags;
+    w8_ulong flags;
     unsigned short m_region;
     unsigned char positional[6];
     /* The bit the visibility pass tests and sets for this volume. */
     unsigned int m_region_bit;
     /* Two record dwords LoadRegionFile copies from the .cub record at +0x10
        and +0x18, and the dword it zeroes at +0x14. */
-    unsigned long value_10;
+    w8_ulong value_10;
     /* Region polygon count: the assignment pass increments it per contained
        polygon, and compaction remaps away regions where it stays zero. */
-    unsigned long m_polygon_count;
-    unsigned long value_18;
+    w8_ulong m_polygon_count;
+    w8_ulong value_18;
     /* Nine 12-byte points from +0x1c to +0x88; 0x004301C0 projects the first
        against the camera and falls back to the other eight. */
     srVector3T<float> m_points[9];
@@ -58,7 +58,7 @@ struct W8OctSpatialState {
     void GetWorkingBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void SetWorkingBounds(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
 
-    unsigned long flags;
+    w8_ulong flags;
     float m_extent;
     float m_cell_size;
     srVector3T<float> m_minimum;
@@ -67,8 +67,8 @@ struct W8OctSpatialState {
     srVector3T<float> m_clipped_maximum;
     /* Mode-2 insertions increment this once per region polygon; the build
        conversion copies it to the pre-tree and sizes m_visited_polygon_bits from it. */
-    unsigned long m_polygon_count;
-    unsigned long m_item_count;
+    w8_ulong m_polygon_count;
+    w8_ulong m_item_count;
     unsigned short m_depth;
     unsigned short m_region_count;
     unsigned short m_item_limit;
@@ -91,20 +91,20 @@ struct W8OctSpatialState {
     float m_max_region_radius;
     /* Leaf-grid strides: dim_y*dim_z for one x step, dim_z for one y
        step. */
-    unsigned long m_leaf_grid_stride_x;
-    unsigned long m_leaf_grid_stride_y;
+    w8_ulong m_leaf_grid_stride_x;
+    w8_ulong m_leaf_grid_stride_y;
     unsigned short m_level_kind;
     unsigned short padding_6e;
     float m_node_extent;
     /* Emitted submesh record bound: the build packs kind-0 then kind-1
        records beneath it. */
-    unsigned long submesh_count;
+    w8_ulong submesh_count;
     srVector3T<float> m_working_minimum;
     srVector3T<float> m_working_maximum;
     /* The build octree root: W8OctBuildNode or the counted subclass
        when the owning build tree counts surfaces per node. */
     W8OctBuildNode* m_root;
-    unsigned long m_node_index;
+    w8_ulong m_node_index;
     /* The working triangle's three vertices, borrowed from the inserter's
        stack for the recursion's bounds tests. */
     const srVector3T<float>* m_triangle_vertices;
@@ -127,10 +127,10 @@ struct W8OctPreTreeVertex {
     /* bit0: excluded from compaction (welded or unused); for welded vertices
        m_vertex_index holds the redirect; bit1: split normal copy; bit2: sits inside more than one
        region volume (m_region zeroed). */
-    unsigned long flags;
+    w8_ulong flags;
     /* Ordinal into the geometry vertex array; on welded vertices the merge
        helper stores the surviving vertex's index here. */
-    unsigned long m_vertex_index;
+    w8_ulong m_vertex_index;
     /* Owning auto-region id written by the region assignment pass. */
     unsigned short m_region;
     /* Per-vertex traversal latch the shared-polygon split raises so each
@@ -145,7 +145,7 @@ struct W8OctPreTreeVertex {
     int m_material;
     /* The polygon automesh kind SplitVertices copies onto material-split
        duplicates. */
-    unsigned long m_kind;
+    w8_ulong m_kind;
     srVector3T<float> m_normal;
     srVector3T<float> m_light;
     float* m_sun_lights;
@@ -169,14 +169,14 @@ struct W8OctPreTreeVertex {
    the canonical material/texture group counts; +0x10/+0x14 hold an owned
    buffer the cleanup releases. */
 struct W8OctPreTreeGeometry {
-    unsigned long vertex_count;
+    w8_ulong vertex_count;
     W8OctPreTreeVertex* m_vertices;
-    unsigned long m_polygon_count;
+    w8_ulong m_polygon_count;
     W8OctRegionPolygon* m_polygons;
-    unsigned long positional2;
+    w8_ulong positional2;
     void* owned;
-    unsigned long m_material_count;
-    unsigned long m_texture_count;
+    w8_ulong m_material_count;
+    w8_ulong m_texture_count;
     /* Largest per-vertex polygon reference count, refreshed by the region
        assignment pass. */
     unsigned short m_max_face_count;
@@ -196,14 +196,14 @@ struct W8OctPreTreeGeometry {
    m_link_index/next_link link fields are emitted as these indices minus
    one) and +0x08 carries the 1..3 mesh kind that becomes m_packed_header. */
 struct W8OctSubmeshBuild {
-    unsigned long flags;
-    unsigned long index;
-    unsigned long m_kind;
-    unsigned long m_prev_link;
-    unsigned long m_next_link;
-    unsigned long vertex_count;
-    unsigned long m_map_count;
-    unsigned long m_polygon_count;
+    w8_ulong flags;
+    w8_ulong index;
+    w8_ulong m_kind;
+    w8_ulong m_prev_link;
+    w8_ulong m_next_link;
+    w8_ulong vertex_count;
+    w8_ulong m_map_count;
+    w8_ulong m_polygon_count;
     int* m_vertex_ids;
     int* m_polygon_ids;
     /* Per-corner vertex indices (three per polygon); becomes the model's
@@ -231,56 +231,56 @@ struct W8OctFileHeader {
     srVector3T<float> m_bounds[6];
     /* The uiLeaf grid dimensions: three integer cell counts serialized in the
        vector slot. */
-    srVector3T<unsigned long> m_grid_dims;
+    srVector3T<w8_ulong> m_grid_dims;
     unsigned short m_depth;
     /* Auto-region id bound; the reader sizes the region-indexed
        m_owned_154/m_pfRegsVisited arrays from it. */
     unsigned short m_region_id_bound;
     /* The finished submesh record bound (the octree's +0x74), not a
        mesh-file count. */
-    unsigned long m_submesh_count;
-    unsigned long m_branch_count;
-    unsigned long m_leaf_count;
-    unsigned long m_polygon_count;
-    unsigned long m_vertex_count;
-    unsigned long m_surface_count;
-    unsigned long m_path_nodes;
+    w8_ulong m_submesh_count;
+    w8_ulong m_branch_count;
+    w8_ulong m_leaf_count;
+    w8_ulong m_polygon_count;
+    w8_ulong m_vertex_count;
+    w8_ulong m_surface_count;
+    w8_ulong m_path_nodes;
     /* Dword length of the count-prefixed per-leaf polygon-id stream. */
-    unsigned long m_leaf_polygon_stream_len;
+    w8_ulong m_leaf_polygon_stream_len;
     /* Dword length of the per-leaf GD surface-id stream; doubles as the
        GameData-block presence gate on the read side. */
-    unsigned long m_gd_surface_stream_len;
+    w8_ulong m_gd_surface_stream_len;
     /* Trigger-list element count; always 0 - the machinery is vestigial and
        the reader even uses a different element size than the writer. */
-    unsigned long m_trigger_count;
-    unsigned long m_zero;
+    w8_ulong m_trigger_count;
+    w8_ulong m_zero;
     /* u16 length of the per-leaf 0-terminated region-id stream. */
-    unsigned long m_region_list_len;
+    w8_ulong m_region_list_len;
     unsigned short m_region_count;
     /* The spatial state's leaf level; the reader derives the region mask and
        packed cell bound from it. */
     unsigned short m_leaf_level;
     /* Kind-0 emitted submesh count; carries the same value as
        m_mesh_total. */
-    unsigned long m_root_mesh_count;
-    unsigned long m_mesh_total;
+    w8_ulong m_root_mesh_count;
+    w8_ulong m_mesh_total;
     /* Kind-1 emitted submesh count.  Serialized for information only - the
        lookup tables on both sides size from m_mesh_total. */
-    unsigned long m_kind1_submesh_count;
+    w8_ulong m_kind1_submesh_count;
     /* +0xa6 and +0xb9 serialize m_spatial's +0x54/+0x60 floats; retail
        copies them with plain movs, which requires float-typed fields. */
     float m_region_grid_cell;
     unsigned short pad_aa;
     float m_region_cell;
-    unsigned long m_edge_node_count;
+    w8_ulong m_edge_node_count;
     /* Path probe-clearance height. Retail never assigns this
        field - the file carries stack garbage - but the reader still loads
        it into +0x17c and feeds it to ConfigureForLevel. */
     float m_path_clearance;
     unsigned char m_prop_sun_bits;
     float m_max_region_radius;
-    unsigned long m_prop_count;
-    unsigned long m_particle_count;
+    w8_ulong m_prop_count;
+    w8_ulong m_particle_count;
     unsigned short m_particle_len;
     unsigned short m_prop_len;
     unsigned char pad_c9[0x2c];

@@ -172,7 +172,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
             vertices = mesh->getVertexLoc();
             normals = mesh->getVertexNormal();
         }
-        unsigned long count = mesh->vertex_location_count;
+        w8_ulong count = mesh->vertex_location_count;
 
         srVector3T<float>* world_vertices = vertices;
         if (rotation.vectors[0].x != g_float_one || rotation.vectors[1].y != g_float_one ||
@@ -264,7 +264,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                     }
                     srVector3T<float> light_color = light->diffuse;
                     float intensity = light->intensity;
-                    for (unsigned long index = 0; index < count; ++index) {
+                    for (w8_ulong index = 0; index < count; ++index) {
                         srVector3T<float> direction = directions[index];
                         float distance = direction.Length();
                         if (distance <= range) {
@@ -802,11 +802,11 @@ void SetSceneMeshShaderBit3(srNode* node, int argument)
                     }
                     mesh->setShader(shader, 0);
                 } else if (clear) {
-                    for (long index = 0; index < mesh->polygon_count; ++index) {
+                    for (w8_long index = 0; index < mesh->polygon_count; ++index) {
                         polygon_shader[index].value &= ~srShader::MASK_DEPTH_WRITE;
                     }
                 } else {
-                    for (long index = 0; index < mesh->polygon_count; ++index) {
+                    for (w8_long index = 0; index < mesh->polygon_count; ++index) {
                         polygon_shader[index].value |= srShader::MASK_DEPTH_WRITE;
                     }
                 }
@@ -842,11 +842,11 @@ void SetSceneMeshShaderLowBits(srNode* node, int argument)
                     }
                     mesh->setShader(shader, 0);
                 } else if (argument == 0) {
-                    for (long index = 0; index < mesh->polygon_count; ++index) {
+                    for (w8_long index = 0; index < mesh->polygon_count; ++index) {
                         polygon_shader[index].value |= srShader::PASS_ALWAYS;
                     }
                 } else {
-                    for (long index = 0; index < mesh->polygon_count; ++index) {
+                    for (w8_long index = 0; index < mesh->polygon_count; ++index) {
                         polygon_shader[index].value =
                             (polygon_shader[index].value & 0xfffffffb) | srShader::PASS_LEQUAL;
                     }

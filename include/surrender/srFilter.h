@@ -54,11 +54,11 @@ public:
     virtual double getSupport() const override;
 };
 
-static_assert(sizeof(srFilter) == 0x04, "srFilter_must_be_0x04");
-static_assert(sizeof(srBoxFilter) == 0x04, "srBoxFilter_must_be_0x04");
-static_assert(sizeof(srBellFilter) == 0x04, "srBellFilter_must_be_0x04");
-static_assert(sizeof(srBSplineFilter) == 0x04, "srBSplineFilter_must_be_0x04");
-static_assert(sizeof(srTriangleFilter) == 0x04, "srTriangleFilter_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srFilter) == 0x04, "srFilter_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srBoxFilter) == 0x04, "srBoxFilter_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srBellFilter) == 0x04, "srBellFilter_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srBSplineFilter) == 0x04, "srBSplineFilter_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srTriangleFilter) == 0x04, "srTriangleFilter_must_be_0x04");
 
 extern SR_DLL_IMPORT class srBoxFilter srBoxFilter;
 extern SR_DLL_IMPORT class srBellFilter srBellFilter;

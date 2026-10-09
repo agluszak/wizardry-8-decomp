@@ -24,7 +24,7 @@ protected:
     unsigned short pad_ba;
     W8RangeControl* m_range;
 };
-static_assert(sizeof(W8RangeButton) == 0xc0, "W8RangeButton_size");
+W8_ABI_ASSERT(sizeof(W8RangeButton) == 0xc0, "W8RangeButton_size");
 
 class W8VerticalRangeThumb;
 
@@ -82,7 +82,7 @@ public:
     W8RangeListener* m_listener;
     bool m_enabled; /* binary enable gating Decrement/Increment */
 };
-static_assert(sizeof(W8RangeControl) == 0x6c, "W8RangeControl_size");
+W8_ABI_ASSERT(sizeof(W8RangeControl) == 0x6c, "W8RangeControl_size");
 
 class W8HorizontalRangeThumb;
 
@@ -133,4 +133,4 @@ protected:
     void ClampPositionAndInvalidate();
 };
 
-static_assert(sizeof(W8HorizontalRangeThumb) == 0x70, "W8HorizontalRangeThumb_size");
+W8_ABI_ASSERT(sizeof(W8HorizontalRangeThumb) == 0x70, "W8HorizontalRangeThumb_size");

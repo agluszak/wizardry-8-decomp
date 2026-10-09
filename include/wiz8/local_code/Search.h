@@ -29,7 +29,7 @@ struct W8Searchable {
     Trigger* trigger;
 };
 
-static_assert(sizeof(W8Searchable) == 0x0c, "W8Searchable_must_be_0x0c");
+W8_ABI_ASSERT(sizeof(W8Searchable) == 0x0c, "W8Searchable_must_be_0x0c");
 
 /* The per-pulse iteration view over the registry. Its constructor
    seeds the cursor before the first element; CollectSearchablesInView refills
@@ -41,7 +41,7 @@ struct W8SearchableView {
     W8Vector<W8Searchable*> items;
 };
 
-static_assert(sizeof(W8SearchableView) == 0x14, "W8SearchableView_must_be_0x14");
+W8_ABI_ASSERT(sizeof(W8SearchableView) == 0x14, "W8SearchableView_must_be_0x14");
 
 extern W8Vector<W8Searchable*> g_searchables;
 extern W8SearchableView g_search_view;

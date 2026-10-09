@@ -54,7 +54,7 @@ struct W8MessageStorageRecord {
     unsigned char unknown_1c[8];
 };
 
-static_assert(sizeof(W8MessageStorageRecord) == 0x24, "W8MessageStorageRecord_must_be_0x24");
+W8_ABI_ASSERT(sizeof(W8MessageStorageRecord) == 0x24, "W8MessageStorageRecord_must_be_0x24");
 
 extern W8MessageStorageRecord g_message_storage[4][0x15e];
 

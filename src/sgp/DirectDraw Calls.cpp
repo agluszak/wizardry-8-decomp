@@ -5,7 +5,7 @@
 #include "DirectDraw Calls.h"
 
 #include <ddraw.h>
-#include "debug.h"
+#include "DEBUG.H"
 #include "video_private.h"
 #include "vobject_blitters.h"
 

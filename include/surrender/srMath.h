@@ -17,7 +17,7 @@ public:
     srVector2T<T>() {}
     srVector2T<T>(T source_0, T source_1) : x(source_0), y(source_1) {}
 
-    void* operator new[](unsigned int size)
+    void* operator new[](size_t size)
     {
         return srHeap.allocate(size);
     }
@@ -92,7 +92,7 @@ public:
         return srVector2T<T>(x, z);
     }
 
-    void* operator new[](unsigned int size)
+    void* operator new[](size_t size)
     {
         return srHeap.allocate(size);
     }
@@ -410,7 +410,7 @@ public:
         return result;
     }
 
-    void* operator new[](unsigned int size)
+    void* operator new[](size_t size)
     {
         return srHeap.allocate(size);
     }
@@ -1235,7 +1235,7 @@ class srVector3i {
 public:
     srVector3i() {}
 
-    void* operator new[](unsigned int size)
+    void* operator new[](size_t size)
     {
         return srHeap.allocate(size);
     }

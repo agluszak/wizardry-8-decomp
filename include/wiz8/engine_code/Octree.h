@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/stHash.hpp"
 #include "wiz8/geometry.h"
 #include "wiz8/vector.h"
+#include "Types.h"
 
 class GDProp;
 class W8Prop;
@@ -128,11 +129,11 @@ inline BOOLEAN WriteVectorArray(int file, const srVector2T<float>* values, int c
    mesh back. Field +0 carries the render flags the visibility update sets and
    clears. */
 struct W8OctSubmesh {
-    unsigned long flags;
+    w8_ulong flags;
     int mesh;
     /* The same-chain successor's record index (the build record's
        m_next_link). */
-    unsigned long next_link;
+    w8_ulong next_link;
     /* Reader max-scans this to size the g_octree_storage identity table. */
     unsigned int polygon_count;
 };
@@ -233,18 +234,18 @@ struct W8OctPreTreeBranch {
     /* The region/owner id VerifyPolygonRegions and the runtime region reads
        compare against a polygon's region. */
     unsigned short region;
-    unsigned long children[8];
+    w8_ulong children[8];
 };
 
 struct W8OctPreTreeLeaf {
     /* Bit 0 is a runtime flag WriteOctFile clears before serialization. */
-    unsigned long flags;
-    unsigned long region_offset;
-    unsigned long polygon_offset;
-    unsigned long gd_polygon_offset;
+    w8_ulong flags;
+    w8_ulong region_offset;
+    w8_ulong polygon_offset;
+    w8_ulong gd_polygon_offset;
     /* Stream offsets for object kinds 4-9: QueryKinds indexes the leaf as a
        flat ten-dword table (kind + leaf_index * 10). */
-    unsigned long kind_offsets[6];
+    w8_ulong kind_offsets[6];
 };
 
 static_assert(sizeof(W8OctPreTreeBranch) == 0x24, "W8OctPreTreeBranch_must_be_0x24");
@@ -296,7 +297,7 @@ public:
        position is outside the octree bounds. */
     srVector3T<int>* WorldPositionToCell(const srVector3T<float>* position,
                                          srVector3T<int>* point); /* 0x00431440 */
-    unsigned long FindLeaf(const srVector3T<int>* point);
+    w8_ulong FindLeaf(const srVector3T<int>* point);
     void UpdateMonsterLocation(unsigned short location_id, const srVector3T<float>* position);
     /* Object-kind values the query machinery dispatches on: 3 = GD triangle,
        8 = collidable-prop polygon reference, 9 = path waypoint, 12 = location entry,
@@ -311,11 +312,11 @@ public:
        `*results` carries the destination buffer in and out; a null
        incoming buffer selects the internal m_aulGDObjs store. Returns the
        entry count. */
-    int CollectObjectsAlongSegment(unsigned long** results, const srVector3T<float>* origin,
+    int CollectObjectsAlongSegment(w8_ulong** results, const srVector3T<float>* origin,
                                    const srVector3T<float>* delta, float extent,
                                    unsigned short kind); /* 0x0042ED60 */
     /* Kind-12 box query; `exclusion` 0 maps to none. */
-    int QueryLocationsInBox(unsigned long** results, const srVector3T<float>* lower,
+    int QueryLocationsInBox(w8_ulong** results, const srVector3T<float>* lower,
                             const srVector3T<float>* upper,
                             unsigned short exclusion); /* 0x0042EF00 */
     /* AABB occupancy test: GD triangles, kind-12 location objects (with each
@@ -353,7 +354,7 @@ public:
     /* Reset vs append variants collecting one cell's leaf polygon references
        (mapped through m_aulPolyLookup into (mesh<<16)|polygon keys). */
     int ProbeCellForBlockers(const srVector3T<int>* cell); /* 0x00435C40 */
-    void AppendBlockerStream(const unsigned long* stream);
+    void AppendBlockerStream(const w8_ulong* stream);
     int ProbeCellForBlockersAppend(const srVector3T<int>* cell); /* 0x00435DA0 */
     /* Test every buffered (mesh<<16)|polygon key's triangle against the trace
        ray; on a closer hit, end returns the contact point. */
@@ -403,11 +404,11 @@ public:
        destination buffer in and out (null selects m_aulGDObjs), `excluded`
        is an object id pre-marked in the dedupe set (-1 = none). Returns the
        entry count. */
-    int QueryObjects(unsigned long** objects, const srVector3T<float>* lower,
+    int QueryObjects(w8_ulong** objects, const srVector3T<float>* lower,
                      const srVector3T<float>* upper, unsigned short kind,
                      int excluded); /* 0x0042F280 */
     unsigned int QueryNearbyLocations(const srVector3T<float>* position, float spacing,
-                                      unsigned long** candidates);
+                                      w8_ulong** candidates);
     void AdjustPosition(srVector3T<float>* position, unsigned int mode);
     /* Refresh the pathing service's debug preview from the world cursor,
        falling back to the camera eye when the cursor is unset. */
@@ -441,8 +442,8 @@ public:
     /* Collect the live (mesh<<16)|polygon keys whose triangles overlap the
        (x±radius, y-height..y, z±radius) box, sorted and zero-terminated in
        the shared query buffer. */
-    unsigned long* CollectPolygonsNearPoint(srVector3T<float>* center, float radius,
-                                            float height); /* 0x00438780 */
+    w8_ulong* CollectPolygonsNearPoint(srVector3T<float>* center, float radius,
+                                       float height); /* 0x00438780 */
     int CountBadRegionMeshLinks(W8OctSpatialState* spatial);
     void ToggleUpdateSuspension(W8World* world);
     void MarkMeshLinksVisible(unsigned int mesh);
@@ -466,7 +467,7 @@ public:
     {
         return (m_spatial.flags & 0x80000000) != 0;
     }
-    unsigned long GetMeshCount() const
+    w8_ulong GetMeshCount() const
     {
         return m_spatial.submesh_count;
     }
@@ -479,20 +480,20 @@ public:
     W8OctSpatialState m_spatial;
     W8OctPreTreeBranch* m_branches;
     W8OctPreTreeLeaf* m_leaves;
-    srVector3T<unsigned long> m_leaf_grid_dimensions;
-    unsigned long* m_leaf_lookup;
-    unsigned long m_branch_count;
-    unsigned long m_leaf_count;
+    srVector3T<w8_ulong> m_leaf_grid_dimensions;
+    w8_ulong* m_leaf_lookup;
+    w8_ulong m_branch_count;
+    w8_ulong m_leaf_count;
     W8OctreeObjectRegistry* object_registry;
     char* m_owned_0c0;
     bool m_fAccumulating;
     unsigned char m_padding_0c5[3];
-    unsigned long m_vertex_count;
-    unsigned long m_leaf_polygon_stream_len;
-    unsigned long* m_polygon_index_stream;
+    w8_ulong m_vertex_count;
+    w8_ulong m_leaf_polygon_stream_len;
+    w8_ulong* m_polygon_index_stream;
     /* ReadOctFile's allocation assertion calls this the "Poly Lookup table":
        polygon index to (kind<<16)|id object key. */
-    unsigned long* m_aulPolyLookup;
+    w8_ulong* m_aulPolyLookup;
     W8OctSubmesh* m_pSubmeshes;
     /* Six original member names, from ReadOctFile's own assertion text at
        0x0042C68A, 0x0042C70C, 0x0042C7AB, 0x0042C850, 0x0042C8F5 and
@@ -507,7 +508,7 @@ public:
     unsigned short* m_pusMeshProps;      /* 0xf0 */
     unsigned short m_usMeshPropsLen;
     unsigned short m_padding_0f6;
-    unsigned long m_ulNumParticles;
+    w8_ulong m_ulNumParticles;
     BitArray* m_linked_particles;
     BitArray* m_visible_particles;
     BitArray* m_linked_props;
@@ -521,25 +522,25 @@ public:
     /* Registered prop id the last prop trace or test_props snap hit; -1 when
        the ground resolve touched only static geometry. */
     int current_prop;
-    unsigned long m_gd_surface_stream_len;
-    unsigned long m_trigger_count;
-    unsigned long* m_gd_surface_index_stream;
+    w8_ulong m_gd_surface_stream_len;
+    w8_ulong m_trigger_count;
+    w8_ulong* m_gd_surface_index_stream;
     /* Trigger list: serialized as 2-byte elements (ReadOctFile allocates
        count * 2 + 4) even though WriteOctFile emits them four bytes wide. */
     unsigned short* m_trigger_indices;
-    unsigned long m_trace_skip_flag;
-    unsigned long m_region_list_len;
-    unsigned long m_unknown_13c;
+    w8_ulong m_trace_skip_flag;
+    w8_ulong m_region_list_len;
+    w8_ulong m_unknown_13c;
     /* The leaf-level mask: VerifyPolygonRegions rebuilds it as
        (1 << m_leaf_level) - 1 and the packed-cell writers emit it as the top
        byte of each (mask<<24 | x<<16 | y<<8 | z) key. */
-    unsigned long m_region_mask;
-    unsigned long m_depth_mask;
+    w8_ulong m_region_mask;
+    w8_ulong m_depth_mask;
     unsigned short* m_region_index_stream;
     unsigned char* m_pfRegsVisited;
     W8HashTable<unsigned int, unsigned short>* m_pRegionLinks;
     BitArray* m_owned_154;
-    unsigned long m_padding_158;
+    w8_ulong m_padding_158;
     BitArray* m_projected_regions;
     BitArray* m_current_regions;
     BitArray* m_previous_regions;
@@ -552,7 +553,7 @@ public:
     bool m_region_links_dirty;
     bool m_points_dirty;
     unsigned char m_padding_16e[2];
-    unsigned long m_point_count;
+    w8_ulong m_point_count;
     srVector3T<float>* m_sample_points;
     /* Region-link sample cell size read from .oct offset 0xac; the link
        builder strides the x/z grid by it (times three for a sparse pass). */
@@ -561,7 +562,7 @@ public:
     W8PathingService* pathing;
     int prop_sun_base; /* 0x184: this octree's base index into the shared
                               prop-sunlight bit stream */
-    unsigned long m_ulNumProps;
+    w8_ulong m_ulNumProps;
     /* Named m_pPropSunBits by ReadOctFile's assertion at 0x0042CAA4. The
        earlier `visited` reading came from 0x0042E3E0's parameter, not from
        the image, and the assertion outranks it. */
@@ -572,14 +573,14 @@ public:
     BitArray* m_owned_19c;
     BitArray* m_owned_1a0;
     BitArray* m_owned_1a4;
-    unsigned long m_root_mesh_count;
-    unsigned long m_kind1_submesh_count;
-    unsigned long m_alpha_polygon_count;
-    unsigned long m_meshCount;
-    unsigned long m_gd_result_count;
-    unsigned long* m_aulGDObjs; /* 0x1bc */
+    w8_ulong m_root_mesh_count;
+    w8_ulong m_kind1_submesh_count;
+    w8_ulong m_alpha_polygon_count;
+    w8_ulong m_meshCount;
+    w8_ulong m_gd_result_count;
+    w8_ulong* m_aulGDObjs; /* 0x1bc */
     W8OctreeView view;
-    unsigned long m_unknown_27c[6];
+    w8_ulong m_unknown_27c[6];
     bool m_visibility_suspended;
     unsigned char m_padding_295;
     /* The build's directional-sun count: the driver stores the light total
@@ -591,7 +592,7 @@ public:
     unsigned char m_padding_29a[2];
 };
 
-static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
+W8_ABI_ASSERT(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
 class OctPreTree : public W8Octree {
 public:
@@ -600,7 +601,7 @@ public:
 
     /* Automesh index -> packed cell (z | y<<8 | x<<16 | mask<<24) map the
        verify passes walk to bound-check each automesh's vertices. */
-    W8HashTable<unsigned short, unsigned long>* automesh_cells;
+    W8HashTable<unsigned short, w8_ulong>* automesh_cells;
     PrePathing* pre_pathing;
     /* The path-node scratch block BuildPathLists/PathNodeObstructed fill:
        created-node count, then the runs of registered prop ids the node
@@ -614,11 +615,11 @@ public:
     int m_lNumBlocks;
     int m_lSupports[30];
     int m_lBlocks[30];
-    unsigned long polygon_cursor;
+    w8_ulong polygon_cursor;
     W8OctPreTreeGeometry* game_data;
-    unsigned long unknown_3a8;
-    unsigned long unknown_3ac;
-    unsigned long deepest_link_list;
+    w8_ulong unknown_3a8;
+    w8_ulong unknown_3ac;
+    w8_ulong deepest_link_list;
     /* Path-node grid pitch: BuildPathLists sets it to m_region_cell * 2. */
     float path_node_extent;
     /* The registered prop objects the path-bounds test collides against;
@@ -642,9 +643,9 @@ public:
     /* Partitions the geometry into submesh records, emits the OctMeshModel
        array and fills m_pSubmeshes/m_aulPolyLookup. */
     OctMeshModel* CreateSubMeshes(W8OctPreTreeGeometry* geometry);
-    unsigned long SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
-    unsigned long AllocateSubMesh(W8OctSubmeshBuild* records);
-    unsigned long SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry);
+    w8_ulong SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
+    w8_ulong AllocateSubMesh(W8OctSubmeshBuild* records);
+    w8_ulong SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry);
     void VerifyPolygonRegions();
     void VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
     unsigned char BuildPathLists(W8GameData* game_data, W8LevelFile* level,
@@ -660,7 +661,7 @@ public:
     char PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first, unsigned short last);
 };
 
-static_assert(sizeof(OctPreTree) == 0x3bc, "OctPreTree_must_be_0x3bc");
+W8_ABI_ASSERT(sizeof(OctPreTree) == 0x3bc, "OctPreTree_must_be_0x3bc");
 
 extern W8Octree* g_octree;
 extern OctPreTree* g_oct_pre_tree;
@@ -671,13 +672,13 @@ extern bool g_octree_disabled;
 
 bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement);
 
-static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
+W8_ABI_ASSERT(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
 extern unsigned int* g_octree_storage_;
-extern unsigned long* g_octree_state;
+extern w8_ulong* g_octree_state;
 extern stModelInstance* g_octree_trace_node;
 extern const float g_octree_cell_scale;
-extern unsigned long g_octree_bytes_read;
+extern w8_ulong g_octree_bytes_read;
 extern int g_prop_sun_index;
 extern bool g_octree_update_suspended;
 extern bool g_octree_trace_enabled;
@@ -692,5 +693,5 @@ extern bool g_render_untextured;
 
 int CheckLevelAssetSet(const char* level_path);
 
-unsigned long* __fastcall PackColourToLong(unsigned long* color, double alpha, double red,
-                                           double green, double blue);
+w8_ulong* __fastcall PackColourToLong(w8_ulong* color, double alpha, double red, double green,
+                                      double blue);

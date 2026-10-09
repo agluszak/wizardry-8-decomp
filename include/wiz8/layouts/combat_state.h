@@ -313,14 +313,14 @@ struct W8CombatState {
     unsigned char padding_a63;
 }; /* 0xa64 */
 
-static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");
+W8_ABI_ASSERT(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");
 static_assert(offsetof(W8CombatState, combat_ui_timer) == 0x7a8,
               "W8CombatState_combat_ui_timer_offset");
 static_assert(offsetof(W8CombatState, eCombatActionStatus) == 0x7b0,
               "W8CombatState_eCombatActionStatus_offset");
-static_assert(offsetof(W8CombatState, npc_combat_script_pending) == 0xa58,
+W8_ABI_ASSERT(offsetof(W8CombatState, npc_combat_script_pending) == 0xa58,
               "W8CombatState_npc_combat_script_pending_offset");
-static_assert(offsetof(W8CombatState, combat_update_count) == 0xa5c,
+W8_ABI_ASSERT(offsetof(W8CombatState, combat_update_count) == 0xa5c,
               "W8CombatState_combat_update_count_offset");
 #pragma pack(pop)
 

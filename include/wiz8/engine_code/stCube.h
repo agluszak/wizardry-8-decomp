@@ -26,13 +26,13 @@ public:
     unsigned char GetLocation(srVector3T<float>* position);
     srNode* node; /* 0x04 */
     unsigned int value_08;
-    int parameters[3];   /* 0x0c, 0x10, 0x14 */
-    void* pUserdata;     /* 0x18 */
-    int userdata_size;   /* 0x1c */
-    unsigned long color; /* 0x20 */
+    int parameters[3]; /* 0x0c, 0x10, 0x14 */
+    void* pUserdata;   /* 0x18 */
+    int userdata_size; /* 0x1c */
+    w8_ulong color;    /* 0x20 */
     char name[0x20];
 };
-static_assert(sizeof(W8WorldCursorNode) == 0x44, "W8WorldCursorNode_size");
+W8_ABI_ASSERT(sizeof(W8WorldCursorNode) == 0x44, "W8WorldCursorNode_size");
 
 extern const double g_world_cursor_scale;
 
@@ -64,11 +64,11 @@ void AttachWorldCursorNode(W8WorldCursorNode* entry, bool attached);
 /* 0x0048F110: copy `name` into the node's 0x20-byte name with a forced
    terminator. */
 void SetWorldCursorNodeName(W8WorldCursorNode* entry, const char* name);
-void SetWorldCursorNodeColor(W8WorldCursorNode* entry, unsigned long color);
+void SetWorldCursorNodeColor(W8WorldCursorNode* entry, w8_ulong color);
 /* 0x0048E3E0: the world-cursor node under the screen point, or 0. */
 W8WorldCursorNode* PickWorldCursorNodeAtScreenPoint(int x, int y);
 void DrawWorldBox(W8World* world, srVector3T<float> minimum, srVector3T<float> maximum,
-                  unsigned long color);
+                  w8_ulong color);
 unsigned char SaveWorldCursorNodeStates(int handle);
 unsigned char SaveWorldCursorNodes(int handle);
 unsigned int LoadWorldCursorNodes(int handle);

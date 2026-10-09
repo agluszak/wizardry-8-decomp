@@ -1258,11 +1258,12 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
         srAssertFail("!pMonsterInfo->fInCombat", MONSTER_MANAGER_CPP, 0x29a, 0);
     }
     ClearMonsterPathAndResume(monster_info);
-    monster_info->pCombat = static_cast<W8MonsterCombatState*>(malloc(0x153));
+    monster_info->pCombat =
+        static_cast<W8MonsterCombatState*>(malloc(sizeof(W8MonsterCombatState)));
     if (monster_info->pCombat == 0) {
         srAssertFail("pMonsterInfo->pCombat != NULL", MONSTER_MANAGER_CPP, 0x2a0, 0);
     }
-    memset(monster_info->pCombat, 0, 0x153);
+    memset(monster_info->pCombat, 0, sizeof(W8MonsterCombatState));
     monster_info->fInCombat = true;
     if (monster_info->player_visibility.sight_state == W8_SIGHT_UNSEEN) {
         monster_info->player_visibility.sight_state = W8_SIGHT_RECENT;

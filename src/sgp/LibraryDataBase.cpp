@@ -2,14 +2,15 @@
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "Types.h"
 #include "windows.h"
+#include <windows.h>
 #include "FileMan.h"
 #include "LibraryDataBase.h"
 #include "MemMan.h"
 #include "stdio.h"
 #include "WCheck.h"
-#include "Debug.h"
+#include "DEBUG.H"
 
-#include "video2.h"
+#include "Video2.h"
 
 //NUMBER_OF_LIBRARIES
 // We link it as an .obj file
@@ -192,8 +193,8 @@ BOOLEAN InitializeLibrary(STR pLibraryName, LibraryHeaderStruct* pLibHeader, BOO
     CHAR8 zTempPath[SGPFILENAME_LEN];
 
     //open the library for reading ( if it exists )
-    hFile = CreateFile(pLibraryName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-                       FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    hFile = CreateFileA(pLibraryName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+                        FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
         //if it failed finding the file on the hard drive, and the file can be on the cdrom
         if (fCanBeOnCDrom) {
@@ -201,12 +202,12 @@ BOOLEAN InitializeLibrary(STR pLibraryName, LibraryHeaderStruct* pLibHeader, BOO
             sprintf(zTempPath, "%s%s", gzCdDirectory, pLibraryName);
 
             //look on the cdrom
-            hFile = CreateFile(zTempPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-                               FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+            hFile = CreateFileA(zTempPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+                                FILE_FLAG_SEQUENTIAL_SCAN, NULL);
             if (hFile == INVALID_HANDLE_VALUE) {
                 UINT32 uiLastError = GetLastError();
                 char zString[1024];
-                FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
+                FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
 
                 return (FALSE);
             } else
@@ -330,17 +331,17 @@ HANDLE OpenLibraryStream(HWFILE file)
     HANDLE handle;
     CHAR8 path[SGPFILENAME_LEN];
 
-    handle = CreateFile(gGameLibaries[library_id].sLibraryName, GENERIC_READ, FILE_SHARE_READ, NULL,
-                        OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    handle = CreateFileA(gGameLibaries[library_id].sLibraryName, GENERIC_READ, FILE_SHARE_READ,
+                         NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (handle == INVALID_HANDLE_VALUE) {
         if (gGameLibaries[library_id].fOnCDrom) {
             sprintf(path, "%s%s", gzCdDirectory, gGameLibaries[library_id].sLibraryName);
-            handle = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-                                FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+            handle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+                                 FILE_FLAG_SEQUENTIAL_SCAN, NULL);
             if (handle == INVALID_HANDLE_VALUE) {
                 UINT32 uiLastError = GetLastError();
                 char zString[1024];
-                FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
+                FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
 
                 return INVALID_HANDLE_VALUE;
             }
@@ -515,7 +516,7 @@ INT CompareFileNames(CHAR8* arg1[], FileHeaderStruct** arg2)
 
     TempFileHeader = (FileHeaderStruct*)arg2;
 
-    sprintf(sSearchKey, "%s", arg1);
+    sprintf(sSearchKey, "%s", (const CHAR8*)arg1);
 
     sprintf(sFileNameWithPath, "%s%s", gFileDataBase.pLibraries[gsCurrentLibrary].sLibraryPath,
             TempFileHeader->pFileName);
@@ -986,7 +987,7 @@ INT32 CompareDirEntryFileNames(CHAR8* arg1[], DIRENTRY** arg2)
 
     TempDirEntry = (DIRENTRY*)arg2;
 
-    sprintf(sSearchKey, "%s", arg1);
+    sprintf(sSearchKey, "%s", (const CHAR8*)arg1);
 
     sprintf(sFileNameWithPath, "%s", TempDirEntry->sFileName);
 

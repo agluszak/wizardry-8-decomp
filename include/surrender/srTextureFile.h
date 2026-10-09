@@ -30,7 +30,7 @@ public:
 
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;
-    virtual unsigned long getTextureFrameHandle() override;
+    virtual w8_ulong getTextureFrameHandle() override;
     virtual void getMipmapData(MultiRequest& request) override;
     virtual void getMipmapLevelPartial(PartialRequest& request) override;
     virtual void invalidate() override;
@@ -42,7 +42,7 @@ protected:
     int cached;
     char* file_name;
     srColorSurfaceIFace* surface;
-    unsigned long frame_handle;
+    w8_ulong frame_handle;
 };
 
-static_assert(sizeof(srTextureFile) == 0x64, "srTextureFile_must_be_0x64");
+W8_ABI_ASSERT(sizeof(srTextureFile) == 0x64, "srTextureFile_must_be_0x64");

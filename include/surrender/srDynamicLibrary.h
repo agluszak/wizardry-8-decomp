@@ -15,7 +15,7 @@ public:
     static Compatibility checkCompatibility(const char* name);
     static int free(void* library);
     static void* getFunction(void* library, const char* function_name);
-    static unsigned long getVersion(const char* name);
+    static w8_ulong getVersion(const char* name);
     static void* load(const char* name);
     static int testDependencies(const char* name);
 };

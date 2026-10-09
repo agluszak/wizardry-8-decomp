@@ -82,7 +82,7 @@ struct W8WorldCursorState {
     W8MonsterInfo* dragged_info;
 };
 
-static_assert(sizeof(W8WorldCursorState) == 0xe0, "W8WorldCursorState_size");
+W8_ABI_ASSERT(sizeof(W8WorldCursorState) == 0xe0, "W8WorldCursorState_size");
 
 /* 0x65ba8c: authored name gp3DCursor - the cursor update asserts it. */
 extern W8WorldCursorState* gp3DCursor;

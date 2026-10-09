@@ -39,7 +39,7 @@ public:
     W8LightDefinitionKind kind;
 };
 
-static_assert(sizeof(stLightDefinition) == 0x8, "stLightDefinition_size_must_be_0x8");
+W8_ABI_ASSERT(sizeof(stLightDefinition) == 0x8, "stLightDefinition_size_must_be_0x8");
 
 /* Type 1: a light animated from parameters (flicker chance, colour and
    intensity ranges, period and rate) over a subcycle window. */
@@ -103,29 +103,29 @@ public:
     int subcycle_max;
 };
 
-static_assert(sizeof(stParametricLightDefinition) == 0x44,
+W8_ABI_ASSERT(sizeof(stParametricLightDefinition) == 0x44,
               "stParametricLightDefinition_size_must_be_0x44");
-static_assert(offsetof(stParametricLightDefinition, flags) == 0x08,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, flags) == 0x08,
               "stParametricLightDefinition_flags");
-static_assert(offsetof(stParametricLightDefinition, flicker_chance) == 0x0c,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, flicker_chance) == 0x0c,
               "stParametricLightDefinition_flicker_chance");
-static_assert(offsetof(stParametricLightDefinition, color) == 0x10,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, color) == 0x10,
               "stParametricLightDefinition_color");
-static_assert(offsetof(stParametricLightDefinition, color_to) == 0x1c,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, color_to) == 0x1c,
               "stParametricLightDefinition_color_to");
-static_assert(offsetof(stParametricLightDefinition, intensity) == 0x28,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, intensity) == 0x28,
               "stParametricLightDefinition_intensity");
-static_assert(offsetof(stParametricLightDefinition, intensity_to) == 0x2c,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, intensity_to) == 0x2c,
               "stParametricLightDefinition_intensity_to");
-static_assert(offsetof(stParametricLightDefinition, period) == 0x30,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, period) == 0x30,
               "stParametricLightDefinition_period");
-static_assert(offsetof(stParametricLightDefinition, rate) == 0x34,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, rate) == 0x34,
               "stParametricLightDefinition_rate");
-static_assert(offsetof(stParametricLightDefinition, path_speed) == 0x38,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, path_speed) == 0x38,
               "stParametricLightDefinition_path_speed");
-static_assert(offsetof(stParametricLightDefinition, subcycle_min) == 0x3c,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, subcycle_min) == 0x3c,
               "stParametricLightDefinition_subcycle_min");
-static_assert(offsetof(stParametricLightDefinition, subcycle_max) == 0x40,
+W8_ABI_ASSERT(offsetof(stParametricLightDefinition, subcycle_max) == 0x40,
               "stParametricLightDefinition_subcycle_max");
 
 /* Type 2: a light driven by keyframe tables stepped by keyframe_index. */
@@ -149,23 +149,23 @@ public:
     float end_frame;
 };
 
-static_assert(sizeof(stKeyframedLightDefinition) == 0x58,
+W8_ABI_ASSERT(sizeof(stKeyframedLightDefinition) == 0x58,
               "stKeyframedLightDefinition_size_must_be_0x58");
-static_assert(offsetof(stKeyframedLightDefinition, frame_sums) == 0x08,
+W8_ABI_ASSERT(offsetof(stKeyframedLightDefinition, frame_sums) == 0x08,
               "stKeyframedLightDefinition_values_08");
-static_assert(offsetof(stKeyframedLightDefinition, key_frames) == 0x18,
+W8_ABI_ASSERT(offsetof(stKeyframedLightDefinition, key_frames) == 0x18,
               "stKeyframedLightDefinition_values_18");
-static_assert(offsetof(stKeyframedLightDefinition, key_intensities) == 0x28,
+W8_ABI_ASSERT(offsetof(stKeyframedLightDefinition, key_intensities) == 0x28,
               "stKeyframedLightDefinition_values_28");
-static_assert(offsetof(stKeyframedLightDefinition, key_colors) == 0x38,
+W8_ABI_ASSERT(offsetof(stKeyframedLightDefinition, key_colors) == 0x38,
               "stKeyframedLightDefinition_values_38");
-static_assert(offsetof(stKeyframedLightDefinition, keyframe_index) == 0x48,
+W8_ABI_ASSERT(offsetof(stKeyframedLightDefinition, keyframe_index) == 0x48,
               "stKeyframedLightDefinition_keyframe_index");
-static_assert(offsetof(stKeyframedLightDefinition, time) == 0x4c,
+W8_ABI_ASSERT(offsetof(stKeyframedLightDefinition, time) == 0x4c,
               "stKeyframedLightDefinition_time_4c");
-static_assert(offsetof(stKeyframedLightDefinition, start_frame) == 0x50,
+W8_ABI_ASSERT(offsetof(stKeyframedLightDefinition, start_frame) == 0x50,
               "stKeyframedLightDefinition_start_frame");
-static_assert(offsetof(stKeyframedLightDefinition, end_frame) == 0x54,
+W8_ABI_ASSERT(offsetof(stKeyframedLightDefinition, end_frame) == 0x54,
               "stKeyframedLightDefinition_end_frame_54");
 
 // VTABLE: WIZ8 0x005ecc64 stLight
@@ -246,7 +246,7 @@ public:
     W8Prop* m_prop; /* 0x254 */
 };
 
-static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
+W8_ABI_ASSERT(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
 
 void SaveLightStates(int handle);
 void LoadLightStates(int handle);

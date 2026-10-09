@@ -52,7 +52,7 @@ struct W8SpellCastingView {
     bool dialog_confirmed;
 };
 
-static_assert(sizeof(W8SpellCastingView) == 0xc5c, "W8SpellCastingView_must_be_0xc5c");
+W8_ABI_ASSERT(sizeof(W8SpellCastingView) == 0xc5c, "W8SpellCastingView_must_be_0xc5c");
 
 unsigned char OpenSpellCastingView(int party_slot);
 void CloseSpellCastingView(void);

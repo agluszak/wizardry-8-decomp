@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_NPC_STATE_H
 #define WIZ8_LAYOUTS_NPC_STATE_H
 
+#include "compat/ptr32.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/plist.h"
@@ -21,13 +22,13 @@ struct W8NpcItemEntry {
 #pragma pack(push, 1)
 
 struct W8NpcState {
-    W8NpcScriptFile* script_file; /* 0x00: the NPC's .nsf script file */
+    W8_PTR32(W8NpcScriptFile) script_file; /* 0x00: the NPC's .nsf script file */
     /* 0x04: spawned flag; FindNpcOfKind returns it as the "in the world"
        answer, facts/combat paths set it, and 0xffff is the never-set
        sentinel normalized to zero on load. */
     unsigned short spawned;
-    W8NpcDatabaseRecord* record; /* 0x06 */
-    W8PList* items;              /* 0x0a: W8NpcItemEntry* elements */
+    W8_PTR32(W8NpcDatabaseRecord) record; /* 0x06 */
+    W8_PTR32(W8PList) items;              /* 0x0a: W8NpcItemEntry* elements */
     /* 0x0e and 0x12: two world-clock stamps, both set when the stock is first
        populated. The stock-rule pass reruns once the first is more than 0xa8c0
        old, and the decay and restock pass once the second is more than 0x15180
@@ -54,7 +55,7 @@ struct W8NpcState {
     /* 0x27: the NPC's group-member character. CreateNpcRuntimeNode allocates
        the 0x1862-byte block only when the record belongs to a group, and the
        state reset deletes it here. */
-    W8Character* character;
+    W8_PTR32(W8Character) character;
     signed char group_index; /* 0x2b */
     /* 0x2c: this node's own slot in g_npc_states, written by
        CreateNpcRuntimeNode; the release pass follows the index a partner
@@ -126,5 +127,7 @@ struct W8NpcState {
 }; /* 0x13d by allocation */
 
 #pragma pack(pop)
+
+static_assert(sizeof(W8NpcState) == 0x13d, "W8NpcState_size");
 
 #endif

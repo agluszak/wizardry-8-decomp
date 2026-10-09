@@ -59,7 +59,7 @@ public:
     W8GameTimer fade_timer;          /* 0x108 */
 };
 
-static_assert(sizeof(W8AmbientSound) == 0x12c, "W8AmbientSound_must_be_0x12c");
+W8_ABI_ASSERT(sizeof(W8AmbientSound) == 0x12c, "W8AmbientSound_must_be_0x12c");
 
 /* Reverb environment id indexing g_footstep_surfaces; retail's range
    check admits 9, one past the table's last entry (the ids are byte-sized in

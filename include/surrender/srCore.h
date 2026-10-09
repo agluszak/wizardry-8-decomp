@@ -73,7 +73,7 @@ public:
     {
         return timer;
     }
-    SR_DLL_IMPORT unsigned long getUniqueID();
+    SR_DLL_IMPORT w8_ulong getUniqueID();
     SR_DLL_IMPORT srVideoManager* getVideoManager() const;
     SR_DLL_IMPORT int isInitialized() const;
     SR_DLL_IMPORT void setDebugLevel(unsigned char level);
@@ -90,7 +90,7 @@ public:
     }
 
 private:
-    friend long __cdecl srDebugPrintf(unsigned long level, const char* format, ...);
+    friend w8_long __cdecl srDebugPrintf(w8_ulong level, const char* format, ...);
     /* srInit/srExit drive library lifecycle: they write the private field
        block and run the private reset() directly. */
     friend SR_DLL_IMPORT int __cdecl srInit(void);
@@ -114,10 +114,10 @@ private:
     srRegistry* registry_;
     srFileManager* default_file_manager;
     srPalette* palette;
-    unsigned long next_unique_id;
+    w8_ulong next_unique_id;
     char version_[0x20];
     char copyright_[0x100];
-    unsigned long debug_level;
+    w8_ulong debug_level;
     int multi_thread;
     srNode* root_node;
     srModelIOManager* model_io_manager;
@@ -127,9 +127,12 @@ private:
     srVideoManager* video_manager;
 };
 
-static_assert(sizeof(srCore) == 0x17c, "srCore_must_be_0x17c");
+W8_ABI_ASSERT(sizeof(srCore) == 0x17c, "srCore_must_be_0x17c");
 
 extern SR_DLL_IMPORT class srCore srCore;
+
+SR_DLL_IMPORT int __cdecl srInit(void);
+SR_DLL_IMPORT int __cdecl srExit(void);
 
 /* DLL attach/detach hooks called by the library entry wrapper. */
 void __cdecl _srLibraryInit(void);

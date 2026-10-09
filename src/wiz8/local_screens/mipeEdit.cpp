@@ -1,5 +1,4 @@
 #include <windows.h>
-
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -110,7 +109,7 @@ void HandleMipeEditPropKey(unsigned short key)
         field = &fields[static_cast<int>(state->edit_selection)];
         if (field->type == 6) {
             if (field->text == 0) {
-                field->text = static_cast<wchar_t*>(malloc(0x100));
+                field->text = static_cast<wchar_t*>(malloc(0x80 * sizeof(*field->text)));
                 field->text[0] = 0;
             }
             len = wcslen(field->text);
