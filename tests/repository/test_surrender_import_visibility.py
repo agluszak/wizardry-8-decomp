@@ -88,7 +88,7 @@ AUDITED_MIXED_MEMBER_IMPORTS = {
         "SR_DLL_IMPORT virtual void process(const ProcessInfo& info, e_processType type) override;",
         "SR_DLL_IMPORT virtual void getLocalBounds(BoundInfo& bounds) override;",
         "SR_DLL_IMPORT virtual void updateClient(srModel::Client::e_update update) override;",
-        "SR_DLL_IMPORT void setExclusionMask(unsigned long mask)",
+        "SR_DLL_IMPORT void setExclusionMask(w8_ulong mask)",
         "SR_DLL_IMPORT virtual ~srModelInstance() override;",
     ),
     "srImporter.h": ("SR_DLL_IMPORT void exportSurface(",),
