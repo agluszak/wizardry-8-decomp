@@ -44,19 +44,19 @@ private:
         StreamType* previous;
     };
 
-    static_assert(sizeof(StreamType) == 0x10, "srIStreamOpener_StreamType_must_be_0x10");
+    W8_ABI_ASSERT(sizeof(StreamType) == 0x10, "srIStreamOpener_StreamType_must_be_0x10");
 
     SR_DLL_IMPORT Opener* findOpener(const char* extension);
     SR_DLL_IMPORT srBinIStream* open(const char* path, const char* extension);
     SR_DLL_IMPORT void parsePrefix(char** prefix, char** path, const char* input);
 
-    long count;
+    w8_long count;
     StreamType* first;
     StreamType* end;
 };
 
-static_assert(sizeof(srIStreamOpener::Opener) == 0x04, "srIStreamOpener_Opener_must_be_0x04");
-static_assert(sizeof(srIStreamOpener) == 0x0c, "srIStreamOpener_must_be_0x0c");
+W8_ABI_ASSERT(sizeof(srIStreamOpener::Opener) == 0x04, "srIStreamOpener_Opener_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srIStreamOpener) == 0x0c, "srIStreamOpener_must_be_0x0c");
 
 /* SR's built-in file opener. */
 // VTABLE: SURRENDER 0x10075520 srFStreamOpener
@@ -70,4 +70,4 @@ public:
     virtual const char* getDescription() const override;
 };
 
-static_assert(sizeof(srFStreamOpener) == 0x04, "srFStreamOpener_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srFStreamOpener) == 0x04, "srFStreamOpener_must_be_0x04");

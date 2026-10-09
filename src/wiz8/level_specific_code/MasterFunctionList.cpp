@@ -58,7 +58,7 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-#include "Debug.h"
+#include "DEBUG.H"
 
 /* The world-cursor node the party is standing in, tracked across the
    command-0 sweep so enter/leave commands fire once per crossing. */

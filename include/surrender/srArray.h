@@ -8,7 +8,7 @@ template <class T> class srArray {
 public:
     inline srArray() : data(0), capacity(0) {}
 
-    inline explicit srArray(unsigned long reserve_capacity) : data(0), capacity(0)
+    inline explicit srArray(w8_ulong reserve_capacity) : data(0), capacity(0)
     {
         if (reserve_capacity != 0) {
             reserve(reserve_capacity);
@@ -21,7 +21,7 @@ public:
     }
 
     /* Discards contents and allocates exactly count elements. */
-    void reserve(unsigned long count);
+    void reserve(w8_ulong count);
 
     inline ~srArray()
     {
@@ -39,25 +39,25 @@ public:
     {
         if (this != &other) {
             reserve(other.capacity);
-            for (unsigned long index = 0; index < other.capacity; ++index) {
+            for (w8_ulong index = 0; index < other.capacity; ++index) {
                 data[index] = other.data[index];
             }
         }
         return *this;
     }
 
-    void setCapacity(unsigned long new_capacity);
+    void setCapacity(w8_ulong new_capacity);
 
     /* Grows to include index, preserving contents. */
-    void ensureIndex(unsigned long index);
+    void ensureIndex(w8_ulong index);
 
-    T& operator[](unsigned long index);
+    T& operator[](w8_ulong index);
 
     T* data;
-    unsigned long capacity;
+    w8_ulong capacity;
 };
 
-template <class T> void srArray<T>::reserve(unsigned long count)
+template <class T> void srArray<T>::reserve(w8_ulong count)
 {
     release();
     if (count > 0) {
@@ -66,18 +66,18 @@ template <class T> void srArray<T>::reserve(unsigned long count)
     }
 }
 
-template <class T> inline void srArray<T>::setCapacity(unsigned long new_capacity)
+template <class T> inline void srArray<T>::setCapacity(w8_ulong new_capacity)
 {
     if (capacity != new_capacity) {
         T* replacement = 0;
         if (new_capacity > 0) {
             replacement = new T[new_capacity];
             if (data != 0 && capacity > 0) {
-                unsigned long copy_count = capacity;
+                w8_ulong copy_count = capacity;
                 if (copy_count >= new_capacity) {
                     copy_count = new_capacity;
                 }
-                for (unsigned long index = 0; index < copy_count; ++index) {
+                for (w8_ulong index = 0; index < copy_count; ++index) {
                     replacement[index] = data[index];
                 }
             }
@@ -88,14 +88,14 @@ template <class T> inline void srArray<T>::setCapacity(unsigned long new_capacit
     }
 }
 
-template <class T> void srArray<T>::ensureIndex(unsigned long index)
+template <class T> void srArray<T>::ensureIndex(w8_ulong index)
 {
     if (index >= capacity) {
         setCapacity(capacity + 8 + index);
     }
 }
 
-template <class T> T& srArray<T>::operator[](unsigned long index)
+template <class T> T& srArray<T>::operator[](w8_ulong index)
 {
     ensureIndex(index);
     return data[index];
@@ -123,19 +123,19 @@ public:
         capacity = 0;
     }
 
-    static inline T* allocate(unsigned long count)
+    static inline T* allocate(w8_ulong count)
     {
         return static_cast<T*>(srHeap.allocate(count * sizeof(T)));
     }
 
     /* Discards contents when growing. */
-    inline T* ensure(unsigned long needed)
+    inline T* ensure(w8_ulong needed)
     {
         T* result = data;
         if (needed > capacity) {
             release();
             if (needed != 0) {
-                needed = static_cast<unsigned long>((needed + 4) * 1.1);
+                needed = static_cast<w8_ulong>((needed + 4) * 1.1);
             }
             capacity = needed;
             if (needed > 0) {
@@ -146,17 +146,17 @@ public:
         return result;
     }
 
-    inline void setCapacity(unsigned long new_capacity, int preserve)
+    inline void setCapacity(w8_ulong new_capacity, int preserve)
     {
         if (capacity != new_capacity) {
             if (new_capacity > 0) {
                 T* replacement = allocate(new_capacity);
                 if (data != 0 && capacity > 0 && preserve) {
-                    unsigned long copy_count = capacity;
+                    w8_ulong copy_count = capacity;
                     if (copy_count >= new_capacity) {
                         copy_count = new_capacity;
                     }
-                    for (unsigned long index = 0; index < copy_count; ++index) {
+                    for (w8_ulong index = 0; index < copy_count; ++index) {
                         replacement[index] = data[index];
                     }
                 }
@@ -175,7 +175,7 @@ public:
             release();
             if (other.capacity != 0) {
                 setCapacity(other.capacity, 0);
-                for (unsigned long index = 0; index < other.capacity; ++index) {
+                for (w8_ulong index = 0; index < other.capacity; ++index) {
                     data[index] = other.data[index];
                 }
             }
@@ -184,8 +184,8 @@ public:
     }
 
     T* data;
-    unsigned long capacity;
+    w8_ulong capacity;
 };
 
-static_assert(sizeof(srArray<unsigned long>) == 0x08, "srArray_must_be_0x08");
-static_assert(sizeof(srHeapBuffer<unsigned long>) == 0x08, "srHeapBuffer_must_be_0x08");
+W8_ABI_ASSERT(sizeof(srArray<w8_ulong>) == 0x08, "srArray_must_be_0x08");
+W8_ABI_ASSERT(sizeof(srHeapBuffer<w8_ulong>) == 0x08, "srHeapBuffer_must_be_0x08");

@@ -28,7 +28,7 @@ struct srVertexArray {
     unsigned char* attributes;
 };
 
-static_assert(sizeof(srVertexArray) == 0x20, "srVertexArray_must_be_0x20");
+W8_ABI_ASSERT(sizeof(srVertexArray) == 0x20, "srVertexArray_must_be_0x20");
 
 /* Interface with no data beyond its vptr. */
 #pragma pack(push, 4)
@@ -39,15 +39,15 @@ public:
         // FUNCTION: WIZ8 0x00424A80
         inline MaterialInfo() : disabled_channels(0) {}
 
-        srVector4T<float> diffuse;       /* 0x00 */
-        srVector4T<float> ambient;       /* 0x10 */
-        srVector4T<float> specular;      /* 0x20 */
-        float translucency;              /* 0x30 */
-        float shininess;                 /* 0x34 */
-        float value_38;                  /* 0x38 */
-        srVector4T<float> emissive;      /* 0x3c */
-        float fog_scale;                 /* 0x4c */
-        unsigned long disabled_channels; /* 0x50 */
+        srVector4T<float> diffuse;  /* 0x00 */
+        srVector4T<float> ambient;  /* 0x10 */
+        srVector4T<float> specular; /* 0x20 */
+        float translucency;         /* 0x30 */
+        float shininess;            /* 0x34 */
+        float value_38;             /* 0x38 */
+        srVector4T<float> emissive; /* 0x3c */
+        float fog_scale;            /* 0x4c */
+        w8_ulong disabled_channels; /* 0x50 */
     };
 
     /* Bit indices for enableChannel/getChannelMask. */
@@ -83,6 +83,6 @@ public:
 
 #pragma pack(pop)
 
-static_assert(sizeof(srVertexProcessor) == 0x04, "srVertexProcessor_must_be_0x04");
-static_assert(sizeof(srVertexProcessor::MaterialInfo) == 0x54,
+W8_ABI_ASSERT(sizeof(srVertexProcessor) == 0x04, "srVertexProcessor_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srVertexProcessor::MaterialInfo) == 0x54,
               "srVertexProcessor_MaterialInfo_must_be_0x54");

@@ -689,7 +689,7 @@ unsigned char DispatchRegionInput(const InputAtom* event)
         event->usEvent == LEFT_BUTTON_UP || event->usEvent == RIGHT_BUTTON_DOWN ||
         event->usEvent == RIGHT_BUTTON_UP) {
         RuntimeObserve(RUNTIME_MOUSE_DISPATCH, event->usEvent,
-                       static_cast<unsigned long>(x) | (static_cast<unsigned long>(y) << 16),
+                       static_cast<w8_ulong>(x) | (static_cast<w8_ulong>(y) << 16),
                        g_current_screen_state.id);
     }
 #endif
@@ -739,7 +739,7 @@ dispatch:
     }
 
 #ifdef WIZ8_RUNTIME_TESTS
-    unsigned long callback_address = 0;
+    w8_ulong callback_address = 0;
     memcpy(&callback_address, &region->callback, sizeof(callback_address));
     RuntimeObserve(RUNTIME_REGION_ACTIVATED, region_index, callback_address, region->callback_id);
 #endif

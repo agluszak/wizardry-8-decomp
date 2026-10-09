@@ -27,7 +27,7 @@ srAssertHandler __cdecl srAssertGetFunc()
 /* With no handler installed the process exits with code 0xdeadbabe. The buffer is terminated even
    when message is 0. */
 // FUNCTION: SURRENDER 0x10001020
-void __cdecl srAssertFail(const char* expression, const char* source_path, long line,
+void __cdecl srAssertFail(const char* expression, const char* source_path, w8_long line,
                           const char* message, ...)
 {
     char buffer[0x800];
@@ -81,13 +81,13 @@ srOStream_withassign::srOStream_withassign(std::streambuf* buffer)
 }
 
 // FUNCTION: SURRENDER 0x10033310
-static long __cdecl srVsnprintf(char* buffer, unsigned long size, const char* format, va_list args)
+static w8_long __cdecl srVsnprintf(char* buffer, w8_ulong size, const char* format, va_list args)
 {
     return _vsnprintf(buffer, size, format, args);
 }
 
 // FUNCTION: SURRENDER 0x10033330
-long __cdecl srDebugPrintf(unsigned long level, const char* format, ...)
+w8_long __cdecl srDebugPrintf(w8_ulong level, const char* format, ...)
 {
     if (level >= (srCore.debug_level & 0xff)) {
         return 0;
@@ -98,14 +98,14 @@ long __cdecl srDebugPrintf(unsigned long level, const char* format, ...)
     char buffer[0x404];
     va_list args;
     va_start(args, format);
-    long result = srVsnprintf(buffer, 0x400, format, args);
+    w8_long result = srVsnprintf(buffer, 0x400, format, args);
     va_end(args);
     srOut << buffer;
     return result;
 }
 
 // FUNCTION: SURRENDER 0x100333A0
-long __cdecl srPrintf(const char* format, ...)
+w8_long __cdecl srPrintf(const char* format, ...)
 {
     if (format == 0) {
         return 0;
@@ -113,20 +113,20 @@ long __cdecl srPrintf(const char* format, ...)
     char buffer[0x404];
     va_list args;
     va_start(args, format);
-    long result = srVsnprintf(buffer, 0x400, format, args);
+    w8_long result = srVsnprintf(buffer, 0x400, format, args);
     va_end(args);
     srOut << buffer;
     return result;
 }
 
 // FUNCTION: SURRENDER 0x100333F0
-long __cdecl srStreamPrintf(std::ostream& stream, const char* format, ...)
+w8_long __cdecl srStreamPrintf(std::ostream& stream, const char* format, ...)
 {
     if (format != 0 && static_cast<void*>(&stream) != 0) {
         char buffer[0x404];
         va_list args;
         va_start(args, format);
-        long result = srVsnprintf(buffer, 0x400, format, args);
+        w8_long result = srVsnprintf(buffer, 0x400, format, args);
         va_end(args);
         stream << buffer;
         return result;
@@ -142,7 +142,7 @@ const char* __cdecl srBoolToString(int value)
 
 /* The stock handler SurRender ships for hosts that want a dialog. */
 // FUNCTION: SURRENDER 0x100466A0
-void __cdecl srDefaultAssertFailFunc(const char* expression, const char* source_path, long line,
+void __cdecl srDefaultAssertFailFunc(const char* expression, const char* source_path, w8_long line,
                                      const char* message)
 {
     char buffer[0x800];

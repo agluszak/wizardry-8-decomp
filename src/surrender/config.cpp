@@ -10,10 +10,10 @@
 
 namespace {
 /* The provider's name hash. */
-unsigned long hashName(const char* name)
+w8_ulong hashName(const char* name)
 {
-    unsigned long hash = 0;
-    for (unsigned long index = 0; name[index] != '\0'; ++index) {
+    w8_ulong hash = 0;
+    for (w8_ulong index = 0; name[index] != '\0'; ++index) {
         hash += (index + 0x4ad) * static_cast<signed char>(name[index]);
     }
     return hash;
@@ -27,7 +27,7 @@ struct srConfig::Index {
     struct NameEntry {
         NameEntry* next;
         NameEntry* previous;
-        unsigned long bucket;
+        w8_ulong bucket;
         char* name;
         Entry* entry;
     };
@@ -76,20 +76,20 @@ struct srConfig::Index {
         // FUNCTION: SURRENDER 0x10013580
         void resize()
         {
-            long count = this->count * 2;
-            if (static_cast<unsigned long>(count) < 4) {
+            w8_long count = this->count * 2;
+            if (static_cast<w8_ulong>(count) < 4) {
                 count = 4;
             }
             Record* records = new Record[count];
             int* heads = new int[count];
-            for (long index = 0; index < count; ++index) {
+            for (w8_long index = 0; index < count; ++index) {
                 records[index].next = -1;
                 heads[index] = -1;
             }
 
             int used = 0;
             if (this->count != 0) {
-                for (long bucket = 0; bucket < this->count; ++bucket) {
+                for (w8_long bucket = 0; bucket < this->count; ++bucket) {
                     for (int old = this->heads[bucket]; old != -1; old = this->records[old].next) {
                         records[used].key = this->records[old].key;
                         int next_bucket = srHashValue(records[used].key) & (count - 1);
@@ -102,7 +102,7 @@ struct srConfig::Index {
                 delete[] this->records;
             }
 
-            for (long free_index = used; free_index < count; ++free_index) {
+            for (w8_long free_index = used; free_index < count; ++free_index) {
                 records[free_index].next = free_index + 1;
             }
             records[count - 1].next = -1;
@@ -159,7 +159,7 @@ struct srConfig::Index {
 
     NameEntry* find(const char* name) const
     {
-        unsigned long bucket = hashName(name) & (bucket_count - 1);
+        w8_ulong bucket = hashName(name) & (bucket_count - 1);
         for (NameEntry* node = buckets[bucket]; node != 0; node = node->next) {
             if (namesEqual(name, node->name)) {
                 return node;
@@ -183,7 +183,7 @@ struct srConfig::Index {
     {
         NameEntry* node = allocateEntry();
         node->next = 0;
-        unsigned long bucket = hashName(entry->name) & (bucket_count - 1);
+        w8_ulong bucket = hashName(entry->name) & (bucket_count - 1);
         node->bucket = bucket;
         node->name = entry->name;
         node->entry = entry;
@@ -202,7 +202,7 @@ struct srConfig::Index {
     void remove(const char* name)
     {
         if (name != 0) {
-            unsigned long bucket = hashName(name) & (bucket_count - 1);
+            w8_ulong bucket = hashName(name) & (bucket_count - 1);
             NameEntry* node = buckets[bucket];
             while (node != 0) {
                 NameEntry* next = node->next;
@@ -231,18 +231,18 @@ struct srConfig::Index {
         }
     }
 
-    void resize(long bucket_count);
+    void resize(w8_long bucket_count);
 
     EntryMap by_entry;
     NameEntry* entries;
     NameEntry* free;
     NameEntry** buckets;
-    long count;
-    long bucket_count;
+    w8_long count;
+    w8_long bucket_count;
     int case_sensitive;
 };
 
-static_assert(sizeof(srConfig::Index) == 0x28, "srConfig_Index_must_be_0x28");
+W8_ABI_ASSERT(sizeof(srConfig::Index) == 0x28, "srConfig_Index_must_be_0x28");
 
 // FUNCTION: SURRENDER 0x10011DB0
 srConfig::Index* srConfig::getIndex() const
@@ -295,7 +295,7 @@ void srConfig::setBool(const char* name, int value)
 }
 
 // FUNCTION: SURRENDER 0x10012120
-void srConfig::setLong(const char* name, long value)
+void srConfig::setLong(const char* name, w8_long value)
 {
     char text[128];
     sprintf(text, "%d", static_cast<int>(value));
@@ -405,7 +405,7 @@ const char* srConfig::get(const char* name) const
 }
 
 // FUNCTION: SURRENDER 0x10012A00
-long srConfig::getLong(const char* name) const
+w8_long srConfig::getLong(const char* name) const
 {
     const char* text = get(name);
     if (text == 0) {
@@ -500,7 +500,7 @@ void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
     int record = allocRecord();
     records[record].key = key;
     records[record].name_entry = value;
-    unsigned long bucket = srHashValue(key) & (count - 1);
+    w8_ulong bucket = srHashValue(key) & (count - 1);
     records[record].next = heads[bucket];
     heads[bucket] = record;
 }
@@ -508,7 +508,7 @@ void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
 // FUNCTION: SURRENDER 0x100134F0
 void srConfig::Index::EntryMap::erase(Entry*& key)
 {
-    unsigned long bucket = srHashValue(key) & (count - 1);
+    w8_ulong bucket = srHashValue(key) & (count - 1);
     int* link = &heads[bucket];
     int record = *link;
     if (record != -1) {
@@ -531,9 +531,9 @@ void srConfig::Index::EntryMap::erase(Entry*& key)
 }
 
 // FUNCTION: SURRENDER 0x10012FD0
-void srConfig::Index::resize(long bucket_count)
+void srConfig::Index::resize(w8_long bucket_count)
 {
-    long old_bucket_count = this->bucket_count;
+    w8_long old_bucket_count = this->bucket_count;
     NameEntry* entries = 0;
     NameEntry** buckets = 0;
     this->bucket_count = bucket_count;
@@ -543,7 +543,7 @@ void srConfig::Index::resize(long bucket_count)
     if (bucket_count != 0) {
         entries = new NameEntry[bucket_count];
         buckets = new NameEntry*[bucket_count];
-        for (long entry_index = 0; entry_index < bucket_count; ++entry_index) {
+        for (w8_long entry_index = 0; entry_index < bucket_count; ++entry_index) {
             buckets[entry_index] = 0;
             entries[entry_index].bucket = 0;
             entries[entry_index].previous = 0;
@@ -555,13 +555,13 @@ void srConfig::Index::resize(long bucket_count)
         free = entries;
 
         if (this->buckets != 0 && old_bucket_count != 0) {
-            for (long index = 0; index < old_bucket_count; ++index) {
+            for (w8_long index = 0; index < old_bucket_count; ++index) {
                 for (NameEntry* old_node = this->buckets[index]; old_node != 0;
                      old_node = old_node->next) {
                     char* name = old_node->name;
                     NameEntry* node = allocateEntry();
                     node->next = 0;
-                    unsigned long bucket = hashName(name) & (bucket_count - 1);
+                    w8_ulong bucket = hashName(name) & (bucket_count - 1);
                     node->bucket = bucket;
                     node->name = name;
                     node->entry = old_node->entry;

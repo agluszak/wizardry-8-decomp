@@ -1,4 +1,5 @@
 #include <windows.h>
+#include "wiz8/wiz8_windows.h"
 #include "wiz8/spell_ids.h"
 #include "wiz8/conditions.h"
 #include "line.h"
@@ -92,7 +93,7 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/world_cursor.h"
 #include "wiz8/local_code/MonsterGroup.h"
-#include "font.h"
+#include "Font.h"
 #include "FileMan.h"
 #include "input.h"
 #include "timer.h"
@@ -360,7 +361,7 @@ unsigned char LoadKeywordFile(const char* path, W8GrowableVector<W8GrowableVecto
         cursor = line + 11;
         while ((cursor = ParseKeywordToken(cursor, field)) != 0) {
             length = wcslen(field);
-            word = static_cast<wchar_t*>(malloc(length * 2 + 2));
+            word = static_cast<wchar_t*>(malloc(length * sizeof(*word) + sizeof(*word)));
             wcscpy(word, field);
             entry->Add(word);
         }

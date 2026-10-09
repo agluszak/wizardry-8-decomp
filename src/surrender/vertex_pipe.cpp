@@ -11,7 +11,7 @@
 // FUNCTION: SURRENDER 0x1002AA50
 srFlags<srVertexProcessor::e_channel> srVertexPipe::getShaderDisableMask(const srShader& shader)
 {
-    unsigned long disable = 0;
+    w8_ulong disable = 0;
     if ((shader.value & srShader::MASK_FOG) == 0) {
         disable = 1 << srVertexProcessor::CHANNEL_FOG;
     }
@@ -44,19 +44,19 @@ srFlags<srVertexProcessor::e_channel> srVertexPipe::getShaderDisableMask(const s
 }
 
 // FUNCTION: SURRENDER 0x1002AAD0
-srFlags<srVertexProcessor::e_channel>
-srVertexPipe::getShaderDisableMask(const srShader* shaders, const unsigned long* channels,
-                                   unsigned long channel_count)
+srFlags<srVertexProcessor::e_channel> srVertexPipe::getShaderDisableMask(const srShader* shaders,
+                                                                         const w8_ulong* channels,
+                                                                         w8_ulong channel_count)
 {
     srShader shader;
     shader.value = shaders[channels[0]].value;
-    unsigned long available = ~getShaderDisableMask(shader).value;
-    unsigned long index = 0;
+    w8_ulong available = ~getShaderDisableMask(shader).value;
+    w8_ulong index = 0;
     if (channel_count != 0) {
         while (true) {
             index +=
                 scanChangeIndexed(
-                    (const unsigned long*)
+                    (const w8_ulong*)
                         shaders /* c-style-cast-ok: srShader is one packed dword; scanChangeIndexed walks it as a dword table */
                     ,
                     shader.value, channels + 1 + index, channel_count - index - 1) +
@@ -75,11 +75,10 @@ srVertexPipe::getShaderDisableMask(const srShader* shaders, const unsigned long*
 }
 
 // FUNCTION: SURRENDER 0x1002AB80
-unsigned long srVertexPipe::scanChangeIndexed(const unsigned long* table, unsigned long value,
-                                              const unsigned long* indices,
-                                              unsigned long index_count)
+w8_ulong srVertexPipe::scanChangeIndexed(const w8_ulong* table, w8_ulong value,
+                                         const w8_ulong* indices, w8_ulong index_count)
 {
-    for (unsigned long index = 0; index < index_count; ++index) {
+    for (w8_ulong index = 0; index < index_count; ++index) {
         if (table[indices[index]] != value) {
             return index;
         }
@@ -128,7 +127,7 @@ srVertexPipe::~srVertexPipe()
 void srVertexPipe::processVertexBuffer()
 {
     lazy_setup_mask = 0;
-    unsigned long channels = ~current_record->channels & ~material_info.disabled_channels;
+    w8_ulong channels = ~current_record->channels & ~material_info.disabled_channels;
     channel_mask = channels;
     if ((channels & (1 << srVertexProcessor::CHANNEL_DIFFUSE)) == 0) {
         channel_mask = channels & ~(1UL << srVertexProcessor::CHANNEL_LIGHT_DIFFUSE);
@@ -140,7 +139,7 @@ void srVertexPipe::processVertexBuffer()
         channel_mask &= ~(1UL << srVertexProcessor::CHANNEL_DIFFUSE);
     }
     material->preProcess(*this);
-    for (unsigned long index = 0; index < active_processor_count; ++index) {
+    for (w8_ulong index = 0; index < active_processor_count; ++index) {
         active_processors[index]->process(*this);
     }
     material->postProcess(*this);
@@ -148,7 +147,7 @@ void srVertexPipe::processVertexBuffer()
     lazy_setup_mask &= channel_mask;
     finishDiffuseAlpha();
     finishSpecularFog();
-    unsigned long mask = channel_mask;
+    w8_ulong mask = channel_mask;
     if ((mask & (1 << srVertexProcessor::CHANNEL_ST0)) != 0) {
         if ((lazy_setup_mask & (1 << srVertexProcessor::CHANNEL_Q0)) == 0) {
             mask &= 0xffffff7f;
@@ -157,7 +156,7 @@ void srVertexPipe::processVertexBuffer()
         if ((lazy_setup_mask & (1 << srVertexProcessor::CHANNEL_ST0)) == 0) {
             setupST(0);
         }
-        unsigned long lazy = lazy_setup_mask | (1 << srVertexProcessor::CHANNEL_ST0);
+        w8_ulong lazy = lazy_setup_mask | (1 << srVertexProcessor::CHANNEL_ST0);
         lazy_setup_mask = lazy;
         if ((lazy & (1 << srVertexProcessor::CHANNEL_Q0)) == 0) {
             setupQ(0);
@@ -172,14 +171,14 @@ void srVertexPipe::processVertexBuffer()
         if ((lazy_setup_mask & (1 << srVertexProcessor::CHANNEL_ST1)) == 0) {
             setupST(1);
         }
-        unsigned long lazy = lazy_setup_mask | (1 << srVertexProcessor::CHANNEL_ST1);
+        w8_ulong lazy = lazy_setup_mask | (1 << srVertexProcessor::CHANNEL_ST1);
         lazy_setup_mask = lazy;
         if ((lazy & (1 << srVertexProcessor::CHANNEL_Q1)) == 0) {
             setupQ(1);
         }
         lazy_setup_mask |= 1 << srVertexProcessor::CHANNEL_Q1;
     }
-    unsigned long packed = (mask >> 2) & 0xffffff7c;
+    w8_ulong packed = (mask >> 2) & 0xffffff7c;
     packed |= ((mask >> 1) & srVertexArray::ATTRIBUTE_SPECULAR) |
               ((mask & ((1 << srVertexProcessor::CHANNEL_DIFFUSE) |
                         (1 << srVertexProcessor::CHANNEL_ALPHA))) != 0
@@ -209,7 +208,7 @@ void srVertexPipe::process(const Input& input)
     active_processor_count = 0;
     active_processors = 0;
     vector_processor = srVectorProcessor::vp;
-    unsigned long processor_count = input.processor_count;
+    w8_ulong processor_count = input.processor_count;
     if (processor_count != 0) {
         if (processor_heap_capacity < processor_count) {
             if (processor_heap != 0) {
@@ -217,17 +216,18 @@ void srVertexPipe::process(const Input& input)
             }
             processor_heap = 0;
             processor_heap_capacity = 0;
-            long capacity = 0;
+            w8_long capacity = 0;
             if (processor_count != 0) {
-                capacity = static_cast<long>(processor_count * 1.1);
+                capacity = static_cast<w8_long>(processor_count * 1.1);
             }
             processor_heap_capacity = capacity;
             if (capacity != 0) {
-                processor_heap = static_cast<srVertexProcessor**>(srHeap.allocate(capacity * 4));
+                processor_heap = static_cast<srVertexProcessor**>(
+                    srHeap.allocate(capacity * sizeof(*processor_heap)));
             }
         }
         active_processors = processor_heap;
-        for (unsigned long index = 0; index < input.processor_count; ++index) {
+        for (w8_ulong index = 0; index < input.processor_count; ++index) {
             srVertexProcessor* processor = input.processors[index];
             if (processor->isActive(*this)) {
                 active_processors[active_processor_count] = processor;
@@ -238,7 +238,7 @@ void srVertexPipe::process(const Input& input)
     setMaterial(0);
     eye_space_locations = input.vertex_arrays->eye_locations;
     batch_base = 0;
-    unsigned long vertex_count = input.vertex_count;
+    w8_ulong vertex_count = input.vertex_count;
     while (vertex_count != 0) {
         vertex_count -= batch_base;
         batch_count = vertex_count;
@@ -256,7 +256,7 @@ void srVertexPipe::process(const Input& input)
                                          this->input->positions + batch_base,
                                          *this->input->model_view, batch_count);
         }
-        unsigned long record_index;
+        w8_ulong record_index;
         for (record_index = 0; record_index < input.record_count; ++record_index) {
             const Record* record = reinterpret_cast<const Record*>(
                 static_cast<const char*>(input.records) + record_index * 0x5c);
@@ -279,10 +279,10 @@ void srVertexPipe::process(const Input& input)
                     }
                     this->vertex_count =
                         scanChangeIndexed(
-                            (const unsigned long*)record
+                            (const w8_ulong*)record
                                 ->materials /* c-style-cast-ok: retail scans the material table as a dword table through scanChangeIndexed */
                             ,
-                            (unsigned long)
+                            (w8_ulong)
                                 material /* c-style-cast-ok: scanChangeIndexed compares the material pointer as a dword value */
                             ,
                             avt + 1 + sub_batch_offset, batch_count - sub_batch_offset - 1) +
@@ -404,7 +404,7 @@ void srVertexPipe::finishDiffuseAlpha()
 // FUNCTION: SURRENDER 0x1002B5F0
 void srVertexPipe::finishSpecularFog()
 {
-    unsigned long specular = channel_mask & (1 << srVertexProcessor::CHANNEL_SPECULAR);
+    w8_ulong specular = channel_mask & (1 << srVertexProcessor::CHANNEL_SPECULAR);
     if ((specular == 0) && ((channel_mask & (1 << srVertexProcessor::CHANNEL_FOG)) == 0)) {
         return;
     }
@@ -412,7 +412,7 @@ void srVertexPipe::finishSpecularFog()
     if ((lazy_setup_mask & ((1UL << srVertexProcessor::CHANNEL_SPECULAR) |
                             (1UL << srVertexProcessor::CHANNEL_FOG))) == 0) {
         srCore.getStatisticsManager()->statistics.specular_operations += vertex_count;
-        unsigned long dword_count = vertex_count * 4;
+        w8_ulong dword_count = vertex_count * 4;
         if (dword_count != 0) {
             srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(destination), 0, dword_count);
         }
@@ -459,7 +459,7 @@ void srVertexPipe::finishSpecularFog()
             }
             vector_processor->_copyW(destination, fog, vertex_count);
         }
-        unsigned long dword_count = vertex_count * 4;
+        w8_ulong dword_count = vertex_count * 4;
         if (dword_count != 0) {
             srVectorProcessor::clampUnit(reinterpret_cast<float*>(destination),
                                          reinterpret_cast<const float*>(destination), dword_count);
@@ -506,7 +506,7 @@ void srVertexPipe::setupEyeSpaceZDist()
 {
     Scratch* scratch = this->scratch;
     const srVector4T<float>* locations = eye_space_locations + batch_base;
-    for (unsigned long index = 0; index < batch_count; ++index) {
+    for (w8_ulong index = 0; index < batch_count; ++index) {
         scratch->z_dist[index] = locations[index].z;
     }
     scratch->flags |= srVertexPipe::Scratch::READY_EYE_Z_DISTANCE;
@@ -577,7 +577,7 @@ void srVertexPipe::copySpecularToDiffuse()
     if ((lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_SPECULAR)) == 0) {
         setupSpecular();
     }
-    unsigned long offset = batch_base + sub_batch_offset;
+    w8_ulong offset = batch_base + sub_batch_offset;
     srVector4T<float>* specular = vertex_array->specular + offset;
     srVector4T<float>* diffuse = vertex_array->diffuse + offset;
     if (((vertex_count * 4) != 0) && (diffuse != specular)) {
@@ -595,7 +595,7 @@ void srVertexPipe::copyDiffuseToSpecular()
     if ((lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_DIFFUSE)) == 0) {
         setupDiffuse();
     }
-    unsigned long offset = batch_base + sub_batch_offset;
+    w8_ulong offset = batch_base + sub_batch_offset;
     srVector4T<float>* diffuse = vertex_array->diffuse + offset;
     srVector4T<float>* specular = vertex_array->specular + offset;
     if (((vertex_count * 4) != 0) && (specular != diffuse)) {
@@ -617,7 +617,7 @@ void srVertexPipe::swapDiffuseAndSpecular()
     if ((lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_DIFFUSE)) == 0) {
         setupDiffuse();
     }
-    unsigned long offset = batch_base + sub_batch_offset;
+    w8_ulong offset = batch_base + sub_batch_offset;
     srVectorProcessor::swap(vertex_array->diffuse + offset, vertex_array->specular + offset,
                             vertex_count << 4);
     lazy_setup_mask |= (1UL << srVertexProcessor::CHANNEL_SPECULAR);
@@ -638,8 +638,8 @@ void srVertexPipe::applyDiffuseLight(const srVector4T<float>& light)
 
 // FUNCTION: SURRENDER 0x1002BF20
 void srVertexPipe::Record::ColorSource::copyDiffuseColors(srVector4T<float>* destination,
-                                                          const unsigned long* indices,
-                                                          unsigned long count) const
+                                                          const w8_ulong* indices,
+                                                          w8_ulong count) const
 {
     if (colors == 0) {
         if (count * 4 != 0) {
@@ -704,7 +704,7 @@ void srVertexPipe::setupDepthCue()
     if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_DISTANCE) == 0) {
         setupEyeSpaceDirAndDist();
     }
-    unsigned long count = batch_count;
+    w8_ulong count = batch_count;
     float* dist = scratch->dist + sub_batch_offset;
     if (minimum == maximum) {
         if (near_value == far_value) {
@@ -759,7 +759,7 @@ void srVertexPipe::setupDepthCue()
 }
 
 // FUNCTION: SURRENDER 0x1002C300
-unsigned long srVertexPipe::getExclusionMask() const
+w8_ulong srVertexPipe::getExclusionMask() const
 {
     return input->exclusion_mask;
 }
@@ -781,7 +781,7 @@ int srVertexPipe::testEyeSpaceBounds(const srVector3T<float>& center, float radi
 void srVertexPipe::setupSpecular()
 {
     if ((lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_SPECULAR)) == 0) {
-        unsigned long dword_count = vertex_count * 4;
+        w8_ulong dword_count = vertex_count * 4;
         if (dword_count != 0) {
             srVectorProcessor::copy(
                 reinterpret_cast<SRDWORD*>(vertex_array->specular + batch_base + sub_batch_offset),
@@ -792,7 +792,7 @@ void srVertexPipe::setupSpecular()
 }
 
 // FUNCTION: SURRENDER 0x1002C400
-void srVertexPipe::setupST(unsigned long index)
+void srVertexPipe::setupST(w8_ulong index)
 {
     if (((current_record->flags & (srVertexPipe::Record::HAS_TEXCOORD0 << index)) != 0)) {
         const srVector2T<float>* source = current_record->st_source[index];
@@ -825,7 +825,7 @@ srFlags<srVertexProcessor::e_channel> srVertexPipe::getChannelMask() const
 }
 
 // FUNCTION: SURRENDER 0x1002C500
-void srVertexPipe::setupQ(unsigned long index)
+void srVertexPipe::setupQ(w8_ulong index)
 {
     srVectorProcessor::copy(
         reinterpret_cast<SRDWORD*>((&vertex_array->q0)[index] + batch_base + sub_batch_offset),
@@ -834,7 +834,7 @@ void srVertexPipe::setupQ(unsigned long index)
 }
 
 // FUNCTION: SURRENDER 0x1002C560
-const unsigned long* srVertexPipe::getAVT() const
+const w8_ulong* srVertexPipe::getAVT() const
 {
     return avt + sub_batch_offset;
 }
@@ -928,7 +928,7 @@ srVector4T<float>* srVertexPipe::getSpecular()
 }
 
 // FUNCTION: SURRENDER 0x1002C7F0
-float* srVertexPipe::getQ(unsigned long index, int create)
+float* srVertexPipe::getQ(w8_ulong index, int create)
 {
     if ((create == 0) &&
         ((lazy_setup_mask & (1 << (index + srVertexProcessor::CHANNEL_Q0))) == 0)) {
@@ -939,7 +939,7 @@ float* srVertexPipe::getQ(unsigned long index, int create)
 }
 
 // FUNCTION: SURRENDER 0x1002C850
-void* srVertexPipe::getUserArray(unsigned long index)
+void* srVertexPipe::getUserArray(w8_ulong index)
 {
     return current_record->user[index];
 }

@@ -1,7 +1,7 @@
 /* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 // font.c
-#include "types.h"
+#include "Types.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <malloc.h>
@@ -10,12 +10,12 @@
 #include <wchar.h>
 #include "sgp.h"
 #include "pcx.h"
-#include "memman.h"
-#include "fileman.h"
+#include "MemMan.h"
+#include "FileMan.h"
 #include "Font.h"
-#include "Debug.h"
+#include "DEBUG.H"
 
-#include "video2.h"
+#include "Video2.h"
 
 #include "himage.h"
 #include "vobject.h"
@@ -302,7 +302,7 @@ UINT32 GetWidth(HVOBJECT hSrcVObject, INT16 ssIndex)
 //    'uiCharCount' specifies how many characters of the string are counted.
 
 // FUNCTION: WIZ8 0x00406ea0
-INT16 StringPixLengthArg(INT32 usUseFont, UINT32 uiCharCount, UINT16* pFontString, ...)
+INT16 StringPixLengthArg(INT32 usUseFont, UINT32 uiCharCount, CHAR16* pFontString, ...)
 {
     va_list argptr;
     wchar_t string[512];
@@ -333,17 +333,17 @@ INT16 StringPixLengthArg(INT32 usUseFont, UINT32 uiCharCount, UINT16* pFontStrin
 //  Created on:     12/1/99
 
 // FUNCTION: WIZ8 0x00406f90
-INT16 StringNPixLength(UINT16* string, UINT32 uiMaxCount, INT32 UseFont)
+INT16 StringNPixLength(CHAR16* string, UINT32 uiMaxCount, INT32 UseFont)
 {
     UINT32 Cur, uiCharCount;
-    UINT16 *curletter, transletter;
+    CHAR16 *curletter, transletter;
 
     Cur = 0;
     uiCharCount = 0;
     curletter = string;
 
     while ((*curletter) != L'\0' && uiCharCount < uiMaxCount) {
-        transletter = GetIndex(*curletter++);
+        transletter = GetIndex((*curletter++));
         Cur += GetWidth(FontObjs[UseFont], transletter);
         uiCharCount++;
     }
@@ -353,10 +353,10 @@ INT16 StringNPixLength(UINT16* string, UINT32 uiMaxCount, INT32 UseFont)
 //	Returns the length of a string in pixels, depending on the font given.
 
 // FUNCTION: WIZ8 0x00407010
-INT16 StringPixLength(UINT16* string, INT32 UseFont)
+INT16 StringPixLength(CHAR16* string, INT32 UseFont)
 {
     UINT32 Cur;
-    UINT16 *curletter, transletter;
+    CHAR16 *curletter, transletter;
 
     if (string == NULL) {
         return (0);
@@ -366,7 +366,7 @@ INT16 StringPixLength(UINT16* string, INT32 UseFont)
     curletter = string;
 
     while ((*curletter) != L'\0') {
-        transletter = GetIndex(*curletter++);
+        transletter = GetIndex((*curletter++));
         Cur += GetWidth(FontObjs[UseFont], transletter);
     }
     return ((INT16)Cur);
@@ -506,10 +506,10 @@ BOOLEAN SetFontDestBuffer(UINT32 DestBuffer, INT32 x1, INT32 y1, INT32 x2, INT32
 // than 512 word-characters. Uses monochrome font color settings
 
 // FUNCTION: WIZ8 0x00407260
-UINT32 mprintf(INT32 x, INT32 y, UINT16* pFontString, ...)
+UINT32 mprintf(INT32 x, INT32 y, CHAR16* pFontString, ...)
 {
     INT32 destx, desty;
-    UINT16 *curletter, transletter;
+    CHAR16 *curletter, transletter;
     va_list argptr;
     wchar_t string[512];
     UINT32 uiDestPitchBYTES;
@@ -530,7 +530,7 @@ UINT32 mprintf(INT32 x, INT32 y, UINT16* pFontString, ...)
     pDestBuf = LockVideoSurface(FontDestBuffer, &uiDestPitchBYTES);
 
     while ((*curletter) != 0) {
-        transletter = GetIndex(*curletter++);
+        transletter = GetIndex((*curletter++));
 
         if (FontDestWrap &&
             BltIsClipped(FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion)) {
@@ -560,7 +560,7 @@ UINT32 mprintf(INT32 x, INT32 y, UINT16* pFontString, ...)
 // FUNCTION: WIZ8 0x00407420
 void VarFindFontRightCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight,
                                  INT32 iFontIndex, INT16* psNewX, INT16* psNewY,
-                                 UINT16* pFontString, ...)
+                                 CHAR16* pFontString, ...)
 {
     wchar_t string[512];
     va_list argptr;
@@ -575,7 +575,7 @@ void VarFindFontRightCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sH
 // FUNCTION: WIZ8 0x00407530
 void VarFindFontCenterCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight,
                                   INT32 iFontIndex, INT16* psNewX, INT16* psNewY,
-                                  UINT16* pFontString, ...)
+                                  CHAR16* pFontString, ...)
 {
     wchar_t string[512];
     va_list argptr;
@@ -587,7 +587,7 @@ void VarFindFontCenterCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 s
     FindFontCenterCoordinates(sLeft, sTop, sWidth, sHeight, string, iFontIndex, psNewX, psNewY);
 }
 
-void FindFontRightCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, UINT16* pStr,
+void FindFontRightCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, CHAR16* pStr,
                               INT32 iFontIndex, INT16* psNewX, INT16* psNewY)
 {
     INT16 xp, yp;
@@ -600,7 +600,7 @@ void FindFontRightCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeig
     *psNewY = yp;
 }
 
-void FindFontCenterCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, UINT16* pStr,
+void FindFontCenterCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, CHAR16* pStr,
                                INT32 iFontIndex, INT16* psNewX, INT16* psNewY)
 {
     INT16 xp, yp;
@@ -620,10 +620,10 @@ void FindFontCenterCoordinates(INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHei
 // than 512 word-characters.
 
 // FUNCTION: WIZ8 0x00407650
-UINT32 gprintf(INT32 x, INT32 y, UINT16* pFontString, ...)
+UINT32 gprintf(INT32 x, INT32 y, CHAR16* pFontString, ...)
 {
     INT32 destx, desty;
-    UINT16 *curletter, transletter;
+    CHAR16 *curletter, transletter;
     va_list argptr;
     wchar_t string[512];
     UINT32 uiDestPitchBYTES;
@@ -644,7 +644,7 @@ UINT32 gprintf(INT32 x, INT32 y, UINT16* pFontString, ...)
     pDestBuf = LockVideoSurface(FontDestBuffer, &uiDestPitchBYTES);
 
     while ((*curletter) != 0) {
-        transletter = GetIndex(*curletter++);
+        transletter = GetIndex((*curletter++));
 
         if (FontDestWrap &&
             BltIsClipped(FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion)) {
@@ -672,10 +672,10 @@ UINT32 gprintf(INT32 x, INT32 y, UINT16* pFontString, ...)
 }
 
 // FUNCTION: WIZ8 0x004077d0
-UINT32 gprintfDirty(INT32 x, INT32 y, UINT16* pFontString, ...)
+UINT32 gprintfDirty(INT32 x, INT32 y, CHAR16* pFontString, ...)
 {
     INT32 destx, desty;
-    UINT16 *curletter, transletter;
+    CHAR16 *curletter, transletter;
     va_list argptr;
     wchar_t string[512];
     UINT32 uiDestPitchBYTES;
@@ -696,7 +696,7 @@ UINT32 gprintfDirty(INT32 x, INT32 y, UINT16* pFontString, ...)
     pDestBuf = LockVideoSurface(FontDestBuffer, &uiDestPitchBYTES);
 
     while ((*curletter) != 0) {
-        transletter = GetIndex(*curletter++);
+        transletter = GetIndex((*curletter++));
 
         if (FontDestWrap &&
             BltIsClipped(FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion)) {
@@ -734,10 +734,10 @@ UINT32 gprintfDirty(INT32 x, INT32 y, UINT16* pFontString, ...)
 
 // FUNCTION: WIZ8 0x00407a10
 UINT32 gprintf_buffer(UINT8* pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y,
-                      UINT16* pFontString, ...)
+                      CHAR16* pFontString, ...)
 {
     INT32 destx, desty;
-    UINT16 *curletter, transletter;
+    CHAR16 *curletter, transletter;
     va_list argptr;
     wchar_t string[512];
 
@@ -753,7 +753,7 @@ UINT32 gprintf_buffer(UINT8* pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType,
     desty = y;
 
     while ((*curletter) != 0) {
-        transletter = GetIndex(*curletter++);
+        transletter = GetIndex((*curletter++));
 
         if (FontDestWrap &&
             BltIsClipped(FontObjs[FontType], destx, desty, transletter, &FontDestRegion)) {
@@ -780,10 +780,10 @@ UINT32 gprintf_buffer(UINT8* pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType,
 
 // FUNCTION: WIZ8 0x00407b80
 UINT32 mprintf_buffer(UINT8* pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y,
-                      UINT16* pFontString, ...)
+                      CHAR16* pFontString, ...)
 {
     INT32 destx, desty;
-    UINT16 *curletter, transletter;
+    CHAR16 *curletter, transletter;
     va_list argptr;
     wchar_t string[512];
 
@@ -799,7 +799,7 @@ UINT32 mprintf_buffer(UINT8* pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType,
     desty = y;
 
     while ((*curletter) != 0) {
-        transletter = GetIndex(*curletter++);
+        transletter = GetIndex((*curletter++));
 
         if (FontDestWrap &&
             BltIsClipped(FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion)) {
@@ -923,7 +923,8 @@ FontTranslationTable* CreateEnglishTransTable()
 
     pTable = (FontTranslationTable*)MemAlloc(sizeof(FontTranslationTable));
     pTable->usNumberOfSymbols = 252;
-    pTable->DynamicArrayOf16BitValues = (UINT16*)MemAlloc(pTable->usNumberOfSymbols * 2);
+    pTable->DynamicArrayOf16BitValues =
+        (UINT16*)MemAlloc(pTable->usNumberOfSymbols * sizeof(*pTable->DynamicArrayOf16BitValues));
     temp = pTable->DynamicArrayOf16BitValues;
 
     *temp = 'A';

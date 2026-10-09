@@ -46,7 +46,7 @@ srCachedExponentTable* srCachedExponentTable::first;
 srCachedExponentTable* srCachedExponentTable::lastResult;
 
 // GLOBAL: SURRENDER 0x100A028C
-long srCachedExponentTable::count;
+w8_long srCachedExponentTable::count;
 
 /* Initialized to a value no real exponent query can equal, so the first get()
    always takes the table walk. */

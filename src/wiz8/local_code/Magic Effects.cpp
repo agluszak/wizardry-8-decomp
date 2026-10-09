@@ -651,7 +651,7 @@ float HeadingTowardNearestMonster(srVector3T<float> point, W8Disposition disposi
     srVector3T<float> lower;
     srVector3T<float> upper;
     srVector3T<float> position;
-    unsigned long* location_ids;
+    w8_ulong* location_ids;
     double nearest_distance;
     float distance;
     float range;
@@ -672,7 +672,7 @@ float HeadingTowardNearestMonster(srVector3T<float> point, W8Disposition disposi
     upper.x += range;
     upper.y += range;
     upper.z += range;
-    location_ids = static_cast<unsigned long*>(operator new(0x400));
+    location_ids = static_cast<w8_ulong*>(operator new(0x100 * sizeof(*location_ids)));
     count = g_octree->QueryLocationsInBox(&location_ids, &lower, &upper,
                                           static_cast<unsigned short>(exclusion));
     if (count == 0) {
@@ -2489,7 +2489,7 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
     srVector3T<float> lower;
     srVector3T<float> upper;
     srVector3T<float> eye;
-    unsigned long* location_ids;
+    w8_ulong* location_ids;
     unsigned int count;
     unsigned int index;
     float far_clip;
@@ -2499,7 +2499,7 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
     center.y += g_default_world_height * g_float_half;
     lower.Set(center.x - far_clip, center.y - far_clip, center.z - far_clip);
     upper.Set(center.x + far_clip, center.y + far_clip, center.z + far_clip);
-    location_ids = static_cast<unsigned long*>(operator new(0x400));
+    location_ids = static_cast<w8_ulong*>(operator new(0x100 * sizeof(*location_ids)));
     count = g_octree->QueryLocationsInBox(&location_ids, &lower, &upper, 0);
     for (index = 0; index < count; ++index) {
         monster_info = MonsterInfoFromID(0xc7c, MAGIC_EFFECTS_CPP, location_ids[index], true);
@@ -2606,7 +2606,7 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
     W8MonsterRecord* monster;
     unsigned int magnitude;
     const wchar_t* notice;
-    const unsigned short* name;
+    const CHAR16* name;
     wchar_t* formatted;
 
     target = &effect->target;

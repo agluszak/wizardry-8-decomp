@@ -599,22 +599,26 @@ unsigned char W8PathingService::ReadPathNodes(int handle)
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x903,
                      "ReadPathNodes: Couldn't allocate Conditional Prop array.\n");
     }
-    m_pulCondLookup = static_cast<unsigned int*>(malloc(m_ulNumCondFrames << 2));
+    m_pulCondLookup =
+        static_cast<unsigned int*>(malloc(m_ulNumCondFrames * sizeof(*m_pulCondLookup)));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x905,
                      "ReadPathNodes: Couldn't allocate Conditional Lookup array.\n");
     }
-    m_pusCondNodeFrames = static_cast<unsigned short*>(malloc(m_ulNumCondFrames << 1));
+    m_pusCondNodeFrames =
+        static_cast<unsigned short*>(malloc(m_ulNumCondFrames * sizeof(*m_pusCondNodeFrames)));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x907,
                      "ReadPathNodes: Couldn't allocate Conditional Frame array.\n");
     }
-    m_pulCondNodeKeys = static_cast<unsigned int*>(malloc(m_ulNumCondNodes << 2));
+    m_pulCondNodeKeys =
+        static_cast<unsigned int*>(malloc(m_ulNumCondNodes * sizeof(*m_pulCondNodeKeys)));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x909,
                      "ReadPathNodes: Couldn't allocate Conditional Key array.\n");
     }
-    m_pulCondNodeValues = static_cast<unsigned int*>(malloc(m_ulNumCondNodes << 2));
+    m_pulCondNodeValues =
+        static_cast<unsigned int*>(malloc(m_ulNumCondNodes * sizeof(*m_pulCondNodeValues)));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x90b,
                      "ReadPathNodes: Couldn't allocate Conditional Value array.\n");
@@ -1068,7 +1072,7 @@ bool W8PathingService::TestAttachmentHopDoor(W8NavigatorAttachment* attachment)
             srVector3T<float> lower = source_surface->position;
             srVector3T<float> upper = source_surface->position;
             GrowBoundsByPoint(&m_waypoints[destination].position, &lower, &upper);
-            unsigned long* candidates = 0;
+            w8_ulong* candidates = 0;
             Trigger* selected = 0;
             int count =
                 g_octree->QueryObjects(&candidates, &lower, &upper, W8_OCTREE_KIND_PROP, -1);
@@ -1419,7 +1423,7 @@ unsigned short W8PathingService::RecurseTargetLinks(unsigned short waypoint)
     unsigned short edge;
     unsigned short destination;
     unsigned short candidates[20];
-    unsigned long keys[20];
+    w8_ulong keys[20];
     float distances[20];
     unsigned int count = 0;
     unsigned int index;
@@ -1463,10 +1467,10 @@ unsigned short W8PathingService::RecurseTargetLinks(unsigned short waypoint)
                             m_waypoints[destination].position - m_waypoints[waypoint].position;
                         link_direction.Normalize();
                         *slot = edge;
-                        keys[count] = static_cast<unsigned long>(
-                            g_path_link_cost_base -
-                            DotProduct(link_direction, to_target / distance) *
-                                g_float_one_thousand);
+                        keys[count] =
+                            static_cast<w8_ulong>(g_path_link_cost_base -
+                                                  DotProduct(link_direction, to_target / distance) *
+                                                      g_float_one_thousand);
                         ++count;
                         ++slot;
                     }
@@ -1589,7 +1593,7 @@ bool W8PathingService::BuildPatrolPath(W8NavigatorAttachment* attachment, unsign
 unsigned short W8PathingService::RecursePatrolLinks(unsigned short waypoint)
 {
     unsigned short links[20];
-    unsigned long keys[20];
+    w8_ulong keys[20];
     float costs[20];
     unsigned int count = 0;
     float distance;
@@ -1989,7 +1993,7 @@ int W8PathingService::ProcessSearchNodeProps(unsigned short node_index, bool fir
     lower = node->position - lower_extent;
     upper = node->position + upper_extent;
 
-    unsigned long* candidates = 0;
+    w8_ulong* candidates = 0;
     unsigned int count =
         g_octree->QueryObjects(&candidates, &lower, &upper, W8_OCTREE_KIND_PROP, -1);
     for (unsigned int index = 0; index < count; ++index) {
@@ -4401,7 +4405,7 @@ unsigned short W8PathingService::FindWaypoint(const srVector3T<float>* position,
     lower = query - half_extent;
     upper = query + half_extent;
 
-    unsigned long* candidates = 0;
+    w8_ulong* candidates = 0;
     int count = g_octree->QueryObjects(&candidates, &lower, &upper, W8_OCTREE_KIND_WAYPOINT, -1);
     if (count == 0) {
         return result;
@@ -4613,7 +4617,7 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
         upper.z = temporary;
     }
 
-    unsigned long* candidates = 0;
+    w8_ulong* candidates = 0;
     int count = g_octree->QueryObjects(&candidates, &lower, &upper, W8_OCTREE_KIND_PROP, -1);
     if (count <= 0) {
         return;
@@ -4905,8 +4909,8 @@ stModelInstance* W8PathingService::BuildPathVisualization()
         next = m_marked_path_nodes->NextSetBit(false);
     }
 
-    unsigned long* active_polygons = model->getActivePolygonTable(1);
-    unsigned long active_count = 0;
+    w8_ulong* active_polygons = model->getActivePolygonTable(1);
+    w8_ulong active_count = 0;
     for (index = 0; index < marker_count * 6; ++index) {
         active_polygons[active_count++] = index;
     }
@@ -5115,11 +5119,11 @@ void W8PathingService::BuildSearchVisualization()
         }
     }
 
-    unsigned long* active_polygons = model->getActivePolygonTable(1);
+    w8_ulong* active_polygons = model->getActivePolygonTable(1);
     /* 0x0045D3BF tests this bound with JLE after computing it as
        4 * (node_count - 1), so it is a signed count and not an unsigned one. */
-    long active_count = node_count > 1 ? (node_count - 1) * 4 : 0;
-    for (long index = 0; index < active_count; ++index) {
+    w8_long active_count = node_count > 1 ? (node_count - 1) * 4 : 0;
+    for (w8_long index = 0; index < active_count; ++index) {
         active_polygons[index] = index + 600;
     }
     model->setActivePolygonCount(active_count);
@@ -5188,7 +5192,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization()
     srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 1);
     srVector2T<float>* texture_coordinates = model->getVertexTexCoords(0, 0, 1);
     srPtr<srMaterialIFace>* materials = model->getVertexMaterial(0, srMeshModel::SIDE_FRONT, 1);
-    unsigned long* shade_indices = model->getVertexShadeIndex(1);
+    w8_ulong* shade_indices = model->getVertexShadeIndex(1);
 
     for (index = 0; index < polygon_count; ++index) {
         textures[index] = g_oct_mesh_default_texture;
@@ -5275,9 +5279,9 @@ stModelInstance* W8PathingService::EnsurePathVisualization()
 short W8PathingService::CollectPathVisualization(const srVector3T<float>* position)
 {
     unsigned short waypoints[500];
-    unsigned long distances[500];
+    w8_ulong distances[500];
     unsigned short waypoint_count = 0;
-    unsigned long* query_results = 0;
+    w8_ulong* query_results = 0;
     int query_count;
     int index;
 
@@ -5428,12 +5432,12 @@ void W8PathingService::AddWaypoint(const srVector3T<float>* position)
 // FUNCTION: WIZ8 0x0045e030
 void W8PathingService::SetWaypointLinkFlags(unsigned short waypoint, unsigned int direction)
 {
-    unsigned long* objects = 0;
+    w8_ulong* objects = 0;
     unsigned int link_flags[2];
     unsigned int index;
     unsigned int count;
     unsigned int accepted;
-    unsigned long* distances;
+    w8_ulong* distances;
     W8PathSurface* surface;
     W8PathSurface* candidate;
     srVector3T<float> lower;
@@ -5456,14 +5460,14 @@ void W8PathingService::SetWaypointLinkFlags(unsigned short waypoint, unsigned in
             count =
                 g_octree->QueryObjects(&objects, &lower, &upper, W8_OCTREE_KIND_WAYPOINT, waypoint);
             if (count != 0) {
-                distances = static_cast<unsigned long*>(malloc(count * sizeof(unsigned long)));
+                distances = static_cast<w8_ulong*>(malloc(count * sizeof(w8_ulong)));
                 for (index = 0; index < count; ++index) {
                     candidate = m_waypoints + objects[index];
                     if ((candidate->flags & 2) == 0) {
                         distance = (candidate->position - surface->position).Length();
                         if (TestWaypointSpan(&surface->position, &candidate->position, false,
                                              false)) {
-                            distances[index] = static_cast<unsigned long>(distance);
+                            distances[index] = static_cast<w8_ulong>(distance);
                         } else {
                             distances[index] = 0xffffffff;
                         }

@@ -49,4 +49,4 @@ struct W8Chunk {
     unsigned char CurrentChunkAtEnd();
 };
 
-static_assert(sizeof(W8Chunk) == 0x48, "W8Chunk_size_must_be_0x48");
+W8_ABI_ASSERT(sizeof(W8Chunk) == 0x48, "W8Chunk_size_must_be_0x48");

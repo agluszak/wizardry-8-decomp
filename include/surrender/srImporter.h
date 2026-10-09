@@ -18,12 +18,12 @@ class
     srSurfaceIOManager : public srIOManager {
 public:
     struct ImportInfo {
-        unsigned long unknown_00;
+        w8_ulong unknown_00;
     };
 
     struct ExportInfo {
-        unsigned long unknown_00;
-        unsigned long unknown_04;
+        w8_ulong unknown_00;
+        w8_ulong unknown_04;
         const char* option_string;
     };
 
@@ -46,8 +46,8 @@ public:
                         const ImportInfo& options);
 };
 
-static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x04), "srSurfaceImportInfo_must_be_0x04");
-static_assert((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExportInfo_must_be_0x0c");
+W8_ABI_ASSERT((sizeof(srSurfaceIOManager::ImportInfo) == 0x04), "srSurfaceImportInfo_must_be_0x04");
+W8_ABI_ASSERT((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExportInfo_must_be_0x0c");
 
 class
 #if defined(SURRENDER_BUILD)
@@ -93,7 +93,7 @@ public:
     void exportHierarchy(const char* path, const ExportInfo& options);
 };
 
-static_assert((sizeof(srHierarchyIOManager) == 0x1c), "srHierarchyIOManager_must_be_0x1c");
+W8_ABI_ASSERT((sizeof(srHierarchyIOManager) == 0x1c), "srHierarchyIOManager_must_be_0x1c");
 static_assert((sizeof(srHierarchyIOManager::ImportInfo) == 0x01),
               "srHierarchyImportInfo_must_be_0x01");
 static_assert((sizeof(srHierarchyIOManager::ExportInfo) == 0x01),
@@ -140,7 +140,7 @@ public:
     void exportModel(const char* path, srModel& model, const ExportInfo& options);
 };
 
-static_assert((sizeof(srModelIOManager) == 0x1c), "srModelIOManager_must_be_0x1c");
+W8_ABI_ASSERT((sizeof(srModelIOManager) == 0x1c), "srModelIOManager_must_be_0x1c");
 static_assert((sizeof(srModelIOManager::ImportInfo) == 0x01), "srModelImportInfo_must_be_0x01");
 static_assert((sizeof(srModelIOManager::ExportInfo) == 0x01), "srModelExportInfo_must_be_0x01");
 

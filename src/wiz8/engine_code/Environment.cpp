@@ -38,7 +38,7 @@ bool g_fog_enabled;
 // GLOBAL: WIZ8 0x0065b9ae
 bool g_sky_enabled;
 // GLOBAL: WIZ8 0x0065B9A8
-static unsigned long g_tick;
+static w8_ulong g_tick;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
 
@@ -61,7 +61,7 @@ float g_environment_transition_rate;
 /* Tick baseline for the active lighting transition; rewritten every frame the
    transition body advances the light scale. */
 // GLOBAL: WIZ8 0x0065b9bc
-unsigned long g_environment_transition_tick;
+w8_ulong g_environment_transition_tick;
 // GLOBAL: WIZ8 0x0060a3ac
 int g_last_light_phase = -1;
 // GLOBAL: WIZ8 0x0060a395
@@ -95,7 +95,7 @@ void W8MaterialMapper::process(srVertexPipe& pipe)
     if (!pipe.isChannelAvailable(srVertexProcessor::CHANNEL_ST0)) {
         return;
     }
-    unsigned long count = pipe.getVertexCount();
+    w8_ulong count = pipe.getVertexCount();
     srVector2T<float>* coordinates = pipe.getST(0, 0);
 
     offset_x = scroll_rate_u * g_frame_elapsed + scroll_u;
@@ -103,7 +103,7 @@ void W8MaterialMapper::process(srVertexPipe& pipe)
     offset_y = scroll_rate_v * g_frame_elapsed + scroll_v;
     scroll_v = offset_y - static_cast<float>(floor(offset_y));
 
-    for (unsigned long index = 0; index < count; ++index) {
+    for (w8_ulong index = 0; index < count; ++index) {
         coordinates[index].x += scroll_u;
         coordinates[index].y += scroll_v;
     }
@@ -189,8 +189,8 @@ void AdvanceEnvironmentTime(int elapsed)
 static void AdvanceEnvironmentClock(void)
 {
     if (g_environment_time_enabled) {
-        unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
+        w8_ulong now = GetTickCount();
+        w8_ulong elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
         if (elapsed != 0) {
             AdvanceEnvironmentTime(
                 static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
@@ -570,8 +570,8 @@ void BeginWorldLightingFade(float duration)
 // FUNCTION: WIZ8 0x00484300
 void UpdateEnvironmentLighting(void)
 {
-    unsigned long now = GetTickCount();
-    unsigned long elapsed = now - g_environment_transition_tick;
+    w8_ulong now = GetTickCount();
+    w8_ulong elapsed = now - g_environment_transition_tick;
     W8World* world;
     float scale;
     float intensity;

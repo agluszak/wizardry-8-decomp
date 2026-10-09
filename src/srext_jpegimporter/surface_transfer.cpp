@@ -45,8 +45,8 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(srBinIStream& stream,
     }
 
     const int components = codec_.components;
-    const unsigned long height = codec_.height;
-    const unsigned long width = codec_.width;
+    const w8_ulong height = codec_.height;
+    const w8_ulong width = codec_.width;
     srColorSurface* surface;
     switch (components) {
     case 1:
@@ -62,7 +62,7 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(srBinIStream& stream,
         return 0;
     }
 
-    const unsigned long data_size = components * height * width;
+    const w8_ulong data_size = components * height * width;
     unsigned char* decoded = new unsigned char[data_size];
     codec_.pixels = decoded;
     stream.seek(0, srBinStream::SR_SEEK_BEGIN);
@@ -75,9 +75,9 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(srBinIStream& stream,
         return 0;
     }
 
-    unsigned long rgb_row_offset = 0;
+    w8_ulong rgb_row_offset = 0;
     const unsigned char* source_row = decoded;
-    for (unsigned long y = 0; y < height; ++y) {
+    for (w8_ulong y = 0; y < height; ++y) {
         unsigned char* destination =
             static_cast<unsigned char*>(surface->getDataPtr()) + surface->getPitch() * y;
         switch (components) {
@@ -86,7 +86,7 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(srBinIStream& stream,
             break;
         case 3: {
             const unsigned char* source = decoded + rgb_row_offset + 1;
-            for (unsigned long x = 0; x < width; ++x) {
+            for (w8_ulong x = 0; x < width; ++x) {
                 destination[0] = source[1];
                 destination[1] = source[0];
                 destination[2] = source[-1];
@@ -96,10 +96,10 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(srBinIStream& stream,
             break;
         }
         case 4: {
-            const unsigned long* source = reinterpret_cast<const unsigned long*>(source_row);
-            unsigned long* destination_pixel = reinterpret_cast<unsigned long*>(destination);
-            for (unsigned long x = 0; x < width; ++x) {
-                const unsigned long pixel = *source++;
+            const w8_ulong* source = reinterpret_cast<const w8_ulong*>(source_row);
+            w8_ulong* destination_pixel = reinterpret_cast<w8_ulong*>(destination);
+            for (w8_ulong x = 0; x < width; ++x) {
+                const w8_ulong pixel = *source++;
                 *destination_pixel++ = (((pixel & 0x00ff0000UL) | (pixel >> 16)) >> 8) |
                                        (((pixel << 16) | (pixel & 0x0000ff00UL)) << 8);
             }
@@ -134,7 +134,7 @@ void srJPEGImporter::exportSurface(srBinOStream& stream, srColorSurfaceIFace& so
     initializeExportOptions(&export_options_);
     export_options_.quality = 100;
     if (options.option_string != 0) {
-        const unsigned long length = strlen(options.option_string) + 1;
+        const w8_ulong length = strlen(options.option_string) + 1;
         char* option_string = new char[length];
         strcpy(option_string, options.option_string);
         for (char* cursor = option_string; *cursor != '\0'; ++cursor) {

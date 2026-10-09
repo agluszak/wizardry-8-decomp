@@ -16,7 +16,7 @@ struct W8CameraPath {
     unsigned char padding_15[3];
     W8PathAI* path;
 };
-static_assert(sizeof(W8CameraPath) == 0x1c, "W8CameraPath_must_be_0x1c");
+W8_ABI_ASSERT(sizeof(W8CameraPath) == 0x1c, "W8CameraPath_must_be_0x1c");
 
 /* Engine Code\Camera.cpp. The TU's only anchor; turns a camera path on and
    off for the world and dispatches the per-path end actions. */

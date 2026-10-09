@@ -131,7 +131,7 @@ void srScheduler::finishAll()
 {
     while (true) {
         critical_section->getAccess();
-        long count = job_count;
+        w8_long count = job_count;
         critical_section->releaseAccess();
         if (count == 0) {
             break;
@@ -141,11 +141,11 @@ void srScheduler::finishAll()
 }
 
 // FUNCTION: SURRENDER 0x100142F0
-long srScheduler::getJobCount() const
+w8_long srScheduler::getJobCount() const
 {
     srCriticalSection* section = critical_section;
     section->getAccess();
-    long count = job_count;
+    w8_long count = job_count;
     section->releaseAccess();
     return count;
 }
@@ -162,7 +162,7 @@ void srScheduler::removeQueueEntry(QueueEntry* entry)
 }
 
 // FUNCTION: SURRENDER 0x100144B0
-long srScheduler::executeNextJob()
+w8_long srScheduler::executeNextJob()
 {
     critical_section->getAccess();
     QueueEntry* entry = first_job;

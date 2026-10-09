@@ -385,7 +385,7 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
         deficits[index][1] = index;
         total -= deficit;
     }
-    qsort(deficits, 7, 8, CompareSignedDescending);
+    qsort(deficits, 7, sizeof(deficits[0]), CompareSignedDescending);
     if (character->attribute_point_deficit != total) {
         character->attribute_point_deficit = total;
     }
@@ -787,7 +787,7 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
                 pools[index][0] = character->sp_max[index];
                 pools[index][1] = index;
             }
-            qsort(pools, 6, 8, CompareSignedDescending);
+            qsort(pools, 6, sizeof(pools[0]), CompareSignedDescending);
             int count =
                 creation_state->spell_points_total < 7 ? creation_state->spell_points_total : 6;
             for (index = 0; index < count; ++index) {

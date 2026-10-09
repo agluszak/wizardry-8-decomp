@@ -26,9 +26,9 @@ protected:
     virtual ~srBinFStream() override;
 
     void mopen(const char* path, e_mode mode, int search_paths);
-    virtual srBinStream& pseek(unsigned long position, srBinStream::e_seekDir direction);
-    virtual srBinStream& pseek(unsigned long position);
-    virtual unsigned long ptell();
+    virtual srBinStream& pseek(w8_ulong position, srBinStream::e_seekDir direction);
+    virtual srBinStream& pseek(w8_ulong position);
+    virtual w8_ulong ptell();
 
     /* The directional file streams' vget/vput/vread/vwrite bodies all touch
        the file handle directly, so the member sits at protected access. */
@@ -55,13 +55,13 @@ public:
     srBinIFStream(const char* path);
 
     void open(const char* path);
-    virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual srBinStream& seek(unsigned long position) override;
-    virtual unsigned long tell() override;
+    virtual srBinStream& seek(w8_ulong position, srBinStream::e_seekDir direction) override;
+    virtual srBinStream& seek(w8_ulong position) override;
+    virtual w8_ulong tell() override;
 
 private:
     virtual unsigned short vget() override;
-    virtual unsigned long vread(void* destination, unsigned long size) override;
+    virtual w8_ulong vread(void* destination, w8_ulong size) override;
 };
 
 // VTABLE: SURRENDER 0x10076AB8 srBinStream
@@ -81,15 +81,15 @@ public:
     srBinIOFStream(const char* path);
 
     void open(const char* path);
-    virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual srBinStream& seek(unsigned long position) override;
-    virtual unsigned long tell() override;
+    virtual srBinStream& seek(w8_ulong position, srBinStream::e_seekDir direction) override;
+    virtual srBinStream& seek(w8_ulong position) override;
+    virtual w8_ulong tell() override;
 
 private:
     virtual unsigned short vget() override;
     virtual unsigned short vput(char value) override;
-    virtual unsigned long vread(void* destination, unsigned long size) override;
-    virtual unsigned long vwrite(const void* source, unsigned long size) override;
+    virtual w8_ulong vread(void* destination, w8_ulong size) override;
+    virtual w8_ulong vwrite(const void* source, w8_ulong size) override;
 };
 
 // VTABLE: SURRENDER 0x10076B30 srBinFStream
@@ -107,16 +107,16 @@ public:
     srBinOFStream(const char* path);
 
     void open(const char* path);
-    virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual srBinStream& seek(unsigned long position) override;
-    virtual unsigned long tell() override;
+    virtual srBinStream& seek(w8_ulong position, srBinStream::e_seekDir direction) override;
+    virtual srBinStream& seek(w8_ulong position) override;
+    virtual w8_ulong tell() override;
 
 private:
     virtual unsigned short vput(char value) override;
-    virtual unsigned long vwrite(const void* source, unsigned long size) override;
+    virtual w8_ulong vwrite(const void* source, w8_ulong size) override;
 };
 
-static_assert(sizeof(srBinFStream) == 0x28, "srBinFStream_must_be_0x28");
-static_assert(sizeof(srBinIFStream) == 0x34, "srBinIFStream_must_be_0x34");
-static_assert(sizeof(srBinIOFStream) == 0x3c, "srBinIOFStream_must_be_0x3c");
-static_assert(sizeof(srBinOFStream) == 0x3c, "srBinOFStream_must_be_0x3c");
+W8_ABI_ASSERT(sizeof(srBinFStream) == 0x28, "srBinFStream_must_be_0x28");
+W8_ABI_ASSERT(sizeof(srBinIFStream) == 0x34, "srBinIFStream_must_be_0x34");
+W8_ABI_ASSERT(sizeof(srBinIOFStream) == 0x3c, "srBinIOFStream_must_be_0x3c");
+W8_ABI_ASSERT(sizeof(srBinOFStream) == 0x3c, "srBinOFStream_must_be_0x3c");

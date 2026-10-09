@@ -7,6 +7,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/vector.h"
 #include "surrender/srMath.h"
+#include "wiz8/compat/ptr32.h"
 
 /* Bit masks in W8WorldItem::flags; preserve combinations in unsigned int. */
 enum {
@@ -18,10 +19,10 @@ enum {
 #pragma pack(push, 1)
 
 struct W8WorldItem {
-    int runtime_id;      /* 0x00 */
-    W8Item* p3D;         /* 0x04: assertion-proven pItemInfo->p3D; owns the live world entity */
-    bool fActive;        /* 0x08: assertion-proven pItemInfo->fActive */
-    W8ItemInstance item; /* 0x09 */
+    int runtime_id;       /* 0x00 */
+    W8_PTR32(W8Item) p3D; /* 0x04: assertion-proven pItemInfo->p3D; owns the live world entity */
+    bool fActive;         /* 0x08: assertion-proven pItemInfo->fActive */
+    W8ItemInstance item;  /* 0x09 */
     srVector3T<float> position; /* 0x15 */
     unsigned char unknown_21[4];
     /* Saved W8ItemRep flag word; level restore clears RADAR_SEEN. */
@@ -31,8 +32,8 @@ struct W8WorldItem {
        to 1 before each record is written, and the chain is walked and rebuilt
        through the link. The link is written to the file and reloaded with the
        record, so on disk it only records that another entry follows. */
-    int saved_marker;  /* 0x2d */
-    W8WorldItem* next; /* 0x31 */
+    int saved_marker;           /* 0x2d */
+    W8_PTR32(W8WorldItem) next; /* 0x31 */
     /* 0x35: vertical velocity while flag bit 1 (falling) is set; cleared on
        ground settle. */
     float vertical_velocity;
@@ -41,6 +42,8 @@ struct W8WorldItem {
 }; /* 0xad */
 
 #pragma pack(pop)
+
+static_assert(sizeof(W8WorldItem) == 0xad, "W8WorldItem_must_be_0xad");
 
 W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position,
                              int entity_flags, bool add_to_world);

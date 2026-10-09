@@ -27,7 +27,7 @@ extern "C" size_t __cdecl fread(void* destination, size_t size, size_t count, FI
 {
     if (srJPEG_active_input_stream != 0 && srJPEG_active_input_stream->good()) {
         size_t requested = size * count;
-        unsigned long available =
+        w8_ulong available =
             srJPEG_active_input_stream->getSize() - srJPEG_active_input_stream->tell();
         if (requested > available) {
             requested = available;

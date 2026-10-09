@@ -56,9 +56,9 @@ struct W8PathAI : W8AIRecord {
     unsigned char padding_3d[3];
 };
 
-static_assert(sizeof(W8GrowableVector<srVector3T<float>*>) == 0x10,
+W8_ABI_ASSERT(sizeof(W8GrowableVector<srVector3T<float>*>) == 0x10,
               "PathAI_vector_size_must_be_0x10");
-static_assert(sizeof(W8PathAI) == 0x40, "W8PathAI_size_must_be_0x40");
+W8_ABI_ASSERT(sizeof(W8PathAI) == 0x40, "W8PathAI_size_must_be_0x40");
 
 /* Tagged-record dispatchers: the body switches on kind and hands the
    record to the path or missile implementation. */

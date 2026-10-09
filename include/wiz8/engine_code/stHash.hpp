@@ -18,10 +18,10 @@ inline unsigned int W8HashValue(unsigned short key)
 /* Single-array sibling of the QuickSortByKey idiom: partition while the range
    is wide, then finish with an insertion pass. Call sites inline the outer
    frame, so the Octree.cpp emission only ever serves the recursion. */
-inline void InsertionSort(unsigned long* values, int first, int last)
+inline void InsertionSort(w8_ulong* values, int first, int last)
 {
     for (int index = first + 1; index < last; ++index) {
-        unsigned long value = values[index];
+        w8_ulong value = values[index];
         int position = index;
         while (value < values[position - 1]) {
             values[position] = values[position - 1];
@@ -35,16 +35,16 @@ inline void InsertionSort(unsigned long* values, int first, int last)
 }
 
 // FUNCTION: WIZ8 0x00438e60
-inline void QuickSort(unsigned long* values, int first, int last)
+inline void QuickSort(w8_ulong* values, int first, int last)
 {
     if (last - first <= 8) {
         InsertionSort(values, first, last + 1);
         return;
     }
-    unsigned long pivot = values[last];
+    w8_ulong pivot = values[last];
     int low = first - 1;
     int high = last;
-    unsigned long value;
+    w8_ulong value;
     do {
         do {
             ++low;
@@ -71,11 +71,11 @@ inline void QuickSort(unsigned long* values, int first, int last)
    keys move together.  Retail emits these instantiations in several TUs; the
    insertion pass only appears inside QuickSortByKey's tail or a SortByKey
    inline. */
-template <class T> void InsertionSortByKey(T* items, unsigned long* keys, int first, int last)
+template <class T> void InsertionSortByKey(T* items, w8_ulong* keys, int first, int last)
 {
     for (int index = first + 1; index < last; ++index) {
         T item = items[index];
-        unsigned long key = keys[index];
+        w8_ulong key = keys[index];
         int position = index;
         while (key < keys[position - 1]) {
             keys[position] = keys[position - 1];
@@ -90,14 +90,14 @@ template <class T> void InsertionSortByKey(T* items, unsigned long* keys, int fi
     }
 }
 
-template <class T> void QuickSortByKey(T* items, unsigned long* keys, int first, int last)
+template <class T> void QuickSortByKey(T* items, w8_ulong* keys, int first, int last)
 {
     if (last - first > 8) {
-        unsigned long pivot = keys[last];
+        w8_ulong pivot = keys[last];
         int low = first - 1;
         int high = last;
         T item;
-        unsigned long key;
+        w8_ulong key;
         do {
             do {
                 ++low;
@@ -129,7 +129,7 @@ template <class T> void QuickSortByKey(T* items, unsigned long* keys, int first,
     }
 }
 
-template <class T> void SortByKey(T* items, unsigned long* keys, int count)
+template <class T> void SortByKey(T* items, w8_ulong* keys, int count)
 {
     if (count > 1) {
         int ordered_pairs = 0;
@@ -146,7 +146,7 @@ template <class T> void SortByKey(T* items, unsigned long* keys, int count)
                 T item = items[index];
                 items[index] = items[count - 1 - index];
                 items[count - 1 - index] = item;
-                unsigned long key = keys[index];
+                w8_ulong key = keys[index];
                 keys[index] = keys[count - 1 - index];
                 keys[count - 1 - index] = key;
             }

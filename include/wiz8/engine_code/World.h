@@ -41,7 +41,7 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
 unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position, bool check_items,
                                      bool check_monsters);
 
-static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
+W8_ABI_ASSERT(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 
 void SetSecondaryWorld(W8World* world);
 

@@ -1,6 +1,6 @@
 /* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-04, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
-#include "types.h"
+#include "Types.h"
 #include <windows.h>
 #include <windowsx.h>
 #include <stdio.h>
@@ -9,10 +9,10 @@
 #include "sgp.h"
 #include "RegInst.h"
 #include "vobject.h"
-#include "font.h"
-#include "Fileman.h"
+#include "Font.h"
+#include "FileMan.h"
 #include "input.h"
-#include "Random.h"
+#include "random.h"
 #include "wiz8/game_init.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "soundman.h"
@@ -23,7 +23,6 @@
 
 #include "input.h"
 #include <zmouse.h>
-
 #include "dbt.h"
 
 #ifndef WIN32_LEAN_AND_MEAN

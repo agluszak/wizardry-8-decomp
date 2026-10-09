@@ -10,7 +10,7 @@ public:
 
     srARGB() {}
 
-    void* operator new[](unsigned int size)
+    void* operator new[](size_t size)
     {
         return srHeap.allocate(size);
     }

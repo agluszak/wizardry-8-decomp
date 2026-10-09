@@ -84,4 +84,4 @@ private:
     bool m_sorted;
     unsigned char unknown_057;
 };
-static_assert(sizeof(W8DialogTextArea) == 0x58, "W8DialogTextArea_size");
+W8_ABI_ASSERT(sizeof(W8DialogTextArea) == 0x58, "W8DialogTextArea_size");

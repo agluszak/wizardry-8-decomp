@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_GAME_STATUS_H
 #define WIZ8_LAYOUTS_GAME_STATUS_H
 
+#include "compat/ptr32.h"
 #include "wiz8/difficulty.h"
 #include "Types.h"
 
@@ -22,8 +23,8 @@ enum { W8_PARTY_SLOT_COUNT = 8 };
 #pragma pack(push, 1)
 struct W8StatusBuffers {
     float save_version;
-    W8Character* Char;
-    W8PartySlotRow* XChar;
+    W8_PTR32(W8Character) Char;
+    W8_PTR32(W8PartySlotRow) XChar;
 };
 
 enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };

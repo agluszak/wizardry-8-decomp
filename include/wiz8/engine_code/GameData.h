@@ -318,7 +318,7 @@ struct W8GameData {
 
     /* Loop the buffered prop ids through TestProp and return the id of the
        last prop that reported a hit, or -1. */
-    int TestPropSurfaces(int count, unsigned long* ids, W8OctreeTrace* trace, char skip_flag,
+    int TestPropSurfaces(int count, w8_ulong* ids, W8OctreeTrace* trace, char skip_flag,
                          char gate); /* 0x0041C0D0 */
     /* Ray-test one collidable prop: swaps the prop's surface/vertex arrays
        into this context, traces in prop-local space through the prop's
@@ -331,11 +331,11 @@ struct W8GameData {
        trace_flag4_gate, flag and mode filters apply; a closer hit stores index
        into last_hit_surface, the contact into the record's end and the distance
        into hit_limit. */
-    bool TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
-                         char skip_flag, int mode); /* 0x0041C330 */
+    bool TestTraceResult(int count, w8_ulong* surface_ids, W8OctreeTrace* trace, char skip_flag,
+                         int mode); /* 0x0041C330 */
 };
 
-static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
+W8_ABI_ASSERT(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
 
 static_assert(offsetof(W8LevelDataRecord, primary_contact_prop_id) == 0x04,
               "W8LevelDataRecord_primary_contact_prop_id");
@@ -345,7 +345,7 @@ static_assert(offsetof(W8LevelDataRecord, contact_normal) == 0xac,
               "W8LevelDataRecord_contact_normal_ac");
 static_assert(offsetof(W8LevelDataRecord, contact_normal_scale) == 0xb8,
               "W8LevelDataRecord_contact_normal_scale");
-static_assert(sizeof(W8LevelDataRecord) == 0xf4, "W8LevelDataRecord_must_be_0xf4");
+W8_ABI_ASSERT(sizeof(W8LevelDataRecord) == 0xf4, "W8LevelDataRecord_must_be_0xf4");
 
 extern W8LevelDataRecord* g_level_data;
 /* Companion pointer cleared alongside g_level_data on level

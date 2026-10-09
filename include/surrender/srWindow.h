@@ -6,7 +6,7 @@ class
 #endif
     srWindow {
 public:
-    static int isWindow(unsigned long handle);
-    static long getWidth(unsigned long handle);
-    static long getHeight(unsigned long handle);
+    static int isWindow(w8_ulong_ptr handle);
+    static w8_long getWidth(w8_ulong_ptr handle);
+    static w8_long getHeight(w8_ulong_ptr handle);
 };

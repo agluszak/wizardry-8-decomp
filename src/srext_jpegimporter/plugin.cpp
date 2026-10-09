@@ -72,7 +72,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID)
 }
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x100155D0
-extern "C" unsigned long __cdecl srGetLibraryVersion()
+extern "C" w8_ulong __cdecl srGetLibraryVersion()
 {
     return 0x012A0209UL;
 }
@@ -83,5 +83,5 @@ extern "C" srPlugin* __cdecl srInitPlugin()
     return new srJPEGPlugin;
 }
 
-static_assert((sizeof(srJPEGImporter) == 0x44), "srJPEGImporter_must_be_0x44");
-static_assert((sizeof(srJPEGPlugin) == 0x48), "srJPEGPlugin_must_be_0x48");
+W8_ABI_ASSERT((sizeof(srJPEGImporter) == 0x44), "srJPEGImporter_must_be_0x44");
+W8_ABI_ASSERT((sizeof(srJPEGPlugin) == 0x48), "srJPEGPlugin_must_be_0x48");

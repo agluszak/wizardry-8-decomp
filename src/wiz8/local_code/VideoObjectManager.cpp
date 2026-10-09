@@ -869,7 +869,7 @@ unsigned short* CopyCatalogImagePalette16BPP(int object, int frame)
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xaf, 0);
     }
-    palette = static_cast<unsigned short*>(malloc(0x200));
+    palette = static_cast<unsigned short*>(malloc(0x100 * sizeof(*palette)));
     if (!palette) {
         return 0;
     }
@@ -1059,7 +1059,7 @@ unsigned char BlitCatalogSurfaceRectTo16BPP(UINT32 target, int left, int top, in
 /* Lock the pixel buffer of a surface-backed catalog frame. ETRLE video-object
    entries have no lockable surface and return null. */
 // FUNCTION: WIZ8 0x005498a0
-void* LockCatalogFrameSurface(unsigned int object, unsigned int frame, long* pitch)
+void* LockCatalogFrameSurface(unsigned int object, unsigned int frame, w8_long* pitch)
 {
     unsigned int surface;
 

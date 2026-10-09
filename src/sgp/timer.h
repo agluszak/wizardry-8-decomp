@@ -3,7 +3,7 @@
 #ifndef __TIMER_
 #define __TIMER_
 
-#include "types.h"
+#include "Types.h"
 
 typedef UINT32 TIMER;
 

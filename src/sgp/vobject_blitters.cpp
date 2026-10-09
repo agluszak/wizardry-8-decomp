@@ -2,13 +2,13 @@
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "DirectDraw Calls.h"
 #include <stdio.h>
-#include "debug.h"
-#include "video2.h" // Wiz8
+#include "DEBUG.H"
+#include "Video2.h" // Wiz8
 #include "himage.h"
 #include "vobject.h"
 #include "vobject_private.h"
 #include "video_private.h"
-#include "wcheck.h"
+#include "WCheck.h"
 #include "vobject.h"
 #include "vobject_blitters.h"
 #include "shading.h"

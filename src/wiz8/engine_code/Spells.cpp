@@ -1233,7 +1233,7 @@ void SetMonsterSpellIcon(W8Monster* pMonster, W8MonsterSpellIconId iIcon, bool a
             srAssertFail("uiIcon < SPELL_NUM_ICONS",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x80a, 0);
         }
-        pSpellMI = static_cast<W8MonsterSpellIcon*>(malloc(8));
+        pSpellMI = static_cast<W8MonsterSpellIcon*>(malloc(sizeof(*pSpellMI)));
         pSpellMI->icon = SPELL_ICON_DRAINED;
         pSpellMI->psrBMO = 0;
         sprintf(path, "%s\\%s_A.TGA", "Data\\Icons\\MonsterSpells",

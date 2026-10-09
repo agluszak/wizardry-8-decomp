@@ -6,7 +6,7 @@
 #include <string.h>
 
 // FUNCTION: SURRENDER 0x100309C0
-srBinIMStream::srBinIMStream(const void* data, unsigned long size)
+srBinIMStream::srBinIMStream(const void* data, w8_ulong size)
 {
     if (data == 0 || size == 0) {
         this->data = 0;
@@ -21,9 +21,9 @@ srBinIMStream::srBinIMStream(const void* data, unsigned long size)
 }
 
 // FUNCTION: SURRENDER 0x10030AA0
-srBinStream& srBinIMStream::seek(unsigned long position, e_seekDir direction)
+srBinStream& srBinIMStream::seek(w8_ulong position, e_seekDir direction)
 {
-    unsigned long new_position = 0;
+    w8_ulong new_position = 0;
     switch (direction) {
     case SR_SEEK_BEGIN:
         new_position = position;
@@ -40,7 +40,7 @@ srBinStream& srBinIMStream::seek(unsigned long position, e_seekDir direction)
 }
 
 // FUNCTION: SURRENDER 0x10030B00
-srBinStream& srBinIMStream::seek(unsigned long position)
+srBinStream& srBinIMStream::seek(w8_ulong position)
 {
     if (position <= size) {
         position0 = position;
@@ -51,13 +51,13 @@ srBinStream& srBinIMStream::seek(unsigned long position)
 }
 
 // FUNCTION: SURRENDER 0x10030B40
-unsigned long srBinIMStream::tell()
+w8_ulong srBinIMStream::tell()
 {
     return position0;
 }
 
 // FUNCTION: SURRENDER 0x10030B50
-unsigned long srBinIMStream::vread(void* destination, unsigned long size)
+w8_ulong srBinIMStream::vread(void* destination, w8_ulong size)
 {
     if (position0 + size >= this->size) {
         size = this->size - position0;
@@ -72,7 +72,7 @@ unsigned long srBinIMStream::vread(void* destination, unsigned long size)
 }
 
 // FUNCTION: SURRENDER 0x10030BA0
-unsigned long srBinIMStream::getSize()
+w8_ulong srBinIMStream::getSize()
 {
     return size;
 }
@@ -92,15 +92,15 @@ void* srBinOMStream::getPtr()
 }
 
 // FUNCTION: SURRENDER 0x10030F30
-unsigned long srBinOMStream::getSize()
+w8_ulong srBinOMStream::getSize()
 {
     return size;
 }
 
 // FUNCTION: SURRENDER 0x10030F40
-srBinStream& srBinOMStream::seek(unsigned long position, e_seekDir direction)
+srBinStream& srBinOMStream::seek(w8_ulong position, e_seekDir direction)
 {
-    unsigned long new_position = 0;
+    w8_ulong new_position = 0;
     switch (direction) {
     case SR_SEEK_BEGIN:
         new_position = position;
@@ -117,20 +117,20 @@ srBinStream& srBinOMStream::seek(unsigned long position, e_seekDir direction)
 }
 
 // FUNCTION: SURRENDER 0x10030FA0
-srBinStream& srBinOMStream::seek(unsigned long position)
+srBinStream& srBinOMStream::seek(w8_ulong position)
 {
     position0 = position;
     return *this;
 }
 
 // FUNCTION: SURRENDER 0x10030FC0
-unsigned long srBinOMStream::tell()
+w8_ulong srBinOMStream::tell()
 {
     return position0;
 }
 
 // FUNCTION: SURRENDER 0x10030FD0
-unsigned long srBinOMStream::vwrite(const void* source, unsigned long size)
+w8_ulong srBinOMStream::vwrite(const void* source, w8_ulong size)
 {
     if (size != 0) {
         buffer[position0 + size];
@@ -148,7 +148,7 @@ unsigned long srBinOMStream::vwrite(const void* source, unsigned long size)
 }
 
 // FUNCTION: SURRENDER 0x10031490
-srBinIStream& srBinIStream::read(void* destination, unsigned long size)
+srBinIStream& srBinIStream::read(void* destination, w8_ulong size)
 {
     if (good()) {
         if (vread(destination, size) != size) {
@@ -203,10 +203,10 @@ unsigned short srBinIStream::getWord()
 }
 
 // FUNCTION: SURRENDER 0x100315D0
-unsigned long srBinIStream::getDWord()
+w8_ulong srBinIStream::getDWord()
 {
-    unsigned long value = 0;
-    unsigned long buffer;
+    w8_ulong value = 0;
+    w8_ulong buffer;
     if (good()) {
         read(&buffer, 4);
         if (good()) {
@@ -310,14 +310,14 @@ srBinIStream& operator>>(srBinIStream& stream, unsigned short& value)
 }
 
 // FUNCTION: SURRENDER 0x10031860
-srBinIStream& operator>>(srBinIStream& stream, long& value)
+srBinIStream& operator>>(srBinIStream& stream, w8_long& value)
 {
     value = stream.getDWord();
     return stream;
 }
 
 // FUNCTION: SURRENDER 0x10031880
-srBinIStream& operator>>(srBinIStream& stream, unsigned long& value)
+srBinIStream& operator>>(srBinIStream& stream, w8_ulong& value)
 {
     value = stream.getDWord();
     return stream;
@@ -505,7 +505,7 @@ srBinOStream& srBinOStream::putChar(char character)
 }
 
 // FUNCTION: SURRENDER 0x10031E00
-srBinOStream& srBinOStream::write(const void* source, unsigned long size)
+srBinOStream& srBinOStream::write(const void* source, w8_ulong size)
 {
     if (good()) {
         if (vwrite(source, size) != size) {
@@ -531,7 +531,7 @@ srBinOStream& srBinOStream::putWord(unsigned short value)
 }
 
 // FUNCTION: SURRENDER 0x10031EC0
-srBinOStream& srBinOStream::putDWord(unsigned long value)
+srBinOStream& srBinOStream::putDWord(w8_ulong value)
 {
     if (good()) {
         if (!byteOrderMatch()) {
@@ -662,12 +662,12 @@ void srBinStream::setState(e_state state)
 }
 
 // FUNCTION: SURRENDER 0x10032340
-unsigned long srBinStream::getSize()
+w8_ulong srBinStream::getSize()
 {
     if (good()) {
-        unsigned long position = tell();
+        w8_ulong position = tell();
         seek(0, SR_SEEK_END);
-        unsigned long size = tell();
+        w8_ulong size = tell();
         seek(position, SR_SEEK_BEGIN);
         return size;
     }
@@ -807,7 +807,7 @@ srIStreamOpener::~srIStreamOpener()
 // FUNCTION: SURRENDER 0x10032B00
 int srInlineString::replace(const srInlineString& needle, const srInlineString& replacement)
 {
-    long position = find(needle, 0);
+    w8_long position = find(needle, 0);
     if (position == -1) {
         return 0;
     }
@@ -817,7 +817,7 @@ int srInlineString::replace(const srInlineString& needle, const srInlineString& 
 }
 
 // FUNCTION: SURRENDER 0x10032B80
-void srInlineString::insert(const srInlineString& text, unsigned long position)
+void srInlineString::insert(const srInlineString& text, w8_ulong position)
 {
     srInlineString result;
     if (position == 0) {
@@ -825,10 +825,11 @@ void srInlineString::insert(const srInlineString& text, unsigned long position)
     } else if (position == size_ - 1) {
         result = (*this + text).data();
     } else {
-        srInlineString left(*this, 0, static_cast<long>(position));
+        srInlineString left(*this, 0, static_cast<w8_long>(position));
         result = left.data();
         result += text.data();
-        srInlineString right(*this, static_cast<long>(position), static_cast<long>(size_ - 1));
+        srInlineString right(*this, static_cast<w8_long>(position),
+                             static_cast<w8_long>(size_ - 1));
         result += right.data();
     }
     *this = result;

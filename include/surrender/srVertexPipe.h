@@ -14,9 +14,9 @@ class SR_DLL_EXPORT srVertexPipe {
 
 public:
     struct Input {
-        unsigned long record_count;
-        unsigned long vertex_count;
-        const unsigned long* active_vertices;
+        w8_ulong record_count;
+        w8_ulong vertex_count;
+        const w8_ulong* active_vertices;
         int direct_vertex_indices;
         const srVector3T<float>* positions;
         const srVector3T<float>* normals;
@@ -25,11 +25,11 @@ public:
         const srMatrix4T<float>* model_view;
         const srMatrix4T<float>* normal_matrix;
         srVertexArray* vertex_arrays;
-        unsigned long exclusion_mask;
+        w8_ulong exclusion_mask;
         srVector4T<float> ambient_light;
         const void* records;
         srVertexProcessor** processors;
-        unsigned long processor_count;
+        w8_ulong processor_count;
         float environment_minimum;
         float environment_maximum;
         float environment_scale;
@@ -57,12 +57,12 @@ public:
     {
         channel_mask |= 1u << channel;
     }
-    SR_DLL_IMPORT const unsigned long* getAVT() const;
+    SR_DLL_IMPORT const w8_ulong* getAVT() const;
     SR_DLL_IMPORT float* getAlpha();
     SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel> getChannelMask() const;
     SR_DLL_IMPORT const float* getDepthCue();
     SR_DLL_IMPORT srVector4T<float>* getDiffuse();
-    SR_DLL_IMPORT unsigned long getExclusionMask() const;
+    SR_DLL_IMPORT w8_ulong getExclusionMask() const;
     SR_DLL_IMPORT void getEyeSpaceBoundingSphere(srVector3T<float>& center, float& radius) const;
     SR_DLL_IMPORT const srVector3T<float>* getEyeSpaceDir();
     SR_DLL_IMPORT const float* getEyeSpaceDist();
@@ -71,16 +71,15 @@ public:
     SR_DLL_IMPORT const float* getEyeSpaceZDist();
     SR_DLL_IMPORT float* getFog();
     SR_DLL_IMPORT const srVertexProcessor::MaterialInfo& getMaterialInfo() const;
-    SR_DLL_IMPORT float* getQ(unsigned long index, int create);
-    srVector2T<float>* getST(unsigned long index, int create);
+    SR_DLL_IMPORT float* getQ(w8_ulong index, int create);
+    srVector2T<float>* getST(w8_ulong index, int create);
     static SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel>
     getShaderDisableMask(const srShader& shader);
     static SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel>
-    getShaderDisableMask(const srShader* shader, const unsigned long* channels,
-                         unsigned long channel_count);
+    getShaderDisableMask(const srShader* shader, const w8_ulong* channels, w8_ulong channel_count);
     SR_DLL_IMPORT srVector4T<float>* getSpecular();
-    SR_DLL_IMPORT void* getUserArray(unsigned long index);
-    unsigned long getVertexCount() const;
+    SR_DLL_IMPORT void* getUserArray(w8_ulong index);
+    w8_ulong getVertexCount() const;
     int isChannelAvailable(srVertexProcessor::e_channel channel) const;
     SR_DLL_IMPORT void process(const Input& input);
     SR_DLL_IMPORT void swapDiffuseAndSpecular();
@@ -100,16 +99,16 @@ public:
             HAS_TEXCOORD1 = 0x20u,
             HAS_VERTEX_MATERIALS = 0x40u
         };
-        unsigned long flags;
-        unsigned long channels;
+        w8_ulong flags;
+        w8_ulong channels;
         srMaterialIFace* material;
         struct ColorSource {
             enum e_format { FORMAT_ARGB = 0, FORMAT_VECTOR3 = 1, FORMAT_VECTOR4 = 2 };
             const void* colors;
             e_format format;
 
-            void copyDiffuseColors(srVector4T<float>* destination, const unsigned long* indices,
-                                   unsigned long count) const;
+            void copyDiffuseColors(srVector4T<float>* destination, const w8_ulong* indices,
+                                   w8_ulong count) const;
         };
         ColorSource color_source;
         const srVector4T<float>* spec_for_diffuse;
@@ -130,10 +129,8 @@ private:
     SR_DLL_IMPORT void finishDiffuseAlpha();
     SR_DLL_IMPORT void finishSpecularFog();
     SR_DLL_IMPORT void processVertexBuffer();
-    static SR_DLL_IMPORT unsigned long scanChangeIndexed(const unsigned long* first,
-                                                         unsigned long first_count,
-                                                         const unsigned long* second,
-                                                         unsigned long second_count);
+    static SR_DLL_IMPORT w8_ulong scanChangeIndexed(const w8_ulong* first, w8_ulong first_count,
+                                                    const w8_ulong* second, w8_ulong second_count);
     SR_DLL_IMPORT void setMaterial(srMaterialIFace* material);
     SR_DLL_IMPORT void setupAlpha();
     SR_DLL_IMPORT void setupDepthCue();
@@ -142,8 +139,8 @@ private:
     SR_DLL_IMPORT void setupEyeSpaceNormal();
     SR_DLL_IMPORT void setupEyeSpaceZDist();
     SR_DLL_IMPORT void setupFog();
-    SR_DLL_IMPORT void setupQ(unsigned long index);
-    SR_DLL_IMPORT void setupST(unsigned long index);
+    SR_DLL_IMPORT void setupQ(w8_ulong index);
+    SR_DLL_IMPORT void setupST(w8_ulong index);
     SR_DLL_IMPORT void setupSpecular();
 
     friend class srEnvironmentMapper;
@@ -164,40 +161,40 @@ private:
         float depth_cue[0x40];
         float alpha[0x40];
         float fog[0x40];
-        unsigned long flags;
+        w8_ulong flags;
     };
 
-    static_assert(sizeof(Scratch) == 0xb04, "Scratch_must_be_0xb04");
+    W8_ABI_ASSERT(sizeof(Scratch) == 0xb04, "Scratch_must_be_0xb04");
 
     Scratch* scratch;                              /* 0x00 */
     srVertexProcessor** processor_heap;            /* 0x04 */
-    unsigned long processor_heap_capacity;         /* 0x08 */
-    unsigned long channel_mask;                    /* 0x0c */
-    unsigned long lazy_setup_mask;                 /* 0x10 */
+    w8_ulong processor_heap_capacity;              /* 0x08 */
+    w8_ulong channel_mask;                         /* 0x0c */
+    w8_ulong lazy_setup_mask;                      /* 0x10 */
     srVertexProcessor::MaterialInfo material_info; /* 0x14 through 0x67 */
     srMaterialIFace* material;                     /* 0x68 */
     const Input* input;                            /* 0x6c */
-    const unsigned long* avt;                      /* 0x70 */
+    const w8_ulong* avt;                           /* 0x70 */
     const Record* current_record;                  /* 0x74 */
     srVertexArray* vertex_array;                   /* 0x78 */
     srVector4T<float>* eye_space_locations;        /* 0x7c */
-    unsigned long batch_base;                      /* 0x80 */
-    unsigned long sub_batch_offset;                /* 0x84 */
-    unsigned long vertex_count;                    /* 0x88 */
-    unsigned long batch_count;                     /* 0x8c */
-    unsigned long active_processor_count;          /* 0x90 */
+    w8_ulong batch_base;                           /* 0x80 */
+    w8_ulong sub_batch_offset;                     /* 0x84 */
+    w8_ulong vertex_count;                         /* 0x88 */
+    w8_ulong batch_count;                          /* 0x8c */
+    w8_ulong active_processor_count;               /* 0x90 */
     srVertexProcessor** active_processors;         /* 0x94 */
     srVP* vector_processor;                        /* 0x98 */
 };
 #pragma pack(pop)
 
-static_assert(sizeof(srVertexPipe) == 0x9c, "srVertexPipe_must_be_0x9c");
-static_assert(sizeof(srVertexPipe::Record) == 0x5c, "srVertexPipe_Record_must_be_0x5c");
-static_assert(sizeof(srVertexPipe::Input) == 0x64, "srVertexPipe_Input_must_be_0x64");
+W8_ABI_ASSERT(sizeof(srVertexPipe) == 0x9c, "srVertexPipe_must_be_0x9c");
+W8_ABI_ASSERT(sizeof(srVertexPipe::Record) == 0x5c, "srVertexPipe_Record_must_be_0x5c");
+W8_ABI_ASSERT(sizeof(srVertexPipe::Input) == 0x64, "srVertexPipe_Input_must_be_0x64");
 
 // FUNCTION: SURRENDER 0x1002C4B0 SYMBOL
 // RECOMP: ?getVertexCount@srVertexPipe@@QBEKXZ
-inline unsigned long srVertexPipe::getVertexCount() const
+inline w8_ulong srVertexPipe::getVertexCount() const
 {
     return vertex_count;
 }
@@ -222,7 +219,7 @@ inline const srVector3T<float>* srVertexPipe::getEyeSpaceNormal()
 
 // FUNCTION: SURRENDER 0x1002C780 SYMBOL
 // RECOMP: ?getST@srVertexPipe@@QAEPAV?$srVector2T@M@@KH@Z
-inline srVector2T<float>* srVertexPipe::getST(unsigned long index, int create)
+inline srVector2T<float>* srVertexPipe::getST(w8_ulong index, int create)
 {
     srCore.getStatisticsManager()->statistics.texture_coordinate_operations += vertex_count;
     if ((create == 0) &&

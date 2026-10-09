@@ -17,7 +17,7 @@ W8VirtualFileBinIStream::W8VirtualFileBinIStream(const char* path) : m_hFile(0)
         srInlineString backslash("\\");
         srInlineString slash("/");
 
-        long index;
+        w8_long index;
         while ((index = normalized.find(slash, 0)) != -1) {
             normalized.erase(index, index + slash.size() - 1);
             normalized.insert(backslash, index);
@@ -48,7 +48,7 @@ srInlineString::srInlineString(const srInlineString& source)
     }
 }
 
-srInlineString::srInlineString(const srInlineString& source, long begin, long end)
+srInlineString::srInlineString(const srInlineString& source, w8_long begin, w8_long end)
 {
     reset();
     char* temporary = static_cast<char*>(srHeap.allocate(end - begin + 2));
@@ -98,17 +98,17 @@ srInlineString& srInlineString::operator=(const char* source)
 }
 
 // FUNCTION: WIZ8 0x0047CE90
-long srInlineString::find(const srInlineString& needle, unsigned long offset) const
+w8_long srInlineString::find(const srInlineString& needle, w8_ulong offset) const
 {
     const char* found = strstr(data_ + offset, needle.data_);
     if (found != 0) {
-        return static_cast<long>(found - data_);
+        return static_cast<w8_long>(found - data_);
     }
     return -1;
 }
 
 // FUNCTION: WIZ8 0x0047CEC0
-void srInlineString::erase(unsigned long begin, unsigned long end)
+void srInlineString::erase(w8_ulong begin, w8_ulong end)
 {
     if (begin != end) {
         strncpy(data_ + begin, data_ + end, size_ - end);
@@ -117,7 +117,7 @@ void srInlineString::erase(unsigned long begin, unsigned long end)
 }
 
 // FUNCTION: WIZ8 0x0047CF00
-void srInlineString::insert(const srInlineString& text, unsigned long position)
+void srInlineString::insert(const srInlineString& text, w8_ulong position)
 {
     srInlineString result;
     if (position == 0) {
@@ -125,10 +125,11 @@ void srInlineString::insert(const srInlineString& text, unsigned long position)
     } else if (position == size_ - 1) {
         result = (*this + text).data();
     } else {
-        result = srInlineString(*this, 0, static_cast<long>(position)).data();
+        result = srInlineString(*this, 0, static_cast<w8_long>(position)).data();
         result += text.data();
         result +=
-            srInlineString(*this, static_cast<long>(position), static_cast<long>(size_ - 1)).data();
+            srInlineString(*this, static_cast<w8_long>(position), static_cast<w8_long>(size_ - 1))
+                .data();
     }
     *this = result;
 }
@@ -139,7 +140,7 @@ srInlineString& srInlineString::operator+=(const char* suffix)
     if (suffix == 0 || *suffix == '\0') {
         return *this;
     }
-    unsigned long combined_size = size_ + strlen(suffix);
+    w8_ulong combined_size = size_ + strlen(suffix);
     char* combined = static_cast<char*>(srHeap.allocate(combined_size));
     strcpy(combined, data_);
     strcpy(combined + size_ - 1, suffix);
@@ -178,7 +179,7 @@ W8VirtualFileBinIStream::~W8VirtualFileBinIStream()
 }
 
 // FUNCTION: WIZ8 0x0047D4D0
-srBinStream& W8VirtualFileBinIStream::seek(unsigned long position, e_seekDir direction)
+srBinStream& W8VirtualFileBinIStream::seek(w8_ulong position, e_seekDir direction)
 {
     int origin;
     switch (direction) {
@@ -201,7 +202,7 @@ srBinStream& W8VirtualFileBinIStream::seek(unsigned long position, e_seekDir dir
 }
 
 // FUNCTION: WIZ8 0x0047D560
-srBinStream& W8VirtualFileBinIStream::seek(unsigned long position)
+srBinStream& W8VirtualFileBinIStream::seek(w8_ulong position)
 {
     if (!FileSeek(m_hFile, position, 1)) {
         setState(SR_STREAM_ERROR);
@@ -210,13 +211,13 @@ srBinStream& W8VirtualFileBinIStream::seek(unsigned long position)
 }
 
 // FUNCTION: WIZ8 0x0047D5B0
-unsigned long W8VirtualFileBinIStream::tell()
+w8_ulong W8VirtualFileBinIStream::tell()
 {
     return FileGetPos(m_hFile);
 }
 
 // FUNCTION: WIZ8 0x0047d5c0
-unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
+w8_ulong W8VirtualFileBinIStream::vread(void* buffer, w8_ulong size)
 {
     unsigned int bytes_read;
 

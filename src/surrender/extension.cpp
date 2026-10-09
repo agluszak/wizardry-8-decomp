@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 
-long srExtension::count = 0;
+w8_long srExtension::count = 0;
 srExtension* srExtension::firstExt = 0;
 
 // FUNCTION: SURRENDER 0x10013840
@@ -40,7 +40,7 @@ srExtension* srExtension::getNext()
 }
 
 // FUNCTION: SURRENDER 0x100138E0
-long srExtension::getCount()
+w8_long srExtension::getCount()
 {
     return count;
 }

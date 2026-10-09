@@ -18,7 +18,7 @@ public:
     public:
         struct Entry {
             srNode* node;
-            unsigned long value;
+            w8_ulong value;
         };
 
         srArray<srNode*> nodes;   /* 0x00 */
@@ -81,23 +81,23 @@ public:
     virtual SR_DLL_IMPORT void updateBounds();
 
 protected:
-    virtual SR_DLL_IMPORT int processSignal(unsigned long signal, void* value);
+    virtual SR_DLL_IMPORT int processSignal(w8_ulong signal, void* value);
     SR_DLL_IMPORT void clearNotify(e_notify notification);
     SR_DLL_IMPORT void setNotify(e_notify notification);
     SR_DLL_IMPORT int testNotify(e_notify notification) const;
 
 public:
     SR_DLL_IMPORT srNode* cloneHierarchy(srNode* parent);
-    SR_DLL_IMPORT void dumpHierarchy(std::ostream& stream, long indent) const;
+    SR_DLL_IMPORT void dumpHierarchy(std::ostream& stream, w8_long indent) const;
     SR_DLL_IMPORT srNode* findChild(const char* name) const;
-    SR_DLL_IMPORT srNode* findChildByNameAndType(const char* name, unsigned long class_id) const;
+    SR_DLL_IMPORT srNode* findChildByNameAndType(const char* name, w8_ulong class_id) const;
     SR_DLL_IMPORT srNode* findParent(const char* name) const;
-    SR_DLL_IMPORT srNode* findParentByType(unsigned long class_id) const;
+    SR_DLL_IMPORT srNode* findParentByType(w8_ulong class_id) const;
     SR_DLL_IMPORT srNode* getChild() const;
-    SR_DLL_IMPORT long getChildCount() const;
+    SR_DLL_IMPORT w8_long getChildCount() const;
     SR_DLL_IMPORT char* getFullPath(char* path) const;
-    SR_DLL_IMPORT long getFullPathLength() const;
-    SR_DLL_IMPORT long getHierarchyLevel() const;
+    SR_DLL_IMPORT w8_long getFullPathLength() const;
+    SR_DLL_IMPORT w8_long getHierarchyLevel() const;
     SR_DLL_IMPORT srNode* getNext() const;
     // FUNCTION: SURRENDER 0x10051A40 SYMBOL
     // RECOMP: ?getParent@srNode@@QBEPAV1@XZ
@@ -185,7 +185,7 @@ public:
     SR_DLL_IMPORT void notifyChildren(const srFlags<e_notify>& notifications);
     SR_DLL_IMPORT void notifyDependent();
     SR_DLL_IMPORT void notifyParents(const srFlags<e_notify>& notifications);
-    SR_DLL_IMPORT void signal(unsigned long signal, void* value);
+    SR_DLL_IMPORT void signal(w8_ulong signal, void* value);
     SR_DLL_IMPORT int testFlag(e_flag flag) const;
     SR_DLL_IMPORT void yawAt(const srVector3T<double>& target, double amount);
     SR_DLL_IMPORT void yawAt(const srNode* target, double amount);
@@ -193,19 +193,19 @@ public:
 private:
     SR_DLL_IMPORT void checkTransformation() const;
     SR_DLL_IMPORT srNode* cloneHierarchyInternal(srNode* parent);
-    SR_DLL_IMPORT srNode* findChildByNameAndTypeInternal(const char* name, unsigned long class_id);
+    SR_DLL_IMPORT srNode* findChildByNameAndTypeInternal(const char* name, w8_ulong class_id);
     SR_DLL_IMPORT srNode* findChildInternal(const char* name);
-    SR_DLL_IMPORT srNode* findParentByTypeInternal(unsigned long class_id);
+    SR_DLL_IMPORT srNode* findParentByTypeInternal(w8_ulong class_id);
     SR_DLL_IMPORT srNode* findParentInternal(const char* name);
     SR_DLL_IMPORT void getFullPathInternal(char* path) const;
-    SR_DLL_IMPORT long getFullPathLengthInternal() const;
+    SR_DLL_IMPORT w8_long getFullPathLengthInternal() const;
     SR_DLL_IMPORT void setWSDirty();
-    SR_DLL_IMPORT void signalInternal(unsigned long signal, void* value);
+    SR_DLL_IMPORT void signalInternal(w8_ulong signal, void* value);
     SR_DLL_IMPORT void unlink();
     SR_DLL_IMPORT void updateTransformation() const;
 
     static SR_DLL_IMPORT srCriticalSection sceneGraphCSect;
-    static SR_DLL_IMPORT long sceneGraphLockCount;
+    static SR_DLL_IMPORT w8_long sceneGraphLockCount;
 
     srMatrix3T<double> rotation; /* 0x018 */
     srVector3T<double> location; /* 0x060 */
@@ -224,6 +224,6 @@ public:
     srNode* first_child_;      /* 0x134 */
 };
 
-static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");
-static_assert((sizeof(srNode::TraverseInfo) == 0x1c), "srNode_TraverseInfo_must_be_0x1c");
+W8_ABI_ASSERT((sizeof(srNode) == 0x138), "srNode_must_be_0x138");
+W8_ABI_ASSERT((sizeof(srNode::TraverseInfo) == 0x1c), "srNode_TraverseInfo_must_be_0x1c");
 static_assert((sizeof(srNode::BoundInfo) == 0x2c), "srNode_BoundInfo_must_be_0x2c");

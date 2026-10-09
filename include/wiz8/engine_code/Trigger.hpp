@@ -33,7 +33,7 @@ public:
     bool completed;
 };
 
-static_assert(sizeof(W8TriggerEvent) == 0x38, "W8TriggerEvent_must_be_0x38");
+W8_ABI_ASSERT(sizeof(W8TriggerEvent) == 0x38, "W8TriggerEvent_must_be_0x38");
 
 void UpdateTimedTriggerEvents(void);
 
@@ -54,7 +54,7 @@ public:
     signed char type; /* W8TriggerPayloadKind */
 };
 
-static_assert(sizeof(W8TriggerActionData) == 0x08, "W8TriggerActionData_must_be_0x08");
+W8_ABI_ASSERT(sizeof(W8TriggerActionData) == 0x08, "W8TriggerActionData_must_be_0x08");
 
 /* Type 5 installs its own final table and retains the previous environment value. */
 class W8EnvironmentTriggerActionData : public W8TriggerActionData {
@@ -62,7 +62,7 @@ public:
     float previous_environment;
 };
 
-static_assert(sizeof(W8EnvironmentTriggerActionData) == 0x0c,
+W8_ABI_ASSERT(sizeof(W8EnvironmentTriggerActionData) == 0x0c,
               "W8EnvironmentTriggerActionData_must_be_0x0c");
 
 /* The level loader allocates 0x98 bytes for type 10. Its first twelve bytes
@@ -108,7 +108,7 @@ public:
     srVector3T<float> position;
 };
 
-static_assert(sizeof(W8DoorTriggerActionData) == 0x98, "W8DoorTriggerActionData_must_be_0x98");
+W8_ABI_ASSERT(sizeof(W8DoorTriggerActionData) == 0x98, "W8DoorTriggerActionData_must_be_0x98");
 
 /* Type 6 (built for action 17) owns a copy of the trigger's action string. */
 class W8StringTriggerActionData : public W8TriggerActionData {
@@ -117,7 +117,7 @@ public:
     char* owned_string;
 };
 
-static_assert(sizeof(W8StringTriggerActionData) == 0x0c, "W8StringTriggerActionData_must_be_0x0c");
+W8_ABI_ASSERT(sizeof(W8StringTriggerActionData) == 0x0c, "W8StringTriggerActionData_must_be_0x0c");
 
 enum W8TriggerFlag {
     W8_TRIGGER_ANIMATE_STATES = 0x1,
@@ -309,7 +309,7 @@ public:
 
 void InitializeStateDrivenPropVariables(Trigger* trigger);
 
-static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
+W8_ABI_ASSERT(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 
 Trigger* FindTriggerByName(const char* name);
 

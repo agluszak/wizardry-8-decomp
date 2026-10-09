@@ -40,7 +40,7 @@ public:
         return align_axis;
     }
 #endif
-    unsigned long getExclusionMask() const;
+    w8_ulong getExclusionMask() const;
 #if defined(SURRENDER_BUILD)
     int isAligned() const;
 #else
@@ -78,9 +78,9 @@ public:
     }
 #endif
 #if defined(SURRENDER_BUILD)
-    void setExclusionMask(unsigned long mask);
+    void setExclusionMask(w8_ulong mask);
 #else
-    SR_DLL_IMPORT void setExclusionMask(unsigned long mask)
+    SR_DLL_IMPORT void setExclusionMask(w8_ulong mask)
     {
         exclusion_mask = mask;
     }
@@ -93,8 +93,8 @@ protected:
 
     srVector3T<float> align_axis;
     float align_angle;
-    unsigned long exclusion_mask;
+    w8_ulong exclusion_mask;
 };
 
-static_assert((sizeof(srModelInstance) == 0x160), "srModelInstance_must_be_0x160");
+W8_ABI_ASSERT((sizeof(srModelInstance) == 0x160), "srModelInstance_must_be_0x160");
 W8_ASSERT_BASE_END(srModelInstance, srModel::Client, alignment_flags, 0x138);

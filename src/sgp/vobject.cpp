@@ -2,13 +2,13 @@
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "DirectDraw Calls.h"
 #include <stdio.h>
-#include "debug.h"
-#include "video2.h"
+#include "DEBUG.H"
+#include "Video2.h"
 #include "himage.h"
 #include "vobject.h"
 #include "vobject_private.h"
 #include "video_private.h"
-#include "wcheck.h"
+#include "WCheck.h"
 #include "vobject_blitters.h"
 #include "sgp.h"
 
@@ -969,8 +969,8 @@ void DumpVObjectInfoIntoFile(UINT8* filename, BOOLEAN fAppend)
     pCode = (DUMPFILENAME*)MemAlloc(sizeof(DUMPFILENAME) * guiVObjectSize);
     memset(pName, 0, sizeof(DUMPFILENAME) * guiVObjectSize);
     memset(pCode, 0, sizeof(DUMPFILENAME) * guiVObjectSize);
-    puiCounter = (UINT32*)MemAlloc(4 * guiVObjectSize);
-    memset(puiCounter, 0, 4 * guiVObjectSize);
+    puiCounter = (UINT32*)MemAlloc(sizeof(*puiCounter) * guiVObjectSize);
+    memset(puiCounter, 0, sizeof(*puiCounter) * guiVObjectSize);
 
     //Loop through the list and record every unique filename and count them
     uiUniqueID = 0;

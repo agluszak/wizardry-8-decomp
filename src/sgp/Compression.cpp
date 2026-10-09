@@ -1,7 +1,7 @@
 /* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "MemMan.h"
-#include "debug.h"
+#include "DEBUG.H"
 #include "zlib.h"
 
 // mem allocation functions for ZLIB's purposes

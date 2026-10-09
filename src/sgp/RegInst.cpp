@@ -6,7 +6,7 @@
 //		02dec96:HJH				- Creation
 //				Includes
 
-#include "types.h"
+#include "Types.h"
 #include "RegInst.h"
 #include "WCheck.h"
 //				Defines

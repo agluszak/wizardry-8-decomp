@@ -21,10 +21,11 @@
 #include <direct.h>
 
 #include "windows.h"
+#include <windows.h>
 #include "FileMan.h"
 #include "MemMan.h"
 #include "DbMan.h"
-#include "Debug.h"
+#include "DEBUG.H"
 #include "RegInst.h"
 #include "Container.h"
 #include "LibraryDataBase.h"
@@ -209,7 +210,7 @@ BOOLEAN FileExistsNoDB(STR strFilename)
 // FUNCTION: WIZ8 0x00404c70
 BOOLEAN FileDelete(STR strFilename)
 {
-    return (DeleteFile(strFilename));
+    return (DeleteFileA(strFilename));
 }
 // FileOpen
 //		Opens a file.
@@ -256,7 +257,7 @@ HWFILE FileOpen(STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose)
     //if the file is on the disk
     if (fExists) {
         hRealFile =
-            CreateFile(strFilename, dwAccess, 0, NULL, OPEN_ALWAYS, dwFlagsAndAttributes, NULL);
+            CreateFileA(strFilename, dwAccess, 0, NULL, OPEN_ALWAYS, dwFlagsAndAttributes, NULL);
 
         if (hRealFile == INVALID_HANDLE_VALUE) {
             return (0);
@@ -314,12 +315,12 @@ HWFILE FileOpen(STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose)
             dwCreationFlags = OPEN_ALWAYS;
         }
 
-        hRealFile =
-            CreateFile(strFilename, dwAccess, 0, NULL, dwCreationFlags, dwFlagsAndAttributes, NULL);
+        hRealFile = CreateFileA(strFilename, dwAccess, 0, NULL, dwCreationFlags,
+                                dwFlagsAndAttributes, NULL);
         if (hRealFile == INVALID_HANDLE_VALUE) {
             UINT32 uiLastError = GetLastError();
             char zString[1024];
-            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
+            FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
 
             return (0);
         }
@@ -409,7 +410,7 @@ BOOLEAN FileRead(HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32* puiBytes
             if (dwNumBytesToRead != dwNumBytesRead) {
                 UINT32 uiLastError = GetLastError();
                 char zString[1024];
-                FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
+                FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
 
                 fRet = FALSE;
             }
@@ -687,7 +688,7 @@ BOOLEAN DirectoryExists(STRING512 pcDirectory)
     UINT32 uiAttribs;
     DWORD uiLastError;
 
-    uiAttribs = GetFileAttributes(pcDirectory);
+    uiAttribs = GetFileAttributesA(pcDirectory);
 
     if (uiAttribs == 0xFFFFFFFF) {
         // an error, make sure it's the right error
@@ -712,7 +713,7 @@ BOOLEAN DirectoryExists(STRING512 pcDirectory)
 // FUNCTION: WIZ8 0x004051f0
 BOOLEAN MakeFileManDirectory(STRING512 pcDirectory)
 {
-    return CreateDirectory(pcDirectory, NULL);
+    return CreateDirectoryA(pcDirectory, NULL);
 }
 
 // FUNCTION: WIZ8 0x00405200
@@ -721,7 +722,7 @@ BOOLEAN GetExecutableDirectory(STRING512 pcDirectory)
     SGPFILENAME ModuleFilename;
     UINT32 cnt;
 
-    if (GetModuleFileName(NULL, ModuleFilename, sizeof(ModuleFilename)) == 0) {
+    if (GetModuleFileNameA(NULL, ModuleFilename, sizeof(ModuleFilename)) == 0) {
         return (FALSE);
     }
 
@@ -760,7 +761,7 @@ BOOLEAN GetFileFirst(CHAR8* pSpec, GETFILESTRUCT* pGFStruct)
 
     pGFStruct->iFindHandle = iWhich;
 
-    hFindInfoHandle[iWhich] = FindFirstFile(pSpec, &Win32FindInfo[iWhich]);
+    hFindInfoHandle[iWhich] = FindFirstFileA(pSpec, &Win32FindInfo[iWhich]);
 
     if (hFindInfoHandle[iWhich] == INVALID_HANDLE_VALUE)
         return (FALSE);
@@ -776,8 +777,8 @@ BOOLEAN GetFileNext(GETFILESTRUCT* pGFStruct)
 {
     CHECKF(pGFStruct != NULL);
 
-    if (FindNextFile(hFindInfoHandle[pGFStruct->iFindHandle],
-                     &Win32FindInfo[pGFStruct->iFindHandle])) {
+    if (FindNextFileA(hFindInfoHandle[pGFStruct->iFindHandle],
+                      &Win32FindInfo[pGFStruct->iFindHandle])) {
         W32toSGPFileFind(pGFStruct, &Win32FindInfo[pGFStruct->iFindHandle]);
         return (TRUE);
     }
@@ -858,7 +859,7 @@ void W32toSGPFileFind(GETFILESTRUCT* pGFStruct, WIN32_FIND_DATA* pW32Struct)
 // FUNCTION: WIZ8 0x004054d0
 BOOLEAN FileCopy(STR strSrcFile, STR strDstFile, BOOLEAN fFailIfExists)
 {
-    return (CopyFile(strSrcFile, strDstFile, fFailIfExists));
+    return (CopyFileA(strSrcFile, strDstFile, fFailIfExists));
 
     // Not needed, use Windows CopyFile
 }
@@ -869,7 +870,7 @@ UINT32 FileGetAttributes(STR strFilename)
     UINT32 uiAttribs = 0;
     UINT32 uiFileAttrib = 0;
 
-    uiAttribs = GetFileAttributes(strFilename);
+    uiAttribs = GetFileAttributesA(strFilename);
 
     if (uiAttribs == 0xFFFFFFFF)
         return (uiAttribs);
@@ -904,7 +905,7 @@ UINT32 FileGetAttributes(STR strFilename)
 // FUNCTION: WIZ8 0x00405550
 BOOLEAN FileClearAttributes(STR strFilename)
 {
-    return SetFileAttributes(strFilename, FILE_ATTRIBUTE_NORMAL);
+    return SetFileAttributesA(strFilename, FILE_ATTRIBUTE_NORMAL);
 }
 
 //returns true if at end of file, else false
@@ -1076,9 +1077,9 @@ BOOLEAN FileIsOlderThanFile(CHAR8* pcFileName1, CHAR8* pcFileName2, UINT32 ulNum
     ULONGLONG difference;
 
     // a failed search leaves the timestamps uninitialized
-    search = FindFirstFile(pcFileName1, &first);
+    search = FindFirstFileA(pcFileName1, &first);
     FindClose(search);
-    search = FindFirstFile(pcFileName2, &second);
+    search = FindFirstFileA(pcFileName2, &second);
     FindClose(search);
 
     compared = CompareFileTime(&first.ftLastWriteTime, &second.ftLastWriteTime);

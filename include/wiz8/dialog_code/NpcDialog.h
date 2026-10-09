@@ -48,4 +48,4 @@ private:
     unsigned char unknown_079;
     wchar_t m_input_text[251]; /* fills the 0x270-byte allocation */
 };
-static_assert(sizeof(W8NpcDialog) == 0x270, "W8NpcDialog_size");
+W8_ABI_ASSERT(sizeof(W8NpcDialog) == 0x270, "W8NpcDialog_size");

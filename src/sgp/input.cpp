@@ -1,15 +1,15 @@
 /* Modified for the Wizardry 8 reconstruction: 2026-10-03, 2026-10-04, 2026-10-06, 2026-10-07.
    Distributed under the accompanying SFI Source Code license agreement. */
-#include "types.h"
+#include "Types.h"
 #include <windows.h>
 #include <zmouse.h>
 #include <stdio.h>
 #include <memory.h>
-#include "debug.h"
+#include "DEBUG.H"
 #include "input.h"
-#include "memman.h"
+#include "MemMan.h"
 #include "english.h"
-#include "video2.h"
+#include "Video2.h"
 
 // Make sure to refer to the translation table which is within one of the following files (depending
 // on the language used). ENGLISH.C, JAPANESE.C, FRENCH.C, GERMAN.C, SPANISH.C, etc...

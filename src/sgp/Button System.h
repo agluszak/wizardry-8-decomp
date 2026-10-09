@@ -114,7 +114,7 @@ typedef struct _GUI_BUTTON {
     //Button disabled style
     INT8 bDisabledStyle;
     //For buttons with text
-    UINT16* string;      //the string
+    CHAR16* string;      //the string
     UINT16 usFont;       //font for text
     BOOLEAN fMultiColor; //font is a multi-color font
     INT16 sForeColor;    //text colors if there is text
@@ -178,7 +178,7 @@ INT16 FindFreeGenericSlot(void);
 INT32 GetNextButtonNumber(void);
 
 // Now used by Wizardry -- DB
-void SetButtonFastHelpText(INT32 iButton, UINT16* Text);
+void SetButtonFastHelpText(INT32 iButton, CHAR16* Text);
 
 INT32 LoadButtonImage(UINT8* filename, INT32 Grayed, INT32 OffNormal, INT32 OffHilite,
                       INT32 OnNormal, INT32 OnHilite);
@@ -222,11 +222,11 @@ INT32 QuickCreateButton(UINT32 Image, INT16 xloc, INT16 yloc, INT32 Type, INT16 
 //choose also determines the type of button (toggle, notoggle, or newtoggle)
 //Same as above, but accepts specify toggle type
 //Same as above, but accepts priority specification.
-INT32 CreateTextButton(UINT16* string, UINT32 uiFont, INT16 sForeColor, INT16 sShadowColor,
+INT32 CreateTextButton(CHAR16* string, UINT32 uiFont, INT16 sForeColor, INT16 sShadowColor,
                        INT16 GenImg, INT16 xloc, INT16 yloc, INT16 w, INT16 h, INT32 Type,
                        INT16 Priority, GUI_CALLBACK MoveCallback, GUI_CALLBACK ClickCallback);
 //New functions
-void SpecifyButtonText(INT32 iButtonID, UINT16* string);
+void SpecifyButtonText(INT32 iButtonID, CHAR16* string);
 void SpecifyButtonMultiColorFont(INT32 iButtonID, BOOLEAN fMultiColor);
 void SpecifyButtonTextOffsets(INT32 iButtonID, INT8 bTextXOffset, INT8 bTextYOffset,
                               BOOLEAN fShiftText);

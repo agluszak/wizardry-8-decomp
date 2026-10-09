@@ -36,13 +36,13 @@ public:
            viewport-space coordinates, z is the fixed 1.0 far value. */
         srVector3T<float> position;
         srModelInstance* selected_model;
-        unsigned long triangle_index;
+        w8_ulong triangle_index;
     };
 
     struct ClipPlanes {
         srVector4T<float> planes[32];
-        unsigned long mask;
-        unsigned long mode1_mask;
+        w8_ulong mask;
+        w8_ulong mode1_mask;
     };
 
     /* pushEnvironment/popEnvironment record: {minimum, maximum, scale, inverse_scale}. */
@@ -65,12 +65,12 @@ public:
     class Renderer {
     public:
         struct TriInput {
-            unsigned long triangle_count;
-            unsigned long record_count;
-            unsigned long vertex_count;
-            const unsigned long* indices;
+            w8_ulong triangle_count;
+            w8_ulong record_count;
+            w8_ulong vertex_count;
+            const w8_ulong* indices;
             const srVector3i* triangles;
-            const unsigned long* vertices;
+            const w8_ulong* vertices;
             const srTriMeshPipeline::Pass* passes;
             int direct_vertex_indices;
             const srMatrix4T<float>* project_clip_near;
@@ -79,9 +79,9 @@ public:
 
         struct Parameters {
             srGERD* gerd;
-            long sorted;
-            long batch_limit;
-            unsigned long texture_stages;
+            w8_long sorted;
+            w8_long batch_limit;
+            w8_ulong texture_stages;
         };
 
         /* Per-stage {st,q} scratch for drivers that want combined texture-coordinate and w streams. */
@@ -112,17 +112,17 @@ public:
             srTextureIFace* texture0;
             srTextureIFace* texture1;
             srShader shader;
-            unsigned long blend;
+            w8_ulong blend;
         };
         /* Texture-set interning cache; the map's value is the index into sets. */
         struct TextureSetCache {
-            srHashTable<TextureSetKey, unsigned long>* map;
+            srHashTable<TextureSetKey, w8_ulong>* map;
             srArray<TextureSet> sets;
-            unsigned long count;
+            w8_ulong count;
 
             TextureSetCache() : count(0)
             {
-                map = new srHashTable<TextureSetKey, unsigned long>;
+                map = new srHashTable<TextureSetKey, w8_ulong>;
             }
             ~TextureSetCache()
             {
@@ -135,26 +135,26 @@ public:
                 sets.release();
                 count = 0;
             }
-            unsigned long intern(const TextureSetKey& key);
+            w8_ulong intern(const TextureSetKey& key);
         };
         /* Write pointers alloc() returns for the reserved triangle range. */
         struct IndexWrite {
             srVector3i* triangles;
-            unsigned long* texture_set;
-            unsigned long* sort_key;
-            unsigned long* aux;
+            w8_ulong* texture_set;
+            w8_ulong* sort_key;
+            w8_ulong* aux;
         };
         /* Accumulated primitive work. alloc() reserves count entries plus 0x40 headroom across all
            four streams; reset() always clears the count and only frees when asked. */
         struct IndexBatch {
             srArray<srVector3i> triangles;
-            srArray<unsigned long> texture_set;
-            srArray<unsigned long> sort_key;
-            srArray<unsigned long> aux;
-            unsigned long count;
+            srArray<w8_ulong> texture_set;
+            srArray<w8_ulong> sort_key;
+            srArray<w8_ulong> aux;
+            w8_ulong count;
 
             IndexBatch() : texture_set(0), sort_key(0), aux(0), count(0) {}
-            void alloc(IndexWrite& write, unsigned long count);
+            void alloc(IndexWrite& write, w8_ulong count);
             void reset(int release);
         };
         /* Accumulated vertex streams. alloc() grows all streams and default-fills the new range
@@ -168,28 +168,28 @@ public:
             srArray<float> q[2];
             srArray<unsigned char> attributes;
             /* isBatchFull compares this signed against batch_limit. */
-            long count;
-            unsigned long capacity;
+            w8_long count;
+            w8_ulong capacity;
 
             VertexArrays()
                 : diffuse(0), specular(0), positions(0), attributes(0), count(0), capacity(0)
             {
             }
-            void alloc(srVertexArray& arrays, unsigned long count);
-            void bind(srVertexArray& arrays, unsigned long base);
+            void alloc(srVertexArray& arrays, w8_ulong count);
+            void bind(srVertexArray& arrays, w8_ulong base);
             void reset(int release);
         };
 
         Renderer(const Parameters& parameters);
-        void allocVertexArray(srVertexArray& arrays, unsigned long count);
+        void allocVertexArray(srVertexArray& arrays, w8_ulong count);
         /* intern the pass's {texture0,texture1,shader} key into
            texture_set, folding per-vertex texture/shader table transitions
            into the output ids. */
-        void assignTextureSets(unsigned long* texture_set, const unsigned long* indices,
-                               unsigned long count, const srTriMeshPipeline::Pass* pass);
+        void assignTextureSets(w8_ulong* texture_set, const w8_ulong* indices, w8_ulong count,
+                               const srTriMeshPipeline::Pass* pass);
         /* While a vertex range is reserved (first_vertex != -1), give count accumulated vertices
            back. */
-        void rewindVertexArray(unsigned long count);
+        void rewindVertexArray(w8_ulong count);
         /* expands/dedups the input triangles into the index and
            vertex batches, per record. */
         void expandTriangles(const TriInput& input, int sorted);
@@ -210,50 +210,50 @@ public:
         void drawSorted();
         /* point the draw state at texture set `index`,
            updating each of texture0/texture1/shader only on change. */
-        void bindTextureSet(unsigned long index);
+        void bindTextureSet(w8_ulong index);
         /* repack the per-stage stq scratch streams and program
            the DD vertex arrays for the bound batch. */
-        void programVertexArrays(srVertexArray* arrays, unsigned long count);
+        void programVertexArrays(srVertexArray* arrays, w8_ulong count);
         /* discard accumulated state; nonzero also releases
            the backing arrays. */
         void reset(int release_buffers);
         /* resetStatistics zeroes statistics; getStatistics copies its seven counters out. */
         void resetStatistics();
-        void getStatistics(unsigned long* statistics);
+        void getStatistics(w8_ulong* statistics);
 
         /* Checked-free heap buffers: ~Renderer null-checks before freeing them. */
         srHeapBuffer<unsigned char> bytes;
-        srHeapBuffer<unsigned long> dwords;
+        srHeapBuffer<w8_ulong> dwords;
         /* render()'s per-corner dedup scratch (six slots per triangle). */
-        srHeapBuffer<unsigned long> remap;
+        srHeapBuffer<w8_ulong> remap;
         srHeapBuffer<TexCoordQ> stq[2];
         /* submit() bumps [4] per call and accumulates the vertex count into [5] and the index-batch
            count into [6]. */
-        unsigned long statistics[7];
+        w8_ulong statistics[7];
         TextureSetCache texture_sets;
         IndexBatch indices;
         VertexArrays vertices;
         /* allocVertexArray() snapshots the vertex count here so render() can
            offset indices into the reserved range. */
-        long first_vertex;
+        w8_long first_vertex;
         /* Bound draw state, refreshed per texture set. */
         srTextureIFace* texture0;
         srTextureIFace* texture1;
         srShader shader;
-        unsigned long clip_state;
+        w8_ulong clip_state;
         srGERD* gerd;
         /* lockRenderer matches this against the sorted-mode enable bit;
            flushSort flushes entries where it is 1, flushImmediateRenderers
            where it is 0. */
-        long sorted;
-        long batch_limit;
-        unsigned long texture_stages;
+        w8_long sorted;
+        w8_long batch_limit;
+        w8_ulong texture_stages;
     };
-    static_assert(sizeof(Renderer) == 0xe4, "srGERD_Renderer_must_be_0xe4");
-    static_assert(sizeof(Renderer::Parameters) == 0x10, "srGERD_Renderer_Parameters_must_be_0x10");
-    static_assert(sizeof(Renderer::TextureSetKey) == 0x0c,
+    W8_ABI_ASSERT(sizeof(Renderer) == 0xe4, "srGERD_Renderer_must_be_0xe4");
+    W8_ABI_ASSERT(sizeof(Renderer::Parameters) == 0x10, "srGERD_Renderer_Parameters_must_be_0x10");
+    W8_ABI_ASSERT(sizeof(Renderer::TextureSetKey) == 0x0c,
                   "srGERD_Renderer_TextureSetKey_must_be_0x0c");
-    static_assert(sizeof(Renderer::IndexWrite) == 0x10, "srGERD_Renderer_IndexWrite_must_be_0x10");
+    W8_ABI_ASSERT(sizeof(Renderer::IndexWrite) == 0x10, "srGERD_Renderer_IndexWrite_must_be_0x10");
 
     enum e_error {
         ERROR_NONE = 0,
@@ -317,17 +317,17 @@ public:
     enum e_depthBuffer {};
     /* getDisplayModeInfo output triple. */
     struct DisplayModeInfo {
-        long width;
-        long height;
-        long depth;
+        w8_long width;
+        w8_long height;
+        w8_long depth;
     };
     /* getTextureInfo output: the device pixel format plus the device's
        width/height and last mip level. */
     struct TextureInfo {
         srPixelConvert::PixelFormat pixel_format;
-        unsigned long width;
-        unsigned long height;
-        unsigned long last_level;
+        w8_ulong width;
+        w8_ulong height;
+        w8_ulong last_level;
     };
     /* accumulate()'s signed 16-bit accum-buffer pixel. */
     struct AccumPixel {
@@ -344,40 +344,40 @@ public:
     virtual ~srGERD() override;
 
     virtual const char* getClassName() const override;
-    virtual unsigned long getClassID() const override;
+    virtual w8_ulong getClassID() const override;
     virtual srRegistry::ClassNode* getClassNode() const override;
     virtual void dump(std::ostream& stream) override;
     void dump(std::ostream& stream, const srFlags<e_info>& info);
-    static srGERD* loadDevice(srStringTable& devices, unsigned long index);
-    static srGERD* loadDevice(const char* name, const char* path, unsigned long device);
-    static srGERD* loadDeviceWithFileName(const char* filename, unsigned long device);
+    static srGERD* loadDevice(srStringTable& devices, w8_ulong index);
+    static srGERD* loadDevice(const char* name, const char* path, w8_ulong device);
+    static srGERD* loadDeviceWithFileName(const char* filename, w8_ulong device);
     static srGERD* getFirst();
     srGERD* getNext() const;
     /* Open-device list used by srTexture::invalidateFrameHandle. */
     static srGERD* getFirstOpen();
     srGERD* getNextOpen() const;
-    e_error createContext(unsigned long window);
+    e_error createContext(w8_ulong_ptr window);
     int isContextCreated() const;
     void deleteContext();
-    long getDisplayMode(unsigned long width, unsigned long height, unsigned long depth) const;
+    w8_long getDisplayMode(w8_ulong width, w8_ulong height, w8_ulong depth) const;
     /* openWindowInternal parameter block: the current client size and the
        requested backbuffer size plus the display-mode index (-1 windowed). */
     struct OpenInfo {
-        long window_width;
-        long window_height;
-        long width;
-        long height;
-        long display_mode;
+        w8_long window_width;
+        w8_long window_height;
+        w8_long width;
+        w8_long height;
+        w8_long display_mode;
     };
     /* Number of back buffers in the swap chain (1, 2 or 3). */
     e_error openWindow();
-    e_error openWindow(long width, long height);
-    e_error openWindow(long mode);
+    e_error openWindow(w8_long width, w8_long height);
+    e_error openWindow(w8_long mode);
     void closeWindow(e_closeHint hint);
     e_backBuffer getBackBufferType() const;
     int isWindowOpen() const;
     int isFullScreen() const;
-    unsigned long getWindowHandle() const;
+    w8_ulong_ptr getWindowHandle() const;
     void setGamma(const srVector3T<float>& gamma);
     e_error beginFrame();
     void endFrame();
@@ -385,8 +385,8 @@ public:
     void flushRenderers();
     void flushImmediateRenderers();
     void clear(const srFlags<e_buffer>& buffers);
-    long getHeight() const;
-    long getWidth() const;
+    w8_long getHeight() const;
+    w8_long getWidth() const;
     void resetStatistics();
     struct Statistics {
         /* Epoch written by resetStatistics; getStatistics returns the
@@ -395,51 +395,51 @@ public:
         /* Device texture bytes transferred. */
         double texture_transfer;
         double pixels_drawn;
-        unsigned long value_18;
-        unsigned long value_1c;
-        unsigned long device_triangles;
-        unsigned long device_vertices;
-        unsigned long device_vertex_indices;
+        w8_ulong value_18;
+        w8_ulong value_1c;
+        w8_ulong device_triangles;
+        w8_ulong device_vertices;
+        w8_ulong device_vertex_indices;
         /* Frames presented: flipFrame increments once per call. */
-        unsigned long frames;
-        unsigned long triangle_chunks;
-        unsigned long input_triangles;
+        w8_ulong frames;
+        w8_ulong triangle_chunks;
+        w8_ulong input_triangles;
         /* getStatistics accumulates this only for sorted renderers. */
-        unsigned long sorted_triangles;
-        unsigned long input_vertices;
+        w8_ulong sorted_triangles;
+        w8_ulong input_vertices;
         /* applyViewStateChanges increments this counter on every apply. */
-        unsigned long view_state_applies;
+        w8_ulong view_state_applies;
         /* applyDrawStateChanges increments this counter on every apply. */
-        unsigned long draw_state_applies;
+        w8_ulong draw_state_applies;
         /* applyFrameStateChanges increments this counter on every apply. */
-        unsigned long frame_state_count;
+        w8_ulong frame_state_count;
         /* Texture binds counted by changeTexture after the stage's bound
            texture actually changes; the debug overlay prints it as "TC". */
-        unsigned long texture_binds;
+        w8_ulong texture_binds;
         /* Texture-parameter updates counted by setTextureParameters. */
-        unsigned long texture_parameter_sets;
+        w8_ulong texture_parameter_sets;
         /* createNewTexture increments this created-texture count. */
-        unsigned long textures_created;
+        w8_ulong textures_created;
         /* Palette binds counted when a changed texture carries a new palette. */
-        unsigned long palette_binds;
+        w8_ulong palette_binds;
         /* setShader calls counted by applyDrawStateChanges. */
-        unsigned long shader_sets;
+        w8_ulong shader_sets;
         /* drawArrays/drawElements increment this draw-call count. */
-        unsigned long draw_calls;
-        unsigned long clipped_triangles;
-        unsigned long device_calls;
+        w8_ulong draw_calls;
+        w8_ulong clipped_triangles;
+        w8_ulong device_calls;
         /* testBoundingSphere call count / visible-result count. */
-        unsigned long sphere_tests;
-        unsigned long sphere_visible;
+        w8_ulong sphere_tests;
+        w8_ulong sphere_visible;
         /* testBoundingBox call count / visible-result count. */
-        unsigned long box_tests;
-        unsigned long box_visible;
+        w8_ulong box_tests;
+        w8_ulong box_visible;
         /* classifyMatrix call count. */
-        unsigned long matrix_classifications;
+        w8_ulong matrix_classifications;
     };
     void getStatistics(Statistics& statistics);
-    unsigned long getTextureCacheUsed() const;
-    unsigned long getResidentTextureMemUsed() const;
+    w8_ulong getTextureCacheUsed() const;
+    w8_ulong getResidentTextureMemUsed() const;
     void setClearColor(const srVector4T<float>& color);
     void setClearColor(float red, float green, float blue, float alpha);
     void setClearDepth(double depth);
@@ -448,16 +448,16 @@ public:
     void setAmbientLight(const srVector3T<float>& light);
     void setFogColor(const srVector3T<float>& color);
     void setFogColor(const srVector4T<float>& color);
-    void setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
+    void setScissor(w8_ulong x, w8_ulong y, w8_ulong width, w8_ulong height);
     /* Dirty-rectangle pair handed to flipFrame in {x,y,width,height} form;
        GERD converts each to srDD::Scissor left/top/right/bottom. */
     struct Rectangle {
-        long x, y, width, height;
+        w8_long x, y, width, height;
     };
     void flipFrame();
-    void flipFrame(const Rectangle* first, const Rectangle* second, unsigned long count);
-    void setTextureReduction(long reduction);
-    void setViewPort(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
+    void flipFrame(const Rectangle* first, const Rectangle* second, w8_ulong count);
+    void setTextureReduction(w8_long reduction);
+    void setViewPort(w8_ulong x, w8_ulong y, w8_ulong width, w8_ulong height);
     void matrixMode(e_matrixMode mode);
     e_matrixMode getMatrixMode() const;
     void getMatrix(srMatrix4T<float>& matrix);
@@ -485,35 +485,35 @@ public:
     void unlockRenderer(Renderer* renderer, int submit);
     srColorSurfaceIFace* lockBuffer();
     void unlockBuffer();
-    unsigned long getVertexProcessorCount() const;
+    w8_ulong getVertexProcessorCount() const;
     void getVertexProcessors(srVertexProcessor** processors) const;
     void getAmbientLight(srVector4T<float>& light);
     void getFogColor(srVector4T<float>& color) const;
     void getEnvironmentRange(float& minimum, float& maximum) const;
     void getEnvironmentScaleFactor(float& scale, float& inverse_scale);
-    unsigned long getExclusionMask() const;
-    void setExclusionMask(unsigned long mask);
+    w8_ulong getExclusionMask() const;
+    void setExclusionMask(w8_ulong mask);
     // FUNCTION: SURRENDER 0x1001BB70 SYMBOL
     // RECOMP: ?getMaxTextureStages@srGERD@@QBEJXZ
-    long getMaxTextureStages() const
+    w8_long getMaxTextureStages() const
     {
         return device.info.max_texture_stages;
     }
     // FUNCTION: SURRENDER 0x1001CF10 SYMBOL
     // RECOMP: ?getMaxPickStackDepth@srGERD@@QBEJXZ
-    long getMaxPickStackDepth() const
+    w8_long getMaxPickStackDepth() const
     {
         return 0x20;
     }
     // FUNCTION: SURRENDER 0x1001CF20 SYMBOL
     // RECOMP: ?getMaxModelviewStackDepth@srGERD@@QBEJXZ
-    long getMaxModelviewStackDepth() const
+    w8_long getMaxModelviewStackDepth() const
     {
         return 0x20;
     }
     // FUNCTION: SURRENDER 0x1001CF30 SYMBOL
     // RECOMP: ?getMaxProjectionStackDepth@srGERD@@QBEJXZ
-    long getMaxProjectionStackDepth() const
+    w8_long getMaxProjectionStackDepth() const
     {
         return 0x20;
     }
@@ -539,8 +539,8 @@ public:
     e_visibility testBoundingSphere(const srVector3T<float>& center, float radius);
     e_visibility testBoundingBox(const srVector3T<float>& minimum,
                                  const srVector3T<float>& maximum);
-    void setPickKey(unsigned long key);
-    unsigned long getPickKey() const;
+    void setPickKey(w8_ulong_ptr key);
+    w8_ulong_ptr getPickKey() const;
     void ortho(double left, double right, double bottom, double top, double near_plane,
                double far_plane);
     void ortho(const Frustum& frustum);
@@ -551,26 +551,24 @@ public:
     void loadMatrix(const srMatrix4T<float>& matrix);
     void loadMatrix(const srMatrix3T<double>& matrix);
     void loadMatrix(const srMatrix3T<float>& matrix);
-    void getScissor(unsigned long& x, unsigned long& y, unsigned long& width,
-                    unsigned long& height) const;
-    void getViewPort(unsigned long& x, unsigned long& y, unsigned long& width,
-                     unsigned long& height) const;
+    void getScissor(w8_ulong& x, w8_ulong& y, w8_ulong& width, w8_ulong& height) const;
+    void getViewPort(w8_ulong& x, w8_ulong& y, w8_ulong& width, w8_ulong& height) const;
     void pushEnvironment();
     void popEnvironment();
     void setEnvironmentRange(float minimum, float maximum);
     void setEnvironmentScaleFactor(float scale, float inverse_scale);
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
-    void setTexture(srTextureIFace* texture, unsigned long layer);
+    void setTexture(srTextureIFace* texture, w8_ulong layer);
     void setTextureDefaultCorrection(srTextureIFace::e_correction correction);
     void setTextureDefaultCompression(srTextureIFace::e_compression compression);
     void setTextureDefaultMagFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMinFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMipmap(srTextureIFace::e_mipmap mipmap);
-    void setTextureSubImage(srTextureIFace* texture, long mipmap, long x, long y, long width,
-                            long height);
-    void drawArrays(srRendererDefs::e_primitive primitive, long first, unsigned long count);
-    void drawElements(srRendererDefs::e_primitive primitive, unsigned long count,
+    void setTextureSubImage(srTextureIFace* texture, w8_long mipmap, w8_long x, w8_long y,
+                            w8_long width, w8_long height);
+    void drawArrays(srRendererDefs::e_primitive primitive, w8_long first, w8_ulong count);
+    void drawElements(srRendererDefs::e_primitive primitive, w8_ulong count,
                       srRendererDefs::e_indexType type, const void* indices);
     void popPick(Pick& pick);
     void pushPick(const Pick& pick);
@@ -579,18 +577,18 @@ public:
     void invalidateResidentTexture(srTextureIFace* texture);
     void invalidateTextureCache();
     void invalidateTexture(srTextureIFace* texture);
-    void invalidateTextureByFrameHandle(unsigned long handle);
-    unsigned long getTextureCacheSize() const;
-    void setTextureCacheSize(unsigned long bytes);
-    void setSwapInterval(unsigned long interval);
-    long getPolygonOffset() const;
-    void setPolygonOffset(long offset);
+    void invalidateTextureByFrameHandle(w8_ulong handle);
+    w8_ulong getTextureCacheSize() const;
+    void setTextureCacheSize(w8_ulong bytes);
+    void setSwapInterval(w8_ulong interval);
+    w8_long getPolygonOffset() const;
+    void setPolygonOffset(w8_long offset);
 
     int isBufferLocked();
     srGERD* getPrev() const;
     srGERD* getPrevOpen() const;
-    static long getGERDCount();
-    static srGERD* getGERD(unsigned long index);
+    static w8_long getGERDCount();
+    static srGERD* getGERD(w8_ulong index);
     /* Scan provider libraries for devices. */
     static void loadDevices(const char* path);
     static void scanDevices(const char* path, srStringTable& devices);
@@ -613,16 +611,16 @@ public:
     srDD::e_driverID getDriverID() const;
     srDD::e_hardwareID getHardwareID() const;
     e_depthBuffer getDepthBufferType() const;
-    unsigned long getSwapInterval() const;
-    void getTextureFormat(unsigned long index, srPixelConvert::PixelFormat& format) const;
-    unsigned long getTextureFormatCount() const;
-    void getDisplayModeInfo(long index, DisplayModeInfo& info) const;
-    unsigned long getDisplayModeCount() const;
+    w8_ulong getSwapInterval() const;
+    void getTextureFormat(w8_ulong index, srPixelConvert::PixelFormat& format) const;
+    w8_ulong getTextureFormatCount() const;
+    void getDisplayModeInfo(w8_long index, DisplayModeInfo& info) const;
+    w8_ulong getDisplayModeCount() const;
     e_hintMode getHint(e_hint hint) const;
     void setHint(e_hint hint, e_hintMode mode);
     void getGamma(srVector3T<float>& gamma) const;
     e_antiAlias getAntiAlias() const;
-    void extCommand(unsigned long command, void* data, unsigned long size);
+    void extCommand(w8_ulong command, void* data, w8_ulong size);
     void disable(e_enable option);
     void enable(e_enable option);
     srShader getShader() const;
@@ -636,12 +634,12 @@ public:
     void setClearAccum(const srVector4T<float>& color);
     void setClearAccum(float red, float green, float blue, float alpha);
     double getClearDepth() const;
-    void setClearStencil(unsigned long stencil);
-    unsigned long getClearStencil() const;
-    long getAccumAlphaBits() const;
-    long getAccumRedBits() const;
-    long getAccumGreenBits() const;
-    long getAccumBlueBits() const;
+    void setClearStencil(w8_ulong stencil);
+    w8_ulong getClearStencil() const;
+    w8_long getAccumAlphaBits() const;
+    w8_long getAccumRedBits() const;
+    w8_long getAccumGreenBits() const;
+    w8_long getAccumBlueBits() const;
     void accumulate(e_accum operation, float scale);
     int isTextureCached(srTextureIFace* texture) const;
     int isTextureResident(srTextureIFace* texture) const;
@@ -651,13 +649,13 @@ public:
     srTextureIFace::e_filter getTextureDefaultMagFilter() const;
     srTextureIFace::e_filter getTextureDefaultMinFilter() const;
     srTextureIFace::e_mipmap getTextureDefaultMipmap() const;
-    long getTextureReduction() const;
+    w8_long getTextureReduction() const;
     void invalidateResidentPalette(srPalette* palette);
     void setGlobalPalette(const srPalette& palette);
-    long getMaxTextureWidth() const;
-    long getMaxTextureHeight() const;
-    long getMaxTextureAspectRatio() const;
-    static unsigned long sGetClassID();
+    w8_long getMaxTextureWidth() const;
+    w8_long getMaxTextureHeight() const;
+    w8_long getMaxTextureAspectRatio() const;
+    static w8_ulong sGetClassID();
     static void dumpDeviceList(std::ostream& stream);
 
     // FUNCTION: SURRENDER 0x1001BB80 SYMBOL
@@ -709,19 +707,19 @@ public:
         return vertex_arrays.mask;
     }
 
-    void setDiffusePointer(long components, srRendererDefs::e_type type, unsigned long stride,
+    void setDiffusePointer(w8_long components, srRendererDefs::e_type type, w8_ulong stride,
                            const void* values);
-    void setSpecularPointer(long components, srRendererDefs::e_type type, unsigned long stride,
+    void setSpecularPointer(w8_long components, srRendererDefs::e_type type, w8_ulong stride,
                             const void* values);
-    void setFogPointer(long components, srRendererDefs::e_type type, unsigned long stride,
+    void setFogPointer(w8_long components, srRendererDefs::e_type type, w8_ulong stride,
                        const void* values);
 
     // FUNCTION: SURRENDER 0x1001BFD0 SYMBOL
     // RECOMP: ?setTexCoordPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXK@Z
-    void setTexCoordPointer(long components, srRendererDefs::e_type type, unsigned long stride,
-                            const void* values, unsigned long layer)
+    void setTexCoordPointer(w8_long components, srRendererDefs::e_type type, w8_ulong stride,
+                            const void* values, w8_ulong layer)
     {
-        unsigned long index = layer + 4;
+        w8_ulong index = layer + 4;
         vertex_arrays.components[index] = components;
         vertex_arrays.types[index] = type;
         vertex_arrays.strides[index] = stride;
@@ -731,8 +729,8 @@ public:
 
     // FUNCTION: SURRENDER 0x1001BE90 SYMBOL
     // RECOMP: ?setVertexPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXJ@Z
-    void setVertexPointer(long primitive, srRendererDefs::e_type type, unsigned long stride,
-                          const void* values, long count)
+    void setVertexPointer(w8_long primitive, srRendererDefs::e_type type, w8_ulong stride,
+                          const void* values, w8_long count)
     {
         vertex_arrays.count = count < 0 ? 0 : count;
         vertex_arrays.components[0] = primitive;
@@ -748,26 +746,26 @@ private:
     struct Texture {
         Texture* prev;
         Texture* next;
-        unsigned long id;
+        w8_ulong id;
         /* evaluateTexturePixelFormat copies the matched device format here. */
         srPixelConvert::PixelFormat pixel_format;
         void* surface_data;
         srPtr<srPalette> palette;
         char* name;
         srDD::Texture device;
-        unsigned long unknown_a4;
+        w8_ulong unknown_a4;
     };
-    static_assert(sizeof(Texture) == 0xa8, "srGERD_Texture_must_be_0xa8");
+    W8_ABI_ASSERT(sizeof(Texture) == 0xa8, "srGERD_Texture_must_be_0xa8");
 
     /* Pick batch view: indices selects triangles out of the caller's stream, vertices remaps each
        corner to a position index, positions is the renderer's vec4 stream base. */
     struct PickInput {
-        const unsigned long* indices;
+        const w8_ulong* indices;
         const srVector3i* triangles;
-        unsigned long triangle_count;
-        const unsigned long* vertices;
+        w8_ulong triangle_count;
+        const w8_ulong* vertices;
         const srVector4T<float>* positions;
-        unsigned long vertex_count;
+        w8_ulong vertex_count;
     };
 
     srGERD& operator=(const srGERD& other);
@@ -776,8 +774,8 @@ private:
     static void debugWrite(const char* text);
     void fenceVertexArrays();
     void dumpTextureCache(std::ostream& stream);
-    void setDataPtr(srRendererDefs::e_vertexArray index, long components,
-                    srRendererDefs::e_type type, unsigned long stride, const void* values);
+    void setDataPtr(srRendererDefs::e_vertexArray index, w8_long components,
+                    srRendererDefs::e_type type, w8_ulong stride, const void* values);
 
     friend class Renderer;
     /* For each queued Pick, w-normalize the batch's positions into pick_vertices and run the
@@ -789,15 +787,15 @@ private:
     static const char* errStrings[10];
 
     struct TextureEntry {
-        long next;
-        unsigned long handle;
+        w8_long next;
+        w8_ulong handle;
         Texture* texture;
     };
     struct RendererEntry {
         RendererEntry* prev;
         RendererEntry* next;
         Renderer* renderer;
-        long busy;
+        w8_long busy;
     };
     void setError(e_error error);
     void resetTexture();
@@ -814,20 +812,20 @@ private:
     void checkFrameStateChanges();
     void checkAllStateChanges();
     void recalcScissor();
-    void changeTexture(srTextureIFace* texture, unsigned long stage, int apply_parms);
+    void changeTexture(srTextureIFace* texture, w8_ulong stage, int apply_parms);
     Texture* createNewTexture(srTextureIFace* texture);
-    Texture* allocTexture(unsigned long id);
+    Texture* allocTexture(w8_ulong id);
     void allocTextureData(Texture& texture);
     void deleteTexture(Texture& texture);
     void removeDeletedTextures();
     void invalidatePalette();
     void releaseTextureSurfaceData(Texture& texture);
-    void setTextureParameters(unsigned long stage, const srTextureIFace::Parameters& parameters);
+    void setTextureParameters(w8_ulong stage, const srTextureIFace::Parameters& parameters);
     void evaluateTextureDimensions(srDD::Texture& device,
                                    const srTextureIFace::Dimensions& dimensions);
     void evaluateTexturePixelFormat(Texture& texture, const srTextureIFace::Dimensions& dimensions);
-    void releaseTextureMemory(long bytes);
-    unsigned long getTextureBytesNeeded(Texture& texture) const;
+    void releaseTextureMemory(w8_long bytes);
+    w8_ulong getTextureBytesNeeded(Texture& texture) const;
     Texture* findLowestPriority();
     void invalidateTexture(Texture& texture);
     void invalidateResidentTexture(Texture& texture);
@@ -839,7 +837,7 @@ private:
     void initTextureFormats();
     void initDisplayModeList();
     void initGlobalPalette();
-    unsigned long getDDAPIVersion() const;
+    w8_ulong getDDAPIVersion() const;
     void initClearColors();
     void initView();
     void initLights();
@@ -855,14 +853,14 @@ private:
     void accumClear();
     void accumRelease();
     /* MMX row kernels for accumulate(). */
-    static void __cdecl accumAccum_MMX(AccumPixel* accum, const srARGB* pixels, long scale,
-                                       long count);
-    static void __cdecl accumLoad_MMX(AccumPixel* accum, const srARGB* pixels, long scale,
-                                      long count);
-    static void __cdecl accumReturn_MMX(srARGB* pixels, const AccumPixel* accum, long scale,
-                                        long count);
-    static void __cdecl accumAdd_MMX(AccumPixel* accum, long value, long count);
-    static void __cdecl accumMult_MMX(AccumPixel* accum, long value, long count);
+    static void __cdecl accumAccum_MMX(AccumPixel* accum, const srARGB* pixels, w8_long scale,
+                                       w8_long count);
+    static void __cdecl accumLoad_MMX(AccumPixel* accum, const srARGB* pixels, w8_long scale,
+                                      w8_long count);
+    static void __cdecl accumReturn_MMX(srARGB* pixels, const AccumPixel* accum, w8_long scale,
+                                        w8_long count);
+    static void __cdecl accumAdd_MMX(AccumPixel* accum, w8_long value, w8_long count);
+    static void __cdecl accumMult_MMX(AccumPixel* accum, w8_long value, w8_long count);
     static void convertPixelFormat(srDD::PixelFormat& device,
                                    const srPixelConvert::PixelFormat& format);
     static void convertPixelFormat(srPixelConvert::PixelFormat& format,
@@ -888,10 +886,10 @@ private:
         Texture* allocate();
         void release(Texture* texture);
 
-        unsigned long count;
+        w8_ulong count;
         Texture* free;
         srArray<Texture*> chunks;
-        unsigned long pool_count;
+        w8_ulong pool_count;
     };
     friend struct TexturePool;
 
@@ -902,7 +900,7 @@ private:
             release();
         }
 
-        unsigned long count;
+        w8_ulong count;
     };
 
     static srGERD* first;
@@ -912,7 +910,7 @@ private:
         MatrixStack();
 
         srMatrix4T<float> stack[32];
-        unsigned long depth;
+        w8_ulong depth;
     };
 
     struct Device {
@@ -927,12 +925,12 @@ private:
            (pre-context) and getApiVersion read its trailing fields. */
         srDD::DriverInfo driver_info;
         srPixelConvert::PixelFormat* texture_formats;
-        long texture_format_count;
+        w8_long texture_format_count;
         srDD::WindowInfo* display_modes;
-        long display_mode_count;
+        w8_long display_mode_count;
         /* setHint/getHint index this by e_hint. */
         e_hintMode hints[1];
-        unsigned long window;
+        w8_ulong_ptr window;
         /* openWindowInternal fills this record: windowed dims, backbuffer dims, then the
            display-mode index (-1 when windowed). */
         OpenInfo open_info;
@@ -956,10 +954,10 @@ private:
         double depth_min;
         double depth_max;
         srDD::Scissor scissor;
-        unsigned long view_left;
-        unsigned long view_top;
-        unsigned long view_right;
-        unsigned long view_bottom;
+        w8_ulong view_left;
+        w8_ulong view_top;
+        w8_ulong view_right;
+        w8_ulong view_bottom;
         e_cullMode cull_mode;
         e_winding winding;
         e_matrixMode matrix_mode;
@@ -967,12 +965,12 @@ private:
         /* Per-user-plane e_clipMode bytes written by pushClipPlane. */
         unsigned char clip_modes[26];
         /* Plane-enable mask: bits 0..5 frustum, bits 6..31 user planes. */
-        unsigned long clip_mask;
+        w8_ulong clip_mask;
         /* Subset of clip_mask carrying mode-1 user planes. */
-        unsigned long clip_mode1_mask;
-        long clip_plane_count;
+        w8_ulong clip_mode1_mask;
+        w8_long clip_plane_count;
         /* Bit 1: recalcScissor marks the scissor as the full view. */
-        unsigned long scissor_flags;
+        w8_ulong scissor_flags;
         srMatrix4T<float> inverse_modelview;
         srMatrix4T<float> project_clip_near;
         srMatrix4T<float> normal_matrix;
@@ -985,7 +983,7 @@ private:
 
     struct Display {
         srVector3T<float> gamma;
-        unsigned long swap_interval;
+        w8_ulong swap_interval;
         e_antiAlias antialias;
     };
 
@@ -993,8 +991,8 @@ private:
         PickState() : pick_depth(0) {}
 
         Pick pick_stack[32];
-        unsigned long pick_depth;
-        unsigned long pick_key;
+        w8_ulong pick_depth;
+        w8_ulong_ptr pick_key;
     };
 
     struct ClearState {
@@ -1005,21 +1003,21 @@ private:
     /* setTextureParameters indexes these maps from the packed texture state; filter selector 4 is a
        valid index in both filter maps. */
     struct TextureState {
-        unsigned long correction_map[4];
-        unsigned long mag_filter_map[5];
-        unsigned long min_filter_map[5];
+        w8_ulong correction_map[4];
+        w8_ulong mag_filter_map[5];
+        w8_ulong min_filter_map[5];
         /* The fourth entry doubles as the current mipmap parameter written
            by setTextureDefaultMipmap. */
-        unsigned long mipmap_map[4];
-        unsigned long wrap_s_map[2];
-        unsigned long wrap_t_map[2];
+        w8_ulong mipmap_map[4];
+        w8_ulong wrap_s_map[2];
+        w8_ulong wrap_t_map[2];
         srTextureIFace::e_correction default_correction;
         srTextureIFace::e_filter default_mag_filter;
         srTextureIFace::e_filter default_min_filter;
         srTextureIFace::e_mipmap default_mipmap;
         /* Per-type default device parameters. Entry [4] doubles as the current compression
            parameter written by setTextureDefaultCompression. */
-        unsigned long default_texture_params[5];
+        w8_ulong default_texture_params[5];
         srTextureIFace::e_compression default_compression;
     };
 
@@ -1028,16 +1026,16 @@ private:
         EnvironmentState() : environment_depth(0), enable_depth(0) {}
 
         Environment environment_stack[16];
-        unsigned long environment_depth;
+        w8_ulong environment_depth;
         srFlags<e_enable> enable_stack[16];
-        unsigned long enable_depth;
+        w8_ulong enable_depth;
     };
 
     unsigned char unknown_0c_[4];
     RendererEntry* renderers;
     srCriticalSection* renderers_section;
     srCriticalSection* state_section;
-    unsigned long owner_thread;
+    w8_ulong owner_thread;
     srFlags<e_enable> enable_flags;
     enum {
         DIRTY_FRAME_ENABLE = 0x1UL,
@@ -1066,7 +1064,7 @@ private:
         DIRTY_DRAW_STATE = DIRTY_FOG_COLOR | DIRTY_TEXTURE0 | DIRTY_TEXTURE1 | DIRTY_SHADER |
                            DIRTY_CULLING | DIRTY_POLYGON_MODE | DIRTY_POLYGON_OFFSET
     };
-    unsigned long dirty;
+    w8_ulong dirty;
     enum {
         STATE_CONTEXT_CREATED = 0x01u,
         STATE_WINDOW_OPEN = 0x02u,
@@ -1074,7 +1072,7 @@ private:
         STATE_FRAME_FLIPPED = 0x08u,
         STATE_CLOSING_WINDOW = 0x10u
     };
-    unsigned long state_flags;
+    w8_ulong state_flags;
     e_error last_error;
     /* getPrev reads this list link; first is the global head. */
     srGERD* prev;
@@ -1094,11 +1092,11 @@ private:
     mutable Statistics statistics;
     /* Accumulation buffer: width*height pixels plus a width*4 scratch block. */
     AccumPixel* accum_buffer;
-    unsigned long* accum_scratch;
+    w8_ulong* accum_scratch;
     LockSurface* lock_surface;
     /* Buffer-lock nesting depth; _lockBuffer only locks the device on the
        first entry and _unlockBuffer unlocks when this returns to zero. */
-    long buffer_lock_count;
+    w8_long buffer_lock_count;
     ClearState clear_state;
     /* Grayscale ramp built by initGlobalPalette and handed to
        srDD::setGlobalPalette; matchPalette compares it as srARGB. */
@@ -1112,30 +1110,30 @@ private:
     TextureState texture_state;
     srPtr<srPalette> palette;
     e_polygonMode polygon_mode;
-    long polygon_offset;
+    w8_long polygon_offset;
     srVector4T<float> fog_color;
     srShader shader;
     /* Texture interfaces requested through setTexture for stages 0/1. */
     srPtr<srTextureIFace> texture_iface[2];
     /* Live textures keyed by the texture interface's frame handle. */
-    srHashTable<unsigned long, Texture*> texture_lookup;
+    srHashTable<w8_ulong, Texture*> texture_lookup;
     TexturePool texture_pool;
     Texture* texture_deleted;
     Texture* texture_head;
     Texture* texture_default;
-    unsigned long texture_cache_used;
-    unsigned long texture_cache_size;
-    unsigned long texture_sequence;
-    long texture_reduction;
+    w8_ulong texture_cache_used;
+    w8_ulong texture_cache_size;
+    w8_ulong texture_sequence;
+    w8_long texture_reduction;
     bool texture_hash_enabled;
     unsigned char unknown_2045_[3];
     srVector4T<float> ambient_light;
     Environment environment;
     EnvironmentState environment_state;
     VertexProcessors vertex_processors;
-    unsigned long exclusion_mask;
+    w8_ulong exclusion_mask;
     enum { DIRTY_VERTEX_ARRAY_INFO = 0x01u };
-    unsigned long vertex_arrays_dirty;
+    w8_ulong vertex_arrays_dirty;
     srRendererDefs::VertexArrayInfo vertex_arrays;
     /* performPickTest's w-normalized {x,y,z,sign(w)} scratch per vertex;
        released by closeWindow. */
@@ -1147,13 +1145,15 @@ private:
 inline unsigned int srHashValue(const srGERD::Renderer::TextureSetKey& key)
 {
     // reinterpret-ok: the hash mixes the stored interface addresses.
-    return ((key.shader.value >> 10 ^ reinterpret_cast<unsigned long>(key.texture1)) >> 1 ^
+    return ((key.shader.value >> 10 ^
+             static_cast<w8_ulong>(reinterpret_cast<w8_ulong_ptr>(key.texture1))) >>
+                1 ^
             // reinterpret-ok: as above.
-            reinterpret_cast<unsigned long>(key.texture0)) >>
+            static_cast<w8_ulong>(reinterpret_cast<w8_ulong_ptr>(key.texture0))) >>
                5 ^
            key.shader.value;
 }
 
-static_assert(sizeof(srGERD) == 0x2238, "srGERD_must_be_0x2238");
-static_assert(sizeof(srGERD::ClipPlanes) == 0x208, "srGERD_ClipPlanes_must_be_0x208");
-static_assert(sizeof(srGERD::Renderer::TriInput) == 0x28, "srGERD_Renderer_TriInput_must_be_0x28");
+W8_ABI_ASSERT(sizeof(srGERD) == 0x2238, "srGERD_must_be_0x2238");
+W8_ABI_ASSERT(sizeof(srGERD::ClipPlanes) == 0x208, "srGERD_ClipPlanes_must_be_0x208");
+W8_ABI_ASSERT(sizeof(srGERD::Renderer::TriInput) == 0x28, "srGERD_Renderer_TriInput_must_be_0x28");

@@ -45,13 +45,13 @@ public:
 
     virtual SR_DLL_IMPORT void* allocate(const char* path);
     virtual SR_DLL_IMPORT void free(void* allocation);
-    virtual SR_DLL_IMPORT void load(const char* path, void* destination, unsigned long size);
-    virtual SR_DLL_IMPORT void save(const char* path, void* source, unsigned long size);
-    virtual SR_DLL_IMPORT long getSize(const char* path);
+    virtual SR_DLL_IMPORT void load(const char* path, void* destination, w8_ulong size);
+    virtual SR_DLL_IMPORT void save(const char* path, void* source, w8_ulong size);
+    virtual SR_DLL_IMPORT w8_long getSize(const char* path);
 
 private:
     Path* first_path;
 };
 
-static_assert(sizeof(srFileManager::Path) == 0x0c, "srFileManager_Path_must_be_0x0c");
-static_assert(sizeof(srFileManager) == 0x08, "srFileManager_must_be_0x08");
+W8_ABI_ASSERT(sizeof(srFileManager::Path) == 0x0c, "srFileManager_Path_must_be_0x0c");
+W8_ABI_ASSERT(sizeof(srFileManager) == 0x08, "srFileManager_must_be_0x08");

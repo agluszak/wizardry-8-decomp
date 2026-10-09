@@ -124,9 +124,9 @@ void srFileManager::setPath(const char* path)
 }
 
 // FUNCTION: SURRENDER 0x1002E3E0
-long srFileManager::getSize(const char* path)
+w8_long srFileManager::getSize(const char* path)
 {
-    long size = -1;
+    w8_long size = -1;
     srBinIFStream stream(path);
     if (stream.good()) {
         size = stream.getSize();
@@ -135,7 +135,7 @@ long srFileManager::getSize(const char* path)
 }
 
 // FUNCTION: SURRENDER 0x1002E490
-void srFileManager::load(const char* path, void* destination, unsigned long size)
+void srFileManager::load(const char* path, void* destination, w8_ulong size)
 {
     if (destination != 0 && size != 0) {
         srBinIFStream stream;
@@ -152,7 +152,7 @@ void* srFileManager::allocate(const char* path)
         srBinIFStream stream;
         stream.exceptions(true);
         stream.open(path);
-        unsigned long size = stream.getSize();
+        w8_ulong size = stream.getSize();
         void* allocation = srCore.getMemoryAllocator()->allocate(size, path);
         if (allocation != 0) {
             stream.read(allocation, size);
@@ -171,7 +171,7 @@ void srFileManager::free(void* allocation)
 }
 
 // FUNCTION: SURRENDER 0x1002E650
-void srFileManager::save(const char* path, void* source, unsigned long size)
+void srFileManager::save(const char* path, void* source, w8_ulong size)
 {
     if (source != 0 && size != 0 && path != 0 && *path != '\0') {
         srBinOFStream stream;
@@ -214,7 +214,7 @@ namespace {
 class ReadJob : public srScheduler::Job {
 public:
     // FUNCTION: SURRENDER 0x1002EBD0
-    ReadJob(srBinIStream* stream, void* buffer, unsigned long size)
+    ReadJob(srBinIStream* stream, void* buffer, w8_ulong size)
     {
         this->stream = stream;
         this->buffer = buffer;
@@ -251,22 +251,22 @@ public:
         lock->releaseAccess();
     }
 
-    unsigned long getStatus();
+    w8_ulong getStatus();
 
 private:
     srBinIStream* stream;
     void* buffer;
-    unsigned long size;
-    unsigned long status;
+    w8_ulong size;
+    w8_ulong status;
     srCriticalSection* critical_section;
 };
 
 // FUNCTION: SURRENDER 0x1002ECB0
-unsigned long ReadJob::getStatus()
+w8_ulong ReadJob::getStatus()
 {
     srCriticalSection* lock = critical_section;
     lock->getAccess();
-    unsigned long status = this->status;
+    w8_ulong status = this->status;
     lock->releaseAccess();
     return status;
 }
@@ -311,12 +311,12 @@ srBinIAsyncStream::~srBinIAsyncStream()
 }
 
 // FUNCTION: SURRENDER 0x1002EA00
-srBinStream& srBinIAsyncStream::seek(unsigned long position, e_seekDir direction)
+srBinStream& srBinIAsyncStream::seek(w8_ulong position, e_seekDir direction)
 {
     if (!good()) {
         return *this;
     }
-    unsigned long new_position = position;
+    w8_ulong new_position = position;
     if (direction != SR_SEEK_BEGIN) {
         if (direction == SR_SEEK_CURRENT) {
             new_position = this->position + position;
@@ -332,7 +332,7 @@ srBinStream& srBinIAsyncStream::seek(unsigned long position, e_seekDir direction
 }
 
 // FUNCTION: SURRENDER 0x1002EA90
-srBinStream& srBinIAsyncStream::seek(unsigned long position)
+srBinStream& srBinIAsyncStream::seek(w8_ulong position)
 {
     if (position <= size) {
         this->position = position;
@@ -343,13 +343,13 @@ srBinStream& srBinIAsyncStream::seek(unsigned long position)
 }
 
 // FUNCTION: SURRENDER 0x1002EAD0
-unsigned long srBinIAsyncStream::tell()
+w8_ulong srBinIAsyncStream::tell()
 {
     return position;
 }
 
 // FUNCTION: SURRENDER 0x1002EAE0
-unsigned long srBinIAsyncStream::vread(void* destination, unsigned long size)
+w8_ulong srBinIAsyncStream::vread(void* destination, w8_ulong size)
 {
     if (this->size <= position + size) {
         size = this->size - position;
@@ -494,7 +494,7 @@ srBinFStream::~srBinFStream()
 }
 
 // FUNCTION: SURRENDER 0x1002F340
-srBinStream& srBinFStream::pseek(unsigned long position, e_seekDir direction)
+srBinStream& srBinFStream::pseek(w8_ulong position, e_seekDir direction)
 {
     int whence;
     switch (direction) {
@@ -517,7 +517,7 @@ srBinStream& srBinFStream::pseek(unsigned long position, e_seekDir direction)
 }
 
 // FUNCTION: SURRENDER 0x1002F3B0
-srBinStream& srBinFStream::pseek(unsigned long position)
+srBinStream& srBinFStream::pseek(w8_ulong position)
 {
     if (fseek(file, position, SEEK_SET) != 0) {
         setState(SR_STREAM_ERROR);
@@ -526,9 +526,9 @@ srBinStream& srBinFStream::pseek(unsigned long position)
 }
 
 // FUNCTION: SURRENDER 0x1002F400
-unsigned long srBinFStream::ptell()
+w8_ulong srBinFStream::ptell()
 {
-    unsigned long position = ftell(file);
+    w8_ulong position = ftell(file);
     if (position == 0xffffffff) {
         setState(SR_STREAM_ERROR);
     }
@@ -561,25 +561,25 @@ unsigned short srBinIFStream::vget()
 }
 
 // FUNCTION: SURRENDER 0x1002F870
-unsigned long srBinIFStream::vread(void* destination, unsigned long size)
+w8_ulong srBinIFStream::vread(void* destination, w8_ulong size)
 {
     return fread(destination, 1, size, file);
 }
 
 // FUNCTION: SURRENDER 0x1002F890
-srBinStream& srBinIFStream::seek(unsigned long position, e_seekDir direction)
+srBinStream& srBinIFStream::seek(w8_ulong position, e_seekDir direction)
 {
     return pseek(position, direction);
 }
 
 // FUNCTION: SURRENDER 0x1002F8B0
-srBinStream& srBinIFStream::seek(unsigned long position)
+srBinStream& srBinIFStream::seek(w8_ulong position)
 {
     return pseek(position);
 }
 
 // FUNCTION: SURRENDER 0x1002F8C0
-unsigned long srBinIFStream::tell()
+w8_ulong srBinIFStream::tell()
 {
     return ptell();
 }
@@ -600,7 +600,7 @@ void srBinIOFStream::open(const char* path)
 }
 
 // FUNCTION: SURRENDER 0x1002FE30
-unsigned long srBinIOFStream::vwrite(const void* source, unsigned long size)
+w8_ulong srBinIOFStream::vwrite(const void* source, w8_ulong size)
 {
     return fwrite(source, 1, size, file);
 }
@@ -622,25 +622,25 @@ unsigned short srBinIOFStream::vget()
 }
 
 // FUNCTION: SURRENDER 0x1002FEA0
-unsigned long srBinIOFStream::vread(void* destination, unsigned long size)
+w8_ulong srBinIOFStream::vread(void* destination, w8_ulong size)
 {
     return fread(destination, 1, size, file);
 }
 
 // FUNCTION: SURRENDER 0x1002FEC0
-srBinStream& srBinIOFStream::seek(unsigned long position, e_seekDir direction)
+srBinStream& srBinIOFStream::seek(w8_ulong position, e_seekDir direction)
 {
     return pseek(position, direction);
 }
 
 // FUNCTION: SURRENDER 0x1002FEE0
-srBinStream& srBinIOFStream::seek(unsigned long position)
+srBinStream& srBinIOFStream::seek(w8_ulong position)
 {
     return pseek(position);
 }
 
 // FUNCTION: SURRENDER 0x1002FEF0
-unsigned long srBinIOFStream::tell()
+w8_ulong srBinIOFStream::tell()
 {
     return ptell();
 }
@@ -661,7 +661,7 @@ void srBinOFStream::open(const char* path)
 }
 
 // FUNCTION: SURRENDER 0x10030510
-unsigned long srBinOFStream::vwrite(const void* source, unsigned long size)
+w8_ulong srBinOFStream::vwrite(const void* source, w8_ulong size)
 {
     return fwrite(source, 1, size, file);
 }
@@ -673,19 +673,19 @@ unsigned short srBinOFStream::vput(char character)
 }
 
 // FUNCTION: SURRENDER 0x10030570
-srBinStream& srBinOFStream::seek(unsigned long position, e_seekDir direction)
+srBinStream& srBinOFStream::seek(w8_ulong position, e_seekDir direction)
 {
     return pseek(position, direction);
 }
 
 // FUNCTION: SURRENDER 0x10030590
-srBinStream& srBinOFStream::seek(unsigned long position)
+srBinStream& srBinOFStream::seek(w8_ulong position)
 {
     return pseek(position);
 }
 
 // FUNCTION: SURRENDER 0x100305B0
-unsigned long srBinOFStream::tell()
+w8_ulong srBinOFStream::tell()
 {
     return ptell();
 }

@@ -39,7 +39,7 @@ union W8MessageBoxPayload {
     W8ExperienceNoticePayload* experience; /* extra: PORTRAIT_EXTRA; delete */
     int* level_up_slot;                    /* extra: LEVEL_UP party slot; delete */
 };
-static_assert(sizeof(W8MessageBoxPayload) == 0x04, "W8MessageBoxPayload_size");
+W8_ABI_ASSERT(sizeof(W8MessageBoxPayload) == 0x04, "W8MessageBoxPayload_size");
 
 /* Queued NPC message kinds dispatched by ProcessMessageBoxQueue at 0x00526E90.
    W8_NPC_MSG_QUOTE lines are built by QueueNpcScriptLine; the command kinds are
@@ -143,16 +143,16 @@ struct W8MessageBoxLine {
     W8NpcState* npc; /* 0x20: speaking NPC, copied from g_npc_scripting.npc */
 };
 
-static_assert(sizeof(W8MessageBoxLine) == 0x24, "W8MessageBoxLine_must_be_0x24");
+W8_ABI_ASSERT(sizeof(W8MessageBoxLine) == 0x24, "W8MessageBoxLine_must_be_0x24");
 static_assert(offsetof(W8MessageBoxLine, quote_entry) == 0x08, "W8MessageBoxLine_quote_entry");
-static_assert(offsetof(W8MessageBoxLine, type) == 0x0c, "W8MessageBoxLine_type");
-static_assert(offsetof(W8MessageBoxLine, payload) == 0x10, "W8MessageBoxLine_payload");
-static_assert(offsetof(W8MessageBoxLine, continuation_quote) == 0x14,
+W8_ABI_ASSERT(offsetof(W8MessageBoxLine, type) == 0x0c, "W8MessageBoxLine_type");
+W8_ABI_ASSERT(offsetof(W8MessageBoxLine, payload) == 0x10, "W8MessageBoxLine_payload");
+W8_ABI_ASSERT(offsetof(W8MessageBoxLine, continuation_quote) == 0x14,
               "W8MessageBoxLine_continuation_quote");
-static_assert(offsetof(W8MessageBoxLine, suppress_entries) == 0x18,
+W8_ABI_ASSERT(offsetof(W8MessageBoxLine, suppress_entries) == 0x18,
               "W8MessageBoxLine_suppress_entries");
-static_assert(offsetof(W8MessageBoxLine, extra) == 0x1c, "W8MessageBoxLine_extra");
-static_assert(offsetof(W8MessageBoxLine, npc) == 0x20, "W8MessageBoxLine_npc");
+W8_ABI_ASSERT(offsetof(W8MessageBoxLine, extra) == 0x1c, "W8MessageBoxLine_extra");
+W8_ABI_ASSERT(offsetof(W8MessageBoxLine, npc) == 0x20, "W8MessageBoxLine_npc");
 
 void AddMessageBoxLine(W8NpcMessageKind kind, W8MessageBoxPayload payload,
                        W8MessageBoxPayload extra);

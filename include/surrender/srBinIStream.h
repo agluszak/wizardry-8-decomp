@@ -18,18 +18,18 @@ public:
 #endif
 
     unsigned short getChar();
-    unsigned long getDWord();
+    w8_ulong getDWord();
     double getDouble();
     float getFloat();
     srQuadWord getQuadWord();
     unsigned short getWord();
-    srBinIStream& read(void* destination, unsigned long size);
+    srBinIStream& read(void* destination, w8_ulong size);
 
 protected:
     virtual unsigned short vget();
 
 private:
-    virtual unsigned long vread(void* destination, unsigned long size) = 0;
+    virtual w8_ulong vread(void* destination, w8_ulong size) = 0;
 };
 
 srBinIStream& operator>>(srBinIStream& stream, int& value);
@@ -37,8 +37,8 @@ srBinIStream& operator>>(srBinIStream& stream, char& value);
 SR_DLL_IMPORT srBinIStream& operator>>(srBinIStream& stream, unsigned char& value);
 srBinIStream& operator>>(srBinIStream& stream, short& value);
 SR_DLL_IMPORT srBinIStream& operator>>(srBinIStream& stream, unsigned short& value);
-srBinIStream& operator>>(srBinIStream& stream, long& value);
-SR_DLL_IMPORT srBinIStream& operator>>(srBinIStream& stream, unsigned long& value);
+srBinIStream& operator>>(srBinIStream& stream, w8_long& value);
+SR_DLL_IMPORT srBinIStream& operator>>(srBinIStream& stream, w8_ulong& value);
 srBinIStream& operator>>(srBinIStream& stream, srQuadWord& value);
 SR_DLL_IMPORT srBinIStream& operator>>(srBinIStream& stream, float& value);
 srBinIStream& operator>>(srBinIStream& stream, double& value);
@@ -69,24 +69,24 @@ class __declspec(novtable) SR_DLL_IMPORT srBinIMStream
 #endif
     : public srBinIStream {
 public:
-    srBinIMStream(const void* data, unsigned long size);
+    srBinIMStream(const void* data, w8_ulong size);
 
 #if !defined(SURRENDER_BUILD)
     virtual ~srBinIMStream() override {}
 #endif
 
-    virtual unsigned long getSize() override;
-    virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual srBinStream& seek(unsigned long position) override;
-    virtual unsigned long tell() override;
+    virtual w8_ulong getSize() override;
+    virtual srBinStream& seek(w8_ulong position, srBinStream::e_seekDir direction) override;
+    virtual srBinStream& seek(w8_ulong position) override;
+    virtual w8_ulong tell() override;
 
 private:
-    virtual unsigned long vread(void* destination, unsigned long size) override;
+    virtual w8_ulong vread(void* destination, w8_ulong size) override;
 
     const unsigned char* data;
-    unsigned long size;
-    unsigned long position0;
+    w8_ulong size;
+    w8_ulong position0;
 };
 
-static_assert(sizeof(srBinIStream) == 0x18, "srBinIStream_must_be_0x18");
-static_assert(sizeof(srBinIMStream) == 0x28, "srBinIMStream_must_be_0x28");
+W8_ABI_ASSERT(sizeof(srBinIStream) == 0x18, "srBinIStream_must_be_0x18");
+W8_ABI_ASSERT(sizeof(srBinIMStream) == 0x28, "srBinIMStream_must_be_0x28");

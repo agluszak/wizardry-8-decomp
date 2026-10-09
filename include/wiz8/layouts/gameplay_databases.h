@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 #define WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 
+#include "compat/ptr32.h"
 #include "wiz8/attack_modes.h"
 #include "wiz8/spell_ids.h"
 #include "wiz8/fact_state.h"
@@ -361,8 +362,8 @@ struct W8NpcDatabaseRecord {
     /* 0x09e: what the NPC is called, unless a fact substitutes another name.
        The wide RPC-character name at 0x0c4 bounds the string extent. */
     char display_name[0x26];
-    W8NpcCharacterTemplate character; /* 0x0c4 */
-    W8PList* item_stock_rules;        /* 0x2ca: W8NpcItemStockRule* elements */
+    W8NpcCharacterTemplate character;   /* 0x0c4 */
+    W8_PTR32(W8PList) item_stock_rules; /* 0x2ca: W8NpcItemStockRule* elements */
     /* 0x2ce/0x2d2: the trade price factors. CalculateTradeStackPrice adds the
        bargained adjustment to buy_price_factor when the NPC buys from the
        party and subtracts it from sell_price_factor when the party buys. */

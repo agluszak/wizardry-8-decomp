@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_TARGETING_H
 #define WIZ8_LAYOUTS_TARGETING_H
 
+#include "compat/ptr32.h"
 #include "surrender/srMath.h"
 
 struct W8ItemInstance;
@@ -105,7 +106,7 @@ struct W8CombatSlot {
     int iGroupID;            /* 0x0c, -1 when empty */
     srVector3T<float> point; /* 0x10 */
     /* 0x1c: the item aimed at, for the one kind that aims at one. */
-    W8ItemInstance* pPCItem;
+    W8_PTR32(W8ItemInstance) pPCItem;
 }; /* 0x20 */
 /* Party movement is distinct from an individual character's action. */
 enum W8PartyAction { W8_PARTY_ACTION_NONE = 0, W8_PARTY_ACTION_WALK = 1, W8_PARTY_ACTION_RUN = 2 };
@@ -130,7 +131,7 @@ union W8ActionDetailBlock {
     } spell;
     struct {
         int kind;
-        W8ItemInstance* item;
+        W8_PTR32(W8ItemInstance) item;
     } item_use;
 }; /* 0x08 */
 static_assert(sizeof(W8ActionDetailBlock) == 0x08, "W8ActionDetailBlock_size");

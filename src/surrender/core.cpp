@@ -129,7 +129,7 @@ srGlobalRecycler* srCore::getGlobalRecycler() const
 }
 
 // FUNCTION: SURRENDER 0x100156D0
-unsigned long srCore::getUniqueID()
+w8_ulong srCore::getUniqueID()
 {
     return next_unique_id++;
 }
@@ -367,7 +367,7 @@ void srCore::reset()
 // FUNCTION: SURRENDER 0x10015CF0
 void srCore::dump(std::ostream& stream)
 {
-    long flags = stream.flags();
+    w8_long flags = stream.flags();
     stream.flags((flags & ~0x180L) | 0x40);
     stream << '\n' << copyright_ << '\n';
     stream.width(0x18);

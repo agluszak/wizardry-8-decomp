@@ -20,7 +20,7 @@ public:
     static SR_DLL_IMPORT void resetStatistics();
     static SR_DLL_IMPORT int load(const char* filename);
     static SR_DLL_IMPORT void initBaseVP();
-    static SR_DLL_IMPORT long getID(const char* filename);
+    static SR_DLL_IMPORT w8_long getID(const char* filename);
     static SR_DLL_IMPORT int loadBest(const char* path);
     static SR_DLL_IMPORT void release();
 
@@ -390,7 +390,7 @@ private:
     // GLOBAL: SURRENDER 0x100A9244
     static srDebugVP* debug;
     // GLOBAL: SURRENDER 0x100A9248
-    static unsigned long debug_active;
+    static w8_ulong debug_active;
     // GLOBAL: SURRENDER 0x100A924C
     static void* module;
 

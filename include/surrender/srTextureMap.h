@@ -27,7 +27,7 @@ protected:
 
 public:
     virtual srClass* vInstance() override;
-    virtual unsigned long getTextureFrameHandle() override;
+    virtual w8_ulong getTextureFrameHandle() override;
     virtual void getMipmapData(MultiRequest& request) override;
     void setSurfacePtr(srColorSurfaceIFace* surface);
     srColorSurfaceIFace* getSurfacePtr() const;
@@ -36,7 +36,7 @@ public:
 protected:
     virtual void setupDefaultValues() override;
     srPtr<srColorSurfaceIFace> surface;
-    unsigned long frame_handle; /* 0x58: ctor stores getNewFrameHandle() */
+    w8_ulong frame_handle; /* 0x58: ctor stores getNewFrameHandle() */
 };
 
-static_assert((sizeof(srTextureMap) == 0x5c), "srTextureMap_must_be_0x5c");
+W8_ABI_ASSERT((sizeof(srTextureMap) == 0x5c), "srTextureMap_must_be_0x5c");

@@ -38,7 +38,7 @@ enum W8AnimationBehaviour {
 
 /* The 2D instance has a different sixteen-byte block at the same class offset. */
 struct W8ModelInstance2DRenderState {
-    unsigned long render_depth;
+    w8_ulong render_depth;
     unsigned short width;
     unsigned short height;
     short position_x;
@@ -138,10 +138,10 @@ public:
 
 static_assert(sizeof(W8ModelInstance2DRenderState) == 0x10,
               "W8ModelInstance2DRenderState_size_must_be_0x10");
-static_assert(offsetof(W8AnimRepBase, highlight_colour) == 0x4c,
+W8_ABI_ASSERT(offsetof(W8AnimRepBase, highlight_colour) == 0x4c,
               "W8AnimRepBase_render_state_offset");
-static_assert(sizeof(W8AnimRepBase) == 0x64, "W8AnimRepBase_size_must_be_0x64");
-static_assert(sizeof(W8AnimRep) == 0x98, "W8AnimRep_size_must_be_0x98");
+W8_ABI_ASSERT(sizeof(W8AnimRepBase) == 0x64, "W8AnimRepBase_size_must_be_0x64");
+W8_ABI_ASSERT(sizeof(W8AnimRep) == 0x98, "W8AnimRep_size_must_be_0x98");
 
 extern float g_lod_range_default0;
 extern float g_lod_range_default1;

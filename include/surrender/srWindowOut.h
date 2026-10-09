@@ -12,6 +12,6 @@ class
 #endif
     srWindowOut : public std::ostream {
 public:
-    srWindowOut(unsigned long handle, const char* title, long width, unsigned long height);
+    srWindowOut(w8_ulong handle, const char* title, w8_long width, w8_ulong height);
     virtual ~srWindowOut();
 };

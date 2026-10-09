@@ -52,7 +52,7 @@
 #include "wiz8/virtual_file.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/save_game.h"
-#include "Random.h"
+#include "random.h"
 #include "DEBUG.H"
 #include "FileMan.h"
 #include "surrender/srCamera.h"
@@ -62,7 +62,6 @@
 #include "wiz8/local_code/character_events.h"
 
 #include <windows.h>
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -780,7 +779,7 @@ public:
     bool reverse;
 };
 
-static_assert(sizeof(W8TriggerShakeEvent) == 0x44, "W8TriggerShakeEvent_must_be_0x44");
+W8_ABI_ASSERT(sizeof(W8TriggerShakeEvent) == 0x44, "W8TriggerShakeEvent_must_be_0x44");
 
 // VTABLE: WIZ8 0x005ec140
 // class W8TriggerShakeEvent
@@ -990,7 +989,7 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
         srVector3T<float> lower;
         srVector3T<float> upper;
         srVector3T<float> extent;
-        unsigned long* locations = 0;
+        w8_ulong* locations = 0;
         extent.Set(radius, radius, radius);
         lower = center - extent;
         upper = center + extent;

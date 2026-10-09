@@ -81,7 +81,7 @@ static const char* const s_light_flag_names = 0;
 void srLight::dump(std::ostream& stream)
 {
     srNode::dump(stream);
-    long flags = stream.flags();
+    w8_long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
     stream << "  Control flags: ";
@@ -91,7 +91,7 @@ void srLight::dump(std::ostream& stream)
         stream << '[';
         bool first = true;
         const char* names = s_light_flag_names;
-        for (unsigned long index = 0; index < 0x20; ++index) {
+        for (w8_ulong index = 0; index < 0x20; ++index) {
             if ((enable_flags & (1ul << index)) == 0) {
                 if (names != 0) {
                     while (*names != '\0' && *names != ',') {
@@ -318,7 +318,7 @@ int srLight::isActive(srVertexPipe& pipe)
 // FUNCTION: SURRENDER 0x1004CE00
 void srLight::process(srVertexPipe& pipe)
 {
-    unsigned long channels = channel_mask & pipe.channel_mask;
+    w8_ulong channels = channel_mask & pipe.channel_mask;
     if (channels == 0) {
         return;
     }
@@ -333,7 +333,8 @@ void srLight::process(srVertexPipe& pipe)
        distances, eye-space directions). */
     float raw[0x1c0 + 8];
     // reinterpret-ok: manual 32-byte alignment of raw VP scratch storage.
-    float* work = reinterpret_cast<float*>((reinterpret_cast<unsigned long>(raw) + 0x1f) & ~0x1ful);
+    float* work = reinterpret_cast<float*>((reinterpret_cast<w8_ulong_ptr>(raw) + 0x1f) &
+                                           ~static_cast<w8_ulong_ptr>(0x1f));
     float* spot_factors = work;
     float* attenuation_bank = work + 0x40;
     float* dots = work + 0x80;

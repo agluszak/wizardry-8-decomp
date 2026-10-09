@@ -12,7 +12,7 @@ public:
 
     srTexture& operator=(const srTexture& other);
     virtual void dump(std::ostream& stream) override;
-    virtual unsigned long getTextureFrameHandle() override;
+    virtual w8_ulong getTextureFrameHandle() override;
     virtual float getPriority() override;
     virtual void getDimensions(Dimensions& dimensions) override;
     void setDimensions(const Dimensions& dimensions);
@@ -50,18 +50,18 @@ protected:
     friend class stSurface2D;
     srTexture();
     virtual ~srTexture() override;
-    static unsigned long getNewFrameHandle();
+    static w8_ulong getNewFrameHandle();
     /* Allocates count consecutive frame handles and returns the first. */
-    static unsigned long getNewFrameHandles(unsigned long count);
-    static unsigned long _frameHandle;
-    void invalidateFrameHandle(unsigned long handle);
+    static w8_ulong getNewFrameHandles(w8_ulong count);
+    static w8_ulong _frameHandle;
+    void invalidateFrameHandle(w8_ulong handle);
     void setupDefaultValuesFromSurface(srColorSurfaceIFace* surface);
 
-    unsigned long packed_state;     /* 0x18: correction/mag/min/mipmap/wrap bits */
+    w8_ulong packed_state;          /* 0x18: correction/mag/min/mipmap/wrap bits */
     float mipmap_bias;              /* 0x1c */
     Dimensions texture_dimensions_; /* 0x20 */
     float texture_priority;         /* 0x4c: getPriority; the ctor seeds 0.5f */
-    unsigned long texture_flags_;   /* 0x50 */
+    w8_ulong texture_flags_;        /* 0x50 */
 };
 
-static_assert((sizeof(srTexture) == 0x54), "srTexture_must_be_0x54");
+W8_ABI_ASSERT((sizeof(srTexture) == 0x54), "srTexture_must_be_0x54");

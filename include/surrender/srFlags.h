@@ -3,11 +3,11 @@
 template <class Enum> class srFlags {
 public:
     srFlags();
-    explicit srFlags(unsigned long bits) : value(bits) {}
+    explicit srFlags(w8_ulong bits) : value(bits) {}
 
     void set(int bit, int on);
 
-    unsigned long value;
+    w8_ulong value;
 };
 
 template <class Enum> srFlags<Enum>::srFlags() : value(0) {}
@@ -22,4 +22,4 @@ template <class Enum> void srFlags<Enum>::set(int bit, int on)
     value &= ~(1u << bit);
 }
 
-static_assert(sizeof(srFlags<int>) == 0x04, "srFlags_must_be_0x04");
+W8_ABI_ASSERT(sizeof(srFlags<int>) == 0x04, "srFlags_must_be_0x04");

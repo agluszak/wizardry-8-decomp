@@ -28,7 +28,7 @@
 #include "wiz8/layouts/game_status.h"
 
 // GLOBAL: WIZ8 0x0064d8ac
-unsigned long g_intro_video_index = 6;
+w8_ulong g_intro_video_index = 6;
 // GLOBAL: WIZ8 0x0064D8B0
 static char g_intro_video_names[7][40] = {
     "Wizardry8.bik", "unaligned.bik", "Umpani.bik",  "T'Rang.bik",
@@ -190,7 +190,7 @@ unsigned char IntroScreenRegionEvent(const InputAtom* event, W8Region* region)
 }
 
 // FUNCTION: WIZ8 0x005AE9C0
-void SetIntroVideoIndex(unsigned long value)
+void SetIntroVideoIndex(w8_ulong value)
 {
     g_intro_video_index = value;
 }

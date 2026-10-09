@@ -1,6 +1,6 @@
 /* Layout evidence for include/wiz8/engine_code/Navigator.h. Included after its declarations. */
 
-static_assert(sizeof(W8NavigatorAttachment) == 0x60, "W8NavigatorAttachment_size_must_be_0x60");
+W8_ABI_ASSERT(sizeof(W8NavigatorAttachment) == 0x60, "W8NavigatorAttachment_size_must_be_0x60");
 static_assert(offsetof(W8NavigatorAttachment, path_cursor) == 0x04,
               "W8NavigatorAttachment_path_cursor");
 static_assert(offsetof(W8NavigatorAttachment, position_cursor) == 0x06,
@@ -19,15 +19,15 @@ static_assert(offsetof(W8NavigatorAttachment, path_length_origin) == 0x34,
               "W8NavigatorAttachment_position_34");
 static_assert(offsetof(W8NavigatorAttachment, recorded_position) == 0x40,
               "W8NavigatorAttachment_position_40");
-static_assert(offsetof(W8NavigatorAttachment, path_positions) == 0x4c,
+W8_ABI_ASSERT(offsetof(W8NavigatorAttachment, path_positions) == 0x4c,
               "W8NavigatorAttachment_position_4c");
-static_assert(offsetof(W8NavigatorAttachment, path_values) == 0x50,
+W8_ABI_ASSERT(offsetof(W8NavigatorAttachment, path_values) == 0x50,
               "W8NavigatorAttachment_path_values");
-static_assert(offsetof(W8NavigatorAttachment, separation) == 0x54,
+W8_ABI_ASSERT(offsetof(W8NavigatorAttachment, separation) == 0x54,
               "W8NavigatorAttachment_separation_54");
-static_assert(offsetof(W8NavigatorAttachment, path_length) == 0x58,
+W8_ABI_ASSERT(offsetof(W8NavigatorAttachment, path_length) == 0x58,
               "W8NavigatorAttachment_path_length");
-static_assert(sizeof(W8NavigatorMovementState) == 0xcc,
+W8_ABI_ASSERT(sizeof(W8NavigatorMovementState) == 0xcc,
               "W8NavigatorMovementState_size_must_be_0xcc");
 static_assert(offsetof(W8NavigatorMovementState, location_id) == 0x04,
               "W8NavigatorMovementState_location_id_004");
@@ -74,27 +74,27 @@ static_assert(offsetof(W8NavigatorMovementState, vertical_phase) == 0x84,
               "W8NavigatorMovementState_vertical_phase");
 static_assert(offsetof(W8NavigatorMovementState, basis) == 0x88,
               "W8NavigatorMovementState_basis");
-static_assert(offsetof(W8NavigatorMovementState, attachment) == 0xac,
+W8_ABI_ASSERT(offsetof(W8NavigatorMovementState, attachment) == 0xac,
               "W8NavigatorMovementState_attachment_0ac");
-static_assert(offsetof(W8NavigatorMovementState, collision_radius) == 0xb0,
+W8_ABI_ASSERT(offsetof(W8NavigatorMovementState, collision_radius) == 0xb0,
               "W8NavigatorMovementState_collision_radius");
-static_assert(offsetof(W8NavigatorMovementState, alternate_radius) == 0xb4,
+W8_ABI_ASSERT(offsetof(W8NavigatorMovementState, alternate_radius) == 0xb4,
               "W8NavigatorMovementState_alternate_radius");
-static_assert(offsetof(W8NavigatorMovementState, height_offset) == 0xb8,
+W8_ABI_ASSERT(offsetof(W8NavigatorMovementState, height_offset) == 0xb8,
               "W8NavigatorMovementState_height_offset");
-static_assert(offsetof(W8NavigatorMovementState, secondary_height_offset) == 0xbc,
+W8_ABI_ASSERT(offsetof(W8NavigatorMovementState, secondary_height_offset) == 0xbc,
               "W8NavigatorMovementState_secondary_height_offset");
-static_assert(offsetof(W8NavigatorMovementState, vertical_offset) == 0xc0,
+W8_ABI_ASSERT(offsetof(W8NavigatorMovementState, vertical_offset) == 0xc0,
               "W8NavigatorMovementState_vertical_offset");
-static_assert(offsetof(W8NavigatorMovementState, scale) == 0xc4,
+W8_ABI_ASSERT(offsetof(W8NavigatorMovementState, scale) == 0xc4,
               "W8NavigatorMovementState_scale_0c4");
-static_assert(offsetof(W8NavigatorMovementState, position_adjusted) == 0xc8,
+W8_ABI_ASSERT(offsetof(W8NavigatorMovementState, position_adjusted) == 0xc8,
               "W8NavigatorMovementState_position_adjusted");
-static_assert(sizeof(W8Navigator) == 0x190, "W8Navigator_size_must_be_0x190");
+W8_ABI_ASSERT(sizeof(W8Navigator) == 0x190, "W8Navigator_size_must_be_0x190");
 static_assert(offsetof(W8Navigator, navigation_mode) == 0x08,
               "W8Navigator_navigation_mode_008");
 static_assert(offsetof(W8Navigator, flags) == 0x0c, "W8Navigator_flags_00c");
 static_assert(offsetof(W8Navigator, collision_margin) == 0x10,
               "W8Navigator_collision_margin");
-static_assert(offsetof(W8Navigator, movement) == 0xc0, "W8Navigator_movement_0c0");
-static_assert(offsetof(W8Navigator, node) == 0x18c, "W8Navigator_node");
+W8_ABI_ASSERT(offsetof(W8Navigator, movement) == 0xc0, "W8Navigator_movement_0c0");
+W8_ABI_ASSERT(offsetof(W8Navigator, node) == 0x18c, "W8Navigator_node");

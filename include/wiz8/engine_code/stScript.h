@@ -36,4 +36,4 @@ public:
     W8Vector<stScriptLabel*> labels; /* 0x28 */
 };
 
-static_assert(sizeof(stScript) == 0x38, "stScript_must_be_0x38");
+W8_ABI_ASSERT(sizeof(stScript) == 0x38, "stScript_must_be_0x38");

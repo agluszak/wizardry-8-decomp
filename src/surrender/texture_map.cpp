@@ -34,7 +34,7 @@ void srTextureMap::getMipmapData(MultiRequest& request)
         request.destinations[request.mipmap_level]->copy(*surface.get());
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-        for (long level = request.mipmap_level + 1; level <= request.last_level; ++level) {
+        for (w8_long level = request.mipmap_level + 1; level <= request.last_level; ++level) {
             request.destinations[level]->copy(*request.destinations[level - 1]);
         }
 #pragma clang diagnostic pop
@@ -66,7 +66,7 @@ void srTextureMap::invalidate()
 }
 
 // FUNCTION: SURRENDER 0x100604B0
-unsigned long srTextureMap::getTextureFrameHandle()
+w8_ulong srTextureMap::getTextureFrameHandle()
 {
     return frame_handle;
 }

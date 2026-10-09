@@ -1329,7 +1329,7 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
     for (index = 0; index < 4; ++index) {
         realm_skills[index] = character->skills[W8_SKILL_SPELLBOOK_WIZARDRY + index].level;
     }
-    qsort(realm_skills, 4, 4, CompareUnsignedDescending);
+    qsort(realm_skills, 4, sizeof(realm_skills[0]), CompareUnsignedDescending);
 
     float weighted = static_cast<float>(realm_skills[0] + (realm_skills[1] >> 1) +
                                         (realm_skills[2] >> 2) + (realm_skills[3] >> 3));

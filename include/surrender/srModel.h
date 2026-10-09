@@ -67,5 +67,5 @@ protected:
     Client* first_client;
 };
 
-static_assert((sizeof(srModel::Client) == 0x10), "srModelClient_must_be_0x10");
-static_assert((sizeof(srModel) == 0x1c), "srModel_must_be_0x1c");
+W8_ABI_ASSERT((sizeof(srModel::Client) == 0x10), "srModelClient_must_be_0x10");
+W8_ABI_ASSERT((sizeof(srModel) == 0x1c), "srModel_must_be_0x1c");

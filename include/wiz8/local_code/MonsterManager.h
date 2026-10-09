@@ -1,6 +1,7 @@
 #ifndef WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 #define WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 
+#include "compat/ptr32.h"
 #include <stddef.h>
 
 #include "wiz8/monster_actions.h"
@@ -134,50 +135,50 @@ struct W8MonsterManagerEntry {
 };
 #pragma pack(pop)
 
-static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
+W8_ABI_ASSERT(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
 static_assert(sizeof(W8PortraitQuoteState) == 0x0c, "W8PortraitQuoteState_size");
 static_assert(offsetof(W8MonsterManagerEntry, mouth_gap) == 0x05,
               "W8MonsterManagerEntry_mouth_gap_offset");
-static_assert(offsetof(W8MonsterManagerEntry, quote) == 0x19, "W8MonsterManagerEntry_quote_offset");
-static_assert(offsetof(W8MonsterManagerEntry, quote.quote_handle) == 0x19,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, quote) == 0x19, "W8MonsterManagerEntry_quote_offset");
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, quote.quote_handle) == 0x19,
               "W8MonsterManagerEntry_quote_handle_offset");
-static_assert(offsetof(W8MonsterManagerEntry, quote.x) == 0x1d,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, quote.x) == 0x1d,
               "W8MonsterManagerEntry_quote_x_offset");
-static_assert(offsetof(W8MonsterManagerEntry, quote.y) == 0x1f,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, quote.y) == 0x1f,
               "W8MonsterManagerEntry_quote_y_offset");
-static_assert(offsetof(W8MonsterManagerEntry, quote.width) == 0x21,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, quote.width) == 0x21,
               "W8MonsterManagerEntry_quote_width_offset");
-static_assert(offsetof(W8MonsterManagerEntry, quote.height) == 0x23,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, quote.height) == 0x23,
               "W8MonsterManagerEntry_quote_height_offset");
-static_assert(offsetof(W8MonsterManagerEntry, active_character_event) == 0x71,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, active_character_event) == 0x71,
               "W8MonsterManagerEntry_active_character_event_offset");
-static_assert(offsetof(W8MonsterManagerEntry, voice_time_remaining_ms) == 0x81,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, voice_time_remaining_ms) == 0x81,
               "W8MonsterManagerEntry_voice_time_remaining_ms_offset");
-static_assert(offsetof(W8MonsterManagerEntry, damage_splat_active) == 0x9c,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, damage_splat_active) == 0x9c,
               "W8MonsterManagerEntry_damage_splat_active_offset");
-static_assert(offsetof(W8MonsterManagerEntry, damage_splat_amount) == 0x9f,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, damage_splat_amount) == 0x9f,
               "W8MonsterManagerEntry_damage_splat_amount_offset");
-static_assert(offsetof(W8MonsterManagerEntry, damage_splat_catalog) == 0xab,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, damage_splat_catalog) == 0xab,
               "W8MonsterManagerEntry_damage_splat_catalog_offset");
-static_assert(offsetof(W8MonsterManagerEntry, cached_hp_bar) == 0xac,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, cached_hp_bar) == 0xac,
               "W8MonsterManagerEntry_cached_hp_bar_offset");
-static_assert(offsetof(W8MonsterManagerEntry, portrait_stats_dirty) == 0xbc,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, portrait_stats_dirty) == 0xbc,
               "W8MonsterManagerEntry_portrait_stats_dirty_offset");
-static_assert(offsetof(W8MonsterManagerEntry, effect_icon_active) == 0xbd,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, effect_icon_active) == 0xbd,
               "W8MonsterManagerEntry_effect_icon_active_offset");
-static_assert(offsetof(W8MonsterManagerEntry, portrait_fx_clock) == 0xca,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, portrait_fx_clock) == 0xca,
               "W8MonsterManagerEntry_portrait_fx_clock_offset");
-static_assert(offsetof(W8MonsterManagerEntry, highlighted_monsters) == 0xd8,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, highlighted_monsters) == 0xd8,
               "W8MonsterManagerEntry_highlighted_monsters_offset");
-static_assert(offsetof(W8MonsterManagerEntry, level_up_ready) == 0xe8,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, level_up_ready) == 0xe8,
               "W8MonsterManagerEntry_level_up_ready_offset");
-static_assert(offsetof(W8MonsterManagerEntry, skill_notice_pending) == 0xea,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, skill_notice_pending) == 0xea,
               "W8MonsterManagerEntry_skill_notice_pending_offset");
-static_assert(offsetof(W8MonsterManagerEntry, item_swap_in_progress) == 0x113,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, item_swap_in_progress) == 0x113,
               "W8MonsterManagerEntry_item_swap_in_progress_offset");
-static_assert(offsetof(W8MonsterManagerEntry, pending_event_type) == 0x114,
+W8_ABI_ASSERT(offsetof(W8MonsterManagerEntry, pending_event_type) == 0x114,
               "W8MonsterManagerEntry_pending_event_type_offset");
-static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
+W8_ABI_ASSERT(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
@@ -340,9 +341,9 @@ struct W8MonsterInfo {
     int location_id;
     int monster_group_id;
     unsigned int monster_species;
-    W8Monster* p3D;
+    W8_PTR32(W8Monster) p3D;
     /* Allocated while the monster is in combat. */
-    W8MonsterCombatState* pCombat;
+    W8_PTR32(W8MonsterCombatState) pCombat;
     bool fActive;
     bool fInCombat;
     /* Copied from the group's ubDisposition when the entry is created. */
@@ -402,7 +403,7 @@ struct W8MonsterInfo {
        other monster. The two release paths own it: one drops every record
        about a departing monster, the other empties and destroys the whole
        list. */
-    W8PList* plsVisMonToMon;
+    W8_PTR32(W8PList) plsVisMonToMon;
     W8CombatSlot Target;
     /* Summon marker - 0 ordinary, 1 friendly summon, 2 hostile summon;
        nonzero raises the summoned spell icon and feeds the slain cleanup. */

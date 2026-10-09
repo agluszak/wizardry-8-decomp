@@ -5,9 +5,9 @@
 
 #include "Types.h"
 #include "FileMan.h"
-#include "VObject.h"
-#include "VSurface.h"
-#include "video2.h"
+#include "vobject.h"
+#include "vsurface.h"
+#include "Video2.h"
 
 #ifdef __cplusplus
 extern "C" {

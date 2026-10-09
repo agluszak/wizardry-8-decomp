@@ -25,7 +25,7 @@
 #include <tchar.h>
 #include <assert.h>
 
-#include "types.h"
+#include "Types.h"
 
 //**************************************************************************
 //

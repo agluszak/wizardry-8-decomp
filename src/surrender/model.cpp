@@ -89,7 +89,7 @@ srModel::~srModel() {}
 void srModel::dump(std::ostream& stream)
 {
     srClass::dump(stream);
-    long flags = stream.flags();
+    w8_long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     if (first_client != 0) {
         stream.width(0x20);

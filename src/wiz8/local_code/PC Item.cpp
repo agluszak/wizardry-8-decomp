@@ -240,7 +240,7 @@ unsigned short g_generic_item_name_notice[W8_GENERIC_ITEM_NAME_COUNT] = {
 static wchar_t g_item_display_name_buffer[42];
 
 static_assert(sizeof(W8ItemVideoObjectEntry) == 8, "W8ItemVideoObjectEntry_must_be_8");
-static_assert(sizeof(W8ItemVideoObjectCache) == 0x0c, "W8ItemVideoObjectCache_must_be_0x0c");
+W8_ABI_ASSERT(sizeof(W8ItemVideoObjectCache) == 0x0c, "W8ItemVideoObjectCache_must_be_0x0c");
 
 // GLOBAL: WIZ8 0x0068EC68
 W8ItemVideoObjectCache g_item_video_objects;
@@ -468,7 +468,7 @@ wchar_t* FormatItemDisplayName(const W8ItemInstance* item, bool include_quantity
     } else {
         name_index = g_item_records[item->iItemNo].unidentified_name_index;
         if (g_generic_item_names[name_index] == 0) {
-            name = static_cast<wchar_t*>(malloc(0x78));
+            name = static_cast<wchar_t*>(malloc(60 * sizeof(*name)));
             g_generic_item_names[name_index] = name;
             swprintf(name, gppStringList[0x1e7],
                      gppStringList[g_generic_item_name_notice[name_index]]);
@@ -1049,7 +1049,7 @@ wchar_t* GetItemDisplayName(const W8ItemInstance* item)
 
     name_index = g_item_records[item->iItemNo].unidentified_name_index;
     if (g_generic_item_names[name_index] == 0) {
-        built = static_cast<wchar_t*>(malloc(0x78));
+        built = static_cast<wchar_t*>(malloc(60 * sizeof(*built)));
         g_generic_item_names[name_index] = built;
         swprintf(built, gppStringList[0x1e7],
                  gppStringList[g_generic_item_name_notice[name_index]]);

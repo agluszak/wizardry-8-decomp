@@ -236,10 +236,10 @@ struct W8NavigatorMovementState {
        candidate array at this slot rather than allocating a one-element
        list (PlanMovement emits LEA [movement+0x10]); this accessor
        keeps the int/unsigned-long reinterpretation inside the type. */
-    unsigned long* TargetLocationAsCandidate()
+    w8_ulong* TargetLocationAsCandidate()
     {
         // reinterpret-ok: candidate array aliases the one target-location slot
-        return reinterpret_cast<unsigned long*>(&target_location_id);
+        return reinterpret_cast<w8_ulong*>(&target_location_id);
     }
 };
 

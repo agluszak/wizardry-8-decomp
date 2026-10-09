@@ -37,5 +37,5 @@ private:
     srJPEGImporter jpeg_importer_;
 };
 
-static_assert((sizeof(srJPEGImporter) == 0x44), "srJPEGImporter_must_be_0x44");
-static_assert((sizeof(srJPEGPlugin) == 0x48), "srJPEGPlugin_must_be_0x48");
+W8_ABI_ASSERT((sizeof(srJPEGImporter) == 0x44), "srJPEGImporter_must_be_0x44");
+W8_ABI_ASSERT((sizeof(srJPEGPlugin) == 0x48), "srJPEGPlugin_must_be_0x48");

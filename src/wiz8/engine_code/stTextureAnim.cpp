@@ -167,7 +167,7 @@ int stTextureAnim::IsFinished() const
 }
 
 // FUNCTION: WIZ8 0x004856F0
-unsigned long stTextureAnim::getTextureFrameHandle()
+w8_ulong stTextureAnim::getTextureFrameHandle()
 {
     UpdateFrame();
     if ((texture_flags_ & (1UL << FLAG_DIRTY_DEFAULTS)) != 0) {

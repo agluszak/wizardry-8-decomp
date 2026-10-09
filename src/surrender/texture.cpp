@@ -12,11 +12,11 @@ static const char* s_flag_names3;
 
 // GLOBAL: SURRENDER 0x100A4A1C
 // srTexture::_frameHandle
-unsigned long srTexture::_frameHandle;
+w8_ulong srTexture::_frameHandle;
 
 /* Same comma-separated bit-name walker srNode::dump uses; each TU keeps its
    own copy. */
-static void dumpFlags(std::ostream& stream, unsigned long flags, const char* names)
+static void dumpFlags(std::ostream& stream, w8_ulong flags, const char* names)
 {
     if (flags == 0) {
         stream << "[NONE]";
@@ -24,7 +24,7 @@ static void dumpFlags(std::ostream& stream, unsigned long flags, const char* nam
     }
     stream << '[';
     bool first = true;
-    for (unsigned long bit = 0; bit < 0x20; ++bit) {
+    for (w8_ulong bit = 0; bit < 0x20; ++bit) {
         if ((flags & (1 << bit)) != 0) {
             if (first) {
                 first = false;
@@ -218,14 +218,14 @@ void srTexture::dump(std::ostream& stream)
 }
 
 // FUNCTION: SURRENDER 0x1005EEF0
-unsigned long srTexture::getNewFrameHandle()
+w8_ulong srTexture::getNewFrameHandle()
 {
     _frameHandle = _frameHandle + 1;
     return _frameHandle;
 }
 
 // FUNCTION: SURRENDER 0x1005EA90
-void srTexture::invalidateFrameHandle(unsigned long handle)
+void srTexture::invalidateFrameHandle(w8_ulong handle)
 {
     for (srGERD* device = srGERD::getFirstOpen(); device != 0; device = device->getNextOpen()) {
         device->invalidateTextureByFrameHandle(handle);
@@ -407,15 +407,15 @@ void srTexture::setCompression(e_compression compression)
 }
 
 // FUNCTION: SURRENDER 0x1005EF00
-unsigned long srTexture::getNewFrameHandles(unsigned long count)
+w8_ulong srTexture::getNewFrameHandles(w8_ulong count)
 {
-    unsigned long first = _frameHandle + 1;
+    w8_ulong first = _frameHandle + 1;
     _frameHandle = _frameHandle + count;
     return first;
 }
 
 // FUNCTION: SURRENDER 0x1005EDF0
-unsigned long srTexture::getTextureFrameHandle()
+w8_ulong srTexture::getTextureFrameHandle()
 {
     return 0;
 }

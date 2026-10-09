@@ -39,11 +39,11 @@ public:
     /* Vertex-stream state handed to srDD::setVertexArrayInfo before each draw. */
     struct VertexArrayInfo {
         srFlags<e_vertexArray> mask;
-        unsigned long count;
+        w8_ulong count;
         srFlags<e_clip> clip;
-        long components[6];
+        w8_long components[6];
         e_type types[6];
-        unsigned long strides[6];
+        w8_ulong strides[6];
         const void* arrays[6];
     };
 };

@@ -3,13 +3,13 @@
 #include "DirectDraw Calls.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "debug.h"
-#include "video2.h"
+#include "DEBUG.H"
+#include "Video2.h"
 #include "himage.h"
 #include "vsurface.h"
 #include "vsurface_private.h"
 #include "video_private.h"
-#include "wcheck.h"
+#include "WCheck.h"
 #include "vobject_blitters.h"
 
 extern void SetClippingRect(SGPRect* clip);
@@ -1940,8 +1940,8 @@ void DumpVSurfaceInfoIntoFile(UINT8* filename, BOOLEAN fAppend)
     pCode = (DUMPFILENAME*)MemAlloc(sizeof(DUMPFILENAME) * guiVSurfaceSize);
     memset(pName, 0, sizeof(DUMPFILENAME) * guiVSurfaceSize);
     memset(pCode, 0, sizeof(DUMPFILENAME) * guiVSurfaceSize);
-    puiCounter = (UINT32*)MemAlloc(4 * guiVSurfaceSize);
-    memset(puiCounter, 0, 4 * guiVSurfaceSize);
+    puiCounter = (UINT32*)MemAlloc(sizeof(*puiCounter) * guiVSurfaceSize);
+    memset(puiCounter, 0, sizeof(*puiCounter) * guiVSurfaceSize);
 
     //Loop through the list and record every unique filename and count them
     uiUniqueID = 0;

@@ -117,7 +117,7 @@ static char g_octree_point_extension[] = ".pts";
 static char g_octree_file_search_wildcard[] = "*";
 
 // GLOBAL: WIZ8 0x00659890
-unsigned long* g_octree_state;
+w8_ulong* g_octree_state;
 // GLOBAL: WIZ8 0x00659894
 stModelInstance* g_octree_trace_node;
 // GLOBAL: WIZ8 0x00659898
@@ -743,7 +743,7 @@ unsigned char W8Octree::CollectVisibleRegions(srVector3T<float>* location, srVec
         span *= g_float_half;
     }
     if (node != 0) {
-        unsigned long region_offset = m_leaves[node].region_offset;
+        w8_ulong region_offset = m_leaves[node].region_offset;
         if (region_offset != 0) {
             ProjectLinkedRegionsForLocation(location, m_region_index_stream + region_offset);
             return 1;
@@ -1049,7 +1049,7 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
     }
 
     keys = static_cast<unsigned int*>(malloc(count * sizeof(unsigned int)));
-    values = static_cast<unsigned short*>(malloc(count * 2));
+    values = static_cast<unsigned short*>(malloc(count * sizeof(*values)));
     if (keys == 0 || values == 0) {
         FileClose(file);
         free(keys);
@@ -1569,7 +1569,7 @@ BOOLEAN W8Octree::SaveRegionLinks(char* path)
         goto cleanup;
     }
     keys = static_cast<unsigned int*>(malloc(capacity * sizeof(unsigned int)));
-    values = static_cast<unsigned short*>(malloc(capacity * 2));
+    values = static_cast<unsigned short*>(malloc(capacity * sizeof(*values)));
     if (keys == 0 || values == 0) {
         result = 0;
         goto cleanup;
@@ -1630,7 +1630,7 @@ unsigned char W8Octree::UpdateWorldTrace()
     srVector3T<int> cell;
     srVector3T<float> minimum;
     srVector3T<float> maximum;
-    unsigned long color;
+    w8_ulong color;
 
     GetCameraPosition(&camera);
     WorldPositionToCell(&camera, &cell);
@@ -1639,7 +1639,7 @@ unsigned char W8Octree::UpdateWorldTrace()
                 cell.z * m_spatial.m_node_extent + m_spatial.m_minimum.z);
     maximum.Set(minimum.x + m_spatial.m_node_extent, minimum.y + m_spatial.m_node_extent,
                 minimum.z + m_spatial.m_node_extent);
-    unsigned long* packed = PackColourToLong(&color, 0.0, 1.0, 0.0, 0.0);
+    w8_ulong* packed = PackColourToLong(&color, 0.0, 1.0, 0.0, 0.0);
     DrawWorldBox(g_world, minimum, maximum, *packed);
     return 1;
 }
@@ -1650,8 +1650,8 @@ const double g_color_byte_scale = 255.0;
 /* Pack normalized alpha/red/green/blue components using the current x87
    rounding mode, then retain each result's low byte. */
 // FUNCTION: WIZ8 0x00433fb0
-unsigned long* __fastcall PackColourToLong(unsigned long* color, double alpha, double red,
-                                           double green, double blue)
+w8_ulong* __fastcall PackColourToLong(w8_ulong* color, double alpha, double red, double green,
+                                      double blue)
 {
     unsigned char* bytes =
         reinterpret_cast<unsigned char*>(color); // reinterpret-ok: packed colour storage
@@ -1946,16 +1946,16 @@ const float g_octree_cell_scale = 100.0f;
    game-data block LoadWorld hands back through its out parameter. */
 
 // GLOBAL: WIZ8 0x00659888
-unsigned long g_octree_bytes_read;
+w8_ulong g_octree_bytes_read;
 
 /* Follow one child bit per axis and level through the compact 9-word branch
    records.  Zero is the missing-child sentinel; live leaves start at one. */
 // FUNCTION: WIZ8 0x00433660
-unsigned long W8Octree::FindLeaf(const srVector3T<int>* point)
+w8_ulong W8Octree::FindLeaf(const srVector3T<int>* point)
 {
     int level = m_spatial.m_depth;
     int mask = 1 << m_spatial.m_depth;
-    unsigned long node = 1;
+    w8_ulong node = 1;
 
     do {
         if (level < 1) {
@@ -2064,7 +2064,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
             if (test_props != 0) {
                 g_octree_state = m_aulGDObjs;
                 m_gd_result_count = 0;
-                unsigned long before = m_gd_result_count;
+                w8_ulong before = m_gd_result_count;
                 CollectObjectsInCell(&cell, W8_OCTREE_KIND_PROP);
                 if (m_gd_result_count != before) {
                     int prop = g_octree_game_data->TestPropSurfaces(m_gd_result_count, m_aulGDObjs,
@@ -2377,7 +2377,7 @@ char W8Octree::ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>*
                                char noise_adjust)
 {
     unsigned int index = 0;
-    unsigned long* ids = 0;
+    w8_ulong* ids = 0;
     unsigned int best_index = 0;
     double best = -1.0;
     float segment_length = 0.0f;
@@ -2897,8 +2897,7 @@ int W8Octree::ProbeCellForTrace(const srVector3T<int>* cell)
     unsigned int leaf_index = LeafIndexForCell(cell);
     m_gd_result_count = 0;
     if (leaf_index != 0 && m_leaves[leaf_index].gd_polygon_offset != 0) {
-        const unsigned long* stream =
-            m_gd_surface_index_stream + m_leaves[leaf_index].gd_polygon_offset;
+        const w8_ulong* stream = m_gd_surface_index_stream + m_leaves[leaf_index].gd_polygon_offset;
         int remaining = *stream;
         while (remaining != 0) {
             ++stream;
@@ -2921,13 +2920,13 @@ int W8Octree::ProbeCellForBlockers(const srVector3T<int>* cell)
     unsigned int leaf_index = LeafIndexForCell(cell);
     m_gd_result_count = 0;
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
-        const unsigned long* stream = m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
+        const w8_ulong* stream = m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
         AppendBlockerStream(stream);
     }
     return m_gd_result_count;
 }
 
-void W8Octree::AppendBlockerStream(const unsigned long* stream)
+void W8Octree::AppendBlockerStream(const w8_ulong* stream)
 {
     for (int remaining = *stream; remaining != 0; --remaining) {
         ++stream;
@@ -2948,7 +2947,7 @@ int W8Octree::ProbeCellForBlockersAppend(const srVector3T<int>* cell)
 {
     unsigned int leaf_index = LeafIndexForCell(cell);
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
-        const unsigned long* stream = m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
+        const w8_ulong* stream = m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
         AppendBlockerStream(stream);
     }
     return m_gd_result_count;
@@ -3041,8 +3040,7 @@ unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
    spatial bounds test. The survivors are compacted, sorted for ordered
    consumption and zero-terminated; the shared buffer is returned. */
 // FUNCTION: WIZ8 0x00438780
-unsigned long* W8Octree::CollectPolygonsNearPoint(srVector3T<float>* center, float radius,
-                                                  float height)
+w8_ulong* W8Octree::CollectPolygonsNearPoint(srVector3T<float>* center, float radius, float height)
 {
     m_gd_result_count = 0;
     m_visited_polygon_bits->ClearAll();
@@ -3268,8 +3266,9 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 g_octree_bytes_read += uiRead;
                 fLoaded = 0;
                 if (fSuccess != 0) {
-                    m_polygon_index_stream = static_cast<unsigned long*>(
-                        malloc(header.m_leaf_polygon_stream_len * 4 + 8));
+                    m_polygon_index_stream = static_cast<w8_ulong*>(
+                        malloc(header.m_leaf_polygon_stream_len * sizeof(*m_polygon_index_stream) +
+                               2 * sizeof(*m_polygon_index_stream)));
                     if (m_polygon_index_stream == 0) {
                         fLoaded = 0;
                         strcpy(acMessage,
@@ -3290,7 +3289,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 
     limit = m_leaf_grid_dimensions.x * m_leaf_grid_dimensions.y * m_leaf_grid_dimensions.z;
     if (fLoaded != 0 && limit < 250000) {
-        m_leaf_lookup = static_cast<unsigned long*>(malloc(limit * sizeof(unsigned long)));
+        m_leaf_lookup = static_cast<w8_ulong*>(malloc(limit * sizeof(w8_ulong)));
         if (m_leaf_lookup == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Leaf grid.");
             goto finish;
@@ -3309,7 +3308,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 
     fSuccess = 0;
     if (fLoaded != 0) {
-        m_aulPolyLookup = static_cast<unsigned long*>(malloc(header.m_polygon_count * 4 + 8));
+        m_aulPolyLookup = static_cast<w8_ulong*>(malloc(
+            header.m_polygon_count * sizeof(*m_aulPolyLookup) + 2 * sizeof(*m_aulPolyLookup)));
         if (m_aulPolyLookup == 0) {
             fSuccess = 0;
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Poly Lookup table.");
@@ -3322,8 +3322,9 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             fSuccess = 0;
             if (fLoaded != 0) {
                 if (header.m_region_list_len != 0) {
-                    m_region_index_stream =
-                        static_cast<unsigned short*>(malloc(header.m_region_list_len * 2 + 4));
+                    m_region_index_stream = static_cast<unsigned short*>(
+                        malloc(header.m_region_list_len * sizeof(*m_region_index_stream) +
+                               2 * sizeof(*m_region_index_stream)));
                     if (m_region_index_stream == 0) {
                         fSuccess = 0;
                         strcpy(acMessage, "ReadOctFile: Couldn't allocate region list.");
@@ -3339,8 +3340,9 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 fSuccess = 0;
                 if (fLoaded != 0) {
                     if (header.m_gd_surface_stream_len != 0) {
-                        m_gd_surface_index_stream = static_cast<unsigned long*>(
-                            malloc(header.m_gd_surface_stream_len * 4 + 8));
+                        m_gd_surface_index_stream = static_cast<w8_ulong*>(malloc(
+                            header.m_gd_surface_stream_len * sizeof(*m_gd_surface_index_stream) +
+                            2 * sizeof(*m_gd_surface_index_stream)));
                         if (m_gd_surface_index_stream == 0) {
                             fSuccess = 0;
                             strcpy(acMessage, "ReadOctFile: Couldn't allocate GD Poly list.");
@@ -3357,7 +3359,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                     if (fLoaded != 0) {
                         if (header.m_trigger_count != 0) {
                             m_trigger_indices = static_cast<unsigned short*>(
-                                malloc(header.m_trigger_count * 2 + 4));
+                                malloc(header.m_trigger_count * sizeof(*m_trigger_indices) +
+                                       2 * sizeof(*m_trigger_indices)));
                             if (m_trigger_indices == 0) {
                                 fSuccess = 0;
                                 strcpy(acMessage, "ReadOctFile: Couldn't allocate Trigger list.");
@@ -3465,7 +3468,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                         }
                                         if (fLoaded != 0 && m_ulNumParticles != 0) {
                                             m_pusMeshParticleLookup = static_cast<unsigned short*>(
-                                                malloc(m_meshCount * 2 + 2));
+                                                malloc(m_meshCount * sizeof(unsigned short) +
+                                                       sizeof(unsigned short)));
                                             if (m_pusMeshParticleLookup == 0) {
                                                 srAssertFail(
                                                     "m_pusMeshParticleLookup", OCTREE_CPP, 0x191,
@@ -3480,7 +3484,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                             }
                                             g_octree_bytes_read += uiRead;
                                             m_pusMeshParticles = static_cast<unsigned short*>(
-                                                malloc(m_usMeshParticlesLen * 2));
+                                                malloc(m_usMeshParticlesLen *
+                                                       sizeof(*m_pusMeshParticles)));
                                             if (m_pusMeshParticles == 0) {
                                                 srAssertFail(
                                                     "m_pusMeshParticles", OCTREE_CPP, 0x198,
@@ -3496,7 +3501,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                         }
                                         if (fLoaded != 0 && m_ulNumProps != 0) {
                                             m_pusMeshPropLookup = static_cast<unsigned short*>(
-                                                malloc(m_meshCount * 2 + 2));
+                                                malloc(m_meshCount * sizeof(unsigned short) +
+                                                       sizeof(unsigned short)));
                                             if (m_pusMeshPropLookup == 0) {
                                                 srAssertFail(
                                                     "m_pusMeshPropLookup", OCTREE_CPP, 0x1a1,
@@ -3511,7 +3517,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                             }
                                             g_octree_bytes_read += uiRead;
                                             m_pusMeshProps = static_cast<unsigned short*>(
-                                                malloc(m_usMeshPropsLen * 2));
+                                                malloc(m_usMeshPropsLen * sizeof(*m_pusMeshProps)));
                                             if (m_pusMeshProps == 0) {
                                                 srAssertFail(
                                                     "m_pusMeshProps", OCTREE_CPP, 0x1a8,
@@ -3879,13 +3885,14 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
             m_linked_particles = new BitArray(m_ulNumParticles);
             m_visible_particles = new BitArray(m_ulNumParticles);
             m_particles_to_disable = new BitArray(m_ulNumParticles);
-            m_papParticles = static_cast<stParticle**>(malloc(m_ulNumParticles * 4 + 8));
+            m_papParticles =
+                static_cast<stParticle**>(malloc((m_ulNumParticles + 2) * sizeof(*m_papParticles)));
         }
         if (m_ulNumProps != 0) {
             m_linked_props = new BitArray(m_ulNumProps);
             m_visible_props = new BitArray(m_ulNumProps);
             m_props_to_disable = new BitArray(m_ulNumProps);
-            m_papProps = static_cast<W8Prop**>(malloc(m_ulNumProps * 4 + 8));
+            m_papProps = static_cast<W8Prop**>(malloc((m_ulNumProps + 2) * sizeof(*m_papProps)));
         }
 
         m_visited_polygon_bits = new BitArray(header->m_polygon_count);
@@ -3912,7 +3919,7 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
         m_reset_visibility = true;
     }
 
-    m_aulGDObjs = static_cast<unsigned long*>(malloc(40000));
+    m_aulGDObjs = static_cast<w8_ulong*>(malloc(10000 * sizeof(*m_aulGDObjs)));
     if (m_aulGDObjs == 0) {
         srAssertFail("m_aulGDObjs", "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp", 0x372,
                      "InitOctree: Couldn't allocate m_aulGDObjs.");
@@ -4165,7 +4172,7 @@ void W8Octree::UnregisterLocationObject(unsigned int location_id, W8OctreeObject
    `delta` segment grown by `extent`; the extent takes the segment length as a
    floor. `*results` carries the destination buffer in and out. */
 // FUNCTION: WIZ8 0x0042ed60
-int W8Octree::CollectObjectsAlongSegment(unsigned long** results, const srVector3T<float>* origin,
+int W8Octree::CollectObjectsAlongSegment(w8_ulong** results, const srVector3T<float>* origin,
                                          const srVector3T<float>* delta, float extent,
                                          unsigned short kind)
 {
@@ -4230,7 +4237,7 @@ int W8Octree::CollectObjectsAlongSegment(unsigned long** results, const srVector
    uses it to list the location ids near a mover. */
 
 // FUNCTION: WIZ8 0x0042ef00
-int W8Octree::QueryLocationsInBox(unsigned long** results, const srVector3T<float>* lower,
+int W8Octree::QueryLocationsInBox(w8_ulong** results, const srVector3T<float>* lower,
                                   const srVector3T<float>* upper, unsigned short exclusion)
 {
     int excluded = -1;
@@ -4247,7 +4254,7 @@ int W8Octree::QueryLocationsInBox(unsigned long** results, const srVector3T<floa
 unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
                                         const srVector3T<float>* upper)
 {
-    unsigned long* objects = 0;
+    w8_ulong* objects = 0;
     unsigned int count =
         static_cast<unsigned int>(QueryObjects(&objects, lower, upper, W8_OCTREE_KIND_SURFACE, -1));
     unsigned int index;
@@ -4310,7 +4317,7 @@ unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
    coordinates and the inclusive cell box is clipped against the three grid
    dimensions. Returns the collected entry count. */
 // FUNCTION: WIZ8 0x0042f280
-int W8Octree::QueryObjects(unsigned long** objects, const srVector3T<float>* lower,
+int W8Octree::QueryObjects(w8_ulong** objects, const srVector3T<float>* lower,
                            const srVector3T<float>* upper, unsigned short kind, int excluded)
 {
     srVector3T<int> start;
@@ -4373,7 +4380,7 @@ unsigned int W8Octree::CollectObjectsInCell(const srVector3T<int>* cell, unsigne
                                        m_spatial.m_leaf_grid_stride_x * cell->x + cell->z];
         }
         if (leaf_index != 0 && m_leaves[leaf_index].gd_polygon_offset != 0) {
-            const unsigned long* stream =
+            const w8_ulong* stream =
                 m_gd_surface_index_stream + m_leaves[leaf_index].gd_polygon_offset;
             found = *stream;
             for (unsigned int index = 0; index < found; ++index) {
@@ -4831,14 +4838,14 @@ bool SphereNearBounds(const srVector3T<float>* point, float radius, const W8Boun
 }
 
 unsigned int W8Octree::QueryNearbyLocations(const srVector3T<float>* position, float spacing,
-                                            unsigned long** candidates)
+                                            w8_ulong** candidates)
 {
     float expand = spacing * g_monster_proximity_radius_scale;
     srVector3T<float> low;
     low.Set(position->x - expand, position->y - expand, position->z - expand);
     srVector3T<float> high;
     high.Set(expand + position->x, expand + position->y, expand + position->z);
-    *candidates = static_cast<unsigned long*>(operator new(0x400));
+    *candidates = static_cast<w8_ulong*>(operator new(0x100 * sizeof(**candidates)));
     return static_cast<unsigned int>(
         QueryObjects(candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1));
 }
@@ -4865,7 +4872,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
 {
     float source_y = position->y;
     unsigned int found = 0;
-    unsigned long* candidates = 0;
+    w8_ulong* candidates = 0;
     unsigned int columns = 3;
     if (count > 10) {
         columns = 5;
@@ -4986,7 +4993,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     int found_i = 9999;
     int found_j = 9999;
     float source_y = source->y;
-    unsigned long* candidates = 0;
+    w8_ulong* candidates = 0;
     float camera_radius = g_startup_world->movement.alternate_radius;
     bool placed = false;
     float separation = (CalcRangeDistance(W8_RANGE_TOUCH) + radius) * g_float_half + camera_radius;

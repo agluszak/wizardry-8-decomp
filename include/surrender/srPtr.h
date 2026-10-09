@@ -76,4 +76,4 @@ private:
     T* pointer_;
 };
 
-static_assert(sizeof(srPtr<void>) == 4, "srPtr_must_be_one_pointer");
+W8_ABI_ASSERT(sizeof(srPtr<void>) == 4, "srPtr_must_be_one_pointer");

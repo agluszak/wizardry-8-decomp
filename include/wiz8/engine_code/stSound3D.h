@@ -67,4 +67,4 @@ public:
     }
 };
 
-static_assert(sizeof(stSound3D) == 0x150, "stSound3D_must_be_0x150");
+W8_ABI_ASSERT(sizeof(stSound3D) == 0x150, "stSound3D_must_be_0x150");

@@ -46,4 +46,4 @@ private:
     srMatrix4T<float> inverse_world;
 };
 
-static_assert((sizeof(srBounder) == 0x1a8), "srBounder_must_be_0x1a8");
+W8_ABI_ASSERT((sizeof(srBounder) == 0x1a8), "srBounder_must_be_0x1a8");

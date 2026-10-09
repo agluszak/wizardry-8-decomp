@@ -20,11 +20,11 @@ public:
 #endif
 
     struct Statistics {
-        double elapsed;              /* seconds since the last reset */
-        unsigned long render_calls;  /* scene renders accumulated */
-        unsigned long node_calls;    /* node visits accumulated per render */
-        unsigned long process_calls; /* per-node process calls accumulated */
-        unsigned long value_14;
+        double elapsed;         /* seconds since the last reset */
+        w8_ulong render_calls;  /* scene renders accumulated */
+        w8_ulong node_calls;    /* node visits accumulated per render */
+        w8_ulong process_calls; /* per-node process calls accumulated */
+        w8_ulong value_14;
     };
 
     srScene(srNode* parent = 0);
@@ -102,5 +102,5 @@ protected:
     srVector3T<float> fog_color;     /* 0x180 */
 };
 
-static_assert((sizeof(srScene) == 0x190), "srScene_must_be_0x190");
-static_assert((sizeof(srScene::Statistics) == 0x18), "srScene_Statistics_must_be_0x18");
+W8_ABI_ASSERT((sizeof(srScene) == 0x190), "srScene_must_be_0x190");
+W8_ABI_ASSERT((sizeof(srScene::Statistics) == 0x18), "srScene_Statistics_must_be_0x18");

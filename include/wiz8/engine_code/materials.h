@@ -48,7 +48,7 @@ public:
     int m_surface_flags; /* 0x78 */
 };
 
-static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
+W8_ABI_ASSERT((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
 
 #pragma pack(push, 1)
 
@@ -70,7 +70,7 @@ struct W8MaterialRecord {
     W8TextureAnimationMode animation_mode; /* 0x10d */
     int animation_frame;                   /* 0x10e */
     float animation_rate;                  /* 0x112 */
-    unsigned long surface_flags;           /* 0x116 */
+    w8_ulong surface_flags;                /* 0x116 */
     float texture_modes[4];                /* 0x11a */
 };
 

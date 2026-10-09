@@ -32,4 +32,4 @@ public:
     W8Vector<W8TextControl*> m_lsButtons;
     W8ControlSelectionListener* m_selectionListener;
 };
-static_assert(sizeof(W8ControlSelection) == 0x24, "W8ControlSelection_size");
+W8_ABI_ASSERT(sizeof(W8ControlSelection) == 0x24, "W8ControlSelection_size");

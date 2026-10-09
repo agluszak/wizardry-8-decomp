@@ -8,14 +8,14 @@
 #include <windows.h>
 
 // FUNCTION: SURRENDER 0x100457B0
-long srSystem::scanFiles(srStringTable& files, const char* path)
+w8_long srSystem::scanFiles(srStringTable& files, const char* path)
 {
     if (path == 0 || *path == '\0') {
         return 0;
     }
 
-    const long last = strlen(path) - 1;
-    long slash;
+    const w8_long last = strlen(path) - 1;
+    w8_long slash;
     for (slash = last; slash >= 0; --slash) {
         if (path[slash] == '/') {
             break;
@@ -38,19 +38,20 @@ long srSystem::scanFiles(srStringTable& files, const char* path)
 }
 
 // FUNCTION: SURRENDER 0x10045B70
-char* srSystem::getCwd(char* path, long size)
+char* srSystem::getCwd(char* path, w8_long size)
 {
     return _getcwd(path, size);
 }
 
 // FUNCTION: SURRENDER 0x10045B90
-long srSystem::chDir(const char* path)
+w8_long srSystem::chDir(const char* path)
 {
     return _chdir(path);
 }
 
 // FUNCTION: SURRENDER 0x10045BA0
-long srSystem::scanLibraries(srStringTable& libraries, const char* directory, const char* extension)
+w8_long srSystem::scanLibraries(srStringTable& libraries, const char* directory,
+                                const char* extension)
 {
     char pattern[MAX_PATH + 4];
     strcpy(pattern, extension);
@@ -58,9 +59,9 @@ long srSystem::scanLibraries(srStringTable& libraries, const char* directory, co
 
     srStringTable files;
     scanFiles(files, directory, pattern);
-    for (long index = 0; index < files.getCount(); ++index) {
+    for (w8_long index = 0; index < files.getCount(); ++index) {
         char* path = files.getString(index);
-        for (long position = strlen(path) - 1; position > 1; --position) {
+        for (w8_long position = strlen(path) - 1; position > 1; --position) {
             if (path[position] == '.') {
                 path[position] = '\0';
                 break;
@@ -72,7 +73,7 @@ long srSystem::scanLibraries(srStringTable& libraries, const char* directory, co
 }
 
 // FUNCTION: SURRENDER 0x10045CD0
-long srSystem::scanFiles(srStringTable& files, const char* directory, const char* pattern)
+w8_long srSystem::scanFiles(srStringTable& files, const char* directory, const char* pattern)
 {
     if (pattern == 0) {
         return 0;
@@ -86,7 +87,7 @@ long srSystem::scanFiles(srStringTable& files, const char* directory, const char
         }
     }
 
-    long count = 0;
+    w8_long count = 0;
     WIN32_FIND_DATAA file;
     HANDLE search = FindFirstFileA(pattern, &file);
     if (search != INVALID_HANDLE_VALUE) {
@@ -116,7 +117,7 @@ void srSystem::makePath(char* path, const char* drive, const char* directory, co
 }
 
 // FUNCTION: SURRENDER 0x10045E10
-char* srSystem::fullPath(char* absolute_path, const char* path, unsigned long size)
+char* srSystem::fullPath(char* absolute_path, const char* path, w8_ulong size)
 {
     if (absolute_path == 0) {
         absolute_path = new char[MAX_PATH];

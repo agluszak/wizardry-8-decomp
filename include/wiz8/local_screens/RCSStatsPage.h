@@ -30,8 +30,8 @@ public:
     W8TextControl* m_buttons[3];
 };
 
-static_assert(sizeof(W8CampStatsRange) == 8, "W8CampStatsRange_size");
-static_assert(sizeof(W8CampStatsControls) == 0x5c, "W8CampStatsControls_size");
+W8_ABI_ASSERT(sizeof(W8CampStatsRange) == 8, "W8CampStatsRange_size");
+W8_ABI_ASSERT(sizeof(W8CampStatsControls) == 0x5c, "W8CampStatsControls_size");
 W8_ASSERT_BASE_END(W8CampStatsControls, W8TextControl::Listener, m_buttons, 0x4c);
 
 /* Camp page-1 renderer - attributes, traits and the effect list trigger. */

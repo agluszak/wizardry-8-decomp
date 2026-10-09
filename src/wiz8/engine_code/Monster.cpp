@@ -81,7 +81,7 @@
 #include "surrender/srPixelConvert.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srShader.h"
-#include "Random.h"
+#include "random.h"
 #include "Font.h"
 #include "FileMan.h"
 #include "soundman.h"

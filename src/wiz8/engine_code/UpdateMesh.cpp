@@ -21,32 +21,36 @@ const float g_mesh_view_degrees_to_radians = 0.01745329424738884f;
    into W8Quad, filled by CollectViewQuadCells and consumed by
    UpdateWorldMeshFromQuads. */
 // GLOBAL: WIZ8 0x0065BEB8
-static long g_visible_quad_rows[20000];
+static w8_long g_visible_quad_rows[20000];
 // GLOBAL: WIZ8 0x0066F738
-static long g_visible_quad_columns[20000];
+static w8_long g_visible_quad_columns[20000];
 // GLOBAL: WIZ8 0x00682FB8
-static long g_visible_quad_count;
+static w8_long g_visible_quad_count;
 
-static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long y2, long x3,
-                                long y3, long* x_list, long* y_list, long* count);
-static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long y2, long x3,
-                                long y3, long* x_list, long* y_list, long* count,
-                                int skip_boundary);
-static void RasterizeQuadTriangle(W8World* world, long x1, long y1, long x2, long y2, long x3,
-                                  long y3, long* x_list, long* y_list, long* count);
+static int ScanQuadTriangleBase(W8World* world, w8_long x1, w8_long y1, w8_long x2, w8_long y2,
+                                w8_long x3, w8_long y3, w8_long* x_list, w8_long* y_list,
+                                w8_long* count);
+static void ScanQuadTriangleTop(W8World* world, w8_long x1, w8_long y1, w8_long x2, w8_long y2,
+                                w8_long x3, w8_long y3, w8_long* x_list, w8_long* y_list,
+                                w8_long* count, int skip_boundary);
+static void RasterizeQuadTriangle(W8World* world, w8_long x1, w8_long y1, w8_long x2, w8_long y2,
+                                  w8_long x3, w8_long y3, w8_long* x_list, w8_long* y_list,
+                                  w8_long* count);
 
 /* Builds the camera view triangle in quad-cell space: the camera's own cell is
    the apex and the two far points sit view-distance ahead along the camera
    forward vector, optionally yawed by +/- (g_mesh_view_half_angle_degrees * g_mesh_view_degrees_to_radians).
    The two far vertices bound the visible wedge around the camera heading. */
 // FUNCTION: WIZ8 0x004BA530
-void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* count)
+void CollectViewQuadCells(W8World* world, w8_long* x_list, w8_long* y_list, w8_long* count)
 {
     W8Quad* quad = world->quads;
     float cell_size = quad->cell_size;
 
-    long cam_x = static_cast<long>((world->camera->getLocationX() - quad->origin.x) / cell_size);
-    long cam_y = static_cast<long>((world->camera->getLocationZ() - quad->origin.y) / cell_size);
+    w8_long cam_x =
+        static_cast<w8_long>((world->camera->getLocationX() - quad->origin.x) / cell_size);
+    w8_long cam_y =
+        static_cast<w8_long>((world->camera->getLocationZ() - quad->origin.y) / cell_size);
 
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);
@@ -58,8 +62,8 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
         work.RotateAboutY(sin(angle), cos(angle));
     }
     direction = work.Transform(direction);
-    long edge1_x = cam_x + static_cast<long>(direction.x / cell_size);
-    long edge1_y = cam_y + static_cast<long>(direction.z / cell_size);
+    w8_long edge1_x = cam_x + static_cast<w8_long>(direction.x / cell_size);
+    w8_long edge1_y = cam_y + static_cast<w8_long>(direction.z / cell_size);
 
     direction.Set(0.0f, 0.0f, world->render_range);
     work = rotation;
@@ -68,16 +72,16 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
         work.RotateAboutY(sin(angle), cos(angle));
     }
     direction = work.Transform(direction);
-    long edge2_x = cam_x + static_cast<long>(direction.x / cell_size);
-    long edge2_y = cam_y + static_cast<long>(direction.z / cell_size);
+    w8_long edge2_x = cam_x + static_cast<w8_long>(direction.x / cell_size);
+    w8_long edge2_y = cam_y + static_cast<w8_long>(direction.z / cell_size);
 
     *count = 0;
     RasterizeQuadTriangle(world, cam_x, cam_y, edge1_x, edge1_y, edge2_x, edge2_y, x_list, y_list,
                           count);
 }
 
-static bool AppendQuadRow(long left, long right, long max_x, long row, long* x_list, long* y_list,
-                          long* count)
+static bool AppendQuadRow(w8_long left, w8_long right, w8_long max_x, w8_long row, w8_long* x_list,
+                          w8_long* y_list, w8_long* count)
 {
     if (left > 0) {
         --left;
@@ -85,7 +89,7 @@ static bool AppendQuadRow(long left, long right, long max_x, long row, long* x_l
     if (right < max_x) {
         ++right;
     }
-    for (long x = left; x <= right; ++x) {
+    for (w8_long x = left; x <= right; ++x) {
         x_list[*count] = x;
         y_list[*count] = row;
         ++*count;
@@ -98,15 +102,16 @@ static bool AppendQuadRow(long left, long right, long max_x, long row, long* x_l
    padded one cell outward on both sides. skip_boundary suppresses the first
    row when the lower half already emitted it. */
 // FUNCTION: WIZ8 0x004BA800
-static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long y2, long x3,
-                                long y3, long* x_list, long* y_list, long* count, int skip_boundary)
+static void ScanQuadTriangleTop(W8World* world, w8_long x1, w8_long y1, w8_long x2, w8_long y2,
+                                w8_long x3, w8_long y3, w8_long* x_list, w8_long* y_list,
+                                w8_long* count, int skip_boundary)
 {
     if (x2 < x1) {
-        long temp = x1;
+        w8_long temp = x1;
         x1 = x2;
         x2 = temp;
     }
-    long row = y1;
+    w8_long row = y1;
     float left_step = (x3 - x1) / static_cast<float>(y3 - y1);
     float right_step = (x3 - x2) / static_cast<float>(y3 - y1);
     float left_edge = x1;
@@ -116,16 +121,16 @@ static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long 
         right_edge -= row * right_step;
         row = y1 = 0;
     }
-    long max_row = static_cast<long>(world->quads->column_count) - 1;
+    w8_long max_row = static_cast<w8_long>(world->quads->column_count) - 1;
     if (y3 > max_row) {
         y3 = max_row;
     }
-    long max_x = static_cast<long>(world->quads->row_count) - 1;
+    w8_long max_x = static_cast<w8_long>(world->quads->row_count) - 1;
 
     if (x1 < 0 || x1 > max_x || x2 < 0 || x2 > max_x || x3 < 0 || x3 > max_x) {
         for (; row <= y3; ++row) {
-            long left = static_cast<long>(left_edge);
-            long right = static_cast<long>(right_edge);
+            w8_long left = static_cast<w8_long>(left_edge);
+            w8_long right = static_cast<w8_long>(right_edge);
             left_edge += left_step;
             right_edge += right_step;
             if (left < 0) {
@@ -152,8 +157,8 @@ static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long 
     }
     for (; row <= y3; ++row) {
         if (!skip_boundary || row != y1) {
-            long right = static_cast<long>(right_edge);
-            long left = static_cast<long>(left_edge);
+            w8_long right = static_cast<w8_long>(right_edge);
+            w8_long left = static_cast<w8_long>(left_edge);
             AppendQuadRow(left, right, max_x, row, x_list, y_list, count);
         }
         left_edge += left_step;
@@ -165,17 +170,18 @@ static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long 
    to the flat base between (x2,y2) and (x3,y3). Each emitted row is padded one
    cell outward on both sides. Returns whether any row survived clipping. */
 // FUNCTION: WIZ8 0x004BAA00
-static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long y2, long x3,
-                                long y3, long* x_list, long* y_list, long* count)
+static int ScanQuadTriangleBase(W8World* world, w8_long x1, w8_long y1, w8_long x2, w8_long y2,
+                                w8_long x3, w8_long y3, w8_long* x_list, w8_long* y_list,
+                                w8_long* count)
 {
     int emitted = 0;
-    long x_left = x2;
-    long x_right = x3;
+    w8_long x_left = x2;
+    w8_long x_right = x3;
     if (x_right < x_left) {
         x_left = x3;
         x_right = x2;
     }
-    long row = y1;
+    w8_long row = y1;
     float left_step = (x_left - x1) / static_cast<float>(y3 - y1);
     float right_step = (x_right - x1) / static_cast<float>(y3 - y1);
     float left_edge = x1;
@@ -185,16 +191,16 @@ static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long 
         right_edge -= row * right_step;
         row = 0;
     }
-    long max_row = static_cast<long>(world->quads->column_count) - 1;
+    w8_long max_row = static_cast<w8_long>(world->quads->column_count) - 1;
     if (y3 > max_row) {
         y3 = max_row;
     }
-    long max_x = static_cast<long>(world->quads->row_count) - 1;
+    w8_long max_x = static_cast<w8_long>(world->quads->row_count) - 1;
 
     if (x1 < 0 || x1 > max_x || x_left < 0 || x_left > max_x || x_right < 0 || x_right > max_x) {
         for (; row <= y3; ++row) {
-            long left = static_cast<long>(left_edge);
-            long right = static_cast<long>(right_edge);
+            w8_long left = static_cast<w8_long>(left_edge);
+            w8_long right = static_cast<w8_long>(right_edge);
             left_edge += left_step;
             right_edge += right_step;
             if (left < 0) {
@@ -216,8 +222,8 @@ static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long 
         return emitted;
     }
     for (; row <= y3; ++row) {
-        long right = static_cast<long>(right_edge);
-        long left = static_cast<long>(left_edge);
+        w8_long right = static_cast<w8_long>(right_edge);
+        w8_long left = static_cast<w8_long>(left_edge);
         AppendQuadRow(left, right, max_x, row, x_list, y_list, count);
         left_edge += left_step;
         right_edge += right_step;
@@ -230,13 +236,14 @@ static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long 
    vertices by y, then scans a flat-top half, a flat-bottom half, or both halves
    split at the middle vertex's row. */
 // FUNCTION: WIZ8 0x004BABE0
-static void RasterizeQuadTriangle(W8World* world, long x1, long y1, long x2, long y2, long x3,
-                                  long y3, long* x_list, long* y_list, long* count)
+static void RasterizeQuadTriangle(W8World* world, w8_long x1, w8_long y1, w8_long x2, w8_long y2,
+                                  w8_long x3, w8_long y3, w8_long* x_list, w8_long* y_list,
+                                  w8_long* count)
 {
     if ((x1 == x2 && x2 == x3) || (y1 == y2 && y2 == y3)) {
         return;
     }
-    long temp;
+    w8_long temp;
     if (y2 < y1) {
         temp = x1;
         x1 = x2;
@@ -269,7 +276,7 @@ static void RasterizeQuadTriangle(W8World* world, long x1, long y1, long x2, lon
         ScanQuadTriangleBase(world, x1, y1, x2, y2, x3, y3, x_list, y_list, count);
         return;
     }
-    long split = static_cast<long>(static_cast<float>(x3 - x1) * (y2 - y1) / (y3 - y1));
+    w8_long split = static_cast<w8_long>(static_cast<float>(x3 - x1) * (y2 - y1) / (y3 - y1));
     int emitted =
         ScanQuadTriangleBase(world, x1, y1, x1 + split, y2, x2, y2, x_list, y_list, count);
     ScanQuadTriangleTop(world, x2, y2, x1 + split, y2, x3, y3, x_list, y_list, count, emitted != 0);
@@ -278,7 +285,7 @@ static void RasterizeQuadTriangle(W8World* world, long x1, long y1, long x2, lon
 // FUNCTION: WIZ8 0x004BAD40
 void UpdateWorldMeshFromQuads(W8World* world)
 {
-    long polygon_count = 0;
+    w8_long polygon_count = 0;
     if (world == 0) {
         srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\UpdateMesh.cpp", 0x21f, 0);
     }
@@ -290,7 +297,7 @@ void UpdateWorldMeshFromQuads(W8World* world)
     W8Quad* quad = world->quads;
     g_visible_quad_count = 0;
     CollectViewQuadCells(world, g_visible_quad_rows, g_visible_quad_columns, &g_visible_quad_count);
-    long index;
+    w8_long index;
     for (index = 0; index < g_visible_quad_count; ++index) {
         W8QuadCell* cell =
             &quad->rows[g_visible_quad_rows[index]].cells[g_visible_quad_columns[index]];
@@ -299,32 +306,33 @@ void UpdateWorldMeshFromQuads(W8World* world)
         }
     }
     mesh->setActivePolygonCount(polygon_count);
-    unsigned long* table = mesh->getActivePolygonTable(1);
-    long offset = 0;
+    w8_ulong* table = mesh->getActivePolygonTable(1);
+    w8_long offset = 0;
     for (index = 0; index < g_visible_quad_count; ++index) {
         W8QuadCell* cell =
             &quad->rows[g_visible_quad_rows[index]].cells[g_visible_quad_columns[index]];
         if (cell != 0 && (cell->polygon_indices != 0 || cell->objects != 0)) {
-            long j;
+            w8_long j;
             if (cell->objects != 0 && cell->dirty_stamp < quad->dirty) {
                 cell->dirty_stamp = quad->dirty;
-                long object_count = static_cast<long>(PLLength(cell->objects));
+                w8_long object_count = static_cast<w8_long>(PLLength(cell->objects));
                 for (j = 0; j < object_count; ++j) {
                     char* item = static_cast<char*>(PLGet(cell->objects, j));
                     if (item[0] == 1) {
-                        long entry =
+                        w8_long entry =
                             *reinterpret_cast< // reinterpret-ok: quad-cell object producer/lifetime is unresolved; retail reads entry at +0x14
-                                long*>(item + 0x14);
+                                w8_long*>(item + 0x14);
                         void** nodes =
                             *reinterpret_cast< // reinterpret-ok: embedded pair-table at +0x1c resolved by retail offset
                                 void***>(item + entry * 8 + 0x1c);
-                        long slot = *reinterpret_cast< // reinterpret-ok: slot index field at +0x30
-                            long*>(item + 0x30);
+                        w8_long slot =
+                            *reinterpret_cast< // reinterpret-ok: slot index field at +0x30
+                                w8_long*>(item + 0x30);
                         PLAdoptAppend(&world->nodes_to_disable, nodes[slot]);
                     }
                 }
             }
-            long index_count = static_cast<long>(ILLength(cell->polygon_indices));
+            w8_long index_count = static_cast<w8_long>(ILLength(cell->polygon_indices));
             for (j = 0; j < index_count; ++j) {
                 table[offset] = IListGetAt(cell->polygon_indices, j);
                 ++offset;
@@ -345,9 +353,9 @@ void UpdateWorldMesh(W8World* world)
 {
     srModelInstance* source;
     srMeshModel* mesh;
-    unsigned long* table;
-    long polygon_count;
-    unsigned long index;
+    w8_ulong* table;
+    w8_long polygon_count;
+    w8_ulong index;
 
     if (world == 0) {
         srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\UpdateMesh.cpp", 0x2a2, 0);
@@ -358,7 +366,7 @@ void UpdateWorldMesh(W8World* world)
         polygon_count = mesh->polygon_count;
         mesh->setActivePolygonCount(polygon_count);
         table = mesh->getActivePolygonTable(1);
-        for (index = 0; static_cast<long>(index) < polygon_count; ++index) {
+        for (index = 0; static_cast<w8_long>(index) < polygon_count; ++index) {
             table[index] = index;
         }
         mesh->setDirty(srMeshModel::DIRTY_TRI_MESH);

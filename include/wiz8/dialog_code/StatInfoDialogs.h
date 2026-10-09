@@ -68,12 +68,12 @@ private:
     unsigned char pad_14f;
 };
 
-static_assert(sizeof(W8StatInfoDialogBase) == 0x148, "W8StatInfoDialogBase005DF880_must_be_0x148");
-static_assert(sizeof(W8AttributeInfoDialog) == 0x14c,
+W8_ABI_ASSERT(sizeof(W8StatInfoDialogBase) == 0x148, "W8StatInfoDialogBase005DF880_must_be_0x148");
+W8_ABI_ASSERT(sizeof(W8AttributeInfoDialog) == 0x14c,
               "W8AttributeInfoDialog005DFC70_must_be_0x14c");
-static_assert(sizeof(W8SecondaryAttributeInfoDialog) == 0x14c,
+W8_ABI_ASSERT(sizeof(W8SecondaryAttributeInfoDialog) == 0x14c,
               "W8SecondaryAttributeInfoDialog005E0180_must_be_0x14c");
-static_assert(sizeof(W8SkillInfoDialog) == 0x150, "W8SkillInfoDialog005EFD08_must_be_0x150");
+W8_ABI_ASSERT(sizeof(W8SkillInfoDialog) == 0x150, "W8SkillInfoDialog005EFD08_must_be_0x150");
 
 /* GppStringList indices naming each attribute/resistance row. */
 extern unsigned short g_attr_table1[18];

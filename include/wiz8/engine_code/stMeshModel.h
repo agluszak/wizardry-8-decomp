@@ -29,7 +29,7 @@ public:
         return "stMeshModel";
     }
 
-    stMeshModel(long polygons, long vertices);
+    stMeshModel(w8_long polygons, w8_long vertices);
     virtual ~stMeshModel() override;       /* 0x00470ED0 */
     virtual srClass* vInstance() override; /* 0x004748c0 */
     virtual int getBoundingSphere(srVector3T<float>& center,
@@ -58,7 +58,7 @@ public:
     srPtr<srTextureIFace>* GetTextureTable(int table); /* 0x00473720 */
     /* Active-polygon index list for a texture table; writes the count through
        `count_out` and returns 0 when the table selects no polygons. */
-    unsigned long* GetActivePolygons(long* count_out, int table, bool flag);
+    w8_ulong* GetActivePolygons(w8_long* count_out, int table, bool flag);
     void RemoveSkinTable(int index);
     void RemoveSkinTablesForCycle(const char* cycle_name);
     srVector3T<float>* GetVertexLocations(unsigned int frame, bool load, float interpolation);
@@ -114,21 +114,21 @@ public:
     W8GrowableVector<char*> skin_table_names;                     /* 0x410 */
     W8GrowableVector<short> mapped_values;                        /* 0x420 */
     W8GrowableVector<short> mapped_keys;                          /* 0x430 */
-    unsigned long last_decompress_release_tick;
+    w8_ulong last_decompress_release_tick;
     float vertex_compression_scale;
     /* m_pLerpBuffer: interpolation scratch for GetVertexLocations; an srHeap
        allocation that is not counted in g_decompressed_mesh_bytes. */
     srVector3T<float>* lerp_buffer;
-    unsigned long* automap_polygons;    /* 0x44c */
+    w8_ulong* automap_polygons;         /* 0x44c */
     unsigned int automap_polygon_count; /* 0x450 */
     bool automap_filter_active;         /* 0x454 */
     unsigned char padding_455[3];
-    W8GrowableVector<unsigned long*>* skin_blanking_apt;
+    W8GrowableVector<w8_ulong*>* skin_blanking_apt;
     W8GrowableVector<int>* skin_blanking_apt_number;
     W8GrowableVector<unsigned char>* skin_blanking_checked;
 };
 
-static_assert(sizeof(stMeshModel) == 0x464, "stMeshModel_size_must_be_0x464");
+W8_ABI_ASSERT(sizeof(stMeshModel) == 0x464, "stMeshModel_size_must_be_0x464");
 
 /* Every mesh model whose frame storage has been initialized. */
 extern W8GrowableVector<stMeshModel*> g_mesh_models; /* 0x00659CB8 */
@@ -136,7 +136,7 @@ extern W8GrowableVector<stMeshModel*> g_mesh_models; /* 0x00659CB8 */
 extern int g_decompressed_mesh_bytes; /* 0x0065A0E8 */
 /* Scratch active-polygon indices filled by software backface cull in
    RenderTriMeshWithEquations when an equation table is supplied. */
-extern srHeapBuffer<unsigned long> g_software_cull_active_polygons; /* 0x00659CE0 */
+extern srHeapBuffer<w8_ulong> g_software_cull_active_polygons; /* 0x00659CE0 */
 
 /* True when all three components of the vector are zero; the vertex-lighting
    code uses it to decide between a plain copy and a per-vertex offset. */
@@ -149,7 +149,7 @@ void CopyDwordBuffer(void* destination, const void* source, int count);
 void FillDwordBuffer(void* destination, unsigned int value, int count);
 /* Plain dword walk used by RenderTriMeshWithEquations's active-poly
    scratch resize and by stMeshModel clone's sunlight table copy. */
-void CopyUlongBuffer(unsigned long* destination, const unsigned long* source, unsigned long count);
+void CopyUlongBuffer(w8_ulong* destination, const w8_ulong* source, w8_ulong count);
 /* dest[i] += source[i] for `count` floats. Callers pass vertex_count*3. */
 void AddFloatBuffer(float* destination, const float* source, int count);
 /* dest[i] = source[i] + offset for `count` vectors, or a plain copy when the

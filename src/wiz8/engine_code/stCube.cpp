@@ -171,7 +171,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     }
     surface->autoRelease();
 
-    unsigned long pixel;
+    w8_ulong pixel;
     unsigned char* bytes =
         reinterpret_cast<unsigned char*>(&pixel); // reinterpret-ok: packed colour storage
     bytes[3] = static_cast<unsigned char>(srFloatToInt(255.0));
@@ -206,7 +206,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
         SetWorldCursorNodeParameter(entry, index, 0);
     }
 
-    unsigned long packed;
+    w8_ulong packed;
     PackColourToLong(&packed, 1.0, 0.0, 0.0, 0.5);
     SetWorldCursorNodeColor(entry, packed);
     DrawWorldCursorNodeLabel(entry);
@@ -344,7 +344,7 @@ void ScaleWorldCursorNodeZ(W8WorldCursorNode* entry, double scale)
    the twelve edges into the primary GERD's back buffer. */
 // FUNCTION: WIZ8 0x0048DF30
 void DrawWorldBox(W8World* world, srVector3T<float> minimum, srVector3T<float> maximum,
-                  unsigned long color)
+                  w8_ulong color)
 {
     if (world == 0) {
         return;
@@ -366,7 +366,7 @@ void DrawWorldBox(W8World* world, srVector3T<float> minimum, srVector3T<float> m
     float viewport_width = viewport_maximum.x - viewport_minimum.x;
     float viewport_height = viewport_maximum.y - viewport_minimum.y;
 
-    long screen[8][2];
+    w8_long screen[8][2];
     for (int index = 0; index < 8; ++index) {
         srVector3T<float> projected;
         srVector3T<double> position(corners[index].x, corners[index].y, corners[index].z);
@@ -375,9 +375,9 @@ void DrawWorldBox(W8World* world, srVector3T<float> minimum, srVector3T<float> m
             return;
         }
         screen[index][0] =
-            static_cast<long>((projected.x * viewport_width + viewport_minimum.x) * 640.0f);
+            static_cast<w8_long>((projected.x * viewport_width + viewport_minimum.x) * 640.0f);
         screen[index][1] =
-            static_cast<long>((projected.y * viewport_height + viewport_minimum.y) * 480.0f);
+            static_cast<w8_long>((projected.y * viewport_height + viewport_minimum.y) * 480.0f);
         if (screen[index][0] < 0 || screen[index][0] > 640 || screen[index][1] < 0 ||
             screen[index][1] > 480) {
             return;
@@ -459,7 +459,7 @@ W8WorldCursorNode* PickWorldCursorNodeAtScreenPoint(int x, int y)
 
 /* Store the packed fill colour and repaint the cube parameters. */
 // FUNCTION: WIZ8 0x0048e400
-void SetWorldCursorNodeColor(W8WorldCursorNode* entry, unsigned long color)
+void SetWorldCursorNodeColor(W8WorldCursorNode* entry, w8_ulong color)
 {
     entry->color = color;
     DrawWorldCursorNodeLabel(entry);
@@ -469,7 +469,7 @@ void SetWorldCursorNodeColor(W8WorldCursorNode* entry, unsigned long color)
 // FUNCTION: WIZ8 0x0048E420
 void SetWorldCursorNodeColorComponents(W8WorldCursorNode* entry, float red, float green, float blue)
 {
-    unsigned long packed;
+    w8_ulong packed;
     SetWorldCursorNodeColor(entry, *PackColourToLong(&packed, 1.0, red, green, blue));
 }
 

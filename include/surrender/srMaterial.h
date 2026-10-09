@@ -111,4 +111,4 @@ public:
     int dirty;                             /* 0x74 */
 };
 
-static_assert((sizeof(srMaterial) == 0x78), "srMaterial_must_be_0x78");
+W8_ABI_ASSERT((sizeof(srMaterial) == 0x78), "srMaterial_must_be_0x78");

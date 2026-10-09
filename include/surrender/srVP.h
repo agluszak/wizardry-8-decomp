@@ -10,14 +10,14 @@ class srARGB;
 // Generic exports API 0x119, ID 0, and a factory returning an owned srVP.
 enum { SR_VP_MIN_API_VERSION = 0x119 };
 class srVP;
-typedef unsigned long(__cdecl* srGetVectorProcessorAPIFn)();
-typedef long(__cdecl* srGetVectorProcessorIDFn)();
+typedef w8_ulong(__cdecl* srGetVectorProcessorAPIFn)();
+typedef w8_long(__cdecl* srGetVectorProcessorIDFn)();
 typedef srVP*(__cdecl* srInitVectorProcessorFn)();
 
 /* These names are present in srDebugVP's own signature table. */
 typedef unsigned char SRBYTE;
-typedef long SRLONG;
-typedef unsigned long SRDWORD;
+typedef w8_long SRLONG;
+typedef w8_ulong SRDWORD;
 typedef srVector2T<float> srVector2;
 typedef srVector3T<float> srVector3;
 typedef srVector4T<float> srVector4;

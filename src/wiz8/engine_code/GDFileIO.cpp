@@ -180,7 +180,7 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     }
                     memcpy(m_pSurfaces, old_surfaces, m_iNumSurfaces * sizeof(W8GDSurface));
                     free(old_surfaces);
-                    cond_faces = static_cast<int*>(malloc(face_count * 0xc));
+                    cond_faces = static_cast<int*>(malloc(face_count * (3 * sizeof(*cond_faces))));
                     if (cond_faces == 0) {
                         srAssertFail("pCondFaces",
                                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x10c,
@@ -430,7 +430,8 @@ void W8GameData::CompileGDInterfaces(const int* records, int count)
                      "CompileGDInterfaces: Couldn't allocate GDState array.");
     }
     memcpy(m_pStates, states, m_iNumStates * sizeof(W8GDInterfaceState));
-    m_piCondPolys = static_cast<int*>(malloc(m_iNumCondPolys * 4 + 8));
+    m_piCondPolys = static_cast<int*>(
+        malloc(m_iNumCondPolys * sizeof(*m_piCondPolys) + 2 * sizeof(*m_piCondPolys)));
     if (m_piCondPolys == 0) {
         srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x211,
                      "CompileGDInterfaces: Couldn't allocate Conditional poly array.");
@@ -487,7 +488,8 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     if (octree != 0) {
         if (m_ppTriggers == 0) {
             g_integrated_trigger_count = 0;
-            m_ppTriggers = static_cast<Trigger**>(malloc(m_iNumTriggers * sizeof(Trigger*) + 4));
+            m_ppTriggers =
+                static_cast<Trigger**>(malloc((m_iNumTriggers + 1) * sizeof(*m_ppTriggers)));
             if (m_ppTriggers == 0) {
                 srAssertFail("m_ppTriggers", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                              0x256, "AddTriggerPlane: Couldn't allocate trigger array.");
@@ -770,7 +772,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
 void W8GameData::CreateGDEnviron(const W8GDSurface* surface, float scale)
 {
     if (m_iNumEnvirons % 10 == 0) {
-        unsigned int size = m_iNumEnvirons * sizeof(W8EnvironRecord*) + 0x28;
+        unsigned int size = (m_iNumEnvirons + 10) * sizeof(*m_ppEnvirons);
         W8EnvironRecord** grown = static_cast<W8EnvironRecord**>(malloc(size));
         if (grown == 0) {
             srAssertFail("ppTempEnvirons", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
@@ -895,8 +897,7 @@ void W8GameData::ReadProcessedGameData(int handle)
                      "ReadProcessedGameData: Couldn't read vertices.\n");
     }
 
-    m_pSurfaces =
-        static_cast<W8GDSurface*>(malloc((m_iNumSurfaces * 0x13 + 0x26) * sizeof(unsigned int)));
+    m_pSurfaces = static_cast<W8GDSurface*>(malloc((m_iNumSurfaces + 2) * sizeof(*m_pSurfaces)));
     if (m_pSurfaces == 0) {
         srAssertFail("m_pSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x48c,
                      "ReadProcessedGameData: Couldn't allocate pSurfaces.");
@@ -908,7 +909,7 @@ void W8GameData::ReadProcessedGameData(int handle)
 
     if (m_iNumInterfaces != 0) {
         m_pInterfaces =
-            static_cast<W8GDInterface*>(malloc((m_iNumInterfaces * 3 + 3) * sizeof(unsigned int)));
+            static_cast<W8GDInterface*>(malloc((m_iNumInterfaces + 1) * sizeof(*m_pInterfaces)));
         if (m_pInterfaces == 0) {
             srAssertFail("m_pInterfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x497, "ReadProcessedGameData: Couldn't allocate switch interface info.");
@@ -922,7 +923,7 @@ void W8GameData::ReadProcessedGameData(int handle)
 
     if (m_iNumStates != 0) {
         m_pStates =
-            static_cast<W8GDInterfaceState*>(malloc((m_iNumStates * 3 + 3) * sizeof(unsigned int)));
+            static_cast<W8GDInterfaceState*>(malloc((m_iNumStates + 1) * sizeof(*m_pStates)));
         if (m_pStates == 0) {
             srAssertFail("m_pStates", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a2,
                          "ReadProcessedGameData: Couldn't allocate switch state info.");
@@ -935,7 +936,8 @@ void W8GameData::ReadProcessedGameData(int handle)
     }
 
     if (m_iNumCondPolys != 0) {
-        m_piCondPolys = static_cast<int*>(malloc(m_iNumCondPolys * sizeof(unsigned int) + 4));
+        m_piCondPolys = static_cast<int*>(
+            malloc(m_iNumCondPolys * sizeof(*m_piCondPolys) + sizeof(*m_piCondPolys)));
         if (m_piCondPolys == 0) {
             srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x4ad, "ReadProcessedGameData: Couldn't allocate switch state info.");
@@ -1030,7 +1032,7 @@ W8GameData::W8GameData(int handle, bool secondary)
     }
     if (m_iNumEnvirons == 0) {
         m_iNumEnvirons = 1;
-        m_ppEnvirons = static_cast<W8EnvironRecord**>(malloc(0x28));
+        m_ppEnvirons = static_cast<W8EnvironRecord**>(malloc(10 * sizeof(*m_ppEnvirons)));
         if (m_ppEnvirons == 0) {
             srAssertFail("m_ppEnvirons", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x441, 0);

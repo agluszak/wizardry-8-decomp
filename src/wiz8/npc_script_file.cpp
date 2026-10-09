@@ -104,12 +104,13 @@ unsigned char ReadNpcScriptQuote(int handle, W8NpcScriptQuote* record)
         disk_sub_count = entry->sub_entry_count;
         if (disk_sub_count != 0) {
             entry->sub_entry_count = 0;
-            entry->sub_entries = static_cast<W8NpcQuoteSubEntry*>(malloc(disk_sub_count * 8));
+            entry->sub_entries = static_cast<W8NpcQuoteSubEntry*>(
+                malloc(disk_sub_count * sizeof(*entry->sub_entries)));
             if (entry->sub_entries == 0) {
                 return 0;
             }
             entry->sub_entry_count = disk_sub_count;
-            memset(entry->sub_entries, 0, disk_sub_count * 8);
+            memset(entry->sub_entries, 0, disk_sub_count * sizeof(*entry->sub_entries));
             for (sub_index = 0; sub_index < entry->sub_entry_count; ++sub_index) {
                 sub_entry = entry->sub_entries + sub_index;
                 FileRead(handle, sub_entry, 8, &transferred);

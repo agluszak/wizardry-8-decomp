@@ -11,7 +11,7 @@ srStringTable::srStringTable() : strings(), count(0) {}
 // FUNCTION: SURRENDER 0x10003850
 void srStringTable::reset()
 {
-    for (long index = 0; index < count; ++index) {
+    for (w8_long index = 0; index < count; ++index) {
         char*& string = strings[index];
         if (string != 0) {
             srHeap.free(string);
@@ -46,7 +46,7 @@ void srStringTable::addString(const char* string)
 }
 
 // FUNCTION: SURRENDER 0x10003A40
-char* srStringTable::getString(long index) const
+char* srStringTable::getString(w8_long index) const
 {
     if (index < 0 || index >= count) {
         return 0;
@@ -65,7 +65,7 @@ srStringTable& srStringTable::operator=(const srStringTable& other)
 {
     if (this != &other) {
         reset();
-        for (long index = 0; index < other.getCount(); ++index) {
+        for (w8_long index = 0; index < other.getCount(); ++index) {
             addString(other.getString(index));
         }
     }
@@ -86,7 +86,7 @@ void srStringTable::addSeparatedStrings(const char* strings, const char* separat
     }
     char separator_string[2] = " ";
     bool has_more = true;
-    const unsigned long separator_count = separator_copy.size() - 1;
+    const w8_ulong separator_count = separator_copy.size() - 1;
     if (separator_count == 0) {
         if (buffer.size() - 1 != 0) {
             if (append_slash && buffer.data()[buffer.size() - 2] != '/' &&
@@ -98,10 +98,10 @@ void srStringTable::addSeparatedStrings(const char* strings, const char* separat
         return;
     }
     for (;;) {
-        const unsigned long length = buffer.size() - 1;
-        unsigned long prefix = 0;
+        const w8_ulong length = buffer.size() - 1;
+        w8_ulong prefix = 0;
         while (prefix < length) {
-            unsigned long separator = 0;
+            w8_ulong separator = 0;
             while (buffer.data()[prefix] != separators[separator]) {
                 ++separator;
                 if (separator >= separator_count) {
@@ -120,11 +120,11 @@ void srStringTable::addSeparatedStrings(const char* strings, const char* separat
             buffer.erase(0, prefix);
         }
 
-        long piece_end = -1;
-        for (unsigned long separator = 0; separator < separator_count; ++separator) {
+        w8_long piece_end = -1;
+        for (w8_ulong separator = 0; separator < separator_count; ++separator) {
             separator_string[0] = separators[separator];
             srInlineString needle(separator_string);
-            const long position = buffer.find(needle, 0);
+            const w8_long position = buffer.find(needle, 0);
             if (position != -1 && (piece_end == -1 || position < piece_end)) {
                 piece_end = position;
             }

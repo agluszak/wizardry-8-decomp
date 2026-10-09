@@ -69,7 +69,7 @@ public:
     W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[2];
 };
 
-static_assert(sizeof(W8MissileRep) == 0x108, "W8MissileRep_size_must_be_0x108");
+W8_ABI_ASSERT(sizeof(W8MissileRep) == 0x108, "W8MissileRep_size_must_be_0x108");
 
 /* The copy path allocates 0x328 bytes and invokes W8GrCycle's copy constructor
    on the same receiver before installing the missile's primary and navigator
@@ -96,7 +96,7 @@ public:
        the hit to Combat Attack.cpp or leave it for the combat engine. */
     virtual bool OnCollision(W8Navigator* other) override; /* 0x004A4720 */
 
-    unsigned long GetAnimationState(int mode);
+    w8_ulong GetAnimationState(int mode);
     void DetonateMissileSpell();
     void DestroyMissile();          /* 0x004A4180 */
     void AnnounceCollisionTarget(); /* 0x004A4AC0 */
@@ -148,7 +148,7 @@ public:
     unsigned char padding_323[5];
 };
 
-static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
+W8_ABI_ASSERT(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
 /* Secondary vftable 0x005ecdf4 keeps the W8Navigator subobject at +0x18. */
 W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, navigation_mode, 0x18);
 

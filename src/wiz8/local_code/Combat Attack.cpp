@@ -3169,7 +3169,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
    builders share it, so its asserts report these fixed source lines. */
 static void AppendCombatTargetEntry(W8PList* out_list, W8TargetKind kind, int iChar, int iMonsterID)
 {
-    W8CombatSlot* pTarget = static_cast<W8CombatSlot*>(malloc(0x20));
+    W8CombatSlot* pTarget = static_cast<W8CombatSlot*>(malloc(sizeof(*pTarget)));
     if (pTarget == NULL) {
         srAssertFail("pTarget", COMBAT_ATTACK_CPP, 0x1262, 0);
     }

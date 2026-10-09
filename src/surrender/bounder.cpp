@@ -221,7 +221,7 @@ void srBounder::getChildBoundingBox(srNode* node)
 void srBounder::dump(std::ostream& stream)
 {
     srNode::dump(stream);
-    long flags = stream.flags();
+    w8_long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
     stream << "  Bound mode: ";

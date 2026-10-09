@@ -3,7 +3,7 @@
 #ifndef __DirectX_Common_H__
 #define __DirectX_Common_H__
 
-#include "types.h"
+#include "Types.h"
 
 #ifdef __cplusplus
 extern "C" {

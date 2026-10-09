@@ -1,10 +1,11 @@
 #include "surrender/srTimer.h"
 
 #include <ctype.h>
-#include <mmsystem.h>
 #include <ostream>
 #include <stdio.h>
 #include <string.h>
+
+#include <mmsystem.h>
 #include <windows.h>
 
 typedef BOOL(__stdcall* QueryFrequency)(LARGE_INTEGER*);
@@ -13,15 +14,15 @@ typedef BOOL(__stdcall* QueryFrequency)(LARGE_INTEGER*);
    with the measured tick frequency and the read hook.  calibrate() fills the
    CPUID side when the stored signature does not describe the running CPU. */
 struct srTimerConfig {
-    long use_stored;               /* +0x00 */
-    long unused;                   /* +0x04 */
-    long save;                     /* +0x08 */
-    long cpuid_support;            /* +0x0c */
-    long cpu_count;                /* +0x10 */
+    w8_long use_stored;            /* +0x00 */
+    w8_long unused;                /* +0x04 */
+    w8_long save;                  /* +0x08 */
+    w8_long cpuid_support;         /* +0x0c */
+    w8_long cpu_count;             /* +0x10 */
     char cpu_vendor[0x10];         /* +0x14 */
-    unsigned long cpu_max_id;      /* +0x24 */
-    unsigned long cpu_signature;   /* +0x28 */
-    unsigned long cpu_features;    /* +0x2c */
+    w8_ulong cpu_max_id;           /* +0x24 */
+    w8_ulong cpu_signature;        /* +0x28 */
+    w8_ulong cpu_features;         /* +0x2c */
     char os_ident[0x400];          /* +0x30 */
     char cpu_ident[0x400];         /* +0x430 */
     srQuadWord frequency;          /* +0x830 */
@@ -71,10 +72,10 @@ const char* srTimer::RegCpuFeatures = "hrfeat";
 const char* srTimer::RegCpuVariance = "hrvariance";
 
 // GLOBAL: SURRENDER 0x10077608
-const unsigned long srTimer::CPU_Model_Mask = 0x3fff;
+const w8_ulong srTimer::CPU_Model_Mask = 0x3fff;
 
 // GLOBAL: SURRENDER 0x1007760C
-const unsigned long srTimer::CPU_Features_Mask = 0x800011;
+const w8_ulong srTimer::CPU_Features_Mask = 0x800011;
 
 // GLOBAL: SURRENDER 0x100A8A30
 char srTimer::RegKeyName[0x400];
@@ -318,7 +319,7 @@ int srTimer::reset(int force_system_timer, int, int save_calibration)
         strcpy(m_cpu_ident, m_cpu_vendor);
         strcat(m_cpu_ident, " ");
         if (memcmp(m_cpu_vendor, "CyrixInstead", 0xc) == 0) {
-            unsigned long model = m_cpu_signature & 0xfff0;
+            w8_ulong model = m_cpu_signature & 0xfff0;
             if (model == 0x540) {
                 strcat(m_cpu_ident, "(MediaGX/MMX)");
             } else if (model == 0x600) {
@@ -335,7 +336,7 @@ int srTimer::reset(int force_system_timer, int, int save_calibration)
                 strcat(m_cpu_ident, "(unknown version)");
             }
         } else if (memcmp(m_cpu_vendor, "CentaurHauls", 0xc) == 0) {
-            unsigned long model = m_cpu_signature & 0xfff0;
+            w8_ulong model = m_cpu_signature & 0xfff0;
             if (model == 0x590) {
                 strcat(m_cpu_ident, "WinChip 3");
             } else if (model == 0x580) {
@@ -348,7 +349,7 @@ int srTimer::reset(int force_system_timer, int, int save_calibration)
         } else if (memcmp(m_cpu_vendor, "RiseRiseRise", 0xc) == 0) {
             strcat(m_cpu_ident, "mP6");
         } else if (memcmp(m_cpu_vendor, "AuthenticAMD", 0xc) == 0) {
-            unsigned long model = m_cpu_signature & 0xfff0;
+            w8_ulong model = m_cpu_signature & 0xfff0;
             if (model == 0x610) {
                 strcat(m_cpu_ident, "K7(tm)");
             } else if ((m_cpu_signature & 0xf00) == 0x600) {
@@ -472,9 +473,9 @@ int calibrate(srTimerConfig* config)
     if (config->read_tick != 0) {
         return 0;
     }
-    unsigned long max_id = 0;
-    unsigned long signature = 0;
-    unsigned long features = 0;
+    w8_ulong max_id = 0;
+    w8_ulong signature = 0;
+    w8_ulong features = 0;
     char vendor[0x10];
     if (config->use_stored == 0) {
         __asm {
@@ -514,8 +515,8 @@ int calibrate(srTimerConfig* config)
             (__int64)(config->frequency * 0.01 * (srTimer::cpuFreqVariancePct & 0xffff));
         SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-        unsigned long edge = timeGetTime();
-        unsigned long now;
+        w8_ulong edge = timeGetTime();
+        w8_ulong now;
         do {
             now = timeGetTime();
         } while (now == edge);
@@ -546,8 +547,8 @@ int calibrate(srTimerConfig* config)
     if ((config->frequency.lo | config->frequency.hi) == 0) {
         SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
         SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-        unsigned long edge = timeGetTime();
-        unsigned long now;
+        w8_ulong edge = timeGetTime();
+        w8_ulong now;
         do {
             now = timeGetTime();
         } while (now == edge);
@@ -582,13 +583,13 @@ void srTimer::getFreq(srQuadWord& out) const
 }
 
 // FUNCTION: SURRENDER 0x10062250
-unsigned long srTimer::getUnits() const
+w8_ulong srTimer::getUnits() const
 {
     return m_units_per_interval;
 }
 
 // FUNCTION: SURRENDER 0x10062260
-void srTimer::setUnits(unsigned long units)
+void srTimer::setUnits(w8_ulong units)
 {
     m_units_per_interval = units;
     if (m_frequency == 0.0) {
@@ -629,13 +630,13 @@ unsigned short srTimer::getCPUStepping() const
 }
 
 // FUNCTION: SURRENDER 0x10062390
-int srTimer::getFeature(long feature) const
+int srTimer::getFeature(w8_long feature) const
 {
     return (m_cpu_features & (1 << feature)) != 0;
 }
 
 // FUNCTION: SURRENDER 0x100623E0
-unsigned long srTimer::getRawTime(e_timerReadControl control)
+w8_ulong srTimer::getRawTime(e_timerReadControl control)
 {
     if (control == TIMER_READ_DEFAULT) {
         m_read_tick(&m_tick);
@@ -644,7 +645,7 @@ unsigned long srTimer::getRawTime(e_timerReadControl control)
 }
 
 // FUNCTION: SURRENDER 0x10062430
-unsigned long srTimer::getRawTime(srQuadWord& out, e_timerReadControl control)
+w8_ulong srTimer::getRawTime(srQuadWord& out, e_timerReadControl control)
 {
     if (control == TIMER_READ_DEFAULT) {
         m_read_tick(&m_tick);
@@ -654,7 +655,7 @@ unsigned long srTimer::getRawTime(srQuadWord& out, e_timerReadControl control)
 }
 
 // FUNCTION: SURRENDER 0x100625A0
-char* srTimer::getStorage(char* buffer, unsigned long size)
+char* srTimer::getStorage(char* buffer, w8_ulong size)
 {
     memset(buffer, 0, size);
     if (RegKeyBase == (void*)0x80000001) {
@@ -670,7 +671,8 @@ char* srTimer::getStorage(char* buffer, unsigned long size)
     } else if (RegKeyBase == (void*)0x80000004) {
         strcpy(buffer, "hkpd");
     } else {
-        sprintf(buffer, "0x%08X", (unsigned int)RegKeyBase);
+        // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+        sprintf(buffer, "0x%08X", (unsigned int)(size_t)RegKeyBase);
     }
     strcat(buffer, ":");
     strncat(buffer, RegKeyName, size - 5);
@@ -796,7 +798,7 @@ int srTimer::pause()
 }
 
 // FUNCTION: SURRENDER 0x10062D50
-unsigned long srTimer::resume()
+w8_ulong srTimer::resume()
 {
     srQuadWord delta = {0, 0};
     if ((m_pause.lo | m_pause.hi) == 0) {
@@ -811,7 +813,7 @@ unsigned long srTimer::resume()
 }
 
 // FUNCTION: SURRENDER 0x10062DF0
-unsigned long srTimer::getMsTime(e_timerReadControl control)
+w8_ulong srTimer::getMsTime(e_timerReadControl control)
 {
     getUTime(control);
     return (((m_tick - m_base) * 1000u) / m_frequency).lo;
@@ -827,16 +829,16 @@ double srTimer::getTime(e_timerReadControl control)
 }
 
 // FUNCTION: SURRENDER 0x10062EC0
-unsigned long srTimer::getUTime(e_timerReadControl control)
+w8_ulong srTimer::getUTime(e_timerReadControl control)
 {
     if (control == TIMER_READ_DEFAULT) {
         m_read_tick(&m_tick);
     }
-    return (unsigned long)((m_tick - m_base) * m_units_per_tick);
+    return (w8_ulong)((m_tick - m_base) * m_units_per_tick);
 }
 
 // FUNCTION: SURRENDER 0x10062F40
-unsigned long srTimer::getUTime(srQuadWord& out, e_timerReadControl control)
+w8_ulong srTimer::getUTime(srQuadWord& out, e_timerReadControl control)
 {
     if (control == TIMER_READ_DEFAULT) {
         m_read_tick(&m_tick);
@@ -862,10 +864,11 @@ char* srTimer::getAscTime(char* buffer, srQuadWord ticks)
     *buffer = '\0';
     float seconds = (float)((ticks.lo + ticks.hi * 4294967296.0) / m_units_per_interval);
     if (seconds >= 3600.0f) {
-        long hours = (long)(seconds / 3600.0f);
+        w8_long hours = (w8_long)(seconds / 3600.0f);
         seconds -= (float)(hours * 0xe10);
         if (hours < 1000) {
-            sprintf(buffer + strlen(buffer), "%03lu:", hours);
+            // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+            sprintf(buffer + strlen(buffer), "%03lu:", (unsigned long)hours);
         } else {
             strcat(buffer, "###:");
         }
@@ -873,9 +876,10 @@ char* srTimer::getAscTime(char* buffer, srQuadWord ticks)
         strcat(buffer, "000:");
     }
     if (seconds >= 60.0f) {
-        long minutes = (long)(seconds / 60.0f);
+        w8_long minutes = (w8_long)(seconds / 60.0f);
         seconds -= (float)(minutes * 0x3c);
-        sprintf(buffer + strlen(buffer), "%02lu:", minutes);
+        // c-style-cast-ok: the existing scalar conversion keeps its historical cast semantics
+        sprintf(buffer + strlen(buffer), "%02lu:", (unsigned long)minutes);
     } else {
         strcat(buffer, "00:");
     }

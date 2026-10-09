@@ -19,17 +19,17 @@ public:
     static SR_DLL_IMPORT const char* sGetClassName();
     virtual SR_DLL_IMPORT void traverse(TraverseInfo& info) override;
     virtual SR_DLL_IMPORT void process(const ProcessInfo& info, e_processType type) override;
-    SR_DLL_IMPORT unsigned long getGroupMask() const;
-    SR_DLL_IMPORT void setGroupMask(unsigned long mask);
+    SR_DLL_IMPORT w8_ulong getGroupMask() const;
+    SR_DLL_IMPORT void setGroupMask(w8_ulong mask);
 
 #if !defined(SURRENDER_BUILD)
     virtual SR_DLL_IMPORT ~srIlluminator() override;
 #endif
 
-    unsigned long group_mask;       /* 0x13c */
+    w8_ulong group_mask;            /* 0x13c */
     srVector3T<float> eye_location; /* 0x140 */
 };
 
-static_assert((sizeof(srIlluminator) == 0x150), "srIlluminator_must_be_0x150");
+W8_ABI_ASSERT((sizeof(srIlluminator) == 0x150), "srIlluminator_must_be_0x150");
 
 W8_ASSERT_BASE_END(srIlluminator, srVertexProcessor, group_mask, 0x138);

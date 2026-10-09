@@ -90,6 +90,6 @@ private:
 
 static_assert(sizeof(W8AttributeMinimums) == 0x1c, "W8AttributeMinimums_must_be_0x1c");
 static_assert(sizeof(W8ProfRaceInfoRow) == 0x0c, "W8ProfRaceInfoRow_must_be_0x0c");
-static_assert(sizeof(W8ProfRaceInfoDialogBase) == 0x170, "W8ProfRaceInfoDialogBase_must_be_0x170");
-static_assert(sizeof(W8ProfessionInfoDialog) == 0x174, "W8ProfessionInfoDialog_must_be_0x174");
-static_assert(sizeof(W8RaceInfoDialog) == 0x174, "W8RaceInfoDialog_must_be_0x174");
+W8_ABI_ASSERT(sizeof(W8ProfRaceInfoDialogBase) == 0x170, "W8ProfRaceInfoDialogBase_must_be_0x170");
+W8_ABI_ASSERT(sizeof(W8ProfessionInfoDialog) == 0x174, "W8ProfessionInfoDialog_must_be_0x174");
+W8_ABI_ASSERT(sizeof(W8RaceInfoDialog) == 0x174, "W8RaceInfoDialog_must_be_0x174");

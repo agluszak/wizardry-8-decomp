@@ -19,32 +19,32 @@ srInlineString libraryName(const char* name, const char* extension)
     srInlineString filename(name);
     srInlineString needle;
     needle = ".";
-    long pos = filename.find(needle, 0);
-    long dot = pos;
-    while (pos != -1 && pos < (long)filename.size() - 1) {
+    w8_long pos = filename.find(needle, 0);
+    w8_long dot = pos;
+    while (pos != -1 && pos < (w8_long)filename.size() - 1) {
         dot = pos;
         pos = filename.find(needle, pos + 1);
     }
     needle = "/";
     pos = filename.find(needle, 0);
-    long slash = pos;
-    while (pos != -1 && pos < (long)filename.size() - 1) {
+    w8_long slash = pos;
+    while (pos != -1 && pos < (w8_long)filename.size() - 1) {
         slash = pos;
         pos = filename.find(needle, pos + 1);
     }
     needle = "\\";
     pos = filename.find(needle, 0);
-    long backslash = pos;
-    while (pos != -1 && pos < (long)filename.size() - 1) {
+    w8_long backslash = pos;
+    while (pos != -1 && pos < (w8_long)filename.size() - 1) {
         backslash = pos;
         pos = filename.find(needle, pos + 1);
     }
-    long separator = slash;
+    w8_long separator = slash;
     if (slash < backslash) {
         separator = backslash;
     }
     if (separator < dot) {
-        if (dot == (long)filename.size() - 2) {
+        if (dot == (w8_long)filename.size() - 2) {
             srInlineString suffix(extension);
             return filename + suffix;
         }
@@ -71,7 +71,7 @@ char* versionString(const char* name, const char* key, unsigned char*& version_i
         return 0;
     }
 
-    unsigned long* translation;
+    w8_ulong* translation;
     unsigned int translation_size;
     VerQueryValueA(version_info, "\\VarFileInfo\\Translation",
                    reinterpret_cast<void**>(&translation), &translation_size);
@@ -97,7 +97,7 @@ srDynamicLibrary::Compatibility srDynamicLibrary::checkCompatibility(const char*
         return COMPATIBILITY_0;
     }
 
-    const unsigned long version = getVersion(name);
+    const w8_ulong version = getVersion(name);
     if (version == 0) {
         return COMPATIBILITY_0;
     }
@@ -205,7 +205,7 @@ int srDynamicLibrary::testDependencies(const char* name)
 }
 
 // FUNCTION: SURRENDER 0x10046500
-unsigned long srDynamicLibrary::getVersion(const char* name)
+w8_ulong srDynamicLibrary::getVersion(const char* name)
 {
     void* library = load(name);
     if (library != 0) {
@@ -213,7 +213,7 @@ unsigned long srDynamicLibrary::getVersion(const char* name)
             reinterpret_cast<srGetLibraryVersionCdeclFn>(
                 getFunction(library, "srGetLibraryVersion"));
         if (get_library_version != 0) {
-            const unsigned long version = get_library_version();
+            const w8_ulong version = get_library_version();
             free(library);
             return version;
         }

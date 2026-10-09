@@ -30,7 +30,7 @@ unsigned char ReadSingleLevelMesh(W8ReadLevelInfo* info, srModelInstance** insta
                                   int unused_first, int unused_second, const char* name,
                                   bool load_materials);
 unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** instances,
-                                      unsigned long count, const char* name);
+                                      w8_ulong count, const char* name);
 unsigned char SkipSingleLevelMesh(W8ReadLevelInfo* info);
 void ReleaseReadMeshScratch();
 void ReleaseRetainedMaterials();
@@ -49,7 +49,7 @@ enum {
     W8_MESH_ORDER_TRIANGLE_STRIPS = 4UL
 };
 
-void OptimizeMeshOrder(srMeshModel* model, unsigned long flags);
+void OptimizeMeshOrder(srMeshModel* model, w8_ulong flags);
 
 void ClearMaterialRecordPadding(W8MaterialRecord* material);
 void ReadMeshTransform(int file, srVector3T<float>* location, srMatrix3T<float>* rotation,

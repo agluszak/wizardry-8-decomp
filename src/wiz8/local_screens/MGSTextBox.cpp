@@ -14,7 +14,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/xstatus.h"
 #include "timer.h"
-#include "font.h"
+#include "Font.h"
 #include "FileMan.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/AutomapScreen.h"
@@ -50,7 +50,7 @@ W8MainGameScreen* g_main_game_screen;
    its first word is a wide-character count, and its entries word preserves
    the original 32-bit list-pointer bits. */
 struct W8MessageStorageDiskRecord {
-    unsigned long character_count;
+    w8_ulong character_count;
     unsigned char font_palette;
     unsigned char highlight_color;
     unsigned char highlight_start;
@@ -59,7 +59,7 @@ struct W8MessageStorageDiskRecord {
     UINT32 saved_remaining_ms;
     int link;
     int length;
-    unsigned long serialized_entries_18_bits;
+    w8_ulong serialized_entries_18_bits;
     unsigned char trailing_bytes[8];
 };
 
@@ -83,8 +83,8 @@ static_assert(offsetof(W8MessageStorageDiskRecord, serialized_entries_18_bits) =
               "W8MessageStorageDiskRecord_entries_bits_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, trailing_bytes) == 0x1c,
               "W8MessageStorageDiskRecord_trailing_offset");
-static_assert(sizeof(unsigned long) == 4, "W8MessageStorageDiskRecord_requires_32_bit_words");
-static_assert(sizeof(W8PList*) == sizeof(unsigned long),
+static_assert(sizeof(w8_ulong) == 4, "W8MessageStorageDiskRecord_requires_32_bit_words");
+W8_ABI_ASSERT(sizeof(W8PList*) == sizeof(w8_ulong),
               "W8MessageStorageDiskRecord_requires_32_bit_live_pointers");
 
 // GLOBAL: WIZ8 0x0069b7b8
@@ -464,9 +464,8 @@ unsigned char SaveMessageStorage(int file)
         for (index = 0; index < g_status.text_box_lines_used[region]; ++index) {
             live_record = &g_message_storage[region][index];
             disk_record.character_count =
-                live_record->wString != 0
-                    ? static_cast<unsigned long>(wcslen(live_record->wString) + 1)
-                    : 0;
+                live_record->wString != 0 ? static_cast<w8_ulong>(wcslen(live_record->wString) + 1)
+                                          : 0;
             disk_record.font_palette = live_record->font_palette;
             disk_record.highlight_color = live_record->highlight_color;
             disk_record.highlight_start = live_record->highlight_start;
@@ -526,7 +525,7 @@ unsigned char LoadMessageStorage(int file)
             memcpy(live_record->unknown_1c, disk_record.trailing_bytes,
                    sizeof(live_record->unknown_1c));
             size = disk_record.character_count * 2;
-            text = static_cast<wchar_t*>(malloc(size));
+            text = static_cast<wchar_t*>(malloc(disk_record.character_count * sizeof(*text)));
             live_record->wString = text;
             if (text != 0) {
                 FileRead(file, text, size, 0);
@@ -765,7 +764,8 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
     if (!(line->wString != 0)) {
         srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0xf94, 0);
     }
-    wchar_t* merged = static_cast<wchar_t*>(operator new((length + wcslen(line->wString)) * 2 + 2));
+    wchar_t* merged = static_cast<wchar_t*>(operator new(
+        (length + wcslen(line->wString)) * sizeof(*merged) + sizeof(*merged)));
     wcscpy(merged, line->wString);
     wcscat(merged, text);
     unsigned char channel = line->font_palette;

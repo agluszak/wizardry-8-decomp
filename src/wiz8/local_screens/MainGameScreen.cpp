@@ -1,4 +1,5 @@
 #include <windows.h>
+#include "wiz8/wiz8_windows.h"
 #include "wiz8/spell_ids.h"
 #include "wiz8/conditions.h"
 #include "wiz8/sgp_text.h"
@@ -102,7 +103,7 @@
 #include "wiz8/world_cursor.h"
 #include "wiz8/local_code/MonsterGroup.h"
 
-#include "font.h"
+#include "Font.h"
 #include "FileMan.h"
 #include "input.h"
 #include "timer.h"
@@ -3335,7 +3336,7 @@ render_world:
                 unsigned char frame = monster->m_pRep->subcycle;
                 const char* cycle = g_cycle_names[monster->Query(W8_MONSTER_QUERY_CYCLE)].name;
                 unsigned char subcycles = static_cast<unsigned char>(monster->GetNumSubCycles());
-                gprintfDirty(0x122, 0x159, const_cast<UINT16*>(L"%2d/%2d %hs"), frame, subcycles,
+                gprintfDirty(0x122, 0x159, const_cast<CHAR16*>(L"%2d/%2d %hs"), frame, subcycles,
                              cycle);
             }
         }
@@ -8142,7 +8143,7 @@ resume_world:
    a fight is on; the party half always. */
 
 // GLOBAL: WIZ8 0x0068edb8
-static unsigned long g_surprise_fade_tick_base;
+static w8_ulong g_surprise_fade_tick_base;
 // GLOBAL: WIZ8 0x005ee9a8
 const float g_fade_resume_scale = -500.0f;
 // GLOBAL: WIZ8 0x0068edca
@@ -8203,7 +8204,7 @@ void ReverseSurpriseFade(void)
             static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node->getModel())
                                          ->getMaterial(0, srMeshModel::SIDE_FRONT));
         float opacity = material->parms.diffuse.w;
-        unsigned long now = GetTickCount();
+        w8_ulong now = GetTickCount();
         g_surprise_fade_in = !g_surprise_fade_in;
         if (g_surprise_fade_in) {
             g_surprise_fade_tick_base =
@@ -8234,7 +8235,7 @@ unsigned char UpdateSurpriseFade(void)
     bool done = false;
     bool boundary = false;
     float opacity;
-    unsigned long now = GetTickCount();
+    w8_ulong now = GetTickCount();
 
     if (g_surprise_fade_tick_base + 500 < now) {
         if (!g_surprise_fade_in) {
@@ -8259,7 +8260,7 @@ unsigned char UpdateSurpriseFade(void)
 
     if (boundary) {
         if (gXStatus.surprise_phase == 0) {
-            long pitch;
+            w8_long pitch;
             void* pixels = LockCatalogFrameSurface(0x1e0, 0, &pitch);
             srColorSurface* surface = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_ARGB1555,
                                                              pixels, 0x280, 0x1e0, pitch);

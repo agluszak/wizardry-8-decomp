@@ -71,7 +71,6 @@
 #include "timer.h"
 
 #include <windows.h>
-
 #include <errno.h>
 #include <io.h>
 #include <malloc.h>
@@ -934,7 +933,7 @@ bool LoadItemStatus(W8Chunk* chunk, int level)
                     for (int inner = stream->ChunkCount(); inner > 0; --inner) {
                         stream->OpenChunk(0, 0);
                         if (stream->CurrentChunkAtEnd() == 0) {
-                            unsigned long chunk_id = stream->CurrentChunkId();
+                            w8_ulong chunk_id = stream->CurrentChunkId();
 
                             if (chunk_id == 0x54415453) { /* STAT */
                                 LoadStatusHeader(stream);
@@ -1054,7 +1053,7 @@ bool LoadDefaultLevelStatus(unsigned int level)
         for (count = chunk.ChunkCount(); count > 0; --count) {
             chunk.OpenChunk(0, 0);
             if (chunk.CurrentChunkAtEnd() == 0) {
-                unsigned long chunk_id = chunk.CurrentChunkId();
+                w8_ulong chunk_id = chunk.CurrentChunkId();
 
                 switch (chunk_id) {
                 case 0x4b434f4c: /* LOCK */

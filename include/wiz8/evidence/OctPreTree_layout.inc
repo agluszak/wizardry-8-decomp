@@ -1,9 +1,9 @@
 /* Layout evidence for include/wiz8/engine_code/OctPreTree.h. Included after its declarations. */
 
-static_assert(sizeof(W8OctSpatialState) == 0x9c, "W8OctSpatialState_must_be_0x9c");
+W8_ABI_ASSERT(sizeof(W8OctSpatialState) == 0x9c, "W8OctSpatialState_must_be_0x9c");
 static_assert(sizeof(W8OctRegionVolume) == 0xe8, "W8OctRegionVolume_must_be_0xe8");
-static_assert(sizeof(W8OctPreTreeVertex) == 0x60, "W8OctPreTreeVertex_must_be_0x60");
-static_assert(sizeof(W8OctSubmeshBuild) == 0x34, "W8OctSubmeshBuild_must_be_0x34");
+W8_ABI_ASSERT(sizeof(W8OctPreTreeVertex) == 0x60, "W8OctPreTreeVertex_must_be_0x60");
+W8_ABI_ASSERT(sizeof(W8OctSubmeshBuild) == 0x34, "W8OctSubmeshBuild_must_be_0x34");
 static_assert(offsetof(W8OctSubmeshBuild, flags) == 0x00, "W8OctSubmeshBuild_flags_00");
 static_assert(offsetof(W8OctSubmeshBuild, index) == 0x04, "W8OctSubmeshBuild_index_04");
 static_assert(offsetof(W8OctSubmeshBuild, m_kind) == 0x08, "W8OctSubmeshBuild_kind_08");
@@ -15,13 +15,13 @@ static_assert(offsetof(W8OctSubmeshBuild, m_map_count) == 0x18, "W8OctSubmeshBui
 static_assert(offsetof(W8OctSubmeshBuild, m_polygon_count) == 0x1c,
               "W8OctSubmeshBuild_polygon_count_1c");
 static_assert(offsetof(W8OctSubmeshBuild, m_vertex_ids) == 0x20, "W8OctSubmeshBuild_vertex_ids_20");
-static_assert(offsetof(W8OctSubmeshBuild, m_polygon_ids) == 0x24,
+W8_ABI_ASSERT(offsetof(W8OctSubmeshBuild, m_polygon_ids) == 0x24,
               "W8OctSubmeshBuild_polygon_ids_24");
-static_assert(offsetof(W8OctSubmeshBuild, m_poly_vertices) == 0x28,
+W8_ABI_ASSERT(offsetof(W8OctSubmeshBuild, m_poly_vertices) == 0x28,
               "W8OctSubmeshBuild_poly_vertices_28");
-static_assert(offsetof(W8OctSubmeshBuild, m_poly_uv_index) == 0x2c,
+W8_ABI_ASSERT(offsetof(W8OctSubmeshBuild, m_poly_uv_index) == 0x2c,
               "W8OctSubmeshBuild_poly_uv_index_2c");
-static_assert(offsetof(W8OctSubmeshBuild, m_uv_map) == 0x30, "W8OctSubmeshBuild_uv_map_30");
+W8_ABI_ASSERT(offsetof(W8OctSubmeshBuild, m_uv_map) == 0x30, "W8OctSubmeshBuild_uv_map_30");
 static_assert(sizeof(W8OctFileHeader) == 0xf5, "W8OctFileHeader_must_be_0xf5");
 static_assert(offsetof(W8OctFileHeader, version) == 0x00, "W8OctFileHeader_version");
 static_assert(offsetof(W8OctFileHeader, m_extent) == 0x02, "W8OctFileHeader_extent_02");

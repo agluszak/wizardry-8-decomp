@@ -55,6 +55,6 @@ public:
     float animation_radius;    /* 0xa8: filled by GetAnimationRadius */
 }; /* 0xac */
 
-static_assert(sizeof(W8EmitterHost) == 0xac, "W8EmitterHost_size_must_be_0xac");
+W8_ABI_ASSERT(sizeof(W8EmitterHost) == 0xac, "W8EmitterHost_size_must_be_0xac");
 
 #endif

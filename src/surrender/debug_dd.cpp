@@ -157,7 +157,7 @@ void srDebugDD::flushFrame()
 }
 
 // FUNCTION: SURRENDER 0x10016F80
-void srDebugDD::flipFrame(const Scissor* first, const Scissor* second, unsigned long value)
+void srDebugDD::flipFrame(const Scissor* first, const Scissor* second, w8_ulong value)
 {
     ScopeTimer timer(this, COMMAND_FLIP_FRAME);
     device->flipFrame(first, second, value);
@@ -262,50 +262,50 @@ srDD::e_error srDebugDD::bufferOp(const BufferCommand& command)
 }
 
 // FUNCTION: SURRENDER 0x10017290
-srDD::e_error srDebugDD::createContext(unsigned long window)
+srDD::e_error srDebugDD::createContext(w8_ulong_ptr window)
 {
     ScopeTimer timer(this, COMMAND_CREATE_CONTEXT);
     return device->createContext(window);
 }
 
 // FUNCTION: SURRENDER 0x100172D0
-void srDebugDD::extCommand(unsigned long command, void* data, unsigned long size)
+void srDebugDD::extCommand(w8_ulong command, void* data, w8_ulong size)
 {
     ScopeTimer timer(this, COMMAND_EXT_COMMAND);
     device->extCommand(command, data, size);
 }
 
 // FUNCTION: SURRENDER 0x10017310
-void srDebugDD::bindTexture(unsigned long stage, Texture& texture)
+void srDebugDD::bindTexture(w8_ulong stage, Texture& texture)
 {
     ScopeTimer timer(this, COMMAND_BIND_TEXTURE);
     device->bindTexture(stage, texture);
 }
 
 // FUNCTION: SURRENDER 0x10017350
-void srDebugDD::setTextureParameters(unsigned long stage, const TexParms& parms)
+void srDebugDD::setTextureParameters(w8_ulong stage, const TexParms& parms)
 {
     ScopeTimer timer(this, COMMAND_SET_TEXTURE_PARAMETERS);
     device->setTextureParameters(stage, parms);
 }
 
 // FUNCTION: SURRENDER 0x10017390
-void srDebugDD::texImage(Texture& texture, unsigned long level)
+void srDebugDD::texImage(Texture& texture, w8_ulong level)
 {
     ScopeTimer timer(this, COMMAND_TEX_IMAGE);
     device->texImage(texture, level);
 }
 
 // FUNCTION: SURRENDER 0x100173D0
-void srDebugDD::texSubImage(Texture& texture, unsigned long a, unsigned long b, unsigned long c,
-                            unsigned long d, unsigned long e)
+void srDebugDD::texSubImage(Texture& texture, w8_ulong a, w8_ulong b, w8_ulong c, w8_ulong d,
+                            w8_ulong e)
 {
     ScopeTimer timer(this, COMMAND_TEX_SUB_IMAGE);
     device->texSubImage(texture, a, b, c, d, e);
 }
 
 // FUNCTION: SURRENDER 0x10017420
-void srDebugDD::setGlobalPalette(unsigned long* palette, unsigned long count)
+void srDebugDD::setGlobalPalette(w8_ulong* palette, w8_ulong count)
 {
     ScopeTimer timer(this, COMMAND_SET_GLOBAL_PALETTE);
     device->setGlobalPalette(palette, count);
@@ -333,7 +333,7 @@ void srDebugDD::getBufferPixelFormat(PixelFormat& format)
 }
 
 // FUNCTION: SURRENDER 0x10017500
-void srDebugDD::preBindTexture(unsigned long stage, Texture& texture)
+void srDebugDD::preBindTexture(w8_ulong stage, Texture& texture)
 {
     ScopeTimer timer(this, COMMAND_PRE_BIND_TEXTURE);
     device->preBindTexture(stage, texture);
@@ -368,7 +368,7 @@ void srDebugDD::setVertexArrayInfo(const srRendererDefs::VertexArrayInfo* info)
 }
 
 // FUNCTION: SURRENDER 0x10017640
-void srDebugDD::drawElements(srRendererDefs::e_primitive primitive, unsigned long count,
+void srDebugDD::drawElements(srRendererDefs::e_primitive primitive, w8_ulong count,
                              srRendererDefs::e_indexType type, const void* indices)
 {
     ScopeTimer timer(this, COMMAND_DRAW_ELEMENTS);
@@ -376,21 +376,21 @@ void srDebugDD::drawElements(srRendererDefs::e_primitive primitive, unsigned lon
 }
 
 // FUNCTION: SURRENDER 0x10017690
-void srDebugDD::drawArrays(srRendererDefs::e_primitive primitive, long first, unsigned long count)
+void srDebugDD::drawArrays(srRendererDefs::e_primitive primitive, w8_long first, w8_ulong count)
 {
     ScopeTimer timer(this, COMMAND_DRAW_ARRAYS);
     device->drawArrays(primitive, first, count);
 }
 
 // FUNCTION: SURRENDER 0x10017700
-void srDebugDD::setPolygonOffset(long offset)
+void srDebugDD::setPolygonOffset(w8_long offset)
 {
     ScopeTimer timer(this, COMMAND_SET_POLYGON_OFFSET);
     device->setPolygonOffset(offset);
 }
 
 // FUNCTION: SURRENDER 0x10017740
-unsigned long srDebugDD::getFunctionCallCount(e_command command) const
+w8_ulong srDebugDD::getFunctionCallCount(e_command command) const
 {
     return call_counts[command];
 }

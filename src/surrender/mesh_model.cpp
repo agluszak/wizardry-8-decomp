@@ -26,7 +26,7 @@ static const char* s_control_names;
 // GLOBAL: SURRENDER 0x100A499C
 static const char* s_flag_names0;
 
-static void fillConstant(unsigned long* destination, unsigned long value, unsigned long count)
+static void fillConstant(w8_ulong* destination, w8_ulong value, w8_ulong count)
 {
     if (count != 0) {
         srVectorProcessor::copy(destination, value, count);
@@ -34,14 +34,14 @@ static void fillConstant(unsigned long* destination, unsigned long value, unsign
 }
 
 /* POD table permutation: scratch through srHeap, straight copy, then reordered copy back. */
-template <class T> static void permuteTable(T* table, const unsigned long* indices, long count)
+template <class T> static void permuteTable(T* table, const w8_ulong* indices, w8_long count)
 {
     T* scratch = static_cast<T*>(srHeap.allocate(count * sizeof(T)));
     if (scratch == 0) {
         scratch = 0;
     }
     if (count != 0) {
-        long index;
+        w8_long index;
         for (index = 0; index < count; ++index) {
             scratch[index] = table[index];
         }
@@ -53,11 +53,11 @@ template <class T> static void permuteTable(T* table, const unsigned long* indic
 }
 
 /* Object-table permutation: `new T[count]` scratch so each element's ctor and copy-assign run. */
-template <class T> static void permuteObjects(T* table, const unsigned long* indices, long count)
+template <class T> static void permuteObjects(T* table, const w8_ulong* indices, w8_long count)
 {
     T* scratch = new T[count];
     if (count != 0) {
-        long index;
+        w8_long index;
         for (index = 0; index < count; ++index) {
             scratch[index] = table[index];
         }
@@ -70,7 +70,7 @@ template <class T> static void permuteObjects(T* table, const unsigned long* ind
 
 /* Bounds-checked pass/side slots; out-of-range indices are ignored. */
 // FUNCTION: SURRENDER 0x100403E0
-void srMeshModel::setShader(srShader shader, long pass)
+void srMeshModel::setShader(srShader shader, w8_long pass)
 {
     if (pass >= 0 && pass < 4) {
         shaders[pass] = shader;
@@ -78,7 +78,7 @@ void srMeshModel::setShader(srShader shader, long pass)
 }
 
 // FUNCTION: SURRENDER 0x10040400
-srShader srMeshModel::getShader(long pass) const
+srShader srMeshModel::getShader(w8_long pass) const
 {
     if (pass >= 0 && pass < 4) {
         return shaders[pass];
@@ -89,7 +89,7 @@ srShader srMeshModel::getShader(long pass) const
 }
 
 // FUNCTION: SURRENDER 0x10040330
-srMaterialIFace* srMeshModel::getMaterial(long pass, e_side side) const
+srMaterialIFace* srMeshModel::getMaterial(w8_long pass, e_side side) const
 {
     if (pass >= 0 && pass < 4 && (int)side >= 0 && (int)side < 2) {
         return materials[pass][side];
@@ -98,7 +98,7 @@ srMaterialIFace* srMeshModel::getMaterial(long pass, e_side side) const
 }
 
 // FUNCTION: SURRENDER 0x100402E0
-void srMeshModel::setMaterial(srMaterialIFace* material, long pass, e_side side)
+void srMeshModel::setMaterial(srMaterialIFace* material, w8_long pass, e_side side)
 {
     if (pass >= 0 && pass < 4 && (int)side >= 0 && (int)side < 2) {
         materials[pass][side] = material;
@@ -106,7 +106,7 @@ void srMeshModel::setMaterial(srMaterialIFace* material, long pass, e_side side)
 }
 
 // FUNCTION: SURRENDER 0x100403B0
-srTextureIFace* srMeshModel::getTexture(long pass, long layer) const
+srTextureIFace* srMeshModel::getTexture(w8_long pass, w8_long layer) const
 {
     if (pass >= 0 && pass < 4 && layer >= 0 && layer < 2) {
         return textures[pass][layer];
@@ -115,7 +115,7 @@ srTextureIFace* srMeshModel::getTexture(long pass, long layer) const
 }
 
 // FUNCTION: SURRENDER 0x10040360
-void srMeshModel::setTexture(srTextureIFace* texture, long pass, long layer)
+void srMeshModel::setTexture(srTextureIFace* texture, w8_long pass, w8_long layer)
 {
     if (pass >= 0 && pass < 4 && layer >= 0 && layer < 2) {
         textures[pass][layer] = texture;
@@ -123,19 +123,19 @@ void srMeshModel::setTexture(srTextureIFace* texture, long pass, long layer)
 }
 
 // FUNCTION: SURRENDER 0x10042800
-long srMeshModel::getActivePolygonCount()
+w8_long srMeshModel::getActivePolygonCount()
 {
     return active_polygon_count;
 }
 
 // FUNCTION: SURRENDER 0x10042810
-void srMeshModel::setActivePolygonCount(long count)
+void srMeshModel::setActivePolygonCount(w8_long count)
 {
     active_polygon_count = count;
 }
 
 // FUNCTION: SURRENDER 0x10042820
-void srMeshModel::setUVCount(long count)
+void srMeshModel::setUVCount(w8_long count)
 {
     if (count < vertex_location_count) {
         count = vertex_location_count;
@@ -143,15 +143,15 @@ void srMeshModel::setUVCount(long count)
     if (count != uv_count) {
         uv_count = count;
         MeshTable<srVector2T<float> >* table = &texcoords[0][0];
-        for (long pass = 0; pass < 4; ++pass) {
-            for (long side = 0; side < 2; ++side, ++table) {
+        for (w8_long pass = 0; pass < 4; ++pass) {
+            for (w8_long side = 0; side < 2; ++side, ++table) {
                 if (table->data != 0) {
-                    unsigned long old_count = table->count;
-                    unsigned long uv = uv_count;
+                    w8_ulong old_count = table->count;
+                    w8_ulong uv = uv_count;
                     srVector2T<float> empty(0.0f, 0.0f);
                     table->Resize(uv, 1);
                     if (uv != 0) {
-                        for (unsigned long index = old_count; index < table->count; ++index) {
+                        for (w8_ulong index = old_count; index < table->count; ++index) {
                             table->data[index] = empty;
                         }
                     }
@@ -163,7 +163,7 @@ void srMeshModel::setUVCount(long count)
 }
 
 // FUNCTION: SURRENDER 0x10042980
-long srMeshModel::getUVCount() const
+w8_long srMeshModel::getUVCount() const
 {
     return uv_count;
 }
@@ -178,7 +178,7 @@ srVector3T<float>* srMeshModel::getVertexLoc()
     }
     if (vertex_locations.data == 0) {
         vertex_locations.Resize(vertex_location_count, 1);
-        for (unsigned long index = 0; index < vertex_locations.count; ++index) {
+        for (w8_ulong index = 0; index < vertex_locations.count; ++index) {
             vertex_locations.data[index].SetZero();
         }
     }
@@ -216,12 +216,12 @@ srVector4T<float>* srMeshModel::getPolyEq()
 }
 
 // FUNCTION: SURRENDER 0x10040250
-unsigned long* srMeshModel::getActivePolygonTable(int table)
+w8_ulong* srMeshModel::getActivePolygonTable(int table)
 {
     if (active_polygons.data == 0) {
         if (table != 0) {
             active_polygons.Resize(polygon_count, 0);
-            for (long index = 0; index < polygon_count; ++index) {
+            for (w8_long index = 0; index < polygon_count; ++index) {
                 active_polygons.data[index] = index;
             }
         }
@@ -237,7 +237,7 @@ srVector3i* srMeshModel::getPolyVertex()
     }
     if (poly_vertices.data == 0) {
         poly_vertices.Resize(polygon_count, 1);
-        for (unsigned long index = 0; index < poly_vertices.count; ++index) {
+        for (w8_ulong index = 0; index < poly_vertices.count; ++index) {
             poly_vertices.data[index].x = 0;
             poly_vertices.data[index].y = 0;
             poly_vertices.data[index].z = 0;
@@ -247,7 +247,7 @@ srVector3i* srMeshModel::getPolyVertex()
 }
 
 // FUNCTION: SURRENDER 0x10040430
-srPtr<srMaterialIFace>* srMeshModel::getVertexMaterial(long vertex, e_side side, int table)
+srPtr<srMaterialIFace>* srMeshModel::getVertexMaterial(w8_long vertex, e_side side, int table)
 {
     if (vertex < 0 || vertex > 3 || (int)side < 0 || (int)side > 1) {
         return 0;
@@ -256,7 +256,7 @@ srPtr<srMaterialIFace>* srMeshModel::getVertexMaterial(long vertex, e_side side,
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
-            for (unsigned long index = 0; index < slot.count; ++index) {
+            for (w8_ulong index = 0; index < slot.count; ++index) {
                 slot.data[index] = srPtr<srMaterialIFace>();
             }
         }
@@ -265,7 +265,7 @@ srPtr<srMaterialIFace>* srMeshModel::getVertexMaterial(long vertex, e_side side,
 }
 
 // FUNCTION: SURRENDER 0x10040560
-srPtr<srTextureIFace>* srMeshModel::getPolyTexture(long polygon, long layer, int table)
+srPtr<srTextureIFace>* srMeshModel::getPolyTexture(w8_long polygon, w8_long layer, int table)
 {
     if (polygon < 0 || polygon > 3 || layer < 0 || layer > 1) {
         return 0;
@@ -274,7 +274,7 @@ srPtr<srTextureIFace>* srMeshModel::getPolyTexture(long polygon, long layer, int
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(polygon_count, 0);
-            for (unsigned long index = 0; index < slot.count; ++index) {
+            for (w8_ulong index = 0; index < slot.count; ++index) {
                 slot.data[index] = srPtr<srTextureIFace>();
             }
         }
@@ -283,7 +283,7 @@ srPtr<srTextureIFace>* srMeshModel::getPolyTexture(long polygon, long layer, int
 }
 
 // FUNCTION: SURRENDER 0x10040690
-srShader* srMeshModel::getPolyShader(long polygon, int layer)
+srShader* srMeshModel::getPolyShader(w8_long polygon, int layer)
 {
     if (polygon < 0 || polygon > 3) {
         return 0;
@@ -298,7 +298,7 @@ srShader* srMeshModel::getPolyShader(long polygon, int layer)
 }
 
 // FUNCTION: SURRENDER 0x10040720
-srVector3i* srMeshModel::getPolyUVIndex(long layer, int table)
+srVector3i* srMeshModel::getPolyUVIndex(w8_long layer, int table)
 {
     if (layer < 0 || layer > 3) {
         return 0;
@@ -308,7 +308,7 @@ srVector3i* srMeshModel::getPolyUVIndex(long layer, int table)
         if (table != 0) {
             slot.Resize(polygon_count, 0);
             srVector3i* source = getPolyVertex();
-            for (long index = 0; index < polygon_count; ++index) {
+            for (w8_long index = 0; index < polygon_count; ++index) {
                 slot.data[index] = source[index];
             }
         }
@@ -317,7 +317,7 @@ srVector3i* srMeshModel::getPolyUVIndex(long layer, int table)
 }
 
 // FUNCTION: SURRENDER 0x100407E0
-srVector3T<float>* srMeshModel::getVertexDIG(long vertex, int table)
+srVector3T<float>* srMeshModel::getVertexDIG(w8_long vertex, int table)
 {
     if (vertex < 0 || vertex > 3) {
         return 0;
@@ -326,7 +326,7 @@ srVector3T<float>* srMeshModel::getVertexDIG(long vertex, int table)
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
-            for (unsigned long index = 0; index < slot.count; ++index) {
+            for (w8_ulong index = 0; index < slot.count; ++index) {
                 slot.data[index].SetZero();
             }
         }
@@ -335,7 +335,7 @@ srVector3T<float>* srMeshModel::getVertexDIG(long vertex, int table)
 }
 
 // FUNCTION: SURRENDER 0x10040A70
-srVector2T<float>* srMeshModel::getVertexTexCoords(long vertex, long layer, int table)
+srVector2T<float>* srMeshModel::getVertexTexCoords(w8_long vertex, w8_long layer, int table)
 {
     if (vertex < 0 || vertex > 3 || layer < 0 || layer > 1) {
         return 0;
@@ -344,7 +344,7 @@ srVector2T<float>* srMeshModel::getVertexTexCoords(long vertex, long layer, int 
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(uv_count, 1);
-            for (unsigned long index = 0; index < slot.count; ++index) {
+            for (w8_ulong index = 0; index < slot.count; ++index) {
                 slot.data[index].SetZero();
             }
         }
@@ -353,12 +353,12 @@ srVector2T<float>* srMeshModel::getVertexTexCoords(long vertex, long layer, int 
 }
 
 // FUNCTION: SURRENDER 0x10040B80
-unsigned long* srMeshModel::getVertexShadeIndex(int table)
+w8_ulong* srMeshModel::getVertexShadeIndex(int table)
 {
     if (vertex_shade_indices.data == 0) {
         if (table != 0) {
             vertex_shade_indices.Resize(vertex_location_count, 1);
-            for (unsigned long index = 0; index < vertex_shade_indices.count; ++index) {
+            for (w8_ulong index = 0; index < vertex_shade_indices.count; ++index) {
                 vertex_shade_indices.data[index] = 0;
             }
         }
@@ -400,7 +400,7 @@ void srMeshModel::freeAll()
     vertex_locations.Release();
     vertex_normals.Release();
     vertex_shade_indices.Release();
-    for (long pass = 0; pass < 4; ++pass) {
+    for (w8_long pass = 0; pass < 4; ++pass) {
         vertex_materials[pass][0].Release();
         vertex_materials[pass][1].Release();
         poly_textures[pass][0].Release();
@@ -416,12 +416,12 @@ void srMeshModel::freeAll()
 }
 
 // FUNCTION: SURRENDER 0x1003CF30
-srMeshModel::srMeshModel(long polygons, long vertices)
+srMeshModel::srMeshModel(w8_long polygons, w8_long vertices)
 {
     memset(&tri_mesh, 0, sizeof(tri_mesh));
     reset(polygons, vertices);
     sort_bias = 0.0f;
-    for (long pass = 0; pass < 4; ++pass) {
+    for (w8_long pass = 0; pass < 4; ++pass) {
         materials[pass][0] = 0;
         materials[pass][1] = 0;
         textures[pass][0] = 0;
@@ -431,7 +431,7 @@ srMeshModel::srMeshModel(long polygons, long vertices)
 }
 
 // FUNCTION: SURRENDER 0x1003D2C0
-void srMeshModel::reset(long polygons, long vertices)
+void srMeshModel::reset(w8_long polygons, w8_long vertices)
 {
     freeAll();
     vertex_location_count = vertices;
@@ -473,8 +473,8 @@ srMeshModel& srMeshModel::operator=(const srMeshModel& other)
         vertex_locations = other.vertex_locations;
         vertex_normals = other.vertex_normals;
         vertex_shade_indices = other.vertex_shade_indices;
-        for (long pass = 0; pass < 4; ++pass) {
-            long side;
+        for (w8_long pass = 0; pass < 4; ++pass) {
+            w8_long side;
             for (side = 0; side < 2; ++side) {
                 materials[pass][side] = other.materials[pass][side];
                 vertex_materials[pass][side] = other.vertex_materials[pass][side];
@@ -511,7 +511,7 @@ void srMeshModel::calculateBounds()
         bounds_center.x = (bounds_minimum.x + bounds_maximum.x) * 0.5;
         bounds_center.y = (bounds_minimum.y + bounds_maximum.y) * 0.5;
         bounds_center.z = (bounds_minimum.z + bounds_maximum.z) * 0.5;
-        long count = vertex_location_count;
+        w8_long count = vertex_location_count;
         if (0 < count) {
             do {
                 float dy = vertices->y - bounds_center.y;
@@ -538,7 +538,7 @@ void srMeshModel::calculatePolygonNormals()
     srVector4T<float>* equations = getPolyEq();
     srVector3i* polygons = getPolyVertex();
     srVector3T<float>* vertices = getVertexLoc();
-    for (long polygon = 0; polygon < polygon_count; polygon++) {
+    for (w8_long polygon = 0; polygon < polygon_count; polygon++) {
         const srVector3T<float>* v0 = vertices + polygons[polygon].x;
         const srVector3T<float>* v1 = vertices + polygons[polygon].y;
         const srVector3T<float>* v2 = vertices + polygons[polygon].z;
@@ -572,10 +572,10 @@ void srMeshModel::calculateVertexNormals()
         srVector4T<float>* equations = getPolyEq();
         srVector3T<float>* normals = getVertexNormal();
         srVector3i* polygons = getPolyVertex();
-        unsigned long* shade_indices = getVertexShadeIndex(0);
+        w8_ulong* shade_indices = getVertexShadeIndex(0);
         if (shade_indices == 0) {
-            fillConstant((unsigned long*)normals, 0, vertex_location_count * 3);
-            for (long polygon = 0; polygon < polygon_count; polygon++) {
+            fillConstant((w8_ulong*)normals, 0, vertex_location_count * 3);
+            for (w8_long polygon = 0; polygon < polygon_count; polygon++) {
                 normals[polygons[polygon].x].x += equations[polygon].x;
                 normals[polygons[polygon].x].y += equations[polygon].y;
                 normals[polygons[polygon].x].z += equations[polygon].z;
@@ -588,12 +588,12 @@ void srMeshModel::calculateVertexNormals()
             }
         } else {
             srVector3T<float>* smooth =
-                (srVector3T<float>*)srHeap.allocate(vertex_location_count * 0xc);
-            long count = vertex_location_count * 3;
+                (srVector3T<float>*)srHeap.allocate(vertex_location_count * sizeof(*smooth));
+            w8_long count = vertex_location_count * 3;
             if (count != 0) {
                 srVectorProcessor::copy((SRDWORD*)smooth, 0, count);
             }
-            for (long polygon = 0; polygon < polygon_count; polygon++) {
+            for (w8_long polygon = 0; polygon < polygon_count; polygon++) {
                 smooth[shade_indices[polygons[polygon].x]].x += equations[polygon].x;
                 smooth[shade_indices[polygons[polygon].x]].y += equations[polygon].y;
                 smooth[shade_indices[polygons[polygon].x]].z += equations[polygon].z;
@@ -620,7 +620,7 @@ void srMeshModel::calculateVertexNormals()
 void srMeshModel::scale(const srVector3T<float>& scale)
 {
     srVector3T<float>* vertices = getVertexLoc();
-    for (long index = 0; index < vertex_location_count; index++) {
+    for (w8_long index = 0; index < vertex_location_count; index++) {
         vertices[index] *= scale;
     }
     setDirty(DIRTY_BOUNDS);
@@ -633,7 +633,7 @@ void srMeshModel::scale(const srVector3T<float>& scale)
 void srMeshModel::applyMatrix(const srMatrix3T<float>& matrix)
 {
     srVector3T<float>* vertices = getVertexLoc();
-    for (long index = 0; index < vertex_location_count; index++) {
+    for (w8_long index = 0; index < vertex_location_count; index++) {
         /* Retail's per-row summation order (0x1003E780). */
         srVector3T<float>& p = vertices[index];
         const srVector3T<float>* m = matrix.vectors;
@@ -654,7 +654,7 @@ void srMeshModel::applyMatrix(const srMatrix3T<float>& matrix)
 void srMeshModel::relocateVertices(const srVector3T<float>& offset)
 {
     srVector3T<float>* vertices = getVertexLoc();
-    for (long index = 0; index < vertex_location_count; index++) {
+    for (w8_long index = 0; index < vertex_location_count; index++) {
         vertices[index] += offset;
     }
     setDirty(DIRTY_BOUNDS);
@@ -675,11 +675,11 @@ void srMeshModel::centerVertices()
 {
     if (vertex_location_count != 0) {
         srVector3T<float>* vertices = getVertexLoc();
-        long count = vertex_location_count;
+        w8_long count = vertex_location_count;
         double sum_x = 0.0;
         double sum_y = 0.0;
         double sum_z = 0.0;
-        for (long index = 0; index < count; index++) {
+        for (w8_long index = 0; index < count; index++) {
             sum_x += vertices[index].x;
             sum_y += vertices[index].y;
             sum_z += vertices[index].z;
@@ -702,10 +702,10 @@ double srMeshModel::getAverageRadius()
         return 0.0;
     }
     srVector3T<float>* vertices = getVertexLoc();
-    long count = vertex_location_count;
+    w8_long count = vertex_location_count;
     double radius = 0.0;
     if (0 < count) {
-        for (long index = 0; index < count; index++) {
+        for (w8_long index = 0; index < count; index++) {
             radius =
                 sqrt(vertices[index].x * vertices[index].x + vertices[index].z * vertices[index].z +
                      vertices[index].y * vertices[index].y) +
@@ -724,8 +724,8 @@ double srMeshModel::getMaxRadius()
         return 0.0;
     }
     srVector3T<float>* vertices = getVertexLoc();
-    long count = vertex_location_count;
-    for (long index = 0; index < count; index++) {
+    w8_long count = vertex_location_count;
+    for (w8_long index = 0; index < count; index++) {
         /* Retail compares and keeps the unrounded register sum. */
         double radius = vertices[index].LengthSquared();
         if (maximum <= radius) {
@@ -762,8 +762,8 @@ void srMeshModel::flipFaces()
 {
     if (polygon_count != 0) {
         srVector3i* polygons = getPolyVertex();
-        for (long polygon = 0; polygon < polygon_count; polygon++) {
-            long first = polygons[polygon].x;
+        for (w8_long polygon = 0; polygon < polygon_count; polygon++) {
+            w8_long first = polygons[polygon].x;
             polygons[polygon].x = polygons[polygon].y;
             polygons[polygon].y = first;
         }
@@ -775,12 +775,12 @@ void srMeshModel::flipFaces()
 }
 
 // FUNCTION: SURRENDER 0x1003ED20
-long srMeshModel::findClosestVertex(const srVector3T<float>& position)
+w8_long srMeshModel::findClosestVertex(const srVector3T<float>& position)
 {
     if (vertex_location_count != 0) {
         srVector3T<float>* vertices = getVertexLoc();
-        long index = 1;
-        long closest = 0;
+        w8_long index = 1;
+        w8_long closest = 0;
         float minimum = (vertices[0].x - position.x) * (vertices[0].x - position.x) +
                         (vertices[0].y - position.y) * (vertices[0].y - position.y) +
                         (vertices[0].z - position.z) * (vertices[0].z - position.z);
@@ -829,13 +829,13 @@ void srMeshModel::updateTriMesh()
     tri_mesh.poly_equations = getPolyEq();
     tri_mesh.positions = getVertexLoc();
     tri_mesh.normals = getVertexNormal();
-    for (long pass = 0; pass < 4; pass++) {
-        for (long side = 0; side < 2; side++) {
+    for (w8_long pass = 0; pass < 4; pass++) {
+        for (w8_long side = 0; side < 2; side++) {
             tri_mesh.materials[pass][side] = static_cast<srMaterial*>(materials[pass][side].get());
             tri_mesh.vertex_materials[pass][side] =
                 getVertexMaterial(pass, static_cast<e_side>(side), 0);
         }
-        for (long layer = 0; layer < 2; layer++) {
+        for (w8_long layer = 0; layer < 2; layer++) {
             tri_mesh.textures[pass][layer] = (srTextureIFace*)textures[pass][layer];
             tri_mesh.poly_textures[pass][layer] = getPolyTexture(pass, layer, 0);
             tri_mesh.texcoords[pass][layer] = getVertexTexCoords(pass, layer, 0);
@@ -894,7 +894,7 @@ int srMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 }
 
 // FUNCTION: SURRENDER 0x100408B0
-srVector4T<float>* srMeshModel::getVertexSCG(long vertex, int table)
+srVector4T<float>* srMeshModel::getVertexSCG(w8_long vertex, int table)
 {
     if (vertex < 0 || vertex > 3) {
         return 0;
@@ -903,7 +903,7 @@ srVector4T<float>* srMeshModel::getVertexSCG(long vertex, int table)
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
-            for (unsigned long index = 0; index < slot.count; ++index) {
+            for (w8_ulong index = 0; index < slot.count; ++index) {
                 slot.data[index] = 1.0f;
             }
         }
@@ -913,7 +913,7 @@ srVector4T<float>* srMeshModel::getVertexSCG(long vertex, int table)
 }
 
 // FUNCTION: SURRENDER 0x10040990
-srVector4T<float>* srMeshModel::getVertexDCG(long vertex, int table)
+srVector4T<float>* srMeshModel::getVertexDCG(w8_long vertex, int table)
 {
     if (vertex < 0 || vertex > 3) {
         return 0;
@@ -922,7 +922,7 @@ srVector4T<float>* srMeshModel::getVertexDCG(long vertex, int table)
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
-            for (unsigned long index = 0; index < slot.count; ++index) {
+            for (w8_ulong index = 0; index < slot.count; ++index) {
                 slot.data[index] = 1.0f;
             }
         }
@@ -961,10 +961,10 @@ void srMeshModel::render(srGERD& renderer)
 }
 
 // FUNCTION: SURRENDER 0x100418C0
-void srMeshModel::reindexPolygons(const unsigned long* indices)
+void srMeshModel::reindexPolygons(const w8_ulong* indices)
 {
-    long index;
-    long pass;
+    w8_long index;
+    w8_long pass;
     if (polygon_count != 0) {
         permuteTable(getPolyEq(), indices, polygon_count);
         permuteTable(getPolyVertex(), indices, polygon_count);
@@ -975,15 +975,15 @@ void srMeshModel::reindexPolygons(const unsigned long* indices)
             if (getPolyShader(pass, 0) != 0) {
                 permuteObjects(getPolyShader(pass, 0), indices, polygon_count);
             }
-            for (long layer = 0; layer < 2; ++layer) {
+            for (w8_long layer = 0; layer < 2; ++layer) {
                 if (getPolyTexture(pass, layer, 0) != 0) {
                     permuteObjects(getPolyTexture(pass, layer, 0), indices, polygon_count);
                 }
             }
         }
         if (active_polygon_count != 0 && getActivePolygonTable(0) != 0) {
-            unsigned long* table = getActivePolygonTable(1);
-            unsigned long* forward = new unsigned long[polygon_count];
+            w8_ulong* table = getActivePolygonTable(1);
+            w8_ulong* forward = new w8_ulong[polygon_count];
             for (index = 0; index < polygon_count; ++index) {
                 forward[indices[index]] = index;
             }
@@ -1000,24 +1000,24 @@ void srMeshModel::reindexPolygons(const unsigned long* indices)
 }
 
 // FUNCTION: SURRENDER 0x10042230
-void srMeshModel::reindexVertices(const unsigned long* indices)
+void srMeshModel::reindexVertices(const w8_ulong* indices)
 {
-    long component;
-    long pass;
-    long polygon;
-    long side;
-    long table;
-    long index;
+    w8_long component;
+    w8_long pass;
+    w8_long polygon;
+    w8_long side;
+    w8_long table;
+    w8_long index;
     if (vertex_location_count != 0) {
-        unsigned long* forward = new unsigned long[vertex_location_count];
+        w8_ulong* forward = new w8_ulong[vertex_location_count];
         for (index = 0; index < vertex_location_count; ++index) {
             forward[indices[index]] = index;
         }
         permuteTable(getVertexNormal(), indices, vertex_location_count);
         permuteTable(getVertexLoc(), indices, vertex_location_count);
-        unsigned long* shade = getVertexShadeIndex(0);
+        w8_ulong* shade = getVertexShadeIndex(0);
         if (shade != 0) {
-            unsigned long* copy = new unsigned long[vertex_location_count];
+            w8_ulong* copy = new w8_ulong[vertex_location_count];
             if (vertex_location_count != 0 && copy != shade) {
                 srVectorProcessor::memcopy(copy, shade, vertex_location_count * 4);
             }
@@ -1025,8 +1025,8 @@ void srMeshModel::reindexVertices(const unsigned long* indices)
                 shade[index] = forward[copy[indices[index]]];
             }
             for (index = 0; index < vertex_location_count; ++index) {
-                unsigned long value = shade[index];
-                if (value < (unsigned long)index) {
+                w8_ulong value = shade[index];
+                if (value < (w8_ulong)index) {
                     shade[index] = shade[value];
                     shade[value] = value;
                 }
@@ -1087,11 +1087,11 @@ void srMeshModel::reindexVertices(const unsigned long* indices)
 // FUNCTION: SURRENDER 0x10040C40
 void srMeshModel::verify(srRuntimeClass::e_verify mode)
 {
-    long i;
-    long j;
-    long p;
-    long s;
-    long v;
+    w8_long i;
+    w8_long j;
+    w8_long p;
+    w8_long s;
+    w8_long v;
 
     srClass::verify(mode);
     TriMesh t;
@@ -1246,15 +1246,15 @@ void srMeshModel::verify(srRuntimeClass::e_verify mode)
 // FUNCTION: SURRENDER 0x1003EE00
 void srMeshModel::dump(std::ostream& stream)
 {
-    long pass;
+    w8_long pass;
     int stage;
-    long polygon;
-    long vertex;
-    long side;
-    long changes;
+    w8_long polygon;
+    w8_long vertex;
+    w8_long side;
+    w8_long changes;
 
     srModel::dump(stream);
-    long flags = stream.flags();
+    w8_long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
     stream << "  Polygons: " << polygon_count << '\n';
@@ -1290,7 +1290,7 @@ void srMeshModel::dump(std::ostream& stream)
         bool first = true;
         const char* names = s_flag_names0;
         const char* name = names;
-        for (unsigned long bit = 0; bit < 0x20; ++bit) {
+        for (w8_ulong bit = 0; bit < 0x20; ++bit) {
             if ((dirty_flags.value & (1 << bit)) == 0) {
                 if (name != 0) {
                     while (*name != 0 && *name != ',') {
@@ -1331,7 +1331,7 @@ void srMeshModel::dump(std::ostream& stream)
         bool first = true;
         const char* names = s_control_names;
         const char* name = names;
-        for (unsigned long bit = 0; bit < 0x20; ++bit) {
+        for (w8_ulong bit = 0; bit < 0x20; ++bit) {
             if ((render_control.value & (1 << bit)) == 0) {
                 if (name != 0) {
                     while (*name != 0 && *name != ',') {
@@ -1492,14 +1492,14 @@ void srMeshModel::dump(std::ostream& stream)
     }
     stream << '\n';
     srVector3i* vertices = getPolyVertex();
-    unsigned long strips = 1;
+    w8_ulong strips = 1;
     for (pass = 0; pass < pass_count; ++pass) {
         for (polygon = 1; polygon < polygon_count; ++polygon) {
             int* next = &vertices[polygon].x;
             int* previous = &vertices[polygon - 1].x;
-            long shared = 0;
-            for (long a = 0; a < 3; ++a) {
-                for (long b = 0; b < 3; ++b) {
+            w8_long shared = 0;
+            for (w8_long a = 0; a < 3; ++a) {
+                for (w8_long b = 0; b < 3; ++b) {
                     if (next[a] == previous[b]) {
                         ++shared;
                     }
@@ -1524,9 +1524,9 @@ void srMeshModel::dump(std::ostream& stream)
             }
         }
     }
-    unsigned long shader_changes = 0;
-    unsigned long texture_changes = 0;
-    unsigned long material_changes = 0;
+    w8_ulong shader_changes = 0;
+    w8_ulong texture_changes = 0;
+    w8_ulong material_changes = 0;
     for (pass = 0; pass < pass_count; ++pass) {
         if (getPolyShader(pass, 0) != 0) {
             srShader* shaders = getPolyShader(pass, 1);
@@ -1730,7 +1730,7 @@ void srTriMeshPipeline::FlushSlots()
         culler_input.clip_mask = 0;
     } else {
         float depth;
-        unsigned long clip_mask = srTriangleCuller::getClipMask(
+        w8_ulong clip_mask = srTriangleCuller::getClipMask(
             eye_center, eye_radius, clip_planes.planes, clip_planes.mask, depth);
         int retain_clip_mask =
             clip_mask != 0 && ((clip_mask & 0xffffffc0UL) != 0 ||
@@ -1748,14 +1748,14 @@ void srTriMeshPipeline::FlushSlots()
     ++srCore.getStatisticsManager()->statistics.meshes_submitted;
     srCore.getStatisticsManager()->statistics.vertices_submitted += slot_count * vertex_count;
 
-    unsigned long total = active_triangles == 0 ? triangle_count : active_triangle_count;
-    unsigned long batch_limit = total;
+    w8_ulong total = active_triangles == 0 ? triangle_count : active_triangle_count;
+    w8_ulong batch_limit = total;
     if ((this->flags & LIMIT_VERTEX_BATCHES) != 0) {
         double ratio = static_cast<double>(vertex_count) / triangle_count;
         if (ratio > 3.0f) {
             ratio = 3.0f;
         }
-        batch_limit = static_cast<unsigned long>(1300.0f / (slot_count * ratio));
+        batch_limit = static_cast<w8_ulong>(1300.0f / (slot_count * ratio));
         if (cull_mode == srGERD::CULL_NONE) {
             batch_limit >>= 1;
         }
@@ -1764,15 +1764,15 @@ void srTriMeshPipeline::FlushSlots()
         }
     }
 
-    unsigned long* scratch = culler_scratch.ensure(batch_limit + vertex_count * 2);
+    w8_ulong* scratch = culler_scratch.ensure(batch_limit + vertex_count * 2);
     srTriangleCuller::Output culler_output;
     culler_output.indices = scratch;
     culler_output.avt = scratch + batch_limit;
     culler_output.vertex_remap = culler_output.avt + vertex_count;
 
-    unsigned long processed = 0;
+    w8_ulong processed = 0;
     while (processed < total) {
-        unsigned long batch_count = total - processed;
+        w8_ulong batch_count = total - processed;
         if (batch_count > batch_limit) {
             batch_count = batch_limit;
         }
@@ -1805,8 +1805,8 @@ void srTriMeshPipeline::FlushSlots()
 
             /* The left side re-reads vertex_arrays[slot] while the right side keeps the snapshot
                taken before the loop. */
-            for (unsigned long slot = 1; slot < slot_count; ++slot) {
-                unsigned long offset = slot * culler_output.vertex_count;
+            for (w8_ulong slot = 1; slot < slot_count; ++slot) {
+                w8_ulong offset = slot * culler_output.vertex_count;
                 this->vertex_arrays[slot].eye_locations = vertex_arrays[0].eye_locations + offset;
                 this->vertex_arrays[slot].diffuse = vertex_arrays[0].diffuse + offset;
                 this->vertex_arrays[slot].specular = vertex_arrays[0].specular + offset;
@@ -1817,7 +1817,7 @@ void srTriMeshPipeline::FlushSlots()
                 this->vertex_arrays[slot].attributes = vertex_arrays[0].attributes + offset;
             }
 
-            unsigned long processor_count = this->renderer->getVertexProcessorCount();
+            w8_ulong processor_count = this->renderer->getVertexProcessorCount();
             srVertexProcessor** processors = 0;
             if (processor_count != 0) {
                 processors = vertex_processors.ensure(processor_count);
@@ -1832,7 +1832,7 @@ void srTriMeshPipeline::FlushSlots()
             this->renderer->getAmbientLight(ambient_light);
             this->renderer->getEnvironmentRange(environment_minimum, environment_maximum);
             this->renderer->getEnvironmentScaleFactor(environment_scale, environment_inverse_scale);
-            unsigned long exclusion_mask = this->renderer->getExclusionMask();
+            w8_ulong exclusion_mask = this->renderer->getExclusionMask();
 
             srVertexPipe::Input pipe_input;
             pipe_input.record_count = slot_count;
@@ -1857,21 +1857,21 @@ void srTriMeshPipeline::FlushSlots()
             pipe_input.environment_inverse_scale = environment_inverse_scale;
 
             if (active_triangles == 0 && processed != 0) {
-                for (unsigned long index = 0; index < batch_count; ++index) {
+                for (w8_ulong index = 0; index < batch_count; ++index) {
                     culler_output.indices[index] += processed;
                 }
             }
 
-            unsigned long renderer_disable_mask = 0;
+            w8_ulong renderer_disable_mask = 0;
             if (this->renderer->getMaxTextureStages() == 1) {
                 renderer_disable_mask = (1UL << srVertexProcessor::CHANNEL_ST1) |
                                         (1UL << srVertexProcessor::CHANNEL_Q1);
             }
 
-            for (unsigned long pass_index = 0; pass_index < slot_count; ++pass_index) {
+            for (w8_ulong pass_index = 0; pass_index < slot_count; ++pass_index) {
                 passes[pass_index].texcoords = records[pass_index].st0;
 
-                unsigned long disable_mask;
+                w8_ulong disable_mask;
                 if (passes[pass_index].shaders != 0) {
                     srFlags<srVertexProcessor::e_channel> flags =
                         srVertexPipe::getShaderDisableMask(passes[pass_index].shaders,
@@ -1936,22 +1936,22 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
             renderer.toggle(srGERD::ENABLE_SORTED_RENDERING);
         }
 
-        long material_side;
-        for (long side = 1; side >= 0; --side) {
+        w8_long material_side;
+        for (w8_long side = 1; side >= 0; --side) {
             if ((mesh.control_flags & (1u << side)) != 0) {
                 srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
                 pipeline->sort_bias = mesh.sort_bias;
                 pipeline->triangles = mesh.poly_vertices;
-                pipeline->triangle_count = static_cast<unsigned long>(mesh.polygon_count);
+                pipeline->triangle_count = static_cast<w8_ulong>(mesh.polygon_count);
                 pipeline->positions = mesh.positions;
-                pipeline->vertex_count = static_cast<unsigned long>(mesh.vertex_count);
+                pipeline->vertex_count = static_cast<w8_ulong>(mesh.vertex_count);
                 pipeline->vertex_extras = mesh.normals;
                 pipeline->projected_vertices = mesh.poly_equations;
 
                 if (mesh.active_polygons != 0) {
                     pipeline->active_triangles = mesh.active_polygons;
                     pipeline->active_triangle_count =
-                        static_cast<unsigned long>(mesh.active_polygon_count);
+                        static_cast<w8_ulong>(mesh.active_polygon_count);
                 }
 
                 if ((mesh.control_flags & (1UL << srMeshModel::CONTROL_SKIP_AUTO_BOX)) == 0) {
@@ -1988,7 +1988,7 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     }
                 }
 
-                for (long pass = 0; pass < mesh.pass_count; ++pass) {
+                for (w8_long pass = 0; pass < mesh.pass_count; ++pass) {
                     pipeline->current_record->flags = 0;
                     pipeline->current_pass->shaders = 0;
                     pipeline->current_pass->texture_tables[0] = 0;
@@ -2041,7 +2041,7 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                         pipeline->current_record->st1 = mesh.texcoords[pass][1];
                     }
 
-                    for (long layer = 0; layer < 2; ++layer) {
+                    for (w8_long layer = 0; layer < 2; ++layer) {
                         if (mesh.poly_textures[pass][layer] == 0) {
                             srTextureIFace* texture = mesh.textures[pass][layer];
                             (&pipeline->texture0)[layer] = texture;
@@ -2084,7 +2084,7 @@ int srMeshModel::isEnabled(e_control control) const
 }
 
 // FUNCTION: SURRENDER 0x10041890
-void srMeshModel::setPassCount(long count)
+void srMeshModel::setPassCount(w8_long count)
 {
     pass_count = count;
     if (count < 1) {
@@ -2097,19 +2097,19 @@ void srMeshModel::setPassCount(long count)
 }
 
 // FUNCTION: SURRENDER 0x10041AC0
-long srMeshModel::getPassCount() const
+w8_long srMeshModel::getPassCount() const
 {
     return pass_count;
 }
 
 // FUNCTION: SURRENDER 0x10041AD0
-long srMeshModel::getPolygonCount() const
+w8_long srMeshModel::getPolygonCount() const
 {
     return polygon_count;
 }
 
 // FUNCTION: SURRENDER 0x10041AE0
-long srMeshModel::getVertexCount() const
+w8_long srMeshModel::getVertexCount() const
 {
     return vertex_location_count;
 }

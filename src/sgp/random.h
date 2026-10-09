@@ -4,7 +4,7 @@
 #define __RANDOM_
 
 #include "Types.h"
-#include "Debug.h"
+#include "DEBUG.H"
 #include <stdlib.h>
 #include <time.h>
 

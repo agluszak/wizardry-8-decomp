@@ -110,7 +110,7 @@ bool g_camp_character_pending;
 // GLOBAL: WIZ8 0x0069c108
 unsigned int g_camp_item_region_set;
 // GLOBAL: WIZ8 0x0069c10c
-unsigned long g_fade_tick_base;
+w8_ulong g_fade_tick_base;
 // GLOBAL: WIZ8 0x0069c110
 void (*g_fade_callback)(void);
 // GLOBAL: WIZ8 0x0069c114
@@ -390,7 +390,7 @@ void DrawCampResistances(void)
     width = StringPixLengthArg(
         g_wiz_text_font_secondary, wcslen(text),
         reinterpret_cast< // reinterpret-ok: SGP's historical UINT16 text ABI stores wchar_t data
-            UINT16*>(text));
+            CHAR16*>(text));
     gprintf((0x134 - width) / 2 + 0x144, 0x1e, text);
     for (index = 0; index < 6; ++index) {
         animation = &g_spell_realm_animations[index];
@@ -2615,7 +2615,7 @@ unsigned char UpdateScreenFade(void)
     if (!g_level_block->review_transition_done) {
         return 0;
     }
-    unsigned long elapsed = GetTickCount() - g_fade_tick_base;
+    w8_ulong elapsed = GetTickCount() - g_fade_tick_base;
     if (g_fade_duration < elapsed) {
         g_level_block->review_transition_done = false;
         if (g_fade_out == 0) {

@@ -8,6 +8,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "input.h"
 #include "wiz8/engine_code/stCube.h"
+#include <windows.h>
 
 class Trigger;
 class W8Monster;
@@ -40,7 +41,7 @@ struct W8MipeEditField {
     int value;
 };
 
-static_assert(sizeof(W8MipeEditField) == 0x18, "W8MipeEditField_size");
+W8_ABI_ASSERT(sizeof(W8MipeEditField) == 0x18, "W8MipeEditField_size");
 
 /* The editor state, allocated once and stored in g_mipe_state. It begins
    with the W8IList of selected monster location ids, and callers pass the
@@ -68,10 +69,10 @@ struct W8MipeState {
     signed char edit_selection; /* -1 = no row selected */
 };
 
-static_assert(sizeof(W8MipeState) == 0x64, "W8MipeState_size");
-static_assert(offsetof(W8MipeState, drag_anchor) == 0x24, "W8MipeState_drag_anchor");
-static_assert(offsetof(W8MipeState, waypoints) == 0x3c, "W8MipeState_waypoints");
-static_assert(offsetof(W8MipeState, generator) == 0x54, "W8MipeState_generator");
+W8_ABI_ASSERT(sizeof(W8MipeState) == 0x64, "W8MipeState_size");
+W8_ABI_ASSERT(offsetof(W8MipeState, drag_anchor) == 0x24, "W8MipeState_drag_anchor");
+W8_ABI_ASSERT(offsetof(W8MipeState, waypoints) == 0x3c, "W8MipeState_waypoints");
+W8_ABI_ASSERT(offsetof(W8MipeState, generator) == 0x54, "W8MipeState_generator");
 
 extern bool g_debug_monster_cycle;
 extern W8MipeState* g_mipe_state;

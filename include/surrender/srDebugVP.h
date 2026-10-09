@@ -525,9 +525,9 @@ protected:
     double call_overhead;
     double call_times[COMMAND_COUNT];
     double element_counts[COMMAND_COUNT];
-    unsigned long call_counts[COMMAND_COUNT];
-    unsigned long misaligned8[COMMAND_COUNT];
-    unsigned long misaligned16[COMMAND_COUNT];
+    w8_ulong call_counts[COMMAND_COUNT];
+    w8_ulong misaligned8[COMMAND_COUNT];
+    w8_ulong misaligned16[COMMAND_COUNT];
 
     static const char* command_names[COMMAND_COUNT];
 
@@ -537,4 +537,4 @@ private:
 
 static_assert(sizeof(srDebugVP::e_command) == 4, "srDebugVP_command_size");
 
-static_assert((sizeof(srDebugVP) == 0x1678), "srDebugVP_must_be_0x1678");
+W8_ABI_ASSERT((sizeof(srDebugVP) == 0x1678), "srDebugVP_must_be_0x1678");

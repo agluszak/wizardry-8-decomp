@@ -25,7 +25,7 @@ srIOManager::~srIOManager() {}
 // FUNCTION: SURRENDER 0x1002D1C0
 const char* srIOManager::getExtension(const char* path)
 {
-    for (long index = (long)strlen(path) - 1;
+    for (w8_long index = (w8_long)strlen(path) - 1;
          index >= 0 && path[index] != '/' && path[index] != '\\'; --index) {
         if (path[index] == '.') {
             return path + index + 1;
@@ -42,7 +42,7 @@ srIOManager::Importer* srIOManager::findImporter(const char* extension)
     }
     char* upper = new char[strlen(extension) + 1];
     strcpy(upper, extension);
-    for (unsigned long index = 0; index < strlen(extension); ++index) {
+    for (w8_ulong index = 0; index < strlen(extension); ++index) {
         if (islower(upper[index]) != 0) {
             upper[index] = (char)toupper(upper[index]);
         }
@@ -60,7 +60,7 @@ srIOManager::Exporter* srIOManager::findExporter(const char* extension)
     }
     char* upper = new char[strlen(extension) + 1];
     strcpy(upper, extension);
-    for (unsigned long index = 0; index < strlen(extension); ++index) {
+    for (w8_ulong index = 0; index < strlen(extension); ++index) {
         if (islower(upper[index]) != 0) {
             upper[index] = (char)toupper(upper[index]);
         }
@@ -76,8 +76,8 @@ void srIOManager::addImporter(Importer* importer, const char* extension)
     if (importer != 0 && extension != 0 && *extension != '\0') {
         char* upper = new char[strlen(extension) + 1];
         strcpy(upper, extension);
-        long length = strlen(upper);
-        for (long index = 0; index < length; ++index) {
+        w8_long length = strlen(upper);
+        for (w8_long index = 0; index < length; ++index) {
             upper[index] = (char)toupper(upper[index]);
         }
         importers.insert(importers.sentinel, upper, importer);
@@ -90,8 +90,8 @@ void srIOManager::addExporter(Exporter* exporter, const char* extension)
     if (exporter != 0 && extension != 0 && *extension != '\0') {
         char* upper = new char[strlen(extension) + 1];
         strcpy(upper, extension);
-        long length = strlen(upper);
-        for (long index = 0; index < length; ++index) {
+        w8_long length = strlen(upper);
+        for (w8_long index = 0; index < length; ++index) {
             upper[index] = (char)toupper(upper[index]);
         }
         exporters.insert(exporters.sentinel, upper, exporter);

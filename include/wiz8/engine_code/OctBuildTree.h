@@ -28,7 +28,7 @@ struct W8OctBuildNode {
     unsigned char RearrangeNodePolys(short current_depth, short target_depth);
     int CollectLinkedSurfaces(short current_depth, short target_depth, short mode);
     int CollectSurfaceArray(short mode);
-    unsigned long ConvertToOctPreTree(unsigned short depth, OctPreTree* tree);
+    w8_ulong ConvertToOctPreTree(unsigned short depth, OctPreTree* tree);
 
     union {
         W8OctBuildNode* children[8];
@@ -36,8 +36,8 @@ struct W8OctBuildNode {
         void** surface_arrays[8]; /* elements follow the insert mode */
         unsigned short* region_arrays[8];
     };
-    unsigned long padding_20;
-    unsigned long padding_24;
+    w8_ulong padding_20;
+    w8_ulong padding_24;
     unsigned short region;
     unsigned short leaf_kind;
     unsigned short provisional_region;
@@ -63,9 +63,9 @@ struct W8OctBuildTree {
                    unsigned short item_limit, short extent_mode);
     ~W8OctBuildTree();
 
-    unsigned char InsertSurface(W8GDSurface* surface, unsigned long mode);
+    unsigned char InsertSurface(W8GDSurface* surface, w8_ulong mode);
     unsigned char InsertSurfaceRecursive(W8OctSpatialState* working, W8GDSurface* surface,
-                                         srVector3T<float>* plane_point, unsigned long mode);
+                                         srVector3T<float>* plane_point, w8_ulong mode);
     int CollectObjectsAlongSegment(W8GDSurface*** results, const srVector3T<float>* origin,
                                    const srVector3T<float>* delta, float half_angle, float extent,
                                    unsigned short kind);
@@ -87,22 +87,22 @@ struct W8OctBuildTree {
 
     W8OctSpatialState spatial;
     W8OctBuildLinkLists* link_lists;
-    unsigned long leaf_polygon_count;
-    unsigned long gd_surface_count;
-    unsigned long leaf_count;
+    w8_ulong leaf_polygon_count;
+    w8_ulong gd_surface_count;
+    w8_ulong leaf_count;
     unsigned short max_leaf_regions;
     unsigned short unknown_ae;
-    unsigned long region_assignments;
+    w8_ulong region_assignments;
     bool use_owned_nodes;
     unsigned char unknown_b5[3];
-    unsigned long deepest_link_list;
+    w8_ulong deepest_link_list;
 };
 
-static_assert(sizeof(W8OctBuildLink) == 8, "W8OctBuildLink_must_be_8");
-static_assert(sizeof(W8OctBuildLinkLists) == 0x25c, "W8OctBuildLinkLists_must_be_0x25c");
-static_assert(sizeof(W8OctBuildNode) == 0x30, "W8OctBuildNode00446330_must_be_0x30");
-static_assert(sizeof(W8CountedOctBuildNode) == 0x30, "W8CountedOctBuildNode004AF760_must_be_0x30");
-static_assert(sizeof(W8OctBuildTree) == 0xbc, "W8OctBuildTree_must_be_0xbc");
+W8_ABI_ASSERT(sizeof(W8OctBuildLink) == 8, "W8OctBuildLink_must_be_8");
+W8_ABI_ASSERT(sizeof(W8OctBuildLinkLists) == 0x25c, "W8OctBuildLinkLists_must_be_0x25c");
+W8_ABI_ASSERT(sizeof(W8OctBuildNode) == 0x30, "W8OctBuildNode00446330_must_be_0x30");
+W8_ABI_ASSERT(sizeof(W8CountedOctBuildNode) == 0x30, "W8CountedOctBuildNode004AF760_must_be_0x30");
+W8_ABI_ASSERT(sizeof(W8OctBuildTree) == 0xbc, "W8OctBuildTree_must_be_0xbc");
 
 extern const float g_octree_cell_extent_scale;
 extern W8GDSurface** g_oct_build_scratch;

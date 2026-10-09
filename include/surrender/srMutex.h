@@ -15,7 +15,7 @@ public:
 
 private:
     HANDLE handle;
-    long access_count;
+    w8_long access_count;
 };
 
-static_assert(sizeof(srMutex) == 0x0c, "srMutex_must_be_0x0c");
+W8_ABI_ASSERT(sizeof(srMutex) == 0x0c, "srMutex_must_be_0x0c");

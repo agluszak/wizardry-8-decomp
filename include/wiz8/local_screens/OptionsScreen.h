@@ -33,7 +33,7 @@ public:
     Listener* m_listener;
 };
 
-static_assert(sizeof(W8OptionsTextEditor) == 8, "W8OptionsTextEditor_size");
+W8_ABI_ASSERT(sizeof(W8OptionsTextEditor) == 8, "W8OptionsTextEditor_size");
 
 class W8OptionsKeyCapture {
 public:
@@ -62,7 +62,7 @@ public:
     W8OptionsSaveRowListener* m_save_listener;
 };
 
-static_assert(sizeof(W8OptionsSaveRow) == 0xc4, "W8OptionsSaveRow_size");
+W8_ABI_ASSERT(sizeof(W8OptionsSaveRow) == 0xc4, "W8OptionsSaveRow_size");
 
 /* The settings transfer routines at 005A6E20/005A72F0/005A7320 share this
    receiver. The trailing direction flag is part of the record, not a global.
@@ -122,7 +122,7 @@ public:
     W8Vector<W8OptionsPanel*> m_panels;
 };
 
-static_assert(sizeof(W8OptionsPanelSet) == 0x20, "W8OptionsPanelSet_must_be_0x20");
+W8_ABI_ASSERT(sizeof(W8OptionsPanelSet) == 0x20, "W8OptionsPanelSet_must_be_0x20");
 
 /* Widgets bound to an option value; their input handlers store through the
    value pointer. */
@@ -152,9 +152,9 @@ public:
     int* m_value;
 };
 
-static_assert(sizeof(W8OptionsCheckbox) == 0xbc, "W8OptionsCheckbox_size");
-static_assert(sizeof(W8OptionsSlider) == 0x74, "W8OptionsSlider_size");
-static_assert(sizeof(W8OptionsSelection) == 0x28, "W8OptionsSelection_size");
+W8_ABI_ASSERT(sizeof(W8OptionsCheckbox) == 0xbc, "W8OptionsCheckbox_size");
+W8_ABI_ASSERT(sizeof(W8OptionsSlider) == 0x74, "W8OptionsSlider_size");
+W8_ABI_ASSERT(sizeof(W8OptionsSelection) == 0x28, "W8OptionsSelection_size");
 
 /* Common base of the concrete option panels. */
 // VTABLE: WIZ8 0x005eefa8
@@ -178,7 +178,7 @@ public:
     W8Vector<W8OptionsSelection*> m_option_selections;
 };
 
-static_assert(sizeof(W8OptionsPanel) == 0x78, "W8OptionsPanel_must_be_0x78");
+W8_ABI_ASSERT(sizeof(W8OptionsPanel) == 0x78, "W8OptionsPanel_must_be_0x78");
 
 // VTABLE: WIZ8 0x005ef174
 class W8OptionsGamePanel : public W8OptionsPanel {
@@ -265,8 +265,8 @@ public:
     W8MGSCommand m_secondary_binding;
 };
 
-static_assert(sizeof(W8OptionsButton) == 0xb8, "W8OptionsButton_size");
-static_assert(sizeof(W8OptionsKeyButton) == 0xc0, "W8OptionsKeyButton_size");
+W8_ABI_ASSERT(sizeof(W8OptionsButton) == 0xb8, "W8OptionsButton_size");
+W8_ABI_ASSERT(sizeof(W8OptionsKeyButton) == 0xc0, "W8OptionsKeyButton_size");
 
 // VTABLE: WIZ8 0x005ef034 W8OptionsPanel
 // VTABLE: WIZ8 0x005ef02c W8TextControl::Listener
@@ -337,11 +337,11 @@ public:
     int m_editing_row;
 };
 
-static_assert(sizeof(W8OptionsInterfacePanel) == 0x84, "W8OptionsInterfacePanel_size");
-static_assert(sizeof(W8OptionsAudioPanel) == 0xa0, "W8OptionsAudioPanel_size");
-static_assert(sizeof(W8OptionsGraphicsPanel) == 0x7c, "W8OptionsGraphicsPanel_size");
-static_assert(sizeof(W8OptionsKeyboardPanel) == 0xb4, "W8OptionsKeyboardPanel_size");
-static_assert(sizeof(W8OptionsSaveLoadPanel) == 0x150, "W8OptionsSaveLoadPanel_size");
+W8_ABI_ASSERT(sizeof(W8OptionsInterfacePanel) == 0x84, "W8OptionsInterfacePanel_size");
+W8_ABI_ASSERT(sizeof(W8OptionsAudioPanel) == 0xa0, "W8OptionsAudioPanel_size");
+W8_ABI_ASSERT(sizeof(W8OptionsGraphicsPanel) == 0x7c, "W8OptionsGraphicsPanel_size");
+W8_ABI_ASSERT(sizeof(W8OptionsKeyboardPanel) == 0xb4, "W8OptionsKeyboardPanel_size");
+W8_ABI_ASSERT(sizeof(W8OptionsSaveLoadPanel) == 0x150, "W8OptionsSaveLoadPanel_size");
 W8_ASSERT_BASE_END(W8OptionsInterfacePanel, W8TextControl::Listener, m_tooltip_delay, 0x7c);
 W8_ASSERT_BASE_END(W8OptionsAudioPanel, W8TextControl::Listener, m_sliders, 0x7c);
 W8_ASSERT_BASE_TAIL(W8OptionsGraphicsPanel, W8HorizontalRangeThumbListener, 0x78);
@@ -378,7 +378,7 @@ public:
     int m_item_id;
 };
 
-static_assert(sizeof(W8OptionsMenuButton) == 0xc0, "W8OptionsMenuButton_must_be_0xc0");
+W8_ABI_ASSERT(sizeof(W8OptionsMenuButton) == 0xc0, "W8OptionsMenuButton_must_be_0xc0");
 W8_ASSERT_BASE_END(W8OptionsMenuButton, W8TextControl::Listener, m_item_id, 0xb8);
 
 /* The options menu: its rows and the panel set they select. */
@@ -399,7 +399,7 @@ public:
     void UpdateMenuSet();
 };
 
-static_assert(sizeof(W8OptionsMenuSet) == 0x60, "W8OptionsMenuSet_must_be_0x60");
+W8_ABI_ASSERT(sizeof(W8OptionsMenuSet) == 0x60, "W8OptionsMenuSet_must_be_0x60");
 W8_ASSERT_BASE_END(W8OptionsMenuSet, W8TextControl::Listener, m_pMenuSet, 0x4c);
 
 // VTABLE: WIZ8 0x005ef008 W8ControlSelectionListener
@@ -438,7 +438,7 @@ public:
     W8OptionsKeyCapture* m_key_capture;
 };
 
-static_assert(sizeof(W8OptionsScreen) == 0x64, "W8OptionsScreen_must_be_0x64");
+W8_ABI_ASSERT(sizeof(W8OptionsScreen) == 0x64, "W8OptionsScreen_must_be_0x64");
 W8_ASSERT_BASE_END(W8OptionsScreen, W8DialogCloseListener, m_save_slots, 0x8);
 
 extern W8OptionsScreen* g_options_screen;

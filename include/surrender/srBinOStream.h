@@ -15,6 +15,8 @@ class
 #endif
     srBinOStream : public virtual srBinStream {
 public:
+    /* The DLL build uses compiler-generated special members. Native clients use
+       the same members; the Windows import declarations remain unchanged. */
 #if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srBinOStream();
     SR_DLL_IMPORT srBinOStream(const srBinOStream& stream);
@@ -23,18 +25,18 @@ public:
 #endif
 
     SR_DLL_IMPORT srBinOStream& putChar(char value);
-    SR_DLL_IMPORT srBinOStream& putDWord(unsigned long value);
+    SR_DLL_IMPORT srBinOStream& putDWord(w8_ulong value);
     SR_DLL_IMPORT srBinOStream& putDouble(double value);
     SR_DLL_IMPORT srBinOStream& putFloat(float value);
     SR_DLL_IMPORT srBinOStream& putQWord(srQuadWord value);
     SR_DLL_IMPORT srBinOStream& putWord(unsigned short value);
-    SR_DLL_IMPORT srBinOStream& write(const void* source, unsigned long size);
+    SR_DLL_IMPORT srBinOStream& write(const void* source, w8_ulong size);
 
 protected:
     virtual SR_DLL_IMPORT unsigned short vput(char value);
 
 private:
-    virtual unsigned long vwrite(const void* source, unsigned long size) = 0;
+    virtual w8_ulong vwrite(const void* source, w8_ulong size) = 0;
 };
 
 // Memory-backed output stream.
@@ -59,18 +61,18 @@ public:
 #endif
 
     void* getPtr();
-    virtual unsigned long getSize() override;
-    virtual srBinStream& seek(unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual srBinStream& seek(unsigned long position) override;
-    virtual unsigned long tell() override;
+    virtual w8_ulong getSize() override;
+    virtual srBinStream& seek(w8_ulong position, srBinStream::e_seekDir direction) override;
+    virtual srBinStream& seek(w8_ulong position) override;
+    virtual w8_ulong tell() override;
 
 private:
-    virtual unsigned long vwrite(const void* source, unsigned long size) override;
+    virtual w8_ulong vwrite(const void* source, w8_ulong size) override;
 
     srArray<unsigned char> buffer;
-    unsigned long position0;
-    unsigned long size;
+    w8_ulong position0;
+    w8_ulong size;
 };
 
-static_assert(sizeof(srBinOStream) == 0x18, "srBinOStream_must_be_0x18");
-static_assert(sizeof(srBinOMStream) == 0x2c, "srBinOMStream_must_be_0x2c");
+W8_ABI_ASSERT(sizeof(srBinOStream) == 0x18, "srBinOStream_must_be_0x18");
+W8_ABI_ASSERT(sizeof(srBinOMStream) == 0x2c, "srBinOMStream_must_be_0x2c");

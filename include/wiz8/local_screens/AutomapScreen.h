@@ -16,7 +16,7 @@ struct W8AutomapNote {
     int layer;
     wchar_t* text;
 };
-static_assert(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
+W8_ABI_ASSERT(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
 
 extern W8Vector<W8AutomapNote*>* g_automap_notes;
 extern W8MainUiMode g_ui_mode_current;

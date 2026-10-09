@@ -33,4 +33,4 @@ private:
     unsigned char m_padding_025[3];
 };
 
-static_assert(sizeof(W8IntervalGate) == 0x28, "W8IntervalGate_must_be_0x28");
+W8_ABI_ASSERT(sizeof(W8IntervalGate) == 0x28, "W8IntervalGate_must_be_0x28");

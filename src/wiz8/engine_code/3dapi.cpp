@@ -236,14 +236,14 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     if (world->octree == 0 || world->octree->GetMeshCount() == 0) {
         world->psrMeshes = 0;
     } else {
-        unsigned long mesh_count = world->octree->GetMeshCount();
+        w8_ulong mesh_count = world->octree->GetMeshCount();
         world->psrMeshes =
             static_cast<srModelInstance**>(malloc((mesh_count + 1) * sizeof(srModelInstance*)));
         if (world->psrMeshes == 0) {
             srAssertFail("pWorld->psrMeshes", THREE_D_API_CPP, 0x1be,
                          "LoadWorld: Couldn't allocate psrMeshes.");
         }
-        for (unsigned long index = 0; index <= mesh_count; ++index) {
+        for (w8_ulong index = 0; index <= mesh_count; ++index) {
             world->psrMeshes[index] = 0;
         }
         strcpy(level_path, pvl_path);
@@ -802,7 +802,7 @@ unsigned char ForwardLoadWorld(W8World* world, char* level_file_name, const char
 /* Report a failed assertion with no message of its own, so the expression and
    the site are all the caller has to give. */
 // FUNCTION: WIZ8 0x00450780
-void ReportAssertion(const char* expression, const char* source_path, long line)
+void ReportAssertion(const char* expression, const char* source_path, w8_long line)
 {
     srAssertFail(expression, source_path, line, 0);
 }

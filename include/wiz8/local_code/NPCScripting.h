@@ -77,38 +77,38 @@ static_assert(offsetof(W8NpcScriptingState, voice_playing) == 0x71,
               "W8NpcScriptingState_voice_playing_offset");
 static_assert(offsetof(W8NpcScriptingState, script_file) == 0x78,
               "W8NpcScriptingState_script_file_offset");
-static_assert(offsetof(W8NpcScriptingState, npc) == 0x7c, "W8NpcScriptingState_npc_offset");
-static_assert(offsetof(W8NpcScriptingState, voice_handle) == 0x80,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, npc) == 0x7c, "W8NpcScriptingState_npc_offset");
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, voice_handle) == 0x80,
               "W8NpcScriptingState_voice_handle_offset");
-static_assert(offsetof(W8NpcScriptingState, message_duration_ms) == 0x84,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, message_duration_ms) == 0x84,
               "W8NpcScriptingState_message_duration_ms_offset");
-static_assert(offsetof(W8NpcScriptingState, message_started_at) == 0x88,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, message_started_at) == 0x88,
               "W8NpcScriptingState_message_started_at_offset");
-static_assert(offsetof(W8NpcScriptingState, message_lines) == 0x8c,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, message_lines) == 0x8c,
               "W8NpcScriptingState_message_lines_offset");
-static_assert(offsetof(W8NpcScriptingState, pending_script_values) == 0x9c,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, pending_script_values) == 0x9c,
               "W8NpcScriptingState_pending_script_values_offset");
-static_assert(offsetof(W8NpcScriptingState, gap_track) == 0xac,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, gap_track) == 0xac,
               "W8NpcScriptingState_gap_track_offset");
-static_assert(offsetof(W8NpcScriptingState, last_tick) == 0xc0,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, last_tick) == 0xc0,
               "W8NpcScriptingState_last_tick_offset");
-static_assert(offsetof(W8NpcScriptingState, dialogue_cancelled) == 0xc4,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, dialogue_cancelled) == 0xc4,
               "W8NpcScriptingState_dialogue_cancelled_offset");
-static_assert(offsetof(W8NpcScriptingState, restore_staged_session) == 0xc5,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, restore_staged_session) == 0xc5,
               "W8NpcScriptingState_restore_staged_session_offset");
-static_assert(offsetof(W8NpcScriptingState, portrait_message_active) == 0xc6,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, portrait_message_active) == 0xc6,
               "W8NpcScriptingState_portrait_message_active_offset");
-static_assert(offsetof(W8NpcScriptingState, scripted_scene_active) == 0xc7,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, scripted_scene_active) == 0xc7,
               "W8NpcScriptingState_scripted_scene_active_offset");
-static_assert(offsetof(W8NpcScriptingState, sedexus_release_pending) == 0xc8,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, sedexus_release_pending) == 0xc8,
               "W8NpcScriptingState_sedexus_release_pending_offset");
-static_assert(offsetof(W8NpcScriptingState, sedexus_capture_pending) == 0xc9,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, sedexus_capture_pending) == 0xc9,
               "W8NpcScriptingState_sedexus_capture_pending_offset");
-static_assert(offsetof(W8NpcScriptingState, sedexus_capture_active) == 0xca,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, sedexus_capture_active) == 0xca,
               "W8NpcScriptingState_sedexus_capture_active_offset");
-static_assert(offsetof(W8NpcScriptingState, stopping_voice_playback) == 0xcb,
+W8_ABI_ASSERT(offsetof(W8NpcScriptingState, stopping_voice_playback) == 0xcb,
               "W8NpcScriptingState_stopping_voice_playback_offset");
-static_assert(sizeof(W8NpcScriptingState) == 0xcc, "W8NpcScriptingState_size");
+W8_ABI_ASSERT(sizeof(W8NpcScriptingState) == 0xcc, "W8NpcScriptingState_size");
 
 extern W8NpcScriptingState g_npc_scripting;
 extern bool g_message_queue_idle;

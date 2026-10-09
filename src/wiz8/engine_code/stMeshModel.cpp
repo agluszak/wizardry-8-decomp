@@ -30,7 +30,7 @@ int g_decompressed_mesh_bytes;
 /* Active-polygon scratch for the optional software backface pass in
    RenderTriMeshWithEquations. Layout matches srHeapBuffer<ulong>. */
 // GLOBAL: WIZ8 0x00659ce0
-srHeapBuffer<unsigned long> g_software_cull_active_polygons;
+srHeapBuffer<w8_ulong> g_software_cull_active_polygons;
 
 /* Byte budget for the decompressed per-frame caches; AllocateFrameBuffers
    reclaims least-recently-used frames past it. */
@@ -45,7 +45,7 @@ static float s_compressed_normal_table[256];
 static bool s_compressed_normal_table_ready;
 
 // FUNCTION: WIZ8 0x00470B00
-stMeshModel::stMeshModel(long polygons, long vertices)
+stMeshModel::stMeshModel(w8_long polygons, w8_long vertices)
     : srClassSupport<stMeshModel, srMeshModel, false, 0x10003>(0, 0), skin_table_ids(5),
       skin_texture_tables(5), skin_table_names(5), mapped_values(5), mapped_keys(5)
 {
@@ -438,7 +438,7 @@ void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& mesh,
                                              const srVector3T<float>* arg_poly_equations)
 {
-    unsigned long active_count = 0;
+    w8_ulong active_count = 0;
     srShader shader;
 
     if (mesh.polygon_count != 0 && mesh.vertex_count != 0) {
@@ -454,8 +454,8 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
         } else if (arg_poly_equations != 0) {
             renderer.setCullMode(srGERD::CULL_NONE);
 
-            g_software_cull_active_polygons.setCapacity(
-                static_cast<unsigned long>(mesh.polygon_count), 1);
+            g_software_cull_active_polygons.setCapacity(static_cast<w8_ulong>(mesh.polygon_count),
+                                                        1);
 
             srMatrix4T<float> inverse_model_view;
             renderer.getInverseModelViewMatrix(inverse_model_view);
@@ -464,7 +464,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 
             if (mesh.active_polygons == 0) {
                 if (renderer.getWinding() == srGERD::WINDING_POSITIONAL_0) {
-                    for (long polygon = 0; polygon < mesh.polygon_count; ++polygon) {
+                    for (w8_long polygon = 0; polygon < mesh.polygon_count; ++polygon) {
                         int vertex = mesh.poly_vertices[polygon].y;
                         const srVector3T<float>& position = mesh.positions[vertex];
                         const srVector3T<float>& equation = arg_poly_equations[polygon];
@@ -473,12 +473,12 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                                        (eye.z - position.z) * equation.z;
                         if (static_cast<float>(g_double_zero) <= facing) {
                             g_software_cull_active_polygons.data[active_count] =
-                                static_cast<unsigned long>(polygon);
+                                static_cast<w8_ulong>(polygon);
                             ++active_count;
                         }
                     }
                 } else {
-                    for (long polygon = 0; polygon < mesh.polygon_count; ++polygon) {
+                    for (w8_long polygon = 0; polygon < mesh.polygon_count; ++polygon) {
                         int vertex = mesh.poly_vertices[polygon].y;
                         const srVector3T<float>& position = mesh.positions[vertex];
                         const srVector3T<float>& equation = arg_poly_equations[polygon];
@@ -487,14 +487,14 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                                        (eye.z - position.z) * equation.z;
                         if (facing <= static_cast<float>(g_double_zero)) {
                             g_software_cull_active_polygons.data[active_count] =
-                                static_cast<unsigned long>(polygon);
+                                static_cast<w8_ulong>(polygon);
                             ++active_count;
                         }
                     }
                 }
             } else if (renderer.getWinding() == srGERD::WINDING_POSITIONAL_0) {
-                for (long index = 0; index < mesh.active_polygon_count; ++index) {
-                    unsigned long polygon = mesh.active_polygons[index];
+                for (w8_long index = 0; index < mesh.active_polygon_count; ++index) {
+                    w8_ulong polygon = mesh.active_polygons[index];
                     int vertex = mesh.poly_vertices[polygon].y;
                     const srVector3T<float>& position = mesh.positions[vertex];
                     const srVector3T<float>& equation = arg_poly_equations[polygon];
@@ -507,8 +507,8 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     }
                 }
             } else {
-                for (long index = 0; index < mesh.active_polygon_count; ++index) {
-                    unsigned long polygon = mesh.active_polygons[index];
+                for (w8_long index = 0; index < mesh.active_polygon_count; ++index) {
+                    w8_ulong polygon = mesh.active_polygons[index];
                     int vertex = mesh.poly_vertices[polygon].y;
                     const srVector3T<float>& position = mesh.positions[vertex];
                     const srVector3T<float>& equation = arg_poly_equations[polygon];
@@ -530,9 +530,9 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                 srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
                 pipeline->sort_bias = mesh.sort_bias;
                 pipeline->triangles = mesh.poly_vertices;
-                pipeline->triangle_count = static_cast<unsigned long>(mesh.polygon_count);
+                pipeline->triangle_count = static_cast<w8_ulong>(mesh.polygon_count);
                 pipeline->positions = mesh.positions;
-                pipeline->vertex_count = static_cast<unsigned long>(mesh.vertex_count);
+                pipeline->vertex_count = static_cast<w8_ulong>(mesh.vertex_count);
                 pipeline->vertex_extras = mesh.normals;
 
                 if (arg_poly_equations != 0) {
@@ -562,7 +562,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     pipeline->bounds_source = srTriMeshPipeline::BOUNDS_SPHERE;
                 }
 
-                for (long pass = 0; pass < mesh.pass_count; ++pass) {
+                for (w8_long pass = 0; pass < mesh.pass_count; ++pass) {
                     pipeline->current_record->flags = 0;
                     pipeline->current_pass->shaders = 0;
                     pipeline->current_pass->texture_tables[0] = 0;
@@ -647,10 +647,10 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
    CopyDwordBuffer (vp memcopy + self-copy guard). Retail tests the
    count before the loop's own guard. */
 // FUNCTION: WIZ8 0x004747f0
-void CopyUlongBuffer(unsigned long* destination, const unsigned long* source, unsigned long count)
+void CopyUlongBuffer(w8_ulong* destination, const w8_ulong* source, w8_ulong count)
 {
     if (count != 0) {
-        for (unsigned long index = 0; index < count; ++index) {
+        for (w8_ulong index = 0; index < count; ++index) {
             destination[index] = source[index];
         }
     }
@@ -716,7 +716,7 @@ void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* exclu
         automap_polygons = 0;
     }
     automap_polygon_count = 0;
-    automap_polygons = new unsigned long[polygon_count];
+    automap_polygons = new w8_ulong[polygon_count];
     automap_filter_active = true;
     srPtr<srTextureIFace>* texture = getPolyTexture(0, 0, 0);
     if (texture) {
@@ -760,7 +760,7 @@ void stMeshModel::ClearAutomapPolygonFilter()
    "blank"; the -1 table is the automap filter built by
    ApplyAutomapPolygonFilter. */
 // FUNCTION: WIZ8 0x00473CD0
-unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool flag)
+w8_ulong* stMeshModel::GetActivePolygons(w8_long* count_out, int table, bool flag)
 {
     int index = -1;
     for (int i = 0; i < skin_table_ids.GetCount(); ++i) {
@@ -770,7 +770,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
         }
     }
 
-    unsigned long* list;
+    w8_ulong* list;
     unsigned char checked;
     if (index >= 0) {
         if (skin_blanking_apt == 0) {
@@ -794,7 +794,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
     }
 
     *count_out = 0;
-    unsigned long* fresh = new unsigned long[polygon_count];
+    w8_ulong* fresh = new w8_ulong[polygon_count];
     srPtr<srTextureIFace>* textures = 0;
     if (index < 0) {
         automap_filter_active = true;
@@ -1055,7 +1055,7 @@ unsigned char ReclaimDecompressedBytes(unsigned int needed)
     unsigned int released = 0;
     while (released < needed) {
         stMeshModel* oldest = 0;
-        unsigned long oldest_tick = 0xffffffff;
+        w8_ulong oldest_tick = 0xffffffff;
         for (int index = 0; index < g_mesh_models.GetCount(); ++index) {
             stMeshModel* model = *g_mesh_models.GetAt(index);
             if (model == 0) {
@@ -1136,7 +1136,7 @@ int stMeshModel::CreateSkinTable(const char* name, int base_table)
     skin_table_names.Add(copied_name);
 
     if (skin_blanking_apt == 0) {
-        skin_blanking_apt = new W8GrowableVector<unsigned long*>;
+        skin_blanking_apt = new W8GrowableVector<w8_ulong*>;
         if (skin_blanking_apt == 0) {
             srAssertFail("m_plsSkinBlankingAPT",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x5cd, 0);
@@ -1178,7 +1178,7 @@ void stMeshModel::RemoveSkinTable(int index)
     skin_table_names.RemoveAt(index);
     skin_table_ids.RemoveAt(index);
 
-    unsigned long* apt = *skin_blanking_apt->GetAt(index);
+    w8_ulong* apt = *skin_blanking_apt->GetAt(index);
     if (apt != 0) {
         delete apt;
     }
@@ -1439,7 +1439,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
     }
 
     srVector3T<float>* vnorm = new srVector3T<float>[vertex_location_count];
-    unsigned long* shade_index = getVertexShadeIndex(0);
+    w8_ulong* shade_index = getVertexShadeIndex(0);
     if (vnorm == 0) {
         srAssertFail("vnorm", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x4db, 0);
     }
@@ -1686,7 +1686,7 @@ void srTriMeshPipeline::FlushSlots()
         culler_input.clip_mask = 0;
     } else {
         float depth;
-        unsigned long clip_mask = srTriangleCuller::getClipMask(
+        w8_ulong clip_mask = srTriangleCuller::getClipMask(
             eye_center, eye_radius, clip_planes.planes, clip_planes.mask, depth);
         int retain_clip_mask =
             clip_mask != 0 && ((clip_mask & 0xffffffc0UL) != 0 ||
@@ -1704,14 +1704,14 @@ void srTriMeshPipeline::FlushSlots()
     ++srCore.getStatisticsManager()->statistics.meshes_submitted;
     srCore.getStatisticsManager()->statistics.vertices_submitted += slot_count * vertex_count;
 
-    unsigned long total = active_triangles == 0 ? triangle_count : active_triangle_count;
-    unsigned long batch_limit = total;
+    w8_ulong total = active_triangles == 0 ? triangle_count : active_triangle_count;
+    w8_ulong batch_limit = total;
     if ((this->flags & LIMIT_VERTEX_BATCHES) != 0) {
         double ratio = static_cast<double>(vertex_count) / triangle_count;
         if (ratio > 3.0f) {
             ratio = 3.0f;
         }
-        batch_limit = static_cast<unsigned long>(1300.0f / (slot_count * ratio));
+        batch_limit = static_cast<w8_ulong>(1300.0f / (slot_count * ratio));
         if (cull_mode == srGERD::CULL_NONE) {
             batch_limit >>= 1;
         }
@@ -1720,15 +1720,15 @@ void srTriMeshPipeline::FlushSlots()
         }
     }
 
-    unsigned long* scratch = culler_scratch.ensure(batch_limit + vertex_count * 2);
+    w8_ulong* scratch = culler_scratch.ensure(batch_limit + vertex_count * 2);
     srTriangleCuller::Output culler_output;
     culler_output.indices = scratch;
     culler_output.avt = scratch + batch_limit;
     culler_output.vertex_remap = culler_output.avt + vertex_count;
 
-    unsigned long processed = 0;
+    w8_ulong processed = 0;
     while (processed < total) {
-        unsigned long batch_count = total - processed;
+        w8_ulong batch_count = total - processed;
         if (batch_count > batch_limit) {
             batch_count = batch_limit;
         }
@@ -1759,8 +1759,8 @@ void srTriMeshPipeline::FlushSlots()
             srVertexArray* vertex_arrays = &this->vertex_arrays[0];
             renderer->allocVertexArray(vertex_arrays[0], slot_count * culler_output.vertex_count);
 
-            for (unsigned long slot = 1; slot < slot_count; ++slot) {
-                unsigned long offset = slot * culler_output.vertex_count;
+            for (w8_ulong slot = 1; slot < slot_count; ++slot) {
+                w8_ulong offset = slot * culler_output.vertex_count;
                 vertex_arrays[slot].eye_locations = vertex_arrays[0].eye_locations + offset;
                 vertex_arrays[slot].diffuse = vertex_arrays[0].diffuse + offset;
                 vertex_arrays[slot].specular = vertex_arrays[0].specular + offset;
@@ -1771,7 +1771,7 @@ void srTriMeshPipeline::FlushSlots()
                 vertex_arrays[slot].attributes = vertex_arrays[0].attributes + offset;
             }
 
-            unsigned long processor_count = this->renderer->getVertexProcessorCount();
+            w8_ulong processor_count = this->renderer->getVertexProcessorCount();
             srVertexProcessor** processors = 0;
             if (processor_count != 0) {
                 processors = vertex_processors.ensure(processor_count);
@@ -1786,7 +1786,7 @@ void srTriMeshPipeline::FlushSlots()
             this->renderer->getAmbientLight(ambient_light);
             this->renderer->getEnvironmentRange(environment_minimum, environment_maximum);
             this->renderer->getEnvironmentScaleFactor(environment_scale, environment_inverse_scale);
-            unsigned long exclusion_mask = this->renderer->getExclusionMask();
+            w8_ulong exclusion_mask = this->renderer->getExclusionMask();
 
             srVertexPipe::Input pipe_input;
             pipe_input.record_count = slot_count;
@@ -1811,21 +1811,21 @@ void srTriMeshPipeline::FlushSlots()
             pipe_input.environment_inverse_scale = environment_inverse_scale;
 
             if (active_triangles == 0 && processed != 0) {
-                for (unsigned long index = 0; index < batch_count; ++index) {
+                for (w8_ulong index = 0; index < batch_count; ++index) {
                     culler_output.indices[index] += processed;
                 }
             }
 
-            unsigned long renderer_disable_mask = 0;
+            w8_ulong renderer_disable_mask = 0;
             if (this->renderer->getMaxTextureStages() == 1) {
                 renderer_disable_mask = (1UL << srVertexProcessor::CHANNEL_ST1) |
                                         (1UL << srVertexProcessor::CHANNEL_Q1);
             }
 
-            for (unsigned long pass_index = 0; pass_index < slot_count; ++pass_index) {
+            for (w8_ulong pass_index = 0; pass_index < slot_count; ++pass_index) {
                 passes[pass_index].texcoords = records[pass_index].st0;
 
-                unsigned long disable_mask;
+                w8_ulong disable_mask;
                 if (passes[pass_index].shaders != 0) {
                     srFlags<srVertexProcessor::e_channel> flags =
                         srVertexPipe::getShaderDisableMask(passes[pass_index].shaders,

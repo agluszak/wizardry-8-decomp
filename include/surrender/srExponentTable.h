@@ -41,14 +41,14 @@ protected:
     srCachedExponentTable(float exponent = 1.0f);
     ~srCachedExponentTable();
 
-    long ref_count;
+    w8_long ref_count;
     srCachedExponentTable* previous;
     srCachedExponentTable* next;
 
     static srCachedExponentTable* first;
     static srCachedExponentTable* lastResult;
-    static long count;
+    static w8_long count;
     static float lastQuery;
 };
 
-static_assert((sizeof(srCachedExponentTable) == 0x1010), "srCachedExponentTable_must_be_0x1010");
+W8_ABI_ASSERT((sizeof(srCachedExponentTable) == 0x1010), "srCachedExponentTable_must_be_0x1010");

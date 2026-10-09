@@ -658,11 +658,11 @@ typedef LPVOID AILLPDIRECTSOUNDBUFFER;
 #endif
 
 #ifndef U32
-#define U32 unsigned long
+#define U32 w8_ulong
 #endif
 
 #ifndef S32
-#define S32 signed long
+#define S32 w8_long
 #endif
 
 #ifndef F32
@@ -674,7 +674,7 @@ typedef LPVOID AILLPDIRECTSOUNDBUFFER;
 #endif
 
 #ifndef REALFAR
-#define REALFAR unsigned long
+#define REALFAR w8_ulong
 #endif
 
 #ifndef FILE_ERRS
@@ -1987,7 +1987,7 @@ typedef void* LPSTR;
 #define WHDR_DONE 0
 
 typedef struct _WAVEIN {
-    long temp;
+    w8_long temp;
 }* HWAVEIN;
 
 typedef struct _WAVEHDR {
@@ -2453,8 +2453,8 @@ typedef struct _MDI_DRIVER // Handle to XMIDI driver
     HMDIDRIVER next;          // Pointer to next HMDIDRIVER in use
     HMIDIOUT hMidiOut;        // MIDI output driver
     U32 last_us_time;
-    long period_counter;
-    long current_period_sum;
+    w8_long period_counter;
+    w8_long current_period_sum;
 #endif
 #endif
 
@@ -2879,13 +2879,13 @@ typedef struct MSS_VersionType_ {
 
 #define AIL_MSS_version(str, len)                                                                  \
     {                                                                                              \
-        long _res = OpenResFile("\pMiles Shared Library");                                         \
+        w8_long _res = OpenResFile("\pMiles Shared Library");                                         \
         if (_res == -1) {                                                                          \
             str[0] = 0;                                                                            \
         } else {                                                                                   \
             Handle _H;                                                                             \
             short _Err;                                                                            \
-            long _cur = CurResFile();                                                              \
+            w8_long _cur = CurResFile();                                                              \
             UseResFile(_res);                                                                      \
             _H = GetResource('vers', 2);                                                           \
             _Err = ResError();                                                                     \

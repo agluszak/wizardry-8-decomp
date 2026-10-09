@@ -7,7 +7,7 @@
 
 #include "DEBUG.H"
 #include "FileMan.h"
-#include "Random.h"
+#include "random.h"
 #include "sgp.h"
 #include "input.h"
 #include "surrender/srCamera.h"

@@ -134,8 +134,8 @@ public:
     unsigned short last_frame; /* 0x58 */
 }; /* 0x5c */
 
-static_assert(sizeof(GDPreProp) == 0x5c, "GDPreProp_must_be_0x5c");
-static_assert(offsetof(GDPreProp, last_frame) == 0x58, "GDPreProp_last_frame");
+W8_ABI_ASSERT(sizeof(GDPreProp) == 0x5c, "GDPreProp_must_be_0x5c");
+W8_ABI_ASSERT(offsetof(GDPreProp, last_frame) == 0x58, "GDPreProp_last_frame");
 
 void AddItemToSector(int sector, W8WorldItem* item);      /* 0x004B7AD0 */
 void RemoveItemFromSector(int sector, W8WorldItem* item); /* 0x004B7B50 */

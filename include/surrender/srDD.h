@@ -11,12 +11,12 @@ class srDD;
 
 // Dynamic driver entrypoints.
 enum { SR_DD_MIN_API_VERSION = 0x128 };
-typedef unsigned long(__cdecl* srDDGetDriverApiVersionFn)();
+typedef w8_ulong(__cdecl* srDDGetDriverApiVersionFn)();
 typedef const char*(__cdecl* srDDGetDriverNameFn)();
 typedef void(__cdecl* srDDConfigureDriverFn)(const char* configuration);
-typedef unsigned long(__cdecl* srDDGetDeviceCountFn)();
-typedef const char*(__cdecl* srDDGetDeviceNameFn)(unsigned long index);
-typedef srDD*(__cdecl* srDDInitDeviceFn)(unsigned long index);
+typedef w8_ulong(__cdecl* srDDGetDeviceCountFn)();
+typedef const char*(__cdecl* srDDGetDeviceNameFn)(w8_ulong index);
+typedef srDD*(__cdecl* srDDInitDeviceFn)(w8_ulong index);
 
 /* Empty base class; its original name is unknown. */
 class srDDEmptyBase {};
@@ -26,8 +26,8 @@ public:
     /* Device palette record handed to bindPalette/deletePalette. */
     struct Palette {
         const srARGB* data;
-        unsigned long size;
-        unsigned long flags;
+        w8_ulong size;
+        w8_ulong flags;
     };
     /* Device pixel format: srPixelConvert::PixelFormat without its trailing FourCC word. */
     struct PixelFormat {
@@ -63,41 +63,41 @@ public:
             format_index = 0;
             parameter = 0;
             resident_size = 0;
-            for (long level = 0; level < 12; ++level) {
+            for (w8_long level = 0; level < 12; ++level) {
                 levels[level] = 0;
             }
         }
 
-        unsigned long flags;
+        w8_ulong flags;
         PixelFormat format;
         float priority;
-        unsigned long last_use;
-        unsigned long size;
-        unsigned long width;
-        unsigned long height;
-        unsigned long first_level;
-        unsigned long last_level;
-        unsigned long format_index;
-        unsigned long parameter;
+        w8_ulong last_use;
+        w8_ulong size;
+        w8_ulong width;
+        w8_ulong height;
+        w8_ulong first_level;
+        w8_ulong last_level;
+        w8_ulong format_index;
+        w8_ulong parameter;
         void* levels[12];
         /* Resident device-surface record and its byte size. */
-        unsigned long resident_data;
-        unsigned long resident_size;
+        w8_ulong resident_data;
+        w8_ulong resident_size;
         /* markTextureAsDeleted sets this once the texture is on the
            GERD-side deleted list. */
-        unsigned long deleted;
-        unsigned long resident;
+        w8_ulong deleted;
+        w8_ulong resident;
     };
     /* Six-dword buffer command handed to bufferOp. Opcodes: 0 lock, 1 unlock, 2 read row, 3 write
        row, 4 horizontal fill, 6 read column, 7 write column. Lock and unlock fill only the leading
        dwords. */
     struct BufferCommand {
-        unsigned long flags;
-        unsigned long opcode;
+        w8_ulong flags;
+        w8_ulong opcode;
         void* data;
-        long x;
-        long y;
-        long count;
+        w8_long x;
+        w8_long y;
+        w8_long count;
     };
     /* getDriverInfo block: the caller writes the requested API version, a capability flag and a
        debug callback; the device reports its DD API version, driver id, name and API version
@@ -105,15 +105,15 @@ public:
     struct DriverInfo {
         DriverInfo() : flags(0) {}
 
-        unsigned long api_version;
-        unsigned long flags;
+        w8_ulong api_version;
+        w8_ulong flags;
         void (*debug_write)(const char* text);
-        unsigned long dd_api_version;
-        unsigned long driver_id;
+        w8_ulong dd_api_version;
+        w8_ulong driver_id;
         char name[64];
         char api_name[64];
     };
-    static_assert(sizeof(DriverInfo) == 0x94, "srDD_DriverInfo_must_be_0x94");
+    W8_ABI_ASSERT(sizeof(DriverInfo) == 0x94, "srDD_DriverInfo_must_be_0x94");
     /* getInfo output record. The nine trailing strings are the device identity fields. */
     struct Info {
         enum { PIXEL_TEXTURE_STATISTICS = 0x10u, RELEASE_SURFACE_AFTER_BIND = 0x20u };
@@ -121,80 +121,80 @@ public:
 
         /* openWindowInternal rejects back-buffer dimensions above these
            maximums. */
-        unsigned long max_back_buffer_width;
-        unsigned long max_back_buffer_height;
+        w8_ulong max_back_buffer_width;
+        w8_ulong max_back_buffer_height;
         /* initDDInfo defaults: 4. */
-        unsigned long unknown_08_;
+        w8_ulong unknown_08_;
         /* initDDInfo defaults: 0x10. */
-        unsigned long unknown_0c_;
+        w8_ulong unknown_0c_;
         /* initDDInfo defaults: 1.0f / 65536.0f. */
         float unknown_10_;
         float unknown_14_;
         /* changeTexture tests bit 5; getDepthBufferType reads bit 3. */
-        unsigned long flags;
+        w8_ulong flags;
         /* initDDInfo defaults: 0x100; createRenderer passes it to each
            Renderer as its batch limit. */
-        unsigned long renderer_batch_limit;
+        w8_ulong renderer_batch_limit;
         /* initDDInfo defaults: 0x3b808081 / 0x200000. */
-        unsigned long unknown_20_;
+        w8_ulong unknown_20_;
         /* Device texture RAM in bytes; dumpTextureCache prints it in kB and
            treats 0 as "infinite" (no residency percentage). */
-        unsigned long texture_ram;
+        w8_ulong texture_ram;
         /* Texture-dimension clamps applied by evaluateTextureDimensions. */
-        unsigned long max_texture_stages;
-        unsigned long texture_min_dim;
-        unsigned long texture_max_dim;
-        unsigned long texture_max_aspect;
+        w8_ulong max_texture_stages;
+        w8_ulong texture_min_dim;
+        w8_ulong texture_max_dim;
+        w8_ulong texture_max_aspect;
         /* initDDInfo defaults: 1. getHardwareID result; e_hardwareID is an
            empty enum and cannot be the field type. */
-        unsigned long hardware_id;
+        w8_ulong hardware_id;
         /* Device identity strings in getter order: device name, vendor,
            platform, driver name, vendor, version, hardware chipset, name,
            vendor. */
         char text[9][0x40];
     };
-    static_assert(sizeof(Info) == 0x27c, "srDD_Info_must_be_0x27c");
+    W8_ABI_ASSERT(sizeof(Info) == 0x27c, "srDD_Info_must_be_0x27c");
     /* getStatistics output record. */
     struct Statistics {
         double texture_transfer;
         double pixels_drawn;
-        unsigned long value_10;
-        unsigned long value_14;
-        unsigned long triangles_received;
+        w8_ulong value_10;
+        w8_ulong value_14;
+        w8_ulong triangles_received;
         /* Retail GERD::getStatistics copies +0x1c into its vertex-index
            counter and +0x20 into its vertices-transferred counter; the
            Glide2x driver accumulates per-call vertex counts into +0x20. */
-        unsigned long vertex_indices;
-        unsigned long vertices_transferred;
-        unsigned long value_24;
+        w8_ulong vertex_indices;
+        w8_ulong vertices_transferred;
+        w8_ulong value_24;
     };
     /* getTextureFormats / getWindowList fill {pointer, count} out-records;
        GERD copies the pointed arrays into its own storage. */
     struct PixelFormatList {
         PixelFormat* formats;
-        long count;
+        w8_long count;
     };
     /* getDisplayMode matches {width, height, depth} triples. */
     struct WindowInfo {
-        unsigned long width;
-        unsigned long height;
-        unsigned long depth;
+        w8_ulong width;
+        w8_ulong height;
+        w8_ulong depth;
     };
-    static_assert(sizeof(WindowInfo) == 0x0c, "WindowInfo_must_be_0x0c");
+    W8_ABI_ASSERT(sizeof(WindowInfo) == 0x0c, "WindowInfo_must_be_0x0c");
     struct WindowInfoList {
         WindowInfo* entries;
-        long count;
+        w8_long count;
     };
     /* srGERD::openWindowInternal forwards the requested backbuffer size and
        display-mode index; the device reports the back-buffer count in the
        single-dword result. */
     struct OpenInfo {
-        unsigned long width;
-        unsigned long height;
-        long display_mode;
+        w8_ulong width;
+        w8_ulong height;
+        w8_long display_mode;
     };
     struct OpenResult {
-        unsigned long back_buffer_type;
+        w8_ulong back_buffer_type;
     };
     /* setClearColor clamps color, accumClear clamps accum to [-1,1] per channel and setClearDepth
        clamps depth to [0,1]. */
@@ -203,20 +203,20 @@ public:
         srVector4T<float> color;
         srVector4T<float> accum;
         double depth;
-        unsigned long stencil;
+        w8_ulong stencil;
     };
 #pragma pack(pop)
-    static_assert(sizeof(ClearValues) == 0x2c, "srDD_ClearValues_must_be_0x2c");
+    W8_ABI_ASSERT(sizeof(ClearValues) == 0x2c, "srDD_ClearValues_must_be_0x2c");
     /* Scissor rectangle {left, top, right, bottom}. */
     struct Scissor {
-        unsigned long left, top, right, bottom;
+        w8_ulong left, top, right, bottom;
     };
     /* setViewPort receives (x, y, width, height) plus four opaque trailing
        slots applyViewStateChanges copies through unchanged. */
     struct ViewPort {
-        long x, y, width, height;
+        w8_long x, y, width, height;
         /* Depth range forwarded by applyViewStateChanges. */
-        unsigned long extra[4];
+        w8_ulong extra[4];
     };
     /* Frame state handed to update(): dirty bits, gamma, a constant 1.0f, swap interval, antialias
        mode and enable bit 0. */
@@ -227,17 +227,17 @@ public:
             UPDATE_GAMMA = 0x04u,
             UPDATE_ANTIALIAS = 0x08u
         };
-        unsigned long flags;
+        w8_ulong flags;
         srVector3T<float> gamma;
         float value_10;
-        unsigned long swap_interval;
-        unsigned long antialias;
-        unsigned long enabled;
+        w8_ulong swap_interval;
+        w8_ulong antialias;
+        w8_ulong enabled;
     };
     /* srGERD::setTextureParameters repacks the texture's Parameters into
        this per-stage record and passes it to the device. */
     struct TexParms {
-        unsigned long packed;
+        w8_ulong packed;
         float mipmap_bias;
     };
 
@@ -307,14 +307,14 @@ public:
     virtual void getTextureFormats(PixelFormatList& list) = 0;
     virtual void getStatistics(Statistics& stats) = 0;
     virtual void resetStatistics() = 0;
-    virtual void extCommand(unsigned long command, void* data, unsigned long size) = 0;
+    virtual void extCommand(w8_ulong command, void* data, w8_ulong size) = 0;
     virtual int isBusy() = 0;
     virtual e_error openWindow(const OpenInfo& info, OpenResult& result) = 0;
     virtual void closeWindow() = 0;
     virtual void beginFrame() = 0;
     virtual void endFrame() = 0;
     virtual void flushFrame() = 0;
-    virtual void flipFrame(const Scissor* first, const Scissor* second, unsigned long value) = 0;
+    virtual void flipFrame(const Scissor* first, const Scissor* second, w8_ulong value) = 0;
     virtual void clearBuffers(const srFlags<e_buffer>& buffers) = 0;
     virtual e_error bufferOp(const BufferCommand& command) = 0;
     virtual void update(const Update& values) = 0;
@@ -323,31 +323,31 @@ public:
     virtual void setClearValues(const ClearValues& values) = 0;
     virtual void setFogColor(const srVector4T<float>& color) = 0;
     virtual void setShader(const srShader& shader) = 0;
-    virtual void setTextureParameters(unsigned long stage, const TexParms& parms) = 0;
-    virtual void bindTexture(unsigned long stage, Texture& texture) = 0;
+    virtual void setTextureParameters(w8_ulong stage, const TexParms& parms) = 0;
+    virtual void bindTexture(w8_ulong stage, Texture& texture) = 0;
     virtual void deleteTexture(Texture& texture) = 0;
-    virtual void texImage(Texture& texture, unsigned long level) = 0;
-    virtual void texSubImage(Texture& texture, unsigned long a, unsigned long b, unsigned long c,
-                             unsigned long d, unsigned long e) = 0;
-    virtual void setGlobalPalette(unsigned long* palette, unsigned long count) = 0;
+    virtual void texImage(Texture& texture, w8_ulong level) = 0;
+    virtual void texSubImage(Texture& texture, w8_ulong a, w8_ulong b, w8_ulong c, w8_ulong d,
+                             w8_ulong e) = 0;
+    virtual void setGlobalPalette(w8_ulong* palette, w8_ulong count) = 0;
     virtual void bindPalette(Palette& palette) = 0;
     virtual void deletePalette(Palette& palette) = 0;
-    virtual e_error createContext(unsigned long window) = 0;
+    virtual e_error createContext(w8_ulong_ptr window) = 0;
     virtual void deleteContext() = 0;
     virtual void getDriverInfo(DriverInfo& info) = 0;
     virtual void fence() = 0;
     virtual void getBufferPixelFormat(PixelFormat& format) = 0;
-    virtual void preBindTexture(unsigned long stage, Texture& texture) = 0;
+    virtual void preBindTexture(w8_ulong stage, Texture& texture) = 0;
     virtual void setPolygonMode(e_polygonMode mode) = 0;
     virtual void setCullMode(e_cullMode mode) = 0;
     virtual void setProjectionMatrix(const srMatrix4T<float>& matrix,
                                      srMatrix4T<float>::e_type type) = 0;
     virtual void setVertexArrayInfo(const srRendererDefs::VertexArrayInfo* info) = 0;
-    virtual void drawElements(srRendererDefs::e_primitive primitive, unsigned long count,
+    virtual void drawElements(srRendererDefs::e_primitive primitive, w8_ulong count,
                               srRendererDefs::e_indexType type, const void* indices) = 0;
-    virtual void drawArrays(srRendererDefs::e_primitive primitive, long first,
-                            unsigned long count) = 0;
-    virtual void setPolygonOffset(long offset) = 0;
+    virtual void drawArrays(srRendererDefs::e_primitive primitive, w8_long first,
+                            w8_ulong count) = 0;
+    virtual void setPolygonOffset(w8_long offset) = 0;
 };
 
 inline srDD::~srDD() {}
